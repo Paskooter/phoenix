@@ -28,8 +28,15 @@ export class MultiTurnNode extends JCPNode {
   }
 
   async exit(data) {
-    const nlu = data.result && data.result.nlu;
-    const asr = data.result && data.result.asr;
+    // MultiTurnNode.ts reads the action result directly. Preserve the source
+    // boundary here: an omitted result is a malformed continuation and must
+    // fail at the same field access instead of being silently reclassified as
+    // no-input. Valid no-input results carry nlu/asr objects with null values.
+    const result = data.result;
+    if (result === null) throw new TypeError("Cannot read property 'nlu' of null");
+    if (result === undefined) throw new TypeError("Cannot read property 'nlu' of undefined");
+    const nlu = result.nlu;
+    const asr = result.asr;
     if (nlu && nlu.intent) return { transition: this.successTransition, result: { asr, nlu } };
     if (asr && asr.text) return { transition: this.noMatchTransition };
     return { transition: this.noInputTransition };

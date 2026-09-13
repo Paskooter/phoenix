@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "case": "failed background DarkSky HEAD prefetch",
+  "source": {
+    "runtime": "v8.9.4",
+    "returnedUndefined": false,
+    "unhandledRejections": 1,
+    "error": {"name": "Error", "message": "Request failed with status code 503", "status": 503}
+  },
+  "candidate": {
+    "runtime": "v22.22.0",
+    "returnedUndefined": false,
+    "unhandledRejections": 0
+  },
+  "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "nodeImage": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+  "immediateReturnShapeAgrees": true,
+  "resolvedValueCompared": false,
+  "reportResponseCompared": false,
+  "exactMatrixIncluded": false,
+  "classification": "process-observable source/runtime divergence; Phoenix consumes the detached rejection",
+  "decision": "retain as an explicit open S-08 gap; do not reintroduce an unhandled rejection",
+  "authoritativeReceipts": {
+    "source": ".parity/reviews/s08-lasso-error-followup-20260906/source-prefetch-rejection.json",
+    "candidate": ".parity/reviews/s08-lasso-error-followup-20260906/candidate-prefetch-rejection.json",
+    "acceptedReview": "docs/parity/evidence/2026-09-06/service-integration/report-lasso-review.json"
+  }
+}

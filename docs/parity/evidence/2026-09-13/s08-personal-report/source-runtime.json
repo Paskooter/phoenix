@@ -1,0 +1,5821 @@
+{
+  "schemaVersion": 1,
+  "mode": "source",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "runtime": "v8.9.4",
+  "image": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+  "runnerSha256": "9eabc6d590572fa4f78944707f078d6e9f93a9d9eace37f08dd9ffc1f5d8e936",
+  "graph": [
+    {
+      "id": "reactive-all-success",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportKickOff",
+              "prompt_id": "PersonalReportKickOff_AN_22",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherIntro",
+              "prompt_id": "WeatherIntro_AN_09",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherChangeClearWet",
+              "prompt_id": "WeatherChangeClearWet_AN_17",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherTodayHighLow",
+              "prompt_id": "WeatherTodayHighLow_AN_02",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarEventToday",
+              "prompt_id": "CalendarEventToday_AN_07",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarEarlyEvent",
+              "prompt_id": "CalendarEarlyEvent_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CommuteDrivePoor",
+              "prompt_id": "CommuteDrivePoor_AN_06",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CommuteDepartTimeNotNormal",
+              "prompt_id": "CommuteDepartTimeNotNormal_AN_13",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsIntro",
+              "prompt_id": "NewsIntro_AN_02",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportOutroConfigured",
+              "prompt_id": "PersonalReportOutroConfigured_AN_01",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              },
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "weather,calendar,commute,news",
+                  "service_details": "weather=up,calendar=up,commute=up,news=up",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "GetData",
+            "GotData",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              },
+              "userPrefsConfigured": null
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": [
+          {
+            "name": "calendar",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "commute",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "news",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reactive-weather-news",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportKickOff",
+              "prompt_id": "PersonalReportKickOff_AN_22",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherIntro",
+              "prompt_id": "WeatherIntro_AN_09",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherChangeClearWet",
+              "prompt_id": "WeatherChangeClearWet_AN_17",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherTodayHighLow",
+              "prompt_id": "WeatherTodayHighLow_AN_02",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsIntro",
+              "prompt_id": "NewsIntro_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportOutroConfigured",
+              "prompt_id": "PersonalReportOutroConfigured_AN_20",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              },
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "weather,news",
+                  "service_details": "weather=up,news=up",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "GetData",
+            "GotData",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "Off",
+            "Off",
+            "On",
+            "Done",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              },
+              "userPrefsConfigured": null
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": [
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "news",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reactive-no-prefs-default",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportKickOffNonPersonal",
+              "prompt_id": "PersonalReportKickOffNonPersonal_AN_02",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherIntro",
+              "prompt_id": "WeatherIntro_AN_09",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherChangeClearWet",
+              "prompt_id": "WeatherChangeClearWet_AN_17",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherTodayHighLow",
+              "prompt_id": "WeatherTodayHighLow_AN_02",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsIntro",
+              "prompt_id": "NewsIntro_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportOutroNotConfigured",
+              "prompt_id": "PersonalReportOutroNotConfigured_AN_12",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              },
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "weather,news",
+                  "service_details": "weather=up,news=up",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "GetData",
+            "GotData",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "Off",
+            "Off",
+            "On",
+            "Done",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              },
+              "userPrefsConfigured": null
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": [
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "news",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reactive-settings-error-default",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportSettingsFailed",
+              "prompt_id": "PersonalReportSettingsFailed_AN_02",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherIntro",
+              "prompt_id": "WeatherIntro_AN_09",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherChangeClearWet",
+              "prompt_id": "WeatherChangeClearWet_AN_17",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherTodayHighLow",
+              "prompt_id": "WeatherTodayHighLow_AN_02",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsIntro",
+              "prompt_id": "NewsIntro_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportOutroConfigured",
+              "prompt_id": "PersonalReportOutroConfigured_AN_20",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              },
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "weather,news",
+                  "service_details": "weather=up,news=up",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "GetData",
+            "GotData",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "Off",
+            "Off",
+            "On",
+            "Done",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              }
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": [
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "news",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reactive-weather-failure",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportKickOff",
+              "prompt_id": "PersonalReportKickOff_AN_22",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherServiceDown",
+              "prompt_id": "WeatherServiceDown_AN_03",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsIntro",
+              "prompt_id": "NewsIntro_AN_04",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportOutroConfigured",
+              "prompt_id": "PersonalReportOutroConfigured_AN_09",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              },
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "weather,news",
+                  "service_details": "weather=down,news=up",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "GetData",
+            "GotData",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "Off",
+            "Off",
+            "On",
+            "Done",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              },
+              "userPrefsConfigured": null
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": [
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "news",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reactive-calendar-failure",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportKickOff",
+              "prompt_id": "PersonalReportKickOff_AN_22",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportAllServicesDown",
+              "prompt_id": "PersonalReportAllServicesDown_AN_04",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "GetData",
+            "AllServicesDown",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              },
+              "userPrefsConfigured": null
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": [
+          {
+            "name": "calendar",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reactive-commute-failure",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportKickOff",
+              "prompt_id": "PersonalReportKickOff_AN_22",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CommuteServiceDown",
+              "prompt_id": "CommuteServiceDown_AN_03",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportOutroConfigured",
+              "prompt_id": "PersonalReportOutroConfigured_AN_21",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              },
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "commute",
+                  "service_details": "commute=down",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "GetData",
+            "GotData",
+            "Done",
+            "Off",
+            "Off",
+            "On",
+            "Done",
+            "Done",
+            "Off",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              },
+              "userPrefsConfigured": null
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": [
+          {
+            "name": "commute",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reactive-news-failure",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportKickOff",
+              "prompt_id": "PersonalReportKickOff_AN_22",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherIntro",
+              "prompt_id": "WeatherIntro_AN_09",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherChangeClearWet",
+              "prompt_id": "WeatherChangeClearWet_AN_17",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherTodayHighLow",
+              "prompt_id": "WeatherTodayHighLow_AN_02",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsServiceDown",
+              "prompt_id": "NewsServiceDown_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportOutroConfigured",
+              "prompt_id": "PersonalReportOutroConfigured_AN_01",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              },
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "weather,news",
+                  "service_details": "weather=up,news=down",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "GetData",
+            "GotData",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "Off",
+            "Off",
+            "On",
+            "Done",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              },
+              "userPrefsConfigured": null
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": [
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "news",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reactive-weather-calendar-failure",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportKickOff",
+              "prompt_id": "PersonalReportKickOff_AN_22",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherServiceDown",
+              "prompt_id": "WeatherServiceDown_AN_03",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarServiceDown",
+              "prompt_id": "CalendarServiceDown_AN_04",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CommuteNow",
+              "prompt_id": "CommuteNow_AN_02",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsIntro",
+              "prompt_id": "NewsIntro_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportOutroConfigured",
+              "prompt_id": "PersonalReportOutroConfigured_AN_09",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              },
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "weather,calendar,commute,news",
+                  "service_details": "weather=down,calendar=down,commute=up,news=up",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "GetData",
+            "GotData",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              },
+              "userPrefsConfigured": null
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": [
+          {
+            "name": "calendar",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "commute",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "news",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reactive-weather-commute-failure",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportKickOff",
+              "prompt_id": "PersonalReportKickOff_AN_22",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherServiceDown",
+              "prompt_id": "WeatherServiceDown_AN_03",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarEventToday",
+              "prompt_id": "CalendarEventToday_AN_12",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarEarlyEvent",
+              "prompt_id": "CalendarEarlyEvent_AN_04",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CommuteServiceDown",
+              "prompt_id": "CommuteServiceDown_AN_02",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsIntro",
+              "prompt_id": "NewsIntro_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportOutroConfigured",
+              "prompt_id": "PersonalReportOutroConfigured_AN_20",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              },
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "weather,calendar,commute,news",
+                  "service_details": "weather=down,calendar=up,commute=down,news=up",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "GetData",
+            "GotData",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              },
+              "userPrefsConfigured": null
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": [
+          {
+            "name": "calendar",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "commute",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "news",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reactive-weather-news-failure",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportKickOff",
+              "prompt_id": "PersonalReportKickOff_AN_22",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherServiceDown",
+              "prompt_id": "WeatherServiceDown_AN_03",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarEventToday",
+              "prompt_id": "CalendarEventToday_AN_12",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarEarlyEvent",
+              "prompt_id": "CalendarEarlyEvent_AN_04",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CommuteDrivePoor",
+              "prompt_id": "CommuteDrivePoor_AN_03",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CommuteDepartTimeNotNormal",
+              "prompt_id": "CommuteDepartTimeNotNormal_AN_08",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsServiceDown",
+              "prompt_id": "NewsServiceDown_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportOutroConfigured",
+              "prompt_id": "PersonalReportOutroConfigured_AN_09",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              },
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "weather,calendar,commute,news",
+                  "service_details": "weather=down,calendar=up,commute=up,news=down",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "GetData",
+            "GotData",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              },
+              "userPrefsConfigured": null
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": [
+          {
+            "name": "calendar",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "commute",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "news",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reactive-calendar-commute-failure",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportKickOff",
+              "prompt_id": "PersonalReportKickOff_AN_22",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherIntro",
+              "prompt_id": "WeatherIntro_AN_09",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherChangeClearWet",
+              "prompt_id": "WeatherChangeClearWet_AN_17",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherTodayHighLow",
+              "prompt_id": "WeatherTodayHighLow_AN_02",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarServiceDown",
+              "prompt_id": "CalendarServiceDown_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CommuteServiceDown",
+              "prompt_id": "CommuteServiceDown_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsIntro",
+              "prompt_id": "NewsIntro_AN_03",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportOutroConfigured",
+              "prompt_id": "PersonalReportOutroConfigured_AN_09",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              },
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "weather,calendar,commute,news",
+                  "service_details": "weather=up,calendar=down,commute=down,news=up",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "GetData",
+            "GotData",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              },
+              "userPrefsConfigured": null
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": [
+          {
+            "name": "calendar",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "commute",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "news",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reactive-calendar-news-failure",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportKickOff",
+              "prompt_id": "PersonalReportKickOff_AN_22",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherIntro",
+              "prompt_id": "WeatherIntro_AN_09",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherChangeClearWet",
+              "prompt_id": "WeatherChangeClearWet_AN_17",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherTodayHighLow",
+              "prompt_id": "WeatherTodayHighLow_AN_02",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarServiceDown",
+              "prompt_id": "CalendarServiceDown_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CommuteNow",
+              "prompt_id": "CommuteNow_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsServiceDown",
+              "prompt_id": "NewsServiceDown_AN_03",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportOutroConfigured",
+              "prompt_id": "PersonalReportOutroConfigured_AN_18",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              },
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "weather,calendar,commute,news",
+                  "service_details": "weather=up,calendar=down,commute=up,news=down",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "GetData",
+            "GotData",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              },
+              "userPrefsConfigured": null
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": [
+          {
+            "name": "calendar",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "commute",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "news",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reactive-commute-news-failure",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportKickOff",
+              "prompt_id": "PersonalReportKickOff_AN_22",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherIntro",
+              "prompt_id": "WeatherIntro_AN_09",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherChangeClearWet",
+              "prompt_id": "WeatherChangeClearWet_AN_17",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherTodayHighLow",
+              "prompt_id": "WeatherTodayHighLow_AN_02",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarEventToday",
+              "prompt_id": "CalendarEventToday_AN_07",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarEarlyEvent",
+              "prompt_id": "CalendarEarlyEvent_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CommuteServiceDown",
+              "prompt_id": "CommuteServiceDown_AN_03",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsServiceDown",
+              "prompt_id": "NewsServiceDown_AN_04",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportOutroConfigured",
+              "prompt_id": "PersonalReportOutroConfigured_AN_09",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              },
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "weather,calendar,commute,news",
+                  "service_details": "weather=up,calendar=up,commute=down,news=down",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "GetData",
+            "GotData",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              },
+              "userPrefsConfigured": null
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": [
+          {
+            "name": "calendar",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "commute",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "news",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reactive-weather-calendar-commute-failure",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportKickOff",
+              "prompt_id": "PersonalReportKickOff_AN_22",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherServiceDown",
+              "prompt_id": "WeatherServiceDown_AN_03",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarServiceDown",
+              "prompt_id": "CalendarServiceDown_AN_04",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CommuteServiceDown",
+              "prompt_id": "CommuteServiceDown_AN_04",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsIntro",
+              "prompt_id": "NewsIntro_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportOutroConfigured",
+              "prompt_id": "PersonalReportOutroConfigured_AN_09",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              },
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "weather,calendar,commute,news",
+                  "service_details": "weather=down,calendar=down,commute=down,news=up",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "GetData",
+            "GotData",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              },
+              "userPrefsConfigured": null
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": [
+          {
+            "name": "calendar",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "commute",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "news",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reactive-weather-calendar-news-failure",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportKickOff",
+              "prompt_id": "PersonalReportKickOff_AN_22",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherServiceDown",
+              "prompt_id": "WeatherServiceDown_AN_03",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarServiceDown",
+              "prompt_id": "CalendarServiceDown_AN_04",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CommuteNow",
+              "prompt_id": "CommuteNow_AN_02",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsServiceDown",
+              "prompt_id": "NewsServiceDown_AN_02",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportOutroConfigured",
+              "prompt_id": "PersonalReportOutroConfigured_AN_01",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              },
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "weather,calendar,commute,news",
+                  "service_details": "weather=down,calendar=down,commute=up,news=down",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "GetData",
+            "GotData",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              },
+              "userPrefsConfigured": null
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": [
+          {
+            "name": "calendar",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "commute",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "news",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reactive-weather-commute-news-failure",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportKickOff",
+              "prompt_id": "PersonalReportKickOff_AN_22",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherServiceDown",
+              "prompt_id": "WeatherServiceDown_AN_03",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarEventToday",
+              "prompt_id": "CalendarEventToday_AN_12",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarEarlyEvent",
+              "prompt_id": "CalendarEarlyEvent_AN_04",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CommuteServiceDown",
+              "prompt_id": "CommuteServiceDown_AN_02",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsServiceDown",
+              "prompt_id": "NewsServiceDown_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportOutroConfigured",
+              "prompt_id": "PersonalReportOutroConfigured_AN_01",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              },
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "weather,calendar,commute,news",
+                  "service_details": "weather=down,calendar=up,commute=down,news=down",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "GetData",
+            "GotData",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              },
+              "userPrefsConfigured": null
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": [
+          {
+            "name": "calendar",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "commute",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "news",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reactive-calendar-commute-news-failure",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportKickOff",
+              "prompt_id": "PersonalReportKickOff_AN_22",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherIntro",
+              "prompt_id": "WeatherIntro_AN_09",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherChangeClearWet",
+              "prompt_id": "WeatherChangeClearWet_AN_17",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherTodayHighLow",
+              "prompt_id": "WeatherTodayHighLow_AN_02",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarServiceDown",
+              "prompt_id": "CalendarServiceDown_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CommuteServiceDown",
+              "prompt_id": "CommuteServiceDown_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsServiceDown",
+              "prompt_id": "NewsServiceDown_AN_03",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportOutroConfigured",
+              "prompt_id": "PersonalReportOutroConfigured_AN_18",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              },
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "weather,calendar,commute,news",
+                  "service_details": "weather=up,calendar=down,commute=down,news=down",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "GetData",
+            "GotData",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              },
+              "userPrefsConfigured": null
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": [
+          {
+            "name": "calendar",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "commute",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "news",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reactive-all-services-down",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportKickOff",
+              "prompt_id": "PersonalReportKickOff_AN_22",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportAllServicesDown",
+              "prompt_id": "PersonalReportAllServicesDown_AN_04",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "GetData",
+            "AllServicesDown",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              },
+              "userPrefsConfigured": null
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": [
+          {
+            "name": "calendar",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "commute",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "news",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "single-weather",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherIntro",
+              "prompt_id": "WeatherIntro_AN_14",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherChangeClearWet",
+              "prompt_id": "WeatherChangeClearWet_AN_17",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherTodayHighLow",
+              "prompt_id": "WeatherTodayHighLow_AN_04",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              },
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "weather",
+                  "service_details": "weather=up",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "GetData",
+            "GotData",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "Off",
+            "Off",
+            "Off",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": "weather",
+              "nlu": {
+                "intent": "requestWeatherPR",
+                "entities": {},
+                "rules": []
+              }
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": [
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "single-news",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "NewsIntro",
+              "prompt_id": "NewsIntro_AN_04",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsOutro",
+              "prompt_id": "NewsOutro_AN_01",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              },
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "news",
+                  "service_details": "news=up",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "GetData",
+            "GotData",
+            "Done",
+            "Off",
+            "Off",
+            "Off",
+            "On",
+            "Done",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": "news",
+              "nlu": {
+                "intent": "requestNews",
+                "entities": {},
+                "rules": []
+              }
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": [
+          {
+            "name": "news",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "single-calendar",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarEventCountToday",
+              "prompt_id": "CalendarEventCountToday_AN_06",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarSummaryAndTime",
+              "prompt_id": "CalendarSummaryAndTime_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarOutro",
+              "prompt_id": "CalendarOutro_AN_13",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              },
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "calendar",
+                  "service_details": "calendar=up",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "GetData",
+            "GotData",
+            "Done",
+            "Off",
+            "On",
+            "Done",
+            "Done",
+            "Off",
+            "Off",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": "calendar",
+              "nlu": {
+                "intent": "requestCalendar",
+                "entities": {},
+                "rules": []
+              }
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": [
+          {
+            "name": "calendar",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "single-commute",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "CommuteConfirmSpeaker",
+              "prompt_id": "CommuteConfirmSpeaker_AN_03",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CommuteNow",
+              "prompt_id": "CommuteNow_AN_02",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              },
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "commute",
+                  "service_details": "commute=up",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "GetData",
+            "GotData",
+            "Done",
+            "Off",
+            "Off",
+            "On",
+            "Done",
+            "Done",
+            "Off",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": "commute",
+              "nlu": {
+                "intent": "requestCommute",
+                "entities": {},
+                "rules": []
+              }
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": [
+          {
+            "name": "commute",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "single-calendar-incomplete",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarAppSetup",
+              "prompt_id": "CalendarAppSetup_AN_04",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              },
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "calendar",
+                  "service_details": "calendar=up",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "GetData",
+            "GotData",
+            "Done",
+            "Off",
+            "On",
+            "Done",
+            "Done",
+            "Off",
+            "Off",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": "calendar",
+              "nlu": {
+                "intent": "requestCalendar",
+                "entities": {},
+                "rules": []
+              }
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": []
+      }
+    },
+    {
+      "id": "single-commute-incomplete",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "CommuteAppSetup",
+              "prompt_id": "CommuteAppSetup_AN_02",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              },
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "commute",
+                  "service_details": "commute=up",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "GetData",
+            "GotData",
+            "Done",
+            "Off",
+            "Off",
+            "On",
+            "Done",
+            "Done",
+            "Off",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": "commute",
+              "nlu": {
+                "intent": "requestCommute",
+                "entities": {},
+                "rules": []
+              }
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": []
+      }
+    },
+    {
+      "id": "single-news-empty-categories",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "NewsAppSetup",
+              "prompt_id": "NewsAppSetup_AN_03",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              },
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "news",
+                  "service_details": "news=up",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "GetData",
+            "GotData",
+            "Done",
+            "Off",
+            "Off",
+            "Off",
+            "On",
+            "Done",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": "news",
+              "nlu": {
+                "intent": "requestNews",
+                "entities": {},
+                "rules": []
+              }
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": [
+          {
+            "name": "news",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "reactive-child-calendar",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportMustBeAdult",
+              "prompt_id": "PersonalReportMustBeAdult_AN_01",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "True",
+            "Finish",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": "calendar",
+              "nlu": {
+                "intent": "requestCalendar",
+                "entities": {},
+                "rules": []
+              }
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "kid"
+          }
+        ],
+        "providers": []
+      }
+    },
+    {
+      "id": "reactive-unknown-intent",
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "Unknown intent: 'unknownIntent'"
+      },
+      "responses": [],
+      "calls": {
+        "settings": [],
+        "providers": []
+      }
+    },
+    {
+      "id": "identity-loopmember-continuation",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": false,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportWhoIsThis",
+              "prompt_id": "PersonalReportWhoIsThis_QN_07",
+              "contexts": [
+                "shared/wrong_id"
+              ]
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "False",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              }
+            },
+            "darkSkyPrefetchUTC": 1527681600000,
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        },
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SET_PRESENT_PERSON"
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportKickOff",
+              "prompt_id": "PersonalReportKickOff_AN_22",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherIntro",
+              "prompt_id": "WeatherIntro_AN_06",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherChangeClearWet",
+              "prompt_id": "WeatherChangeClearWet_AN_12",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherTodayHighLow",
+              "prompt_id": "WeatherTodayHighLow_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarEventToday",
+              "prompt_id": "CalendarEventToday_AN_07",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarEarlyEvent",
+              "prompt_id": "CalendarEarlyEvent_AN_03",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CommuteDrivePoor",
+              "prompt_id": "CommuteDrivePoor_AN_09",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CommuteDepartTimeNotNormal",
+              "prompt_id": "CommuteDepartTimeNotNormal_AN_11",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsIntro",
+              "prompt_id": "NewsIntro_AN_04",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportOutroConfigured",
+              "prompt_id": "PersonalReportOutroConfigured_AN_01",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "weather,calendar,commute,news",
+                  "service_details": "weather=up,calendar=up,commute=up,news=up",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "False",
+            "Done",
+            "Success",
+            "Success",
+            "GetData",
+            "GotData",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              },
+              "userPrefsConfigured": null
+            },
+            "darkSkyPrefetchUTC": 1527681600000,
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": [
+          {
+            "name": "weather",
+            "prefetch": true,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": true,
+            "phase": "start"
+          },
+          {
+            "name": "calendar",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "commute",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "news",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "identity-not-in-loop-defaults",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": false,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportWhoIsThis",
+              "prompt_id": "PersonalReportWhoIsThis_QN_07",
+              "contexts": [
+                "shared/wrong_id"
+              ]
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "False",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              }
+            },
+            "darkSkyPrefetchUTC": 1527681600000,
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        },
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportKickOff",
+              "prompt_id": "PersonalReportKickOff_AN_22",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherIntro",
+              "prompt_id": "WeatherIntro_AN_06",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherChangeClearWet",
+              "prompt_id": "WeatherChangeClearWet_AN_12",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherTodayHighLow",
+              "prompt_id": "WeatherTodayHighLow_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarEventToday",
+              "prompt_id": "CalendarEventToday_AN_07",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarEarlyEvent",
+              "prompt_id": "CalendarEarlyEvent_AN_03",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CommuteDrivePoor",
+              "prompt_id": "CommuteDrivePoor_AN_09",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CommuteDepartTimeNotNormal",
+              "prompt_id": "CommuteDepartTimeNotNormal_AN_11",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsIntro",
+              "prompt_id": "NewsIntro_AN_04",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportOutroConfigured",
+              "prompt_id": "PersonalReportOutroConfigured_AN_01",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "weather,calendar,commute,news",
+                  "service_details": "weather=up,calendar=up,commute=up,news=up",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "False",
+            "Done",
+            "Success",
+            "NotInLoop",
+            "GetData",
+            "GotData",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              },
+              "userPrefsConfigured": null
+            },
+            "darkSkyPrefetchUTC": 1527681600000,
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": null
+          }
+        ],
+        "providers": [
+          {
+            "name": "weather",
+            "prefetch": true,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": true,
+            "phase": "start"
+          },
+          {
+            "name": "calendar",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "commute",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "news",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "identity-cancel",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": false,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportWhoIsThis",
+              "prompt_id": "PersonalReportWhoIsThis_QN_07",
+              "contexts": [
+                "shared/wrong_id"
+              ]
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "False",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              }
+            },
+            "darkSkyPrefetchUTC": 1527681600000,
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        },
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": true,
+          "mims": [],
+          "analytics": {},
+          "trace": [
+            "Reactive",
+            "False",
+            "Done",
+            "Success",
+            "Cancel",
+            "Done"
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              }
+            },
+            "darkSkyPrefetchUTC": 1527681600000,
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [],
+        "providers": [
+          {
+            "name": "weather",
+            "prefetch": true,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": true,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "identity-no-input-exhaustion",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": false,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportWhoIsThis",
+              "prompt_id": "PersonalReportWhoIsThis_QN_07",
+              "contexts": [
+                "shared/wrong_id"
+              ]
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "False",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              }
+            },
+            "darkSkyPrefetchUTC": 1527681600000,
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        },
+        {
+          "type": "SKILL_ACTION",
+          "final": false,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportWhoIsThis",
+              "prompt_id": "WhoAmI_CollectName_NI_1_04",
+              "contexts": [
+                "shared/wrong_id"
+              ]
+            }
+          ],
+          "analytics": {},
+          "trace": [
+            "Reactive",
+            "False",
+            "Done",
+            "NoInput",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              }
+            },
+            "darkSkyPrefetchUTC": 1527681600000,
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 1,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        },
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": true,
+          "mims": [],
+          "analytics": {},
+          "trace": [
+            "Reactive",
+            "False",
+            "Done",
+            "NoInput",
+            "NoInput",
+            "FinalNoInput",
+            "Done",
+            "Done"
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              }
+            },
+            "darkSkyPrefetchUTC": 1527681600000,
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 2,
+              "noMatchMax": false,
+              "noInputMax": true
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [],
+        "providers": [
+          {
+            "name": "weather",
+            "prefetch": true,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": true,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "identity-missing-result-boundary",
+      "ok": false,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read property 'nlu' of undefined"
+      },
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": false,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportWhoIsThis",
+              "prompt_id": "PersonalReportWhoIsThis_QN_07",
+              "contexts": [
+                "shared/wrong_id"
+              ]
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": true,
+                  "user_initiated": true,
+                  "last_skill": "n/a"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Reactive",
+            "False",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              }
+            },
+            "darkSkyPrefetchUTC": 1527681600000,
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        },
+        {
+          "type": "SKILL_ACTION",
+          "final": false,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportWhoIsThis",
+              "prompt_id": "WhoAmI_CollectName_NI_1_04",
+              "contexts": [
+                "shared/wrong_id"
+              ]
+            }
+          ],
+          "analytics": {},
+          "trace": [
+            "Reactive",
+            "False",
+            "Done",
+            "NoInput",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": {
+                "intent": "launchPersonalReport",
+                "entities": {},
+                "rules": []
+              }
+            },
+            "darkSkyPrefetchUTC": 1527681600000,
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 1,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [],
+        "providers": [
+          {
+            "name": "weather",
+            "prefetch": true,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": true,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proactive-configured-proposal",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": false,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "OptInProposalVerifyID",
+              "prompt_id": "PersonalReportOptInConfigured_QN_04",
+              "contexts": [
+                "shared/verify_id"
+              ]
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": false,
+                  "user_initiated": false,
+                  "last_skill": "n/a"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Proactive",
+            "OptIn",
+            "VerifyID",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": null,
+              "userPrefsConfigured": true
+            },
+            "_optIn": {
+              "speaker": "u1"
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": []
+      }
+    },
+    {
+      "id": "proactive-accepted-report",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": false,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "OptInProposalVerifyID",
+              "prompt_id": "PersonalReportOptInConfigured_QN_04",
+              "contexts": [
+                "shared/verify_id"
+              ]
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": false,
+                  "user_initiated": false,
+                  "last_skill": "n/a"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Proactive",
+            "OptIn",
+            "VerifyID",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": null,
+              "userPrefsConfigured": true
+            },
+            "_optIn": {
+              "speaker": "u1"
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        },
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportKickOff",
+              "prompt_id": "PersonalReportKickOff_AN_22",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherIntro",
+              "prompt_id": "WeatherIntro_AN_06",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherChangeClearWet",
+              "prompt_id": "WeatherChangeClearWet_AN_12",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherTodayHighLow",
+              "prompt_id": "WeatherTodayHighLow_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarEventToday",
+              "prompt_id": "CalendarEventToday_AN_07",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarEarlyEvent",
+              "prompt_id": "CalendarEarlyEvent_AN_03",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CommuteDrivePoor",
+              "prompt_id": "CommuteDrivePoor_AN_09",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CommuteDepartTimeNotNormal",
+              "prompt_id": "CommuteDepartTimeNotNormal_AN_11",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsIntro",
+              "prompt_id": "NewsIntro_AN_04",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportOutroConfigured",
+              "prompt_id": "PersonalReportOutroConfigured_AN_01",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Offer",
+                "properties": {
+                  "user_response": "yes",
+                  "modality": "touch"
+                }
+              },
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "weather,calendar,commute,news",
+                  "service_details": "weather=up,calendar=up,commute=up,news=up",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Proactive",
+            "OptIn",
+            "VerifyID",
+            "Success",
+            "Yes",
+            "Done",
+            "GetData",
+            "GotData",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": null,
+              "userPrefsConfigured": null
+            },
+            "_optIn": {
+              "speaker": "u1"
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          },
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": [
+          {
+            "name": "calendar",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "commute",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "news",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proactive-declined",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": false,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "OptInProposalVerifyID",
+              "prompt_id": "PersonalReportOptInConfigured_QN_04",
+              "contexts": [
+                "shared/verify_id"
+              ]
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": false,
+                  "user_initiated": false,
+                  "last_skill": "n/a"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Proactive",
+            "OptIn",
+            "VerifyID",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": null,
+              "userPrefsConfigured": true
+            },
+            "_optIn": {
+              "speaker": "u1"
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        },
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "OptInDecline",
+              "prompt_id": "Decline_AN_02",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Offer",
+                "properties": {
+                  "user_response": "no",
+                  "modality": "touch"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Proactive",
+            "OptIn",
+            "VerifyID",
+            "Success",
+            "No",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": null,
+              "userPrefsConfigured": true
+            },
+            "_optIn": {
+              "speaker": "u1"
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": []
+      }
+    },
+    {
+      "id": "proactive-wrong-id-defaults",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": false,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "OptInProposalVerifyID",
+              "prompt_id": "PersonalReportOptInConfigured_QN_04",
+              "contexts": [
+                "shared/verify_id"
+              ]
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": false,
+                  "user_initiated": false,
+                  "last_skill": "n/a"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Proactive",
+            "OptIn",
+            "VerifyID",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": null,
+              "userPrefsConfigured": true
+            },
+            "_optIn": {
+              "speaker": "u1"
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        },
+        {
+          "type": "SKILL_ACTION",
+          "final": false,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "OptInWrongID",
+              "prompt_id": "WrongID_QN_04",
+              "contexts": [
+                "shared/wrong_id"
+              ]
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Offer",
+                "properties": {
+                  "user_response": "wrongID",
+                  "modality": "touch"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Proactive",
+            "OptIn",
+            "VerifyID",
+            "Success",
+            "WrongID",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": null,
+              "userPrefsConfigured": true
+            },
+            "_optIn": {
+              "speaker": "u1"
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        },
+        {
+          "type": "SKILL_ACTION",
+          "final": true,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportKickOff",
+              "prompt_id": "PersonalReportKickOff_AN_22",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherIntro",
+              "prompt_id": "WeatherIntro_AN_03",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherChangeClearWet",
+              "prompt_id": "WeatherChangeClearWet_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "WeatherTodayHighLow",
+              "prompt_id": "WeatherTodayHighLow_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarEventToday",
+              "prompt_id": "CalendarEventToday_AN_10",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CalendarEarlyEvent",
+              "prompt_id": "CalendarEarlyEvent_AN_04",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CommuteDrivePoor",
+              "prompt_id": "CommuteDrivePoor_AN_06",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "CommuteDepartTimeNotNormal",
+              "prompt_id": "CommuteDepartTimeNotNormal_AN_15",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsIntro",
+              "prompt_id": "NewsIntro_AN_02",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "NewsHeadline",
+              "prompt_id": "NewsHeadline_AN_01",
+              "contexts": null
+            },
+            {
+              "type": "SLIM",
+              "mim_id": "PersonalReportOutroConfigured",
+              "prompt_id": "PersonalReportOutroConfigured_AN_07",
+              "contexts": null
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Personal Report Results",
+                "properties": {
+                  "details": "weather,calendar,commute,news",
+                  "service_details": "weather=up,calendar=up,commute=up,news=up",
+                  "config_state": "not configured"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Proactive",
+            "OptIn",
+            "VerifyID",
+            "Success",
+            "WrongID",
+            "Success",
+            "NotInLoop",
+            "Done",
+            "GetData",
+            "GotData",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            "On",
+            "Done",
+            "Done",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": null,
+              "userPrefsConfigured": null
+            },
+            "_optIn": {
+              "speaker": "u1"
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          },
+          {
+            "looperID": null
+          }
+        ],
+        "providers": [
+          {
+            "name": "calendar",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "weather",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "commute",
+            "prefetch": false,
+            "phase": "start"
+          },
+          {
+            "name": "news",
+            "prefetch": false,
+            "phase": "start"
+          }
+        ]
+      }
+    },
+    {
+      "id": "proactive-no-input-decline",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": false,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "OptInProposalVerifyID",
+              "prompt_id": "PersonalReportOptInConfigured_QN_04",
+              "contexts": [
+                "shared/verify_id"
+              ]
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": false,
+                  "user_initiated": false,
+                  "last_skill": "n/a"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Proactive",
+            "OptIn",
+            "VerifyID",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": null,
+              "userPrefsConfigured": true
+            },
+            "_optIn": {
+              "speaker": "u1"
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        },
+        {
+          "type": "SKILL_ACTION",
+          "final": false,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "OptInProposalVerifyID",
+              "prompt_id": "PersonalReportOptInConfigured_NI_1_01",
+              "contexts": [
+                "shared/verify_id"
+              ]
+            }
+          ],
+          "analytics": {},
+          "trace": [
+            "Proactive",
+            "OptIn",
+            "VerifyID",
+            "NoInput",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": null,
+              "userPrefsConfigured": true
+            },
+            "_optIn": {
+              "speaker": "u1"
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 1,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": []
+      }
+    },
+    {
+      "id": "proactive-all-disabled",
+      "ok": true,
+      "responses": [
+        {
+          "type": "SKILL_ACTION",
+          "final": false,
+          "fireAndForget": false,
+          "mims": [
+            {
+              "type": "SLIM",
+              "mim_id": "OptInProposalVerifyID",
+              "prompt_id": "PersonalReportOptInNotConfigured_QN_03",
+              "contexts": [
+                "shared/verify_id"
+              ]
+            }
+          ],
+          "analytics": {
+            "report-skill": [
+              {
+                "event": "Skill Entry",
+                "properties": {
+                  "initial_intent": "n/a",
+                  "domain": "",
+                  "was_hey_jibo_launch": false,
+                  "user_initiated": false,
+                  "last_skill": "n/a"
+                }
+              }
+            ]
+          },
+          "trace": [
+            "Proactive",
+            "OptIn",
+            "VerifyID",
+            null
+          ],
+          "sessionData": {
+            "_personalReport": {
+              "singleSkill": null,
+              "nlu": null,
+              "userPrefsConfigured": false
+            },
+            "_optIn": {
+              "speaker": "u1"
+            },
+            "_mim": {
+              "noMatch": 0,
+              "noInput": 0,
+              "noMatchMax": false,
+              "noInputMax": false
+            }
+          }
+        }
+      ],
+      "calls": {
+        "settings": [
+          {
+            "looperID": "u1"
+          }
+        ],
+        "providers": []
+      }
+    }
+  ],
+  "settings": [
+    {
+      "id": "defaults-no-speaker",
+      "ok": true,
+      "value": {
+        "weather": {
+          "active": true,
+          "useCelsius": false
+        },
+        "calendar": {
+          "active": false,
+          "googlePersonalCreds": false,
+          "googleWorkCreds": false,
+          "outlookPersonalCreds": false,
+          "outlookWorkCreds": false
+        },
+        "commute": {
+          "active": false,
+          "workTime": {
+            "hour": null,
+            "min": null
+          },
+          "origin": {
+            "lat": null,
+            "lng": null
+          },
+          "destination": {
+            "lat": null,
+            "lng": null
+          },
+          "mode": null,
+          "complete": false
+        },
+        "news": {
+          "active": true,
+          "activeNewsCategories": {
+            "technology": true,
+            "sports": true,
+            "business": true,
+            "science": false,
+            "entertainment": false,
+            "strange": false,
+            "health": false,
+            "international": false,
+            "national": true,
+            "politics": false
+          }
+        }
+      },
+      "calls": []
+    },
+    {
+      "id": "defaults-child",
+      "ok": true,
+      "value": {
+        "weather": {
+          "active": true,
+          "useCelsius": false
+        },
+        "calendar": {
+          "active": false,
+          "googlePersonalCreds": false,
+          "googleWorkCreds": false,
+          "outlookPersonalCreds": false,
+          "outlookWorkCreds": false
+        },
+        "commute": {
+          "active": false,
+          "workTime": {
+            "hour": null,
+            "min": null
+          },
+          "origin": {
+            "lat": null,
+            "lng": null
+          },
+          "destination": {
+            "lat": null,
+            "lng": null
+          },
+          "mode": null,
+          "complete": false
+        },
+        "news": {
+          "active": true,
+          "activeNewsCategories": {
+            "technology": true,
+            "sports": true,
+            "business": true,
+            "science": false,
+            "entertainment": false,
+            "strange": false,
+            "health": false,
+            "international": false,
+            "national": true,
+            "politics": false
+          }
+        }
+      },
+      "calls": []
+    },
+    {
+      "id": "settings-request-with-transid",
+      "ok": true,
+      "value": {
+        "weather": {
+          "active": true,
+          "useCelsius": false
+        },
+        "calendar": {
+          "active": true,
+          "googlePersonalCreds": true,
+          "googleWorkCreds": false,
+          "outlookPersonalCreds": false,
+          "outlookWorkCreds": false
+        },
+        "commute": {
+          "active": true,
+          "workTime": {
+            "hour": 15,
+            "min": 0
+          },
+          "origin": {
+            "lat": 42.36,
+            "lng": -71.06
+          },
+          "destination": {
+            "lat": 42.37,
+            "lng": -71.07
+          },
+          "mode": "driving",
+          "complete": true
+        },
+        "news": {
+          "active": true,
+          "activeNewsCategories": {
+            "technology": true,
+            "sports": true,
+            "business": true,
+            "science": false,
+            "entertainment": false,
+            "strange": false,
+            "health": false,
+            "international": false,
+            "national": true,
+            "politics": false
+          }
+        }
+      },
+      "calls": [
+        {
+          "accountId": "acct-1",
+          "loopId": "loop-1",
+          "transID": "transaction-1"
+        }
+      ]
+    },
+    {
+      "id": "settings-request-without-transid",
+      "ok": true,
+      "value": {
+        "weather": {
+          "active": true,
+          "useCelsius": false
+        },
+        "calendar": {
+          "active": true,
+          "googlePersonalCreds": true,
+          "googleWorkCreds": false,
+          "outlookPersonalCreds": false,
+          "outlookWorkCreds": false
+        },
+        "commute": {
+          "active": true,
+          "workTime": {
+            "hour": 15,
+            "min": 0
+          },
+          "origin": {
+            "lat": 42.36,
+            "lng": -71.06
+          },
+          "destination": {
+            "lat": 42.37,
+            "lng": -71.07
+          },
+          "mode": "driving",
+          "complete": true
+        },
+        "news": {
+          "active": true,
+          "activeNewsCategories": {
+            "technology": true,
+            "sports": true,
+            "business": true,
+            "science": false,
+            "entertainment": false,
+            "strange": false,
+            "health": false,
+            "international": false,
+            "national": true,
+            "politics": false
+          }
+        }
+      },
+      "calls": [
+        {
+          "accountId": "acct-1",
+          "loopId": "loop-1",
+          "transID": null
+        }
+      ]
+    },
+    {
+      "id": "convert-commute-driving",
+      "ok": true,
+      "value": {
+        "weather": {
+          "active": true,
+          "useCelsius": false
+        },
+        "calendar": {
+          "active": true,
+          "googlePersonalCreds": true,
+          "googleWorkCreds": false,
+          "outlookPersonalCreds": false,
+          "outlookWorkCreds": false
+        },
+        "commute": {
+          "active": true,
+          "workTime": {
+            "hour": 15,
+            "min": 0
+          },
+          "origin": {
+            "lat": 42.36,
+            "lng": -71.06
+          },
+          "destination": {
+            "lat": 42.37,
+            "lng": -71.07
+          },
+          "mode": "driving",
+          "complete": true
+        },
+        "news": {
+          "active": true,
+          "activeNewsCategories": {
+            "technology": true,
+            "sports": true,
+            "business": true,
+            "science": false,
+            "entertainment": false,
+            "strange": false,
+            "health": false,
+            "international": false,
+            "national": true,
+            "politics": false
+          }
+        }
+      },
+      "calls": []
+    },
+    {
+      "id": "convert-commute-transit",
+      "ok": true,
+      "value": {
+        "weather": {
+          "active": true,
+          "useCelsius": false
+        },
+        "calendar": {
+          "active": true,
+          "googlePersonalCreds": true,
+          "googleWorkCreds": false,
+          "outlookPersonalCreds": false,
+          "outlookWorkCreds": false
+        },
+        "commute": {
+          "active": true,
+          "workTime": {
+            "hour": 15,
+            "min": 0
+          },
+          "origin": {
+            "lat": 42.36,
+            "lng": -71.06
+          },
+          "destination": {
+            "lat": 42.37,
+            "lng": -71.07
+          },
+          "mode": "transit",
+          "complete": true
+        },
+        "news": {
+          "active": true,
+          "activeNewsCategories": {
+            "technology": true,
+            "sports": true,
+            "business": true,
+            "science": false,
+            "entertainment": false,
+            "strange": false,
+            "health": false,
+            "international": false,
+            "national": true,
+            "politics": false
+          }
+        }
+      },
+      "calls": []
+    },
+    {
+      "id": "convert-commute-bicycling",
+      "ok": true,
+      "value": {
+        "weather": {
+          "active": true,
+          "useCelsius": false
+        },
+        "calendar": {
+          "active": true,
+          "googlePersonalCreds": true,
+          "googleWorkCreds": false,
+          "outlookPersonalCreds": false,
+          "outlookWorkCreds": false
+        },
+        "commute": {
+          "active": true,
+          "workTime": {
+            "hour": 15,
+            "min": 0
+          },
+          "origin": {
+            "lat": 42.36,
+            "lng": -71.06
+          },
+          "destination": {
+            "lat": 42.37,
+            "lng": -71.07
+          },
+          "mode": "bicycling",
+          "complete": true
+        },
+        "news": {
+          "active": true,
+          "activeNewsCategories": {
+            "technology": true,
+            "sports": true,
+            "business": true,
+            "science": false,
+            "entertainment": false,
+            "strange": false,
+            "health": false,
+            "international": false,
+            "national": true,
+            "politics": false
+          }
+        }
+      },
+      "calls": []
+    },
+    {
+      "id": "convert-commute-walking",
+      "ok": true,
+      "value": {
+        "weather": {
+          "active": true,
+          "useCelsius": false
+        },
+        "calendar": {
+          "active": true,
+          "googlePersonalCreds": true,
+          "googleWorkCreds": false,
+          "outlookPersonalCreds": false,
+          "outlookWorkCreds": false
+        },
+        "commute": {
+          "active": true,
+          "workTime": {
+            "hour": 15,
+            "min": 0
+          },
+          "origin": {
+            "lat": 42.36,
+            "lng": -71.06
+          },
+          "destination": {
+            "lat": 42.37,
+            "lng": -71.07
+          },
+          "mode": "walking",
+          "complete": true
+        },
+        "news": {
+          "active": true,
+          "activeNewsCategories": {
+            "technology": true,
+            "sports": true,
+            "business": true,
+            "science": false,
+            "entertainment": false,
+            "strange": false,
+            "health": false,
+            "international": false,
+            "national": true,
+            "politics": false
+          }
+        }
+      },
+      "calls": []
+    },
+    {
+      "id": "convert-missing-commute-boundary",
+      "ok": true,
+      "value": {
+        "weather": {
+          "active": true,
+          "useCelsius": false
+        },
+        "calendar": {
+          "active": true,
+          "googlePersonalCreds": true,
+          "googleWorkCreds": false,
+          "outlookPersonalCreds": false,
+          "outlookWorkCreds": false
+        },
+        "commute": {
+          "active": true,
+          "workTime": {
+            "hour": 15,
+            "min": 0
+          },
+          "origin": {
+            "lat": 42.36,
+            "lng": -71.06
+          },
+          "destination": {
+            "lat": 42.37,
+            "lng": -71.07
+          },
+          "complete": false
+        },
+        "news": {
+          "active": true,
+          "activeNewsCategories": {
+            "technology": true,
+            "sports": true,
+            "business": true,
+            "science": false,
+            "entertainment": false,
+            "strange": false,
+            "health": false,
+            "international": false,
+            "national": true,
+            "politics": false
+          }
+        }
+      },
+      "calls": []
+    },
+    {
+      "id": "convert-calendar-credentials",
+      "ok": true,
+      "value": {
+        "weather": {
+          "active": true,
+          "useCelsius": false
+        },
+        "calendar": {
+          "active": true,
+          "googlePersonalCreds": true,
+          "googleWorkCreds": false,
+          "outlookPersonalCreds": false,
+          "outlookWorkCreds": false
+        },
+        "commute": {
+          "active": true,
+          "workTime": {
+            "hour": 15,
+            "min": 0
+          },
+          "origin": {
+            "lat": 42.36,
+            "lng": -71.06
+          },
+          "destination": {
+            "lat": 42.37,
+            "lng": -71.07
+          },
+          "mode": "driving",
+          "complete": true
+        },
+        "news": {
+          "active": true,
+          "activeNewsCategories": {
+            "technology": true,
+            "sports": true,
+            "business": true,
+            "science": false,
+            "entertainment": false,
+            "strange": false,
+            "health": false,
+            "international": false,
+            "national": true,
+            "politics": false
+          }
+        }
+      },
+      "calls": []
+    },
+    {
+      "id": "prefs-from-config",
+      "ok": true,
+      "value": {
+        "weather": {
+          "active": true,
+          "useCelsius": false
+        },
+        "calendar": {
+          "active": true,
+          "googlePersonalCreds": true,
+          "googleWorkCreds": false,
+          "outlookPersonalCreds": false,
+          "outlookWorkCreds": true
+        },
+        "commute": {
+          "active": true,
+          "workTime": {
+            "hour": 9,
+            "min": 0
+          },
+          "origin": {
+            "lat": 42.3601,
+            "lng": -71.0589
+          },
+          "destination": {
+            "lat": 42.3727,
+            "lng": -71.1229
+          },
+          "mode": "driving",
+          "complete": true
+        },
+        "news": {
+          "active": true,
+          "activeNewsCategories": {
+            "general": false,
+            "technology": true,
+            "sports": false,
+            "business": false,
+            "science": false,
+            "entertainment": true,
+            "strange": true,
+            "health": false,
+            "international": false,
+            "national": false,
+            "politics": false
+          }
+        }
+      },
+      "calls": []
+    }
+  ]
+}
