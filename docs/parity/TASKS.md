@@ -1320,11 +1320,11 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-07/gqa-http-boundaries/re
 
 ### A-19 — Implement and verify versioned Jot messaging contracts
 
-- [ ] **todo** · P1 · classic · implementation: missing
+- [ ] **todo** · P1 · classic · implementation: partial
 
 Owner: Codex. Dependencies: A-01, A-02, A-04, A-14.
 
-Functional child registered from A-18 discovery. Historical models contain 24 versioned Jot pairs; four additional alternate-prefix pairs are observed in archived tests. Phoenix has no Jot service registration. Version and deployed-prefix ambiguity remains open.
+Phoenix now implements and exercises the recovered loop-era Jot service: five operation-name handlers work across both observed target prefixes, the direct bulk unread route is present, and source-backed auth, membership, impersonation, validation, pagination, media population, event ordering, durability, retry and loop isolation are covered. Raw Joi, JOT business, Account/Media registry/upstream/network, unknown-operation and dotless-target Boom envelopes now match the pinned @jibo/server path. Party-era operations lack recovered matching-era controllers, and the real SDK SigV4/TLS plus Kafka fan-out remain open.
 
 Done when:
 
@@ -1338,6 +1338,14 @@ Source: [server/jot-ws@9a725d3ed8d991aa840131f5ef98c630df2fdf4e:src/handlers/mes
 Phoenix: [packages/classic/src/router.js](../../packages/classic/src/router.js); [packages/classic](../../packages/classic).
 
 Evidence: pending.
+
+- [x] Candidate implementation — **accepted**; Luna Max / w18_a05_review; Codex root.
+
+Candidate scope: Bounded A-19 loop-era implementation and error-envelope review. Root independently read the pinned Jot clients and @jibo/server wrapper through Jibo MCP, required correction of Account/Media failure classification, reran all 32 focused tests, and falsified the isBoom branch. Whole A-19 remains open for unrecovered party-era handlers and unavailable original-client/gateway/Kafka evidence.
+
+Candidate report: [docs/parity/candidates/A-19-jot-error-envelopes-20260913.md](../../docs/parity/candidates/A-19-jot-error-envelopes-20260913.md).
+
+Lead review: Codex root; [docs/parity/evidence/2026-09-13/a19-jot-error-envelope/review.json](../../docs/parity/evidence/2026-09-13/a19-jot-error-envelope/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### A-20 — Implement and verify versioned VoiceTraining and file contracts
 

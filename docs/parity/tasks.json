@@ -2961,7 +2961,7 @@
       "phase": 4,
       "priority": "P1",
       "status": "todo",
-      "implementation": "missing",
+      "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
         "A-01",
@@ -2977,14 +2977,24 @@
         "packages/classic/src/router.js",
         "packages/classic"
       ],
-      "finding": "Functional child registered from A-18 discovery. Historical models contain 24 versioned Jot pairs; four additional alternate-prefix pairs are observed in archived tests. Phoenix has no Jot service registration. Version and deployed-prefix ambiguity remains open.",
+      "finding": "Phoenix now implements and exercises the recovered loop-era Jot service: five operation-name handlers work across both observed target prefixes, the direct bulk unread route is present, and source-backed auth, membership, impersonation, validation, pagination, media population, event ordering, durability, retry and loop isolation are covered. Raw Joi, JOT business, Account/Media registry/upstream/network, unknown-operation and dotless-target Boom envelopes now match the pinned @jibo/server path. Party-era operations lack recovered matching-era controllers, and the real SDK SigV4/TLS plus Kafka fan-out remain open.",
       "acceptance": [
         "Map every required versioned Jot pair and the direct bulk unread-count route to source controllers and clients; resolve model/test prefix conflicts explicitly.",
         "Compare authentication, loop membership, robot impersonation, content/parts validation and error precedence against original source/runtime.",
         "Implement and compare create/list/update/read or delivery/seen behavior, pagination, media population and observable event side effects for each required version.",
         "Verify durable state after restart, retry behavior, cross-loop isolation and original-client messaging journeys; retain external dependency failures."
       ],
-      "verification": []
+      "verification": [],
+      "implementationReview": {
+        "state": "accepted",
+        "assignee": "Luna Max / w18_a05_review; Codex root",
+        "candidateRevision": "b917ac8",
+        "integratedRevision": "694543e",
+        "reviewedBy": "Codex root",
+        "scope": "Bounded A-19 loop-era implementation and error-envelope review. Root independently read the pinned Jot clients and @jibo/server wrapper through Jibo MCP, required correction of Account/Media failure classification, reran all 32 focused tests, and falsified the isBoom branch. Whole A-19 remains open for unrecovered party-era handlers and unavailable original-client/gateway/Kafka evidence.",
+        "artifact": "docs/parity/candidates/A-19-jot-error-envelopes-20260913.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-13/a19-jot-error-envelope/review.json"
+      }
     },
     {
       "id": "A-20",
