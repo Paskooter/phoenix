@@ -69,10 +69,13 @@ entity `tomorrow`.
 `prefs` with the same shape, or `settings` with a source `GetSettings` object
 (or an array containing `{ "skillId": "report-skill", "data": ... }`); the
 real `SettingsClient.convertSettingsToPrefs` conversion is used for the last
-form. Maps is a Google Maps response, and may be keyed by travel mode or
-wrapped in `relayData`. Google calendar provider data uses `items`; Outlook
-uses `value`; bare `events` arrays are also accepted. Calendar event
-normalization remains the real Data implementation.
+form. The generated cases intentionally use converted preferences and direct
+provider callbacks to isolate S-13 view rendering; Settings conversion,
+OAuth, and provider behavior are covered by the S-11/S-12 source lanes and are
+not claimed by this fixture. Maps is a Google Maps response, and may be keyed
+by travel mode or wrapped in `relayData`. Google calendar provider data uses
+`items`; Outlook uses `value`; bare `events` arrays are also accepted. Calendar
+event normalization remains the real Data implementation.
 
 The `casesSha256` digest covers only the canonical `cases` object, with object
 keys sorted recursively. This lets the operator change `caseId` between turns
@@ -86,10 +89,9 @@ by fixture callbacks.
 The template creates `Normal`, `Bad`, and `Terrible` commute cases. Their
 source Maps baseline remains 10 minutes while traffic is independently
 10/15/25 minutes. With the generated future work time, all three stay within
-the 0–120 minute departure-view window when started promptly. It adds `PM`
-only when that display case is also 45–120 minutes ahead; when generation is
-before noon (or too close to midnight), PM is omitted rather than silently
-selecting the source `CommuteNow` branch.
+the 0–120 minute departure-view window when started promptly. The source
+S-11/S-12 harness covers the AM/PM label variants; this generated fixture keeps
+one concrete future departure window for the physical diagnostic run.
 
 Start the real diagnostic stack with an unprivileged base port:
 
@@ -111,7 +113,7 @@ event. The receipt is `$RUN/stack.json`; the wire trace is the `tracePath` in
 that receipt. Both are written under the run directory.
 
 To switch cases without restarting, prepare a new file from the current one,
-change `caseId` exactly (for example `Bad`, `Terrible`, `PM`,
+change `caseId` exactly (for example `Bad`, `Terrible`,
 `calendar-four-card-field-matrix`, or `calendar-parallel`), keep the
 `casesSha256` value unchanged, set mode `0600`, and atomically replace the
 path:

@@ -17,6 +17,7 @@ import {
   casesSha256,
   createS13FixtureRuntime,
   readS13Fixture,
+  resolveLocalOffset,
 } from './s13-fixture.mjs';
 
 function prefs() {
@@ -91,6 +92,16 @@ function rewrite(file, document) {
   writeFileSync(file, `${JSON.stringify(document, null, 2)}\n`);
   chmodSync(file, 0o600);
 }
+
+test('S-13 template wall-clock offset resolver handles both sides of DST transitions', () => {
+  assert.equal(resolveLocalOffset('2026-03-08', 1, 59, 'America/New_York'), '-05:00');
+  assert.equal(resolveLocalOffset('2026-03-08', 3, 1, 'America/New_York'), '-04:00');
+  // The nonexistent spring-forward wall time follows moment-timezone's
+  // compatible/post-gap behavior; the overlap picks the earlier instant.
+  assert.equal(resolveLocalOffset('2026-03-08', 2, 30, 'America/New_York'), '-04:00');
+  assert.equal(resolveLocalOffset('2026-11-01', 1, 30, 'America/New_York'), '-04:00');
+  assert.equal(resolveLocalOffset('2026-03-29', 2, 30, 'Europe/Berlin'), '+02:00');
+});
 
 function runtime() {
   return {

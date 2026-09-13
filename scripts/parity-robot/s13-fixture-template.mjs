@@ -5,7 +5,7 @@
 
 import { closeSync, existsSync, fchmodSync, mkdirSync, openSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import { casesSha256, S13_FIXTURE_SCHEMA } from './s13-fixture.mjs';
+import { casesSha256, resolveLocalOffset, S13_FIXTURE_SCHEMA } from './s13-fixture.mjs';
 
 const target = process.argv[2];
 if (!target) throw new Error('usage: node scripts/parity-robot/s13-fixture-template.mjs <private-fixture.json>');
@@ -44,18 +44,8 @@ function dateAfter(dateText, days) {
   return localDateText(localParts(candidate));
 }
 
-function zoneOffset(dateText, hour, min) {
-  const [year, month, day] = dateText.split('-').map(Number);
-  const instant = new Date(Date.UTC(year, month - 1, day, hour, min));
-  const part = new Intl.DateTimeFormat('en-US', { timeZone: TIME_ZONE, timeZoneName: 'longOffset' })
-    .formatToParts(instant).find((entry) => entry.type === 'timeZoneName')?.value || 'GMT';
-  const match = /^GMT([+-])(\d{1,2})(?::(\d{2}))?$/.exec(part);
-  if (!match) return '+00:00';
-  return `${match[1]}${pad(Number(match[2]))}:${match[3] || '00'}`;
-}
-
 function localISO(dateText, hour, min) {
-  return `${dateText}T${pad(hour)}:${pad(min)}:00${zoneOffset(dateText, hour, min)}`;
+  return `${dateText}T${pad(hour)}:${pad(min)}:00${resolveLocalOffset(dateText, hour, min, TIME_ZONE)}`;
 }
 
 const today = localDateText(localParts(now));
@@ -69,11 +59,6 @@ if (workMinutes - currentMinutes < 30) {
   throw new Error(`run fixture generation with at least 30 minutes left in ${TIME_ZONE} day (current ${pad(current.hour)}:${pad(current.min)})`);
 }
 const workTime = { hour: Math.floor(workMinutes / 60), min: workMinutes % 60 };
-// PM is a display matrix. Preserve a future departure when the generator is
-// already in the afternoon; before noon, noon is the nearest PM anchor.
-const pmMinutes = Math.max(workMinutes, 12 * 60);
-const pmWorkTime = { hour: Math.floor(pmMinutes / 60), min: pmMinutes % 60 };
-const includePM = pmMinutes - currentMinutes >= 45 && pmMinutes - currentMinutes <= 120;
 
 function prefs({ calendar = false, googlePersonal = false, googleWork = false, outlookPersonal = false, outlookWork = false, work = workTime } = {}) {
   return {
@@ -191,7 +176,6 @@ const cases = {
   Normal: caseData({ trafficSeconds: 600 }),
   Bad: caseData({ trafficSeconds: 900 }),
   Terrible: caseData({ trafficSeconds: 1500 }),
-  ...(includePM ? { PM: caseData({ trafficSeconds: 600, work: pmWorkTime }) } : {}),
   'calendar-four-card-field-matrix': caseData({
     calendarMode: 'cards',
     calendarPrefs: { calendar: true, googlePersonal: true },
@@ -221,7 +205,5 @@ console.log(JSON.stringify({
   date: today,
   timeZone: TIME_ZONE,
   workTime,
-  pmWorkTime,
-  pmIncluded: includePM,
   calendarTomorrow: tomorrow,
 }));

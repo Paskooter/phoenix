@@ -43,6 +43,70 @@ function dateInZone(iso, timeZone) {
   }
 }
 
+function wallPartsAt(instant, timeZone) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hourCycle: 'h23',
+    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit',
+  }).formatToParts(new Date(instant));
+  const values = Object.fromEntries(parts.filter((part) => part.type !== 'literal').map((part) => [part.type, part.value]));
+  return {
+    year: Number(values.year), month: Number(values.month), day: Number(values.day),
+    hour: Number(values.hour), min: Number(values.minute),
+  };
+}
+
+function offsetMinutesAt(instant, timeZone) {
+  const part = new Intl.DateTimeFormat('en-US', { timeZone, timeZoneName: 'longOffset' })
+    .formatToParts(new Date(instant)).find((entry) => entry.type === 'timeZoneName')?.value || 'GMT';
+  if (part === 'GMT' || part === 'UTC') return 0;
+  const match = /^GMT([+-])(\d{1,2})(?::(\d{2}))?$/.exec(part);
+  if (!match) reject(`cannot resolve timezone offset '${part}' for ${timeZone}`);
+  const minutes = Number(match[2]) * 60 + Number(match[3] || 0);
+  return match[1] === '-' ? -minutes : minutes;
+}
+
+/**
+ * Resolve the offset for a local wall-clock timestamp. Probing `Date.UTC` as
+ * if it were already an instant samples whichever DST side happens to contain
+ * that UTC value; it is wrong for local timestamps near a transition. Instead,
+ * collect offsets around the wall value, project each candidate back through
+ * Intl, and choose the exact match. For a spring gap choose the first valid
+ * post-gap offset; for a fall overlap choose the earlier instant.
+ */
+export function resolveLocalOffset(dateText, hour, min, timeZone) {
+  if (typeof dateText !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(dateText)
+    || !Number.isInteger(hour) || !Number.isInteger(min) || hour < 0 || hour > 23 || min < 0 || min > 59) {
+    reject('local wall timestamp is invalid');
+  }
+  const [year, month, day] = dateText.split('-').map(Number);
+  const wall = Date.UTC(year, month - 1, day, hour, min);
+  const offsets = new Set();
+  const span = 3 * 86400000;
+  for (let delta = -span; delta <= span; delta += 6 * 3600000) {
+    offsets.add(offsetMinutesAt(wall + delta, timeZone));
+  }
+  const projections = [...offsets].map((offset) => {
+    const instant = wall - offset * 60000;
+    const local = wallPartsAt(instant, timeZone);
+    const projected = Date.UTC(local.year, local.month - 1, local.day, local.hour, local.min);
+    return { offset, actualOffset: offsetMinutesAt(instant, timeZone), instant, delta: projected - wall };
+  });
+  const exact = projections.filter((candidate) => candidate.delta === 0).sort((a, b) => a.instant - b.instant);
+  if (exact.length) return formatOffset(exact[0].offset);
+  const forward = projections.filter((candidate) => candidate.delta > 0).sort((a, b) => a.delta - b.delta);
+  if (forward.length) return formatOffset(forward[0].actualOffset);
+  const backward = projections.sort((a, b) => b.delta - a.delta);
+  if (backward.length) return formatOffset(backward[0].actualOffset);
+  reject(`cannot resolve timezone offset for ${dateText} ${hour}:${min} in ${timeZone}`);
+}
+
+function formatOffset(minutes) {
+  const sign = minutes < 0 ? '-' : '+';
+  const absolute = Math.abs(minutes);
+  return `${sign}${String(Math.floor(absolute / 60)).padStart(2, '0')}:${String(absolute % 60).padStart(2, '0')}`;
+}
+
 function reject(message) {
   throw new Error(`S13 fixture rejected: ${message}`);
 }
