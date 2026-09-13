@@ -1,0 +1,68 @@
+{
+  "schema": "phoenix.parity.s09.weather-branch-manifest.v1",
+  "task": "S-09",
+  "baseCommit": "311dd623e3d5b8ff73785a10edfd25514d513b57",
+  "branch": "w-s09-source-diff",
+  "purpose": "Source-shaped differential coverage for the archived Pegasus Weather test file.",
+  "source": {
+    "repo": "jiboV2/pegasus",
+    "revision": "5c0a7390539663ba749d360de348a428c088505c",
+    "test": {
+      "path": "packages/report-skill/tests/subskills/Weather.test.js",
+      "sha256": "b2209e30f28ae672d99b5842da8c673c6733f4b0af09bb0bf4f01420ddd8eeac"
+    },
+    "implementationFiles": {
+      "packages/report-skill/src/subskills/weather/WeatherData.ts": "ff59fe68991db75ff876a2259cc56aee6b25cf46c32008abac6ed1bf1ea4cfa3",
+      "packages/report-skill/src/subskills/weather/WeatherParse.ts": "41d9cd1b52013f270fb625905dd072cd80ac1e2895b6a266b2c14403c6ee236b",
+      "packages/report-skill/src/subskills/weather/WeatherMimLogic.ts": "a1c9edf671914035298c963b5edc538bb9e6fc5e1f981387cdd49661e990c77d",
+      "packages/report-skill/src/subskills/weather/WeatherViews.ts": "10c3facad5cb6efbba2ce4623ec23d37396122ff6050d0c30a37323cc42232b1"
+    },
+    "runtime": {
+      "image": "node:8.9.4-slim",
+      "imageDigest": "sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+      "network": "none"
+    }
+  },
+  "candidate": {
+    "implementationFiles": {
+      "packages/skills/src/report/weather.js": "7a3d303c991e66f20cb571ea1ecd1277b1c10d11c184932e0fb19df267996974",
+      "packages/skills/src/report/weatherViews.js": "e3166522922ae986ab40eac925604efa4b14f17154f95d83cbc52714de5f5ea6"
+    },
+    "runtime": "host Node (the comparator records the exact version)"
+  },
+  "coverage": {
+    "namedCases": 54,
+    "expandedRuns": 57,
+    "groups": {
+      "top-level": 3,
+      "parse": 14,
+      "daytime": 19,
+      "evening": 9,
+      "views": 9
+    },
+    "sourceRowsAreRequired": true,
+    "candidateRowsAreRequired": true,
+    "missingOrUnexpectedRowsFail": true,
+    "rowHashesAreRecomputed": true
+  },
+  "harness": {
+    "matrix": "matrix.json",
+    "sourceRunner": "run-source.cjs",
+    "candidateRunner": "run-candidate.mjs",
+    "comparator": "compare.mjs",
+    "matrixGenerator": "make-matrix.mjs",
+    "sharedFixtureProjection": "fixtures.cjs"
+  },
+  "observableContract": [
+    "WeatherParse output and null/undefined branch shapes",
+    "ordered Weather MIM selection and day/evening selection",
+    "condition and temperature change tables",
+    "wet-now-dry-later and day/night icon correction",
+    "weather high/low view JSON, assets, units, thresholds, and x offsets"
+  ],
+  "qualifications": [
+    "This is a controlled source versus local candidate differential; it does not claim live DarkSky/provider availability, freshness, deployment, or Moth behavior.",
+    "The fixture uses the source test's deterministic synthetic weather data and a fixed offset ISO clock.",
+    "The source runner executes compiled modules produced from the pinned source revision; the source test hash and compiled record are checked before rows run."
+  ]
+}

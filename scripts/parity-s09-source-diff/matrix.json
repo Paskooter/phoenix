@@ -1,0 +1,1200 @@
+{
+  "schema": "phoenix.parity.s09.weather-matrix.v1",
+  "task": "S-09",
+  "reference": {
+    "repo": "jiboV2/pegasus",
+    "revision": "5c0a7390539663ba749d360de348a428c088505c",
+    "testPath": "packages/report-skill/tests/subskills/Weather.test.js",
+    "testSha256": "b2209e30f28ae672d99b5842da8c673c6733f4b0af09bb0bf4f01420ddd8eeac",
+    "sourcePaths": [
+      "packages/report-skill/src/subskills/weather/WeatherData.ts",
+      "packages/report-skill/src/subskills/weather/WeatherParse.ts",
+      "packages/report-skill/src/subskills/weather/WeatherMimLogic.ts",
+      "packages/report-skill/src/subskills/weather/WeatherViews.ts"
+    ]
+  },
+  "runtime": {
+    "sourceImage": "node:8.9.4-slim",
+    "sourceImageDigest": "sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+    "timezone": "UTC",
+    "randomSeed": 1346717505,
+    "defaultLocalISO": "2017-10-10T12:00:00.000-05:00",
+    "eveningLocalISO": "2017-10-10T18:00:00.000-05:00"
+  },
+  "counts": {
+    "namedCases": 54,
+    "expandedRuns": 57,
+    "groups": {
+      "top-level": 3,
+      "parse": 14,
+      "daytime": 19,
+      "evening": 9,
+      "views": 9
+    }
+  },
+  "cases": [
+    {
+      "id": "s09:top-level:01",
+      "group": "top-level",
+      "sourceName": "Basic and Intro MIMs if icon data is available",
+      "sourceLine": 66,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "yest": {
+              "icon": null,
+              "high": null,
+              "low": null
+            },
+            "today": {
+              "icon": "clear-day",
+              "high": null,
+              "low": null
+            },
+            "tomorrow": {
+              "icon": "rain",
+              "high": null,
+              "low": null
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        },
+        {
+          "opts": {
+            "yest": {
+              "icon": null,
+              "high": null,
+              "low": null
+            },
+            "today": {
+              "icon": "clear-day",
+              "high": null,
+              "low": null
+            },
+            "tomorrow": {
+              "icon": "rain",
+              "high": null,
+              "low": null
+            }
+          },
+          "localISO": "2017-10-10T18:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:top-level:02",
+      "group": "top-level",
+      "sourceName": "ServiceDown MIM if today.icon data is not available",
+      "sourceLine": 85,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "today": {
+              "icon": null
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:top-level:03",
+      "group": "top-level",
+      "sourceName": "ServiceDown MIM if no data is available",
+      "sourceLine": 94,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": null,
+          "localISO": "2017-10-10T12:00:00.000-05:00",
+          "variant": "no-data"
+        }
+      ]
+    },
+    {
+      "id": "s09:parse:01",
+      "group": "parse",
+      "sourceName": "return undefined if no data",
+      "sourceLine": 104,
+      "operation": "parse",
+      "runs": [
+        {
+          "opts": null,
+          "localISO": "2017-10-10T12:00:00.000-05:00",
+          "operation": "parse",
+          "variant": "no-data"
+        }
+      ]
+    },
+    {
+      "id": "s09:parse:02",
+      "group": "parse",
+      "sourceName": "return undefined if no today data",
+      "sourceLine": 111,
+      "operation": "parse",
+      "runs": [
+        {
+          "opts": {},
+          "localISO": "2017-10-10T12:00:00.000-05:00",
+          "operation": "parse",
+          "variant": "null-today"
+        }
+      ]
+    },
+    {
+      "id": "s09:parse:03",
+      "group": "parse",
+      "sourceName": "return today and yesterday data if no tomorrow data",
+      "sourceLine": 119,
+      "operation": "parse",
+      "runs": [
+        {
+          "opts": {},
+          "localISO": "2017-10-10T12:00:00.000-05:00",
+          "operation": "parse",
+          "variant": "truncate-tomorrow"
+        }
+      ]
+    },
+    {
+      "id": "s09:parse:04",
+      "group": "parse",
+      "sourceName": "return today and tomorrow data if no yesterday data",
+      "sourceLine": 134,
+      "operation": "parse",
+      "runs": [
+        {
+          "opts": {},
+          "localISO": "2017-10-10T12:00:00.000-05:00",
+          "operation": "parse",
+          "variant": "null-yesterday"
+        }
+      ]
+    },
+    {
+      "id": "s09:parse:05",
+      "group": "parse",
+      "sourceName": "onlyWeatherActive === true if no other active categories",
+      "sourceLine": 151,
+      "operation": "parse",
+      "runs": [
+        {
+          "opts": {},
+          "localISO": "2017-10-10T12:00:00.000-05:00",
+          "operation": "parse",
+          "active": [
+            "weather"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s09:parse:06",
+      "group": "parse",
+      "sourceName": "onlyWeatherActive === false if any other active categories",
+      "sourceLine": 159,
+      "operation": "parse",
+      "runs": [
+        {
+          "opts": {},
+          "localISO": "2017-10-10T12:00:00.000-05:00",
+          "operation": "parse",
+          "active": [
+            "weather",
+            "calendar"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s09:parse:07",
+      "group": "parse",
+      "sourceName": "temp in °C if userPrefs.useCelsius",
+      "sourceLine": 167,
+      "operation": "parse",
+      "runs": [
+        {
+          "opts": {},
+          "localISO": "2017-10-10T12:00:00.000-05:00",
+          "operation": "parse",
+          "prefs": {
+            "useCelsius": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "s09:parse:08",
+      "group": "parse",
+      "sourceName": "temp in °F if !userPrefs.useCelsius",
+      "sourceLine": 178,
+      "operation": "parse",
+      "runs": [
+        {
+          "opts": {},
+          "localISO": "2017-10-10T12:00:00.000-05:00",
+          "operation": "parse",
+          "prefs": {
+            "useCelsius": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "s09:parse:09",
+      "group": "parse",
+      "sourceName": "get random weather prefix",
+      "sourceLine": 188,
+      "operation": "parse",
+      "runs": [
+        {
+          "opts": {},
+          "localISO": "2017-10-10T12:00:00.000-05:00",
+          "operation": "parse",
+          "randomPrefix": true
+        }
+      ]
+    },
+    {
+      "id": "s09:parse:10",
+      "group": "parse",
+      "sourceName": "replace < with \"less than\"",
+      "sourceLine": 196,
+      "operation": "parse",
+      "runs": [
+        {
+          "opts": {
+            "today": {
+              "summary": "Light snow (< 1 in.) and breezy overnight."
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00",
+          "operation": "parse"
+        }
+      ]
+    },
+    {
+      "id": "s09:parse:11",
+      "group": "parse",
+      "sourceName": "replace > with \"more than\"",
+      "sourceLine": 205,
+      "operation": "parse",
+      "runs": [
+        {
+          "opts": {
+            "today": {
+              "summary": "Light snow (> 1 ft.) and breezy overnight."
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00",
+          "operation": "parse"
+        }
+      ]
+    },
+    {
+      "id": "s09:parse:12",
+      "group": "parse",
+      "sourceName": "replace < with \"less than\" when not followed by \"in.\" or \"ft.\"",
+      "sourceLine": 214,
+      "operation": "parse",
+      "runs": [
+        {
+          "opts": {
+            "today": {
+              "summary": "Light snow (< 1 unit) and breezy overnight."
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00",
+          "operation": "parse"
+        }
+      ]
+    },
+    {
+      "id": "s09:parse:13",
+      "group": "parse",
+      "sourceName": "replace \"in.\" with \"inches\"",
+      "sourceLine": 223,
+      "operation": "parse",
+      "runs": [
+        {
+          "opts": {
+            "today": {
+              "summary": "Snow (9-11 in.) and breezy overnight."
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00",
+          "operation": "parse"
+        }
+      ]
+    },
+    {
+      "id": "s09:parse:14",
+      "group": "parse",
+      "sourceName": "replace \"ft.\" with \"feet\"",
+      "sourceLine": 232,
+      "operation": "parse",
+      "runs": [
+        {
+          "opts": {
+            "today": {
+              "summary": "Snow (9-11 ft.) and breezy overnight."
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00",
+          "operation": "parse"
+        }
+      ]
+    },
+    {
+      "id": "s09:daytime:01",
+      "group": "daytime",
+      "sourceName": "all data for today even if no tomorrow data",
+      "sourceLine": 248,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "tomorrow": {
+              "icon": null,
+              "high": null,
+              "low": null
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:daytime:02",
+      "group": "daytime",
+      "sourceName": "data.weather.summary is today summary",
+      "sourceLine": 258,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "tomorrow": {
+              "icon": null,
+              "high": null,
+              "low": null
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:daytime:03",
+      "group": "daytime",
+      "sourceName": "convert DarkSky \"night\" icon to \"day\" version",
+      "sourceLine": 266,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "tomorrow": {
+              "icon": null,
+              "high": null,
+              "low": null
+            },
+            "today": {
+              "icon": "partly-cloudy-night"
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:daytime:04",
+      "group": "daytime",
+      "sourceName": "Intro MIM",
+      "sourceLine": 275,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "tomorrow": {
+              "icon": null,
+              "high": null,
+              "low": null
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:daytime:05",
+      "group": "daytime",
+      "sourceName": "Condition Change MIM if change meets criteria",
+      "sourceLine": 281,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "tomorrow": {
+              "icon": null,
+              "high": null,
+              "low": null
+            },
+            "yest": {
+              "icon": "cloudy"
+            },
+            "today": {
+              "icon": "rain"
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:daytime:06",
+      "group": "daytime",
+      "sourceName": "NO Condition Change MIM if NO condition change",
+      "sourceLine": 289,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "tomorrow": {
+              "icon": null,
+              "high": null,
+              "low": null
+            },
+            "yest": {
+              "icon": "rain"
+            },
+            "today": {
+              "icon": "rain"
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:daytime:07",
+      "group": "daytime",
+      "sourceName": "NO Condition Change MIM without yesterday.icon",
+      "sourceLine": 297,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "tomorrow": {
+              "icon": null,
+              "high": null,
+              "low": null
+            },
+            "yest": {
+              "icon": null
+            },
+            "today": {
+              "icon": "rain"
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:daytime:08",
+      "group": "daytime",
+      "sourceName": "WeatherComment if NO condition change from yesterday",
+      "sourceLine": 305,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "tomorrow": {
+              "icon": null,
+              "high": null,
+              "low": null
+            },
+            "yest": {
+              "icon": "rain"
+            },
+            "today": {
+              "icon": "rain"
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:daytime:09",
+      "group": "daytime",
+      "sourceName": "NO WeatherComment if condition change from yesterday",
+      "sourceLine": 313,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "tomorrow": {
+              "icon": null,
+              "high": null,
+              "low": null
+            },
+            "yest": {
+              "icon": "clear-day"
+            },
+            "today": {
+              "icon": "rain"
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:daytime:10",
+      "group": "daytime",
+      "sourceName": "WetNowDryLater if currently wet but dry later (after comment)",
+      "sourceLine": 325,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "tomorrow": {
+              "icon": null,
+              "high": null,
+              "low": null
+            },
+            "current": {
+              "icon": "sleet"
+            },
+            "today": {
+              "icon": "clear-day"
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:daytime:11",
+      "group": "daytime",
+      "sourceName": "WetNowDryLater if currently wet but dry later (after precip change)",
+      "sourceLine": 333,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "tomorrow": {
+              "icon": null,
+              "high": null,
+              "low": null
+            },
+            "yest": {
+              "icon": "rain"
+            },
+            "current": {
+              "icon": "rain"
+            },
+            "today": {
+              "icon": "clear-day"
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:daytime:12",
+      "group": "daytime",
+      "sourceName": "NO WetNowDryLater if currently wet and wet later",
+      "sourceLine": 342,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "tomorrow": {
+              "icon": null,
+              "high": null,
+              "low": null
+            },
+            "yest": {
+              "icon": "snow"
+            },
+            "current": {
+              "icon": "sleet"
+            },
+            "today": {
+              "icon": "snow"
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:daytime:13",
+      "group": "daytime",
+      "sourceName": "TodayHighLow MIM (and NOT TempChange MIM) if < 10°F change",
+      "sourceLine": 352,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "tomorrow": {
+              "icon": null,
+              "high": null,
+              "low": null
+            },
+            "yest": {
+              "high": 55
+            },
+            "today": {
+              "high": 60
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:daytime:14",
+      "group": "daytime",
+      "sourceName": "TodayHighLow MIM (and NOT TempChange MIM) if no yest data",
+      "sourceLine": 361,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "tomorrow": {
+              "icon": null,
+              "high": null,
+              "low": null
+            },
+            "yest": {
+              "high": null
+            },
+            "today": {
+              "high": 60
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:daytime:15",
+      "group": "daytime",
+      "sourceName": "Works with °C",
+      "sourceLine": 372,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "tomorrow": {
+              "icon": null,
+              "high": null,
+              "low": null
+            },
+            "yest": {
+              "high": 85
+            },
+            "today": {
+              "high": 95
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00",
+          "prefs": {
+            "useCelsius": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "s09:daytime:16",
+      "group": "daytime",
+      "sourceName": "Hotter MIM if temp change is +10°F or more and above 85°",
+      "sourceLine": 382,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "tomorrow": {
+              "icon": null,
+              "high": null,
+              "low": null
+            },
+            "yest": {
+              "high": 85
+            },
+            "today": {
+              "high": 95
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:daytime:17",
+      "group": "daytime",
+      "sourceName": "Warmer MIM if temp change is +10°F or more and below 85°",
+      "sourceLine": 391,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "tomorrow": {
+              "icon": null,
+              "high": null,
+              "low": null
+            },
+            "yest": {
+              "high": 60
+            },
+            "today": {
+              "high": 75
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:daytime:18",
+      "group": "daytime",
+      "sourceName": "Cooler MIM if temp change is -10°F or more and above 40°",
+      "sourceLine": 400,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "tomorrow": {
+              "icon": null,
+              "high": null,
+              "low": null
+            },
+            "yest": {
+              "high": 60
+            },
+            "today": {
+              "high": 45
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:daytime:19",
+      "group": "daytime",
+      "sourceName": "Colder MIM if temp change is -10°F or more and below 40°",
+      "sourceLine": 409,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "tomorrow": {
+              "icon": null,
+              "high": null,
+              "low": null
+            },
+            "yest": {
+              "high": 30
+            },
+            "today": {
+              "high": 18
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:evening:01",
+      "group": "evening",
+      "sourceName": "all data for tomorrow even if no today data",
+      "sourceLine": 427,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "today": {
+              "icon": null,
+              "high": null,
+              "low": null
+            }
+          },
+          "localISO": "2017-10-10T18:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:evening:02",
+      "group": "evening",
+      "sourceName": "data.weather.summary is tomorrow summary",
+      "sourceLine": 437,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "today": {
+              "icon": null,
+              "high": null,
+              "low": null
+            }
+          },
+          "localISO": "2017-10-10T18:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:evening:03",
+      "group": "evening",
+      "sourceName": "IntroTomorrow MIM",
+      "sourceLine": 445,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "today": {
+              "icon": null,
+              "high": null,
+              "low": null
+            }
+          },
+          "localISO": "2017-10-10T18:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:evening:04",
+      "group": "evening",
+      "sourceName": "NO Condition Change MIM even if change meets criteria",
+      "sourceLine": 451,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "today": {
+              "icon": "rain"
+            },
+            "yest": {
+              "icon": "cloudy"
+            }
+          },
+          "localISO": "2017-10-10T18:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:evening:05",
+      "group": "evening",
+      "sourceName": "NO WetNowDryLater if currently wet and dry later today or tomorrow",
+      "sourceLine": 459,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "today": {
+              "icon": "clear-day"
+            },
+            "tomorrow": {
+              "icon": "clear-day"
+            },
+            "current": {
+              "icon": "rain"
+            }
+          },
+          "localISO": "2017-10-10T18:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:evening:06",
+      "group": "evening",
+      "sourceName": "WeatherComment even if condition change from yesterday",
+      "sourceLine": 469,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "today": {
+              "icon": "clear"
+            },
+            "tomorrow": {
+              "icon": "rain"
+            },
+            "yest": {
+              "icon": "cloudy"
+            }
+          },
+          "localISO": "2017-10-10T18:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:evening:07",
+      "group": "evening",
+      "sourceName": "TomorrowHighLow MIM (NOT TempChange) if < 10°F change",
+      "sourceLine": 479,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "today": {
+              "high": 60
+            },
+            "tomorrow": {
+              "high": 60
+            },
+            "yest": {
+              "high": 55
+            }
+          },
+          "localISO": "2017-10-10T18:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:evening:08",
+      "group": "evening",
+      "sourceName": "TomorrowHighLow MIM (NOT TempChange) even if > 10°F change",
+      "sourceLine": 489,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "today": {
+              "high": 60
+            },
+            "tomorrow": {
+              "high": 75
+            },
+            "yest": {
+              "high": 45
+            }
+          },
+          "localISO": "2017-10-10T18:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:evening:09",
+      "group": "evening",
+      "sourceName": "TomorrowHighLow MIM (NOT TempChange) if no yest data",
+      "sourceLine": 499,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "today": {
+              "high": 60
+            },
+            "tomorrow": {
+              "high": 75
+            },
+            "yest": {
+              "high": null
+            }
+          },
+          "localISO": "2017-10-10T18:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:views:01",
+      "group": "views",
+      "sourceName": "no temp view if no data, or only icon data",
+      "sourceLine": 512,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "today": {
+              "icon": null
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        },
+        {
+          "opts": {
+            "yest": {
+              "icon": null,
+              "high": null,
+              "low": null
+            },
+            "today": {
+              "icon": "clear-day",
+              "high": null,
+              "low": null
+            },
+            "tomorrow": {
+              "high": null,
+              "low": null
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:views:02",
+      "group": "views",
+      "sourceName": "use today data if before 5PM",
+      "sourceLine": 528,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "today": {
+              "high": 80
+            },
+            "tomorrow": {
+              "high": 70
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:views:03",
+      "group": "views",
+      "sourceName": "use tomorrow data if after 5PM",
+      "sourceLine": 538,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "today": {
+              "high": 80
+            },
+            "tomorrow": {
+              "high": 70
+            }
+          },
+          "localISO": "2017-10-10T18:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:views:04",
+      "group": "views",
+      "sourceName": "background is cold if below 40°F",
+      "sourceLine": 549,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "today": {
+              "high": 39
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:views:05",
+      "group": "views",
+      "sourceName": "background is hot if above 85°F",
+      "sourceLine": 557,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "today": {
+              "high": 86
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:views:06",
+      "group": "views",
+      "sourceName": "background is normal if between 40°F and 85°F",
+      "sourceLine": 565,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "today": {
+              "high": 40
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        },
+        {
+          "opts": {
+            "today": {
+              "high": 85
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:views:07",
+      "group": "views",
+      "sourceName": "icon, high temp, low temp match darkSky data",
+      "sourceLine": 581,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "today": {
+              "high": 66,
+              "low": 57,
+              "icon": "rain"
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        }
+      ]
+    },
+    {
+      "id": "s09:views:08",
+      "group": "views",
+      "sourceName": "high temp, low temp are in °C if useCelsius = true",
+      "sourceLine": 594,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "today": {
+              "high": 66,
+              "low": 57
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00",
+          "prefs": {
+            "useCelsius": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "s09:views:09",
+      "group": "views",
+      "sourceName": "temp x position should be offset if 1 or 3 characters",
+      "sourceLine": 607,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "today": {
+              "high": 6,
+              "low": -57,
+              "icon": "rain"
+            }
+          },
+          "localISO": "2017-10-10T12:00:00.000-05:00"
+        }
+      ]
+    }
+  ]
+}
