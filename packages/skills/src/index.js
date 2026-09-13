@@ -162,6 +162,7 @@ export {
 export {
   createGqaAccountLookup,
   createGqaAttributionStore,
+  createGqaFileAttributionStore,
   createGqaMemoryAttributionStore,
   createGqaRetrieveAttributionRoute,
   createGqaWipeAttributionRoute,
@@ -173,6 +174,8 @@ export {
   GQA_ATTRIBUTE_SOURCE_MODULE,
   GQA_ACCOUNT_SERVICE_ENV,
   GQA_ATTRIBUTE_INDEX,
+  GQA_ATTRIBUTE_DEFAULT_FILE,
+  GqaFileAttributionStore,
 } from './gqaAccountAttribution.js';
 export {
   NEWS_SOURCE_REVISION,

@@ -5,6 +5,19 @@
 // configured HTTP endpoint; attribution uses a Mongo collection.  Neither
 // boundary has a Phoenix default, so selecting one is always explicit.
 
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  unlinkSync,
+  writeFileSync,
+} from 'node:fs';
+import { randomUUID } from 'node:crypto';
+import { dirname, join } from 'node:path';
+import { tmpdir } from 'node:os';
+
 export const GQA_ACCOUNT_SOURCE_REVISION = 'ebe1a7d38f511570060c1fbf61bec89d58419b26';
 export const GQA_ACCOUNT_SOURCE_MODULE = 'gqa/account.py';
 export const GQA_ATTRIBUTE_SOURCE_REVISION = 'ebe1a7d38f511570060c1fbf61bec89d58419b26';
@@ -17,6 +30,21 @@ export const GQA_ATTRIBUTE_INDEX = Object.freeze({
   loop_id: -1,
   timestamp: -1,
   service: -1,
+});
+
+// The file counterpart is opt-in through a factory or an explicit service
+// configuration. Keep the default outside the repository and use one stable
+// path so a process restart can recover the same local attribution history.
+export const GQA_ATTRIBUTE_DEFAULT_FILE = join(tmpdir(), 'phoenix-gqa-attribution.json');
+
+const DEFAULT_FILE_PERSISTENCE = Object.freeze({
+  chmod: chmodSync,
+  exists: existsSync,
+  mkdir: mkdirSync,
+  readFile: readFileSync,
+  rename: renameSync,
+  unlink: unlinkSync,
+  writeFile: writeFileSync,
 });
 
 // Flask/Werkzeug's malformed and empty JSON requests use this same standard
@@ -213,6 +241,166 @@ export function createGqaAttributionStore({ collection, clock = Date.now } = {})
       return result?.deletedCount ?? result?.deleted_count ?? 0;
     },
   });
+}
+
+function cloneAttributionValue(value) {
+  if (value === undefined) return undefined;
+  return JSON.parse(JSON.stringify(value));
+}
+
+function attributionSnapshot(records) {
+  return records.map((record) => cloneAttributionValue(record));
+}
+
+/**
+ * Durable local counterpart of the source Mongo attribution collection.
+ *
+ * The file is an implementation detail of an explicitly selected Phoenix
+ * profile. Each mutation writes a complete `{version, records}` snapshot to
+ * a private temporary file and then atomically replaces the destination. The
+ * public methods intentionally have the same async insert/search/wipe shape as
+ * the Mongo adapter, so callers do not need to know which persistence seam is
+ * selected.
+ */
+export class GqaFileAttributionStore {
+  constructor(
+    file = process.env.ETCO_gqa_attributionFile || GQA_ATTRIBUTE_DEFAULT_FILE,
+    { clock = Date.now, persistence = {} } = {},
+  ) {
+    if (typeof file !== 'string' || file.length === 0) {
+      throw new TypeError('GQA attribution file must be a non-empty path');
+    }
+    if (typeof clock !== 'function') throw new TypeError('GQA attribution clock must be a function');
+    this.file = file;
+    this.clock = clock;
+    this.persistence = { ...DEFAULT_FILE_PERSISTENCE, ...persistence };
+    this.records = [];
+    this._load();
+    this._committed = this._snapshot();
+  }
+
+  _load() {
+    if (!this.persistence.exists(this.file)) return;
+    let raw;
+    try {
+      raw = JSON.parse(this.persistence.readFile(this.file, 'utf8'));
+    } catch (error) {
+      throw new Error(`GQA attribution store unreadable (${this.file}): ${error.message}`);
+    }
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+      throw new Error(`GQA attribution store has an invalid root (${this.file})`);
+    }
+    if (raw.records !== undefined && !Array.isArray(raw.records)) {
+      throw new Error(`GQA attribution store has invalid records (${this.file})`);
+    }
+    for (const record of raw.records || []) {
+      if (!record || typeof record !== 'object' || Array.isArray(record)) {
+        throw new Error(`GQA attribution store has an invalid record (${this.file})`);
+      }
+      if (typeof record.timestamp !== 'number' || !Number.isFinite(record.timestamp)) {
+        throw new Error(`GQA attribution store has an invalid record timestamp (${this.file})`);
+      }
+      this.records.push(cloneAttributionValue(record));
+    }
+  }
+
+  _snapshot() {
+    return attributionSnapshot(this.records);
+  }
+
+  _restore(snapshot) {
+    this.records = attributionSnapshot(snapshot);
+  }
+
+  _commit(mutator) {
+    const before = this._snapshot();
+    try {
+      const result = mutator();
+      this.flush({ rollbackOnError: false });
+      return result;
+    } catch (error) {
+      this._restore(before);
+      throw error;
+    }
+  }
+
+  /** Atomically replace the private JSON snapshot after a mutation. */
+  flush({ rollbackOnError = true } = {}) {
+    const temporary = `${this.file}.${randomUUID()}.tmp`;
+    let renamed = false;
+    try {
+      const output = {
+        version: 1,
+        records: this._snapshot(),
+      };
+      const serialized = `${JSON.stringify(output, null, 2)}\n`;
+      this.persistence.mkdir(dirname(this.file), { recursive: true, mode: 0o700 });
+      this.persistence.writeFile(temporary, serialized, {
+        encoding: 'utf8',
+        mode: 0o600,
+      });
+      // writeFile's mode is ignored if a stale temporary path is ever reused;
+      // chmod keeps the private-file guarantee explicit before the swap.
+      this.persistence.chmod(temporary, 0o600);
+      this.persistence.rename(temporary, this.file);
+      renamed = true;
+      this._committed = this._snapshot();
+    } catch (error) {
+      if (!renamed) {
+        try { this.persistence.unlink(temporary); } catch { /* cleanup is best effort */ }
+        if (rollbackOnError && this._committed) this._restore(this._committed);
+      }
+      throw error;
+    }
+  }
+
+  async insert(service, query, url, imageUrl, loopId) {
+    const record = cloneAttributionValue(attributionRecord(service, query, url, imageUrl, loopId, this.clock));
+    this._commit(() => {
+      this.records.push(record);
+    });
+  }
+
+  async search(loopId, service, before, after) {
+    const threshold = timestampMs(this.clock) - (90 * 24 * 60 * 60 * 1000);
+    sourceTimestamp(after, 'after');
+    if (!sourceTruthy(after) || after < threshold) after = threshold;
+    // Stored timestamps are numeric. Mongo's range operators bracket BSON
+    // types; a truthy nonnumeric bound matches no numeric timestamp. Empty
+    // arrays/objects and false are false in Python and therefore omit bounds.
+    if (typeof after !== 'number'
+      || (sourceTruthy(before) && typeof before !== 'number')) return [];
+    return this.records
+      .filter((record) => record.loop_id === loopId
+        && (!sourceTruthy(service) || record.service === service)
+        && typeof record.timestamp === 'number'
+        && record.timestamp > after
+        && (!sourceTruthy(before) || record.timestamp < before))
+      .slice(0, 50)
+      .map((record) => cloneAttributionValue(record));
+  }
+
+  async wipe(loopId) {
+    const count = this.records.filter((record) => record.loop_id === loopId).length;
+    if (count === 0) return 0;
+    this._commit(() => {
+      this.records = this.records.filter((record) => record.loop_id !== loopId);
+    });
+    return count;
+  }
+
+  /** A test/diagnostic view; callers receive detached records. */
+  snapshot() {
+    return this._snapshot();
+  }
+}
+
+export function createGqaFileAttributionStore(options = {}) {
+  if (!options || typeof options !== 'object' || Array.isArray(options)) {
+    throw new TypeError('GQA file attribution options must be a mapping');
+  }
+  const { file, ...storeOptions } = options;
+  return new GqaFileAttributionStore(file, storeOptions);
 }
 
 /**

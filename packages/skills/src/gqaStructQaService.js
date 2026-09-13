@@ -10,6 +10,7 @@
 import {
   createGqaAccountLookup,
   createGqaAttributionStore,
+  createGqaFileAttributionStore,
   sourceJsonDumps,
   sourceTruthy,
 } from './gqaAccountAttribution.js';
@@ -230,6 +231,7 @@ function configuredAttribution(value) {
   if (value === undefined || value === null) return undefined;
   if (isMapping(value) && typeof value.insert === 'function') return value;
   if (isMapping(value) && value.collection) return createGqaAttributionStore(value);
+  if (isMapping(value) && value.file) return createGqaFileAttributionStore(value);
   throw new TypeError('StructQA attribution configuration must provide a store or collection');
 }
 

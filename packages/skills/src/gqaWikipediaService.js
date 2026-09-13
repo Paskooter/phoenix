@@ -15,6 +15,7 @@ import {
 import {
   createGqaAccountLookup,
   createGqaAttributionStore,
+  createGqaFileAttributionStore,
   createGqaRetrieveAttributionRoute,
   createGqaWipeAttributionRoute,
 } from './gqaAccountAttribution.js';
@@ -47,6 +48,9 @@ function configuredAttribution(value) {
     && typeof value.wipe === 'function') return value;
   if (typeof value === 'object' && !Array.isArray(value) && value.collection) {
     return createGqaAttributionStore(value);
+  }
+  if (typeof value === 'object' && !Array.isArray(value) && value.file) {
+    return createGqaFileAttributionStore(value);
   }
   throw new TypeError('GQA attribution configuration must provide a store or collection');
 }
