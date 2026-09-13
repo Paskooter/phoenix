@@ -791,7 +791,7 @@ test('Q-01 standalone GQA auxiliary routes preserve source health 42 and develop
       body: '{',
     });
     assert.equal(malformed.status, 200);
-    assert.equal(malformed.headers.get('content-type'), 'text/plain; charset=utf-8');
+    assert.equal(malformed.headers.get('content-type'), 'text/html; charset=utf-8');
     assert.equal(await malformed.text(), 'ERROR');
   } finally {
     await closeServer(server);

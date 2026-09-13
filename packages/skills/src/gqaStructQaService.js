@@ -624,9 +624,7 @@ export function createStructQaHttpRoute({ handler, errorMode, env } = {}) {
   route.jsonStrict = false;
   route.jsonTypes = SOURCE_JSON_TYPES;
   route.errorMode = selectedErrorMode;
-  // fake_account catches Flask's JSON ValueError and returns this literal with
-  // its normal 200 status, unlike /structQA's framework 400 response.
-  route.parserError = ({ res }) => sendText(res, 200, 'ERROR');
+  route.parserError = (context) => sendSourceBody(context, 400, STRUCTQA_BAD_REQUEST_HTML, true);
   route.bodyDefault = {};
   return route;
 }
@@ -645,7 +643,9 @@ export function createStructQaFakeAccountRoute({ errorMode, env } = {}) {
   route.jsonStrict = false;
   route.jsonTypes = SOURCE_JSON_TYPES;
   route.errorMode = selectedErrorMode;
-  route.parserError = (context) => sendSourceBody(context, 400, STRUCTQA_BAD_REQUEST_HTML, true);
+  // fake_account catches Flask's JSON ValueError and returns this literal with
+  // its normal 200 status, unlike /structQA's framework 400 response.
+  route.parserError = ({ res }) => sendText(res, 200, 'ERROR');
   route.bodyDefault = {};
   return route;
 }
