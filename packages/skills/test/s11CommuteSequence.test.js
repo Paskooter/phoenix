@@ -1,4 +1,4 @@
-import { test } from 'node:test';
+import { test, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
@@ -242,13 +242,18 @@ test('S-11 commuteParse catches malformed arrival-time inputs like the source', 
   const maps = { routes: [{ legs: [{ duration: { value: 600 }, duration_in_traffic: { value: 600 } }] }] };
   const malformedPrefs = prefs();
   malformedPrefs.commute.workTime = null;
-  const parsed = await commuteParse(maps, ISO, {
-    userPrefs: malformedPrefs,
-    calendar: {
-      events: [{ isEarly: true, dateTime: new DateTime('2026-06-12T08:45:00-04:00') }],
-    },
-  });
-  assert.equal(parsed, undefined);
+  mock.timers.enable({ apis: ['Date'], now: Date.parse(ISO) });
+  try {
+    const parsed = await commuteParse(maps, ISO, {
+      userPrefs: malformedPrefs,
+      calendar: {
+        events: [{ isEarly: true, dateTime: new DateTime('2026-06-12T08:45:00-04:00') }],
+      },
+    });
+    assert.equal(parsed, undefined);
+  } finally {
+    mock.timers.reset();
+  }
 });
 
 function runtimeForSpeaker() {
