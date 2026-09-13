@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "task": "S-07",
+  "lane": "weighted",
+  "result": "pass",
+  "passed": true,
+  "checks": [
+    {
+      "name": "stale-differential-rejects-mutated-raw-source",
+      "passed": true,
+      "exitStatus": 1,
+      "failureCodeObserved": "diff-input-bytes",
+      "temporaryDirectory": "/tmp/s07-weighted-aggregate-falsify-l0JRVQ"
+    },
+    {
+      "name": "aggregate-rerun-rejects-paired-response-corruption",
+      "passed": true,
+      "exitStatus": 1,
+      "failureCodeObserved": "aggregate-comparator-status",
+      "temporaryDirectory": "/tmp/s07-weighted-aggregate-paired-falsify-106M0Y"
+    }
+  ],
+  "rawUnchanged": true
+}

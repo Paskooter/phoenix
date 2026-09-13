@@ -1,0 +1,273 @@
+{
+  "schemaVersion": 1,
+  "task": "S-07",
+  "lane": "weighted",
+  "result": "pass",
+  "checks": [
+    {
+      "name": "forged-expected-prompt",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "plan-sampled-prompt",
+        "expected-prompt-outside-eligible",
+        "source-expected-prompt",
+        "source-selected-prompt-meta",
+        "candidate-expected-prompt"
+      ]
+    },
+    {
+      "name": "forged-weight",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "expected-weight-total",
+        "expected-eligible-oracle"
+      ]
+    },
+    {
+      "name": "forged-outer-rng-input",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "source-rng-input",
+        "source-candidate-rng-input"
+      ]
+    },
+    {
+      "name": "forged-vm-rng-call-count",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "candidate-vm-rng-call-count"
+      ]
+    },
+    {
+      "name": "forged-vm-control-flag",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "candidate-vm-random-control"
+      ]
+    },
+    {
+      "name": "forged-source-runtime",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "source-runtime"
+      ]
+    },
+    {
+      "name": "forged-candidate-runtime",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "candidate-runtime"
+      ]
+    },
+    {
+      "name": "forged-candidate-revision",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "candidate-revision"
+      ]
+    },
+    {
+      "name": "forged-no-eligible-control",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "expected-eligible-oracle",
+        "expected-total-oracle",
+        "source-result-envelope",
+        "source-action-presence",
+        "candidate-result-envelope"
+      ]
+    },
+    {
+      "name": "forged-eligibility-revision",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "eligibility-source-revision"
+      ]
+    },
+    {
+      "name": "forged-oracle-context-metadata",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "oracle-context-metadata",
+        "oracle-context-metadata",
+        "oracle-context-metadata",
+        "oracle-context-metadata",
+        "oracle-context-metadata"
+      ]
+    },
+    {
+      "name": "forged-profile-value",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "source-plan-row-metadata",
+        "candidate-plan-row-metadata",
+        "oracle-context-metadata",
+        "source-weighted-runtime-profile",
+        "candidate-weighted-runtime-profile"
+      ]
+    },
+    {
+      "name": "paired-row-omission",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "source-plan-count",
+        "candidate-plan-count"
+      ]
+    },
+    {
+      "name": "paired-context-omission",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "source-plan-count",
+        "candidate-plan-count",
+        "context-inventory"
+      ]
+    },
+    {
+      "name": "forged-wire-action",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "candidate-action-type",
+        "source-candidate-observable-difference"
+      ]
+    },
+    {
+      "name": "paired-response-envelope-omission",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "source-result-envelope",
+        "source-response-type",
+        "candidate-result-envelope",
+        "candidate-response-type"
+      ]
+    },
+    {
+      "name": "paired-final-corruption",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "source-final",
+        "candidate-final"
+      ]
+    },
+    {
+      "name": "paired-fire-and-forget-corruption",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "source-fire-and-forget",
+        "candidate-fire-and-forget"
+      ]
+    },
+    {
+      "name": "paired-analytics-omission",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "source-result-envelope",
+        "source-analytics-envelope",
+        "source-analytics-events",
+        "candidate-result-envelope",
+        "candidate-analytics-envelope"
+      ]
+    },
+    {
+      "name": "paired-analytics-value-corruption",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "source-analytics-query",
+        "candidate-analytics-query"
+      ]
+    },
+    {
+      "name": "paired-action-type-corruption",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "source-action-type",
+        "candidate-action-type"
+      ]
+    },
+    {
+      "name": "paired-jcp-type-corruption",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "source-action-jcp-type",
+        "candidate-action-jcp-type"
+      ]
+    },
+    {
+      "name": "paired-normalized-envelope-omission",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "source-result-envelope",
+        "source-normalized-mims",
+        "candidate-result-envelope",
+        "candidate-normalized-mims"
+      ]
+    },
+    {
+      "name": "paired-rng-vector-corruption",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "plan-rng-vector"
+      ]
+    },
+    {
+      "name": "forged-mim-tree-digest",
+      "passed": true,
+      "exitStatus": 1,
+      "result": "fail",
+      "failureCodes": [
+        "plan-mim-tree-digest",
+        "source-mim-inventory",
+        "candidate-mim-inventory"
+      ]
+    }
+  ],
+  "tempDirectory": "/tmp/s07-weighted-falsify-ImraXU"
+}

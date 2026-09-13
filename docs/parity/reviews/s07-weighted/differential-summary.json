@@ -1,0 +1,318 @@
+{
+  "schemaVersion": 1,
+  "task": "S-07",
+  "lane": "weighted",
+  "result": "pass",
+  "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "candidateRevision": "dd2199d0b7f5bff6a5bf799b7e2a115e8e0385ec",
+  "promptSourceTreeSha256": "dfc7e6db41c072ef01f431736df5b00abd2f8cff469593fc51b0d1fb977f28ca",
+  "batchCount": 24,
+  "contextCases": 23387,
+  "branchCases": 132967,
+  "sourceRows": 132967,
+  "candidateRows": 132967,
+  "failures": 0,
+  "sourceErrors": 0,
+  "candidateErrors": 0,
+  "rowObservableDifferences": 0,
+  "noEligibleCases": 112,
+  "boundaries": {
+    "interior": 54790,
+    "lower": 54790,
+    "exact-total": 23387
+  },
+  "rngCalls": {
+    "expected": {
+      "1": 23,
+      "3": 112,
+      "4": 132832
+    }
+  },
+  "vmRngCalls": {
+    "expected": {
+      "0": 132943,
+      "1": 24
+    }
+  },
+  "vmRandomControlled": {
+    "sourceAllTrue": true,
+    "candidateAllTrue": true,
+    "sourceValues": [
+      true
+    ],
+    "candidateValues": [
+      true
+    ],
+    "batches": 24
+  },
+  "runtime": {
+    "source": [
+      "v8.9.4"
+    ],
+    "candidate": [
+      "v22.22.0"
+    ]
+  },
+  "candidateRevisions": [
+    "dd2199d0b7f5bff6a5bf799b7e2a115e8e0385ec"
+  ],
+  "contextCounts": {
+    "fallback": 1,
+    "scripted": 22646,
+    "emotion": 740
+  },
+  "rowCounts": {
+    "fallback": 23,
+    "scripted": 128428,
+    "emotion": 4516
+  },
+  "envelope": {
+    "actionPresent": 132855,
+    "noAction": 112,
+    "emotionEvents": 4516,
+    "querySuccess": 132944,
+    "queryFailure": 23,
+    "queryTypes": {
+      "scripted_response": 124289,
+      "known_unknown": 1478,
+      "loop_member_question": 2684,
+      "emotion_query": 4516
+    }
+  },
+  "mimCounts": {
+    "fallback": 1,
+    "scripted": 4369,
+    "emotion": 54
+  },
+  "mimInventory": {
+    "treeSha256": "dfc7e6db41c072ef01f431736df5b00abd2f8cff469593fc51b0d1fb977f28ca",
+    "counts": {
+      "scripted": 4369,
+      "emotion": 54,
+      "fallback": 1
+    },
+    "idsSha256": {
+      "scripted": "9c77e0a971c192eb31e47d7ed6f44217e8b1546159e5ce21fe3a754baed14a46",
+      "emotion": "a6eca8b701574703da34975fb9acfa8245380d3084f84ab8d5a9823220db36b2",
+      "fallback": "a5ddf758944232d679aa1bd115bf69590b28f408894b0f772f7f4de6e9097a26"
+    },
+    "allIdsSha256": "81a89fe41266295232e4bfdd0abd287b3d4a5efd1c1fcfff373a4a3251c5eb9b"
+  },
+  "conditionAudit": {
+    "entries": 4558,
+    "everyEntryObserved": true,
+    "bothOutcomesObserved": 4549,
+    "neverTrue": [
+      {
+        "prompt_id": "JBO_HowTallAreYou_AN_01",
+        "condition": "false",
+        "classification": "source-literal-false"
+      },
+      {
+        "prompt_id": "JBO_WhatsFavoriteThing_AN_01",
+        "condition": "false",
+        "classification": "source-literal-false"
+      },
+      {
+        "prompt_id": "OI_USR_DislikesAllStarGameNHL_AN_01_FnL",
+        "condition": "dt.now.isInRange('start_coming_soon', '1/28')",
+        "classification": "source-malformed-date-label"
+      },
+      {
+        "prompt_id": "OI_USR_DislikesAllStarGameNHL_AN_04_FnL",
+        "condition": "dt.now.isInRange('1/29', 'finish_long_way_off')",
+        "classification": "source-malformed-date-label"
+      },
+      {
+        "prompt_id": "OI_USR_IsThankfulForJibo_AN_05",
+        "condition": "!!loop.owner && !!speaker && (loop.owner === speaker)",
+        "classification": "source-distinct-wrapper-identity"
+      },
+      {
+        "prompt_id": "RA_JBO_Fart_AN_03",
+        "condition": "false /* need Fart SFX */",
+        "classification": "source-literal-false"
+      },
+      {
+        "prompt_id": "RI_JBO_FeelsSadAboutNoLegs_AN_04",
+        "condition": " ",
+        "classification": "source-blank-condition"
+      },
+      {
+        "prompt_id": "RI_JBO_IsFriendsWithUser_AN_02",
+        "condition": "speaker==true",
+        "classification": "source-object-vs-boolean"
+      },
+      {
+        "prompt_id": "RI_JBO_IsHuman_AN_03",
+        "condition": "false",
+        "classification": "source-literal-false"
+      }
+    ]
+  },
+  "promptAudit": {
+    "sourcePromptIds": 11883,
+    "selectedPromptIds": 11874,
+    "missingPromptIds": [
+      "JBO_HowTallAreYou_AN_01",
+      "JBO_WhatsFavoriteThing_AN_01",
+      "OI_USR_DislikesAllStarGameNHL_AN_01_FnL",
+      "OI_USR_DislikesAllStarGameNHL_AN_04_FnL",
+      "OI_USR_IsThankfulForJibo_AN_05",
+      "RA_JBO_Fart_AN_03",
+      "RI_JBO_FeelsSadAboutNoLegs_AN_04",
+      "RI_JBO_IsFriendsWithUser_AN_02",
+      "RI_JBO_IsHuman_AN_03"
+    ],
+    "missingAreOnlyNeverTrue": true
+  },
+  "eligibilityAudit": {
+    "rows": 23387,
+    "topLevelErrors": 0,
+    "conditionErrorGroups": {
+      "referent.gender==\"male\"|Cannot read property 'gender' of null": 146,
+      "referent.gender==\"female\"|Cannot read property 'gender' of null": 146,
+      "referent.gender && referent.gender == 'male'|Cannot read property 'gender' of null": 34,
+      "referent.gender && referent.gender == 'female'|Cannot read property 'gender' of null": 34,
+      "!jibo.isBirthday|Cannot read property 'isBirthday' of null": 2
+    },
+    "runtimeErrorGroups": {
+      "dt.now.isInRange('start_coming_soon', '1/28')": 24,
+      "dt.now.isInRange('1/29', 'finish_long_way_off')": 24
+    },
+    "unclassified": [],
+    "result": "pass"
+  },
+  "profileSelfTest": {
+    "result": "pass",
+    "checks": 8,
+    "failures": []
+  },
+  "boundarySemantics": {
+    "interior": "one source-selected interior point per eligible prompt",
+    "lower": "one source-selected cumulative lower boundary per eligible prompt; this single row is the strict exact-lower check (no redundant duplicate row)",
+    "exactTotal": "one unit=1 control per context; eligible contexts produce no prompt/source ESML undefined, no-eligible contexts produce action null"
+  },
+  "batchRanges": [
+    {
+      "start": 0,
+      "count": 1000,
+      "total": 23387
+    },
+    {
+      "start": 1000,
+      "count": 1000,
+      "total": 23387
+    },
+    {
+      "start": 2000,
+      "count": 1000,
+      "total": 23387
+    },
+    {
+      "start": 3000,
+      "count": 1000,
+      "total": 23387
+    },
+    {
+      "start": 4000,
+      "count": 1000,
+      "total": 23387
+    },
+    {
+      "start": 5000,
+      "count": 1000,
+      "total": 23387
+    },
+    {
+      "start": 6000,
+      "count": 1000,
+      "total": 23387
+    },
+    {
+      "start": 7000,
+      "count": 1000,
+      "total": 23387
+    },
+    {
+      "start": 8000,
+      "count": 1000,
+      "total": 23387
+    },
+    {
+      "start": 9000,
+      "count": 1000,
+      "total": 23387
+    },
+    {
+      "start": 10000,
+      "count": 1000,
+      "total": 23387
+    },
+    {
+      "start": 11000,
+      "count": 1000,
+      "total": 23387
+    },
+    {
+      "start": 12000,
+      "count": 1000,
+      "total": 23387
+    },
+    {
+      "start": 13000,
+      "count": 1000,
+      "total": 23387
+    },
+    {
+      "start": 14000,
+      "count": 1000,
+      "total": 23387
+    },
+    {
+      "start": 15000,
+      "count": 1000,
+      "total": 23387
+    },
+    {
+      "start": 16000,
+      "count": 1000,
+      "total": 23387
+    },
+    {
+      "start": 17000,
+      "count": 1000,
+      "total": 23387
+    },
+    {
+      "start": 18000,
+      "count": 1000,
+      "total": 23387
+    },
+    {
+      "start": 19000,
+      "count": 1000,
+      "total": 23387
+    },
+    {
+      "start": 20000,
+      "count": 1000,
+      "total": 23387
+    },
+    {
+      "start": 21000,
+      "count": 1000,
+      "total": 23387
+    },
+    {
+      "start": 22000,
+      "count": 1000,
+      "total": 23387
+    },
+    {
+      "start": 23000,
+      "count": 387,
+      "total": 23387
+    }
+  ]
+}
