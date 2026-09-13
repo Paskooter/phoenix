@@ -227,8 +227,8 @@ services:
       - PORT=8080
       - NET_account=account:8080
       - NET_ota=ota:8080
-      # Keep source GQA attribution across Classic restarts. Override with a
-      # path backed by the deployment's persistent volume when needed.
+      # Keep source GQA attribution across Classic restarts. This supported
+      # stack has one Classic writer; replicas need distinct paths or Mongo.
       - ETCO_gqa_attributionFile=${GQA_ATTRIBUTION_FILE:-/phoenix/packages/account/data/gqa-attribution.json}
       - ETCO_classic_publicUrl=${CLASSIC_PUBLIC_URL:-}
     depends_on:
