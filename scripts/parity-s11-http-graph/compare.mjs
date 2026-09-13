@@ -6,6 +6,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 
 const [matrixPath, sourcePath, candidatePath, outputArg] = process.argv.slice(2);
 if (!matrixPath || !sourcePath || !candidatePath) {
@@ -16,14 +17,27 @@ const readJSON = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
 const matrix = readJSON(matrixPath);
 const source = readJSON(sourcePath);
 const candidate = readJSON(candidatePath);
-if (matrix.schema !== 's11-report-commute-http-v1') throw new Error('unsupported S-11 matrix schema');
+const require = createRequire(import.meta.url);
+const {
+  EXPECTED_SCHEMA,
+  EXPECTED_RECEIPT_SCHEMA,
+  EXPECTED_SOURCE_REVISION,
+  EXPECTED_SOURCE_IMAGE,
+  EXPECTED_SOURCE_IMAGE_DIGEST,
+  EXPECTED_MATRIX_SEMANTIC_SHA256,
+  EXPECTED_CASE_IDS,
+  EXPECTED_COUNTS,
+  canonical,
+  receiptCounts,
+  validateMatrix,
+} = require('./contract.cjs');
+if (matrix.schema !== EXPECTED_SCHEMA) throw new Error('unsupported S-11 matrix schema');
 
-function stable(value) {
-  if (Array.isArray(value)) return value.map(stable);
-  if (!value || typeof value !== 'object') return value;
-  return Object.fromEntries(Object.keys(value).sort().map((key) => [key, stable(value[key])]));
-}
-const canonical = (value) => JSON.stringify(stable(value));
+// The matrix is caller-supplied input. Its own row count, order, expected
+// outputs, and provider semantics are only accepted after comparison with the
+// immutable contract in contract.cjs.
+const differences = validateMatrix(matrix, EXPECTED_MATRIX_SEMANTIC_SHA256)
+  .map((error) => ({ side: 'matrix', kind: error.kind.indexOf('matrix-') === 0 ? error.kind : `matrix-${error.kind}`, actual: error.actual, expected: error.expected }));
 
 function axiosEncode(value) {
   return encodeURIComponent(value)
@@ -32,9 +46,6 @@ function axiosEncode(value) {
 }
 
 const requestHeaders = { transID: 'tid:1234', robotID: 'unknown', loggingConfig: '{}' };
-const expectedSourceRevision = 'jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c';
-const expectedSourceImage = 'node';
-const expectedSourceImageDigest = 'sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c';
 
 function speakerKind(item, turn) {
   if (turn && Object.prototype.hasOwnProperty.call(turn, 'identity')) return turn.identity;
@@ -143,7 +154,7 @@ function expectedResultAnalytics(item) {
 }
 
 function rowsById(receipt, side, differences) {
-  if (!receipt || receipt.schema !== 's11-report-commute-http-receipt-v1') {
+  if (!receipt || receipt.schema !== EXPECTED_RECEIPT_SCHEMA) {
     differences.push({ side, kind: 'receipt-schema', actual: receipt && receipt.schema || null });
     return new Map();
   }
@@ -162,10 +173,21 @@ function rowsById(receipt, side, differences) {
     ids.add(row.id);
     rows.set(row.id, row);
   });
-  if (receipt.rows.length !== matrix.cases.length) {
-    differences.push({ side, kind: 'row-count', actual: receipt.rows.length, expected: matrix.cases.length });
+  if (receipt.rows.length !== EXPECTED_COUNTS.cases) {
+    differences.push({ side, kind: 'row-count', actual: receipt.rows.length, expected: EXPECTED_COUNTS.cases });
   }
   return rows;
+}
+
+function compareReceiptCoverage(receipt, side, differences) {
+  if (!receipt) return;
+  if (canonical(receipt.counts) !== canonical(EXPECTED_COUNTS)) {
+    differences.push({ side, kind: 'receipt-counts', actual: receipt.counts || null, expected: EXPECTED_COUNTS });
+  }
+  const actual = receiptCounts(receipt.rows);
+  if (canonical(actual) !== canonical(EXPECTED_COUNTS)) {
+    differences.push({ side, kind: 'receipt-derived-counts', actual, expected: EXPECTED_COUNTS });
+  }
 }
 
 function compareViews(item, response, side, differences) {
@@ -275,23 +297,27 @@ function compareTurnExpectations(item, responses, side, differences) {
   });
 }
 
-const differences = [];
 const sourceRows = rowsById(source, 'source', differences);
 const candidateRows = rowsById(candidate, 'candidate', differences);
-const matrixOrder = matrix.cases.map((item) => item.id);
+compareReceiptCoverage(source, 'source', differences);
+compareReceiptCoverage(candidate, 'candidate', differences);
+const matrixOrder = Array.isArray(matrix.cases) ? matrix.cases.map((item) => item && item.id) : [];
 const sourceOrder = Array.isArray(source.rows) ? source.rows.map((row) => row && row.id) : [];
 const candidateOrder = Array.isArray(candidate.rows) ? candidate.rows.map((row) => row && row.id) : [];
-if (canonical(sourceOrder) !== canonical(matrixOrder)) differences.push({ side: 'source', kind: 'row-order', actual: sourceOrder, expected: matrixOrder });
-if (canonical(candidateOrder) !== canonical(matrixOrder)) differences.push({ side: 'candidate', kind: 'row-order', actual: candidateOrder, expected: matrixOrder });
+if (canonical(matrixOrder) !== canonical(EXPECTED_CASE_IDS)) {
+  differences.push({ side: 'matrix', kind: 'matrix-case-order', actual: matrixOrder, expected: EXPECTED_CASE_IDS });
+}
+if (canonical(sourceOrder) !== canonical(EXPECTED_CASE_IDS)) differences.push({ side: 'source', kind: 'row-order', actual: sourceOrder, expected: EXPECTED_CASE_IDS });
+if (canonical(candidateOrder) !== canonical(EXPECTED_CASE_IDS)) differences.push({ side: 'candidate', kind: 'row-order', actual: candidateOrder, expected: EXPECTED_CASE_IDS });
 
 function compareReceiptMetadata(receipt, side, differences) {
   if (!receipt) return;
-  if (receipt.sourceRevision !== expectedSourceRevision) {
-    differences.push({ side, kind: 'source-revision', actual: receipt.sourceRevision || null, expected: expectedSourceRevision });
+  if (receipt.sourceRevision !== EXPECTED_SOURCE_REVISION) {
+    differences.push({ side, kind: 'source-revision', actual: receipt.sourceRevision || null, expected: EXPECTED_SOURCE_REVISION });
   }
   if (side === 'source') {
-    if (receipt.sourceImage !== expectedSourceImage) differences.push({ side, kind: 'source-image', actual: receipt.sourceImage || null, expected: expectedSourceImage });
-    if (receipt.sourceImageDigest !== expectedSourceImageDigest) differences.push({ side, kind: 'source-image-digest', actual: receipt.sourceImageDigest || null, expected: expectedSourceImageDigest });
+    if (receipt.sourceImage !== EXPECTED_SOURCE_IMAGE) differences.push({ side, kind: 'source-image', actual: receipt.sourceImage || null, expected: EXPECTED_SOURCE_IMAGE });
+    if (receipt.sourceImageDigest !== EXPECTED_SOURCE_IMAGE_DIGEST) differences.push({ side, kind: 'source-image-digest', actual: receipt.sourceImageDigest || null, expected: EXPECTED_SOURCE_IMAGE_DIGEST });
     if (receipt.network !== 'none') differences.push({ side, kind: 'source-network', actual: receipt.network || null, expected: 'none' });
     if (receipt.runtime !== 'v8.9.4') differences.push({ side, kind: 'source-runtime', actual: receipt.runtime || null, expected: 'v8.9.4' });
   } else {
@@ -368,7 +394,10 @@ const result = {
   result: differences.length ? 'fail' : 'pass',
   sourceRevision: source.sourceRevision || null,
   candidateRevision: candidate.candidateRevision || null,
-  cases: matrix.cases.length,
+  cases: EXPECTED_COUNTS.cases,
+  counts: EXPECTED_COUNTS,
+  matrixCaseIds: matrixOrder,
+  matrixSemanticSha256: EXPECTED_MATRIX_SEMANTIC_SHA256,
   differences,
 };
 const outputDir = path.dirname(outputPath);

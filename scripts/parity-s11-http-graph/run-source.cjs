@@ -8,6 +8,7 @@ const fs = require('fs');
 const http = require('http');
 const path = require('path');
 const urlParse = require('url').parse;
+const contract = require('./contract.cjs');
 
 const referenceRoot = path.resolve(process.argv[2]);
 const matrixPath = path.resolve(process.argv[3]);
@@ -17,9 +18,8 @@ if (!referenceRoot || !matrixPath || !outputPath) {
 }
 
 const matrix = JSON.parse(fs.readFileSync(matrixPath, 'utf8'));
-if (matrix.schema !== 's11-report-commute-http-v1') throw new Error('unsupported S-11 matrix schema');
-if (matrix.referenceRevision !== 'jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c') throw new Error('unexpected Pegasus reference revision');
-if (matrix.sourceImage !== 'node' || matrix.sourceImageDigest !== 'sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c') throw new Error('unexpected source image pin');
+const matrixErrors = contract.validateMatrix(matrix, contract.EXPECTED_MATRIX_SEMANTIC_SHA256);
+if (matrixErrors.length) throw new Error(`matrix contract mismatch: ${JSON.stringify(matrixErrors)}`);
 if (process.version !== 'v8.9.4') throw new Error(`source runner requires Node v8.9.4, got ${process.version}`);
 const fixtures = require(path.join(__dirname, 'maps-fixtures.cjs'));
 
@@ -335,6 +335,10 @@ async function mainRunner() {
   } finally {
     await new Promise((resolve) => dataPeer.close(resolve));
   }
+  const counts = contract.receiptCounts(rows);
+  if (contract.canonical(counts) !== contract.canonical(contract.EXPECTED_COUNTS)) {
+    throw new Error(`source receipt counts mismatch: ${JSON.stringify(counts)}`);
+  }
   const result = {
     schema: 's11-report-commute-http-receipt-v1',
     mode: 'source',
@@ -343,6 +347,7 @@ async function mainRunner() {
     sourceImageDigest: matrix.sourceImageDigest,
     network: 'none',
     runtime: process.version,
+    counts,
     rows,
   };
   const outputDir = path.dirname(outputPath);

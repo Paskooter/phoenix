@@ -8,14 +8,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const worktree = path.resolve(here, '../..');
 const matrixPath = path.join(here, 'commute-graph-matrix.json');
 const matrix = JSON.parse(fs.readFileSync(matrixPath, 'utf8'));
-if (matrix.schema !== 's11-report-commute-http-v1') throw new Error('unsupported S-11 matrix schema');
-if (matrix.referenceRevision !== 'jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c') throw new Error('unexpected Pegasus reference revision');
-if (matrix.sourceImage !== 'node' || matrix.sourceImageDigest !== 'sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c') throw new Error('unexpected source image pin');
+const require = createRequire(import.meta.url);
+const contract = require('./contract.cjs');
+const matrixErrors = contract.validateMatrix(matrix, contract.EXPECTED_MATRIX_SEMANTIC_SHA256);
+if (matrixErrors.length) throw new Error(`matrix contract mismatch: ${JSON.stringify(matrixErrors)}`);
 const sourceImage = `${matrix.sourceImage}@${matrix.sourceImageDigest}`;
 
 function parseArgs(argv) {
@@ -84,5 +86,4 @@ run('node', [path.join(here, 'negative-control.mjs'), matrixPath, sourceOut, can
 });
 
 const comparison = JSON.parse(fs.readFileSync(comparisonOut, 'utf8'));
-const cases = matrix.cases.length;
-console.log(JSON.stringify({ result: comparison.result, cases, out: args.out }));
+console.log(JSON.stringify({ result: comparison.result, cases: comparison.cases, counts: comparison.counts, out: args.out }));
