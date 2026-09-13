@@ -2698,8 +2698,8 @@
       "track": "pegasus",
       "phase": 3,
       "priority": "P1",
-      "status": "todo",
-      "implementation": "partial",
+      "status": "verified",
+      "implementation": "complete",
       "owner": "Codex",
       "dependsOn": [
         "S-08",
@@ -2710,14 +2710,43 @@
         "pegasus:packages/report-skill/tests"
       ],
       "phoenix": [
-        "packages/skills/src/report/weather.js"
+        "packages/skills/src/report/weather.js",
+        "packages/skills/src/report/nodes.js",
+        "packages/skills/src/report/weatherViews.js",
+        "packages/skills/test/s09WeatherParse.test.js",
+        "packages/skills/test/s09WeatherMim.test.js",
+        "packages/skills/test/s09WeatherViews.test.js",
+        "packages/skills/test/s09WeatherLanguage.test.js",
+        "scripts/parity-s09-source-diff",
+        "scripts/parity-s09"
       ],
-      "finding": "Weather condition tables are implemented but need source-driven coverage beyond a few fixtures.",
+      "finding": "Pinned Pegasus weather and Phoenix match all 54 archived cases (57 expanded runs) and 15 real Report HTTP graph cases, with exact parser shapes, location-local day/evening choice, condition and temperature tables, ordered MIMs, dynamic speech, views, fallbacks, actions, analytics and frozen Data requests. All 34 weather MIMs and both resources match source hashes. Live provider, deployment and robot rendering remain with their assigned tasks.",
       "acceptance": [
         "Cover each WeatherParse/MimLogic branch with frozen current/yesterday data, units, precipitation, temperature change and missing values.",
         "Compare selected MIMs, dynamic values, speech and fallback behavior through the report graph."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-13",
+          "basis": "The digest-pinned Node 8 source differential matches 54/54 named cases and 57/57 expanded runs with zero differences; the real source/Phoenix Report HTTP differential matches 15/15 cases with zero differences. Root reproduced both receipts, falsified the timezone and async-parser repairs, and proved the HTTP comparator rejects a missing row. All 34 weather MIM files and both resources match pinned source hashes; the controlled-concurrency repository suite passes 2,135 tests with 9 skips.",
+          "artifact": "docs/parity/evidence/2026-09-13/s09-weather/review.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "cce7def",
+          "command": "node scripts/parity-s09-source-diff/compare.mjs --out .parity/runs/s09-weather-source-diff-cce7def; node scripts/parity-s09/run.mjs --out .parity/runs/s09-weather-http-cce7def; node --test packages/skills/test/s09WeatherParse.test.js packages/skills/test/s09WeatherViews.test.js packages/skills/test/s09WeatherMim.test.js packages/skills/test/s09WeatherLanguage.test.js packages/skills/test/report.e2e.test.js packages/skills/test/reportSubskills.test.js packages/skills/test/reportViews.test.js packages/skills/test/reportViews.source-vectors.test.js; node --test --test-concurrency=4; npm run parity:check; npm run parity:gate",
+          "notes": "Live DarkSky/provider availability, deployment, and Moth rendering are outside S-09. Malformed runtime dates are outside the canonical fixed-offset ISO contract. Pegasus and Phoenix both reference but omit WeatherBasicCloudy.mim for partial cloudy data; that shared source defect is preserved."
+        }
+      ],
+      "implementationReview": {
+        "state": "accepted",
+        "assignee": "Luna Max S-09 team; Codex root",
+        "candidateRevision": "016acf4",
+        "integratedRevision": "cce7def",
+        "reviewedBy": "Codex root and independent Luna Max acceptance/falsification reviewers",
+        "scope": "Complete S-09 canonical-input closure across all archived Weather branches, source language/resources, direct runtime state and views, and frozen real Report/Data HTTP behavior. Root source-aligned async parsing, fixed-offset local time, string-only sanitization, and unknown-icon MIM suffix behavior, then independently falsified the central repairs.",
+        "artifact": "docs/parity/evidence/2026-09-13/s09-weather/review.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-13/s09-weather/review.md"
+      }
     },
     {
       "id": "S-10",

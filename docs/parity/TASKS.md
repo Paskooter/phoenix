@@ -10,14 +10,14 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 42 | 46 | 0 | 0 |
+| pegasus | 43 | 46 | 0 | 0 |
 | classic | 18 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
 Current task: none.
 
-Next ready task: **S-09 — Verify report weather language and condition tables**.
+Next ready task: **S-10 — Verify report news selection and presentation**.
 
 See [PLAN.md](PLAN.md) for execution rules, [COMPATIBILITY.md](COMPATIBILITY.md) for the frozen target and [AUDIT.md](AUDIT.md) for initial findings. Pegasus source links use the original commit; restored-only code and atlas links are labeled separately. API definitions are pinned; other Jibo links are discovery references to be pinned before verification.
 
@@ -1159,11 +1159,11 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-13/s08-personal-report/ro
 
 ### S-09 — Verify report weather language and condition tables
 
-- [ ] **todo** · P1 · pegasus · implementation: partial
+- [x] **verified** · P1 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: S-08, D-05.
 
-Weather condition tables are implemented but need source-driven coverage beyond a few fixtures.
+Pinned Pegasus weather and Phoenix match all 54 archived cases (57 expanded runs) and 15 real Report HTTP graph cases, with exact parser shapes, location-local day/evening choice, condition and temperature tables, ordered MIMs, dynamic speech, views, fallbacks, actions, analytics and frozen Data requests. All 34 weather MIMs and both resources match source hashes. Live provider, deployment and robot rendering remain with their assigned tasks.
 
 Done when:
 
@@ -1172,9 +1172,17 @@ Done when:
 
 Source: [Original Pegasus packages/report-skill/src/subskills/weather](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/src/subskills/weather); [Original Pegasus packages/report-skill/tests](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/tests).
 
-Phoenix: [packages/skills/src/report/weather.js](../../packages/skills/src/report/weather.js).
+Phoenix: [packages/skills/src/report/weather.js](../../packages/skills/src/report/weather.js); [packages/skills/src/report/nodes.js](../../packages/skills/src/report/nodes.js); [packages/skills/src/report/weatherViews.js](../../packages/skills/src/report/weatherViews.js); [packages/skills/test/s09WeatherParse.test.js](../../packages/skills/test/s09WeatherParse.test.js); [packages/skills/test/s09WeatherMim.test.js](../../packages/skills/test/s09WeatherMim.test.js); [packages/skills/test/s09WeatherViews.test.js](../../packages/skills/test/s09WeatherViews.test.js); [packages/skills/test/s09WeatherLanguage.test.js](../../packages/skills/test/s09WeatherLanguage.test.js); [scripts/parity-s09-source-diff](../../scripts/parity-s09-source-diff); [scripts/parity-s09](../../scripts/parity-s09).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-13/s09-weather/review.md](../../docs/parity/evidence/2026-09-13/s09-weather/review.md) (2026-09-13; The digest-pinned Node 8 source differential matches 54/54 named cases and 57/57 expanded runs with zero differences; the real source/Phoenix Report HTTP differential matches 15/15 cases with zero differences. Root reproduced both receipts, falsified the timezone and async-parser repairs, and proved the HTTP comparator rejects a missing row. All 34 weather MIM files and both resources match pinned source hashes; the controlled-concurrency repository suite passes 2,135 tests with 9 skips.).
+
+- [x] Candidate implementation — **accepted**; Luna Max S-09 team; Codex root.
+
+Candidate scope: Complete S-09 canonical-input closure across all archived Weather branches, source language/resources, direct runtime state and views, and frozen real Report/Data HTTP behavior. Root source-aligned async parsing, fixed-offset local time, string-only sanitization, and unknown-icon MIM suffix behavior, then independently falsified the central repairs.
+
+Candidate report: [docs/parity/evidence/2026-09-13/s09-weather/review.md](../../docs/parity/evidence/2026-09-13/s09-weather/review.md).
+
+Lead review: Codex root and independent Luna Max acceptance/falsification reviewers; [docs/parity/evidence/2026-09-13/s09-weather/review.md](../../docs/parity/evidence/2026-09-13/s09-weather/review.md). Complete task acceptance is still governed by the main checkbox above.
 
 ### S-10 — Verify report news selection and presentation
 
