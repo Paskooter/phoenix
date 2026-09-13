@@ -3,7 +3,7 @@
 This receipt is the source-executable follow-up to the bounded S-08 review.
 It was produced on branch `w18/s08` from Phoenix base `16c829075358d86a67bbfa0f5488193321c81614`.
 The candidate receipt was regenerated at implementation commit
-`7935fe6`; the evidence-only refresh commit follows it.
+`5a443f1`; the evidence-only refresh commit follows it.
 The authoritative Pegasus source is `jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c`,
 run in `node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c`
 (`v8.9.4`). Phoenix ran in host Node `v22.22.0`.
@@ -42,9 +42,11 @@ node scripts/parity-s08/compare.mjs \
   scripts/parity-s08/matrix-spec.json
 ```
 
-The matrix has **50 rows**: 39 graph sessions and 11 Settings seams. The graph
+The matrix has **54 rows**: 43 graph sessions and 11 Settings seams. The graph
 rows cover all five launch intents, reactive and proactive launch, recognized
 adult/child/unknown speaker, identity success/not-in-loop/cancel/no-input,
+WhoIsThis no-match exhaustion, and the source Opt-In no-match, wrong-ID-to-cancel,
+and wrong-ID-to-loopmember continuations,
 configured and default/all-disabled preferences, all four individual provider
 failures, every non-empty partial-failure subset of the four providers, all
 providers down, all single skills, incomplete calendar/commute setup, empty
@@ -53,18 +55,25 @@ unknown-intent negatives. The Settings rows cover no speaker, child defaults,
 transID present/absent request arguments, all four source commute enum values,
 missing commute boundary fields, calendar credentials, and `prefsFromConfig`.
 
+The four added conversation shapes are direct source-test translations. The
+WhoIsThis max-NM row sends the two repeated no-match results used by
+`PersonalReport.test.js`'s `repeatMIM(..., 'FinalNoMatch')` control. The Opt-In
+rows send the two no-match results, `wrongID` then `cancel`, and `wrongID` then
+`loopmember` with the pinned test utility's `LOOP_OWNER_ID` value
+`test-looper-id-2`, matching `OptInSkill.test.ts`.
+
 The generated artifacts are:
 
-- `source-runtime.json` — 39 original graph rows and 11 original Settings rows;
-- `candidate-runtime.json` — the same rows from Phoenix;
+- `source-runtime.json` — 43 original graph rows and 11 original Settings rows;
+- `candidate-runtime.json` — the same rows from Phoenix at `5a443f1`;
 - `differential-receipt.json` — normalized semantic and prompt comparison;
 - `prefetch-process-difference.json` — the retained detached-prefetch process control.
 
 The normal receipt is exact:
 
 ```text
-result=pass rows=50 semanticMatches=50 promptMatches=50
-expectedDifferences=0 coverageErrors=0 unexpectedDifferences=0
+result=pass rows=54 semanticMatches=54 promptMatches=54
+expectedDifferences=0 coverageErrors=0 promptDifferences=0 unexpectedDifferences=0
 ```
 
 Responses are compared by response type/finality, ordered MIM identity and
@@ -93,22 +102,27 @@ guard was temporarily changed to `data.result || {}`. The named test then
 reported `Missing expected rejection` (1 pass, 1 fail), and the differential
 reported `rows=50 semanticMatches=49 promptMatches=49 unexpectedDifferences=1`.
 The exact guard was restored with `apply_patch`; the focused test and the
-50-row differential are green again.
+54-row differential are green again.
 
 The comparator also has a coverage falsification. Temporary copies of both
 receipts with the same final graph descriptor removed exit nonzero and report
-the source and candidate cardinality 38 versus spec cardinality 39, plus the
+the source and candidate cardinality 42 versus spec cardinality 43, plus the
 missing descriptor ID on both sides. The focused self-check
 `s08Comparator.test.js` repeats this exact control, which falsifies the old
 `undefined === undefined` blind spot when both receipts omit a row.
+
+The same self-check forges one candidate `prompt_id` while leaving every other
+field unchanged. The comparator exits nonzero with `semanticMatches=54`,
+`promptMatches=53`, and one `promptDifferences` entry, proving that prompt-only
+drift is also a failure.
 
 Validation completed on the final worktree:
 
 ```text
 node --test packages/skills/test/s08SourceRuntimeMatrix.test.js packages/skills/test/s08Comparator.test.js
-tests=3 pass=3 fail=0
+tests=4 pass=4 fail=0
 npm test
-tests=1985 pass=1977 fail=0 skipped=8
+tests=1986 pass=1978 fail=0 skipped=8
 parity:check exit=0
 parity:gate cases=43 differences=0 invariants=0 coverageGaps=0 exit=0
 ```
@@ -132,8 +146,8 @@ gap.
 
 | S-08 criterion | Status | Evidence and limit |
 | --- | --- | --- |
-| Compare launch intents, UserID/opt-in, ordering/toggles, `prefsFromConfig`, Settings requests/defaults with original tests | **VERIFIED for source-executable behavior** | All 39 graph rows and 11 Settings rows deep-compare source and Phoenix at the pinned source/runtime boundary; source test modules and source graph files above are pinned. Live Settings deployment is outside this receipt. |
-| Verify recognized/unknown speaker, no prefs, all-disabled prefs, partial failures, multi-turn continuation, matching analytics | **VERIFIED for source-executable behavior** | The same 50-row receipt covers the speaker, preferences, every provider failure subset, opt-in/identity continuation, transition state, and Results/Skill Offer analytics. |
+| Compare launch intents, UserID/opt-in, ordering/toggles, `prefsFromConfig`, Settings requests/defaults with original tests | **VERIFIED for source-executable behavior** | All 43 graph rows and 11 Settings rows deep-compare source and Phoenix at the pinned source/runtime boundary; source test modules and source graph files above are pinned. Live Settings deployment is outside this receipt. |
+| Verify recognized/unknown speaker, no prefs, all-disabled prefs, partial failures, multi-turn continuation, matching analytics | **VERIFIED for source-executable behavior** | The same 54-row receipt covers the speaker, preferences, every provider failure subset, WhoIsThis max-no-match, Opt-In no-match and wrong-ID continuations, transition state, and Results/Skill Offer analytics. |
 | Detached prefetch process behavior | **KNOWN DIVERGENCE** | Source emits one unhandled rejection; Phoenix emits zero. This rejection control compares immediate Promise shape and process handling only; it does not establish an enclosing Report response result. See the separate prefetch artifact. |
 | Live provider, deployed Settings/Lasso, Hub, hardware | **UNKNOWN** | No network credentials, deployment, physical robot, or hardware evidence is claimed. These are not literal strings in the two acceptance criteria, but the current task finding still lists them open. |
 

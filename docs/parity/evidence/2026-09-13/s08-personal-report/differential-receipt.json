@@ -1,14 +1,15 @@
 {
   "schemaVersion": 1,
   "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
-  "candidateRevision": "7935fe60a9fa0fa65e0455d452d7317855c70407",
-  "graphRows": 39,
+  "candidateRevision": "5a443f1095efd8169b7d536fb84865e95500d79e",
+  "graphRows": 43,
   "settingsRows": 11,
-  "totalRows": 50,
-  "semanticMatches": 50,
-  "promptMatches": 50,
+  "totalRows": 54,
+  "semanticMatches": 54,
+  "promptMatches": 54,
   "expectedDifferences": [],
   "coverageErrors": [],
+  "promptDifferences": [],
   "unexpectedDifferences": [],
   "rows": [
     {
@@ -21,6 +22,38 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherIntro_AN_09",
+        "WeatherChangeClearWet_AN_17",
+        "WeatherTodayHighLow_AN_02",
+        "CalendarEventToday_AN_07",
+        "CalendarEarlyEvent_AN_01",
+        "CommuteDrivePoor_AN_06",
+        "CommuteDepartTimeNotNormal_AN_13",
+        "NewsIntro_AN_02",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_01"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherIntro_AN_09",
+        "WeatherChangeClearWet_AN_17",
+        "WeatherTodayHighLow_AN_02",
+        "CalendarEventToday_AN_07",
+        "CalendarEarlyEvent_AN_01",
+        "CommuteDrivePoor_AN_06",
+        "CommuteDepartTimeNotNormal_AN_13",
+        "NewsIntro_AN_02",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_01"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -34,6 +67,30 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherIntro_AN_09",
+        "WeatherChangeClearWet_AN_17",
+        "WeatherTodayHighLow_AN_02",
+        "NewsIntro_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_20"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherIntro_AN_09",
+        "WeatherChangeClearWet_AN_17",
+        "WeatherTodayHighLow_AN_02",
+        "NewsIntro_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_20"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -47,6 +104,30 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportKickOffNonPersonal_AN_02",
+        "WeatherIntro_AN_09",
+        "WeatherChangeClearWet_AN_17",
+        "WeatherTodayHighLow_AN_02",
+        "NewsIntro_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroNotConfigured_AN_12"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportKickOffNonPersonal_AN_02",
+        "WeatherIntro_AN_09",
+        "WeatherChangeClearWet_AN_17",
+        "WeatherTodayHighLow_AN_02",
+        "NewsIntro_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroNotConfigured_AN_12"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -60,6 +141,30 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportSettingsFailed_AN_02",
+        "WeatherIntro_AN_09",
+        "WeatherChangeClearWet_AN_17",
+        "WeatherTodayHighLow_AN_02",
+        "NewsIntro_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_20"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportSettingsFailed_AN_02",
+        "WeatherIntro_AN_09",
+        "WeatherChangeClearWet_AN_17",
+        "WeatherTodayHighLow_AN_02",
+        "NewsIntro_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_20"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -73,6 +178,26 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherServiceDown_AN_03",
+        "NewsIntro_AN_04",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_09"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherServiceDown_AN_03",
+        "NewsIntro_AN_04",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_09"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -86,6 +211,14 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "PersonalReportAllServicesDown_AN_04"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "PersonalReportAllServicesDown_AN_04"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -99,6 +232,16 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "CommuteServiceDown_AN_03",
+        "PersonalReportOutroConfigured_AN_21"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "CommuteServiceDown_AN_03",
+        "PersonalReportOutroConfigured_AN_21"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -112,6 +255,22 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherIntro_AN_09",
+        "WeatherChangeClearWet_AN_17",
+        "WeatherTodayHighLow_AN_02",
+        "NewsServiceDown_AN_01",
+        "PersonalReportOutroConfigured_AN_01"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherIntro_AN_09",
+        "WeatherChangeClearWet_AN_17",
+        "WeatherTodayHighLow_AN_02",
+        "NewsServiceDown_AN_01",
+        "PersonalReportOutroConfigured_AN_01"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -125,6 +284,30 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherServiceDown_AN_03",
+        "CalendarServiceDown_AN_04",
+        "CommuteNow_AN_02",
+        "NewsIntro_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_09"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherServiceDown_AN_03",
+        "CalendarServiceDown_AN_04",
+        "CommuteNow_AN_02",
+        "NewsIntro_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_09"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -138,6 +321,32 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherServiceDown_AN_03",
+        "CalendarEventToday_AN_12",
+        "CalendarEarlyEvent_AN_04",
+        "CommuteServiceDown_AN_02",
+        "NewsIntro_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_20"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherServiceDown_AN_03",
+        "CalendarEventToday_AN_12",
+        "CalendarEarlyEvent_AN_04",
+        "CommuteServiceDown_AN_02",
+        "NewsIntro_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_20"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -151,6 +360,26 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherServiceDown_AN_03",
+        "CalendarEventToday_AN_12",
+        "CalendarEarlyEvent_AN_04",
+        "CommuteDrivePoor_AN_03",
+        "CommuteDepartTimeNotNormal_AN_08",
+        "NewsServiceDown_AN_01",
+        "PersonalReportOutroConfigured_AN_09"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherServiceDown_AN_03",
+        "CalendarEventToday_AN_12",
+        "CalendarEarlyEvent_AN_04",
+        "CommuteDrivePoor_AN_03",
+        "CommuteDepartTimeNotNormal_AN_08",
+        "NewsServiceDown_AN_01",
+        "PersonalReportOutroConfigured_AN_09"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -164,6 +393,34 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherIntro_AN_09",
+        "WeatherChangeClearWet_AN_17",
+        "WeatherTodayHighLow_AN_02",
+        "CalendarServiceDown_AN_01",
+        "CommuteServiceDown_AN_01",
+        "NewsIntro_AN_03",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_09"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherIntro_AN_09",
+        "WeatherChangeClearWet_AN_17",
+        "WeatherTodayHighLow_AN_02",
+        "CalendarServiceDown_AN_01",
+        "CommuteServiceDown_AN_01",
+        "NewsIntro_AN_03",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_09"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -177,6 +434,26 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherIntro_AN_09",
+        "WeatherChangeClearWet_AN_17",
+        "WeatherTodayHighLow_AN_02",
+        "CalendarServiceDown_AN_01",
+        "CommuteNow_AN_01",
+        "NewsServiceDown_AN_03",
+        "PersonalReportOutroConfigured_AN_18"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherIntro_AN_09",
+        "WeatherChangeClearWet_AN_17",
+        "WeatherTodayHighLow_AN_02",
+        "CalendarServiceDown_AN_01",
+        "CommuteNow_AN_01",
+        "NewsServiceDown_AN_03",
+        "PersonalReportOutroConfigured_AN_18"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -190,6 +467,28 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherIntro_AN_09",
+        "WeatherChangeClearWet_AN_17",
+        "WeatherTodayHighLow_AN_02",
+        "CalendarEventToday_AN_07",
+        "CalendarEarlyEvent_AN_01",
+        "CommuteServiceDown_AN_03",
+        "NewsServiceDown_AN_04",
+        "PersonalReportOutroConfigured_AN_09"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherIntro_AN_09",
+        "WeatherChangeClearWet_AN_17",
+        "WeatherTodayHighLow_AN_02",
+        "CalendarEventToday_AN_07",
+        "CalendarEarlyEvent_AN_01",
+        "CommuteServiceDown_AN_03",
+        "NewsServiceDown_AN_04",
+        "PersonalReportOutroConfigured_AN_09"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -203,6 +502,30 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherServiceDown_AN_03",
+        "CalendarServiceDown_AN_04",
+        "CommuteServiceDown_AN_04",
+        "NewsIntro_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_09"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherServiceDown_AN_03",
+        "CalendarServiceDown_AN_04",
+        "CommuteServiceDown_AN_04",
+        "NewsIntro_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_09"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -216,6 +539,22 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherServiceDown_AN_03",
+        "CalendarServiceDown_AN_04",
+        "CommuteNow_AN_02",
+        "NewsServiceDown_AN_02",
+        "PersonalReportOutroConfigured_AN_01"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherServiceDown_AN_03",
+        "CalendarServiceDown_AN_04",
+        "CommuteNow_AN_02",
+        "NewsServiceDown_AN_02",
+        "PersonalReportOutroConfigured_AN_01"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -229,6 +568,24 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherServiceDown_AN_03",
+        "CalendarEventToday_AN_12",
+        "CalendarEarlyEvent_AN_04",
+        "CommuteServiceDown_AN_02",
+        "NewsServiceDown_AN_01",
+        "PersonalReportOutroConfigured_AN_01"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherServiceDown_AN_03",
+        "CalendarEventToday_AN_12",
+        "CalendarEarlyEvent_AN_04",
+        "CommuteServiceDown_AN_02",
+        "NewsServiceDown_AN_01",
+        "PersonalReportOutroConfigured_AN_01"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -242,6 +599,26 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherIntro_AN_09",
+        "WeatherChangeClearWet_AN_17",
+        "WeatherTodayHighLow_AN_02",
+        "CalendarServiceDown_AN_01",
+        "CommuteServiceDown_AN_01",
+        "NewsServiceDown_AN_03",
+        "PersonalReportOutroConfigured_AN_18"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "WeatherIntro_AN_09",
+        "WeatherChangeClearWet_AN_17",
+        "WeatherTodayHighLow_AN_02",
+        "CalendarServiceDown_AN_01",
+        "CommuteServiceDown_AN_01",
+        "NewsServiceDown_AN_03",
+        "PersonalReportOutroConfigured_AN_18"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -255,6 +632,14 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "PersonalReportAllServicesDown_AN_04"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportKickOff_AN_22",
+        "PersonalReportAllServicesDown_AN_04"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -268,6 +653,16 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "WeatherIntro_AN_14",
+        "WeatherChangeClearWet_AN_17",
+        "WeatherTodayHighLow_AN_04"
+      ],
+      "candidatePromptIds": [
+        "WeatherIntro_AN_14",
+        "WeatherChangeClearWet_AN_17",
+        "WeatherTodayHighLow_AN_04"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -281,6 +676,22 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "NewsIntro_AN_04",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsOutro_AN_01"
+      ],
+      "candidatePromptIds": [
+        "NewsIntro_AN_04",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsOutro_AN_01"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -294,6 +705,16 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "CalendarEventCountToday_AN_06",
+        "CalendarSummaryAndTime_AN_01",
+        "CalendarOutro_AN_13"
+      ],
+      "candidatePromptIds": [
+        "CalendarEventCountToday_AN_06",
+        "CalendarSummaryAndTime_AN_01",
+        "CalendarOutro_AN_13"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -307,6 +728,14 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "CommuteConfirmSpeaker_AN_03",
+        "CommuteNow_AN_02"
+      ],
+      "candidatePromptIds": [
+        "CommuteConfirmSpeaker_AN_03",
+        "CommuteNow_AN_02"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -320,6 +749,12 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "CalendarAppSetup_AN_04"
+      ],
+      "candidatePromptIds": [
+        "CalendarAppSetup_AN_04"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -333,6 +768,12 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "CommuteAppSetup_AN_02"
+      ],
+      "candidatePromptIds": [
+        "CommuteAppSetup_AN_02"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -346,6 +787,12 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "NewsAppSetup_AN_03"
+      ],
+      "candidatePromptIds": [
+        "NewsAppSetup_AN_03"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -359,6 +806,12 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportMustBeAdult_AN_01"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportMustBeAdult_AN_01"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -372,6 +825,8 @@
       "candidateOK": false,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [],
+      "candidatePromptIds": [],
       "sourceError": {
         "name": "Error",
         "message": "Unknown intent: 'unknownIntent'"
@@ -391,6 +846,40 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportWhoIsThis_QN_07",
+        "PersonalReportKickOff_AN_22",
+        "WeatherIntro_AN_06",
+        "WeatherChangeClearWet_AN_12",
+        "WeatherTodayHighLow_AN_01",
+        "CalendarEventToday_AN_07",
+        "CalendarEarlyEvent_AN_03",
+        "CommuteDrivePoor_AN_09",
+        "CommuteDepartTimeNotNormal_AN_11",
+        "NewsIntro_AN_04",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_01"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportWhoIsThis_QN_07",
+        "PersonalReportKickOff_AN_22",
+        "WeatherIntro_AN_06",
+        "WeatherChangeClearWet_AN_12",
+        "WeatherTodayHighLow_AN_01",
+        "CalendarEventToday_AN_07",
+        "CalendarEarlyEvent_AN_03",
+        "CommuteDrivePoor_AN_09",
+        "CommuteDepartTimeNotNormal_AN_11",
+        "NewsIntro_AN_04",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_01"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -404,6 +893,40 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportWhoIsThis_QN_07",
+        "PersonalReportKickOff_AN_22",
+        "WeatherIntro_AN_06",
+        "WeatherChangeClearWet_AN_12",
+        "WeatherTodayHighLow_AN_01",
+        "CalendarEventToday_AN_07",
+        "CalendarEarlyEvent_AN_03",
+        "CommuteDrivePoor_AN_09",
+        "CommuteDepartTimeNotNormal_AN_11",
+        "NewsIntro_AN_04",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_01"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportWhoIsThis_QN_07",
+        "PersonalReportKickOff_AN_22",
+        "WeatherIntro_AN_06",
+        "WeatherChangeClearWet_AN_12",
+        "WeatherTodayHighLow_AN_01",
+        "CalendarEventToday_AN_07",
+        "CalendarEarlyEvent_AN_03",
+        "CommuteDrivePoor_AN_09",
+        "CommuteDepartTimeNotNormal_AN_11",
+        "NewsIntro_AN_04",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_01"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -417,6 +940,12 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportWhoIsThis_QN_07"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportWhoIsThis_QN_07"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -430,6 +959,63 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportWhoIsThis_QN_07",
+        "WhoAmI_CollectName_NI_1_04"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportWhoIsThis_QN_07",
+        "WhoAmI_CollectName_NI_1_04"
+      ],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "id": "identity-whoisthis-no-match-exhaustion",
+      "group": "graph",
+      "expectedDifference": null,
+      "sourcePresent": true,
+      "candidatePresent": true,
+      "sourceOK": true,
+      "candidateOK": true,
+      "semanticEqual": true,
+      "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportWhoIsThis_QN_07",
+        "WhoAmI_CollectName_NM_1_02",
+        "PersonalReportKickOff_AN_22",
+        "WeatherIntro_AN_03",
+        "WeatherChangeClearWet_AN_01",
+        "WeatherTodayHighLow_AN_01",
+        "CalendarEventToday_AN_10",
+        "CalendarEarlyEvent_AN_04",
+        "CommuteDrivePoor_AN_06",
+        "CommuteDepartTimeNotNormal_AN_15",
+        "NewsIntro_AN_02",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_07"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportWhoIsThis_QN_07",
+        "WhoAmI_CollectName_NM_1_02",
+        "PersonalReportKickOff_AN_22",
+        "WeatherIntro_AN_03",
+        "WeatherChangeClearWet_AN_01",
+        "WeatherTodayHighLow_AN_01",
+        "CalendarEventToday_AN_10",
+        "CalendarEarlyEvent_AN_04",
+        "CommuteDrivePoor_AN_06",
+        "CommuteDepartTimeNotNormal_AN_15",
+        "NewsIntro_AN_02",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_07"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -443,6 +1029,14 @@
       "candidateOK": false,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportWhoIsThis_QN_07",
+        "WhoAmI_CollectName_NI_1_04"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportWhoIsThis_QN_07",
+        "WhoAmI_CollectName_NI_1_04"
+      ],
       "sourceError": {
         "name": "TypeError",
         "message": "Cannot read property 'nlu' of undefined"
@@ -462,6 +1056,12 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportOptInConfigured_QN_04"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportOptInConfigured_QN_04"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -475,6 +1075,40 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportOptInConfigured_QN_04",
+        "PersonalReportKickOff_AN_22",
+        "WeatherIntro_AN_06",
+        "WeatherChangeClearWet_AN_12",
+        "WeatherTodayHighLow_AN_01",
+        "CalendarEventToday_AN_07",
+        "CalendarEarlyEvent_AN_03",
+        "CommuteDrivePoor_AN_09",
+        "CommuteDepartTimeNotNormal_AN_11",
+        "NewsIntro_AN_04",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_01"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportOptInConfigured_QN_04",
+        "PersonalReportKickOff_AN_22",
+        "WeatherIntro_AN_06",
+        "WeatherChangeClearWet_AN_12",
+        "WeatherTodayHighLow_AN_01",
+        "CalendarEventToday_AN_07",
+        "CalendarEarlyEvent_AN_03",
+        "CommuteDrivePoor_AN_09",
+        "CommuteDepartTimeNotNormal_AN_11",
+        "NewsIntro_AN_04",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_01"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -488,6 +1122,14 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportOptInConfigured_QN_04",
+        "Decline_AN_02"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportOptInConfigured_QN_04",
+        "Decline_AN_02"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -501,6 +1143,137 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportOptInConfigured_QN_04",
+        "WrongID_QN_04",
+        "PersonalReportKickOff_AN_22",
+        "WeatherIntro_AN_03",
+        "WeatherChangeClearWet_AN_01",
+        "WeatherTodayHighLow_AN_01",
+        "CalendarEventToday_AN_10",
+        "CalendarEarlyEvent_AN_04",
+        "CommuteDrivePoor_AN_06",
+        "CommuteDepartTimeNotNormal_AN_15",
+        "NewsIntro_AN_02",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_07"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportOptInConfigured_QN_04",
+        "WrongID_QN_04",
+        "PersonalReportKickOff_AN_22",
+        "WeatherIntro_AN_03",
+        "WeatherChangeClearWet_AN_01",
+        "WeatherTodayHighLow_AN_01",
+        "CalendarEventToday_AN_10",
+        "CalendarEarlyEvent_AN_04",
+        "CommuteDrivePoor_AN_06",
+        "CommuteDepartTimeNotNormal_AN_15",
+        "NewsIntro_AN_02",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_07"
+      ],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "id": "proactive-no-match-decline",
+      "group": "graph",
+      "expectedDifference": null,
+      "sourcePresent": true,
+      "candidatePresent": true,
+      "sourceOK": true,
+      "candidateOK": true,
+      "semanticEqual": true,
+      "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportOptInConfigured_QN_04",
+        "PersonalReportOptInConfigured_NM_1_04",
+        "Decline_AN_05"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportOptInConfigured_QN_04",
+        "PersonalReportOptInConfigured_NM_1_04",
+        "Decline_AN_05"
+      ],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "id": "proactive-wrong-id-cancel",
+      "group": "graph",
+      "expectedDifference": null,
+      "sourcePresent": true,
+      "candidatePresent": true,
+      "sourceOK": true,
+      "candidateOK": true,
+      "semanticEqual": true,
+      "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportOptInConfigured_QN_04",
+        "WrongID_QN_04",
+        "Decline_AN_05"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportOptInConfigured_QN_04",
+        "WrongID_QN_04",
+        "Decline_AN_05"
+      ],
+      "sourceError": null,
+      "candidateError": null
+    },
+    {
+      "id": "proactive-wrong-id-loopmember",
+      "group": "graph",
+      "expectedDifference": null,
+      "sourcePresent": true,
+      "candidatePresent": true,
+      "sourceOK": true,
+      "candidateOK": true,
+      "semanticEqual": true,
+      "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportOptInConfigured_QN_04",
+        "WrongID_QN_04",
+        "PersonalReportKickOff_AN_22",
+        "WeatherIntro_AN_03",
+        "WeatherChangeClearWet_AN_01",
+        "WeatherTodayHighLow_AN_01",
+        "CalendarEventToday_AN_10",
+        "CalendarEarlyEvent_AN_04",
+        "CommuteDrivePoor_AN_06",
+        "CommuteDepartTimeNotNormal_AN_15",
+        "NewsIntro_AN_02",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_07"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportOptInConfigured_QN_04",
+        "WrongID_QN_04",
+        "PersonalReportKickOff_AN_22",
+        "WeatherIntro_AN_03",
+        "WeatherChangeClearWet_AN_01",
+        "WeatherTodayHighLow_AN_01",
+        "CalendarEventToday_AN_10",
+        "CalendarEarlyEvent_AN_04",
+        "CommuteDrivePoor_AN_06",
+        "CommuteDepartTimeNotNormal_AN_15",
+        "NewsIntro_AN_02",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "NewsHeadline_AN_01",
+        "PersonalReportOutroConfigured_AN_07"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -514,6 +1287,14 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportOptInConfigured_QN_04",
+        "PersonalReportOptInConfigured_NI_1_01"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportOptInConfigured_QN_04",
+        "PersonalReportOptInConfigured_NI_1_01"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -527,6 +1308,12 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [
+        "PersonalReportOptInNotConfigured_QN_03"
+      ],
+      "candidatePromptIds": [
+        "PersonalReportOptInNotConfigured_QN_03"
+      ],
       "sourceError": null,
       "candidateError": null
     },
@@ -540,6 +1327,8 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [],
+      "candidatePromptIds": [],
       "sourceError": null,
       "candidateError": null
     },
@@ -553,6 +1342,8 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [],
+      "candidatePromptIds": [],
       "sourceError": null,
       "candidateError": null
     },
@@ -566,6 +1357,8 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [],
+      "candidatePromptIds": [],
       "sourceError": null,
       "candidateError": null
     },
@@ -579,6 +1372,8 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [],
+      "candidatePromptIds": [],
       "sourceError": null,
       "candidateError": null
     },
@@ -592,6 +1387,8 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [],
+      "candidatePromptIds": [],
       "sourceError": null,
       "candidateError": null
     },
@@ -605,6 +1402,8 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [],
+      "candidatePromptIds": [],
       "sourceError": null,
       "candidateError": null
     },
@@ -618,6 +1417,8 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [],
+      "candidatePromptIds": [],
       "sourceError": null,
       "candidateError": null
     },
@@ -631,6 +1432,8 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [],
+      "candidatePromptIds": [],
       "sourceError": null,
       "candidateError": null
     },
@@ -644,6 +1447,8 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [],
+      "candidatePromptIds": [],
       "sourceError": null,
       "candidateError": null
     },
@@ -657,6 +1462,8 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [],
+      "candidatePromptIds": [],
       "sourceError": null,
       "candidateError": null
     },
@@ -670,6 +1477,8 @@
       "candidateOK": true,
       "semanticEqual": true,
       "promptEqual": true,
+      "sourcePromptIds": [],
+      "candidatePromptIds": [],
       "sourceError": null,
       "candidateError": null
     }
