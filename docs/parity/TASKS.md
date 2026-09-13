@@ -10,7 +10,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 36 | 46 | 0 | 0 |
+| pegasus | 37 | 46 | 0 | 0 |
 | classic | 18 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
@@ -697,11 +697,11 @@ Evidence: [docs/parity/evidence/2026-09-11/n07-fallback/w14-review.md](../../doc
 
 ### N-08 — Restore exact NLU outputs and close corpus mismatches
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
 
-The default AST parser matches 20,479/20,528 original HTTP requests with 49 current residual differences: F2 optimized graph order (47 rows) and F3 AST cost versus native heuristic (2 rows). The earlier F1 launch-union priority repair (f3ed0c8) removed that family's two rows with zero regressions. F2 is NOT repairable in the AST parser: it is the first-path-after-optimization behavior of the native graphs, and the same class as the rejected 700e40c. Root verified on 2026-09-08 that the compiled graph runtime, provisioned with the 98 approved graphs, matches the original on the COMPLETE pinned corpus: 20,528/20,528 with zero differences (docs/parity/evidence/2026-09-08/nlu-compiled-full-replay/review.json). The AST baseline is unchanged and the repo default is still AST, so this closes the corpus-mismatch criterion for the compiled profile only. DECIDED 2026-09-08 (user): the default parser stays the AST engine and the 49 residuals are accepted as a minor, explained gap, recorded as divergence N1 in DIVERGENCES.md. The compiled runtime remains available opt-in and is exact, but its graph data is not vendored and making it the default would change what a plain checkout runs. No further AST ranking work is warranted: the remaining families are not repairable in that engine. Wave 16 additionally stopped two unserved clock factory dependencies from becoming wildcards: the 10,035-utterance manifest corpus improved from 162 to 160 mismatches with no new failures, while the accepted 49-row AST HTTP residual set stayed byte-identical. The 160 manifest mismatches are classified; 14 GQA/weather rewrites still belong behind explicit configuration, so the routing criterion and N-08 remain open.
+The public parser returns the source empty shape and removes parser-only intent/priority fields. Source chitchat routing is now the default; GQA/weather continuity requires an explicit true profile flag. Root replayed the complete pinned HTTP corpus: 20,479/20,528 default-AST matches with the exact accepted 49-row N1 residual set, while the approved compiled profile remains 20,528/20,528 exact. The complete 10,035-utterance manifest has 148 classified misses: 28 N1 routing rows and 120 S-07 MIM/identity rows. No unexplained group remains.
 
 Done when:
 
@@ -713,15 +713,15 @@ Source: [Original Pegasus packages/parser/src/handlers/ParseRequestHandler.ts](h
 
 Phoenix: [packages/nlu/src/index.js](../../packages/nlu/src/index.js); [packages/nlu/src/fullGrammar.js](../../packages/nlu/src/fullGrammar.js); [packages/harness/src/corpusRunner.js](../../packages/harness/src/corpusRunner.js); [docs/parity/NLU-SOURCE.md](../../docs/parity/NLU-SOURCE.md).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-13/n08-routing-closure/review.md](../../docs/parity/evidence/2026-09-13/n08-routing-closure/review.md) (2026-09-13; All three written criteria closed against the pinned parser source and both complete corpora. The public request boundary preserves null empty entities; legacy output strips intent/priority only after SKIP evaluation. The exact 14-row GQA class preserves source routing by default and rewrites only with gqaContinuity === true. Root full replays leave only 49 accepted N1 HTTP rows and 148 fully assigned manifest rows (28 N1 plus 120 S-07), with no unexplained mismatch. Root falsified the profile guard and an independent Luna Max audit agreed criterion by criterion.).
 
-- [x] Candidate implementation — **accepted**; Luna Max / audio_encoding_repair; Codex root.
+- [x] Candidate implementation — **accepted**; Luna Max / w18 N-08; Codex root.
 
-Candidate scope: Bounded ordinary input/rule punctuation semantics. Full 20,528 status/data replay reviewed: 20,477 matches, 51 unchanged residuals, one repair, zero regressions. Root 7 native CES, 21 class/apostrophe comparisons, 209 HTTP regressions, 716 units and strict43 pass. Full N-08 remains open.
+Candidate scope: N-08 closure: source routing default, explicit GQA/weather continuity, clean public entities, exact empty HTTP shapes and complete dual-corpus classification. Root focused falsification, 20,528 HTTP replay, 10,035 manifest replay, 1,965-test integrated suite and strict43 pass. Remaining rows belong to accepted N1 or S-07.
 
-Candidate report: [docs/parity/candidates/N-08-ast-punctuation-literals-20260907.md](../../docs/parity/candidates/N-08-ast-punctuation-literals-20260907.md).
+Candidate report: [docs/parity/evidence/2026-09-13/n08-routing-closure/review.md](../../docs/parity/evidence/2026-09-13/n08-routing-closure/review.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-07/nlu-punctuation-literals/review.json](../../docs/parity/evidence/2026-09-07/nlu-punctuation-literals/review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-13/n08-routing-closure/review.md](../../docs/parity/evidence/2026-09-13/n08-routing-closure/review.md). Complete task acceptance is still governed by the main checkbox above.
 
 ### I-02 — Match history validation and query semantics
 
@@ -1120,7 +1120,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: S-03, S-05, H-05, C-03.
 
-Root accepted Report Results analytics and bounded Lasso transport. Fresh51 original Node8 controls match,512 unit tests pass, and configured strict43 now has zero differences/invariants/gaps (218 resolved). Detached prefetch rejection remains different. Complete Report orchestration, preferences/identity, live provider behavior and deployment remain open.
+Root accepted Report Results analytics, bounded Lasso transport, the source Settings transID boundary and commute enum order. The launch/identity/opt-in/preferences/provider/continuation/analytics matrix passes 96 focused tests, the integrated suite passes 1,965 tests with zero failures, and strict43 has zero differences/invariants/gaps. Detached prefetch rejection remains process-observably different, and complete source-runtime differential plus live provider/deployment evidence remain open.
 
 Done when:
 
@@ -1133,13 +1133,13 @@ Phoenix: [packages/skills/src/report/personalReport.js](../../packages/skills/sr
 
 Evidence: pending.
 
-- [x] Candidate implementation — **accepted**; Codex root with Luna Max candidate.
+- [x] Candidate implementation — **accepted**; Luna Max / w18_s08_settings; Codex root.
 
-Candidate scope: Bounded Report Lasso transport. Root51 source controls match without error-message qualifications;512 units pass. Configured strict43 resolves all218 remaining differences, with zero new differences/invariants/gaps. Detached prefetch rejection remains an explicit divergence; full S-08 remains open.
+Candidate scope: Bounded Personal Report review: Settings requests use only req.jibo.transID with the source warning on absence, commute modes follow the source enum order, and launch, speaker, opt-in, preferences, defaults, partial provider failure, continuation and analytics matrices pass. Root independently falsified both source repairs. Detached prefetch rejection and complete live/source-runtime comparison remain open, so S-08 receives no whole-task credit.
 
-Candidate report: [docs/parity/candidates/S-08-lasso-snapshot-followup.md](../../docs/parity/candidates/S-08-lasso-snapshot-followup.md).
+Candidate report: [docs/parity/evidence/2026-09-13/s08-personal-report/review.md](../../docs/parity/evidence/2026-09-13/s08-personal-report/review.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-06/service-integration/report-lasso-review.json](../../docs/parity/evidence/2026-09-06/service-integration/report-lasso-review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-13/s08-personal-report/review.md](../../docs/parity/evidence/2026-09-13/s08-personal-report/review.md). Complete task acceptance is still governed by the main checkbox above.
 
 ### S-09 — Verify report weather language and condition tables
 

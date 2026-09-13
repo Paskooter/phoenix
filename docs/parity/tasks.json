@@ -1474,7 +1474,7 @@
       "track": "pegasus",
       "phase": 2,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -1496,24 +1496,45 @@
         "packages/harness/src/corpusRunner.js",
         "docs/parity/NLU-SOURCE.md"
       ],
-      "finding": "The default AST parser matches 20,479/20,528 original HTTP requests with 49 current residual differences: F2 optimized graph order (47 rows) and F3 AST cost versus native heuristic (2 rows). The earlier F1 launch-union priority repair (f3ed0c8) removed that family's two rows with zero regressions. F2 is NOT repairable in the AST parser: it is the first-path-after-optimization behavior of the native graphs, and the same class as the rejected 700e40c. Root verified on 2026-09-08 that the compiled graph runtime, provisioned with the 98 approved graphs, matches the original on the COMPLETE pinned corpus: 20,528/20,528 with zero differences (docs/parity/evidence/2026-09-08/nlu-compiled-full-replay/review.json). The AST baseline is unchanged and the repo default is still AST, so this closes the corpus-mismatch criterion for the compiled profile only. DECIDED 2026-09-08 (user): the default parser stays the AST engine and the 49 residuals are accepted as a minor, explained gap, recorded as divergence N1 in DIVERGENCES.md. The compiled runtime remains available opt-in and is exact, but its graph data is not vendored and making it the default would change what a plain checkout runs. No further AST ranking work is warranted: the remaining families are not repairable in that engine. Wave 16 additionally stopped two unserved clock factory dependencies from becoming wildcards: the 10,035-utterance manifest corpus improved from 162 to 160 mismatches with no new failures, while the accepted 49-row AST HTTP residual set stayed byte-identical. The 160 manifest mismatches are classified; 14 GQA/weather rewrites still belong behind explicit configuration, so the routing criterion and N-08 remain open.",
+      "finding": "The public parser returns the source empty shape and removes parser-only intent/priority fields. Source chitchat routing is now the default; GQA/weather continuity requires an explicit true profile flag. Root replayed the complete pinned HTTP corpus: 20,479/20,528 default-AST matches with the exact accepted 49-row N1 residual set, while the approved compiled profile remains 20,528/20,528 exact. The complete 10,035-utterance manifest has 148 classified misses: 28 N1 routing rows and 120 S-07 MIM/identity rows. No unexplained group remains.",
       "acceptance": [
         "Return original empty shapes and clean entity payloads, removing parser-only fields where the reference does.",
         "Make original routing the compatibility behavior; move any desired GQA/weather rewrites to explicit separately tested configuration.",
         "Reach zero unexplained mismatches across the full pinned corpus, including entities, rules, no-match and skill/memo; split remaining mismatch groups into tracked child tasks."
       ],
-      "verification": [],
+      "verification": [
+        {
+          "date": "2026-09-13",
+          "basis": "All three written criteria closed against the pinned parser source and both complete corpora. The public request boundary preserves null empty entities; legacy output strips intent/priority only after SKIP evaluation. The exact 14-row GQA class preserves source routing by default and rewrites only with gqaContinuity === true. Root full replays leave only 49 accepted N1 HTTP rows and 148 fully assigned manifest rows (28 N1 plus 120 S-07), with no unexplained mismatch. Root falsified the profile guard and an independent Luna Max audit agreed criterion by criterion.",
+          "artifact": "docs/parity/evidence/2026-09-13/n08-routing-closure/review.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "06dbfc5",
+          "command": "node packages/harness/src/corpusRunner.js; node packages/nlu/tools/replayPinnedCorpusHttp.mjs --original /home/shell/work/phoenix/.parity/reviews/full-original-parser.json; npm test",
+          "notes": "The internal legacy parse(text) helper retains its documented object-shaped empty fallback; the cited and deployed ParseRequestHandler HTTP contract is source-exact. N1 and S-07 retain the explicitly assigned residual groups. No deployment or hardware credit."
+        }
+      ],
       "implementationReview": {
         "state": "accepted",
-        "assignee": "Luna Max / audio_encoding_repair; Codex root",
-        "candidateRevision": "c1257a2f899b602515e701b08c9559987ebc4020",
-        "integratedRevision": "d1262a970e9cc9c28b63d53e8b9133cc85efa1b7",
+        "assignee": "Luna Max / w18 N-08; Codex root",
+        "candidateRevision": "ac6c8f9",
+        "integratedRevision": "ac6c8f9",
         "reviewedBy": "Codex root",
-        "scope": "Bounded ordinary input/rule punctuation semantics. Full 20,528 status/data replay reviewed: 20,477 matches, 51 unchanged residuals, one repair, zero regressions. Root 7 native CES, 21 class/apostrophe comparisons, 209 HTTP regressions, 716 units and strict43 pass. Full N-08 remains open.",
-        "artifact": "docs/parity/candidates/N-08-ast-punctuation-literals-20260907.md",
-        "reviewEvidence": "docs/parity/evidence/2026-09-07/nlu-punctuation-literals/review.json"
+        "scope": "N-08 closure: source routing default, explicit GQA/weather continuity, clean public entities, exact empty HTTP shapes and complete dual-corpus classification. Root focused falsification, 20,528 HTTP replay, 10,035 manifest replay, 1,965-test integrated suite and strict43 pass. Remaining rows belong to accepted N1 or S-07.",
+        "artifact": "docs/parity/evidence/2026-09-13/n08-routing-closure/review.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-13/n08-routing-closure/review.md"
       },
       "implementationReviewHistory": [
+        {
+          "state": "accepted",
+          "assignee": "Luna Max / audio_encoding_repair; Codex root",
+          "candidateRevision": "c1257a2f899b602515e701b08c9559987ebc4020",
+          "integratedRevision": "d1262a970e9cc9c28b63d53e8b9133cc85efa1b7",
+          "reviewedBy": "Codex root",
+          "scope": "Bounded ordinary input/rule punctuation semantics. Full 20,528 status/data replay reviewed: 20,477 matches, 51 unchanged residuals, one repair, zero regressions. Root 7 native CES, 21 class/apostrophe comparisons, 209 HTTP regressions, 716 units and strict43 pass. Full N-08 remains open.",
+          "artifact": "docs/parity/candidates/N-08-ast-punctuation-literals-20260907.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-07/nlu-punctuation-literals/review.json"
+        },
         {
           "state": "accepted",
           "assignee": "Luna Max / audio_encoding_repair",
@@ -1764,12 +1785,7 @@
           "scope": "Temporary authenticated clock/proactive native exchanges on unchanged compiled98 profile; rollback and idle verified. DefaultAST, microphone/physicalring and persistent deployment remain open.",
           "reviewEvidence": "docs/parity/evidence/2026-09-07/hardware/reviewed-checkpoint/review.json"
         }
-      ],
-      "nextImplementation": {
-        "state": "deferred",
-        "assignee": "Codex root",
-        "scope": "The parser-runtime question is CLOSED: AST stays default, 49 residuals accepted as divergence N1. Remaining N-08 work is the other acceptance criteria (original empty shapes and clean entity payloads, original routing as the compatibility behavior), external coverage and deployment. Do not reopen AST ranking or the compiled-default decision."
-      }
+      ]
     },
     {
       "id": "I-01",
@@ -2555,7 +2571,7 @@
         "packages/skills/src/report/userId.js",
         "packages/skills/src/report/settingsClient.js"
       ],
-      "finding": "Root accepted Report Results analytics and bounded Lasso transport. Fresh51 original Node8 controls match,512 unit tests pass, and configured strict43 now has zero differences/invariants/gaps (218 resolved). Detached prefetch rejection remains different. Complete Report orchestration, preferences/identity, live provider behavior and deployment remain open.",
+      "finding": "Root accepted Report Results analytics, bounded Lasso transport, the source Settings transID boundary and commute enum order. The launch/identity/opt-in/preferences/provider/continuation/analytics matrix passes 96 focused tests, the integrated suite passes 1,965 tests with zero failures, and strict43 has zero differences/invariants/gaps. Detached prefetch rejection remains process-observably different, and complete source-runtime differential plus live provider/deployment evidence remain open.",
       "acceptance": [
         "Compare launch intents, UserID/opt-in, ordering/toggles, prefsFromConfig and Settings requests/defaults using the original report tests.",
         "Verify recognized/unknown speaker, no prefs, all-disabled prefs, partial failures, multi-turn continuation and matching analytics."
@@ -2563,15 +2579,25 @@
       "verification": [],
       "implementationReview": {
         "state": "accepted",
-        "assignee": "Codex root with Luna Max candidate",
-        "candidateRevision": "0c95074e78de61b3c01f852c246ab9c1325c4a34",
-        "reviewedCandidateRevision": "305fc589e79e6376d9a0f3c4d3dd11dc5420504e",
+        "assignee": "Luna Max / w18_s08_settings; Codex root",
+        "candidateRevision": "09587f2",
+        "integratedRevision": "c9433d8",
         "reviewedBy": "Codex root",
-        "scope": "Bounded Report Lasso transport. Root51 source controls match without error-message qualifications;512 units pass. Configured strict43 resolves all218 remaining differences, with zero new differences/invariants/gaps. Detached prefetch rejection remains an explicit divergence; full S-08 remains open.",
-        "artifact": "docs/parity/candidates/S-08-lasso-snapshot-followup.md",
-        "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/report-lasso-review.json"
+        "scope": "Bounded Personal Report review: Settings requests use only req.jibo.transID with the source warning on absence, commute modes follow the source enum order, and launch, speaker, opt-in, preferences, defaults, partial provider failure, continuation and analytics matrices pass. Root independently falsified both source repairs. Detached prefetch rejection and complete live/source-runtime comparison remain open, so S-08 receives no whole-task credit.",
+        "artifact": "docs/parity/evidence/2026-09-13/s08-personal-report/review.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-13/s08-personal-report/review.md"
       },
       "implementationReviewHistory": [
+        {
+          "state": "accepted",
+          "assignee": "Codex root with Luna Max candidate",
+          "candidateRevision": "0c95074e78de61b3c01f852c246ab9c1325c4a34",
+          "reviewedCandidateRevision": "305fc589e79e6376d9a0f3c4d3dd11dc5420504e",
+          "reviewedBy": "Codex root",
+          "scope": "Bounded Report Lasso transport. Root51 source controls match without error-message qualifications;512 units pass. Configured strict43 resolves all218 remaining differences, with zero new differences/invariants/gaps. Detached prefetch rejection remains an explicit divergence; full S-08 remains open.",
+          "artifact": "docs/parity/candidates/S-08-lasso-snapshot-followup.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-06/service-integration/report-lasso-review.json"
+        },
         {
           "state": "accepted",
           "assignee": "Codex root with Luna Max candidate",
