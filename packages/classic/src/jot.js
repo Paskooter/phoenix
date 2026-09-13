@@ -74,6 +74,20 @@
 //   this runs in onRequest it PREcedes @parseCredentials/@validatePayload: an unmapped operation is
 //   a 404 even when unsigned. Reproduced verbatim by jotMethodNotFound()/sendBoom() below; the
 //   sibling graduated service VoiceTraining answers the same class of 404 (src/voiceTraining.js).
+//
+// THE VALIDATION/CONTROLLER ENVELOPES (A19e/f): @validatePayload rejects with Boom.badData(err),
+// which is HTTP 422 `{statusCode, error:'Unprocessable Entity', message}` with no AWS header.
+// The three JOT_* controller refusals use Boom.createWithCode and therefore carry the reason
+// phrase plus `code` in the raw body, also with no x-amzn-errortype. The pinned account/media
+// clients have three distinct outcomes, all decided by @jibo/server src/server.js: a missing
+// registry/base throws Boom.createWithCode (raw 503 plus code), an upstream `{error,...}` payload
+// becomes Boom.create (raw upstream status/message, no code), and a Wreck/network error is not
+// Boom and is wrapped as Boom.badImplementation('Internal server error.', err), whose public Hapi
+// output hides the detail as `An internal server error occurred` (raw 500). The injected Phoenix
+// seams preserve that distinction: throw a source-like `isBoom` error for either
+// typed outcome, or a plain error for the generic network outcome.
+// A dotless Jot target is scoped in the prefix router to Hapi's generic 500 body: the pinned
+// lowerMethodName dereferences split('.')[1] before auth or operation lookup (A19g).
 
 // DEAD DEPENDENCIES (explicit seams, never faked):
 //   * AccountClient.get(loopId)  -> GET http://<account>/loop?loopId=  (membership + robot check).
@@ -92,11 +106,12 @@
 // event ledger, so messages created before a restart are still listed after it.
 
 import { existsSync, readFileSync, writeFileSync, renameSync, mkdirSync, openSync, closeSync, unlinkSync } from 'node:fs';
+import { STATUS_CODES } from 'node:http';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { randomBytes } from 'node:crypto';
 import { sendJson } from '@phoenix/common';
-import { sendAmz, sendAmzError, ValidationException } from './awsJson.js';
+import { sendAmz, sendAmzError } from './awsJson.js';
 import { accountIdFromRequest, MISSING_AUTH_HEADER } from './person.js';
 import { expandMedia } from './media.js';
 
@@ -364,24 +379,19 @@ export class JotStore {
 
 function fail(code) {
   const err = new Error(JOT_ERRORS[code].message);
-  return Object.assign(err, JOT_ERRORS[code]);
+  // message.ctrl.js throws Boom.createWithCode; mark the local equivalent so the handler follows
+  // the same @jibo/server requestHandler branch instead of treating it as an AWS error.
+  return Object.assign(err, JOT_ERRORS[code], { isBoom: true });
 }
 
-/** A failing hop is a typed 503 unless the seam already threw a typed error (the source propagated
- *  the account/media `Boom.create(payload.statusCode, payload.message)`). */
-function accountFailure(error) {
-  if (error && error.statusCode) return error;
-  const err = new Error(JOT_ERRORS.ACCOUNT_SERVICE_UNAVAILABLE.message);
-  err.cause = error;
-  return Object.assign(err, JOT_ERRORS.ACCOUNT_SERVICE_UNAVAILABLE);
-}
-
-function mediaFailure(error) {
-  if (error && error.statusCode) return error;
-  const err = new Error(JOT_ERRORS.MEDIA_SERVICE_UNAVAILABLE.message);
-  err.cause = error;
-  return Object.assign(err, JOT_ERRORS.MEDIA_SERVICE_UNAVAILABLE);
-}
+/**
+ * @jibo/server's Server.requestHandler passes `err.isBoom` through unchanged. A client-side
+ * registry/upstream Boom therefore stays a raw Boom response; a Wreck/network Error stays
+ * non-Boom and is wrapped by the handler as raw 500. Preserve the seam error identity here so
+ * Phoenix can exercise both source classes exactly.
+ */
+function accountFailure(error) { return error; }
+function mediaFailure(error) { return error; }
 
 /** Default media seam: the media service is a separate, unrecovered HTTP hop. */
 export function unavailableMedia() {
@@ -500,8 +510,9 @@ export class JotMessageController {
     }
   }
 
-  /** message.ctrl.js create. The message and its event are committed before populateParts runs, so a
-   *  failing media hop answers 503 with the message already persisted — exactly the source order. */
+  /** message.ctrl.js create. The message and its event are committed before populateParts runs, so
+   *  a failing media hop answers with the source Boom or generic 500 while the message remains
+   *  persisted — exactly the source order. */
   async create({ accountId, impersonateAs, loopId, content, tags, isEncrypted, parts }) {
     const sender = await this.getImpersonatedAccount({ loopId, accountId, impersonateAs });
     if (!content && (!parts || parts.length === 0)) throw fail('JOT_CONTENT_OR_PARTS_REQUIRED');
@@ -567,7 +578,7 @@ const isString = (value) => typeof value === 'string';
 const isPlainObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
 
 const joiString = (field, value, { required = false, empty = false } = {}) => {
-  if (value === undefined || value === null) {
+  if (value === undefined) {
     return required ? `child "${field}" fails because ["${field}" is required]` : null;
   }
   if (!isString(value)) return `child "${field}" fails because ["${field}" must be a string]`;
@@ -576,19 +587,19 @@ const joiString = (field, value, { required = false, empty = false } = {}) => {
 };
 
 const joiNumber = (field, value) => {
-  if (value === undefined || value === null) return null;
+  if (value === undefined) return null;
   if (typeof value !== 'number' || Number.isNaN(value)) return `child "${field}" fails because ["${field}" must be a number]`;
   return null;
 };
 
 const joiBoolean = (field, value) => {
-  if (value === undefined || value === null) return null;
+  if (value === undefined) return null;
   if (typeof value !== 'boolean') return `child "${field}" fails because ["${field}" must be a boolean]`;
   return null;
 };
 
 const joiStringArray = (field, value, { required = false, min = 0 } = {}) => {
-  if (value === undefined || value === null) {
+  if (value === undefined) {
     return required ? `child "${field}" fails because ["${field}" is required]` : null;
   }
   if (!Array.isArray(value)) return `child "${field}" fails because ["${field}" must be an array]`;
@@ -600,7 +611,7 @@ const joiStringArray = (field, value, { required = false, min = 0 } = {}) => {
 };
 
 const joiParts = (field, value) => {
-  if (value === undefined || value === null) return null;
+  if (value === undefined) return null;
   if (!Array.isArray(value)) return `child "${field}" fails because ["${field}" must be an array]`;
   for (let index = 0; index < value.length; index += 1) {
     const part = value[index];
@@ -619,7 +630,7 @@ const joiParts = (field, value) => {
 export const JOT_VALIDATORS = {
   createmessage: (body) => joiString('loopId', body.loopId, { required: true })
     || joiString('impersonateAs', body.impersonateAs)
-    || joiString('content', body.content, { empty: true })
+    || joiString('content', body.content)
     || joiStringArray('tags', body.tags)
     || joiBoolean('isEncrypted', body.isEncrypted)
     || joiParts('parts', body.parts),
@@ -639,13 +650,15 @@ export const JOT_VALIDATORS = {
 // ------------------------------------------------------------------------------------------------
 
 /**
- * The raw Hapi/Boom body the framework emits for `Boom.notFound(...)` — `{statusCode, error,
- * message}` with NO `code` and NO `x-amzn-errortype` header. Mirrors the identical helper in
- * src/backup.js (and the Boom shape src/log.js reproduces), because the shared sendAmzError()
- * stamps `__type` + `x-amzn-errortype` and would change this wire contract.
+ * The raw Hapi/Boom body used by this service. `Boom.badData` emits a 422 with the HTTP reason
+ * phrase and no code; Jot's controller errors use `Boom.createWithCode`, which adds only its
+ * explicit `code` member. Neither path stamps the AWS `__type`/`x-amzn-errortype` envelope.
+ * `Boom.notFound` uses the same helper with no code.
  */
-function sendBoom(res, statusCode, message) {
-  const body = JSON.stringify({ statusCode, error: 'Not Found', message });
+function sendBoom(res, statusCode, message, code) {
+  const payload = { statusCode, error: STATUS_CODES[statusCode] || 'Error', message };
+  if (code) payload.code = code;
+  const body = JSON.stringify(payload);
   res.removeHeader?.('x-powered-by');
   res.writeHead(statusCode, {
     'content-type': 'application/json; charset=utf-8',
@@ -661,8 +674,10 @@ function sendBoom(res, statusCode, message) {
  *
  * @param {object} [options]
  * @param {JotStore} [options.store]
- * @param {{get: Function}} [options.account]  AccountClient seam { get(loopId) -> populated loop }
- * @param {{getMedia: Function}} [options.media]  MediaClient seam { getMedia(accountId, paths) }
+ * @param {{get: Function}} [options.account]  AccountClient seam { get(loopId) -> populated loop };
+ *   throw `{isBoom:true,statusCode,message,code?}` for a source Boom or a plain Error for Wreck.
+ * @param {{getMedia: Function}} [options.media]  MediaClient seam { getMedia(accountId, paths) };
+ *   use the same source Boom/plain Error distinction as the account seam.
  * @param {Function} [options.onEvent]  (JotMessageCreated) => void|Promise; the dead Kafka sink
  * @param {{warn?:Function, info?:Function, error?:Function}} [options.logger]
  */
@@ -702,15 +717,23 @@ export function makeJotHandler({ store = new JotStore(), account, media, onEvent
     if (!accountId) return void sendAmzError(res, MISSING_AUTH_HEADER);
     const payload = (body && typeof body === 'object' && !Array.isArray(body)) ? body : {};
     const invalid = JOT_VALIDATORS[name](payload);
-    if (invalid) return void sendAmzError(res, ValidationException, invalid);
+    // @validatePayload rejects with Boom.badData(err): 422, reason phrase, no AWS code/header.
+    if (invalid) return void sendBoom(res, 422, invalid);
     if (log) log.info('jot request', { op: name });
     try {
       const out = await handler({ body: payload, accountId });
       return void sendAmz(res, 200, out === undefined ? {} : out);
     } catch (error) {
-      if (error && error.statusCode) return void sendAmzError(res, error);
+      // @jibo/server src/server.js replies every `isBoom` error directly. This covers the local
+      // JOT_* Boom.createWithCode equivalent, registry/base Boom.createWithCode errors, and
+      // upstream payload Boom.create errors. A plain Wreck/network Error follows the source's
+      // Boom.badImplementation('Internal server error.', err) branch. Hapi/Boom deliberately
+      // hides that internal message and emits `An internal server error occurred` publicly.
+      if (error && (error.isBoom || String(error.code || '').startsWith('JOT_'))) {
+        return void sendBoom(res, error.statusCode || 500, error.message || 'Internal server error.', error.code);
+      }
       log?.error?.('jot request failed', { op: name, error: error?.message });
-      return void sendAmzError(res, { code: 'InternalFailure', statusCode: 500, message: 'Internal server error' });
+      return void sendBoom(res, 500, 'An internal server error occurred');
     }
   };
 }

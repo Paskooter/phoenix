@@ -9,7 +9,7 @@
 //   - handler({ req, res, body, target, op, log }): answers in-process
 //   - proxyTo: returns the upstream base URL; the request is forwarded verbatim
 
-import http from 'node:http';
+import http, { STATUS_CODES } from 'node:http';
 import https from 'node:https';
 import { sendJson } from '@phoenix/common';
 import { DefaultPort } from '@phoenix/contracts';
@@ -48,6 +48,14 @@ export function createClassicRouter(registrations) {
 
   const dispatch = async ({ req, res, body, log }) => {
     const { target, prefix, op } = parseTarget(req);
+    // @jibo/server's lowerMethodName unconditionally evaluates target.split('.')[1]. A Jot
+    // target without a dot therefore reaches Hapi's generic 500 before auth or method lookup.
+    // Keep this compatibility branch scoped to the known Jot prefix; other Classic services
+    // retain their existing UnknownOperation envelope for malformed targets.
+    if (target && /^jot/i.test(target) && !target.includes('.')) {
+      log.warn('classic: dotless Jot target', { target });
+      return void sendFrameworkBoom(res, 500, 'An internal server error occurred');
+    }
     const reg = regs.find((r) => r.re.test(prefix));
     // Log every inbound classic call (handlers are otherwise silent on success) so a robot's
     // wipe/backup traffic is visible: what target it sent and whether we route it.
@@ -73,6 +81,23 @@ export function createClassicRouter(registrations) {
   return {
     'POST /': dispatch,
   };
+}
+
+/** The Hapi/Boom response produced when the pinned dispatcher throws before method lookup. */
+function sendFrameworkBoom(res, statusCode, message) {
+  const body = JSON.stringify({
+    statusCode,
+    error: STATUS_CODES[statusCode] || 'Error',
+    message,
+  });
+  res.removeHeader?.('x-powered-by');
+  res.writeHead(statusCode, {
+    'content-type': 'application/json; charset=utf-8',
+    'content-length': Buffer.byteLength(body),
+    'cache-control': 'no-cache',
+    vary: 'accept-encoding',
+  });
+  res.end(body);
 }
 
 async function proxy(baseUrl, req, res, body, log) {

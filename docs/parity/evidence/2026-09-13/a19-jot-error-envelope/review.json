@@ -1,0 +1,168 @@
+{
+  "task": "A-19",
+  "scope": "bounded Jot A19e/A19f/A19g error-envelope repair and audit",
+  "worktree": "/home/shell/work/phoenix/.parity/worktrees/w18-a19-jot",
+  "branch": "review/w18-a19-jot",
+  "baseRevision": "3f950ad27099773428d0ddab9e893a9676f8ab17",
+  "requestedBase": "6e817e3",
+  "candidateRevision": "HEAD (exact SHA reported with the local commit)",
+  "source": {
+    "searchFirst": {
+      "tool": "jibo_search",
+      "query": "Wreck",
+      "sources": "gitea-repos,repository,api-docs,npm",
+      "resultCount": 2,
+      "note": "The search returned the archived wreck package entries; direct pinned Jot/server reads then established the wrapper classification. No callable Gebo MCP namespace is exposed in this session."
+    },
+    "refs": [
+      "jibo:server/jot-ws@9a725d3ed8d991aa840131f5ef98c630df2fdf4e:src/handlers/message.handler.js",
+      "jibo:server/jot-ws@9a725d3ed8d991aa840131f5ef98c630df2fdf4e:src/controllers/message.ctrl.js",
+      "jibo:server/server@master:src/validate.js",
+      "jibo:server/server@master:src/boom.js",
+      "jibo:server/server@master:src/server.js",
+      "jibo:server/jot-ws@9a725d3ed8d991aa840131f5ef98c630df2fdf4e:src/clients/account.client.js",
+      "jibo:server/jot-ws@9a725d3ed8d991aa840131f5ef98c630df2fdf4e:src/clients/media.client.js",
+      "jibo:server/jot-ws@9a725d3ed8d991aa840131f5ef98c630df2fdf4e:src/handlers/message.handler.js",
+      "jibo:jiborobot/srv-jot-ws-archived@4432ac5d017ae1971a447f42e7a4b29da7eb2e58:package.json",
+      "jibo:jiborobot/srv-jot-ws-archived@4432ac5d017ae1971a447f42e7a4b29da7eb2e58:archive/message.spec.js"
+    ]
+  },
+  "changes": [
+    {
+      "finding": "A19e",
+      "file": "packages/classic/src/jot.js",
+      "result": "closed",
+      "behavior": "Joi validation uses raw Boom.badData-compatible HTTP 422 with Unprocessable Entity reason phrase and no AWS code/header"
+    },
+    {
+      "finding": "A19f",
+      "file": "packages/classic/src/jot.js",
+      "result": "closed for JOT_* controller business refusals and Account/Media dependency classes",
+      "behavior": "Boom/isBoom errors serialize as raw status/error/message with optional code and no x-amzn-errortype; registry-unavailable is raw 503 plus ACCOUNT/MEDIA code, upstream Boom.create is raw upstream status/message without code, and generic Wreck/network errors are raw 500 with An internal server error occurred"
+    },
+    {
+      "finding": "A19g",
+      "file": "packages/classic/src/router.js",
+      "result": "closed in bounded Jot scope",
+      "behavior": "Nonempty dotless Jot target gets generic framework-compatible HTTP 500 before auth or operation lookup; other malformed Classic targets unchanged"
+    },
+    {
+      "finding": "Joi empty string",
+      "file": "packages/classic/src/jot.js",
+      "result": "corrected",
+      "behavior": "content uses Joi.string() semantics and rejects explicit empty string as validation 422"
+    }
+  ],
+  "rawTcp": {
+    "command": "node --test --test-name-pattern='A19e/f/g raw node:http envelopes' packages/classic/test/jot.test.js",
+    "tests": 1,
+    "pass": 1,
+    "fail": 0,
+    "transport": "node:http.request",
+      "assertions": [
+        "exact raw JSON body",
+        "application/json; charset=utf-8",
+        "absent x-amzn-errortype",
+        "absent x-powered-by",
+        "auth precedes validation",
+      "unsigned unknown operation remains raw 404",
+      "dotless Jot target is raw 500",
+      "Account registry/upstream/network outcomes",
+      "Media registry/upstream/network outcomes"
+    ]
+  },
+  "dependencyMatrix": {
+    "command": "node --test --test-name-pattern='A19f Account/Media' packages/classic/test/jot.test.js",
+    "tests": 1,
+    "pass": 1,
+    "fail": 0,
+    "transport": "node:http.request",
+    "cases": 6,
+    "outcomes": [
+      "Account missing registry/base -> 503 Service Unavailable + ACCOUNT_SERVICE_UNAVAILABLE",
+      "Account upstream Boom.create -> 502 Bad Gateway + payload message, no code",
+      "Account generic Wreck/network -> 500 Internal Server Error + An internal server error occurred",
+      "Media missing registry/base -> 503 Service Unavailable + MEDIA_SERVICE_UNAVAILABLE",
+      "Media upstream Boom.create -> 502 Bad Gateway + payload message, no code",
+      "Media generic Wreck/network -> 500 Internal Server Error + An internal server error occurred"
+    ]
+  },
+  "falsification": [
+    {
+      "repair": "A19e validation envelope",
+      "temporaryReversion": "sendAmzError(...ValidationException...)",
+      "command": "node --test --test-name-pattern='A19e/f/g raw node:http envelopes' packages/classic/test/jot.test.js",
+      "result": "CAUGHT",
+      "exit": 1,
+      "failure": "expected 422, actual 400"
+    },
+    {
+      "repair": "A19f JOT_* envelope",
+      "temporaryReversion": "sendAmzError(res,error)",
+      "command": "node --test --test-name-pattern='A19e/f/g raw node:http envelopes' packages/classic/test/jot.test.js",
+      "result": "CAUGHT",
+      "exit": 1,
+      "failure": "expected no code/AWS header, actual JOT_MUST_BE_LOOP_MEMBER code/header"
+    },
+    {
+      "repair": "A19g dotless target",
+      "temporaryReversion": "remove scoped router branch",
+      "command": "node --test --test-name-pattern='A19e/f/g raw node:http envelopes' packages/classic/test/jot.test.js",
+      "result": "CAUGHT",
+      "exit": 1,
+      "failure": "expected 500, actual 400"
+    },
+    {
+      "repair": "A19f Account/Media dependency classification",
+      "temporaryReversion": "restore typed-503 accountFailure/mediaFailure and sendAmzError for statusCode errors",
+      "command": "node --test --test-name-pattern='A19f Account/Media' packages/classic/test/jot.test.js",
+      "result": "CAUGHT",
+      "exit": 1,
+      "failure": "expected raw {statusCode:503,error:'Service Unavailable',code:'ACCOUNT_SERVICE_UNAVAILABLE'}, actual AWS {__type:'ACCOUNT_SERVICE_UNAVAILABLE',message:'Account service not available'}"
+    }
+  ],
+  "verification": {
+    "focusedCommand": "node --test packages/classic/test/jot.test.js packages/classic/test/stubs.test.js",
+    "focusedTests": 32,
+    "focusedPass": 32,
+    "focusedFail": 0,
+    "fullCommand": "npm test",
+    "fullUnitTests": 1980,
+    "fullUnitPass": 1972,
+    "fullUnitFail": 0,
+    "fullUnitSkipped": 8,
+    "parityCheck": {
+      "exit": 0,
+      "verified": "62/79"
+    },
+    "parityGate": {
+      "exit": 0,
+      "cases": 43,
+      "result": "match",
+      "differences": 0,
+      "invariants": 0,
+      "coverageGaps": 0
+    },
+    "diffCheck": {
+      "command": "git diff --check",
+      "result": "clean"
+    }
+  },
+  "criteria": {
+    "A19-1": "VERIFIED from existing version/pair and bulk-route matrix",
+    "A19-2": "VERIFIED for recovered loop-era contract, including A19e/f/g",
+    "A19-3": "VERIFIED from existing controller/journey tests; error serialization changed only as documented",
+    "A19-4": "VERIFIED with archived journey, restart, retry, and isolation substitution; real SDK SigV4/TLS and Kafka fan-out remain unknown"
+  },
+  "recommendation": "READY_FOR_ROOT_CHERRY_PICK_AS_BOUNDED_PROGRESS",
+  "unresolved": [
+    "party-era Jot operation handlers lack recovered matching-era source",
+    "real original SDK SigV4/TLS gateway path unavailable",
+    "Kafka consumer fan-out unavailable",
+    "dotless behavior intentionally scoped to nonempty Jot targets"
+  ],
+  "rootLedgerTouched": false,
+  "rootCheckoutTouched": false,
+  "hardwareTouched": false,
+  "remotesTouched": false
+}

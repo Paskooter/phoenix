@@ -41,11 +41,15 @@ test('graduated person/collision/jot prefixes reach their real handlers', async 
   const collision = await amz('Collision_20161126.Match', {});
   assert.equal(collision.status, 400);
   assert.equal(collision.errType, 'ValidationException');
-  // jot: there was never a Jot registration, so the prefix fell through to UnknownOperationException;
-  // the real handler owns it now and validates the pinned Joi payload (loopId required).
+  // jot: the real handler owns the prefix and exposes the pinned Boom.badData validation shape.
   const jot = await amz('Jot_20160512.CreateMessage', {});
-  assert.equal(jot.status, 400);
-  assert.equal(jot.errType, 'ValidationException');
+  assert.equal(jot.status, 422);
+  assert.equal(jot.errType, null);
+  assert.deepEqual(jot.body, {
+    statusCode: 422,
+    error: 'Unprocessable Entity',
+    message: 'child "loopId" fails because ["loopId" is required]',
+  });
   assert.match(jot.body.message, /loopId/);
 });
 

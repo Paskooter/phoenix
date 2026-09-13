@@ -88,6 +88,24 @@ function amzOn(port, target, body, accessKeyId = OWNER) {
     .then(async (res) => ({ status: res.status, errType: res.headers.get('x-amzn-errortype'), body: await res.json().catch(() => null) }));
 }
 
+function assertJotBoom(result, { statusCode, error, message, code }) {
+  assert.equal(result.status, statusCode);
+  assert.equal(result.errType || null, null, 'source Boom responses carry no x-amzn-errortype');
+  const expected = { statusCode, error, message };
+  if (code !== undefined) expected.code = code;
+  assert.deepEqual(result.body, expected);
+}
+
+// @jibo/server identifies Boom errors with `isBoom`; this is the smallest source-shaped error
+// the Account/Media seams can throw to exercise registry and upstream payload outcomes.
+function sourceBoomError(statusCode, message, code) {
+  const error = new Error(message);
+  error.isBoom = true;
+  error.statusCode = statusCode;
+  if (code !== undefined) error.code = code;
+  return error;
+}
+
 /**
  * The archived integration client's EXACT headers (jiborobot/srv-jot-ws-archived@4432ac5d
  * archive/message.spec.js): `X-Amz-Target: Jot_20160512.<Op>` plus
@@ -105,7 +123,33 @@ function archivedAmzOn(port, target, body, accountId) {
       errType: res.headers.get('x-amzn-errortype'),
       contentType: res.headers.get('content-type'),
       body: await res.json().catch(() => null),
-    }));
+  }));
+}
+
+/** Native node:http request used for A19 envelope checks; fetch is deliberately not involved. */
+function rawAmzOn(port, target, body, accessKeyId = OWNER) {
+  const payload = Buffer.from(JSON.stringify(body || {}));
+  const headers = {
+    'content-type': 'application/x-amz-json-1.1',
+    'x-amz-target': target,
+    'content-length': payload.length,
+  };
+  if (accessKeyId) {
+    headers.authorization = `AWS4-HMAC-SHA256 Credential=${accessKeyId}/20180910/us-east-1/jot/aws4_request, SignedHeaders=host, Signature=ff`;
+  }
+  return new Promise((resolve, reject) => {
+    const req = http.request({ hostname: '127.0.0.1', port, method: 'POST', path: '/', headers }, (res) => {
+      const chunks = [];
+      res.on('data', (chunk) => chunks.push(chunk));
+      res.on('error', reject);
+      res.on('end', () => {
+        const raw = Buffer.concat(chunks).toString('utf8');
+        resolve({ status: res.statusCode, headers: res.headers, raw, body: JSON.parse(raw) });
+      });
+    });
+    req.on('error', reject);
+    req.end(payload);
+  });
 }
 
 // The archived spec's own AccountClient.get fixture (archive/message.spec.js:17-27): the loop robot
@@ -307,8 +351,11 @@ test('messages never leak across loops', async () => {
 
     // The receiver is not a member of OTHER_LOOP -> the membership gate, not an empty page.
     const denied = await j.amz('Jot_20160512.ListMessages', { loopId: OTHER_LOOP }, RECEIVER);
-    assert.equal(denied.status, 403);
-    assert.equal(denied.errType, 'JOT_MUST_BE_LOOP_MEMBER');
+    assertJotBoom(denied, {
+      statusCode: 403, error: 'Forbidden',
+      message: 'You must be a member of the loop to list or create messages',
+      code: 'JOT_MUST_BE_LOOP_MEMBER',
+    });
   } finally { await j.server.close(); }
 });
 
@@ -348,13 +395,18 @@ test('create refuses a non-member and a not-yet-accepted invitee (JOT_MUST_BE_LO
   const j = await fresh();
   try {
     const outsider = await j.amz('Jot_20160512.CreateMessage', { loopId: LOOP, content: 'x' }, OUTSIDER);
-    assert.equal(outsider.status, 403);
-    assert.equal(outsider.errType, 'JOT_MUST_BE_LOOP_MEMBER');
-    assert.equal(outsider.body.message, 'You must be a member of the loop to list or create messages');
+    assertJotBoom(outsider, {
+      statusCode: 403, error: 'Forbidden',
+      message: 'You must be a member of the loop to list or create messages',
+      code: 'JOT_MUST_BE_LOOP_MEMBER',
+    });
 
     const invited = await j.amz('Jot_20160512.CreateMessage', { loopId: LOOP, content: 'x' }, INVITED);
-    assert.equal(invited.status, 403);
-    assert.equal(invited.errType, 'JOT_MUST_BE_LOOP_MEMBER');
+    assertJotBoom(invited, {
+      statusCode: 403, error: 'Forbidden',
+      message: 'You must be a member of the loop to list or create messages',
+      code: 'JOT_MUST_BE_LOOP_MEMBER',
+    });
   } finally { await j.server.close(); }
 });
 
@@ -364,15 +416,25 @@ test('membership precedes the content-or-parts check (403 before 422)', async ()
     // getImpersonatedAccount is the first statement of the source create: an outsider with NO content
     // and NO parts still gets the membership error, not the content error.
     const outsiderEmpty = await j.amz('Jot_20160512.CreateMessage', { loopId: LOOP }, OUTSIDER);
-    assert.equal(outsiderEmpty.status, 403);
-    assert.equal(outsiderEmpty.errType, 'JOT_MUST_BE_LOOP_MEMBER');
+    assertJotBoom(outsiderEmpty, {
+      statusCode: 403, error: 'Forbidden',
+      message: 'You must be a member of the loop to list or create messages',
+      code: 'JOT_MUST_BE_LOOP_MEMBER',
+    });
 
-    for (const body of [{ loopId: LOOP }, { loopId: LOOP, parts: [] }, { loopId: LOOP, content: '' }]) {
+    for (const body of [{ loopId: LOOP }, { loopId: LOOP, parts: [] }]) {
       const r = await j.amz('Jot_20160512.CreateMessage', body);
-      assert.equal(r.status, 422, JSON.stringify(body));
-      assert.equal(r.errType, 'JOT_CONTENT_OR_PARTS_REQUIRED');
-      assert.equal(r.body.message, 'Either content or parts must be present');
+      assertJotBoom(r, {
+        statusCode: 422, error: 'Unprocessable Entity',
+        message: 'Either content or parts must be present',
+        code: 'JOT_CONTENT_OR_PARTS_REQUIRED',
+      });
     }
+    const emptyContent = await j.amz('Jot_20160512.CreateMessage', { loopId: LOOP, content: '' });
+    assertJotBoom(emptyContent, {
+      statusCode: 422, error: 'Unprocessable Entity',
+      message: 'child "content" fails because ["content" is not allowed to be empty]',
+    });
 
     const withParts = await j.amz('Jot_20160512.CreateMessage', { loopId: LOOP, parts: [{ path: 'p' }] });
     assert.equal(withParts.status, 200, 'parts alone are enough');
@@ -387,14 +449,18 @@ test('only the loop robot may impersonate; a member may not (JOT_ROBOT_CAN_IMPER
     assert.equal(robot.body.sender, RECEIVER, 'the message is attributed to the impersonated member');
 
     const member = await j.amz('Jot_20160512.CreateMessage', { loopId: LOOP, content: 'nope', impersonateAs: RECEIVER }, OWNER);
-    assert.equal(member.status, 403);
-    assert.equal(member.errType, 'JOT_ROBOT_CAN_IMPERSONATE');
-    assert.equal(member.body.message, 'Only robot can impersonate as loop member');
+    assertJotBoom(member, {
+      statusCode: 403, error: 'Forbidden', message: 'Only robot can impersonate as loop member',
+      code: 'JOT_ROBOT_CAN_IMPERSONATE',
+    });
 
     // Even the robot cannot impersonate a non-member.
     const robotOutsider = await j.amz('Jot_20160512.CreateMessage', { loopId: LOOP, content: 'x', impersonateAs: OUTSIDER }, ROBOT);
-    assert.equal(robotOutsider.status, 403);
-    assert.equal(robotOutsider.errType, 'JOT_MUST_BE_LOOP_MEMBER');
+    assertJotBoom(robotOutsider, {
+      statusCode: 403, error: 'Forbidden',
+      message: 'You must be a member of the loop to list or create messages',
+      code: 'JOT_MUST_BE_LOOP_MEMBER',
+    });
   } finally { await j.server.close(); }
 });
 
@@ -449,8 +515,11 @@ test('payload validation matches the pinned @validatePayload Joi rules', async (
   try {
     for (const [target, body] of cases) {
       const r = await j.amz(target, body);
-      assert.equal(r.status, 400, `${target} ${JSON.stringify(body)}`);
-      assert.equal(r.errType, 'ValidationException');
+      assert.equal(r.status, 422, `${target} ${JSON.stringify(body)}`);
+      assert.equal(r.errType, null, `${target} carries no x-amzn-errortype`);
+      assert.equal(r.body.statusCode, 422);
+      assert.equal(r.body.error, 'Unprocessable Entity');
+      assert.equal(r.body.code, undefined);
     }
     // The bound fields quoted back are the Joi child names.
     const missing = await j.amz('Jot_20160512.ListMessages', {});
@@ -462,30 +531,173 @@ test('payload validation matches the pinned @validatePayload Joi rules', async (
   } finally { await j.server.close(); }
 });
 
-test('a failing account hop is ACCOUNT_SERVICE_UNAVAILABLE 503', async () => {
+test('A19e/f/g raw node:http envelopes, precedence, and negative headers', async () => {
+  const j = await fresh();
+  try {
+    // Boom.badData from @validatePayload: 422, reason phrase, no code or AWS header.
+    const validation = await rawAmzOn(j.port, 'Jot_20160512.ListMessages', {}, OWNER);
+    assert.equal(validation.status, 422);
+    assert.equal(validation.headers['content-type'], 'application/json; charset=utf-8');
+    assert.equal(validation.headers['x-amzn-errortype'], undefined);
+    assert.equal(validation.headers['x-powered-by'], undefined);
+    assert.equal(validation.raw, JSON.stringify({
+      statusCode: 422,
+      error: 'Unprocessable Entity',
+      message: 'child "loopId" fails because ["loopId" is required]',
+    }));
+    assert.equal(validation.body.code, undefined, 'Joi failures do not acquire the controller code');
+    assert.equal(validation.body.__type, undefined, 'Joi failures do not acquire an AWS __type');
+
+    // Boom.createWithCode from message.ctrl.js: the explicit JOT code is in the body only.
+    const membership = await rawAmzOn(j.port, 'Jot_20160512.ListMessages', { loopId: OTHER_LOOP }, RECEIVER);
+    assert.equal(membership.status, 403);
+    assert.equal(membership.headers['x-amzn-errortype'], undefined);
+    assert.equal(membership.raw, JSON.stringify({
+      statusCode: 403,
+      error: 'Forbidden',
+      message: 'You must be a member of the loop to list or create messages',
+      code: 'JOT_MUST_BE_LOOP_MEMBER',
+    }));
+    assert.equal(membership.body.__type, undefined, 'Jot business refusals do not acquire an AWS __type');
+
+    const content = await rawAmzOn(j.port, 'Jot_20160512.CreateMessage', { loopId: LOOP }, OWNER);
+    assert.equal(content.status, 422);
+    assert.equal(content.headers['x-amzn-errortype'], undefined);
+    assert.deepEqual(content.body, {
+      statusCode: 422,
+      error: 'Unprocessable Entity',
+      message: 'Either content or parts must be present',
+      code: 'JOT_CONTENT_OR_PARTS_REQUIRED',
+    });
+
+    // Joi.string() also rejects an explicitly empty content member before the controller runs;
+    // this is a validation 422 with no JOT_CONTENT_OR_PARTS_REQUIRED code.
+    const emptyContent = await rawAmzOn(j.port, 'Jot_20160512.CreateMessage', { loopId: LOOP, content: '' }, OWNER);
+    assert.equal(emptyContent.status, 422);
+    assert.equal(emptyContent.headers['x-amzn-errortype'], undefined);
+    assert.deepEqual(emptyContent.body, {
+      statusCode: 422,
+      error: 'Unprocessable Entity',
+      message: 'child "content" fails because ["content" is not allowed to be empty]',
+    });
+
+    // @parseCredentials is outermost: an unsigned mapped request remains the AWS 401 and does
+    // not fall through to the 422 Joi branch.
+    const unsigned = await rawAmzOn(j.port, 'Jot_20160512.ListMessages', {}, null);
+    assert.equal(unsigned.status, 401);
+    assert.equal(unsigned.headers['x-amzn-errortype'], 'MISSING_AUTH_HEADER');
+    assert.deepEqual(unsigned.body, {
+      __type: 'MISSING_AUTH_HEADER',
+      message: 'Request is not signed properly, missing authorization header',
+    });
+
+    // The pinned lowerMethodName throws before auth/method lookup for a dotless target; this is
+    // the scoped framework 500 branch in the shared Classic router.
+    const dotless = await rawAmzOn(j.port, 'Jot_20160512CreateMessage', {}, null);
+    assert.equal(dotless.status, 500);
+    assert.equal(dotless.headers['x-amzn-errortype'], undefined);
+    assert.equal(dotless.raw, JSON.stringify({
+      statusCode: 500,
+      error: 'Internal Server Error',
+      message: 'An internal server error occurred',
+    }));
+
+    // Unmapped operations still take the framework 404 before auth/validation.
+    const unknown = await rawAmzOn(j.port, 'Jot_20160512.Frobnicate', {}, null);
+    assert.equal(unknown.status, 404);
+    assert.equal(unknown.headers['x-amzn-errortype'], undefined);
+    assert.deepEqual(unknown.body, {
+      statusCode: 404,
+      error: 'Not Found',
+      message: 'Method frobnicate not found.',
+    });
+  } finally { await j.server.close(); }
+});
+
+test('a generic account network hop is the source raw 500', async () => {
   const broken = { get: async () => { throw new Error('account down'); } };
   const j = await fresh({ account: broken });
   try {
     for (const [target, body] of [['Jot_20160512.CreateMessage', { loopId: LOOP, content: 'x' }], ['Jot_20160512.ListMessages', { loopId: LOOP }]]) {
       const r = await j.amz(target, body);
-      assert.equal(r.status, 503, target);
-      assert.equal(r.errType, 'ACCOUNT_SERVICE_UNAVAILABLE');
-      assert.equal(r.body.message, 'Account service not available');
+      assertJotBoom(r, {
+        statusCode: 500, error: 'Internal Server Error', message: 'An internal server error occurred',
+      });
     }
   } finally { await j.server.close(); }
 });
 
-test('a failing media hop is MEDIA_SERVICE_UNAVAILABLE 503 after the message is persisted', async () => {
+test('a generic media network hop is the source raw 500 after the message is persisted', async () => {
   const brokenMedia = { getMedia: async () => { throw new Error('media down'); } };
   const j = await fresh({ media: brokenMedia });
   try {
     const part = await j.amz('Jot_20160512.CreateMessage', { loopId: LOOP, content: 'persisted-first' });
-    assert.equal(part.status, 503);
-    assert.equal(part.errType, 'MEDIA_SERVICE_UNAVAILABLE');
+    assertJotBoom(part, {
+      statusCode: 500, error: 'Internal Server Error', message: 'An internal server error occurred',
+    });
     // The source commits Message.create and sends the event BEFORE populateParts, so the row stays.
     assert.equal(j.store.findForList({ loopId: LOOP }).length, 1);
     assert.equal(j.events.length, 1);
   } finally { await j.server.close(); }
+});
+
+test('A19f Account/Media registry, upstream, and network failures preserve source raw classification', async () => {
+  const cases = [
+    {
+      name: 'account registry unavailable',
+      options: { account: { get: async () => { throw sourceBoomError(503, 'Account service not available', 'ACCOUNT_SERVICE_UNAVAILABLE'); } } },
+      target: 'Jot_20160512.ListMessages',
+      body: { loopId: LOOP },
+      expected: { statusCode: 503, error: 'Service Unavailable', message: 'Account service not available', code: 'ACCOUNT_SERVICE_UNAVAILABLE' },
+    },
+    {
+      name: 'account upstream payload error',
+      options: { account: { get: async () => { throw sourceBoomError(502, 'account payload failure'); } } },
+      target: 'Jot_20160512.ListMessages',
+      body: { loopId: LOOP },
+      expected: { statusCode: 502, error: 'Bad Gateway', message: 'account payload failure' },
+    },
+    {
+      name: 'account generic network failure',
+      options: { account: { get: async () => { throw new Error('ECONNREFUSED'); } } },
+      target: 'Jot_20160512.ListMessages',
+      body: { loopId: LOOP },
+      expected: { statusCode: 500, error: 'Internal Server Error', message: 'An internal server error occurred' },
+    },
+    {
+      name: 'media registry unavailable',
+      options: { media: { getMedia: async () => { throw sourceBoomError(503, 'Media service not available', 'MEDIA_SERVICE_UNAVAILABLE'); } } },
+      target: 'Jot_20160512.CreateMessage',
+      body: { loopId: LOOP, content: 'media-registry' },
+      expected: { statusCode: 503, error: 'Service Unavailable', message: 'Media service not available', code: 'MEDIA_SERVICE_UNAVAILABLE' },
+    },
+    {
+      name: 'media upstream payload error',
+      options: { media: { getMedia: async () => { throw sourceBoomError(502, 'media payload failure'); } } },
+      target: 'Jot_20160512.CreateMessage',
+      body: { loopId: LOOP, content: 'media-upstream' },
+      expected: { statusCode: 502, error: 'Bad Gateway', message: 'media payload failure' },
+    },
+    {
+      name: 'media generic network failure',
+      options: { media: { getMedia: async () => { throw new Error('ECONNRESET'); } } },
+      target: 'Jot_20160512.CreateMessage',
+      body: { loopId: LOOP, content: 'media-network' },
+      expected: { statusCode: 500, error: 'Internal Server Error', message: 'An internal server error occurred' },
+    },
+  ];
+  for (const item of cases) {
+    const j = await fresh(item.options);
+    try {
+      const result = await rawAmzOn(j.port, item.target, item.body);
+      assertJotBoom(result, item.expected);
+      assert.equal(result.headers['content-type'], 'application/json; charset=utf-8', item.name);
+      assert.equal(result.headers['x-amzn-errortype'], undefined, `${item.name} has no AWS error header`);
+      assert.equal(result.headers['x-powered-by'], undefined, `${item.name} has no framework power header`);
+    } finally {
+      await j.server.close();
+    }
+  }
 });
 
 test('LAN trust: with no account seam wired the membership and robot gates are skipped', async () => {
@@ -817,11 +1029,12 @@ test('retry after a failed media hop: the failed attempt persisted, the retry ad
   const j = await fresh({ media: flaky });
   try {
     const first = await j.amz('Jot_20160512.CreateMessage', { loopId: LOOP, content: 'flaky' });
-    assert.equal(first.status, 503);
-    assert.equal(first.errType, 'MEDIA_SERVICE_UNAVAILABLE');
+    assertJotBoom(first, {
+      statusCode: 500, error: 'Internal Server Error', message: 'An internal server error occurred',
+    });
     const retry = await j.amz('Jot_20160512.CreateMessage', { loopId: LOOP, content: 'flaky' });
     assert.equal(retry.status, 200);
-    // The source order is create -> send event -> populateParts, so the 503 attempt had already
+    // The source order is create -> send event -> populateParts, so the failed attempt had already
     // committed; a real client retrying the 503 therefore leaves TWO rows, and the ledger holds one
     // event per committed row.
     const rows = j.store.findForList({ loopId: LOOP });
