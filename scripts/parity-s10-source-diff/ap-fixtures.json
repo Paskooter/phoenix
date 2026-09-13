@@ -1,0 +1,459 @@
+{
+  "schema": "phoenix.parity.s10.news-ap-fixtures.v1",
+  "source": {
+    "path": "packages/test-utils/src/lasso-test/APNewsTestData.ts",
+    "sha256": "d0f28597b8353a0fa182b8ac8e9bac341848ae9a2e78fa32450ce2c201ea4958",
+    "compiledPath": "packages/test-utils/lib/lasso-test/APNewsTestData.js",
+    "compiledSha256": "d6c06c4b48beb68518428b20f7ea911faf4ec6423d70d72982ea42dd81176d0e",
+    "exports": [
+      "apNewsXMLResponse",
+      "apNewsXMLResponseTwo"
+    ]
+  },
+  "exports": {
+    "apNewsXMLResponse": {
+      "category": {
+        "name": "entertainment",
+        "sourceID": 42201
+      },
+      "data": {
+        "feed": {
+          "entry": [
+            {
+              "apcm:ContentMetadata": [
+                {
+                  "apcm:ExtendedHeadLine": [
+                    "AP Top Entertainment News at 11:35 a.m. EDT"
+                  ]
+                }
+              ]
+            },
+            {
+              "summary": [
+                "President Donald Trump and his top aides at the White House have begun their full-court press to try to discredit former FBI Director James Comey. In a new book, Comey compares Trump to a mob boss who insists on loyalty while twisting facts to boost his own ego. Trump tweeted Friday that Comey is an \"untruthful slime ball\" who should be prosecuted for leaking classified information. White House spokeswoman Sarah Huckabee Sanders added on Twitter that \"Comey has no credibility.\""
+              ],
+              "apcm:ContentMetadata": [
+                {
+                  "apcm:ExtendedHeadLine": [
+                    "President Donald Trump and his top aides at the White House have begun their full-court press to try to discredit former FBI Director James Comey. .\""
+                  ]
+                }
+              ],
+              "content": [
+                {
+                  "nitf": [
+                    {
+                      "body": [
+                        {
+                          "body.content": [
+                            {
+                              "media": [
+                                {
+                                  "media-reference": [
+                                    {},
+                                    {
+                                      "$": {
+                                        "id": "media-reference:9d95ca7f162644738faa0a2013b4dcce",
+                                        "mime-type": "image/jpeg",
+                                        "name": "AP Preview Image",
+                                        "source": "http://syndication.ap.org/AP.Distro.ContentBroker2/ContentBroker.aspx?contentid=9d95ca7f162644738faa0a2013b4dcce&iid=8c780b7c13c54362a79ef0fd45fbcaf9&rsn=0&recordid=8c780b7c13c54362a79ef0fd45fbcaf9&filingId=68595054cbba4807ab17744d3e95f42d&role=Preview&reldt=2018-04-11T20:55:52&media=Photo&sz=56665&dest=cf&trF=DCMC112&ofn=Trump_35802.jpg&fmt=jpg&s3Key=eNoVylEOwiAMANAT2aJssnmbrhSdyWhDCUs8vfr78l692wMxKzuwNgFrmsEj0EEfrXT%2b%2bcCF0xK2xNfI8xTvN0qrlFDyNJeNqaz4S6ZVancc0nzX6mhNxi7nZYQAb3t%2bAbxGJRY%3d&entid=42201&authToken=eNotyj0KwzAMQOHLdDVIlmJbg6BH6A2Kf8FdEgjBHXT4ZujjjZ%2f1rwYKm7AAEdxtQNHqVGmy1RyHw%2bCDY47k0sjZQfaAVLjV2m2fTRHo3q5TP7Ps79XL6L2ddk0NgQHFjqXP1xqPv5yHOo%2bYhJKw%2fwFgDCVW",
+                                        "alternate-text": "Sarah Huckabee Sanders",
+                                        "height": "383",
+                                        "width": "512",
+                                        "coding": "jpg"
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "summary": [
+                "Arnold Schwarzenegger says he's good, but not great, following heart surgery. The 70-year-old \"Terminator\" actor and former California governor on Thursday released a short video on Twitter updating his condition and thanking people for the support. Schwarzenegger says he's feeling better, but he's \"not great yet.\" A pulmonic valve originally installed in 1997 for a congenital heart defect had to be replaced."
+              ],
+              "apcm:ContentMetadata": [
+                {
+                  "apcm:ExtendedHeadLine": [
+                    "Arnold Schwarzenegger says he's good, but not great, following heart surgery"
+                  ]
+                }
+              ],
+              "content": [
+                {
+                  "nitf": [
+                    {
+                      "body": [
+                        {
+                          "body.content": [
+                            {
+                              "media": [
+                                {
+                                  "media-reference": [
+                                    {},
+                                    {
+                                      "$": {
+                                        "id": "media-reference:db5f6facc0cd4118a235c392994f9868",
+                                        "mime-type": "image/jpeg",
+                                        "name": "AP Preview Image",
+                                        "source": "http://syndication.ap.org/AP.Distro.ContentBroker2/ContentBroker.aspx?contentid=db5f6facc0cd4118a235c392994f9868&iid=b4d2ceccb6e84c7aabd77bac1d64994a&rsn=0&recordid=b4d2ceccb6e84c7aabd77bac1d64994a&filingId=f2564da9c7bd4cb1934cbb31ec869205&role=Preview&reldt=2018-04-13T10:57:53&media=Photo&sz=54901&dest=cf&trF=NY107&ofn=People-Arnold_Schwarzenegger_80893.jpg&fmt=jpg&s3Key=eNoVylEOwjAIANATCXNrVrfbUCA6kxVSmi7x9Orvy3v17juiGAewNQVvJhAL0Ekfq3T9%2bcSSZGZlLqs%2bEmeiIjkX4rusadsS4S%2b5Va09cGiLw2qgNx2HXrcxTfD25xfwMiXK&entid=42201&authToken=eNotyj0KwzAMQOHLdDXIkaVKg6BH6A1K%2fAfukkAIzqDDN0Mfb%2fy8XcbIpEkBEe4I8OllWM3Uua8lFCg1pBglrAtSKKiLauoqLL6NahHw3s%2fDviNvn9lyb60efg5jThDV92mv9%2byPvxy7BeZIICjyA0aGJQs%3d",
+                                        "alternate-text": "Arnold Schwarzenegger",
+                                        "height": "341",
+                                        "width": "512",
+                                        "coding": "jpg"
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "summary": [
+                "Bill Cosby's chief accuser is telling jurors at his sexual assault retrial that she's seeking justice. Andrea Constand began testifying Friday at the courthouse in suburban Philadelphia. She's getting a second chance to confront Cosby in court after his first trial ended with a hung jury. The defense team calls Constand a \"con artist\" who framed Cosby for money. Constand says she has nothing to gain financially now by wanting him locked up. She says Cosby drugged and molested her."
+              ],
+              "apcm:ContentMetadata": [
+                {
+                  "apcm:ExtendedHeadLine": [
+                    "Bill Cosby's chief accuser is telling jurors at his sexual assault retrial that she's seeking justice"
+                  ]
+                }
+              ],
+              "content": [
+                {
+                  "nitf": [
+                    {
+                      "body": [
+                        {
+                          "body.content": [
+                            {
+                              "media": [
+                                {
+                                  "media-reference": [
+                                    {},
+                                    {
+                                      "$": {
+                                        "id": "media-reference:aee7092397de4709b897bf8246d41196",
+                                        "mime-type": "image/jpeg",
+                                        "name": "AP Preview Image",
+                                        "source": "http://syndication.ap.org/AP.Distro.ContentBroker2/ContentBroker.aspx?contentid=aee7092397de4709b897bf8246d41196&iid=ddc28163d7e847738307d51983db0d50&rsn=0&recordid=ddc28163d7e847738307d51983db0d50&filingId=b9791ba8e400462b8ce4c40f8a0e9bba&role=Preview&reldt=2018-04-13T14:17:12&media=Photo&sz=47318&dest=cf&trF=PACP103&ofn=Bill_Cosby_01601.jpg&fmt=jpg&s3Key=eNoVylEOwjAIANATCUycrd6mFqIzWSGl6RJPr%2f6%2bvNcYfkcUqwHVuoJ3EwiGspePtXL8eUeRes7LlSVpvqTEmSnJutwyy4NkJfwlt6ZtBE7tsVkL9K5z0%2bM0ieDtzy%2bXSiQm&entid=42201&authToken=eNotijEKwzAMAD%2fT1SBbihwNgjyhPyh1LYOzJBCCO%2bjx9dDjhhvO7auMvAgJIMJkAcz%2b6fo2yyAJg%2bRqgWaHskoOpa2JuFKMwn70qhFw6veley%2fHa1hpZvXyuyszQRQ%2fh27P0R7%2fs58aEhACExP9ADcmJKs%3d",
+                                        "alternate-text": "Bill Cosby",
+                                        "height": "341",
+                                        "width": "512",
+                                        "coding": "jpg"
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "summary": [
+                "A spokesman for Bill Cosby says that once jurors hear the testimony of the comedian's chief accuser they should find him not guilty. Andrew Wyatt told reporters outside of a suburban Philadelphia courthouse Friday that accuser Andrea Constand will testify to \"alternative facts.\" She says he drugged and molested her, but Cosby says the relationship was consensual. Constand will take the stand Friday after five other women told the court that Cosby is a serial rapist who harmed them too."
+              ],
+              "apcm:ContentMetadata": [
+                {
+                  "apcm:ExtendedHeadLine": [
+                    "Bill Cosby's chief accuser is set to take the witness stand at his sexual assault retrial"
+                  ]
+                }
+              ],
+              "content": [
+                {
+                  "nitf": [
+                    {
+                      "body": [
+                        {
+                          "body.content": [
+                            {
+                              "media": [
+                                {
+                                  "media-reference": [
+                                    {},
+                                    {
+                                      "$": {
+                                        "id": "media-reference:b48f8a87347044a0b966467d3fb68ee2",
+                                        "mime-type": "image/jpeg",
+                                        "name": "AP Preview Image",
+                                        "source": "http://syndication.ap.org/AP.Distro.ContentBroker2/ContentBroker.aspx?contentid=b48f8a87347044a0b966467d3fb68ee2&iid=e941b3d3bc9e4f2ba11e50a0624046e7&rsn=0&recordid=e941b3d3bc9e4f2ba11e50a0624046e7&filingId=b60426c0b9b342c9a53cc7cfcf7f5db9&role=Preview&reldt=2018-04-13T13:01:11&media=Photo&sz=46849&dest=cf&trF=PAMS103&ofn=Bill_Cosby_07671.jpg&fmt=jpg&s3Key=eNoVylEOwiAMANAT2ZaBM%2fM2BarOZLShhCWeXv19ea8x7I5YtTgU7QLWtYJH4IM%2f2vj884GypZBjjblskh5L5hDkSkzrkiitcsNfMm3ShuOU7rs2R%2bsydzkvkwje9vwCsikkmw%3d%3d&entid=42201&authToken=eNotyjEKwzAMQNHLdDXIlSxbgyBH6A1KXMvgLAmE4A46fDP088fn9lVGTkICiHCXALN%2fhlYqvawlB6QMgWiFUIU5EOeGvXIxe%2fo%2bmkbAe79O3Ubd39NqN2unX0OZCaL4MXV5zf74y3FokMQYUWL6ARYxJKw%3d",
+                                        "alternate-text": "Bill Cosby",
+                                        "height": "341",
+                                        "width": "512",
+                                        "coding": "jpg"
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "summary": [
+                "Outrage and pictures of blouses have sprouted across Swedish social media in support of the ousted female leader of the prestigious academy that awards the Nobel Prize in Literature. Many in gender-neutral Sweden are upset that two highly respected women are being forced out of top positions in the Swedish Academy. They say the women are paying the price for the alleged sexual misconduct of a man, Jean-Claude Arnault, a major cultural figure in Sweden."
+              ],
+              "apcm:ContentMetadata": [
+                {
+                  "apcm:ExtendedHeadLine": [
+                    "Outrage and pictures of blouses have sprouted across Swedish social media in support of the ousted female leader of the prestigious academy that awards the Nobel Prize in Literature"
+                  ]
+                }
+              ],
+              "content": [
+                {
+                  "nitf": [
+                    {
+                      "body": [
+                        {
+                          "body.content": [
+                            {
+                              "media": [
+                                {
+                                  "media-reference": [
+                                    {},
+                                    {
+                                      "$": {
+                                        "id": "media-reference:94e29036a1cd44fea443c423890adb15",
+                                        "mime-type": "image/jpeg",
+                                        "name": "AP Preview Image",
+                                        "source": "http://syndication.ap.org/AP.Distro.ContentBroker2/ContentBroker.aspx?contentid=94e29036a1cd44fea443c423890adb15&iid=d149141344f748aa94407646610a8d4d&rsn=0&recordid=d149141344f748aa94407646610a8d4d&filingId=303c57d86b034a49afef49f86222f5f6&role=Preview&reldt=2018-04-13T10:57:16&media=Photo&sz=24616&dest=cf&trF=AMB101&ofn=Sweden_Nobel_Academy_79654.jpg&fmt=jpg&s3Key=eNoVylEKgzAMANATLWkxVN1tgsmmgk1oSoWdftvv4%2b29%2bxNRbAvYrCl4M4GYgC%2f%2bWOX7zxdKpjVTnoheMy3MK1GaC5WSEy9Cgr%2fkVrX2wKEtDquB3nQcej9GSnD6%2bwt64yO9&entid=42201&authToken=eNotirsKwzAMAH%2bmq0G2JDceBP2E%2fkHxQwZ3SSAEZ9DH10OPm44zvSVi5EQJEGHBgE%2brQxJpWC267GtzRF1dJkJXKeCWILfi2fbRxAMu7TrlO8r%2bmVq6ajvtGhIjgU92THm9Z3%2f8z3GIC7RxQGb%2bAR6wJL0%3d",
+                                        "height": "248",
+                                        "width": "512",
+                                        "coding": "jpg"
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "summary": [
+                "\"This Is Us\" has been named outstanding television drama at the GLAAD Media Awards at a ceremony that also honored Britney Spears. The 29th annual ceremony held Thursday at the Beverly Hilton also recognized \"Master of None\" for an episode in which Lena Waithe's character comes out to her family. Ricky Martin bestowed Spears the group's Vanguard Award during Thursday's ceremony, the first of two that honor projects that feature multi-dimensional depictions of LGBTQ people."
+              ],
+              "apcm:ContentMetadata": [
+                {
+                  "apcm:ExtendedHeadLine": [
+                    "'This Is Us' has been named outstanding television drama at the GLAAD Media Awards at a ceremony that also honored Britney Spears"
+                  ]
+                }
+              ],
+              "content": [
+                {
+                  "nitf": [
+                    {
+                      "body": [
+                        {
+                          "body.content": [
+                            {
+                              "media": [
+                                {
+                                  "media-reference": [
+                                    {},
+                                    {
+                                      "$": {
+                                        "id": "media-reference:de4f2da97e604805a30288794c5444df",
+                                        "mime-type": "image/jpeg",
+                                        "name": "AP Preview Image",
+                                        "source": "http://syndication.ap.org/AP.Distro.ContentBroker2/ContentBroker.aspx?contentid=de4f2da97e604805a30288794c5444df&iid=ef9f4bb8b51347a38bfb42699de7b6ba&rsn=0&recordid=ef9f4bb8b51347a38bfb42699de7b6ba&filingId=8f2db3cc84e44570bb941c51d938f168&role=Preview&reldt=2018-04-13T04:46:17&media=Photo&sz=46442&dest=cf&trF=CAPM189&ofn=29th_Annual_GLAAD_Media_Awards_-_Show_89733.jpg&fmt=jpg&s3Key=eNoVylEOwiAMANAT2U7BbXibdhSdyWhDCUs8vfr78l692wMx6%2bawaROwphk8AB300Urnnw%2bUkkpkXvl%2bDXGhsHLheJtTyrLwzIS%2fZFqldschzXetjtZk7HJexjTB255f0CElSg%3d%3d&entid=42201&authToken=eNotjDEKwzAMAD%2fT1SBHsmwNgj6hPyhJLIO7JBCCO%2bjx9dDjxuPcvsrISUgAESYJMPvetRq1pa4SsjEEKpDCirCEUrLQnoioNj961Qg49fvST9%2bO97CtmdXL767MBFH8HPp8jfb4l%2f1UzhRlPvEH%2bZ0keQ%3d%3d",
+                                        "alternate-text": "Britney Spears",
+                                        "height": "342",
+                                        "width": "512",
+                                        "coding": "jpg"
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "summary": [
+                "President Donald Trump is firing back at the sharply critical book by former FBI director James Comey. Trump blasts Comey as an \"untruthful slime ball\" on Twitter, saying, \"It was my great honor to fire James Comey!\"  Details emerged late Thursday of details from Comey's memoir, which says Trump is \"untethered to truth,\" and describes him as fixated in the early days of his presidency on having the FBI debunk salacious rumors he said were untrue but that could distress his wife."
+              ],
+              "apcm:ContentMetadata": [
+                {
+                  "apcm:ExtendedHeadLine": [
+                    "President Donald Trump is firing back at the sharply critical book by former FBI director James Comey. Trump blasts Comey as an \"untruthful slime ball\" on Twitter, saying, \"It was my great honor to fire James Comey!\""
+                  ]
+                }
+              ],
+              "content": [
+                {
+                  "nitf": [
+                    {
+                      "body": [
+                        {
+                          "body.content": [
+                            {
+                              "media": [
+                                {
+                                  "media-reference": [
+                                    {},
+                                    {
+                                      "$": {
+                                        "id": "media-reference:63e68ee4526242af82ea9b4feccec0a3",
+                                        "mime-type": "image/jpeg",
+                                        "name": "AP Preview Image",
+                                        "source": "http://syndication.ap.org/AP.Distro.ContentBroker2/ContentBroker.aspx?contentid=63e68ee4526242af82ea9b4feccec0a3&iid=acb846a51f4145639eba613642c8dc0a&rsn=0&recordid=acb846a51f4145639eba613642c8dc0a&filingId=89a8684f74ca4f9f8584d6c9602c671d&role=Preview&reldt=2018-04-12T21:22:27&media=Photo&sz=44683&dest=cf&trF=WX105&ofn=Trump_Comey_Book_87138.jpg&fmt=jpg&s3Key=eNoVylEOwiAMANAT2YIwMr1NV6rOZLShhCWeXv19ea8x7I5YlR1Yu4B1reAJ6KCPNjr%2ffCDxtuZCS3zkmJeSbrJRiankK6%2bVA%2bEvmTZpw3FK912bo3WZu5yXGQK87fkFrTQkoQ%3d%3d&entid=42201&authToken=eNotjEEKAyEMRS%2fTrRBNzOgi0CP0BkWdCHYzA8NgFzl8XfTzV4%2fHM%2f0KI8dMGRBhLQJu1saiykmVXAwcHIXSXQpaXK7UtTVtUNCOsYsHXLf7ks%2box3tq7ar7ZfdqMIHPdk55vmZ%2f%2fM1xivOE5HFDTj9%2b3SW4",
+                                        "alternate-text": "James Comey",
+                                        "height": "341",
+                                        "width": "512",
+                                        "coding": "jpg"
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "summary": [
+                "Prince Harry and Meghan Markle have chosen as their official wedding photographer a man with a royal pedigree who has photographed Beyonce, Julia Roberts and other stars. Kensington Palace said Friday that Alexi Lubomirski will take pictures at the gala event on May 19 at Windsor Castle."
+              ],
+              "apcm:ContentMetadata": [
+                {
+                  "apcm:ExtendedHeadLine": [
+                    "Prince Harry and Meghan Markle have chosen an official wedding photographer for their May 19 nuptials"
+                  ]
+                }
+              ]
+            },
+            {
+              "summary": [
+                "The first chapter of a high-stakes legal drama over the inheritance of French rock star Johnny Hallyday has ended with a French court ruling that gives each side a partial win. A court outside Paris on Friday put a temporary freeze on several estates of Hallyday, who died in December, as his two oldest children left out of his will requested. But the court refused a role for them in the preparation of a new album of their father, ruling in favor of his widow Laeticia and their two young children"
+              ],
+              "apcm:ContentMetadata": [
+                {
+                  "apcm:ExtendedHeadLine": [
+                    "The first legal chapter of a high-drama case over the inheritance of deceased French rock star Johnny Hallyday that is tearing up his family has ended with a court ruling giving each side a partial win"
+                  ]
+                }
+              ]
+            },
+            {
+              "summary": [
+                "Buckingham Palace says the Duke of Edinburgh _ the husband of Queen Elizabeth II _ has left the hospital after a hip replacement operation. The palace says in a statement Friday that he will continue his recovery at Windsor Castle."
+              ],
+              "apcm:ContentMetadata": [
+                {
+                  "apcm:ExtendedHeadLine": [
+                    "Buckingham Palace says the Duke of Edinburgh _ the husband of Queen Elizabeth II _ has left the hospital after a hip replacement operation"
+                  ]
+                }
+              ],
+              "content": [
+                {
+                  "nitf": [
+                    {
+                      "body": [
+                        {
+                          "body.content": [
+                            {
+                              "media": [
+                                {
+                                  "media-reference": [
+                                    {},
+                                    {
+                                      "$": {
+                                        "id": "media-reference:5bc6821c4d6447d59bdb44615a78265b",
+                                        "mime-type": "image/jpeg",
+                                        "name": "AP Preview Image",
+                                        "source": "http://syndication.ap.org/AP.Distro.ContentBroker2/ContentBroker.aspx?contentid=5bc6821c4d6447d59bdb44615a78265b&iid=09605c8e47f648eda25fd715577f5947&rsn=0&recordid=09605c8e47f648eda25fd715577f5947&filingId=f8c1b600b11049c1bb36142617e4de56&role=Preview&reldt=2018-04-13T11:14:10&media=Photo&sz=100789&dest=cf&trF=LLT801&ofn=Britain_Prince_Philip_74742.jpg&fmt=jpg&s3Key=eNoVylEOwiAMANAT2aLSdfM2BIrOZLShhCWeXv19ea8x7IFYNDtk7QLWtYDfIR3poy2dfz4wbEugvErkusRVSrpRLXwlYq60RcZfMm3ShuOU7rs2R%2bsydzkvMwR42%2fMLmO8kPA%3d%3d&entid=42201&authToken=eNotyj0KwzAMQOHLdDVY1k%2bsQdAj9Aalsh1wlwRCcAYfvhn6eOM322WCwkoaEeMdR1xm6cZeJCcogapQoKVyUK8eiAT4s%2bQk7HPr1SDi%2fTwP%2b3bf3qP52lo95tlNhCLo3Ic9X2N9%2fGXfDTALqkJKPxh1JKU%3d",
+                                        "height": "354",
+                                        "width": "512",
+                                        "coding": "jpg"
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "sourceEntryCount": 11,
+      "normalizedEntryCount": 11
+    },
+    "apNewsXMLResponseTwo": {
+      "category": {
+        "name": "entertainment",
+        "sourceID": 42201
+      },
+      "data": {
+        "feed": {
+          "entry": [
+            {
+              "apcm:ContentMetadata": [
+                {
+                  "apcm:ExtendedHeadLine": [
+                    "AP Top Entertainment News at 2:43 p.m. EDT"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "sourceEntryCount": 1,
+      "normalizedEntryCount": 1
+    }
+  }
+}

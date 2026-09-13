@@ -1,0 +1,110 @@
+{
+  "schema": "phoenix.parity.s10.news-branch-manifest.v1",
+  "task": "S-10",
+  "baseCommit": "575813db688cb0138e7ec73555a6245d5be4c9d1",
+  "branch": "w-s10-source-diff",
+  "purpose": "Source-runtime differential coverage for the archived Pegasus News test file.",
+  "source": {
+    "repo": "jiboV2/pegasus",
+    "revision": "5c0a7390539663ba749d360de348a428c088505c",
+    "test": {
+      "path": "packages/report-skill/tests/subskills/News.test.js",
+      "sha256": "3921317aae411c1630c6e3f5eb44fcce07da79209a5f16125b90b0ee2044cc00"
+    },
+    "testSupport": {
+      "path": "packages/report-skill/tests/TestUtils.js",
+      "sha256": "298daca08946f19de78617bfdfb446df2988ed28507941c20473d3fd1a288e9c"
+    },
+    "compiledRecordSha256": "5a387ec70ce48f9cfacb3dd10857cbbb3840352355f379916a83c98311cb4884",
+    "implementationFiles": {
+      "packages/report-skill/src/subskills/news/NewsData.ts": "36c1e2d99a7a775ab12ac67b25c6fef6b66dd920ae6c317e4333f67ba95f16da",
+      "packages/report-skill/src/subskills/news/NewsParse.ts": "e74154d76ef7041dbe09b942e96cdbafe08730d236a2f69b46c490ad8bdb1b25",
+      "packages/report-skill/src/subskills/news/NewsMimLogic.ts": "ba6e680f9c054bc4a0d690d9f520c83b2f0ba80626d3bac6a40497e60ca15bf1",
+      "packages/report-skill/src/subskills/news/NewsViews.ts": "d6a466ddad4994bc882f83217515b9468509909282f7ba6ffea6653afc1382c8"
+    },
+    "compiledImplementationFiles": {
+      "packages/report-skill/lib/subskills/news/NewsData.js": "bf514f63da6d264af00e11651777b2de5150fa26dbbc6f494ceed23f97ffccca",
+      "packages/report-skill/lib/subskills/news/NewsFactory.js": "401474bd5847ebefb85091a56ae8c38fffda8992695a374725479dfbf926b237",
+      "packages/report-skill/lib/subskills/news/NewsMimLogic.js": "5db8b6a01b5ba518c8083bf1ad6838685eadc27923aa1c9f260e760c52601dc6",
+      "packages/report-skill/lib/subskills/news/NewsParse.js": "44e91a41643909fb890d75afbaa5aef2192b00f6ed52f82ed31dd69fc401592e",
+      "packages/report-skill/lib/subskills/news/NewsViews.js": "4db38c5bc661c0bc3f317748a84033f931da66c267cca2e190d79d211dd8575c",
+      "packages/report-skill/lib/subskills/news/index.js": "ae82c9e3c31d4b33cb9f04cbed8e858ca0adbba4de2c559844e6d1b85ea27dcf"
+    },
+    "runtime": {
+      "image": "node:8.9.4-slim",
+      "imageDigest": "sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+      "network": "none"
+    },
+    "viewResource": {
+      "path": "packages/report-skill/resources/views/newsHeadline.json",
+      "sha256": "c559b0de05db6adc752280856d38284ec39d10cb3bba98c26f6ef306c3f44500"
+    },
+    "apNewsFixtures": {
+      "sourcePath": "packages/test-utils/src/lasso-test/APNewsTestData.ts",
+      "sourceSha256": "d0f28597b8353a0fa182b8ac8e9bac341848ae9a2e78fa32450ce2c201ea4958",
+      "compiledPath": "packages/test-utils/lib/lasso-test/APNewsTestData.js",
+      "compiledSha256": "d6c06c4b48beb68518428b20f7ea911faf4ec6423d70d72982ea42dd81176d0e",
+      "artifact": "ap-fixtures.json",
+      "artifactSha256": "9b199398172e9c08391300b1f8fbca6a55f094a2f082c979f0fb09da2c68d717",
+      "exports": ["apNewsXMLResponse", "apNewsXMLResponseTwo"]
+    }
+  },
+  "candidate": {
+    "implementationFilesAtBase": {
+      "packages/skills/src/report/news.js": "87047ea84bde66392eaec4c6f7c592fcec9fe7d7be82c9e51e8d5c254ac0c847",
+      "packages/skills/src/report/newsViews.js": "6b8ff745117a4fd3f13b855611fcf65411ab402b0c70e4d1d0263818a5b45b2b",
+      "packages/skills/src/report/utils.js": "8b13ff0884b59b7eecf3ff019777d9d09de5eed4eb0794acd5a0f55178ecf13d"
+    },
+    "runnerReadsCurrentCandidate": true,
+    "runtime": "host Node; exact version and module hashes are recorded in candidate.json"
+  },
+  "coverage": {
+    "namedCases": 22,
+    "expandedRuns": 22,
+    "expandedAssertions": 60,
+    "fixtureProbes": 2,
+    "groups": {
+      "top-level": 7,
+      "filtering": 7,
+      "views": 8
+    },
+    "sourceRowsAreRequired": true,
+    "sourceRowInventorySha256": "15a144f31da0db79585aff975be71b6f0dce75cd2b27f5c4157cc072d26a0ab2",
+    "sourceRowControlSha256": "56bf6f16aa1eb8b3f6315b4049c6c76bb1b097d4005f35e15a005bce53783337",
+    "apFixtureInventorySha256": "bbcb93feb7f0f8663ad43490e7a82fc1fe696b3ffa2b469ce6f49ae5d3edbebe",
+    "sourceAssertionCalls": 60,
+    "apNewsFixtureExportsAreRequired": true,
+    "candidateRowsAreRequired": true,
+    "missingOrUnexpectedRowsFail": true,
+    "duplicateRowsFail": true,
+    "mutatedRowHashesFail": true
+  },
+  "harness": {
+    "matrix": "matrix.json",
+    "sourceRunner": "run-source.cjs",
+    "candidateRunner": "run-candidate.mjs",
+    "comparator": "compare.mjs",
+    "matrixGenerator": "make-matrix.mjs",
+    "sharedFixtureProjection": "fixtures.cjs",
+    "apFixtureProjection": "ap-fixtures.json"
+  },
+  "observableContract": [
+    "NewsParse category state, headline order, duplicate/correction/profanity filtering, and AP image metadata",
+    "ordered News MIM selection and ServiceDown/AppSetup behavior",
+    "identified adult, child, and non-identified speaker controls",
+    "deterministic five-category trimming and per-category headline selection",
+    "complete Nimbus headline view JSON, image geometry, category labels, unique IDs, and leaveEmpty semantics"
+  ],
+  "controls": {
+    "clockISO": "2018-01-01T12:00:00.000Z",
+    "timezone": "UTC",
+    "randomSeed": "0x534e4557",
+    "sourceTestAndCompiledHashesChecked": true,
+    "asyncSourceOperationsAwaited": true
+  },
+  "qualifications": [
+    "This is a controlled source versus local candidate differential; it does not claim live AP/news provider availability, freshness, deployment, or Moth behavior.",
+    "The named rows use the archived TestUtils news shapes and synthetic AP image metadata; supplemental probes use normalized projections of both archived APNewsTestData exports; no web source is used.",
+    "The comparator reports every current difference without an automatic carve-out; any accepted residual must be recorded by the root review separately."
+  ]
+}

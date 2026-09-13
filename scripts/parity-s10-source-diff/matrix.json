@@ -1,0 +1,703 @@
+{
+  "schema": "phoenix.parity.s10.news-matrix.v1",
+  "task": "S-10",
+  "reference": {
+    "repo": "jiboV2/pegasus",
+    "revision": "5c0a7390539663ba749d360de348a428c088505c",
+    "testPath": "packages/report-skill/tests/subskills/News.test.js",
+    "testSha256": "3921317aae411c1630c6e3f5eb44fcce07da79209a5f16125b90b0ee2044cc00",
+    "testSupportPath": "packages/report-skill/tests/TestUtils.js",
+    "testSupportSha256": "298daca08946f19de78617bfdfb446df2988ed28507941c20473d3fd1a288e9c",
+    "compiledRecordSha256": "5a387ec70ce48f9cfacb3dd10857cbbb3840352355f379916a83c98311cb4884",
+    "sourcePaths": [
+      "packages/report-skill/src/subskills/news/NewsData.ts",
+      "packages/report-skill/src/subskills/news/NewsParse.ts",
+      "packages/report-skill/src/subskills/news/NewsMimLogic.ts",
+      "packages/report-skill/src/subskills/news/NewsViews.ts"
+    ],
+    "sourceHashes": {
+      "packages/report-skill/src/subskills/news/NewsData.ts": "36c1e2d99a7a775ab12ac67b25c6fef6b66dd920ae6c317e4333f67ba95f16da",
+      "packages/report-skill/src/subskills/news/NewsParse.ts": "e74154d76ef7041dbe09b942e96cdbafe08730d236a2f69b46c490ad8bdb1b25",
+      "packages/report-skill/src/subskills/news/NewsMimLogic.ts": "ba6e680f9c054bc4a0d690d9f520c83b2f0ba80626d3bac6a40497e60ca15bf1",
+      "packages/report-skill/src/subskills/news/NewsViews.ts": "d6a466ddad4994bc882f83217515b9468509909282f7ba6ffea6653afc1382c8"
+    },
+    "compiledHashes": {
+      "packages/report-skill/lib/subskills/news/NewsData.js": "bf514f63da6d264af00e11651777b2de5150fa26dbbc6f494ceed23f97ffccca",
+      "packages/report-skill/lib/subskills/news/NewsFactory.js": "401474bd5847ebefb85091a56ae8c38fffda8992695a374725479dfbf926b237",
+      "packages/report-skill/lib/subskills/news/NewsMimLogic.js": "5db8b6a01b5ba518c8083bf1ad6838685eadc27923aa1c9f260e760c52601dc6",
+      "packages/report-skill/lib/subskills/news/NewsParse.js": "44e91a41643909fb890d75afbaa5aef2192b00f6ed52f82ed31dd69fc401592e",
+      "packages/report-skill/lib/subskills/news/NewsViews.js": "4db38c5bc661c0bc3f317748a84033f931da66c267cca2e190d79d211dd8575c",
+      "packages/report-skill/lib/subskills/news/index.js": "ae82c9e3c31d4b33cb9f04cbed8e858ca0adbba4de2c559844e6d1b85ea27dcf"
+    },
+    "resourceHashes": {
+      "packages/report-skill/resources/views/newsHeadline.json": "c559b0de05db6adc752280856d38284ec39d10cb3bba98c26f6ef306c3f44500"
+    },
+    "fixtureSource": {
+      "sourcePath": "packages/test-utils/src/lasso-test/APNewsTestData.ts",
+      "sourceSha256": "d0f28597b8353a0fa182b8ac8e9bac341848ae9a2e78fa32450ce2c201ea4958",
+      "compiledPath": "packages/test-utils/lib/lasso-test/APNewsTestData.js",
+      "compiledSha256": "d6c06c4b48beb68518428b20f7ea911faf4ec6423d70d72982ea42dd81176d0e",
+      "artifactPath": "scripts/parity-s10-source-diff/ap-fixtures.json",
+      "artifactSha256": "9b199398172e9c08391300b1f8fbca6a55f094a2f082c979f0fb09da2c68d717",
+      "exports": [
+        "apNewsXMLResponse",
+        "apNewsXMLResponseTwo"
+      ]
+    }
+  },
+  "runtime": {
+    "sourceImage": "node:8.9.4-slim",
+    "sourceImageDigest": "sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+    "timezone": "UTC",
+    "clockISO": "2018-01-01T12:00:00.000Z",
+    "randomSeed": 1397638487
+  },
+  "counts": {
+    "namedCases": 22,
+    "expandedRuns": 22,
+    "expandedAssertions": 60,
+    "fixtureProbes": 2,
+    "groups": {
+      "top-level": 7,
+      "filtering": 7,
+      "views": 8
+    }
+  },
+  "inventorySha256": "15a144f31da0db79585aff975be71b6f0dce75cd2b27f5c4157cc072d26a0ab2",
+  "caseMatrixSha256": "56bf6f16aa1eb8b3f6315b4049c6c76bb1b097d4005f35e15a005bce53783337",
+  "fixtureMatrixSha256": "bbcb93feb7f0f8663ad43490e7a82fc1fe696b3ffa2b469ce6f49ae5d3edbebe",
+  "apFixtures": [
+    {
+      "id": "s10:ap-fixture:01",
+      "exportName": "apNewsXMLResponse",
+      "category": "entertainment",
+      "sourceID": 42201,
+      "sourceEntryCount": 11,
+      "localISO": "2018-01-01T12:00:00.000Z"
+    },
+    {
+      "id": "s10:ap-fixture:02",
+      "exportName": "apNewsXMLResponseTwo",
+      "category": "entertainment",
+      "sourceID": 42201,
+      "sourceEntryCount": 1,
+      "localISO": "2018-01-01T12:00:00.000Z"
+    }
+  ],
+  "cases": [
+    {
+      "id": "s10:top-level:01",
+      "group": "top-level",
+      "sourceName": "ServiceDown MIM if no data from service",
+      "sourceLine": 58,
+      "assertionCount": 2,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": null,
+          "activeNewsCategories": {},
+          "localISO": "2018-01-01T12:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "s10:top-level:02",
+      "group": "top-level",
+      "sourceName": "ServiceDown MIM if active categories but no headlines",
+      "sourceLine": 67,
+      "assertionCount": 3,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "mockNoHeadlines": true,
+            "duplicateItems": false,
+            "childSpeaker": false,
+            "userNotIDed": false,
+            "IDedSpeaker": true,
+            "bannedWord": false,
+            "correction": false,
+            "adultWord": false,
+            "noSummary": false
+          },
+          "activeNewsCategories": {
+            "technology": true,
+            "business": true
+          },
+          "localISO": "2018-01-01T12:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "s10:top-level:03",
+      "group": "top-level",
+      "sourceName": "play default categories if user is not IDed",
+      "sourceLine": 78,
+      "assertionCount": 6,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "mockNoHeadlines": false,
+            "duplicateItems": false,
+            "childSpeaker": false,
+            "userNotIDed": true,
+            "IDedSpeaker": true,
+            "bannedWord": false,
+            "correction": false,
+            "adultWord": false,
+            "noSummary": false
+          },
+          "activeNewsCategories": {},
+          "localISO": "2018-01-01T12:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "s10:top-level:04",
+      "group": "top-level",
+      "sourceName": "play 3 headlines if only 1 category active",
+      "sourceLine": 92,
+      "assertionCount": 7,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "mockNoHeadlines": false,
+            "duplicateItems": false,
+            "childSpeaker": false,
+            "userNotIDed": false,
+            "IDedSpeaker": true,
+            "bannedWord": false,
+            "correction": false,
+            "adultWord": false,
+            "noSummary": false
+          },
+          "activeNewsCategories": {
+            "technology": true
+          },
+          "localISO": "2018-01-01T12:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "s10:top-level:05",
+      "group": "top-level",
+      "sourceName": "play 2 headlines per category if 2 categories active",
+      "sourceLine": 107,
+      "assertionCount": 7,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "mockNoHeadlines": false,
+            "duplicateItems": false,
+            "childSpeaker": false,
+            "userNotIDed": false,
+            "IDedSpeaker": true,
+            "bannedWord": false,
+            "correction": false,
+            "adultWord": false,
+            "noSummary": false
+          },
+          "activeNewsCategories": {
+            "technology": true,
+            "business": true
+          },
+          "localISO": "2018-01-01T12:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "s10:top-level:06",
+      "group": "top-level",
+      "sourceName": "play 1 headline per category if >= 3 categories active",
+      "sourceLine": 122,
+      "assertionCount": 6,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "mockNoHeadlines": false,
+            "duplicateItems": false,
+            "childSpeaker": false,
+            "userNotIDed": false,
+            "IDedSpeaker": true,
+            "bannedWord": false,
+            "correction": false,
+            "adultWord": false,
+            "noSummary": false
+          },
+          "activeNewsCategories": {
+            "technology": true,
+            "business": true,
+            "strange": true,
+            "sports": true
+          },
+          "localISO": "2018-01-01T12:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "s10:top-level:07",
+      "group": "top-level",
+      "sourceName": "play 5 random categories if >= 5 categories active",
+      "sourceLine": 136,
+      "assertionCount": 1,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "mockNoHeadlines": false,
+            "duplicateItems": false,
+            "childSpeaker": false,
+            "userNotIDed": false,
+            "IDedSpeaker": true,
+            "bannedWord": false,
+            "correction": false,
+            "adultWord": false,
+            "noSummary": false
+          },
+          "activeNewsCategories": {
+            "technology": true,
+            "business": true,
+            "strange": true,
+            "national": true,
+            "international": true,
+            "general": true,
+            "sports": true
+          },
+          "localISO": "2018-01-01T12:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "s10:filtering:01",
+      "group": "filtering",
+      "sourceName": "filters news items without summary",
+      "sourceLine": 158,
+      "assertionCount": 1,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "mockNoHeadlines": false,
+            "duplicateItems": false,
+            "childSpeaker": false,
+            "userNotIDed": false,
+            "IDedSpeaker": true,
+            "bannedWord": false,
+            "correction": false,
+            "adultWord": false,
+            "noSummary": true
+          },
+          "activeNewsCategories": {
+            "technology": true,
+            "business": true,
+            "strange": true
+          },
+          "localISO": "2018-01-01T12:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "s10:filtering:02",
+      "group": "filtering",
+      "sourceName": "filters corrections",
+      "sourceLine": 166,
+      "assertionCount": 1,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "mockNoHeadlines": false,
+            "duplicateItems": false,
+            "childSpeaker": false,
+            "userNotIDed": false,
+            "IDedSpeaker": true,
+            "bannedWord": false,
+            "correction": true,
+            "adultWord": false,
+            "noSummary": false
+          },
+          "activeNewsCategories": {
+            "technology": true,
+            "business": true,
+            "strange": true
+          },
+          "localISO": "2018-01-01T12:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "s10:filtering:03",
+      "group": "filtering",
+      "sourceName": "filters banned words in summary",
+      "sourceLine": 174,
+      "assertionCount": 1,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "mockNoHeadlines": false,
+            "duplicateItems": false,
+            "childSpeaker": false,
+            "userNotIDed": false,
+            "IDedSpeaker": true,
+            "bannedWord": true,
+            "correction": false,
+            "adultWord": false,
+            "noSummary": false
+          },
+          "activeNewsCategories": {
+            "technology": true,
+            "business": true,
+            "strange": true
+          },
+          "localISO": "2018-01-01T12:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "s10:filtering:04",
+      "group": "filtering",
+      "sourceName": "filters adult headlines for children",
+      "sourceLine": 182,
+      "assertionCount": 1,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "mockNoHeadlines": false,
+            "duplicateItems": false,
+            "childSpeaker": true,
+            "userNotIDed": false,
+            "IDedSpeaker": true,
+            "bannedWord": false,
+            "correction": false,
+            "adultWord": true,
+            "noSummary": false
+          },
+          "activeNewsCategories": {
+            "technology": true,
+            "business": true,
+            "strange": true
+          },
+          "localISO": "2018-01-01T12:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "s10:filtering:05",
+      "group": "filtering",
+      "sourceName": "filters adult headlines for non-IDed speaker",
+      "sourceLine": 191,
+      "assertionCount": 1,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "mockNoHeadlines": false,
+            "duplicateItems": false,
+            "childSpeaker": false,
+            "userNotIDed": false,
+            "IDedSpeaker": false,
+            "bannedWord": false,
+            "correction": false,
+            "adultWord": true,
+            "noSummary": false
+          },
+          "activeNewsCategories": {
+            "technology": true,
+            "business": true,
+            "strange": true
+          },
+          "localISO": "2018-01-01T12:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "s10:filtering:06",
+      "group": "filtering",
+      "sourceName": "does NOT filter adult headlines for IDed adults",
+      "sourceLine": 200,
+      "assertionCount": 5,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "mockNoHeadlines": false,
+            "duplicateItems": false,
+            "childSpeaker": false,
+            "userNotIDed": false,
+            "IDedSpeaker": true,
+            "bannedWord": false,
+            "correction": false,
+            "adultWord": true,
+            "noSummary": false
+          },
+          "activeNewsCategories": {
+            "technology": true,
+            "business": true,
+            "strange": true
+          },
+          "localISO": "2018-01-01T12:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "s10:filtering:07",
+      "group": "filtering",
+      "sourceName": "filters out duplicate news items",
+      "sourceLine": 213,
+      "assertionCount": 1,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "mockNoHeadlines": false,
+            "duplicateItems": true,
+            "childSpeaker": false,
+            "userNotIDed": false,
+            "IDedSpeaker": true,
+            "bannedWord": false,
+            "correction": false,
+            "adultWord": false,
+            "noSummary": false
+          },
+          "activeNewsCategories": {
+            "technology": true,
+            "business": true,
+            "strange": true
+          },
+          "localISO": "2018-01-01T12:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "s10:views:01",
+      "group": "views",
+      "sourceName": "landscape image fills width",
+      "sourceLine": 231,
+      "assertionCount": 2,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "mockNoHeadlines": false,
+            "duplicateItems": false,
+            "childSpeaker": false,
+            "userNotIDed": false,
+            "IDedSpeaker": true,
+            "bannedWord": false,
+            "correction": false,
+            "adultWord": false,
+            "noSummary": false,
+            "imageWidth": 512,
+            "imageHeight": 300
+          },
+          "activeNewsCategories": {
+            "technology": true
+          },
+          "localISO": "2018-01-01T12:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "s10:views:02",
+      "group": "views",
+      "sourceName": "widescreen landscape image fills height",
+      "sourceLine": 241,
+      "assertionCount": 2,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "mockNoHeadlines": false,
+            "duplicateItems": false,
+            "childSpeaker": false,
+            "userNotIDed": false,
+            "IDedSpeaker": true,
+            "bannedWord": false,
+            "correction": false,
+            "adultWord": false,
+            "noSummary": false,
+            "imageWidth": 512,
+            "imageHeight": 200
+          },
+          "activeNewsCategories": {
+            "technology": true
+          },
+          "localISO": "2018-01-01T12:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "s10:views:03",
+      "group": "views",
+      "sourceName": "portrait image fills height",
+      "sourceLine": 251,
+      "assertionCount": 2,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "mockNoHeadlines": false,
+            "duplicateItems": false,
+            "childSpeaker": false,
+            "userNotIDed": false,
+            "IDedSpeaker": true,
+            "bannedWord": false,
+            "correction": false,
+            "adultWord": false,
+            "noSummary": false,
+            "imageWidth": 300,
+            "imageHeight": 512
+          },
+          "activeNewsCategories": {
+            "technology": true
+          },
+          "localISO": "2018-01-01T12:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "s10:views:04",
+      "group": "views",
+      "sourceName": "contains headline images",
+      "sourceLine": 261,
+      "assertionCount": 1,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "mockNoHeadlines": false,
+            "duplicateItems": false,
+            "childSpeaker": false,
+            "userNotIDed": false,
+            "IDedSpeaker": true,
+            "bannedWord": false,
+            "correction": false,
+            "adultWord": false,
+            "noSummary": false
+          },
+          "activeNewsCategories": {
+            "technology": true
+          },
+          "localISO": "2018-01-01T12:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "s10:views:05",
+      "group": "views",
+      "sourceName": "images have unique IDs",
+      "sourceLine": 268,
+      "assertionCount": 2,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "mockNoHeadlines": false,
+            "duplicateItems": false,
+            "childSpeaker": false,
+            "userNotIDed": false,
+            "IDedSpeaker": true,
+            "bannedWord": false,
+            "correction": false,
+            "adultWord": false,
+            "noSummary": false
+          },
+          "activeNewsCategories": {
+            "technology": true
+          },
+          "localISO": "2018-01-01T12:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "s10:views:06",
+      "group": "views",
+      "sourceName": "\"leaveEmpty: true\" for all but last image",
+      "sourceLine": 276,
+      "assertionCount": 4,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "mockNoHeadlines": false,
+            "duplicateItems": false,
+            "childSpeaker": false,
+            "userNotIDed": false,
+            "IDedSpeaker": true,
+            "bannedWord": false,
+            "correction": false,
+            "adultWord": false,
+            "noSummary": false
+          },
+          "activeNewsCategories": {
+            "technology": true,
+            "business": true
+          },
+          "localISO": "2018-01-01T12:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "s10:views:07",
+      "group": "views",
+      "sourceName": "overlay text matches category name",
+      "sourceLine": 287,
+      "assertionCount": 3,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "mockNoHeadlines": false,
+            "duplicateItems": false,
+            "childSpeaker": false,
+            "userNotIDed": false,
+            "IDedSpeaker": true,
+            "bannedWord": false,
+            "correction": false,
+            "adultWord": false,
+            "noSummary": false
+          },
+          "activeNewsCategories": {
+            "technology": true,
+            "business": true,
+            "strange": true
+          },
+          "localISO": "2018-01-01T12:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "s10:views:08",
+      "group": "views",
+      "sourceName": "asset src is image source",
+      "sourceLine": 298,
+      "assertionCount": 1,
+      "operation": "logic",
+      "runs": [
+        {
+          "opts": {
+            "mockNoHeadlines": false,
+            "duplicateItems": false,
+            "childSpeaker": false,
+            "userNotIDed": false,
+            "IDedSpeaker": true,
+            "bannedWord": false,
+            "correction": false,
+            "adultWord": false,
+            "noSummary": false
+          },
+          "activeNewsCategories": {
+            "technology": true
+          },
+          "localISO": "2018-01-01T12:00:00.000Z"
+        }
+      ]
+    }
+  ]
+}
