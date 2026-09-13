@@ -92,31 +92,14 @@ function httpPeerUrl(value) {
   return /^https?:\/\//i.test(value) ? value : `http://${value}`;
 }
 
-function isAssociatedLoopsEndpoint(value) {
-  if (typeof value !== 'string' || value.length === 0) return false;
-  try {
-    return /\/listAssociatedLoops\/?$/i.test(new URL(httpPeerUrl(value)).pathname);
-  } catch (_error) {
-    return /\/listAssociatedLoops\/?$/i.test(value);
-  }
-}
-
 function accountLookupFromObject(value) {
   if (typeof value === 'function') return value;
   if (value && typeof value.getLoopId === 'function') return value.getLoopId.bind(value);
   if (value && typeof value.get_loop_id === 'function') return value.get_loop_id.bind(value);
   if (value && typeof value === 'object' && !Array.isArray(value)) {
     const config = { ...value };
-    if (config.endpoint !== undefined) {
-      const endpoint = httpPeerUrl(config.endpoint);
-      if (isAssociatedLoopsEndpoint(endpoint)) config.endpoint = endpoint;
-      else {
-        delete config.endpoint;
-        config.baseUrl = endpoint;
-      }
-    } else if (config.baseUrl !== undefined) {
-      config.baseUrl = httpPeerUrl(config.baseUrl);
-    }
+    if (config.endpoint !== undefined) config.endpoint = httpPeerUrl(config.endpoint);
+    if (config.baseUrl !== undefined) config.baseUrl = httpPeerUrl(config.baseUrl);
     return createPhoenixGqaAccountLookup(config);
   }
   throw new TypeError('Classic GQA account configuration must be a function or mapping');
@@ -132,10 +115,10 @@ function defaultGqaAccountLookup(options) {
     || options.accountServiceEndpoint
     || process.env[GQA_ACCOUNT_SERVICE_ENV];
   if (configuredEndpoint) {
-    const endpoint = httpPeerUrl(configuredEndpoint);
-    return createPhoenixGqaAccountLookup(isAssociatedLoopsEndpoint(endpoint)
-      ? { endpoint }
-      : { baseUrl: endpoint });
+    // The source ETCO_server_accountService setting is the complete endpoint
+    // consumed by gqa/account.py. Keep that meaning for explicit Classic
+    // configuration; `account: { baseUrl }` is the unambiguous Phoenix form.
+    return createPhoenixGqaAccountLookup({ endpoint: httpPeerUrl(configuredEndpoint) });
   }
 
   // NET_account is the same private peer used by Classic's OOBE/Account/Loop
