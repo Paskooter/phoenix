@@ -1,0 +1,140 @@
+{
+  "schema": "phoenix.parity.s11.data-maps-http-matrix.v1",
+  "task": "S-11",
+  "base": "55e23ac",
+  "reference": {
+    "repo": "jiboV2/pegasus",
+    "revision": "5c0a7390539663ba749d360de348a428c088505c",
+    "sourceRuntime": "v8.9.4",
+    "sourceImage": "node:8.9.4-slim",
+    "sourceImageDigest": "sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+    "compiledRecordPath": "parity-compiled.json",
+    "compiledRecordSha256": "5a387ec70ce48f9cfacb3dd10857cbbb3840352355f379916a83c98311cb4884",
+    "sourcePaths": [
+      "packages/lasso/src/relay/GoogleMapsHandler.ts",
+      "packages/lasso/src/relay/AbstractRelayRequestHandler.ts",
+      "packages/lasso/src/utils/LatLon.ts",
+      "packages/interfaces/src/personalreport/googlemaps.ts"
+    ],
+    "compiledPaths": [
+      "packages/lasso/lib/relay/GoogleMapsHandler.js",
+      "packages/lasso/lib/relay/AbstractRelayRequestHandler.js",
+      "packages/lasso/lib/utils/LatLon.js",
+      "packages/interfaces/lib/personalreport/googlemaps.js",
+      "packages/test-utils/lib/lasso-test/GoogleMapsTestData.js",
+      "packages/utils/lib/service/BaseService.js",
+      "packages/utils/lib/service/handlers/BaseHttpHandler.js"
+    ],
+    "testPath": "packages/lasso/tests/relay/GoogleMaps.test.ts",
+    "fixtureSourcePath": "packages/test-utils/src/lasso-test/GoogleMapsTestData.ts",
+    "fixtureCompiledPath": "packages/test-utils/lib/lasso-test/GoogleMapsTestData.js",
+    "sourceHashes": {
+      "packages/lasso/src/relay/GoogleMapsHandler.ts": "e3c48c7c8bad999707befade2de30482132a35bafa70f97bac29e65b5d556ec5",
+      "packages/lasso/src/relay/AbstractRelayRequestHandler.ts": "106c0142f0a5fddfb05aa79df796c7def7f2446698bbfd8e96bd3da17956d7ce",
+      "packages/lasso/src/utils/LatLon.ts": "108f3ca6f0c7e4db9083d5bcc1a002440c2a5156034351b6cd04b8b8a449f2d2",
+      "packages/interfaces/src/personalreport/googlemaps.ts": "7296e3f7e7ba0c359705175e416b326fac253c671e5b37aa2507ade7d5835f40"
+    },
+    "compiledHashes": {
+      "packages/lasso/lib/relay/GoogleMapsHandler.js": "fd1a67a3b3bbea29804c03c42124d2905f4ca77c23c1c63c423a3096f989f3b8",
+      "packages/lasso/lib/relay/AbstractRelayRequestHandler.js": "b46f8b7ebec436f1ed827d759abaf990fdd48dee2323774870625e75902b2f71",
+      "packages/lasso/lib/utils/LatLon.js": "47484ce5ea0e6ca832ec6764009a44e2a7a901587d7c91397842a6fad4efe180",
+      "packages/interfaces/lib/personalreport/googlemaps.js": "2e785c3389ef7f8b1412ae303697f868a4a13f58831721a9316cdcb48e65bde0",
+      "packages/test-utils/lib/lasso-test/GoogleMapsTestData.js": "ea8df818ccf14ef5db3038982e8eb5b1060d3f4ae6a4b03b4a3d1ddf004fc9ae",
+      "packages/utils/lib/service/BaseService.js": "2f2f37a21cda673e1fe45c64eb0d19cfdb1d72f91837da73dddaff2411fa6427",
+      "packages/utils/lib/service/handlers/BaseHttpHandler.js": "c207e4ef1f8c58f74f604c91379d20182411dde65e9ea43a6198bb845107c250"
+    },
+    "testSha256": "976c111491ae928d2d71fb1f4a4c3da40b3a90b0c4b7f79b4ced7ac68ffe0cd0",
+    "fixtureSourceSha256": "aa07d5eacc4ac72bb538ab260a2afc6c08fc1c3f2c06a850910b84cec821b4a4",
+    "fixtureCompiledSha256": "ea8df818ccf14ef5db3038982e8eb5b1060d3f4ae6a4b03b4a3d1ddf004fc9ae"
+  },
+  "candidate": {
+    "paths": [
+      "packages/data/src/index.js",
+      "packages/data/src/maps.js",
+      "packages/data/src/relay.js",
+      "packages/data/src/cache.js",
+      "packages/common/src/index.js",
+      "packages/common/src/service.js",
+      "packages/common/src/log.js",
+      "packages/common/src/headers.js",
+      "scripts/parity-s11-data-maps-diff/fixtures.cjs",
+      "scripts/parity-s11-data-maps-diff/run-candidate.mjs",
+      "scripts/parity-s11-data-maps-diff/compare.mjs",
+      "scripts/parity-s11-data-maps-diff/falsify.mjs",
+      "scripts/parity-s11-data-maps-diff/run.mjs"
+    ],
+    "hashes": {
+      "packages/data/src/index.js": "42253d114de300bb91f09a8cf770ee18ccae1b4fad1c3e4b48467382b2ffb3b8",
+      "packages/data/src/maps.js": "1c6d38e9462158cd4bce742d6ba8a21729cb6c0bbedcef865618b08efd775a44",
+      "packages/data/src/relay.js": "98d73e065bb00e227c858cc40067388a1e2d86b3d8b64a50748b2f0feae77b16",
+      "packages/data/src/cache.js": "478aadcd658b0aa0b2d4d54023b9d05a11267ff23fca1a2cf2f2b1d3b0b7963e",
+      "packages/common/src/index.js": "e556e3a49fa9fe221f920d7102366973099f6e643dbe901fbe3efd3100f03117",
+      "packages/common/src/service.js": "2d62845db429a1aa7d2f4120bfa93ad3cdeee5fed950c4f103878970c0963fff",
+      "packages/common/src/log.js": "c694ad94bf5ee7adf30b4605eddaebadcb6541ad53fb2b967a0b724c3ac33641",
+      "packages/common/src/headers.js": "df22867629a954908419d8232e29469fbd28d480858d6291b47c1b18660805d9",
+      "scripts/parity-s11-data-maps-diff/fixtures.cjs": "355da7c7af73e2258e59210aa5bcee9760651627cd2df05f1fff233d19699e0d",
+      "scripts/parity-s11-data-maps-diff/run-candidate.mjs": "59f06f915acb1259bf94a2381c8f6ed54ea4142ec9beab8c20fefc454754b958",
+      "scripts/parity-s11-data-maps-diff/compare.mjs": "865f08defa81517d232d3da135fc45fd7a49b30127ca6c5eb80c4e2d8fc7fec5",
+      "scripts/parity-s11-data-maps-diff/falsify.mjs": "237881f91e4ec5595275bb481b0d4d324657f274cb7545df7c09e41632e02d8f",
+      "scripts/parity-s11-data-maps-diff/run.mjs": "807863ad864d3dca33dbd7904bcd07266b2ff8f577dcb0468382bb2dfb8d517c"
+    }
+  },
+  "harness": {
+    "sourcePaths": [
+      "scripts/parity-s11-data-maps-diff/fixtures.cjs",
+      "scripts/parity-s11-data-maps-diff/run-source.cjs"
+    ],
+    "sourceHashes": {
+      "scripts/parity-s11-data-maps-diff/fixtures.cjs": "355da7c7af73e2258e59210aa5bcee9760651627cd2df05f1fff233d19699e0d",
+      "scripts/parity-s11-data-maps-diff/run-source.cjs": "922fb51c77d48040b920c859c0221b80660654612fb0d75c30047736854d16fe"
+    },
+    "runnerSchema": "phoenix.parity.s11.data-maps-http-receipt.v1",
+    "differentialSchema": "phoenix.parity.s11.data-maps-http-differential.v1"
+  },
+  "runtime": {
+    "timezone": "UTC",
+    "clockISO": "2026-09-13T12:00:00.000Z",
+    "randomSeed": 230913
+  },
+  "cases": [
+    { "id": "get-miss-google-route", "kind": "route", "sourceName": "GoogleMaps.test.ts", "sourceLine": 59 },
+    { "id": "get-hit-cache", "kind": "hit", "sourceName": "GoogleMaps.test.ts", "sourceLine": 77 },
+    { "id": "head-cold-eventual-warm-hit", "kind": "head", "sourceName": "GoogleMaps.test.ts", "sourceLine": 77 },
+    { "id": "empty-reply-not-cached", "kind": "empty", "sourceName": "GoogleMaps.test.ts", "sourceLine": 98 },
+    { "id": "provider-status-error-not-cached", "kind": "provider-error", "sourceName": "AbstractRelayRequestHandler.ts", "sourceLine": 159 },
+    { "id": "zero-results", "kind": "zero", "sourceName": "GoogleMapsHandler.ts", "sourceLine": 89 },
+    { "id": "skip-cache-false-refetch", "kind": "skip", "skip": "skipCache=false", "sourceName": "AbstractRelayRequestHandler.ts", "sourceLine": 77 },
+    { "id": "skip-cache-array-refetch", "kind": "skip", "skip": "skipCache[]=", "sourceName": "AbstractRelayRequestHandler.ts", "sourceLine": 77 },
+    { "id": "validation-missing-origin", "kind": "validation", "validation": "missing-origin", "expectedError": "Origin required", "sourceName": "GoogleMaps.test.ts", "sourceLine": 153 },
+    { "id": "validation-missing-destination", "kind": "validation", "validation": "missing-destination", "expectedError": "Destination required", "sourceName": "GoogleMaps.test.ts", "sourceLine": 157 },
+    { "id": "validation-invalid-origin", "kind": "validation", "validation": "invalid-origin", "expectedError": "Invalid latitude 800", "sourceName": "GoogleMaps.test.ts", "sourceLine": 145 },
+    { "id": "validation-invalid-destination", "kind": "validation", "validation": "invalid-destination", "expectedError": "Invalid longitude 654", "sourceName": "GoogleMaps.test.ts", "sourceLine": 149 },
+    { "id": "validation-missing-mode", "kind": "validation", "validation": "missing-mode", "expectedError": "Invalid mode: \"undefined\"", "sourceName": "GoogleMaps.test.ts", "sourceLine": 165 },
+    { "id": "validation-invalid-mode", "kind": "validation", "validation": "invalid-mode", "mode": "blah", "expectedError": "Invalid mode: \"blah\"", "sourceName": "GoogleMaps.test.ts", "sourceLine": 161 },
+    { "id": "validation-unparseable-origin", "kind": "validation", "validation": "unparseable-origin", "expectedError": "Could not parse origin: not-json", "sourceName": "GoogleMapsHandler.ts", "sourceLine": 44 },
+    { "id": "validation-unparseable-destination", "kind": "validation", "validation": "unparseable-destination", "expectedError": "Could not parse destination: not-json", "sourceName": "GoogleMapsHandler.ts", "sourceLine": 49 },
+    { "id": "mode-driving-wire", "kind": "mode", "mode": "driving", "sourceName": "GoogleMapsHandler.ts", "sourceLine": 77 },
+    { "id": "mode-transit-wire", "kind": "mode", "mode": "transit", "sourceName": "GoogleMapsHandler.ts", "sourceLine": 77 },
+    { "id": "mode-bicycling-wire", "kind": "mode", "mode": "bicycling", "sourceName": "GoogleMapsHandler.ts", "sourceLine": 77 },
+    { "id": "mode-walking-wire", "kind": "mode", "mode": "walking", "sourceName": "GoogleMapsHandler.ts", "sourceLine": 77 }
+  ],
+  "counts": {
+    "namedCases": 20,
+    "requestRuns": 28,
+    "providerCalls": 17,
+    "groups": {
+      "route": 1,
+      "cache": 2,
+      "head": 1,
+      "errors": 2,
+      "zero": 1,
+      "skip": 2,
+      "validation": 8,
+      "modes": 4
+    }
+  },
+  "retainedGaps": {
+    "D07b-transit-ors-driving": "mode=transit remains accepted but Phoenix sends the ORS driving-car profile because the ORS free tier has no transit profile.",
+    "D07c-no-traffic-model": "Pegasus sends departure_time=now and traffic_model=pessimistic; ORS has no traffic model, so Phoenix duration_in_traffic mirrors duration."
+  }
+}
