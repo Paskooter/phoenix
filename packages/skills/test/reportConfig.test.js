@@ -187,6 +187,55 @@ test('source NET_lasso and NET_settings names drive local peer HTTP exchange', a
   });
 });
 
+test('SettingsClient uses only req.jibo.transID and warns when it is absent', async () => {
+  await withEnv({ prefsFromConfig: 'false' }, async () => {
+    const requests = [];
+    const server = http.createServer(async (request, response) => {
+      const chunks = [];
+      for await (const chunk of request) chunks.push(chunk);
+      requests.push({ body: Buffer.concat(chunks).toString('utf8') });
+      response.setHeader('content-type', 'application/json');
+      response.end(JSON.stringify([{ skillId: 'report-skill', data: { weatherEnabled: { value: false } } }]));
+    });
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const { port } = server.address();
+    process.env.NET_settings = `127.0.0.1:${port}`;
+    clearReportEnvCache();
+
+    const warnings = [];
+    const data = {
+      runtime: {
+        perception: { speaker: 'adult-1' },
+        loop: {
+          loopId: 'loop-1',
+          users: [{ id: 'adult-1', accountId: 'account-1', birthdate: 631152000000 }],
+        },
+        location: { iso: '2026-09-13T12:00:00.000Z' },
+      },
+      req: { jibo: {} },
+      trace: { transID: 'trace-trans-id', transId: 'legacy-trace-id' },
+      log: {
+        debug() {},
+        info() {},
+        warn(...args) { warnings.push(args); },
+        error() {},
+      },
+    };
+
+    try {
+      const prefs = await SettingsClient.getUserPrefs(data, 'adult-1');
+      assert.equal(prefs.weather.active, false);
+      assert.equal(requests.length, 1);
+      assert.deepEqual(JSON.parse(requests[0].body), {
+        loopId: 'loop-1', getView: false, skills: 'report-skill',
+      });
+      assert.deepEqual(warnings, [['Missing transId']]);
+    } finally {
+      await close(server);
+    }
+  });
+});
+
 test('SettingsClient follows source redirects and decodes compressed responses', async () => {
   await withEnv({ prefsFromConfig: 'false' }, async () => {
     const requests = [];

@@ -39,7 +39,8 @@ export class SettingsClient {
 
     const accountId = getAccountFromLooper(data.runtime.loop, looperID);
     const loopId = data.runtime.loop.loopId;
-    const transId = data.req?.jibo?.transID || data.trace?.transID || data.trace?.transId;
+    const transId = data.req?.jibo?.transID;
+    if (!transId) log?.warn?.('Missing transId');
 
     let settings;
     try {
