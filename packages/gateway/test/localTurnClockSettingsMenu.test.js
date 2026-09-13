@@ -4,8 +4,9 @@
 // CLIENT_ASR over the listen socket; the hub then runs the requested NLU rule
 // set (ListenTransactionHandler -> parser /v1/parse) and routes the result. This
 // drives that exact path with the N-03 clock/settings/main-menu rule sets and
-// asserts the parsed intent/entities on the final LISTEN frame, plus the loud
-// PARSER error the two time-factory rules must produce.
+// asserts the parsed intent/entities on the final LISTEN frame. The recovered
+// time factory is active, so source-declared time and AM/PM values are ordinary
+// successful NLU results on this path.
 //
 // Ports are ephemeral so this file can run beside the fixed-port suites.
 import { test, before, after } from 'node:test';
@@ -85,6 +86,9 @@ test('N-03 local turn: clock rules reach the NLU and route on the final LISTEN',
     [['clock/timer_set_value'], 'set a timer for five minutes', 'timerValue', { hours: 'null', minutes: '5', seconds: 'null', domain: 'timer' }],
     [['clock/stop_timer'], 'stop the timer', 'stop', {}],
     [['clock/alarm_timer_change'], 'yes', 'delete', {}],
+    [['clock/alarm_set_value'], 'set an alarm for seven thirty am', 'alarmValue', { time: '7:30', ampm: 'AM', domain: 'alarm' }],
+    [['clock/alarm_set_value'], 'cancel', 'cancel', { time: 'null', ampm: 'null', domain: 'alarm' }],
+    [['clock/alarm_timer_ampm'], 'p.m.', 'set', { ampm: 'PM', domain: 'alarm' }],
     [['settings/execute_settings_menu'], 'battery', 'battery', {}],
     [['settings/volume_control'], 'turn the volume up', 'volumeUp', { volumeLevel: 'null', domain: 'gui_command' }],
     [['main-menu/execute_main_menu'], 'settings', 'loadMenu', { destination: 'settings' }],
@@ -99,17 +103,34 @@ test('N-03 local turn: clock rules reach the NLU and route on the final LISTEN',
   }
 });
 
-test('N-03 local turn: the time-factory rules surface a loud PARSER error, never a silent no-match', async () => {
-  for (const rule of ['clock/alarm_set_value', 'clock/alarm_timer_ampm']) {
-    for (const text of ['am', 'seven thirty am', 'set an alarm']) {
-      const messages = await localTurn([rule], text);
-      const final = finalNlu(messages);
-      assert.equal(final.type, 'ERROR', `${rule} ${JSON.stringify(text)}: expected the gateway PARSER error`);
-      assert.equal(final.data.code, 'PARSER', `${rule} ${JSON.stringify(text)}: code`);
-      // The gateway forwards the parser transport failure verbatim
-      // (parserClient.js throws `parser ${res.status}`; ListenTransactionHandler
-      // wraps any parser failure as HubErrorCode.PARSER).
-      assert.equal(final.data.message, 'parser 500', `${rule} ${JSON.stringify(text)}: message`);
-    }
+test('N-03 local turn: source-declared time and AM/PM arms yield final LISTEN results', async () => {
+  // Pinned source evidence: pegasus@5c0a739 clock/alarm_set_value.rule:40-53
+  // contains the $factory:time arm, while clock/alarm_timer_ampm.rule:10-13
+  // contains both $factory:time and the explicit AM_PM arm. The recovered
+  // time.grm:237-252 maps "am"/"p.m." to AM/PM. A successful parse therefore
+  // follows the local-turn LISTEN contract instead of becoming PARSER/500.
+  for (const [rule, text, intent, entities] of [
+    ['clock/alarm_set_value', 'am', 'alarmValue', { time: 'am', ampm: 'AM', domain: 'alarm' }],
+    ['clock/alarm_set_value', 'seven thirty am', 'alarmValue', { time: '7:30', ampm: 'AM', domain: 'alarm' }],
+    ['clock/alarm_timer_ampm', 'am', 'set', { ampm: 'AM', domain: 'alarm' }],
+    ['clock/alarm_timer_ampm', 'p.m.', 'set', { ampm: 'PM', domain: 'alarm' }],
+  ]) {
+    const messages = await localTurn([rule], text);
+    const final = finalNlu(messages);
+    assert.equal(final.type, 'LISTEN', `${rule} ${JSON.stringify(text)}: expected a LISTEN final`);
+    assert.equal(final.data.nlu.intent, intent, `${rule} ${JSON.stringify(text)}: intent`);
+    assert.deepEqual(final.data.nlu.entities, entities, `${rule} ${JSON.stringify(text)}: entities`);
+    assert.deepEqual(final.data.nlu.rules, [rule], `${rule} ${JSON.stringify(text)}: echoed rule set`);
   }
+});
+
+test('N-03 local turn falsification: bare AM is not a parser refusal', async () => {
+  // Native parse at the pinned two-FST oracle returns alarmValue/time=am/ampm=AM
+  // for alarm_set_value "am". This assertion catches a regression to the stale
+  // PARSER-error expectation independently of the broader representative table.
+  const final = finalNlu(await localTurn(['clock/alarm_set_value'], 'am'));
+  assert.notEqual(final.type, 'ERROR', 'a source-matched AM value must not become a parser error');
+  assert.equal(final.type, 'LISTEN');
+  assert.equal(final.data.nlu.intent, 'alarmValue');
+  assert.deepEqual(final.data.nlu.entities, { time: 'am', ampm: 'AM', domain: 'alarm' });
 });

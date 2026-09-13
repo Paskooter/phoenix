@@ -1,6 +1,6 @@
 # N-03 time factory native differential review
 
-Review date: 2026-09-13. The review starts from candidate revision `740385408870aa4c77a392d772f64682e721093a` (`7403854`) on branch `w17/n03`, based on `d7b766f`. The follow-up matcher/test changes and this artifact are intentionally local; they are not integrated or pushed.
+Review date: 2026-09-13. The review starts from candidate revision `740385408870aa4c77a392d772f64682e721093a` (`7403854`) on branch `w17/n03`, based on `d7b766f`. The matcher/native review is `6a354f41dcabe35a752ce2ad2e2b39c93fd1ff48` (`6a354f4`); the local-turn assertion update and this artifact follow-up remain local and are not integrated or pushed.
 
 ## Native oracle and source basis
 
@@ -28,6 +28,14 @@ The raw per-case report is retained in the local review run at `.parity/n03-time
 
 “Semantic status” compares the native empty/matched outcome with the candidate `intent === null`/intent outcome. The native result records `priority=HIGH` and `heuristic_score` for every matched row (132 and 130 rows respectively), and those raw values are retained in the report. The candidate public `parseRequest` result intentionally exposes neither native `priority` nor a score, so score equality and raw wire result cardinality are unavailable on the candidate side; no score-equivalence claim is made.
 
+The pinned native probe also settles the local-turn contract for the previously stale `am` assertion. With the archived parser and FSTs, `clock/alarm_set_value.fst` returns `intent=alarmValue,time=am,ampm=AM,domain=alarm,priority=HIGH`, and `clock/alarm_timer_ampm.fst` returns `intent=set,ampm=AM,domain=alarm,priority=HIGH`; both have `heuristic_score=3`. `p.m.` and `seven thirty am` likewise return source-shaped responses, while `set an alarm` is empty. This follows the pinned source: `alarm_set_value.rule:40-53` includes `$factory:time`, `alarm_timer_ampm.rule:10-13` includes `$factory:time|$AM_PM`, and `time.grm:237-252` maps the AM/PM forms. The gateway therefore must emit a final `LISTEN` for the matched values; a `PARSER`/500 expectation is stale.
+
+## Named-rule and local-turn breadth
+
+The N-03 inventory contains 20 named rules (12 `clock/`, 5 `settings/`, 3 `main-menu/`). The fixture covers all 20 with 134 rows: 45 positive, 62 boundary, and 27 negative (the 18 non-factory rules contribute 122 rows; the two time rules contribute 12). The `clockSettingsMenu.test.js` suite replays every row through both `parseRequest` and a live `POST /v1/parse`; the latest run passed all seven subtests. The pinned source citation is present on every row.
+
+The local-turn WebSocket suite now covers 13 distinct representative inputs across the required contract: timer/alarm values, AM/PM, stop/cancel, confirmation, volume, and settings/weather menu selections. The AM cases include both `clock/alarm_set_value "am"` and `clock/alarm_timer_ampm "am"`; all three gateway subtests pass. The exact test paths are `packages/gateway/test/localTurnClockSettingsMenu.test.js` and `packages/nlu/test/clockSettingsMenu.test.js`.
+
 ## Action coverage and execution falsification
 
 The active inventory contains 117 rule files plus 3 active factory files, 120 unique source files. Scanning after applying the lexer’s `#`-to-end-of-line comment rule found 2,780 active `{%...%}` bodies: 2,755 simple assignment bodies and 25 rich executable bodies. The two apparent extras are commented lines 3554 and 3556 in `rules-src/chitchat/launch.rule` (`PlayMusicType` and `SeeUserBodyPart`) and are excluded as comments.
@@ -54,7 +62,9 @@ Focused and parity checks after restoration:
 * `node --test packages/nlu/test/*.test.js`: 260 tests, 254 pass, 6 skipped, 0 fail.
 * `npm run parity:check`: pass; tracker reports 61/79 verified and leaves N-03 `todo`.
 * `npm run parity:gate`: pass; strict production smoke 43 cases, 0 differences, 0 invariants, 0 coverage gaps.
+* `node --test packages/nlu/test/clockSettingsMenu.test.js`: 7 pass, 0 fail (134 named-rule rows exercised in each runtime phase).
+* `node --test packages/gateway/test/localTurnClockSettingsMenu.test.js`: 3 pass, 0 fail (13 distinct local-turn inputs including the source-matched AM falsification).
 
-The required full `npm test` was run and exited 1: its unit phase reported 1,969 tests across 7 suites, 1,960 pass, 8 skipped, and one failure. The failure is the pre-existing local-turn test `packages/gateway/test/localTurnClockSettingsMenu.test.js:102`, which still demands an `ERROR/PARSER` response for `clock/alarm_set_value "am"`; the repaired source path returns `LISTEN`. Local-turn WebSocket acceptance remains a separate N-03 slice and is deliberately left open here.
+* `npm test`: 1,970 tests across 7 suites, 1,962 pass, 8 skipped, 0 fail; `parity:check` and `parity:gate` also pass.
 
-N-03 remains open. This review proves the native two-FST time-factory matrix and source/action coverage, while the tracker’s full named-rule positive/negative/boundary replay and local-turn WS acceptance still require their dedicated verification.
+N-03 remains open in `docs/parity/tasks.json` as requested: this artifact proves the bounded native two-FST differential, complete direct/HTTP named-rule fixture replay, and representative local-turn contract, while exhaustive native scoring/wire-cardinality equivalence and a per-rule local-turn replay remain outside the bounded claim.
