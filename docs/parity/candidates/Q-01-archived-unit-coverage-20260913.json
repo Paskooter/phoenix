@@ -1,0 +1,1203 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-13",
+  "source": {
+    "repository": "jiborobot/srv-gqa-ws",
+    "ref": "master",
+    "revision": "ebe1a7d38f511570060c1fbf61bec89d58419b26",
+    "acquisition": "Jibo MCP Gitea only; no web source"
+  },
+  "basis": {
+    "archivedUnitFiles": 15,
+    "archivedUnitModules": 13,
+    "namedTests": 136,
+    "assertionCalls": 385,
+    "nonModuleFiles": [
+      {
+        "path": "tests/unit/__init__.py",
+        "size": 0
+      },
+      {
+        "path": "tests/unit/blocked_dictionary_words.out",
+        "size": 3141
+      }
+    ],
+    "perFileNamedTests": {
+      "tests/unit/test_account.py": 2,
+      "tests/unit/test_api_ai.py": 2,
+      "tests/unit/test_async.py": 12,
+      "tests/unit/test_banned_words.py": 3,
+      "tests/unit/test_bing.py": 19,
+      "tests/unit/test_blacklist.py": 4,
+      "tests/unit/test_general.py": 18,
+      "tests/unit/test_mim_registry.py": 6,
+      "tests/unit/test_news.py": 2,
+      "tests/unit/test_nlp.py": 4,
+      "tests/unit/test_pegasus.py": 39,
+      "tests/unit/test_wikipedia.py": 15,
+      "tests/unit/test_wolfram.py": 10
+    },
+    "existingReplayRows": {
+      "answer": 28,
+      "async": 12,
+      "directAnswerAndAsync": 40,
+      "newsSourceCases": 10,
+      "fakeProviderRoutes": 3
+    }
+  },
+  "statusDefinitions": {
+    "covered": "An existing executable Phoenix row directly checks the archived behavior named by the source test.",
+    "partial": "An executable row covers a narrower or synthetic seam; closure remains explicitly stated.",
+    "missing": "No executable row currently checks the named behavior; closure is a concrete feature or fixture requirement.",
+    "supporting": "A top-level test helper counted by the source inventory; its assertions are exercised by the named callers.",
+    "skipped": "The archived test is explicitly skipped and has no required replay."
+  },
+  "mappingRules": [
+    "Rows are one per archived named test_* definition counted by the 136-test inventory; the two test_* helpers in test_bing.py are marked supporting and are not standalone unittest cases.",
+    "A target may be reused when one Phoenix matrix row genuinely exercises several archived cases; reuse does not create additional coverage rows.",
+    "The 28 answer and 12 async rows are source-shaped controls; provider outputs are synthetic unless a target explicitly names a pinned adapter body.",
+    "News source cases are counted as 10 archived cases and 14 local test blocks in the existing receipt; this map does not convert the 14 blocks into 14 source cases.",
+    "Live integration inputs and live provider assertions without output goldens remain partial or missing even when a local adapter seam exists."
+  ],
+  "counts": {
+    "covered": 72,
+    "partial": 39,
+    "missing": 22,
+    "skipped": 1,
+    "supporting": 2
+  },
+  "rows": [
+    {
+      "source": "tests/unit/test_account.py:test_account_basic",
+      "sourceFile": "tests/unit/test_account.py",
+      "test": "test_account_basic",
+      "status": "covered",
+      "target": "packages/skills/test/q01GqaAccountAttribution.test.js :: account lookup preserves the source POST body, headers, and first loop ID"
+    },
+    {
+      "source": "tests/unit/test_account.py:test_account_fail",
+      "sourceFile": "tests/unit/test_account.py",
+      "test": "test_account_fail",
+      "status": "covered",
+      "target": "packages/skills/test/q01GqaAccountAttribution.test.js :: account lookup keeps source failure and post-HTTP shape boundaries visible"
+    },
+    {
+      "source": "tests/unit/test_api_ai.py:test_api_ai_real",
+      "sourceFile": "tests/unit/test_api_ai.py",
+      "test": "test_api_ai_real",
+      "status": "missing",
+      "target": null,
+      "closure": "API-AI/Dialogflow client execution with archived credentials or a deterministic response fixture; Phoenix receives NLU and has no API-AI call surface."
+    },
+    {
+      "source": "tests/unit/test_api_ai.py:test_api_ai",
+      "sourceFile": "tests/unit/test_api_ai.py",
+      "test": "test_api_ai",
+      "status": "missing",
+      "target": null,
+      "closure": "API-AI client exception and empty-JSON fallback behavior, including the two mocked request calls, is not implemented in the Phoenix GQA service."
+    },
+    {
+      "source": "tests/unit/test_async.py:test_fast_bing_slow_wiki",
+      "sourceFile": "tests/unit/test_async.py",
+      "test": "test_fast_bing_slow_wiki",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAsyncRows row=tests/unit/test_async.py:test_fast_bing_slow_wiki"
+    },
+    {
+      "source": "tests/unit/test_async.py:test_empty_bing_slow_wiki",
+      "sourceFile": "tests/unit/test_async.py",
+      "test": "test_empty_bing_slow_wiki",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAsyncRows row=tests/unit/test_async.py:test_empty_bing_slow_wiki"
+    },
+    {
+      "source": "tests/unit/test_async.py:test_fast_wiki_slow_bing",
+      "sourceFile": "tests/unit/test_async.py",
+      "test": "test_fast_wiki_slow_bing",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAsyncRows row=tests/unit/test_async.py:test_fast_wiki_slow_bing"
+    },
+    {
+      "source": "tests/unit/test_async.py:test_fast_wiki_empty_slow_bing",
+      "sourceFile": "tests/unit/test_async.py",
+      "test": "test_fast_wiki_empty_slow_bing",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAsyncRows row=tests/unit/test_async.py:test_fast_wiki_empty_slow_bing"
+    },
+    {
+      "source": "tests/unit/test_async.py:test_fast_wiki_timeout_bing",
+      "sourceFile": "tests/unit/test_async.py",
+      "test": "test_fast_wiki_timeout_bing",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAsyncRows row=tests/unit/test_async.py:test_fast_wiki_timeout_bing"
+    },
+    {
+      "source": "tests/unit/test_async.py:test_fast_bing_timeout_wiki",
+      "sourceFile": "tests/unit/test_async.py",
+      "test": "test_fast_bing_timeout_wiki",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAsyncRows row=tests/unit/test_async.py:test_fast_bing_timeout_wiki"
+    },
+    {
+      "source": "tests/unit/test_async.py:test_timeout_bing_timeout_wiki",
+      "sourceFile": "tests/unit/test_async.py",
+      "test": "test_timeout_bing_timeout_wiki",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAsyncRows row=tests/unit/test_async.py:test_timeout_bing_timeout_wiki; packages/skills/test/q01Gqa.test.js :: Q-01 provider pipeline uses the next group after both first-group workers time out"
+    },
+    {
+      "source": "tests/unit/test_async.py:test_fast_wolfram",
+      "sourceFile": "tests/unit/test_async.py",
+      "test": "test_fast_wolfram",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAsyncRows row=tests/unit/test_async.py:test_fast_wolfram"
+    },
+    {
+      "source": "tests/unit/test_async.py:test_empty_wolfram",
+      "sourceFile": "tests/unit/test_async.py",
+      "test": "test_empty_wolfram",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAsyncRows row=tests/unit/test_async.py:test_empty_wolfram"
+    },
+    {
+      "source": "tests/unit/test_async.py:test_timeout_wolfram",
+      "sourceFile": "tests/unit/test_async.py",
+      "test": "test_timeout_wolfram",
+      "status": "partial",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAsyncRows row=tests/unit/test_async.py:test_timeout_wolfram",
+      "closure": "The null result is replayed with bounded worker delays, but no current row asserts the archived 4.1-second wall-clock timeout boundary."
+    },
+    {
+      "source": "tests/unit/test_async.py:test_timeout_all",
+      "sourceFile": "tests/unit/test_async.py",
+      "test": "test_timeout_all",
+      "status": "partial",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAsyncRows row=tests/unit/test_async.py:test_timeout_all",
+      "closure": "The null result is replayed, but no current row asserts the archived aggregate duration < 7.09 seconds."
+    },
+    {
+      "source": "tests/unit/test_async.py:test_bing_post_timeout",
+      "sourceFile": "tests/unit/test_async.py",
+      "test": "test_bing_post_timeout",
+      "status": "partial",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAsyncRows row=tests/unit/test_async.py:test_bing_post_timeout; packages/skills/test/q01GqaCompositeReplay.test.js :: Q-01 composite provider replay enforces Bing priority, Wikipedia fallback, Wolfram fallback and late priority",
+      "closure": "The late Bing winner is covered with bounded delays; the archived 3.1-second provider delay and exact source timing budget are not reproduced."
+    },
+    {
+      "source": "tests/unit/test_banned_words.py:test_blocked",
+      "sourceFile": "tests/unit/test_banned_words.py",
+      "test": "test_blocked",
+      "status": "covered",
+      "target": "packages/skills/test/q01Gqa.test.js :: Q-01 blocked-term matching agrees with 473 original Python 3.6 results"
+    },
+    {
+      "source": "tests/unit/test_banned_words.py:test_allowed",
+      "sourceFile": "tests/unit/test_banned_words.py",
+      "test": "test_allowed",
+      "status": "covered",
+      "target": "packages/skills/test/q01Gqa.test.js :: Q-01 blocked-term matching agrees with 473 original Python 3.6 results"
+    },
+    {
+      "source": "tests/unit/test_banned_words.py:test_against_dictionary",
+      "sourceFile": "tests/unit/test_banned_words.py",
+      "test": "test_against_dictionary",
+      "status": "missing",
+      "target": null,
+      "closure": "Replay of tests/unit/blocked_dictionary_words.out against the archived word-list/words.txt corpus with the expected 344 blocked rows."
+    },
+    {
+      "source": "tests/unit/test_bing.py:test_comparison_helper",
+      "sourceFile": "tests/unit/test_bing.py",
+      "test": "test_comparison_helper",
+      "status": "supporting",
+      "target": "packages/skills/test/q01BingProvider.test.js :: Q-01 Bing success preserves request parameters, location headers, and screenshot output"
+    },
+    {
+      "source": "tests/unit/test_bing.py:test_boolean_helper",
+      "sourceFile": "tests/unit/test_bing.py",
+      "test": "test_boolean_helper",
+      "status": "supporting",
+      "target": "packages/skills/test/q01BingProvider.test.js :: Q-01 Bing success preserves request parameters, location headers, and screenshot output"
+    },
+    {
+      "source": "tests/unit/test_bing.py:test_bing_local_live",
+      "sourceFile": "tests/unit/test_bing.py",
+      "test": "test_bing_local_live",
+      "status": "partial",
+      "target": "packages/skills/test/q01BingProvider.test.js :: Q-01 Bing success preserves request parameters, location headers, and screenshot output",
+      "closure": "Archived live Bing execution and the unstable \"I found\" response are not locally replayed; the loopback adapter row proves request/decoder shape only."
+    },
+    {
+      "source": "tests/unit/test_bing.py:test_bing_screenshot",
+      "sourceFile": "tests/unit/test_bing.py",
+      "test": "test_bing_screenshot",
+      "status": "partial",
+      "target": "packages/skills/test/q01BingProvider.test.js :: Q-01 Bing success preserves request parameters, location headers, and screenshot output",
+      "closure": "The screenshot extraction is exact against a captured body, while the archived test relies on a live Bing payload and has no immutable provider golden."
+    },
+    {
+      "source": "tests/unit/test_bing.py:test_bing_list",
+      "sourceFile": "tests/unit/test_bing.py",
+      "test": "test_bing_list",
+      "status": "partial",
+      "target": "packages/skills/test/q01BingProvider.test.js :: Q-01 Bing projects source image locations for Entities and SportsTeam",
+      "closure": "The Entities decoder shape is covered; the live list answer and its current item payload are not replayed."
+    },
+    {
+      "source": "tests/unit/test_bing.py:test_bing_sports",
+      "sourceFile": "tests/unit/test_bing.py",
+      "test": "test_bing_sports",
+      "status": "partial",
+      "target": "packages/skills/test/q01BingProvider.test.js :: Q-01 Bing projects source image locations for Entities and SportsTeam",
+      "closure": "The SportsTeam decoder shape is covered; the archived live score and answer text have no deterministic golden."
+    },
+    {
+      "source": "tests/unit/test_bing.py:test_bing_cortana",
+      "sourceFile": "tests/unit/test_bing.py",
+      "test": "test_bing_cortana",
+      "status": "missing",
+      "target": null,
+      "closure": "Live Bing entity-carousel/Cortana response ordering and the archived roster text need a pinned provider body or an authorized live replay."
+    },
+    {
+      "source": "tests/unit/test_bing.py:test_bing_no_answer",
+      "sourceFile": "tests/unit/test_bing.py",
+      "test": "test_bing_no_answer",
+      "status": "covered",
+      "target": "packages/skills/test/q01BingProvider.test.js :: Q-01 Bing returns an empty source result for empty and blacklisted answer types; Q-01 Bing fallback URL uses the response query when no screenshot is present"
+    },
+    {
+      "source": "tests/unit/test_bing.py:test_get_value_answer",
+      "sourceFile": "tests/unit/test_bing.py",
+      "test": "test_get_value_answer",
+      "status": "partial",
+      "target": "packages/skills/test/q01BingProvider.test.js :: Q-01 Bing returns an empty source result for empty and blacklisted answer types",
+      "closure": "The no-response branch and fallback URL are executable, but the archived live Value answer type is not a pinned local body."
+    },
+    {
+      "source": "tests/unit/test_bing.py:test_get_wrong_type",
+      "sourceFile": "tests/unit/test_bing.py",
+      "test": "test_get_wrong_type",
+      "status": "partial",
+      "target": "packages/skills/test/q01BingProvider.test.js :: Q-01 Bing returns an empty source result for empty and blacklisted answer types",
+      "closure": "A blacklisted WebPages answer is covered; the archived live answer type and payload are not pinned."
+    },
+    {
+      "source": "tests/unit/test_bing.py:test_wrong_market",
+      "sourceFile": "tests/unit/test_bing.py",
+      "test": "test_wrong_market",
+      "status": "partial",
+      "target": "packages/skills/test/q01BingProvider.test.js :: Q-01 Bing reports unknown answer types using the returned market",
+      "closure": "US and Canada market decisions are executable; the archived Taiwan market variant is not a separate row."
+    },
+    {
+      "source": "tests/unit/test_bing.py:test_tt_255",
+      "sourceFile": "tests/unit/test_bing.py",
+      "test": "test_tt_255",
+      "status": "skipped",
+      "target": null,
+      "closure": "The archived test is explicitly decorated unittest.skip and carries no executable assertion."
+    },
+    {
+      "source": "tests/unit/test_bing.py:test_fail_exception",
+      "sourceFile": "tests/unit/test_bing.py",
+      "test": "test_fail_exception",
+      "status": "covered",
+      "target": "packages/skills/test/q01BingProvider.test.js :: Q-01 Bing preserves source request/parse failures as a timestamped provider message"
+    },
+    {
+      "source": "tests/unit/test_bing.py:test_fail_empty",
+      "sourceFile": "tests/unit/test_bing.py",
+      "test": "test_fail_empty",
+      "status": "covered",
+      "target": "packages/skills/test/q01BingProvider.test.js :: Q-01 Bing returns an empty source result for empty and blacklisted answer types"
+    },
+    {
+      "source": "tests/unit/test_bing.py:test_canada_positive",
+      "sourceFile": "tests/unit/test_bing.py",
+      "test": "test_canada_positive",
+      "status": "partial",
+      "target": "packages/skills/test/q01BingProvider.test.js :: Q-01 Bing applies country gates before HTTP and Canada answer licensing after HTTP",
+      "closure": "The Canada post-response licensing gate is covered with a rejected FoodAndDrink type; a licensed Canadian Weather payload is not replayed."
+    },
+    {
+      "source": "tests/unit/test_bing.py:test_canada_negative",
+      "sourceFile": "tests/unit/test_bing.py",
+      "test": "test_canada_negative",
+      "status": "covered",
+      "target": "packages/skills/test/q01BingProvider.test.js :: Q-01 Bing applies country gates before HTTP and Canada answer licensing after HTTP"
+    },
+    {
+      "source": "tests/unit/test_bing.py:test_puerto_rico_positive",
+      "sourceFile": "tests/unit/test_bing.py",
+      "test": "test_puerto_rico_positive",
+      "status": "partial",
+      "target": "packages/skills/test/q01BingProvider.test.js :: Q-01 Bing applies country gates before HTTP and Canada answer licensing after HTTP",
+      "closure": "US-territory country gating is implemented, but the archived Puerto Rico Showtimes body is not a distinct local row."
+    },
+    {
+      "source": "tests/unit/test_bing.py:test_russia",
+      "sourceFile": "tests/unit/test_bing.py",
+      "test": "test_russia",
+      "status": "covered",
+      "target": "packages/skills/test/q01BingProvider.test.js :: Q-01 Bing applies country gates before HTTP and Canada answer licensing after HTTP"
+    },
+    {
+      "source": "tests/unit/test_bing.py:test_empty_country_code",
+      "sourceFile": "tests/unit/test_bing.py",
+      "test": "test_empty_country_code",
+      "status": "covered",
+      "target": "packages/skills/test/q01BingProvider.test.js :: Q-01 Bing applies country gates before HTTP and Canada answer licensing after HTTP"
+    },
+    {
+      "source": "tests/unit/test_blacklist.py:test_article_blacklist",
+      "sourceFile": "tests/unit/test_blacklist.py",
+      "test": "test_article_blacklist",
+      "status": "covered",
+      "target": "packages/skills/test/q01GqaProfile.test.js :: Q-01 profile preserves source action selection across answer, no-result, disambiguation, blacklist and provider failure"
+    },
+    {
+      "source": "tests/unit/test_blacklist.py:test_category_blacklist_leaf",
+      "sourceFile": "tests/unit/test_blacklist.py",
+      "test": "test_category_blacklist_leaf",
+      "status": "partial",
+      "target": "packages/skills/test/q01GqaProfile.test.js :: Q-01 profile preserves source action selection across answer, no-result, disambiguation, blacklist and provider failure",
+      "closure": "Category suppression is exercised after the page request, but the archived leaf category and exact error message are not asserted."
+    },
+    {
+      "source": "tests/unit/test_blacklist.py:test_category_blacklist_parent",
+      "sourceFile": "tests/unit/test_blacklist.py",
+      "test": "test_category_blacklist_parent",
+      "status": "partial",
+      "target": "packages/skills/test/q01GqaProfile.test.js :: Q-01 profile preserves source action selection across answer, no-result, disambiguation, blacklist and provider failure",
+      "closure": "Category suppression is exercised after the page request, but the archived parent category and exact error message are not asserted."
+    },
+    {
+      "source": "tests/unit/test_blacklist.py:test_category_whitelist",
+      "sourceFile": "tests/unit/test_blacklist.py",
+      "test": "test_category_whitelist",
+      "status": "partial",
+      "target": "packages/skills/test/q01Wikipedia.test.js :: Q-01 Wikipedia adapter follows source success request and result contract",
+      "closure": "A successful page is covered, but no current row proves the archived Jesus category is explicitly allowed while other categories are blocked."
+    },
+    {
+      "source": "tests/unit/test_general.py:test_health_check",
+      "sourceFile": "tests/unit/test_general.py",
+      "test": "test_health_check",
+      "status": "partial",
+      "target": "packages/common/test/service.test.js :: healthcheck route",
+      "closure": "The route is executable, but the archived GQA helper expects body 42 while Phoenix common healthcheck evidence expects its current common-service body."
+    },
+    {
+      "source": "tests/unit/test_general.py:test_fake_account",
+      "sourceFile": "tests/unit/test_general.py",
+      "test": "test_fake_account",
+      "status": "partial",
+      "target": "packages/skills/test/q01GqaAccountAttribution.test.js :: account lookup preserves the source POST body, headers, and first loop ID",
+      "closure": "The client POST contract is covered through an injected peer; Phoenix does not expose the archived developer-only /fakeAccount endpoint."
+    },
+    {
+      "source": "tests/unit/test_general.py:test_scripted_response",
+      "sourceFile": "tests/unit/test_general.py",
+      "test": "test_scripted_response",
+      "status": "partial",
+      "target": "packages/skills/test/q01Gqa.test.js :: Q-01 exposes the source scripted question mapping and full MIM inventories; packages/skills/test/assetProvenance.test.js :: scripted MIM provenance",
+      "closure": "The OI_USR_IsAngry asset exists and MIM inventory is checked, but Phoenix has no archived /structQA Scripted route row returning OI_USR_IsAngry_AN_01 with source timestamps."
+    },
+    {
+      "source": "tests/unit/test_general.py:test_age_entity_api_ai",
+      "sourceFile": "tests/unit/test_general.py",
+      "test": "test_age_entity_api_ai",
+      "status": "missing",
+      "target": null,
+      "closure": "The /structQA Scripted age entity path depends on API-AI/Dialogflow entity resolution; Phoenix has no API-AI client execution or equivalent entity fixture."
+    },
+    {
+      "source": "tests/unit/test_general.py:test_bing",
+      "sourceFile": "tests/unit/test_general.py",
+      "test": "test_bing",
+      "status": "partial",
+      "target": "packages/skills/test/q01GqaCompositeReplay.test.js :: Q-01 composite success replays selected HTTP profile, account lookup, attribution, MIM/JCP and source wire media",
+      "closure": "The provider request and response shape are covered through answer-skill routes; the archived /structQA endpoint and live Bing response remain open."
+    },
+    {
+      "source": "tests/unit/test_general.py:test_wiki",
+      "sourceFile": "tests/unit/test_general.py",
+      "test": "test_wiki",
+      "status": "partial",
+      "target": "packages/skills/test/q01Wikipedia.test.js :: Q-01 Wikipedia adapter follows source success request and result contract",
+      "closure": "Wikipedia adapter behavior is covered through a pinned page body; the archived /structQA route and live Tropisetron page are not replayed."
+    },
+    {
+      "source": "tests/unit/test_general.py:test_wiki_contraction",
+      "sourceFile": "tests/unit/test_general.py",
+      "test": "test_wiki_contraction",
+      "status": "partial",
+      "target": "packages/skills/test/q01Gqa.test.js :: archived answer row test_contraction; packages/skills/test/q01Wikipedia.test.js :: lexical preprocessing follows the pinned NLTK source vectors",
+      "closure": "Cleaning and provider shaping are covered, but no Phoenix /structQA row executes the archived contraction request end to end."
+    },
+    {
+      "source": "tests/unit/test_general.py:test_no_input",
+      "sourceFile": "tests/unit/test_general.py",
+      "test": "test_no_input",
+      "status": "missing",
+      "target": null,
+      "closure": "Legacy /structQA must return the exact 200 JSON no-Input message before account/provider work."
+    },
+    {
+      "source": "tests/unit/test_general.py:test_pii_filter",
+      "sourceFile": "tests/unit/test_general.py",
+      "test": "test_pii_filter",
+      "status": "partial",
+      "target": "packages/skills/test/q01Gqa.test.js :: Q-01 blocked-term response follows IP and PII checks and suppresses provider calls",
+      "closure": "The PII gate and provider suppression are covered, but the archived /structQA message and route envelope are not."
+    },
+    {
+      "source": "tests/unit/test_general.py:test_no_skill_intent",
+      "sourceFile": "tests/unit/test_general.py",
+      "test": "test_no_skill_intent",
+      "status": "missing",
+      "target": null,
+      "closure": "Legacy /structQA unknown Intent None response: exact message \"Unknown Intent 'None'\" and success false."
+    },
+    {
+      "source": "tests/unit/test_general.py:test_wrong_skill_intent",
+      "sourceFile": "tests/unit/test_general.py",
+      "test": "test_wrong_skill_intent",
+      "status": "missing",
+      "target": null,
+      "closure": "Legacy /structQA unknown Intent WOW response: exact message \"Unknown Intent 'WOW'\" and success false."
+    },
+    {
+      "source": "tests/unit/test_general.py:test_ap_news",
+      "sourceFile": "tests/unit/test_general.py",
+      "test": "test_ap_news",
+      "status": "partial",
+      "target": "packages/skills/test/q01News.test.js :: Q-01 archived PegasusNewsTestCase matrix: all speaker/loop cases select the source feed; packages/skills/test/q01News.test.js :: Q-01 registry-to-host proof",
+      "closure": "Source-shaped news routes and AP selection are covered, but the archived /structQA Intent=News dispatch is not."
+    },
+    {
+      "source": "tests/unit/test_general.py:test_get_ip",
+      "sourceFile": "tests/unit/test_general.py",
+      "test": "test_get_ip",
+      "status": "covered",
+      "target": "packages/skills/test/q01BingProvider.test.js :: Q-01 Bing success preserves request parameters, location headers, and screenshot output"
+    },
+    {
+      "source": "tests/unit/test_general.py:test_no_input_data",
+      "sourceFile": "tests/unit/test_general.py",
+      "test": "test_no_input_data",
+      "status": "partial",
+      "target": "packages/skills/test/q01GqaHttpFraming.test.js :: Q-01 source parser returns Flask 400 HTML for malformed and empty JSON",
+      "closure": "Malformed JSON framing is covered, but the archived /structQA route path and body are not the same executable target."
+    },
+    {
+      "source": "tests/unit/test_general.py:test_wolfram",
+      "sourceFile": "tests/unit/test_general.py",
+      "test": "test_wolfram",
+      "status": "partial",
+      "target": "packages/skills/test/q01WolframProvider.test.js :: Q-01 Wolfram success sends ordered source parameters and returns spoken output",
+      "closure": "Wolfram request/response shaping is covered with a deterministic peer; the archived /structQA endpoint and live answer remain open."
+    },
+    {
+      "source": "tests/unit/test_general.py:test_retrieve_att",
+      "sourceFile": "tests/unit/test_general.py",
+      "test": "test_retrieve_att",
+      "status": "covered",
+      "target": "packages/skills/test/q01GqaAccountAttribution.test.js :: Mongo attribution storage returns complete inserted records through retrieveAtt and wipes them"
+    },
+    {
+      "source": "tests/unit/test_general.py:test_wipe_db_for_id",
+      "sourceFile": "tests/unit/test_general.py",
+      "test": "test_wipe_db_for_id",
+      "status": "covered",
+      "target": "packages/skills/test/q01GqaAccountAttribution.test.js :: attribution HTTP routes preserve source parser boundaries and retrieve ordering"
+    },
+    {
+      "source": "tests/unit/test_general.py:test_crash_me",
+      "sourceFile": "tests/unit/test_general.py",
+      "test": "test_crash_me",
+      "status": "missing",
+      "target": null,
+      "closure": "Archived debug-only /crash_me route and its Piep, Piep exception are not a Phoenix product surface."
+    },
+    {
+      "source": "tests/unit/test_mim_registry.py:test_mim_registry",
+      "sourceFile": "tests/unit/test_mim_registry.py",
+      "test": "test_mim_registry",
+      "status": "missing",
+      "target": null,
+      "closure": "API-AI result to semicolon-delimited intent/entity pattern resolver (doesJiboLikeThing;Object:Dogs)."
+    },
+    {
+      "source": "tests/unit/test_mim_registry.py:test_mim_registry_empty",
+      "sourceFile": "tests/unit/test_mim_registry.py",
+      "test": "test_mim_registry_empty",
+      "status": "missing",
+      "target": null,
+      "closure": "Empty API-AI payload handling in the archived MIM registry."
+    },
+    {
+      "source": "tests/unit/test_mim_registry.py:test_mim_registry_api_ai_500",
+      "sourceFile": "tests/unit/test_mim_registry.py",
+      "test": "test_mim_registry_api_ai_500",
+      "status": "missing",
+      "target": null,
+      "closure": "API-AI 500 response handling in the archived MIM registry."
+    },
+    {
+      "source": "tests/unit/test_mim_registry.py:test_mim_registry_no_entity",
+      "sourceFile": "tests/unit/test_mim_registry.py",
+      "test": "test_mim_registry_no_entity",
+      "status": "missing",
+      "target": null,
+      "closure": "Entity-free API-AI intent pattern ending in a semicolon."
+    },
+    {
+      "source": "tests/unit/test_mim_registry.py:test_get_mim_payload",
+      "sourceFile": "tests/unit/test_mim_registry.py",
+      "test": "test_get_mim_payload",
+      "status": "missing",
+      "target": null,
+      "closure": "Lookup of the legacy doesJiboLikeThing;Object:Dogs MIM payload text."
+    },
+    {
+      "source": "tests/unit/test_mim_registry.py:test_get_mim_payload_exception",
+      "sourceFile": "tests/unit/test_mim_registry.py",
+      "test": "test_get_mim_payload_exception",
+      "status": "missing",
+      "target": null,
+      "closure": "Missing/empty MIM registry key returns None with the archived lookup boundary."
+    },
+    {
+      "source": "tests/unit/test_news.py:test_ap_search_haskid",
+      "sourceFile": "tests/unit/test_news.py",
+      "test": "test_ap_search_haskid",
+      "status": "covered",
+      "target": "packages/skills/test/q01News.test.js :: Q-01 source gqa/ap.py: AP provider preserves 24h/feed/adult/order/limit/bytes semantics"
+    },
+    {
+      "source": "tests/unit/test_news.py:test_attribute_insert",
+      "sourceFile": "tests/unit/test_news.py",
+      "test": "test_attribute_insert",
+      "status": "covered",
+      "target": "packages/skills/test/q01GqaAccountAttribution.test.js :: source JSON dumping and attribution memory store preserve source fields and windows"
+    },
+    {
+      "source": "tests/unit/test_nlp.py:test_pii_filter",
+      "sourceFile": "tests/unit/test_nlp.py",
+      "test": "test_pii_filter",
+      "status": "covered",
+      "target": "packages/skills/test/q01Gqa.test.js :: Q-01 query cleaning and PII filtering follow executable original NLP controls"
+    },
+    {
+      "source": "tests/unit/test_nlp.py:test_remove_initial_stop_words",
+      "sourceFile": "tests/unit/test_nlp.py",
+      "test": "test_remove_initial_stop_words",
+      "status": "covered",
+      "target": "packages/skills/test/q01Wikipedia.test.js :: Q-01 lexical preprocessing follows the pinned NLTK source vectors"
+    },
+    {
+      "source": "tests/unit/test_nlp.py:test_clean_parentheses",
+      "sourceFile": "tests/unit/test_nlp.py",
+      "test": "test_clean_parentheses",
+      "status": "covered",
+      "target": "packages/skills/test/q01Wikipedia.test.js :: Q-01 lexical preprocessing follows the pinned NLTK source vectors"
+    },
+    {
+      "source": "tests/unit/test_nlp.py:test_clean_input",
+      "sourceFile": "tests/unit/test_nlp.py",
+      "test": "test_clean_input",
+      "status": "covered",
+      "target": "packages/skills/test/q01Gqa.test.js :: Q-01 query cleaning and PII filtering follow executable original NLP controls"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_what",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_what",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_what"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_when",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_when",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_when"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_where",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_where",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_where"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_which",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_which",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_which"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_who",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_who",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_who"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_why",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_why",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_why"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_how",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_how",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_how"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_new_intent",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_new_intent",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_new_intent"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_contraction",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_contraction",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_contraction"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_what_is_definition",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_what_is_definition",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_what_is_definition"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_spell",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_spell",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_spell"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_movie",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_movie",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_movie"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_indirect_weather",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_indirect_weather",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_indirect_weather"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_math",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_math",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_math"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_geometry",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_geometry",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_geometry"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_how_long",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_how_long",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_how_long"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_random",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_random",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_random"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_banned_but_cleaned",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_banned_but_cleaned",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_banned_but_cleaned"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_what_neg",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_what_neg",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_what_neg"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_when_neg",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_when_neg",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_when_neg"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_where_neg",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_where_neg",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_where_neg"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_which_neg",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_which_neg",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_which_neg"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_who_neg",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_who_neg",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_who_neg"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_why_neg",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_why_neg",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_why_neg"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_how_neg",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_how_neg",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_how_neg"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_pii_neg",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_pii_neg",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_pii_neg"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_banned_word_neg",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_banned_word_neg",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_banned_word_neg"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_banned_not_cleaned",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_banned_not_cleaned",
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAnswerRows row=tests/unit/test_pegasus.py:test_banned_not_cleaned"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_news_adult_default",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_news_adult_default",
+      "status": "covered",
+      "target": "packages/skills/test/q01News.test.js :: Q-01 archived PegasusNewsTestCase matrix: all speaker/loop cases select the source feed"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_news_adult_affirmative",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_news_adult_affirmative",
+      "status": "covered",
+      "target": "packages/skills/test/q01News.test.js :: Q-01 archived PegasusNewsTestCase matrix: all speaker/loop cases select the source feed"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_news_child",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_news_child",
+      "status": "covered",
+      "target": "packages/skills/test/q01News.test.js :: Q-01 archived PegasusNewsTestCase matrix: all speaker/loop cases select the source feed"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_news_unknown_speaker",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_news_unknown_speaker",
+      "status": "covered",
+      "target": "packages/skills/test/q01News.test.js :: Q-01 archived PegasusNewsTestCase matrix: all speaker/loop cases select the source feed"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_news_unknown_loop",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_news_unknown_loop",
+      "status": "covered",
+      "target": "packages/skills/test/q01News.test.js :: Q-01 archived PegasusNewsTestCase matrix: all speaker/loop cases select the source feed"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_news_speaker_outside_loop",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_news_speaker_outside_loop",
+      "status": "covered",
+      "target": "packages/skills/test/q01News.test.js :: Q-01 archived PegasusNewsTestCase matrix: all speaker/loop cases select the source feed"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_news_speaker_no_birthdate",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_news_speaker_no_birthdate",
+      "status": "covered",
+      "target": "packages/skills/test/q01News.test.js :: Q-01 archived PegasusNewsTestCase matrix: all speaker/loop cases select the source feed"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_news_empty_db",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_news_empty_db",
+      "status": "covered",
+      "target": "packages/skills/test/q01News.test.js :: Q-01 source falsifier: empty AP data is a 200 GQA_error SLIM with failure analytics"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_news_analytics",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_news_analytics",
+      "status": "covered",
+      "target": "packages/skills/test/q01News.test.js :: Q-01 source fixture: AP sequence, analytics, and five-item bound"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_get_question_type",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_get_question_type",
+      "status": "covered",
+      "target": "packages/skills/test/q01Gqa.test.js :: Q-01 exposes the source scripted question mapping and full MIM inventories"
+    },
+    {
+      "source": "tests/unit/test_pegasus.py:test_invalid_service",
+      "sourceFile": "tests/unit/test_pegasus.py",
+      "test": "test_invalid_service",
+      "status": "partial",
+      "target": "packages/skills/test/q01Gqa.test.js :: Q-01 provider pipeline rejects an incomplete adapter inventory",
+      "closure": "The configuration-level invalid-provider guard is covered; the archived public GqaParallelQuery.make_async_call invalid service exception is not a direct Phoenix row."
+    },
+    {
+      "source": "tests/unit/test_wikipedia.py:test_wiki_basic",
+      "sourceFile": "tests/unit/test_wikipedia.py",
+      "test": "test_wiki_basic",
+      "status": "partial",
+      "target": "packages/skills/test/q01Wikipedia.test.js :: Q-01 Wikipedia adapter follows source success request and result contract",
+      "closure": "Pinned page extraction and first-sentence behavior are covered, but the archived Barack Obama mock page and exact assertion are not a local row."
+    },
+    {
+      "source": "tests/unit/test_wikipedia.py:test_wiki_hyphen",
+      "sourceFile": "tests/unit/test_wikipedia.py",
+      "test": "test_wiki_hyphen",
+      "status": "partial",
+      "target": "packages/skills/test/q01Wikipedia.test.js :: Q-01 lexical preprocessing follows the pinned NLTK source vectors",
+      "closure": "The preprocessing boundary is covered, but the archived Julia Louis-Dreyfus page lookup/output is not."
+    },
+    {
+      "source": "tests/unit/test_wikipedia.py:test_wiki_wh_contraction",
+      "sourceFile": "tests/unit/test_wikipedia.py",
+      "test": "test_wiki_wh_contraction",
+      "status": "partial",
+      "target": "packages/skills/test/q01Wikipedia.test.js :: Q-01 lexical preprocessing follows the pinned NLTK source vectors",
+      "closure": "Contraction preprocessing is covered, but the archived France page response is not a pinned provider row."
+    },
+    {
+      "source": "tests/unit/test_wikipedia.py:test_wiki_endash",
+      "sourceFile": "tests/unit/test_wikipedia.py",
+      "test": "test_wiki_endash",
+      "status": "missing",
+      "target": null,
+      "closure": "Unicode endash-to-ASCII-title lookup and the McCain-Feingold page assertion need a pinned source page row."
+    },
+    {
+      "source": "tests/unit/test_wikipedia.py:test_wiki_no_query",
+      "sourceFile": "tests/unit/test_wikipedia.py",
+      "test": "test_wiki_no_query",
+      "status": "missing",
+      "target": null,
+      "closure": "Direct Wikipedia empty-query return (\"\", [\"Empty query\"]) has no executable Phoenix row."
+    },
+    {
+      "source": "tests/unit/test_wikipedia.py:test_wiki_nonsense",
+      "sourceFile": "tests/unit/test_wikipedia.py",
+      "test": "test_wiki_nonsense",
+      "status": "partial",
+      "target": "packages/skills/test/q01Wikipedia.test.js :: Q-01 Wikipedia missing page is a no-result source message",
+      "closure": "A missing-page no-result is covered, but the archived nonsense-query/no-match branch and exact message are not."
+    },
+    {
+      "source": "tests/unit/test_wikipedia.py:test_carlton_banks",
+      "sourceFile": "tests/unit/test_wikipedia.py",
+      "test": "test_carlton_banks",
+      "status": "missing",
+      "target": null,
+      "closure": "Related-but-different article suppression and its exact error message need a source-derived page fixture."
+    },
+    {
+      "source": "tests/unit/test_wikipedia.py:test_wiki_listblocking",
+      "sourceFile": "tests/unit/test_wikipedia.py",
+      "test": "test_wiki_listblocking",
+      "status": "missing",
+      "target": null,
+      "closure": "The full source title/list blocking matrix (oldest person, capital of India, presidents, highest mountain, etc.) has no Phoenix fixture row."
+    },
+    {
+      "source": "tests/unit/test_wikipedia.py:test_can_answer",
+      "sourceFile": "tests/unit/test_wikipedia.py",
+      "test": "test_can_answer",
+      "status": "missing",
+      "target": null,
+      "closure": "The source can_answer question-type gate matrix (positive/negative with and without hints) has no Phoenix executable equivalent."
+    },
+    {
+      "source": "tests/unit/test_wikipedia.py:test_no_response",
+      "sourceFile": "tests/unit/test_wikipedia.py",
+      "test": "test_no_response",
+      "status": "missing",
+      "target": null,
+      "closure": "Empty Wikipedia page cleanup/error branch and exact unexpected-exception message need a pinned page fixture."
+    },
+    {
+      "source": "tests/unit/test_wikipedia.py:test_disambig_basic",
+      "sourceFile": "tests/unit/test_wikipedia.py",
+      "test": "test_disambig_basic",
+      "status": "covered",
+      "target": "packages/skills/test/q01Wikipedia.test.js :: Q-01 Wikipedia disambiguation follows revision options and skips disambiguation pages"
+    },
+    {
+      "source": "tests/unit/test_wikipedia.py:test_disambig_nested",
+      "sourceFile": "tests/unit/test_wikipedia.py",
+      "test": "test_disambig_nested",
+      "status": "covered",
+      "target": "packages/skills/test/q01Wikipedia.test.js :: Q-01 Wikipedia disambiguation follows revision options and skips disambiguation pages"
+    },
+    {
+      "source": "tests/unit/test_wikipedia.py:test_disambig_cat_blacklist",
+      "sourceFile": "tests/unit/test_wikipedia.py",
+      "test": "test_disambig_cat_blacklist",
+      "status": "partial",
+      "target": "packages/skills/test/q01GqaProfile.test.js :: Q-01 profile preserves source action selection across answer, no-result, disambiguation, blacklist and provider failure",
+      "closure": "Disambiguation and category suppression are covered separately; the archived Bondage nested disambiguation/category chain is not one executable row."
+    },
+    {
+      "source": "tests/unit/test_wikipedia.py:test_broken_article",
+      "sourceFile": "tests/unit/test_wikipedia.py",
+      "test": "test_broken_article",
+      "status": "missing",
+      "target": null,
+      "closure": "Broken-template detection with the archived NCAA payload and exact error remains unpinned."
+    },
+    {
+      "source": "tests/unit/test_wikipedia.py:test_many_categories",
+      "sourceFile": "tests/unit/test_wikipedia.py",
+      "test": "test_many_categories",
+      "status": "partial",
+      "target": "packages/skills/test/q01Wikipedia.test.js :: Q-01 Wikipedia preserves source first-page category continuation behavior",
+      "closure": "The no-continuation source rule is covered, but the archived 500-category page and complete category list are not replayed."
+    },
+    {
+      "source": "tests/unit/test_wolfram.py:test_wolf_basic",
+      "sourceFile": "tests/unit/test_wolfram.py",
+      "test": "test_wolf_basic",
+      "status": "partial",
+      "target": "packages/skills/test/q01WolframProvider.test.js :: Q-01 Wolfram success sends ordered source parameters and returns spoken output",
+      "closure": "Deterministic request/response shaping is covered, but the archived live daughter-of-Donald-Trump answer is not pinned."
+    },
+    {
+      "source": "tests/unit/test_wolfram.py:test_picture",
+      "sourceFile": "tests/unit/test_wolfram.py",
+      "test": "test_picture",
+      "status": "covered",
+      "target": "packages/skills/test/q01WolframProvider.test.js :: Q-01 Wolfram clean_answer preserves source rejection and parenthesis rules"
+    },
+    {
+      "source": "tests/unit/test_wolfram.py:test_multi_answer",
+      "sourceFile": "tests/unit/test_wolfram.py",
+      "test": "test_multi_answer",
+      "status": "partial",
+      "target": "packages/skills/test/q01WolframProvider.test.js :: Q-01 Wolfram spoken extraction follows response suppression and source precedence; Q-01 Wolfram source no-answer paths retain the input URL and omit response",
+      "closure": "The source extraction/no-answer and URL seams are covered, but the archived live Alexa multi-answer payload is not pinned."
+    },
+    {
+      "source": "tests/unit/test_wolfram.py:test_person_question",
+      "sourceFile": "tests/unit/test_wolfram.py",
+      "test": "test_person_question",
+      "status": "partial",
+      "target": "packages/skills/test/q01WolframProvider.test.js :: Q-01 Wolfram source no-answer paths retain the input URL and omit response",
+      "closure": "Provider no-answer shaping is covered, but the archived live creator question is not a deterministic fixture."
+    },
+    {
+      "source": "tests/unit/test_wolfram.py:test_taylor_swift",
+      "sourceFile": "tests/unit/test_wolfram.py",
+      "test": "test_taylor_swift",
+      "status": "partial",
+      "target": "packages/skills/test/q01WolframProvider.test.js :: Q-01 Wolfram success sends ordered source parameters and returns spoken output",
+      "closure": "The archived live Taylor Swift payload has no response golden."
+    },
+    {
+      "source": "tests/unit/test_wolfram.py:test_who_create_you",
+      "sourceFile": "tests/unit/test_wolfram.py",
+      "test": "test_who_create_you",
+      "status": "partial",
+      "target": "packages/skills/test/q01WolframProvider.test.js :: Q-01 Wolfram source no-answer paths retain the input URL and omit response",
+      "closure": "The no-answer shape is covered, but the archived live query is not pinned."
+    },
+    {
+      "source": "tests/unit/test_wolfram.py:test_empty_list",
+      "sourceFile": "tests/unit/test_wolfram.py",
+      "test": "test_empty_list",
+      "status": "covered",
+      "target": "packages/skills/test/q01WolframProvider.test.js :: Q-01 Wolfram clean_answer preserves source rejection and parenthesis rules"
+    },
+    {
+      "source": "tests/unit/test_wolfram.py:test_elvis_birthday",
+      "sourceFile": "tests/unit/test_wolfram.py",
+      "test": "test_elvis_birthday",
+      "status": "partial",
+      "target": "packages/skills/test/q01WolframProvider.test.js :: Q-01 Wolfram source no-answer paths retain the input URL and omit response",
+      "closure": "The no-answer shape is covered, but the archived live result is not pinned."
+    },
+    {
+      "source": "tests/unit/test_wolfram.py:test_noise",
+      "sourceFile": "tests/unit/test_wolfram.py",
+      "test": "test_noise",
+      "status": "partial",
+      "target": "packages/skills/test/q01WolframProvider.test.js :: Q-01 Wolfram source no-answer paths retain the input URL and omit response",
+      "closure": "The no-answer shape is covered, but the archived live provider response is not pinned."
+    },
+    {
+      "source": "tests/unit/test_wolfram.py:test_fail_and_empty",
+      "sourceFile": "tests/unit/test_wolfram.py",
+      "test": "test_fail_and_empty",
+      "status": "covered",
+      "target": "packages/skills/test/q01WolframProvider.test.js :: Q-01 Wolfram request/status/JSON failures are timestamped provider messages; Q-01 Wolfram source no-answer paths retain the input URL and omit response"
+    }
+  ],
+  "closureBuckets": {
+    "structQA": [
+      "tests/unit/test_general.py:test_scripted_response",
+      "tests/unit/test_general.py:test_age_entity_api_ai",
+      "tests/unit/test_general.py:test_bing",
+      "tests/unit/test_general.py:test_wiki",
+      "tests/unit/test_general.py:test_wiki_contraction",
+      "tests/unit/test_general.py:test_no_input",
+      "tests/unit/test_general.py:test_pii_filter",
+      "tests/unit/test_general.py:test_no_skill_intent",
+      "tests/unit/test_general.py:test_wrong_skill_intent",
+      "tests/unit/test_general.py:test_ap_news",
+      "tests/unit/test_general.py:test_no_input_data",
+      "tests/unit/test_general.py:test_wolfram"
+    ],
+    "apiAi": [
+      "tests/unit/test_api_ai.py:test_api_ai_real",
+      "tests/unit/test_api_ai.py:test_api_ai",
+      "tests/unit/test_general.py:test_age_entity_api_ai",
+      "tests/unit/test_mim_registry.py:test_mim_registry",
+      "tests/unit/test_mim_registry.py:test_mim_registry_empty",
+      "tests/unit/test_mim_registry.py:test_mim_registry_api_ai_500",
+      "tests/unit/test_mim_registry.py:test_mim_registry_no_entity"
+    ],
+    "scripted": [
+      "tests/unit/test_general.py:test_scripted_response",
+      "tests/unit/test_general.py:test_age_entity_api_ai",
+      "tests/unit/test_mim_registry.py:test_mim_registry_empty",
+      "tests/unit/test_mim_registry.py:test_mim_registry_api_ai_500",
+      "tests/unit/test_mim_registry.py:test_get_mim_payload",
+      "tests/unit/test_mim_registry.py:test_get_mim_payload_exception"
+    ],
+    "news": [
+      "tests/unit/test_news.py:test_ap_search_haskid",
+      "tests/unit/test_news.py:test_attribute_insert",
+      "tests/unit/test_pegasus.py:test_news_adult_default",
+      "tests/unit/test_pegasus.py:test_news_adult_affirmative",
+      "tests/unit/test_pegasus.py:test_news_child",
+      "tests/unit/test_pegasus.py:test_news_unknown_speaker",
+      "tests/unit/test_pegasus.py:test_news_unknown_loop",
+      "tests/unit/test_pegasus.py:test_news_speaker_outside_loop",
+      "tests/unit/test_pegasus.py:test_news_speaker_no_birthdate",
+      "tests/unit/test_pegasus.py:test_news_empty_db",
+      "tests/unit/test_pegasus.py:test_news_analytics"
+    ],
+    "accountAttribution": [
+      "tests/unit/test_account.py:test_account_basic",
+      "tests/unit/test_account.py:test_account_fail",
+      "tests/unit/test_general.py:test_fake_account",
+      "tests/unit/test_general.py:test_bing",
+      "tests/unit/test_general.py:test_no_input",
+      "tests/unit/test_general.py:test_retrieve_att",
+      "tests/unit/test_general.py:test_wipe_db_for_id",
+      "tests/unit/test_news.py:test_attribute_insert"
+    ],
+    "fakeProvider": [
+      "tests/unit/test_async.py:test_fast_bing_slow_wiki",
+      "tests/unit/test_async.py:test_empty_bing_slow_wiki",
+      "tests/unit/test_async.py:test_fast_wiki_slow_bing",
+      "tests/unit/test_async.py:test_fast_wiki_empty_slow_bing",
+      "tests/unit/test_async.py:test_fast_wiki_timeout_bing",
+      "tests/unit/test_async.py:test_fast_bing_timeout_wiki",
+      "tests/unit/test_async.py:test_timeout_bing_timeout_wiki",
+      "tests/unit/test_async.py:test_fast_wolfram",
+      "tests/unit/test_async.py:test_empty_wolfram",
+      "tests/unit/test_async.py:test_timeout_wolfram",
+      "tests/unit/test_async.py:test_bing_post_timeout",
+      "tests/unit/test_bing.py:test_comparison_helper",
+      "tests/unit/test_bing.py:test_boolean_helper",
+      "tests/unit/test_bing.py:test_bing_local_live",
+      "tests/unit/test_bing.py:test_bing_screenshot",
+      "tests/unit/test_bing.py:test_bing_list",
+      "tests/unit/test_bing.py:test_bing_sports",
+      "tests/unit/test_bing.py:test_bing_no_answer",
+      "tests/unit/test_bing.py:test_get_value_answer",
+      "tests/unit/test_bing.py:test_get_wrong_type",
+      "tests/unit/test_bing.py:test_wrong_market",
+      "tests/unit/test_bing.py:test_fail_exception",
+      "tests/unit/test_bing.py:test_fail_empty",
+      "tests/unit/test_bing.py:test_canada_positive",
+      "tests/unit/test_bing.py:test_canada_negative",
+      "tests/unit/test_bing.py:test_puerto_rico_positive",
+      "tests/unit/test_bing.py:test_russia",
+      "tests/unit/test_bing.py:test_empty_country_code",
+      "tests/unit/test_blacklist.py:test_article_blacklist",
+      "tests/unit/test_blacklist.py:test_category_blacklist_leaf",
+      "tests/unit/test_blacklist.py:test_category_blacklist_parent",
+      "tests/unit/test_blacklist.py:test_category_whitelist",
+      "tests/unit/test_general.py:test_wiki",
+      "tests/unit/test_general.py:test_wiki_contraction",
+      "tests/unit/test_general.py:test_pii_filter",
+      "tests/unit/test_general.py:test_get_ip",
+      "tests/unit/test_general.py:test_wolfram",
+      "tests/unit/test_news.py:test_ap_search_haskid",
+      "tests/unit/test_nlp.py:test_remove_initial_stop_words",
+      "tests/unit/test_nlp.py:test_clean_parentheses",
+      "tests/unit/test_pegasus.py:test_invalid_service",
+      "tests/unit/test_wikipedia.py:test_wiki_basic",
+      "tests/unit/test_wikipedia.py:test_wiki_hyphen",
+      "tests/unit/test_wikipedia.py:test_wiki_wh_contraction",
+      "tests/unit/test_wikipedia.py:test_wiki_nonsense",
+      "tests/unit/test_wikipedia.py:test_disambig_basic",
+      "tests/unit/test_wikipedia.py:test_disambig_nested",
+      "tests/unit/test_wikipedia.py:test_disambig_cat_blacklist",
+      "tests/unit/test_wikipedia.py:test_many_categories",
+      "tests/unit/test_wolfram.py:test_wolf_basic",
+      "tests/unit/test_wolfram.py:test_picture",
+      "tests/unit/test_wolfram.py:test_multi_answer",
+      "tests/unit/test_wolfram.py:test_person_question",
+      "tests/unit/test_wolfram.py:test_taylor_swift",
+      "tests/unit/test_wolfram.py:test_who_create_you",
+      "tests/unit/test_wolfram.py:test_empty_list",
+      "tests/unit/test_wolfram.py:test_elvis_birthday",
+      "tests/unit/test_wolfram.py:test_noise",
+      "tests/unit/test_wolfram.py:test_fail_and_empty"
+    ]
+  }
+}
+
