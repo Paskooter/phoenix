@@ -553,6 +553,15 @@ test('Q-01 standalone GQA auxiliary routes preserve source health 42 and develop
     assert.equal(fakeAccount.status, 200);
     assert.equal(fakeAccount.headers.get('content-type'), 'text/html; charset=utf-8');
     assert.equal(await fakeAccount.text(), '{"unit-test": ["unit-test"]}');
+
+    const malformed = await fetch(`${base}${STRUCTQA_FAKE_ACCOUNT_PATH}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: '{',
+    });
+    assert.equal(malformed.status, 200);
+    assert.equal(malformed.headers.get('content-type'), 'text/plain; charset=utf-8');
+    assert.equal(await malformed.text(), 'ERROR');
   } finally {
     await closeServer(server);
   }
