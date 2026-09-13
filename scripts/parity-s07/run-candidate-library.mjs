@@ -1,0 +1,148 @@
+#!/usr/bin/env node
+
+// Run the Phoenix Chitchat graph over the exact source-derived plan. The only
+// source-side input here is the generated plan; Phoenix assets are loaded by the
+// checked-in library module, so missing/extra MIMs are compared separately.
+
+import fs from 'node:fs';
+import { createRequire } from 'node:module';
+import { createChitchatSkill } from '../../packages/skills/src/chitchatSkill.js';
+import { FIXED_NOW, runtimeFor, rngValues } from './library-context.cjs';
+
+const require = createRequire(import.meta.url);
+const planPath = process.argv[2];
+const outPath = process.argv[3];
+if (!planPath || !outPath) throw new Error('usage: run-candidate-library.mjs PLAN OUT');
+const plan = JSON.parse(fs.readFileSync(planPath, 'utf8'));
+
+Date.now = () => FIXED_NOW;
+let randomValues = [];
+let randomIndex = 0;
+const skill = createChitchatSkill({ rng: () => randomValues[randomIndex++ % randomValues.length] });
+
+const GENERATED_ACTION_ID_PATHS = new Set(['config.jcp.id', 'config.jcp.config.play.id']);
+
+function stripGeneratedIds(value, prefix = '') {
+  if (Array.isArray(value)) return value.map((item, index) => stripGeneratedIds(item, `${prefix}[${index}]`));
+  if (!value || typeof value !== 'object') return value;
+  const out = {};
+  Object.keys(value).sort().forEach((key) => {
+    const current = prefix ? `${prefix}.${key}` : key;
+    if (key === 'id' && GENERATED_ACTION_ID_PATHS.has(current)) return;
+    out[key] = stripGeneratedIds(value[key], current);
+  });
+  return out;
+}
+
+function idPaths(value, prefix = '') {
+  const out = [];
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => out.push(...idPaths(item, `${prefix}[${index}]`)));
+  } else if (value && typeof value === 'object') {
+    Object.keys(value).forEach((key) => {
+      const current = prefix ? `${prefix}.${key}` : key;
+      if (key === 'id') out.push(current);
+      out.push(...idPaths(value[key], current));
+    });
+  }
+  return out.sort();
+}
+
+function normalizeResponse(response) {
+  if (!response) return { responseType: null };
+  const data = response.data || {};
+  const action = data.action;
+  const normalized = {
+    responseType: response.type,
+    final: data.final,
+    fireAndForget: data.fireAndForget,
+    analytics: data.analytics || {},
+    action: action ? stripGeneratedIds(action) : null,
+    actionIdPaths: action ? idPaths(action) : [],
+  };
+  if (action && action.config && action.config.jcp) {
+    const jcp = action.config.jcp;
+    const slims = [];
+    function walk(node) {
+      if (!node || typeof node !== 'object') return;
+      if (node.type === 'SLIM') {
+        const config = node.config || {};
+        const play = config.play || {};
+        slims.push({
+          play: {
+            type: play.type,
+            autoRuleConfig: play.autoRuleConfig,
+            esml: play.esml,
+            meta: play.meta,
+          },
+          listen: config.listen || null,
+          display: config.display || null,
+        });
+      }
+      (node.children || []).forEach(walk);
+    }
+    walk(jcp);
+    normalized.jcpType = jcp.type;
+    normalized.slims = slims;
+    normalized.mims = slims.map((slim) => slim.play.meta && slim.play.meta.mim_id).filter(Boolean);
+    normalized.prompts = slims.map((slim) => slim.play.meta && slim.play.meta.prompt_id).filter(Boolean);
+    normalized.esml = slims.map((slim) => slim.play.esml);
+  }
+  return normalized;
+}
+
+function requestBody(row) {
+  return {
+    type: 'LISTEN_LAUNCH',
+    msgID: `s07:${row.id}`,
+    ts: FIXED_NOW,
+    data: {
+      general: { accountID: 's07-fixture-account', robotID: 's07-fixture-robot', lang: 'en' },
+      runtime: runtimeFor(row.profile),
+      skill: { id: 'chitchat-skill' },
+      result: {
+        nlu: { rules: [], intent: `s07:${row.family}`, entities: row.entities || {} },
+        asr: { text: '', confidence: 1 },
+        memo: { type: row.memoType, mim: row.mim },
+      },
+    },
+  };
+}
+
+async function main() {
+  const rows = [];
+  for (let index = 0; index < plan.cases.length; index += 1) {
+    const row = plan.cases[index];
+    randomValues = rngValues(row.rngSeed);
+    randomIndex = 0;
+    try {
+      const response = await skill(requestBody(row));
+      rows.push({
+        id: row.id,
+        family: row.family,
+        mim: row.mim,
+        memoType: row.memoType,
+        profile: row.profile,
+        entities: row.entities || {},
+        expectedCategory: row.expectedCategory,
+        expectedCategories: row.expectedCategories,
+        result: normalizeResponse(response),
+      });
+    } catch (err) {
+      rows.push({ id: row.id, family: row.family, mim: row.mim, memoType: row.memoType, profile: row.profile, error: { name: err.name, message: err.message } });
+    }
+    if ((index + 1) % 500 === 0) process.stderr.write(`candidate ${index + 1}/${plan.cases.length}\n`);
+  }
+  const library = (await import('../../packages/skills/src/chitchat/library.js')).getLibrary();
+  fs.writeFileSync(outPath, `${JSON.stringify({
+    schemaVersion: 1,
+    task: 'S-07',
+    runtime: process.version,
+    candidateRevision: process.env.PHOENIX_REVISION || 'working-tree',
+    candidateMappings: { stemMapping: library.semiSpecificStems, categoryNames: Object.keys(library.semiSpecificCategories) },
+    planCases: plan.cases.length,
+    rows,
+  }, null, 2)}\n`);
+}
+
+main().catch((err) => { console.error(err && err.stack || err); process.exit(2); });
