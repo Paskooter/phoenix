@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-09-08",
+  "updated": "2026-09-13",
   "objective": "A feature-complete, behavior-compatible reimplementation of original Pegasus, with companion-cloud and restored-branch work explicitly tracked.",
   "owner": "Codex (project management and task execution)",
   "baseline": {
@@ -2553,7 +2553,7 @@
       "track": "pegasus",
       "phase": 3,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -2571,21 +2571,32 @@
         "packages/skills/src/chitchatSkill.js",
         "packages/skills/src/chitchat"
       ],
-      "finding": "Root accepted a bounded source/native entity repair: the three overlapping chitchat parses now match exact native entities and select the source MIMs. The complete 10,035-utterance diagnostic improves from 9,887 to 9,890 MIM matches with exactly three removals and no new misses. The remaining 117 MIM-only rows are classified as 77 context-free semi-specific categories, 39 loop-context decisions, and one duplicate manifest expectation; the 28 intent residuals remain accepted N-08/N1 families. Full ESML/JCP/analytics, seasonal, fun-and-games and multi-turn source-runtime comparison remains open.",
+      "finding": "Complete source/runtime closure is accepted across public routing, all 4,424 Chitchat MIMs, 23,387 contexts, 132,967 weighted branch rows, exact ESML/JCP/SLIM/analytics, semispecific order, identity/emotion/birthday/seasonal behavior, fallback/deflection, and the announcement-only host continuation boundary. Seven malformed direct internal-request precedence differences are accepted defensive behavior because the public parser/router/SkillClient path cannot emit those exact launches. N-08 owns the full parser corpus and S-07 retains its assigned 120 MIM/identity rows.",
       "acceptance": [
         "Replay source intent/entity/memo branches, semi-specific categories, fun-and-games transformations and fallback/deflection behavior.",
         "Compare resulting MIM/ESML/JCP/analytics under identity, emotion, birthday and seasonal contexts, including multi-turn paths."
       ],
-      "verification": [],
+      "verification": [
+        {
+          "date": "2026-09-13",
+          "basis": "Root-reviewed complete S-07 source/runtime closure across routing, native entity capture, MIM/library/context/order behavior, weighted conditional prompt selection, fallback/deflection, identity/emotion/birthday/seasonal outputs, and the accepted announcement-only continuation boundary. The hardened weighted matrix matches 132,967 rows per side with zero observable differences and rejects 28 comparator plus two aggregate corruptions. Seven malformed direct internal-request precedence differences are explicitly accepted under the public consumer boundary.",
+          "artifact": "docs/parity/evidence/2026-09-13/s07-root-verification.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "1a475b1",
+          "command": "Run the weighted aggregate/falsification, routing closure/public-boundary verifiers, focused S-07 tests, npm test, npm run parity:check, and npm run parity:gate as documented in s07-root-verification.md.",
+          "notes": "Weighted receipt candidate revision dd2199d is production-scope-bound to integrated revision 1a475b1; N-08 owns the full parser corpus and accepted N1 residuals; Chitchat has no skill-owned continuation; malformed direct internal requests are accepted robustness differences."
+        }
+      ],
       "implementationReview": {
         "state": "accepted",
-        "assignee": "Luna Max / w18_s08_settings; Codex root",
-        "candidateRevision": "d8d4085",
-        "integratedRevision": "6eec06b",
-        "reviewedBy": "Codex root",
-        "scope": "Bounded S-07 entity and MIM repair. Three native-capture entity collisions are corrected at both parser boundaries. Root independently inspected all three native receipts, reran 75 focused checks, and falsified the Emotion mapping. The complete S-07 runtime acceptance remains open.",
-        "artifact": "docs/parity/evidence/2026-09-13/s07-mim-identity/review.md",
-        "reviewEvidence": "docs/parity/evidence/2026-09-13/s07-mim-identity/review.md"
+        "assignee": "Luna Max team; Codex root",
+        "candidateRevision": "5aa40d9",
+        "integratedRevision": "1a475b1",
+        "reviewedBy": "Codex root and independent Luna Max adversarial review",
+        "scope": "Complete S-07 closure. Production repair remains limited to the three native entity collisions; routing, MIM library/context/order, weighted prompts and output envelopes, source-authored aliases, fallback, analytics, and announcement-only continuation are certified by the root review. Seven unreachable malformed internal-request precedence differences are accepted defensive behavior.",
+        "artifact": "docs/parity/reviews/s07-weighted/review.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-13/s07-root-verification.md"
       }
     },
     {
