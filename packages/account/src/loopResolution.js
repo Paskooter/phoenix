@@ -60,8 +60,15 @@ export function listAssociatedLoops(store, accountIds) {
   return results;
 }
 
-function invalidPayload(body) {
-  return !body || typeof body !== 'object' || Array.isArray(body) || !Array.isArray(body.accountsIds);
+function validationMessage(body) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return '"value" must be an object';
+  if (!hasOwn(body, 'accountsIds') || body.accountsIds === undefined) {
+    return 'child "accountsIds" fails because ["accountsIds" is required]';
+  }
+  if (!Array.isArray(body.accountsIds)) {
+    return 'child "accountsIds" fails because ["accountsIds" must be an array]';
+  }
+  return null;
 }
 
 /**
@@ -70,25 +77,24 @@ function invalidPayload(body) {
  * matching srv-account-ws's route (which has no parseCredentials decorator).
  */
 export function listAssociatedLoopsRoute(store) {
-  return {
-    'POST /listAssociatedLoops': ({ body, res }) => {
-      if (invalidPayload(body)) {
-        const payload = {
-          statusCode: 422,
-          error: 'Unprocessable Entity',
-          message: 'child "accountsIds" fails because ["accountsIds" is required]',
-        };
-        const serialized = JSON.stringify(payload);
-        res.writeHead(422, {
-          'content-type': 'application/json; charset=utf-8',
-          'content-length': Buffer.byteLength(serialized),
-        });
-        res.end(serialized);
-        return undefined;
-      }
-      return listAssociatedLoops(store, body.accountsIds);
-    },
+  const handler = ({ body, res }) => {
+    const message = validationMessage(body);
+    if (message) {
+      const payload = { statusCode: 422, error: 'Unprocessable Entity', message };
+      const serialized = JSON.stringify(payload);
+      res.writeHead(422, {
+        'content-type': 'application/json; charset=utf-8',
+        'content-length': Buffer.byteLength(serialized),
+      });
+      res.end(serialized);
+      return undefined;
+    }
+    return listAssociatedLoops(store, body.accountsIds);
   };
+  // Hapi parses valid JSON primitives before the Joi payload schema runs. The
+  // common service's strict parser would reject them as transport 400s first.
+  handler.jsonStrict = false;
+  return { 'POST /listAssociatedLoops': handler };
 }
 
 /** True when a response has the exact mapping key the source caller indexes. */

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createAccountService, Store } from '../src/index.js';
@@ -19,6 +19,16 @@ async function post(base, body) {
     body: JSON.stringify(body),
   });
   return { status: response.status, body: JSON.parse(await response.text()) };
+}
+
+async function postRaw(base, rawBody) {
+  const response = await fetch(`${base}/listAssociatedLoops`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: rawBody,
+  });
+  const raw = await response.text();
+  return { status: response.status, body: JSON.parse(raw), rawBody: raw };
 }
 
 test('listAssociatedLoops preserves accepted, deleted, suspended, and unknown semantics', async () => {
@@ -83,6 +93,65 @@ test('listAssociatedLoops preserves accepted, deleted, suspended, and unknown se
       accepted._id,
       'Classic direct accessKeyId is verified before the peer POST',
     );
+  } finally {
+    await closeServer(service);
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('listAssociatedLoops uses source Joi boundaries without mutating state', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'phoenix-q01-account-loop-validation-'));
+  const store = new Store(join(dir, 'account.json'));
+  const owner = createOwnerAccount(store, {
+    email: 'q01-loop-validation-owner@synthetic.invalid',
+    password: 'q01-loop-validation-owner-password',
+  });
+  const { loop } = createLoop(store, { owner, robotId: 'q01-loop-validation-robot' });
+  const service = await createAccountService({ store }).listen(0);
+  const base = `http://127.0.0.1:${service.address().port}`;
+  const before = readFileSync(store.file, 'utf8');
+  try {
+    for (const body of [null, [], ['account-id'], 'account-id', 7, false]) {
+      const result = await post(base, body);
+      assert.equal(result.status, 422, JSON.stringify(body));
+      assert.equal(result.body.statusCode, 422);
+      assert.equal(result.body.message, '"value" must be an object', JSON.stringify(body));
+    }
+
+    const missing = await post(base, {});
+    assert.equal(missing.status, 422);
+    assert.equal(missing.body.message, 'child "accountsIds" fails because ["accountsIds" is required]');
+
+    for (const accountsIds of [null, 'account-id', 7, {}]) {
+      const result = await post(base, { accountsIds });
+      assert.equal(result.status, 422, JSON.stringify(accountsIds));
+      assert.equal(result.body.message, 'child "accountsIds" fails because ["accountsIds" must be an array]');
+    }
+
+    const valid = await post(base, { accountsIds: [owner._id] });
+    assert.equal(valid.status, 200);
+    assert.deepEqual(valid.body, { [owner._id]: [loop._id] });
+    assert.equal(readFileSync(store.file, 'utf8'), before);
+  } finally {
+    await closeServer(service);
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('listAssociatedLoops keeps malformed JSON at the transport 400 boundary', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'phoenix-q01-account-loop-malformed-'));
+  const store = new Store(join(dir, 'account.json'));
+  const owner = createOwnerAccount(store, {
+    email: 'q01-loop-malformed-owner@synthetic.invalid',
+    password: 'q01-loop-malformed-owner-password',
+  });
+  createLoop(store, { owner, robotId: 'q01-loop-malformed-robot' });
+  const service = await createAccountService({ store }).listen(0);
+  const base = `http://127.0.0.1:${service.address().port}`;
+  try {
+    const result = await postRaw(base, '{');
+    assert.equal(result.status, 400);
+    assert.deepEqual(result.body.data, { message: 'Unexpected end of JSON input' });
   } finally {
     await closeServer(service);
     rmSync(dir, { recursive: true, force: true });
