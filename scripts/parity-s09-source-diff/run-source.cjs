@@ -27,6 +27,24 @@ const compiled = JSON.parse(fs.readFileSync(compiledPath, 'utf8'));
 if (compiled.referenceRevision !== matrix.reference.revision) {
   fail(`source revision mismatch: ${compiled.referenceRevision}`);
 }
+const requiredInputs = matrix.reference.sourcePaths;
+const requiredOutputs = [
+  'packages/report-skill/lib/subskills/weather/WeatherParse.js',
+  'packages/report-skill/lib/subskills/weather/WeatherMimLogic.js',
+  'packages/report-skill/lib/subskills/weather/WeatherViews.js',
+];
+requiredInputs.forEach(file => {
+  const expected = compiled.inputs && compiled.inputs[file];
+  if (!expected) fail(`compiled source record omits required input: ${file}`);
+  const actual = fileSha(path.join(ref, file));
+  if (actual !== expected) fail(`compiled source input changed: ${file}`);
+});
+requiredOutputs.forEach(file => {
+  const expected = compiled.outputs && compiled.outputs[file];
+  if (!expected) fail(`compiled source record omits required output: ${file}`);
+  const actual = fileSha(path.join(ref, file));
+  if (actual !== expected) fail(`compiled source output changed: ${file}`);
+});
 const sourceTest = path.join(ref, matrix.reference.testPath);
 if (!fs.existsSync(sourceTest)) fail(`missing pinned source test: ${sourceTest}`);
 if (fileSha(sourceTest) !== matrix.reference.testSha256) fail('pinned Weather.test.js hash mismatch');
