@@ -10,7 +10,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 39 | 46 | 0 | 0 |
+| pegasus | 40 | 46 | 0 | 0 |
 | classic | 18 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
@@ -1216,11 +1216,11 @@ Evidence: pending.
 
 ### S-12 — Verify report calendar classification and phrasing
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: S-08, D-04.
 
-The report's calendar logic is tested with mocks while the actual data-service envelope is incompatible.
+Pinned Personal Report calendar source and Phoenix now agree through the real local Data HTTP and Report services. The 21-row Google/Outlook source/runtime matrix, 23-row moment.parseZone endDate differential, and two actual CredentialStore/OAuth failure-through-report controls match classifications, MIMs, prompts, analytics and complete actions. Live provider accounts, deployment and robot rendering remain in their separate integration/display tasks.
 
 Done when:
 
@@ -1232,7 +1232,7 @@ Source: [Original Pegasus packages/report-skill/src/subskills/calendar](https://
 
 Phoenix: [packages/skills/src/report/calendar.js](../../packages/skills/src/report/calendar.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-13/s12-calendar/review.md](../../docs/parity/evidence/2026-09-13/s12-calendar/review.md) (2026-09-13; Source/runtime and real local HTTP Data -> Report evidence against pinned Pegasus: 21/21 semantic, prompt and complete action matches; 23/23 source moment.parseZone endDate matches; Google refresh failure and Outlook invalid-token rows exercise actual CredentialStore/OAuth/provider operations, 502 route failures, stored inactive error codes and source CalendarServiceDown actions. Focused controls and the complete unit suite pass.).
 
 ### S-13 — Implement the report's robot display views
 

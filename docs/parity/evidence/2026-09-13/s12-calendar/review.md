@@ -134,5 +134,10 @@ The focused command passes `45/45` with zero failures. The final full suite pass
 
 The falsification temporarily restored the old UTC `.999` helper with `apply_patch` and ran `node --test packages/skills/test/calendar-lasso-integration.test.js`: `1/4` passed and `3/4` failed, with the request reverting to `2026-06-14T03:59:59.999Z`. The source-shaped helper was restored with `apply_patch`; the restore check passed `4/4`.
 
-No root checkout, remotes, Moth, deployment, hardware, or Android files were changed. The
-candidate does not change the task ledger; root may promote S-12 after review.
+The lifecycle counter guard was separately falsified by changing the expected Google token
+path to an empty list. The runner exited with status `1` at its lifecycle assertion; restoring
+the expected `/google-token` path returned the receipt to `pass` with the hash above.
+
+No root checkout, remotes, Moth, deployment, hardware, or Android files were changed. This
+candidate updates only S-12's ledger entry and generated checklist/progress after the evidence
+above; root may independently promote or revise that entry during integration.
