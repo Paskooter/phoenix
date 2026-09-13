@@ -145,6 +145,44 @@ test('Q-01 /structQA preserves PII-before-cleaning and IP forwarding boundaries'
   assert.equal(seen.loopId, 'loop-1');
 });
 
+test('Q-01 archived PII request preserves the real /structQA 200 envelope', async () => {
+  const service = createStructQaService({
+    clock: () => NOW,
+    accountLookup: async (accountId) => {
+      assert.equal(accountId, 'tester');
+      return 'tester';
+    },
+    gqaProvider: async () => {
+      throw new Error('PII must stop before a provider call');
+    },
+  });
+  const server = await service.listen(0);
+  try {
+    const response = await fetch(`http://127.0.0.1:${server.address().port}/structQA`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', ...credentials('tester') },
+      body: JSON.stringify({
+        HasKid: null,
+        Input: '234567890',
+        Intent: 'GQA',
+        Latitude: 42.3517272,
+        Longitude: -71.0408624,
+      }),
+    });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('content-type'), 'text/html; charset=utf-8');
+    assert.deepEqual(JSON.parse(await response.text()), {
+      input: '234567890',
+      message: 'Filtered by PII filter',
+      version: '5.2.15',
+      success: false,
+      timestamps: { receive_request: NOW, return_response: NOW },
+    });
+  } finally {
+    await closeServer(server);
+  }
+});
+
 test('Q-01 Scripted branch uses source API-AI arguments and MIM registry result shape', async () => {
   const calls = [];
   const payload = { mim_id: 'OI_USR_IsAngry', prompts: [{ prompt_id: 'OI_USR_IsAngry_AN_01' }] };
@@ -186,6 +224,140 @@ test('Q-01 Scripted branch uses source API-AI arguments and MIM registry result 
     ['pattern', 'userIsDescriptor'],
     ['mim', 'userIsDescriptor;Emotion:Angry'],
   ]);
+});
+
+test('Q-01 archived Scripted response preserves the real /structQA request and checkpoints', async () => {
+  const calls = [];
+  const payload = {
+    mim_id: 'OI_USR_IsAngry',
+    prompts: [{ prompt_id: 'OI_USR_IsAngry_AN_01' }],
+  };
+  const service = createStructQaService({
+    clock: () => NOW,
+    accountLookup: async (accountId) => {
+      assert.equal(accountId, 'scripted-test');
+      return 'scripted-test';
+    },
+    apiAi: async (query, ipAddress) => {
+      calls.push(['api-ai', query, ipAddress]);
+      return {
+        status: { code: 200 },
+        result: { metadata: { intentName: 'userIsDescriptor' } },
+      };
+    },
+    registry: {
+      getIntentPattern(value) {
+        calls.push(['pattern', value.result.metadata.intentName]);
+        return 'userIsDescriptor;Emotion:Angry';
+      },
+      getMimPayload(pattern) {
+        calls.push(['mim', pattern]);
+        return payload;
+      },
+    },
+  });
+  const server = await service.listen(0);
+  try {
+    const response = await fetch(`http://127.0.0.1:${server.address().port}/structQA`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', ...credentials('scripted-test') },
+      body: JSON.stringify({
+        HasKid: null,
+        Input: 'I am angry',
+        Intent: 'Scripted',
+        Latitude: 42.3517272,
+        Longitude: -71.0408624,
+      }),
+    });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('content-type'), 'text/html; charset=utf-8');
+    assert.deepEqual(JSON.parse(await response.text()), {
+      input: 'I am angry',
+      source: 'Scripted Response',
+      response: { type: 'mim', payload },
+      version: '5.2.15',
+      success: true,
+      timestamps: {
+        receive_request: NOW,
+        api_ai_request: NOW,
+        api_ai_response: NOW,
+        return_response: NOW,
+      },
+    });
+    assert.equal(calls[0][0], 'api-ai');
+    assert.equal(calls[0][1], 'I am angry');
+    assert.equal(calls[1][0], 'pattern');
+    assert.equal(calls[2][0], 'mim');
+    assert.deepEqual(calls.slice(1), [
+      ['pattern', 'userIsDescriptor'],
+      ['mim', 'userIsDescriptor;Emotion:Angry'],
+    ]);
+  } finally {
+    await closeServer(server);
+  }
+});
+
+test('Q-01 archived age Scripted request preserves the exact no-answer envelope', async () => {
+  const calls = [];
+  const service = createStructQaService({
+    clock: () => NOW,
+    accountLookup: async () => 'entity-test',
+    apiAi: async (query) => {
+      calls.push(['api-ai', query]);
+      return {
+        status: { code: 200 },
+        result: {
+          metadata: { intentName: 'ageIntent' },
+          parameters: { age: { amount: 25, unit: 'year' } },
+        },
+      };
+    },
+    registry: {
+      getIntentPattern(value) {
+        calls.push(['pattern', value.result.parameters.age]);
+        return 'ageIntent;age:25year';
+      },
+      getMimPayload(pattern) {
+        calls.push(['mim', pattern]);
+        return undefined;
+      },
+    },
+  });
+  const server = await service.listen(0);
+  try {
+    const response = await fetch(`http://127.0.0.1:${server.address().port}/structQA`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', ...credentials('entity-test') },
+      body: JSON.stringify({
+        HasKid: null,
+        Input: 'I am 25 years old',
+        Intent: 'Scripted',
+        Latitude: 42.3517272,
+        Longitude: -71.0408624,
+      }),
+    });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('content-type'), 'text/html; charset=utf-8');
+    assert.deepEqual(JSON.parse(await response.text()), {
+      input: 'I am 25 years old',
+      source: 'Scripted Response',
+      version: '5.2.15',
+      success: false,
+      timestamps: {
+        receive_request: NOW,
+        api_ai_request: NOW,
+        api_ai_response: NOW,
+        return_response: NOW,
+      },
+    });
+    assert.deepEqual(calls, [
+      ['api-ai', 'I am 25 years old'],
+      ['pattern', { amount: 25, unit: 'year' }],
+      ['mim', 'ageIntent;age:25year'],
+    ]);
+  } finally {
+    await closeServer(server);
+  }
 });
 
 test('Q-01 Scripted API-AI no-answer stays HTTP-200 success false', async () => {
@@ -499,6 +671,65 @@ test('Q-01 news provider empty/error behavior retains source message and status 
   }
 });
 
+test('Q-01 archived AP request composes the /structQA route with exact source feed output', async () => {
+  const calls = [];
+  const recent = NOW - 1000;
+  const store = {
+    find(query, options) {
+      calls.push({ query, options });
+      if (query.feedID !== '41664') return [];
+      return [{ feedID: '41664', storedTime: recent, adult: false, summary: 'testsummary' }];
+    },
+  };
+  const service = createStructQaService({
+    clock: () => NOW,
+    accountLookup: async (accountId) => {
+      assert.equal(accountId, 'tester');
+      return 'tester';
+    },
+    apStore: store,
+  });
+  const server = await service.listen(0);
+  try {
+    const response = await fetch(`http://127.0.0.1:${server.address().port}/structQA`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', ...credentials('tester') },
+      body: JSON.stringify({
+        HasKid: null,
+        Intent: 'News',
+        Latitude: 42.3517272,
+        Longitude: -71.0408624,
+      }),
+    });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('content-type'), 'text/html; charset=utf-8');
+    assert.deepEqual(JSON.parse(await response.text()), {
+      success: true,
+      source: 'AP',
+      response: { type: 'array', payload: ['testsummary'] },
+      version: '5.2.15',
+      timestamps: { receive_request: NOW, return_response: NOW },
+    });
+    const expectedOptions = {
+      projection: { _id: 0 },
+      sort: { storedTime: -1 },
+      limit: 5,
+    };
+    assert.deepEqual(calls, [
+      {
+        query: { storedTime: { $gt: NOW - 24 * 60 * 60 * 1000 }, feedID: '42210' },
+        options: expectedOptions,
+      },
+      {
+        query: { storedTime: { $gt: NOW - 24 * 60 * 60 * 1000 }, feedID: '41664' },
+        options: expectedOptions,
+      },
+    ]);
+  } finally {
+    await closeServer(server);
+  }
+});
+
 test('Q-01 HTTP framing preserves malformed JSON 400 and x-amz credential parse 500', async () => {
   const service = createStructQaService({ clock: () => NOW, accountLookup: async () => 'loop-1' });
   const server = await service.listen(0);
@@ -506,8 +737,8 @@ test('Q-01 HTTP framing preserves malformed JSON 400 and x-amz credential parse 
     const base = `http://127.0.0.1:${server.address().port}/structQA`;
     const malformed = await fetch(base, {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'content-length': '8' },
-      body: 'not-json',
+      headers: { 'content-type': 'application/json', 'content-length': '4' },
+      body: 'test',
     });
     assert.equal(malformed.status, 400);
     assert.equal(await malformed.text(), STRUCTQA_BAD_REQUEST_HTML);

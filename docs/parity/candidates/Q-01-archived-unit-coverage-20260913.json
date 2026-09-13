@@ -63,11 +63,11 @@
     "Wikipedia decision-matrix rows use injected page JSON and source-derived summaries; they cover deterministic gate/title/normalization decisions and do not claim current/live article output.",
     "The three archived Wikipedia named-case rows use the immutable mocked_wikipedia summaries or constructor error from tests/unit/test_pegasus.py and tests/unit/test_wikipedia.py; the provider is reached through a question-shaped wrapper that preserves each source strict query, and no current/live article body is claimed.",
     "The blocked-dictionary row pins all 344 archived output words and replays them against the matcher; it remains partial until the full word-list/words.txt corpus is available through the allowed source surface.",
-    "The integrated /structQA candidate covers the archived no-input and absent/wrong Intent envelopes; the standalone GQA service also covers the source healthcheck and developer /fakeAccount helper without registering either route in Classic; the Bing Cortana row is partial because its deterministic Entities carousel decode is covered while its live roster text/order has no immutable golden."
+    "The integrated /structQA candidate directly replays the deterministic archived no-input, absent/wrong Intent, Scripted/MIM, age no-answer, PII, and AP cases through injected dependencies; the standalone GQA service also covers the source healthcheck and developer /fakeAccount helper without registering either route in Classic; it does not claim live API-AI/Bing/Wikipedia/Wolfram outputs. The Bing Cortana row remains partial because its live roster text/order has no immutable golden."
   ],
   "counts": {
-    "covered": 91,
-    "partial": 41,
+    "covered": 96,
+    "partial": 36,
     "missing": 0,
     "skipped": 1,
     "supporting": 2,
@@ -405,17 +405,17 @@
       "source": "tests/unit/test_general.py:test_scripted_response",
       "sourceFile": "tests/unit/test_general.py",
       "test": "test_scripted_response",
-      "status": "partial",
-      "target": "packages/skills/test/q01Gqa.test.js :: Q-01 exposes the source scripted question mapping and full MIM inventories; packages/skills/test/assetProvenance.test.js :: scripted MIM provenance",
-      "closure": "The OI_USR_IsAngry asset exists and MIM inventory is checked, but Phoenix has no archived /structQA Scripted route row returning OI_USR_IsAngry_AN_01 with source timestamps."
+      "status": "covered",
+      "target": "packages/skills/test/q01StructQa.test.js :: Q-01 archived Scripted response preserves the real /structQA request and checkpoints",
+      "closure": null
     },
     {
       "source": "tests/unit/test_general.py:test_age_entity_api_ai",
       "sourceFile": "tests/unit/test_general.py",
       "test": "test_age_entity_api_ai",
-      "status": "partial",
-      "target": "packages/skills/test/q01ApiAiMim.test.js :: Q-01 MIM registry formats Dialogflow age entities",
-      "closure": "The archived /structQA Scripted request and its no-response envelope still require the structQA owner's route integration; the API-AI age pattern itself is replayed here."
+      "status": "covered",
+      "target": "packages/skills/test/q01StructQa.test.js :: Q-01 archived age Scripted request preserves the exact no-answer envelope",
+      "closure": null
     },
     {
       "source": "tests/unit/test_general.py:test_bing",
@@ -453,9 +453,9 @@
       "source": "tests/unit/test_general.py:test_pii_filter",
       "sourceFile": "tests/unit/test_general.py",
       "test": "test_pii_filter",
-      "status": "partial",
-      "target": "packages/skills/test/q01Gqa.test.js :: Q-01 blocked-term response follows IP and PII checks and suppresses provider calls",
-      "closure": "The PII gate and provider suppression are covered, but the archived /structQA message and route envelope are not."
+      "status": "covered",
+      "target": "packages/skills/test/q01StructQa.test.js :: Q-01 archived PII request preserves the real /structQA 200 envelope",
+      "closure": null
     },
     {
       "source": "tests/unit/test_general.py:test_no_skill_intent",
@@ -477,9 +477,9 @@
       "source": "tests/unit/test_general.py:test_ap_news",
       "sourceFile": "tests/unit/test_general.py",
       "test": "test_ap_news",
-      "status": "partial",
-      "target": "packages/skills/test/q01News.test.js :: Q-01 archived PegasusNewsTestCase matrix: all speaker/loop cases select the source feed; packages/skills/test/q01News.test.js :: Q-01 registry-to-host proof",
-      "closure": "Source-shaped news routes and AP selection are covered, but the archived /structQA Intent=News dispatch is not."
+      "status": "covered",
+      "target": "packages/skills/test/q01StructQa.test.js :: Q-01 archived AP request composes the /structQA route with exact source feed output",
+      "closure": null
     },
     {
       "source": "tests/unit/test_general.py:test_get_ip",
@@ -492,9 +492,9 @@
       "source": "tests/unit/test_general.py:test_no_input_data",
       "sourceFile": "tests/unit/test_general.py",
       "test": "test_no_input_data",
-      "status": "partial",
-      "target": "packages/skills/test/q01GqaHttpFraming.test.js :: Q-01 source parser returns Flask 400 HTML for malformed and empty JSON",
-      "closure": "Malformed JSON framing is covered, but the archived /structQA route path and body are not the same executable target."
+      "status": "covered",
+      "target": "packages/skills/test/q01StructQa.test.js :: Q-01 HTTP framing preserves malformed JSON 400 and x-amz credential parse 500",
+      "closure": null
     },
     {
       "source": "tests/unit/test_general.py:test_wolfram",
