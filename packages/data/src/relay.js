@@ -104,43 +104,56 @@ export function createRelay({ name, ttlSeconds, cache, validate, key, fetchExter
     }
     const k = key(input);
     const isHead = req.method === 'HEAD';
-    if (isHead) sendEmptyOk(res); // empty 200; keep going to warm the cache (prefetch)
 
-    // `request.query.skipCache` is a truthiness test, not a parse: "false" skips.
-    if (!skipCacheRequested(url.searchParams)) {
-      let cached = null;
-      // A cache read failure is non-fatal: log and fall through to the live
-      // fetch (reference lines 84-86).
+    const relay = async () => {
+      // `request.query.skipCache` is a truthiness test, not a parse: "false" skips.
+      if (!skipCacheRequested(url.searchParams)) {
+        let cached = null;
+        // A cache read failure is non-fatal: log and fall through to the live
+        // fetch (reference lines 84-86).
+        try {
+          cached = cache.get(k);
+        } catch (e) {
+          log?.error?.('Cache GET error, fetching live data instead', e);
+        }
+        if (cached) { if (!isHead) sendText(res, 200, JSON.stringify(cached)); return; }
+      }
+
+      let relayData;
       try {
-        cached = cache.get(k);
+        relayData = await fetchExternal(input, log);
       } catch (e) {
-        log?.error?.('Cache GET error, fetching live data instead', e);
+        if (!isHead && !res.writableEnded) {
+          const ce = fetchError(name, e);
+          sendText(res, ce.status, ce.message);
+        }
+        return;
       }
-      if (cached) { if (!isHead) sendText(res, 200, JSON.stringify(cached)); return; }
-    }
+      if (!relayData) { // reference line 167: any falsy provider result is "empty"
+        if (!isHead && !res.writableEnded) sendText(res, 502, `Empty reply from ${name}`);
+        return;
+      }
 
-    let relayData;
-    try {
-      relayData = await fetchExternal(input, log);
-    } catch (e) {
-      if (!isHead && !res.writableEnded) {
-        const ce = fetchError(name, e);
-        sendText(res, ce.status, ce.message);
+      if (!isHead) sendJson(res, 200, { relayData, lassoDataFromRedis: false });
+      // Cache write failures are non-fatal too: the next request is a miss and
+      // refetches (reference lines 121-131). Respond first, then write.
+      try {
+        cache.set(k, { relayData, lassoDataFromRedis: true, lassoInsertedIntoRedisAt: new Date().toISOString() }, ttlSeconds);
+      } catch (e) {
+        log?.error?.(`Cache SET error (key=${k}): ${e}`);
       }
+    };
+
+    if (isHead) {
+      // Express sends the empty HEAD response before the source's asynchronous
+      // Redis read can reach the provider. Run the prefetch in the background so
+      // callers observe the same no-upstream-yet boundary.
+      sendEmptyOk(res);
+      setImmediate(() => setImmediate(() => {
+        relay().catch((e) => log?.error?.('Relay prefetch failed', e));
+      }));
       return;
     }
-    if (!relayData) { // reference line 167: any falsy provider result is "empty"
-      if (!isHead && !res.writableEnded) sendText(res, 502, `Empty reply from ${name}`);
-      return;
-    }
-
-    if (!isHead) sendJson(res, 200, { relayData, lassoDataFromRedis: false });
-    // Cache write failures are non-fatal too: the next request is a miss and
-    // refetches (reference lines 121-131). Respond first, then write.
-    try {
-      cache.set(k, { relayData, lassoDataFromRedis: true, lassoInsertedIntoRedisAt: new Date().toISOString() }, ttlSeconds);
-    } catch (e) {
-      log?.error?.(`Cache SET error (key=${k}): ${e}`);
-    }
+    await relay();
   };
 }
