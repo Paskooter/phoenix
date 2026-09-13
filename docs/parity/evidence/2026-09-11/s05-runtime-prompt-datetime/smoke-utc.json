@@ -1,0 +1,75 @@
+{
+ "mim": "RI_USR_WhatShouldDoForThanksgiving",
+ "results": [
+  {
+   "label": "in season window 9/1-11/23",
+   "iso": "2020-11-01T18:00:00.000-05:00",
+   "now": "2020-11-01T23:00:00.000Z",
+   "dt": {
+    "date": "November 1st",
+    "day": "Sunday",
+    "weekOfYear": "44th",
+    "now": "6:00 PM"
+   },
+   "seasonal1": true,
+   "seasonal2": false,
+   "esml": "Great question. You could always get together with family or friends to eat some mashed <pitch mult='1.2'>potatoes</pitch>."
+  },
+  {
+   "label": "in season window 11/24-1/31",
+   "iso": "2020-12-05T18:00:00.000-05:00",
+   "now": "2020-12-05T23:00:00.000Z",
+   "dt": {
+    "date": "December 5th",
+    "day": "Saturday",
+    "weekOfYear": "49th",
+    "now": "6:00 PM"
+   },
+   "seasonal1": false,
+   "seasonal2": true,
+   "esml": "I think Thanksgiving has come and gone, but we can always look forward to the next one."
+  },
+  {
+   "label": "outside both windows",
+   "iso": "2020-06-15T18:00:00.000-05:00",
+   "now": "2020-06-15T22:00:00.000Z",
+   "dt": {
+    "date": "June 15th",
+    "day": "Monday",
+    "weekOfYear": "25th",
+    "now": "6:00 PM"
+   },
+   "seasonal1": false,
+   "seasonal2": false,
+   "esml": "Good question, we have plenty of time to figure it out before Thanksgiving comes around."
+  },
+  {
+   "label": "wall clock 00:05 on Nov 1 (+05:30 offset)",
+   "iso": "2020-11-01T00:05:00.000+05:30",
+   "now": "2020-10-31T18:35:00.000Z",
+   "dt": {
+    "date": "November 1st",
+    "day": "Sunday",
+    "weekOfYear": "44th",
+    "now": "12:05 AM"
+   },
+   "seasonal1": true,
+   "seasonal2": false,
+   "esml": "Great question. You could always get together with family or friends to eat some mashed <pitch mult='1.2'>potatoes</pitch>."
+  },
+  {
+   "label": "wall clock 00:05 on Dec 5 (+09:00 offset)",
+   "iso": "2020-12-05T00:05:00.000+09:00",
+   "now": "2020-12-04T15:05:00.000Z",
+   "dt": {
+    "date": "December 5th",
+    "day": "Saturday",
+    "weekOfYear": "49th",
+    "now": "12:05 AM"
+   },
+   "seasonal1": false,
+   "seasonal2": true,
+   "esml": "I think Thanksgiving has come and gone, but we can always look forward to the next one."
+  }
+ ]
+}

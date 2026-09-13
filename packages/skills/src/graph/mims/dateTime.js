@@ -10,6 +10,7 @@ const MONTHS = [
   'january', 'february', 'march', 'april', 'may', 'june',
   'july', 'august', 'september', 'october', 'november', 'december',
 ];
+const MONTH_ABBREVIATIONS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const DAYS_OF_WEEK = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 const TIME_PERIODS = Object.freeze({
   YEAR: 'year', MONTH: 'month', WEEK: 'week', WEEKEND: 'weekend', DAY: 'day',
@@ -57,7 +58,8 @@ function dateFromLocalUTC(utc, offset) {
 
 function ordinal(number) {
   if (number === 0) return 'zero';
-  if (number % 100 >= 11 && number % 100 <= 13) return `${number}th`;
+  // Source `getOrdinal` special-cases only 11-19; 111 becomes "111st".
+  if (number < 20 && number > 10) return `${number}th`;
   switch (number % 10) {
     case 1: return `${number}st`;
     case 2: return `${number}nd`;
@@ -168,10 +170,14 @@ export class DateTime {
         return;
       }
     } else if (input instanceof Date) {
+      // The source assigns the supplied timezone (or a fresh default) for every
+      // numeric/Date input; it does not inherit the constructor default.
+      this.timezone = timezone || new Timezone();
       this._utc = input.getTime();
       this.timePeriod = TIME_PERIODS.MINUTE;
       return;
     } else if (typeof input === 'number') {
+      this.timezone = timezone || new Timezone();
       this._utc = input;
       this.timePeriod = TIME_PERIODS.MINUTE;
       return;
@@ -223,7 +229,8 @@ export class DateTime {
 
   getLocalYYYYMMDD() {
     const date = dateFromLocalUTC(this._utc, this.timezone.offsetUTC);
-    return `${pad(date.getUTCFullYear(), 4)}${pad(date.getUTCMonth() + 1, 2)}${pad(date.getUTCDate(), 2)}`;
+    // The source concatenates the raw year and zero-pads only month/day.
+    return `${date.getUTCFullYear()}${pad(date.getUTCMonth() + 1, 2)}${pad(date.getUTCDate(), 2)}`;
   }
 
   isInRange(startDate, endDate) {
@@ -308,12 +315,52 @@ export class DateTime {
   }
 
   stripTime() {
+    // The source only collapses time-bearing periods.  A YEAR/MONTH/WEEK/
+    // WEEKEND/DAY value (and an unset period) is left untouched.
+    const period = this.timePeriod;
+    if (period !== TIME_PERIODS.HOUR && period !== TIME_PERIODS.MINUTE &&
+        period !== TIME_PERIODS.MORNING && period !== TIME_PERIODS.AFTERNOON &&
+        period !== TIME_PERIODS.EVENING && period !== TIME_PERIODS.NIGHT &&
+        period !== TIME_PERIODS.NOW) {
+      return;
+    }
+    this.timePeriod = TIME_PERIODS.DAY;
     const date = dateFromLocalUTC(this._utc, this.timezone.offsetUTC);
     date.setUTCHours(0, 0, 0, 0);
     this.utc = date.getTime() - this.timezone.offsetUTC;
-    this.timePeriod = TIME_PERIODS.DAY;
     this.durationHours = 0;
     this.durationMinutes = 0;
+  }
+
+  /**
+   * Source `jumpToNextDayPeriod`: move to the start of the next time-of-day
+   * bucket, recording the bucket's length in `durationHours`.  After 22:00 it
+   * jumps to 06:00 the following local day and leaves timePeriod alone.
+   */
+  jumpToNextDayPeriod() {
+    const date = dateFromLocalUTC(this._utc, this.timezone.offsetUTC);
+    const hours = date.getUTCHours();
+    if (hours < 6) {
+      date.setUTCHours(6, 0, 0, 0);
+      this.durationHours = 5;
+      this.timePeriod = TIME_PERIODS.MORNING;
+    } else if (hours < 12) {
+      date.setUTCHours(12, 0, 0, 0);
+      this.durationHours = 6;
+      this.timePeriod = TIME_PERIODS.AFTERNOON;
+    } else if (hours < 18) {
+      date.setUTCHours(18, 0, 0, 0);
+      this.durationHours = 4;
+      this.timePeriod = TIME_PERIODS.EVENING;
+    } else if (hours < 22) {
+      date.setUTCHours(22, 0, 0, 0);
+      this.durationHours = 7;
+      this.timePeriod = TIME_PERIODS.NIGHT;
+    } else {
+      date.setUTCDate(date.getUTCDate() + 1);
+      date.setUTCHours(6, 0, 0, 0);
+    }
+    this.utc = date.getTime() - this.timezone.offsetUTC;
   }
 
   toString(options = {}) {
@@ -413,6 +460,27 @@ export class DateTime {
   }
 
   prefixOnAt(options = {}) { return this.toString({ ...options, prefixOnAt: true }); }
+
+  /**
+   * Source `toMoment`: the compressed "Just Now / 12m ago / 3h ago / 2d ago /
+   * Sep 5th" phrasing used by history-style prompts.
+   */
+  toMoment() {
+    if (Date.now() - this._utc < 0) return 'The Future';
+    const diffInMin = (Date.now() - this._utc) / (1000 * 60);
+    if (diffInMin <= 30) return 'Just Now';
+    if (diffInMin <= 60) return `${Math.floor(diffInMin)}m ago`;
+    const diffInHours = diffInMin / 60;
+    if (diffInHours <= 24) return `${Math.floor(diffInHours)}h ago`;
+    const relativeDays = -this.getRelativeDays();
+    if (relativeDays <= 7) return relativeDays === 1 ? 'Yesterday' : `${relativeDays}d ago`;
+    const local = this.getLocalTime();
+    const now = new DateTime(Date.now(), this.timezone).getLocalTime();
+    let date = `${MONTH_ABBREVIATIONS[local.monthNum]} `;
+    if (local.year === now.year) date += ordinal(local.date);
+    else date += `${local.date} ${local.year}`;
+    return date;
+  }
 
   toJSON() {
     return {

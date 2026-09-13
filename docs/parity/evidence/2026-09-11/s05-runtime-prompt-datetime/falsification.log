@@ -1,0 +1,50 @@
+=== FALSIFICATION: broke packages/skills/src/graph/mims/locationData.js line 19
+     return String(strA).toLowerCase() === String(strB).toLowerCase();
+
+=== node --test packages/skills/test/s05DateTime.source-vectors.test.js (TZ=UTC)
+not ok 5 - S-05 location values and thrown messages match the pinned original
+not ok 11 - S-05 location throws for non-string fields instead of coercing them
+  error: 'Missing expected exception (TypeError).'
+    message: 'strA.toLowerCase is not a function'
+# tests 12
+# pass 10
+# fail 2
+
+=== RESTORED line 19:
+  return strA.toLowerCase() === strB.toLowerCase();
+
+=== node --test (TZ=UTC)
+# tests 12
+# pass 12
+# fail 0
+
+=== node --test (TZ=America/New_York)
+# tests 12
+# pass 12
+# fail 0
+
+================================================================================
+Supporting reproduction (NOT the mandated falsification): the pre-existing
+host-timezone flake in packages/gateway/test/proactiveSelection.test.js, on the
+UNMODIFIED gateway sources (git stash of the contextRules change is not needed -
+the numbers below come from `git stash`-free runs on main's file content).
+================================================================================
+
+On main (packages/gateway/src/proactive/contextRules.js with .getDay()/.getHours()):
+
+  TZ=UTC                24 tests  24 pass  0 fail
+  TZ=America/New_York   24 tests  20 pass  4 fail
+     not ok 1 - context: EXACT/NOT are deep and key-order-insensitive; FOCUSED_PERSON tracks the trigger
+     not ok 6 - context: CONTAINED_IN checks the data value against an array of pods / a number list
+     not ok 7 - part-of-day: the 13 source boundaries resolve to the source pods
+               expected: 'NIGHT/MID'   actual: 'EVENING/MID'
+     not ok 8 - day-of-week: the timezone offset is carried into the wall clock day
+               expected: 0            actual: 6
+
+After the fix (UTC accessors on the wall-clock-as-UTC instant):
+
+  TZ=UTC                24 pass / 0 fail
+  TZ=America/New_York   24 pass / 0 fail
+  TZ=Asia/Tokyo         24 pass / 0 fail
+  TZ=Australia/Lord_Howe 24 pass / 0 fail
+  TZ=Pacific/Chatham    24 pass / 0 fail

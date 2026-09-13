@@ -191,10 +191,12 @@ test('day-of-week: the timezone offset is carried into the wall clock day', () =
   // 2026-06-13 is a Saturday (6); 2026-06-14 a Sunday (0).
   assert.equal(extractContextData('DAY_OF_WEEK', { data: { runtime: { ...CTX_BASE, location: { iso: '2026-06-13T10:00:00-04:00' } } } }, REQ), 6);
   assert.equal(extractContextData('DAY_OF_WEEK', { data: { runtime: { ...CTX_BASE, location: { iso: '2026-06-14T00:30:00+05:00' } } } }, REQ), 0);
-  // offset is negative-going: 10:00-04:00 is 10:00 on the robot's wall clock, not 14:00 UTC
-  assert.equal(getTimezonedDate('2026-06-13T10:00:00-04:00').getHours(), 10);
-  assert.equal(getTimezonedDate('2026-06-13T10:00:00Z').getHours(), 10);
-  assert.equal(getTimezonedDate('2026-06-13T10:00:00+02:00').getHours(), 10);
+  // offset is negative-going: 10:00-04:00 is 10:00 on the robot's wall clock, not 14:00 UTC.
+  // getTimezonedDate encodes that wall clock as a UTC instant, so it is read with the UTC
+  // accessors and does not depend on the host timezone.
+  assert.equal(getTimezonedDate('2026-06-13T10:00:00-04:00').getUTCHours(), 10);
+  assert.equal(getTimezonedDate('2026-06-13T10:00:00Z').getUTCHours(), 10);
+  assert.equal(getTimezonedDate('2026-06-13T10:00:00+02:00').getUTCHours(), 10);
 });
 
 // ---------------------------------------------------------------------------

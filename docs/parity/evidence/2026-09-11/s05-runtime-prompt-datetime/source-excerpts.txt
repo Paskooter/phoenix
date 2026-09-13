@@ -1,0 +1,881 @@
+S-05 pinned-source excerpts
+====================================================================================================
+
+Every quote below is copied byte-for-byte from the pinned original revision 5c0a7390539663ba749d360de348a428c088505c.
+The Jibo archive MCP (pvindex.org/mcp: gitea_read_file / jibo_search / jibo_read) was NOT
+reachable from this subagent session, so the identical files were read from the locally pinned
+checkout of jiboV2/pegasus at that revision (`git rev-parse HEAD` == the pin).  The same files
+are addressable in the archive as:
+
+  https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/baseskill/src/graph/mims/utils/slimmer/PromptData.ts
+  https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/baseskill/src/graph/mims/utils/slimmer/LooperData.ts
+  https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/baseskill/src/graph/mims/utils/slimmer/NLData.ts
+  https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/baseskill/src/graph/mims/utils/slimmer/Utils.ts
+
+`jibo-data-utils` is the dependency resolved by that revision's lockfile (published
+version 3.0.1); quotes come from its shipped `lib/jibo-data-utils.js` bundle.
+
+----------------------------------------------------------------------------------------------------
+PromptData constructor: two independent guarded blocks, loop nested inside the location guard
+file: packages/baseskill/src/graph/mims/utils/slimmer/PromptData.ts   lines 86-115
+----------------------------------------------------------------------------------------------------
+   86|     constructor(private context: jibo.runtime.RuntimeContext, log: logging.Log, public skill?: Object) {
+   87|         this.log = log.createChild('PromptData');
+   88|         if (context) {
+   89|             if (context.location) {
+   90|                 try {
+   91|                     const tzOffset = moment.parseZone(this.context.location.iso).utcOffset();
+   92|                     this.currentMoment = moment.utc().utcOffset(tzOffset);
+   93|                     this.addDateTimeData(this.context.location.iso);
+   94|                     this.addLocationData();
+   95|                 } catch (err) {
+   96|                     this.log.warn('Unable to generate DateTime and Location PromptData', err);
+   97|                     this.dt = {} as DateTimeData;
+   98|                     this.location = {} as LocationData;
+   99|                 }
+  100| 
+  101|                 try {
+  102|                     if (context.perception && context.loop && context.character && context.dialog) {
+  103|                         this.addLoopData();
+  104|                     }
+  105|                 } catch (err) {
+  106|                     this.log.warn('Unable to generate Loop PromptData', err);
+  107|                     this.loop = {} as LoopData;
+  108|                 }
+  109|             } else {
+  110|                 this.log.warn('Did not recieve complete runtime Context -- unable to generate standard PromptData');
+  111|             }
+  112|         } else {
+  113|             this.log.warn('Did not recieve runtime Context -- unable to generate standard PromptData');
+  114|         }
+  115|     }
+
+----------------------------------------------------------------------------------------------------
+PromptData.addDateTimeData: Moment tokens for every dt string field
+file: packages/baseskill/src/graph/mims/utils/slimmer/PromptData.ts   lines 121-135
+----------------------------------------------------------------------------------------------------
+  121|     addDateTimeData(iso: string): void {
+  122|         this.dt = {
+  123|             now: new DateTime(iso),
+  124|             date: this.currentMoment.format("MMMM Do"),
+  125|             day: this.currentMoment.format("dddd"),
+  126|             dayOfWeek: this.currentMoment.format("do"),
+  127|             dayOfMonth: this.currentMoment.format("Do"),
+  128|             dayOfYear: this.currentMoment.format("DDDo"),
+  129|             weekOfYear: this.currentMoment.format("Wo"),
+  130|             month: this.currentMoment.format("MMMM"),
+  131|             monthOfYear: this.currentMoment.format("Mo"),
+  132|             quarterOfYear: this.currentMoment.format("Qo"),
+  133|             year: this.currentMoment.format("YYYY")
+  134|         };
+  135|     }
+
+----------------------------------------------------------------------------------------------------
+PromptData.addLocationData: Location built from the runtime fields
+file: packages/baseskill/src/graph/mims/utils/slimmer/PromptData.ts   lines 140-161
+----------------------------------------------------------------------------------------------------
+  140|     addLocationData(): void {
+  141|         const location = this.context.location;
+  142|         const home = new Location();
+  143|         home.city = location.city;
+  144|         home.state = location.state;
+  145|         home.country = location.country;
+  146|         home.stateAbbr = location.stateAbbr;
+  147|         home.countryCode = location.countryCode;
+  148|         home.lat = location.lat;
+  149|         home.lng = location.lng;
+  150|         home.timezone = this.dt.now.timezone;
+  151|         this.location = {
+  152|             home,
+  153|             city: home.city,
+  154|             state: home.state,
+  155|             stateAbbr: home.stateAbbr,
+  156|             country: home.country,
+  157|             countryCode: home.countryCode,
+  158|             lat: home.lat,
+  159|             lng: home.lng
+  160|         };
+  161|     }
+
+----------------------------------------------------------------------------------------------------
+PromptData.addLoopData: jibo first, then the ordered user walk (last duplicate wins)
+file: packages/baseskill/src/graph/mims/utils/slimmer/PromptData.ts   lines 166-203
+----------------------------------------------------------------------------------------------------
+  166|     addLoopData(): void {
+  167|         const speakerCandidate = this.context.perception.speaker;
+  168|         const referentCandidate = this.context.dialog.referent;
+  169|         const ownerID = this.context.loop.owner;
+  170| 
+  171|         if (this.context.loop.jibo) {
+  172|             this.jibo = new JiboData(this.context.loop.jibo, this.context.character.emotion, this.currentMoment);
+  173|         }
+  174| 
+  175|         // Walk through all Loop members
+  176|         let loopList: string[] = [];
+  177|         let owner: LooperData = null;
+  178|         this.context.loop.users.forEach(looperInfo => {
+  179|             loopList.push(looperInfo.phoneticName);
+  180| 
+  181|             // Add speaker information
+  182|             if (speakerCandidate && (looperInfo.id === speakerCandidate)) {
+  183|                 this.speaker = new LooperData(looperInfo, this.currentMoment);
+  184|             }
+  185| 
+  186|             // Add referent information
+  187|             if (referentCandidate && (looperInfo.id === referentCandidate)) {
+  188|                 this.referent = new LooperData(looperInfo, this.currentMoment);
+  189|             }
+  190| 
+  191|             // Add owner information
+  192|             if (ownerID && (looperInfo.id === ownerID)) {
+  193|                 owner = new LooperData(looperInfo, this.currentMoment);
+  194|             }
+  195|         });
+  196| 
+  197|         // Add Loop information
+  198|         this.loop = {
+  199|             owner,
+  200|             list: makePronounceable(loopList),
+  201|             count: loopList.length
+  202|         };
+  203|     }
+
+----------------------------------------------------------------------------------------------------
+LooperData: moment(birthdate).startOf(day).utc() and the getters
+file: packages/baseskill/src/graph/mims/utils/slimmer/LooperData.ts   lines 19-49
+----------------------------------------------------------------------------------------------------
+   19|     private birthdateMoment: moment.Moment;
+   20| 
+   21|     constructor(private looperInfo: jibo.runtime.LooperInfo, private currentMoment: moment.Moment) {
+   22|         this.birthdateMoment = moment(looperInfo.birthdate).startOf('day').utc();
+   23|         this.birthdate = this.birthdateMoment.format("MMMM Do YYYY");
+   24|         this.birthday = this.birthdateMoment.format("MMMM Do");
+   25|         this.isBirthday = isBirthday(this.currentMoment, this.birthdateMoment);
+   26|         this.age = new nl.NLAge(this.currentMoment, this.birthdateMoment);
+   27|         this.zodiac = new nl.NLZodiac(getHoroscopeSignFromDate(this.birthdateMoment));
+   28|     }
+   29| 
+   30|     get id(): string {
+   31|         return this.looperInfo.id;
+   32|     }
+   33| 
+   34|     get firstName(): string {
+   35|         return this.looperInfo.firstName;
+   36|     }
+   37| 
+   38|     get lastName(): string {
+   39|         return this.looperInfo.lastName;
+   40|     }
+   41| 
+   42|     get gender(): string {
+   43|         return this.looperInfo.gender;
+   44|     }
+   45| 
+   46|     public toString(): string {
+   47|         return this.looperInfo.phoneticName;
+   48|     }
+   49| }
+
+----------------------------------------------------------------------------------------------------
+JiboData + EmotionData: direct field access
+file: packages/baseskill/src/graph/mims/utils/slimmer/LooperData.ts   lines 64-107
+----------------------------------------------------------------------------------------------------
+   64|     private birthdateMoment: moment.Moment;
+   65| 
+   66|     constructor(private jiboInfo: jibo.runtime.JiboInfo, emotionInfo: jibo.runtime.EmotionContext, private currentMoment: moment.Moment) {
+   67|         // Create a "human centric" birthday moment, that is, to give values human's like for common age calculations
+   68|         // So, for example, a birthdate of (Sept. 5, 2017 15:32:19) is changed to (Sept. 5, 2017 00:00:00)
+   69|         this.birthdateMoment = moment(jiboInfo.birthdate).startOf('day').utc();
+   70|         this.birthdate = this.birthdateMoment.format("MMMM Do YYYY");
+   71|         this.birthday = this.birthdateMoment.format("MMMM Do");
+   72|         this.isBirthday = isBirthday(this.currentMoment, this.birthdateMoment);
+   73|         this.age = new nl.NLAge(this.currentMoment, this.birthdateMoment);
+   74|         this.zodiac = new nl.NLZodiac(getHoroscopeSignFromDate(this.birthdateMoment));
+   75|         this.color = jiboInfo.color;
+   76|         this.emotion = new EmotionData(emotionInfo);
+   77|     }
+   78| 
+   79|     get id(): string {
+   80|         return this.jiboInfo.id;
+   81|     }
+   82| 
+   83|     public toString(): string {
+   84|         return 'Jibo';
+   85|     }
+   86| }
+   87| 
+   88| /**
+   89|  * Contains all Emotion information about Jibo for use in MIM prompts
+   90|  */
+   91| export class EmotionData {
+   92| 
+   93|     public valence: number;
+   94|     public confidence: number;
+   95| 
+   96|     private name: string;
+   97| 
+   98|     constructor(emotionInfo: jibo.runtime.EmotionContext) {
+   99|         this.name = emotionInfo.name;
+  100|         this.valence = emotionInfo.valence;
+  101|         this.confidence = emotionInfo.confidence;
+  102|     }
+  103| 
+  104|     public toString(): string {
+  105|         return this.name;
+  106|     }
+  107| }
+
+----------------------------------------------------------------------------------------------------
+NLAge: moment.duration(...).as<Unit>() conversions
+file: packages/baseskill/src/graph/mims/utils/slimmer/NLData.ts   lines 62-103
+----------------------------------------------------------------------------------------------------
+   62| export class NLAge {
+   63| 
+   64|     public milliseconds: NLMilliseconds;
+   65|     public seconds: NLSeconds;
+   66|     public minutes: NLMinutes;
+   67|     public hours: NLHours;
+   68|     public days: NLDays;
+   69|     public weeks: NLWeeks;
+   70|     public months: NLMonths;
+   71|     public years: NLYears;
+   72| 
+   73|     constructor(currentMoment: moment.Moment, birthdateMoment: moment.Moment) {
+   74|         const rawMilliseconds = moment.duration(currentMoment.diff(birthdateMoment)).asMilliseconds();
+   75|         this.milliseconds = new NLMilliseconds(rawMilliseconds);
+   76|         const rawSeconds = moment.duration(currentMoment.diff(birthdateMoment)).asSeconds();
+   77|         this.seconds = new NLSeconds(rawSeconds);
+   78|         const rawMinutes = moment.duration(currentMoment.diff(birthdateMoment)).asMinutes();
+   79|         this.minutes = new NLMinutes(rawMinutes);
+   80|         const rawHours = moment.duration(currentMoment.diff(birthdateMoment)).asHours();
+   81|         this.hours = new NLHours(rawHours);
+   82|         const rawDays = moment.duration(currentMoment.diff(birthdateMoment)).asDays();
+   83|         this.days = new NLDays(rawDays);
+   84|         const rawWeeks = moment.duration(currentMoment.diff(birthdateMoment)).asWeeks();
+   85|         this.weeks = new NLWeeks(rawWeeks);
+   86|         const rawMonths = moment.duration(currentMoment.diff(birthdateMoment)).asMonths();
+   87|         this.months = new NLMonths(rawMonths);
+   88|         const rawYears = moment.duration(currentMoment.diff(birthdateMoment)).asYears();
+   89|         this.years = new NLYears(rawYears);
+   90|     }
+   91| 
+   92|     get value() {
+   93|         return this.years.value;
+   94|     }
+   95| 
+   96|     get supplemented() {
+   97|         return this.years.supplemented;
+   98|     }
+   99| 
+  100|     toString(): string {
+  101|         return this.years.toString();
+  102|     }
+  103| }
+
+----------------------------------------------------------------------------------------------------
+isBirthday + makePronounceable
+file: packages/baseskill/src/graph/mims/utils/slimmer/Utils.ts   lines 5-25
+----------------------------------------------------------------------------------------------------
+    5|  * Check whther the provided moment (date) is the same as the provided birthday moment (date)
+    6|  * @param currentMoment Current date info
+    7|  * @param birthdayMoment Birthday date info
+    8|  * @return If today is a birthday
+    9|  */
+   10| export function isBirthday(currentMoment: moment.Moment, birthdayMoment: moment.Moment): boolean {
+   11|     return (currentMoment.date() === birthdayMoment.date() &&
+   12|         currentMoment.month() === birthdayMoment.month());
+   13| }
+   14| 
+   15| /**
+   16|  * Turns a list of strings into a pronounceable list
+   17|  */
+   18| export function makePronounceable(arr: string[]): string {
+   19|     const arrCopy = arr.slice();
+   20|     let last = "";
+   21|     if (arrCopy.length > 1) {
+   22|         last = ` and ${arrCopy.pop()}`;
+   23|     }
+   24|     return arrCopy.join(', ') + last;
+   25| }
+
+----------------------------------------------------------------------------------------------------
+getHoroscopeSignFromDate: the +1 day offset is source behaviour
+file: packages/baseskill/src/graph/mims/utils/slimmer/Utils.ts   lines 30-38
+----------------------------------------------------------------------------------------------------
+   30| export function getHoroscopeSignFromDate(myMoment: moment.Moment): string {
+   31|     let month = myMoment.month() + 1;  // Moment zero indexes these values, add one for clarity with calendar dates
+   32|     let date = myMoment.date() + 1;
+   33| 
+   34|     if (month <= 0) {
+   35|         return 'Ophiuchus';  // Not a real sign (Shouldn't happen)
+   36|     } else if ((month === 12 && date > 21) || (month === 1 && date <= 20)) {
+   37|         return 'Capricorn';
+   38|     } else if ((month === 1 && date > 20) || (month === 2 && date <= 19)) {
+
+----------------------------------------------------------------------------------------------------
+jibo-data-utils toTitleCase/areStringsEqual: String methods called without coercion
+file: node_modules/jibo-data-utils/lib/jibo-data-utils.js   lines 30-44
+----------------------------------------------------------------------------------------------------
+   30| function toTitleCase(str) {
+   31|     return str.replace(/\w\S*/g, function (txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); });
+   32| }
+   33| function areStringsEqual(strA, strB) {
+   34|     if (strA && !strB) {
+   35|         return false;
+   36|     }
+   37|     if (strB && !strA) {
+   38|         return false;
+   39|     }
+   40|     if (!strA && !strB) {
+   41|         return true;
+   42|     }
+   43|     return strA.toLowerCase() === strB.toLowerCase();
+   44| }
+
+----------------------------------------------------------------------------------------------------
+Location methods: isInRegion / equals / getStandardName / prefixIn / toString / toJSON
+file: node_modules/jibo-data-utils/lib/jibo-data-utils.js   lines 249-343
+----------------------------------------------------------------------------------------------------
+  249|     isInRegion(regions) {
+  250|         if (!this.calculatedRegions) {
+  251|             this.calculatedRegions = this.calculateRegions();
+  252|         }
+  253|         if (typeof regions === 'string') {
+  254|             return this.calculatedRegions.indexOf(regions) > -1;
+  255|         }
+  256|         for (let i = 0, length = regions.length; i < length; ++i) {
+  257|             if (this.calculatedRegions.indexOf(regions[i]) > -1) {
+  258|                 return true;
+  259|             }
+  260|         }
+  261|         return false;
+  262|     }
+  263|     equals(loc) {
+  264|         if (this === loc) {
+  265|             return true;
+  266|         }
+  267|         return (areStringsEqual(this.city, loc.city) &&
+  268|             areStringsEqual(this.stateAbbr, loc.stateAbbr) &&
+  269|             areStringsEqual(this.country, loc.country));
+  270|     }
+  271|     getStandardName() {
+  272|         let rtn = '';
+  273|         if (this.equals(JIBO_HOME)) {
+  274|             return rtn;
+  275|         }
+  276|         if (this.city) {
+  277|             rtn += this.city;
+  278|         }
+  279|         if (this.state && (!this.city || this.countryCode === JIBO_HOME.countryCode || this.countryCode === 'US')) {
+  280|             if (rtn.length) {
+  281|                 rtn += ' ';
+  282|             }
+  283|             rtn += this.state;
+  284|         }
+  285|         if (this.country && (this.countryCode !== JIBO_HOME.countryCode && this.countryCode !== 'US')) {
+  286|             if (rtn.length) {
+  287|                 rtn += ' ';
+  288|             }
+  289|             if (this.countryCode === 'US') {
+  290|                 rtn += 'U.S.A.';
+  291|             }
+  292|             else {
+  293|                 rtn += this.country;
+  294|             }
+  295|         }
+  296|         return rtn;
+  297|     }
+  298|     prefixIn() {
+  299|         if (this.equals(JIBO_HOME)) {
+  300|             return '';
+  301|         }
+  302|         return 'In ' + this.getStandardName();
+  303|     }
+  304|     toString() {
+  305|         let rtn = '';
+  306|         if (this.city) {
+  307|             rtn += toTitleCase(this.city);
+  308|         }
+  309|         if (this.state && (!this.city || this.countryCode === JIBO_HOME.countryCode)) {
+  310|             if (rtn.length) {
+  311|                 rtn += ', ';
+  312|             }
+  313|             rtn += this.countryCode === 'US' && this.stateAbbr ? this.stateAbbr.toUpperCase() : this.state;
+  314|         }
+  315|         if (this.country && this.countryCode !== JIBO_HOME.countryCode) {
+  316|             if (rtn.length) {
+  317|                 rtn += ', ';
+  318|             }
+  319|             if (this.countryCode === 'US') {
+  320|                 rtn += 'USA';
+  321|             }
+  322|             else {
+  323|                 rtn += toTitleCase(this.country);
+  324|             }
+  325|         }
+  326|         return rtn;
+  327|     }
+  328|     toLog() {
+  329|         return `[Location: ${this.toString()}]`;
+  330|     }
+  331|     toJSON() {
+  332|         return {
+  333|             __type: 'Location',
+  334|             city: this.city,
+  335|             state: this.state,
+  336|             stateAbbr: this.stateAbbr,
+  337|             country: this.country,
+  338|             countryCode: this.countryCode,
+  339|             lat: this.lat,
+  340|             lng: this.lng,
+  341|             timezone: this.timezone ? this.timezone.toJSON() : null
+  342|         };
+  343|     }
+
+----------------------------------------------------------------------------------------------------
+JIBO_HOME definition
+file: node_modules/jibo-data-utils/lib/jibo-data-utils.js   lines 374-387
+----------------------------------------------------------------------------------------------------
+  374| JIBO_HOME = new Location();
+  375| JIBO_HOME.city = 'boston';
+  376| JIBO_HOME.stateAbbr = 'ma';
+  377| JIBO_HOME.state = 'Massachusetts';
+  378| JIBO_HOME.country = 'usa';
+  379| JIBO_HOME.countryCode = 'US';
+  380| JIBO_HOME.lat = 42.313352;
+  381| JIBO_HOME.lng = -71.1273681;
+  382| JIBO_HOME.timezone = new Timezone_1.default({
+  383|     offsetUTC: -18000000,
+  384|     name: "Eastern Standard Time",
+  385|     id: "America/New_York",
+  386|     __type: "Timezone"
+  387| });
+
+----------------------------------------------------------------------------------------------------
+Timezone: isoStringParser, fromISOString
+file: node_modules/jibo-data-utils/lib/jibo-data-utils.js   lines 561-585
+----------------------------------------------------------------------------------------------------
+  561| exports.isoStringParser = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?(([+-])(\d\d):(\d\d)|Z)$/;
+  562| let GOOGLE_API = null;
+  563| function pad(input, length) {
+  564|     if (typeof input === 'number') {
+  565|         input = input.toString();
+  566|     }
+  567|     while (input.length < length) {
+  568|         input = '0' + input;
+  569|     }
+  570|     return input;
+  571| }
+  572| class Timezone {
+  573|     static setLocationLookupKey(key) {
+  574|         GOOGLE_API = key;
+  575|     }
+  576|     static fromISOString(iso) {
+  577|         const rtn = new Timezone();
+  578|         if (iso && exports.isoStringParser.test(iso)) {
+  579|             const [, fullTZ, sign, hour, minute] = iso.match(exports.isoStringParser);
+  580|             if (fullTZ !== 'Z') {
+  581|                 rtn.offsetUTC = (parseInt(hour) * 60 + parseInt(minute)) * 60 * 1000 * (sign === '-' ? -1 : 1);
+  582|             }
+  583|         }
+  584|         return rtn;
+  585|     }
+
+----------------------------------------------------------------------------------------------------
+Timezone.toISOString
+file: node_modules/jibo-data-utils/lib/jibo-data-utils.js   lines 618-631
+----------------------------------------------------------------------------------------------------
+  618|     toISOString() {
+  619|         const offsetMS = this.offsetUTC;
+  620|         const hours = Math.floor(Math.abs(offsetMS / 1000 / 60 / 60));
+  621|         const minutes = Math.floor(Math.abs(offsetMS / 1000 / 60 % 60));
+  622|         return `${offsetMS < 0 ? '-' : '+'}${pad(hours, 2)}:${pad(minutes, 2)}`;
+  623|     }
+  624|     toJSON() {
+  625|         return {
+  626|             __type: 'Timezone',
+  627|             offsetUTC: this.offsetUTC,
+  628|             name: this.name,
+  629|             id: this.id
+  630|         };
+  631|     }
+
+----------------------------------------------------------------------------------------------------
+DateTime constructor: the ISO-with-offset path and the numeric path
+file: node_modules/jibo-data-utils/lib/jibo-data-utils.js   lines 682-726
+----------------------------------------------------------------------------------------------------
+  682| class DateTime {
+  683|     static get timePeriods() { return timePeriods; }
+  684|     constructor(input, nluTime, timezone) {
+  685|         if (nluTime instanceof Timezone_1.default) {
+  686|             timezone = nluTime;
+  687|             nluTime = null;
+  688|         }
+  689|         this.utc = NaN;
+  690|         this.timezone = null;
+  691|         this.durationDays = 0;
+  692|         this.durationHours = 0;
+  693|         this.durationMinutes = 0;
+  694|         this.timePeriod = null;
+  695|         this._localTime = null;
+  696|         if (typeof input === 'string' && Timezone_1.isoStringParser.test(input)) {
+  697|             if (!timezone) {
+  698|                 timezone = Timezone_1.default.fromISOString(input);
+  699|             }
+  700|             input = new Date(input).getTime();
+  701|         }
+  702|         else if (input instanceof Date) {
+  703|             input = input.getTime();
+  704|         }
+  705|         if (typeof input === 'number') {
+  706|             this.utc = input;
+  707|             this.timezone = timezone || new Timezone_1.default();
+  708|             this.timePeriod = timePeriods.MINUTE;
+  709|         }
+  710|         else if (input && input.__type === 'DateTime') {
+  711|             this.utc = input.utc;
+  712|             this.timezone = new Timezone_1.default(input.timezone);
+  713|             this.durationDays = input.durationDays;
+  714|             this.durationHours = input.durationHours;
+  715|             this.durationMinutes = input.durationMinutes;
+  716|             this.timePeriod = input.timePeriod;
+  717|         }
+  718|         else if (input || nluTime || timezone) {
+  719|             this.timezone = timezone || new Timezone_1.default();
+  720|             this._parseInput(input, nluTime);
+  721|         }
+  722|         else {
+  723|             this.timezone = new Timezone_1.default();
+  724|             this._parseInput(input, nluTime);
+  725|         }
+  726|     }
+
+----------------------------------------------------------------------------------------------------
+DateTime.stripTime period guard
+file: node_modules/jibo-data-utils/lib/jibo-data-utils.js   lines 807-819
+----------------------------------------------------------------------------------------------------
+  807|     stripTime() {
+  808|         let timePeriod = this.timePeriod;
+  809|         if (timePeriod === timePeriods.HOUR || timePeriod === timePeriods.MINUTE ||
+  810|             timePeriod === timePeriods.MORNING || timePeriod === timePeriods.AFTERNOON ||
+  811|             timePeriod === timePeriods.EVENING || timePeriod === timePeriods.NIGHT ||
+  812|             timePeriod === timePeriods.NOW) {
+  813|             this.timePeriod = timePeriods.DAY;
+  814|             let date = new Date(this.utc + this.timezone.offsetUTC);
+  815|             date.setUTCHours(0, 0, 0, 0);
+  816|             this.utc = date.getTime() - this.timezone.offsetUTC;
+  817|             this.durationHours = this.durationMinutes = 0;
+  818|         }
+  819|     }
+
+----------------------------------------------------------------------------------------------------
+DateTime.jumpToNextDayPeriod
+file: node_modules/jibo-data-utils/lib/jibo-data-utils.js   lines 744-772
+----------------------------------------------------------------------------------------------------
+  744|     jumpToNextDayPeriod() {
+  745|         let date = new Date(this.utc + this.timezone.offsetUTC);
+  746|         let hours = date.getUTCHours();
+  747|         if (hours < 6) {
+  748|             date.setUTCHours(6, 0, 0, 0);
+  749|             this.durationHours = 5;
+  750|             this.timePeriod = timePeriods.MORNING;
+  751|         }
+  752|         else if (hours < 12) {
+  753|             date.setUTCHours(12, 0, 0, 0);
+  754|             this.durationHours = 6;
+  755|             this.timePeriod = timePeriods.AFTERNOON;
+  756|         }
+  757|         else if (hours < 18) {
+  758|             date.setUTCHours(18, 0, 0, 0);
+  759|             this.durationHours = 4;
+  760|             this.timePeriod = timePeriods.EVENING;
+  761|         }
+  762|         else if (hours < 22) {
+  763|             date.setUTCHours(22, 0, 0, 0);
+  764|             this.durationHours = 7;
+  765|             this.timePeriod = timePeriods.NIGHT;
+  766|         }
+  767|         else {
+  768|             date.setUTCDate(date.getUTCDate() + 1);
+  769|             date.setUTCHours(6, 0, 0, 0);
+  770|         }
+  771|         this.utc = date.getTime() - this.timezone.offsetUTC;
+  772|     }
+
+----------------------------------------------------------------------------------------------------
+DateTime.isInRange: the seasonal-window branch algorithm
+file: node_modules/jibo-data-utils/lib/jibo-data-utils.js   lines 851-889
+----------------------------------------------------------------------------------------------------
+  851|     isInRange(startDate, endDate) {
+  852|         try {
+  853|             const start = monthDateParser.exec(startDate);
+  854|             const end = monthDateParser.exec(endDate);
+  855|             const startMonth = parseInt(start[1]) - 1;
+  856|             const startDay = parseInt(start[2]);
+  857|             const endMonth = parseInt(end[1]) - 1;
+  858|             const endDay = parseInt(end[2]);
+  859|             const { monthNum, date } = this.getLocalTime();
+  860|             if (endMonth < startMonth || (endMonth === startMonth && endDay < startDay)) {
+  861|                 if (startMonth > monthNum && endMonth < monthNum) {
+  862|                     return false;
+  863|                 }
+  864|                 if (startMonth === endMonth && monthNum === startMonth &&
+  865|                     (date > startDay || date < endDay)) {
+  866|                     return true;
+  867|                 }
+  868|                 if ((monthNum === startMonth && date < startDay) ||
+  869|                     (monthNum === endMonth && date > endDay)) {
+  870|                     return false;
+  871|                 }
+  872|                 return true;
+  873|             }
+  874|             else {
+  875|                 if (monthNum < startMonth || monthNum > endMonth) {
+  876|                     return false;
+  877|                 }
+  878|                 if ((monthNum === startMonth && date < startDay) ||
+  879|                     (monthNum === endMonth && date > endDay)) {
+  880|                     return false;
+  881|                 }
+  882|                 return true;
+  883|             }
+  884|         }
+  885|         catch (e) {
+  886|             console.error(e);
+  887|             return false;
+  888|         }
+  889|     }
+
+----------------------------------------------------------------------------------------------------
+getLocalTime / getLocalMMDD / getLocalYYYYMMDD (raw year, no padding)
+file: node_modules/jibo-data-utils/lib/jibo-data-utils.js   lines 890-926
+----------------------------------------------------------------------------------------------------
+  890|     getLocalTime() {
+  891|         if (!this._localTime) {
+  892|             const localDate = new Date(this.utc + this.timezone.offsetUTC);
+  893|             const month = localDate.getUTCMonth();
+  894|             this._localTime = {
+  895|                 year: localDate.getUTCFullYear(),
+  896|                 month: DateTimeUtils_1.default.MONTHS[month],
+  897|                 monthNum: month,
+  898|                 dayOfWeek: DateTimeUtils_1.default.DAYS_OF_WEEK[localDate.getUTCDay()],
+  899|                 date: localDate.getUTCDate(),
+  900|                 hour: localDate.getUTCHours(),
+  901|                 minute: localDate.getUTCMinutes(),
+  902|                 seconds: localDate.getUTCSeconds(),
+  903|                 milliseconds: localDate.getUTCMilliseconds()
+  904|             };
+  905|         }
+  906|         return this._localTime;
+  907|     }
+  908|     getLocalMMDD() {
+  909|         let rtn = '';
+  910|         let date = new Date(this.utc + this.timezone.offsetUTC);
+  911|         let month = date.getUTCMonth() + 1;
+  912|         rtn += month < 10 ? '0' + month : month;
+  913|         let day = date.getUTCDate();
+  914|         rtn += day < 10 ? '0' + day : day;
+  915|         return rtn;
+  916|     }
+  917|     getLocalYYYYMMDD() {
+  918|         let rtn = '';
+  919|         let date = new Date(this.utc + this.timezone.offsetUTC);
+  920|         rtn += date.getUTCFullYear();
+  921|         let month = date.getUTCMonth() + 1;
+  922|         rtn += month < 10 ? '0' + month : month;
+  923|         let day = date.getUTCDate();
+  924|         rtn += day < 10 ? '0' + day : day;
+  925|         return rtn;
+  926|     }
+
+----------------------------------------------------------------------------------------------------
+DateTime.toString (long periods and prefixOnAt)
+file: node_modules/jibo-data-utils/lib/jibo-data-utils.js   lines 941-1000
+----------------------------------------------------------------------------------------------------
+  941|     toString(options) {
+  942|         if (!options) {
+  943|             options = {};
+  944|         }
+  945|         if (options.suppressVerbalOutput) {
+  946|             return '';
+  947|         }
+  948|         let rtn = '';
+  949|         let thisDate = new Date(this.utc + this.timezone.offsetUTC);
+  950|         let relativeDays = this.getRelativeDays();
+  951|         let timePeriod = this.timePeriod;
+  952|         let wasLongPeriod = false;
+  953|         if (timePeriod === timePeriods.YEAR || timePeriod === timePeriods.MONTH ||
+  954|             timePeriod === timePeriods.WEEK || timePeriod === timePeriods.WEEKEND) {
+  955|             wasLongPeriod = true;
+  956|             let targetWeek, nowWeek, daysDiff, weeksDiff;
+  957|             switch (this.timePeriod) {
+  958|                 case timePeriods.YEAR:
+  959|                     rtn = String(thisDate.getUTCFullYear());
+  960|                     break;
+  961|                 case timePeriods.MONTH:
+  962|                     rtn = DateTimeUtils_1.default.MONTHS[thisDate.getUTCMonth()];
+  963|                     break;
+  964|                 case timePeriods.WEEK:
+  965|                     targetWeek = new Date(this.utc + this.timezone.offsetUTC);
+  966|                     targetWeek.setUTCDate(targetWeek.getUTCDate() - targetWeek.getUTCDay() + 1);
+  967|                     nowWeek = new Date(Date.now() + this.timezone.offsetUTC);
+  968|                     nowWeek.setUTCDate(nowWeek.getUTCDate() - nowWeek.getUTCDay() + 1);
+  969|                     daysDiff = DateTimeUtils_1.default.getDaysBetweenDates(nowWeek, targetWeek);
+  970|                     weeksDiff = Math.round(daysDiff / 7);
+  971|                     if (weeksDiff === 0) {
+  972|                         rtn = 'this week';
+  973|                     }
+  974|                     else if (weeksDiff > 0) {
+  975|                         if (weeksDiff === 1) {
+  976|                             rtn = 'next week';
+  977|                         }
+  978|                         else {
+  979|                             rtn = weeksDiff + ' weeks from now';
+  980|                         }
+  981|                     }
+  982|                     else {
+  983|                         if (weeksDiff === -1) {
+  984|                             rtn = 'last week';
+  985|                         }
+  986|                         else {
+  987|                             rtn = Math.abs(weeksDiff) + ' weeks ago';
+  988|                         }
+  989|                     }
+  990|                     break;
+  991|                 case timePeriods.WEEKEND:
+  992|                     targetWeek = new Date(this.utc + this.timezone.offsetUTC);
+  993|                     targetWeek.setUTCDate(targetWeek.getUTCDate() - targetWeek.getUTCDay() + 6);
+  994|                     nowWeek = new Date(Date.now() + this.timezone.offsetUTC);
+  995|                     nowWeek.setUTCDate(nowWeek.getUTCDate() - nowWeek.getUTCDay() + 6);
+  996|                     daysDiff = DateTimeUtils_1.default.getDaysBetweenDates(nowWeek, targetWeek);
+  997|                     weeksDiff = Math.round(daysDiff / 7);
+  998|                     if (weeksDiff === 0) {
+  999|                         rtn = 'this weekend';
+ 1000|                     }
+
+----------------------------------------------------------------------------------------------------
+DateTime.toMoment
+file: node_modules/jibo-data-utils/lib/jibo-data-utils.js   lines 1139-1168
+----------------------------------------------------------------------------------------------------
+ 1139|     toMoment() {
+ 1140|         if (Date.now() - this._utc < 0) {
+ 1141|             return 'The Future';
+ 1142|         }
+ 1143|         const diffInMin = (Date.now() - this._utc) / (1000 * 60);
+ 1144|         if (diffInMin <= 30) {
+ 1145|             return 'Just Now';
+ 1146|         }
+ 1147|         if (diffInMin <= 60) {
+ 1148|             return `${Math.floor(diffInMin)}m ago`;
+ 1149|         }
+ 1150|         const diffInHours = diffInMin / 60;
+ 1151|         if (diffInHours <= 24) {
+ 1152|             return `${Math.floor(diffInHours)}h ago`;
+ 1153|         }
+ 1154|         const relativeDays = -this.getRelativeDays();
+ 1155|         if (relativeDays <= 7) {
+ 1156|             return relativeDays === 1 ? 'Yesterday' : `${relativeDays}d ago`;
+ 1157|         }
+ 1158|         const local = this.getLocalTime();
+ 1159|         const now = new DateTime(Date.now(), this._timezone).getLocalTime();
+ 1160|         let date = DateTimeUtils_1.default.MONTH_ABBREVIATIONS[local.monthNum] + ' ';
+ 1161|         if (local.year === now.year) {
+ 1162|             date += DateTimeUtils_1.default.getOrdinal(local.date);
+ 1163|         }
+ 1164|         else {
+ 1165|             date += local.date + ' ' + local.year;
+ 1166|         }
+ 1167|         return date;
+ 1168|     }
+
+----------------------------------------------------------------------------------------------------
+DateTimeUtils.getOrdinal / getVerbalTime / getVisualTime / getDaysBetweenDates
+file: node_modules/jibo-data-utils/lib/jibo-data-utils.js   lines 1615-1701
+----------------------------------------------------------------------------------------------------
+ 1615|     function getOrdinal(num) {
+ 1616|         if (num === 0) {
+ 1617|             return 'zero';
+ 1618|         }
+ 1619|         if (num < 20 && num > 10) {
+ 1620|             return String(num) + 'th';
+ 1621|         }
+ 1622|         switch (num % 10) {
+ 1623|             case 1:
+ 1624|                 return String(num) + 'st';
+ 1625|             case 2:
+ 1626|                 return String(num) + 'nd';
+ 1627|             case 3:
+ 1628|                 return String(num) + 'rd';
+ 1629|             default:
+ 1630|                 return String(num) + 'th';
+ 1631|         }
+ 1632|     }
+ 1633|     DateTimeUtils.getOrdinal = getOrdinal;
+ 1634|     function getVerbalTime(hour, minute = 0, dropPeriod = false) {
+ 1635|         if (dropPeriod) {
+ 1636|             if (hour >= 12) {
+ 1637|                 if (hour > 12) {
+ 1638|                     hour -= 12;
+ 1639|                 }
+ 1640|             }
+ 1641|             else if (hour === 0) {
+ 1642|                 hour = 12;
+ 1643|             }
+ 1644|             let time = getVerbalNumber(hour) + ' ';
+ 1645|             if (minute === 0) {
+ 1646|                 time += 'oh clock';
+ 1647|             }
+ 1648|             else if (minute < 10) {
+ 1649|                 time += 'oh ' + getVerbalNumber(minute);
+ 1650|             }
+ 1651|             else {
+ 1652|                 time += getVerbalNumber(minute);
+ 1653|             }
+ 1654|             return time;
+ 1655|         }
+ 1656|         else {
+ 1657|             return getVisualTime(hour, minute);
+ 1658|         }
+ 1659|     }
+ 1660|     DateTimeUtils.getVerbalTime = getVerbalTime;
+ 1661|     function getVisualTime(hour, minute, dropPeriod = false) {
+ 1662|         let period = 'AM';
+ 1663|         if (hour >= 12) {
+ 1664|             period = 'PM';
+ 1665|             if (hour > 12) {
+ 1666|                 hour -= 12;
+ 1667|             }
+ 1668|         }
+ 1669|         else if (hour === 0) {
+ 1670|             hour = 12;
+ 1671|         }
+ 1672|         let minuteName = '';
+ 1673|         if (minute !== null) {
+ 1674|             minuteName = ':';
+ 1675|             minute = minute || 0;
+ 1676|             if (minute < 10) {
+ 1677|                 minuteName += '0';
+ 1678|             }
+ 1679|             minuteName += minute;
+ 1680|         }
+ 1681|         let hourName = String(hour === 0 ? 12 : hour);
+ 1682|         if (dropPeriod) {
+ 1683|             return `${hourName}${minuteName}`;
+ 1684|         }
+ 1685|         return `${hourName}${minuteName} ${period}`;
+ 1686|     }
+ 1687|     DateTimeUtils.getVisualTime = getVisualTime;
+ 1688|     function getVerbalTimeFrom24Hour(time) {
+ 1689|         return getVerbalTime(parseInt(time.substr(0, 2), 10), parseInt(time.substr(2, 2), 10));
+ 1690|     }
+ 1691|     DateTimeUtils.getVerbalTimeFrom24Hour = getVerbalTimeFrom24Hour;
+ 1692|     function getVisualTimeFrom24Hour(time) {
+ 1693|         return getVisualTime(parseInt(time.substr(0, 2), 10), parseInt(time.substr(2, 2), 10));
+ 1694|     }
+ 1695|     DateTimeUtils.getVisualTimeFrom24Hour = getVisualTimeFrom24Hour;
+ 1696|     function getDaysBetweenDates(a, b) {
+ 1697|         const utc1 = Date.UTC(a.getUTCFullYear(), a.getUTCMonth(), a.getUTCDate());
+ 1698|         const utc2 = Date.UTC(b.getUTCFullYear(), b.getUTCMonth(), b.getUTCDate());
+ 1699|         return Math.floor((utc2 - utc1) / this.MS_PER_DAY + 0.1);
+ 1700|     }
+ 1701|     DateTimeUtils.getDaysBetweenDates = getDaysBetweenDates;
