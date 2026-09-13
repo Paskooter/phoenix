@@ -27,8 +27,11 @@ export async function newsViews(items) {
     if (item.category === STRANGE_CATEGORY) categoryText.text += ' News';
 
     headlineClip.assets[0].src = item.image.source;
-    const imageWidth = parseInt(item.image.width, 10);
-    const imageHeight = parseInt(item.image.height, 10);
+    // Keep the source's parseInt call shape. In particular, the reference
+    // accepts the legacy 0x-prefixed dimensions using JavaScript's inferred
+    // radix behavior.
+    const imageWidth = parseInt(item.image.width);
+    const imageHeight = parseInt(item.image.height);
     const fillHeight = imageWidth < imageHeight || (imageWidth / imageHeight > SCREEN_W / SCREEN_H);
     const scale = fillHeight ? SCREEN_H / imageHeight : SCREEN_W / imageWidth;
     headlineClip.transform.scaleX = scale;
