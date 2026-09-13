@@ -1,0 +1,62 @@
+{
+  "task": "S-14",
+  "mode": "template",
+  "templateSkill": {
+    "skillId": "template-skill",
+    "validMemo": {
+      "type": "SKILL_ACTION",
+      "data": {
+        "skill": {
+          "id": "template-skill",
+          "session": {
+            "id": "string",
+            "nodeID": 3,
+            "trace": [
+              {
+                "nodeID": 4,
+                "transition": "Reactive"
+              },
+              {
+                "nodeID": 3,
+                "transition": null
+              }
+            ],
+            "dataKeys": [
+              "_mim"
+            ]
+          }
+        },
+        "action": {
+          "type": "JCP",
+          "jcpType": "SLIM",
+          "esml": "This is a template skill",
+          "mim_id": "template-mim",
+          "prompt_id": "template-skill_AN_01"
+        },
+        "final": false,
+        "fireAndForget": false
+      },
+      "timings": "number"
+    },
+    "unknownMemo": {
+      "type": "ERROR",
+      "data": {
+        "message": "Template Skill launched with unknown memo: 'SomeOtherThing'",
+        "skill": {
+          "id": "template-skill"
+        }
+      }
+    },
+    "nullMemo": {
+      "type": "ERROR",
+      "data": {
+        "message": "Template Skill launched with unknown memo: 'null'",
+        "skill": {
+          "id": "template-skill"
+        }
+      }
+    }
+  },
+  "runtime": "node:8.9.4-slim",
+  "revision": "5c0a7390539663ba749d360de348a428c088505c"
+}

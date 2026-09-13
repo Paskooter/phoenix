@@ -1,0 +1,37 @@
+# jiboV2/pegasus:packages/template-skill/src/nodes/MemoSplitNode.ts@5c0a7390539663ba749d360de348a428c088505c
+
+import { graph } from '@jibo/baseskill';
+
+export enum Transition {
+    Reactive = 'Reactive'
+}
+
+export class MemoSplitNode extends graph.nodes.NoOpNode<Transition> {
+
+    constructor(name: string) {
+        super(name, graph.utils.generateTransitions<Transition>(Transition));
+    }
+
+    /**
+     * @param {Data} data
+     * @returns {(Promise<Transition>)}
+     * @memberof Node
+     */
+    async exit(data: graph.nodes.Data): Promise<graph.nodes.ExitResponse<Transition>> {
+        const log = data.log.createChild('MemoSplitNode');
+        // This node expects to be the first one called so we expect there to be nlu in the data
+        const memo: string = data.result.memo && data.result.memo.entry;
+        const intent: string = data.result.nlu.intent;
+
+        log.info(`Launching Template Skill with memo '${memo}' and intent '${intent}'`);
+
+        if (memo !== 'SomeThing') {
+            throw new Error(`Template Skill launched with unknown memo: '${memo}'`);
+        }
+
+        return {
+            transition: Transition.Reactive,
+            result: data.result,
+        };
+    }
+}

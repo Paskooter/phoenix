@@ -1,0 +1,134 @@
+# jiboV2/pegasus:packages/hub/src/skill/SkillRequestMaker.ts@5c0a7390539663ba749d360de348a428c088505c
+
+import axios from 'axios';
+import { skill } from '@jibo/interfaces';
+import * as utils from '@jibo/utils';
+import SkillConfig = skill.config.SkillConfig;
+import SkillRequest = skill.request.SkillRequest;
+import SkillID = skill.config.SkillID;
+import SkillResponse = skill.response.SkillResponse;
+import { SkillConfigManager } from '../config/SkillConfigManager';
+import { SkillRequestHelper } from './SkillRequestHelper';
+import { timeout } from '../utils/PromiseUtils';
+import { SkillRequestInput, SkillRequestOutput } from './interfaces';
+import SkillRequestError = skill.request.SkillRequestError;
+
+
+/**
+ * Class used to make skill requests
+ * - handles timeouts
+ * - has main method getSkillResponseFromID
+ * - and helpers skillLaunch, skillLaunchOrUpdate
+ */
+export class SkillRequestMaker {
+
+    private skillRequestTimeout = 10 * 1000; // default timeout 10 sec
+
+    constructor(private skillConfigManager: SkillConfigManager){}
+
+    /**
+     * To change timeout, currently used in tests
+     */
+    public setTimeout(timeout: number) {
+        this.skillRequestTimeout = timeout;
+    }
+
+    /**
+     * Sends a skillRequest to skillID, returns skill response
+     */
+    public async getSkillResponseFromID(skillID: SkillID, skillRequest: SkillRequest, jiboHeaders: utils.service.JiboHeaders, log: utils.logging.Log): Promise<SkillRequestOutput> {
+        const skillConfig: SkillConfig = this.skillConfigManager.getSkillConfig(skillID);
+        if (!skillConfig) {
+            return {
+                skillID,
+                error: {
+                    code: SkillRequestError.SKILL_NOT_FOUND,
+                    message: `Skill "${skillID}" does not exist`
+                }
+            };
+        }
+        if (this.skillConfigManager.isOnRobotSkill(skillID)) {
+            return {
+                skillID,
+                error: {
+                    code: SkillRequestError.SKILL_NOT_FOUND,
+                    message: `Skill "${skillID}" is a robot skill`
+                }
+            };
+        }
+
+        log.debug('Sending request to skill %s - %s:\n%j', skillID, skillConfig.URL, skillRequest);
+
+        try {
+            log.debug(`Making request to skill '${skillID}' at url: '${skillConfig.URL}'`);
+            // make skill request with timeout
+            const skillResponse = await timeout(
+                this.getSkillResponseFromURL(skillConfig.URL, skillRequest, jiboHeaders),
+                this.skillRequestTimeout,
+                `Timeout of ${this.skillRequestTimeout}ms while waiting for "${skillID}" response`
+            );
+            log.debug('Skill %s response was: %j', skillID, skillResponse);
+            return {
+                skillID,
+                response: skillResponse
+            };
+        } catch (error) {
+            const code = error.code || error.message.toLowerCase().startsWith('timeout') ?
+                SkillRequestError.TIMEOUT : SkillRequestError.SKILL_NOT_FOUND;
+            return {
+                skillID,
+                error: {
+                    code,
+                    message: error.message
+                }
+            };
+        }
+    }
+
+    public async skillLaunch(skillID: SkillID, input: SkillRequestInput, jiboHeaders: utils.service.JiboHeaders, log: utils.logging.Log): Promise<SkillRequestOutput> {
+        const skillRequest = SkillRequestHelper.buildListenLaunchRequest(skillID, input);
+        return this.getSkillResponseFromID(skillID, skillRequest, jiboHeaders, log);
+    }
+
+    public async proactiveLaunch(skillID: SkillID, input: SkillRequestInput, jiboHeaders: utils.service.JiboHeaders, log: utils.logging.Log): Promise<SkillRequestOutput> {
+        const skillRequest = SkillRequestHelper.buildProactiveLaunchRequest(skillID, input);
+        return this.getSkillResponseFromID(skillID, skillRequest, jiboHeaders, log);
+    }
+
+    /** Is used in ListenTransaction handler */
+    public async skillLaunchOrUpdate(skillID: SkillID, input: SkillRequestInput, jiboHeaders: utils.service.JiboHeaders, log: utils.logging.Log, update = false): Promise<SkillRequestOutput>{
+        const skillRequest = (update) ?
+            SkillRequestHelper.buildListenUpdateRequest(skillID, input) :
+            SkillRequestHelper.buildListenLaunchRequest(skillID, input);
+        return this.getSkillResponseFromID(skillID, skillRequest, jiboHeaders, log);
+    }
+
+    /**
+     * Sends request to a skill and returns SkillResponse
+     * @param skillURL - websocket or HTTP to the skill
+     * @param skillRequest - request payload
+     * @param transID - transaction ID for log tracing
+     */
+    private async getSkillResponseFromURL(skillURL: string, skillRequest: SkillRequest, jiboHeaders?: utils.service.JiboHeaders): Promise<SkillResponse> {
+        try {
+            const response = await axios.post(
+                skillURL,
+                skillRequest,
+                { headers: jiboHeaders ? jiboHeaders.toHeader() : undefined },
+            );
+            return response.data;
+        } catch (error) {
+            if (error.response) {
+                throw {
+                    code: SkillRequestError.SKILL_NOT_FOUND,
+                    message: `Error from URL '${skillURL}': ${error.response.status} ${error.message} :: ${JSON.stringify(error.response.data)}`
+                };
+            } else {
+                throw {
+                    code: SkillRequestError.SKILL_NOT_FOUND,
+                    message: `Error from URL '${skillURL}': ${error.message}`
+                };
+            }
+        }
+    }
+}

@@ -1,0 +1,31 @@
+# jiboV2/pegasus:packages/template-skill/scripts/run-service.js@5c0a7390539663ba749d360de348a428c088505c
+
+#!/usr/bin/env node
+
+require('@jibo/utils/common/run-service')('TemplateSkill', () => {
+    const baseskill = require('@jibo/baseskill');
+    const { common } = require('@jibo/utils');
+    const main = require('..');
+    const path = require('path');
+    const argv = require('minimist')(process.argv.slice(2));
+
+
+    const DEFAULT_PORT = '8080';
+
+    function printHelp() {
+        console.log(`Usage: ${path.basename(process.argv[1])} [options]`);
+        console.log(`  Options:`);
+        console.log(`  --port, -p: [default: ${DEFAULT_PORT}] Port of service`);
+    }
+
+    const help = argv['h'] || argv['help'];
+    const port = parseInt(argv['p'] || argv['port'] || DEFAULT_PORT);
+
+    if (help) {
+        printHelp();
+        process.exit();
+    }
+
+    const service = new baseskill.SkillService(new main.TemplateSkill());
+    return service.init(port);
+});

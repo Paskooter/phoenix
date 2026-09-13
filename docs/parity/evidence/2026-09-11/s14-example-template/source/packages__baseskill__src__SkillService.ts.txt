@@ -1,0 +1,29 @@
+# jiboV2/pegasus:packages/baseskill/src/SkillService.ts@5c0a7390539663ba749d360de348a428c088505c
+
+import * as utils from '@jibo/utils';
+import { BaseSkill } from './BaseSkill';
+
+
+/**
+ * The base class for all cloud skills
+ */
+export class SkillService extends utils.service.BaseService {
+
+    constructor(private skillV1: BaseSkill) {
+        super(skillV1.name);
+
+        // The V1 skill protocol handler
+        this.addHttpHandler('/v1/main', {
+            handler: skillV1,
+            authenticationRequired: false
+        });
+    }
+
+    /**
+     * Automatically initialize the skill service and skill itself
+     */
+     async init(port: number): Promise<void> {
+        await super.init(port);
+        await this.skillV1.init();
+    }
+}

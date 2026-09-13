@@ -1,0 +1,57 @@
+# jiboV2/pegasus:packages/template-skill/src/TemplateSkill.ts@5c0a7390539663ba749d360de348a428c088505c
+
+import * as path from 'path';
+import { graph, GraphSkill } from '@jibo/baseskill';
+import * as ms from './nodes/MemoSplitNode';
+
+
+export enum Transition {
+    Done = 'Done'
+}
+
+export class TemplateSkill extends GraphSkill {
+
+    constructor() {
+        super('template-skill');
+    }
+
+    createGraph(): graph.Graph<Transition> {
+
+        //Sets up the graph that is the skill
+        const g = new graph.Graph<Transition>('TemplateSkill', graph.utils.generateTransitions<Transition>(Transition));
+
+        // Node called when skill is entered (checks that we were launched with a valid intent)
+        const intentSplitNode = new ms.MemoSplitNode('Intent Split');
+
+        //Node called when subgraph is done
+        const completeNode = new graph.nodes.dn.DefaultNode('Complete');
+
+        //Path to the mim
+        const mimPath = path.join(__dirname, '../mims/template-mim.mim');
+
+        //Creates announcement subgraph
+        const doMimOptions: graph.mims.MimFactoryOptions = {
+            mimDataProvider: mimPath
+        };
+        const doMIM = new graph.mims.an.ANFactory('Do MIM', doMimOptions).createGraph();
+
+        // Adding intent split node
+        g.addNode(intentSplitNode, [
+            [ms.Transition.Reactive, doMIM.initial]
+        ]);
+
+        //Adds the announcement subgraph to the skill graph
+        g.addSubGraph(doMIM, [
+            //On a successful transition, go to completeNode
+            [graph.mims.an.Transition.Success, completeNode]
+        ]);
+
+        //Adding the complete node
+        g.addNode(completeNode, [
+            [graph.nodes.dn.Transition.Done, Transition.Done]
+        ]);
+
+        g.finalize();
+        return g;
+    }
+}

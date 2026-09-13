@@ -1,0 +1,77 @@
+{
+  "task": "S-14",
+  "method": "pinned original compiled example-skill/template-skill + SkillService under node:8.9.4-slim (docker, --network none) vs the real Phoenix skills HTTP service (createSkillService/createSkillsService/start, ephemeral ports)",
+  "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "sourceRuntime": "node:8.9.4-slim sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+  "phoenixRuntime": "v22.22.0",
+  "sections": [
+    {
+      "name": "exampleSkill",
+      "sourceSuite": "packages/example-skill/tests/ExampleSkill.test.js",
+      "runs": [
+        "four-turn intent walk (launch + 3 actionResults)",
+        "invalid intent 'bla'",
+        "PROACTIVE memo arm",
+        "unknown memo without nlu"
+      ],
+      "leafChecks": 82,
+      "diffs": 0
+    },
+    {
+      "name": "templateSkill",
+      "sourceSuite": "packages/template-skill/tests/TemplateSkill.test.ts",
+      "runs": [
+        "memo {entry:'SomeThing'}",
+        "memo {entry:'SomeOtherThing'}",
+        "memo null"
+      ],
+      "leafChecks": 24,
+      "diffs": 0
+    },
+    {
+      "name": "hostProbes",
+      "sourceSuites": [
+        "packages/baseskill/src/SkillService.ts",
+        "packages/baseskill/src/BaseSkill.ts"
+      ],
+      "probes": [
+        "arrayJson",
+        "emptyObject",
+        "emptyString",
+        "getRoute",
+        "healthcheck",
+        "malformedJson",
+        "memoUnknownNoNlu",
+        "missingResult",
+        "nullResult",
+        "primitiveJson",
+        "templateMissingResult",
+        "templateNullResult",
+        "templateValidMemoNoNlu",
+        "unknownRequestType",
+        "unknownRoute"
+      ],
+      "leafChecks": 72,
+      "diffs": 0
+    }
+  ],
+  "leafChecksTotal": 178,
+  "diffs": 0,
+  "routeForms": {
+    "note": "acceptance 2: each replacement on its own reference port; default POST /v1/main and explicit POST /v1/<id>/main return identical stable fields (see packages/skills/test/s14ExampleTemplateSkillHost.test.js)",
+    "forms": [
+      "cohost:example-skill /v1/example-skill/main",
+      "cohost:template-skill /v1/template-skill/main",
+      "standalone:example-skill /v1/example-skill/main",
+      "standalone:example-skill /v1/main",
+      "standalone:template-skill /v1/main",
+      "standalone:template-skill /v1/template-skill/main"
+    ],
+    "equalPairs": [
+      "standalone:example-skill /v1/main == /v1/example-skill/main",
+      "standalone:template-skill /v1/main == /v1/template-skill/main"
+    ]
+  },
+  "nodeIdNormalization": "absolute node ids are compared as offsets from the session trace's first node id: the original allocates from a process-wide GraphManager singleton (S-01), Phoenix isolates a standalone skill's manager at 0",
+  "command": "bash scripts/parity-s14/run.sh"
+}

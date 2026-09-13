@@ -1,0 +1,12 @@
+# jiboV2/pegasus:packages/example-skill/tests/index.js@5c0a7390539663ba749d360de348a428c088505c
+
+// Exit code 1 if tests fail
+process.on('uncaughtException', (err) => { console.error(err); process.exit(1); });
+
+const main = require('../src');
+global.main = main;
+
+
+describe('ExampleSkill tests', () => {
+    require('./ExampleSkill.test');
+});

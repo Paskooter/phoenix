@@ -1,0 +1,49 @@
+# jiboV2/pegasus:packages/example-skill/package.json@5c0a7390539663ba749d360de348a428c088505c
+
+{
+  "name": "@jibo/example-skill",
+  "author": "Jibo, Inc.",
+  "license": "UNLICENSED",
+  "distribution": "PROPRIETARY AND CONFIDENTIAL - NOT FOR DISTRIBUTION",
+  "copyright": "Copyright (c) 2017-2018 Jibo, Inc. All Rights Reserved",
+  "version": "1.0.0",
+  "main": "lib/example-skill.js",
+  "scripts": {
+    "start": "node scripts/run-service.js",
+    "build": "gulp debug",
+    "clean": "rm -rf ./lib/ ./test/ ./node_modules/ ./ts-node-*/",
+    "watch": "gulp watch",
+    "test": "mocha -r ts-node/register ./tests/index.js",
+    "test:debug": "yarn run test --inspect-brk=0.0.0.0:5850",
+    "docker:interactive": "../../pegasus.js docker-run -i -d packages/example-skill",
+    "docker:run": "../../pegasus.js docker-run -d packages/example-skill -- ",
+    "docker:build": "yarn run docker:run yarn run build",
+    "docker:test": "yarn run docker:run yarn run test",
+    "docker:test:debug": "../../pegasus.js docker-run -d packages/example-skill -p 5850 -- yarn run test:debug"
+  },
+  "devDependencies": {
+    "@types/node": "6.0.94",
+    "chai": "^4.0.2",
+    "@jibo/test-utils": "^1.0.0",
+    "mocha": "^4.1.0",
+    "ts-node": "^4.1.0"
+  },
+  "dependencies": {
+    "@jibo/baseskill": "^1.0.0",
+    "@jibo/interfaces": "^1.0.30",
+    "@jibo/utils": "^1.0.13",
+    "minimist": "^1.2.0"
+  },
+  "publishConfig": {
+    "registry": "http://npm.jibo.com:8080"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.jibo.com:sdk/sdk.git"
+  },
+  "files": [
+    "lib",
+    "*.env",
+    "scripts"
+  ]
+}

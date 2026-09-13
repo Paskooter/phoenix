@@ -1,0 +1,67 @@
+# jiboV2/pegasus:packages/template-skill/tests/TemplateSkill.test.ts@5c0a7390539663ba749d360de348a428c088505c
+
+import { expect } from 'chai';
+import { skill } from '@jibo/interfaces';
+import * as baseskill from '@jibo/baseskill';
+import * as utils from '@jibo/utils';
+import { skill_test } from '@jibo/test-utils';
+import { TemplateSkill } from './main';
+
+
+describe('TemplateSkill', () => {
+
+    let conversation: skill_test.SkillConversation;
+    let cloudSkill: TemplateSkill;
+
+    beforeEach(function() {
+        this.timeout(15000);
+        cloudSkill = new TemplateSkill();
+        conversation = new skill_test.SkillConversation(new baseskill.SkillService(cloudSkill));
+        return conversation.init();
+    });
+
+    afterEach(() => {
+        conversation.close();
+    });
+
+    function launchRequest(intent: string, memoValue?: string) {
+        const launchListenData: Partial<skill.request.LaunchListenData> = {
+            memo: memoValue ? {
+                entry: memoValue
+            } : null
+        };
+        return conversation.launch(intent, { id: cloudSkill.name }, launchListenData);
+    }
+
+    it(`Generate skill graph dot file`, () => {
+        (cloudSkill as any).graph.writeDotFile('./docs/TemplateSkill.dot');
+    });
+
+    it(`A full cloud skill execution`, function() {
+        // Here we exectute four turns of interaction with the template cloud skill
+        return launchRequest('TBD', 'SomeThing')
+            .then(({ response }) => {
+                if (response.type === skill.response.ResponseType.SKILL_ACTION) {
+                    // First response from cloud skill
+                    const skillData = response.data.skill;
+                    const actionData = response.data.action;
+
+                    expect(skillData.id).to.equal('template-skill');
+                    expect(actionData.config.jcp.config.play.esml).to.equal(`This is a template skill`);
+                } else {
+                    throw new Error(`Unexpected skill response: '${response.type}'`);
+                }
+            });
+    });
+
+    it(`Invalid intent`, function () {
+        return launchRequest('TBD', 'SomeOtherThing')
+            .then(({ response }) => {
+                if (response.type === skill.response.ResponseType.ERROR) {
+                    expect(response.data.message).to.equal(`Template Skill launched with unknown memo: 'SomeOtherThing'`);
+                } else {
+                    throw new Error(`Unexpected skill response: '${response.type}'`);
+                }
+            });
+    });
+});

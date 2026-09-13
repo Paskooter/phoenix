@@ -1,0 +1,191 @@
+{
+  "task": "S-14",
+  "mode": "example",
+  "exampleSkill": {
+    "skillId": "example-skill",
+    "turns": [
+      {
+        "type": "SKILL_ACTION",
+        "data": {
+          "skill": {
+            "id": "example-skill",
+            "session": {
+              "id": "string",
+              "nodeID": 1,
+              "trace": [
+                {
+                  "nodeID": 0,
+                  "transition": "doesJiboLikeThing"
+                },
+                {
+                  "nodeID": 1,
+                  "transition": null
+                }
+              ],
+              "dataKeys": []
+            }
+          },
+          "action": {
+            "type": "JCP",
+            "jcpType": "SLIM",
+            "esml": "SLIM: 'Node1'"
+          },
+          "final": false,
+          "fireAndForget": false
+        },
+        "timings": "number"
+      },
+      {
+        "type": "SKILL_ACTION",
+        "data": {
+          "skill": {
+            "id": "example-skill",
+            "session": {
+              "id": "string",
+              "nodeID": 2,
+              "trace": [
+                {
+                  "nodeID": 0,
+                  "transition": "doesJiboLikeThing"
+                },
+                {
+                  "nodeID": 1,
+                  "transition": "A"
+                },
+                {
+                  "nodeID": 2,
+                  "transition": null
+                }
+              ],
+              "dataKeys": []
+            }
+          },
+          "action": {
+            "type": "JCP",
+            "jcpType": "SLIM",
+            "esml": "SLIM: 'Node2'"
+          },
+          "final": false,
+          "fireAndForget": false
+        },
+        "timings": "number"
+      },
+      {
+        "type": "SKILL_ACTION",
+        "data": {
+          "skill": {
+            "id": "example-skill",
+            "session": {
+              "id": "string",
+              "nodeID": 3,
+              "trace": [
+                {
+                  "nodeID": 0,
+                  "transition": "doesJiboLikeThing"
+                },
+                {
+                  "nodeID": 1,
+                  "transition": "A"
+                },
+                {
+                  "nodeID": 2,
+                  "transition": "B"
+                },
+                {
+                  "nodeID": 3,
+                  "transition": null
+                }
+              ],
+              "dataKeys": []
+            }
+          },
+          "action": {
+            "type": "JCP",
+            "jcpType": "SLIM",
+            "esml": "SLIM: 'Node3'"
+          },
+          "final": false,
+          "fireAndForget": false
+        },
+        "timings": "number"
+      },
+      {
+        "type": "SKILL_ACTION",
+        "data": {
+          "skill": {
+            "id": "example-skill",
+            "session": {
+              "id": "string",
+              "nodeID": 3,
+              "trace": [
+                {
+                  "nodeID": 0,
+                  "transition": "doesJiboLikeThing"
+                },
+                {
+                  "nodeID": 1,
+                  "transition": "A"
+                },
+                {
+                  "nodeID": 2,
+                  "transition": "B"
+                },
+                {
+                  "nodeID": 3,
+                  "transition": "A"
+                }
+              ],
+              "dataKeys": []
+            }
+          },
+          "action": null,
+          "final": true,
+          "fireAndForget": true
+        },
+        "timings": "number"
+      }
+    ],
+    "invalidIntent": {
+      "type": "ERROR",
+      "data": {
+        "message": "Unknown intent: 'bla'",
+        "skill": {
+          "id": "example-skill"
+        }
+      }
+    },
+    "proactiveMemo": {
+      "type": "SKILL_ACTION",
+      "data": {
+        "skill": {
+          "id": "example-skill",
+          "session": {
+            "id": "string",
+            "nodeID": 14,
+            "trace": [
+              {
+                "nodeID": 10,
+                "transition": "PROACTIVE"
+              },
+              {
+                "nodeID": 14,
+                "transition": null
+              }
+            ],
+            "dataKeys": []
+          }
+        },
+        "action": {
+          "type": "JCP",
+          "jcpType": "SLIM",
+          "esml": "SLIM: 'ProactiveNode' MEMO: 'Proactive entry 1'"
+        },
+        "final": false,
+        "fireAndForget": false
+      },
+      "timings": "number"
+    }
+  },
+  "runtime": "node:8.9.4-slim",
+  "revision": "5c0a7390539663ba749d360de348a428c088505c"
+}

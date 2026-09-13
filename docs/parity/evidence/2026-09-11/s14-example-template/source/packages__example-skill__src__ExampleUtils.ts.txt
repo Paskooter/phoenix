@@ -1,0 +1,35 @@
+# jiboV2/pegasus:packages/example-skill/src/ExampleUtils.ts@5c0a7390539663ba749d360de348a428c088505c
+
+import { skill } from '@jibo/interfaces';
+
+
+/**
+ * Used by nodes to create actions
+ */
+export class ExampleUtils {
+
+    public static createSlimAction(text: string): skill.action.JCPAction {
+        return {
+            type: skill.action.ActionType.JCP,
+            config: {
+                version: '2.0',
+                jcp: {
+                    type: 'SLIM',
+                    id: 'FAKE_SLIM_ID',
+                    config: {
+                        play: {
+                            type: 'PLAY',
+                            id: 'FAKE_PLAY_ID',
+                            esml: text
+                        },
+                        listen: {
+                            type: 'LISTEN',
+                            id: 'FAKE_LISTEN_ID',
+                            contexts: []
+                        }
+                    }
+                }
+            }
+        };
+    }
+}

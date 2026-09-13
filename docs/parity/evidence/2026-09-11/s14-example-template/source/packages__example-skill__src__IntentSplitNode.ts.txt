@@ -1,0 +1,79 @@
+# jiboV2/pegasus:packages/example-skill/src/IntentSplitNode.ts@5c0a7390539663ba749d360de348a428c088505c
+
+import { graph } from '@jibo/baseskill';
+import { nlu } from '@jibo/interfaces';
+import { test } from '@jibo/utils';
+
+
+export enum Transition {
+    DOES_LIKE = 'doesJiboLikeThing',
+    DISLIKES = 'jiboDislikesThing',
+    LIVE_AND_PROSPER = 'referenceLiveLongProsper',
+    intent2 = 'intent2',
+    PROACTIVE = 'PROACTIVE'
+}
+
+export class IntentSplitNode extends graph.nodes.NoOpNode<Transition> {
+
+    constructor(name: string) {
+        super(name, graph.utils.generateTransitions<Transition>(Transition));
+    }
+
+    /**
+     * @param {Data} data
+     * @returns {(Promise<Transition>)}
+     * @memberof Node
+     */
+    async exit(data: graph.nodes.Data): Promise<graph.nodes.ExitResponse<Transition>> {
+        const logger = data.log.createChild('IntentSplitNode');
+        let transition: Transition;
+
+        // skills that may be launched proactively can't rely on nlu data, so memo is really the
+        // appropriate way to determine which entry to follow
+        const memo = data.result.memo;
+        if (memo) {
+            switch (memo) {
+                case "Proactive entry 1":
+                    transition = Transition.PROACTIVE;
+                    break;
+                case test.TestIntents.LIVE_AND_PROSPER:
+                    transition = Transition.LIVE_AND_PROSPER;
+                    break;
+                case test.TestIntents.DOES_LIKE:
+                    transition = Transition.DOES_LIKE;
+                    break;
+                default:
+                    logger.warn('Unknown memo field, falling back on intent');
+                    break;
+            }
+        } else {
+            logger.warn(`No memo field in skill launch, falling back on intent`);
+        }
+
+        if(!transition){
+            // This node expects to be the first one called so we expect there to be nlu in the data
+            const nlu: nlu.NLUResult = data.result.nlu;
+            switch (nlu.intent) {
+                case test.TestIntents.DOES_LIKE:
+                    transition = Transition.DOES_LIKE;
+                    break;
+                case test.TestIntents.DISLIKES:
+                    transition = Transition.DISLIKES;
+                    break;
+                case test.TestIntents.LIVE_AND_PROSPER:
+                    transition = Transition.LIVE_AND_PROSPER;
+                    break;
+                case 'intent2':
+                    transition = Transition.intent2;
+                    break;
+                default:
+                    throw new Error(`Unknown intent: '${nlu.intent}'`);
+            }
+        }
+
+        return {
+            transition: transition,
+            result: data.result
+        };
+    }
+}

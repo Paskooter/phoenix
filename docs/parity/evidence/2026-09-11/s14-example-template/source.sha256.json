@@ -1,0 +1,117 @@
+[
+ {
+  "repo_path": "packages/example-skill/src/ExampleSkill.ts",
+  "file": "source/packages__example-skill__src__ExampleSkill.ts.txt",
+  "sha256": "87c7a1faf65542c2fd53194cabbeabae4761189344973fccb175628675105233"
+ },
+ {
+  "repo_path": "packages/example-skill/src/ExampleNode.ts",
+  "file": "source/packages__example-skill__src__ExampleNode.ts.txt",
+  "sha256": "03b921dcd9831649ef5ba268085ec32524a9816ef59e103461df43ea37f24e57"
+ },
+ {
+  "repo_path": "packages/example-skill/src/IntentSplitNode.ts",
+  "file": "source/packages__example-skill__src__IntentSplitNode.ts.txt",
+  "sha256": "ebabf8d44420ff4d461726ef51fa05e5a36715c55221ad4dd95669bb1ece0f94"
+ },
+ {
+  "repo_path": "packages/example-skill/src/ExampleUtils.ts",
+  "file": "source/packages__example-skill__src__ExampleUtils.ts.txt",
+  "sha256": "53612ef647844b94d8519ac9eb125887d27365898d21570d9c953a8db45ef2b3"
+ },
+ {
+  "repo_path": "packages/example-skill/src/index.ts",
+  "file": "source/packages__example-skill__src__index.ts.txt",
+  "sha256": "b4fbb8680f3131548c381c2d9e8af0ea7e3c9ff3ddc235a6e6387e1c6bf27c11"
+ },
+ {
+  "repo_path": "packages/example-skill/tests/ExampleSkill.test.js",
+  "file": "source/packages__example-skill__tests__ExampleSkill.test.js.txt",
+  "sha256": "d780466cd4529c382b7050729fbbe18c644506b09129a5ac50f3fcd66c776450"
+ },
+ {
+  "repo_path": "packages/example-skill/tests/index.js",
+  "file": "source/packages__example-skill__tests__index.js.txt",
+  "sha256": "494c19d3352f840494a7c043d5789615fb2d245f3393f1cede843d689118e0ab"
+ },
+ {
+  "repo_path": "packages/example-skill/scripts/run-service.js",
+  "file": "source/packages__example-skill__scripts__run-service.js.txt",
+  "sha256": "cdf64cab3ef06512e6ea359b0f57e71bb3bd22cb009dcb879c1cd4c29ad5cbb4"
+ },
+ {
+  "repo_path": "packages/example-skill/package.json",
+  "file": "source/packages__example-skill__package.json.txt",
+  "sha256": "1bbc205928dcfd72cac4cbac7e04df98ae5a7b1645ef56ae261760831dcb39b3"
+ },
+ {
+  "repo_path": "packages/template-skill/src/TemplateSkill.ts",
+  "file": "source/packages__template-skill__src__TemplateSkill.ts.txt",
+  "sha256": "eb1a4599367c745982176cba46c73702071b9aae4dc1f8e6e44a84cc8e2eec03"
+ },
+ {
+  "repo_path": "packages/template-skill/src/nodes/MemoSplitNode.ts",
+  "file": "source/packages__template-skill__src__nodes__MemoSplitNode.ts.txt",
+  "sha256": "da0b46e6f88653367f5c389c21ae06c012ee977723dab219c3cd24186414e2f1"
+ },
+ {
+  "repo_path": "packages/template-skill/src/index.ts",
+  "file": "source/packages__template-skill__src__index.ts.txt",
+  "sha256": "6f6d3434c045ce5e39b5047cb97a5899c0fb217dc1130357e1398fe5ac756228"
+ },
+ {
+  "repo_path": "packages/template-skill/tests/TemplateSkill.test.ts",
+  "file": "source/packages__template-skill__tests__TemplateSkill.test.ts.txt",
+  "sha256": "0df6a4bc9f33ec2744a39b4da3fc7d3a415406bc025f39829b181690e20d43a5"
+ },
+ {
+  "repo_path": "packages/template-skill/tests/main.ts",
+  "file": "source/packages__template-skill__tests__main.ts.txt",
+  "sha256": "304a6814338ee6adfef59590b7c7b8adebc0b9d48b00749a17a8e1415843a9d4"
+ },
+ {
+  "repo_path": "packages/template-skill/mims/template-mim.mim",
+  "file": "source/packages__template-skill__mims__template-mim.mim.txt",
+  "sha256": "dcd7795a36e481632fee702246ee7f184c29e1b7e8f16759794ae4696b7cd062"
+ },
+ {
+  "repo_path": "packages/template-skill/scripts/run-service.js",
+  "file": "source/packages__template-skill__scripts__run-service.js.txt",
+  "sha256": "873c40a8f87f01991f75007009921ffaa1554188326c70713ab7f9bbaee4ab66"
+ },
+ {
+  "repo_path": "packages/baseskill/src/SkillService.ts",
+  "file": "source/packages__baseskill__src__SkillService.ts.txt",
+  "sha256": "6eae947a065badce43e8305463dd942e2df732a3240c22892ceebf715a2600f7"
+ },
+ {
+  "repo_path": "packages/baseskill/src/BaseSkill.ts",
+  "file": "source/packages__baseskill__src__BaseSkill.ts.txt",
+  "sha256": "f6353dcd0e1750f44d66b602595e218b13dc6be9acfe27a46a25471ec8cc705c"
+ },
+ {
+  "repo_path": "packages/test-utils/src/skill-test/SkillConversation.ts",
+  "file": "source/packages__test-utils__src__skill-test__SkillConversation.ts.txt",
+  "sha256": "f62b4bb7afda8330a5ce61c351b10d355b725f64c0b46fa0df4541d8c5dfb3c1"
+ },
+ {
+  "repo_path": "packages/test-utils/src/mockRuntimeData.ts",
+  "file": "source/packages__test-utils__src__mockRuntimeData.ts.txt",
+  "sha256": "4c4c34fc0a2d54403407f41e783048136110d18a59bc74b07d67a2fe0e54382b"
+ },
+ {
+  "repo_path": "packages/hub/src/skill/SkillUtils.ts",
+  "file": "source/packages__hub__src__skill__SkillUtils.ts.txt",
+  "sha256": "60459dd585c110c6e376b57e8cfdc57371f3a9ffbcb85363a7200d8d07578b4e"
+ },
+ {
+  "repo_path": "packages/hub/src/skill/SkillRequestMaker.ts",
+  "file": "source/packages__hub__src__skill__SkillRequestMaker.ts.txt",
+  "sha256": "11d3016e13628c9301dbf0491e2d2cfe3c110b352370c4da052b55ac0c43aab6"
+ },
+ {
+  "repo_path": "packages/hub/resources/skills/skills-local.json",
+  "file": "source/packages__hub__resources__skills__skills-local.json.txt",
+  "sha256": "17c356ff5325476260f32d2ca5852da468c0980b1bc9ef7b59b1840b163643da"
+ }
+]
