@@ -1,0 +1,785 @@
+{
+  "schema": "s10-report-news-http-v1",
+  "referenceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+  "sourceImage": "node",
+  "sourceImageDigest": "sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+  "originalFixtureSHA256": {
+    "apNewsXMLResponse": "8aa6f55f61500885326e701e7685ce9bda122e447b4c16d2e3e8a6241ef689af",
+    "apNewsXMLResponseTwo": "75fcf52127aa3874443bbc5a9182721b7cf649665b4949bfbeab95c94b3b601c"
+  },
+  "locationISO": "2026-06-12T12:00:00.000Z",
+  "defaultNewsSourceIDs": [
+    "42208",
+    "42207",
+    "42200",
+    "42210"
+  ],
+  "categoryOrder": [
+    "technology",
+    "sports",
+    "business",
+    "science",
+    "entertainment",
+    "strange",
+    "health",
+    "international",
+    "national",
+    "politics"
+  ],
+  "categorySourceIDs": {
+    "business": "42200",
+    "entertainment": "42201",
+    "international": "42202",
+    "health": "42203",
+    "strange": "42204",
+    "politics": "42205",
+    "science": "42206",
+    "sports": "42207",
+    "technology": "42208",
+    "general": "42209",
+    "national": "42210"
+  },
+  "cases": [
+    {
+      "id": "full-configured-default-order",
+      "intent": "launchPersonalReport",
+      "fixture": "default",
+      "prefs": {
+        "weather": false,
+        "news": true,
+        "categories": {
+          "technology": true,
+          "sports": true,
+          "business": true,
+          "national": true
+        }
+      },
+      "expected": {
+        "mims": [
+          "PersonalReportKickOff",
+          "NewsIntro",
+          "NewsHeadline",
+          "NewsHeadline",
+          "NewsHeadline",
+          "NewsHeadline",
+          "PersonalReportOutroConfigured"
+        ],
+        "sourceIDs": [
+          "42208",
+          "42207",
+          "42200",
+          "42210"
+        ],
+        "headlineOrder": [
+          "technology story A",
+          "sports story B",
+          "business story B",
+          "national story B"
+        ],
+        "speechIncludes": [
+          "associated press",
+          "technology story A",
+          "sports story B",
+          "business story B",
+          "national story B"
+        ],
+        "viewCategories": [
+          "Technology",
+          "Sports",
+          "Business",
+          "National"
+        ],
+        "analytics": {
+          "details": "news",
+          "service_details": "news=up",
+          "config_state": "not configured"
+        }
+      }
+    },
+    {
+      "id": "full-default-category-fallback",
+      "intent": "launchPersonalReport",
+      "fixture": "default",
+      "prefs": {
+        "weather": false,
+        "news": true,
+        "categories": {
+          "technology": false,
+          "sports": false,
+          "business": false,
+          "national": false
+        }
+      },
+      "expected": {
+        "mims": [
+          "PersonalReportKickOff",
+          "NewsIntro",
+          "NewsHeadline",
+          "NewsHeadline",
+          "NewsHeadline",
+          "NewsHeadline",
+          "PersonalReportOutroConfigured"
+        ],
+        "sourceIDs": [
+          "42208",
+          "42207",
+          "42200",
+          "42210"
+        ],
+        "headlineOrder": [
+          "technology story A",
+          "sports story B",
+          "business story B",
+          "national story B"
+        ],
+        "speechIncludes": [
+          "associated press",
+          "technology story A",
+          "sports story B",
+          "business story B",
+          "national story B"
+        ],
+        "viewCategories": [
+          "Technology",
+          "Sports",
+          "Business",
+          "National"
+        ],
+        "analytics": {
+          "details": "news",
+          "service_details": "news=up",
+          "config_state": "not configured"
+        }
+      }
+    },
+    {
+      "id": "full-configured-two-category-limits",
+      "intent": "launchPersonalReport",
+      "fixture": "two-categories",
+      "prefs": {
+        "weather": false,
+        "news": true,
+        "categories": {
+          "technology": true,
+          "business": true
+        }
+      },
+      "expected": {
+        "mims": [
+          "PersonalReportKickOff",
+          "NewsIntro",
+          "NewsHeadline",
+          "NewsHeadline",
+          "NewsHeadline",
+          "NewsHeadline",
+          "PersonalReportOutroConfigured"
+        ],
+        "sourceIDs": [
+          "42208",
+          "42200"
+        ],
+        "headlineOrder": [
+          "technology story A",
+          "technology story B",
+          "business story B",
+          "business story C"
+        ],
+        "speechIncludes": [
+          "technology story B",
+          "business story B",
+          "business story C"
+        ],
+        "viewCategories": [
+          "Technology",
+          "Technology",
+          "Business",
+          "Business"
+        ],
+        "analytics": {
+          "details": "news",
+          "service_details": "news=up",
+          "config_state": "not configured"
+        }
+      }
+    },
+    {
+      "id": "single-one-category-three-story-limit",
+      "intent": "requestNews",
+      "fixture": "one-category-limit",
+      "prefs": {
+        "weather": false,
+        "news": true,
+        "categories": {
+          "technology": true
+        }
+      },
+      "expected": {
+        "mims": [
+          "NewsIntro",
+          "NewsHeadline",
+          "NewsHeadline",
+          "NewsHeadline",
+          "NewsOutro"
+        ],
+        "sourceIDs": [
+          "42208"
+        ],
+        "headlineOrder": [
+          "technology story A",
+          "technology story B",
+          "technology story C"
+        ],
+        "speechIncludes": [
+          "technology story A",
+          "technology story C"
+        ],
+        "viewCategories": [
+          "Technology",
+          "Technology",
+          "Technology"
+        ],
+        "analytics": {
+          "details": "news",
+          "service_details": "news=up",
+          "config_state": "not configured"
+        }
+      }
+    },
+    {
+      "id": "single-strange-category-title",
+      "intent": "requestNews",
+      "fixture": "strange-category",
+      "prefs": {
+        "weather": false,
+        "news": true,
+        "categories": {
+          "strange": true
+        }
+      },
+      "expected": {
+        "mims": [
+          "NewsIntro",
+          "NewsHeadline",
+          "NewsHeadline",
+          "NewsHeadline",
+          "NewsOutro"
+        ],
+        "sourceIDs": [
+          "42204"
+        ],
+        "headlineOrder": [
+          "strange story A",
+          "strange story B",
+          "strange story C"
+        ],
+        "speechIncludes": [
+          "strange story B"
+        ],
+        "viewCategories": [
+          "Strange News",
+          "Strange News",
+          "Strange News"
+        ],
+        "analytics": {
+          "details": "news",
+          "service_details": "news=up",
+          "config_state": "not configured"
+        }
+      }
+    },
+    {
+      "id": "single-header-and-image-filtering",
+      "intent": "requestNews",
+      "fixture": "header-image-filtering",
+      "prefs": {
+        "weather": false,
+        "news": true,
+        "categories": {
+          "technology": true
+        }
+      },
+      "expected": {
+        "mims": [
+          "NewsIntro",
+          "NewsHeadline",
+          "NewsHeadline",
+          "NewsHeadline",
+          "NewsOutro"
+        ],
+        "sourceIDs": [
+          "42208"
+        ],
+        "headlineOrder": [
+          "Technology Alpha survives header and image filtering",
+          "Technology Beta remains in source order",
+          "Technology Gamma remains playable"
+        ],
+        "speechIncludes": [
+          "Technology Alpha survives header and image filtering"
+        ],
+        "speechExcludes": [
+          "MissingSummary",
+          "MissingPreview",
+          "MissingSource",
+          "MissingDimensions",
+          "Correction: stale story"
+        ],
+        "viewCategories": [
+          "Technology",
+          "Technology",
+          "Technology"
+        ],
+        "analytics": {
+          "details": "news",
+          "service_details": "news=up",
+          "config_state": "not configured"
+        }
+      }
+    },
+    {
+      "id": "single-news-view-geometry",
+      "intent": "requestNews",
+      "fixture": "geometry",
+      "prefs": {
+        "weather": false,
+        "news": true,
+        "categories": {
+          "technology": true
+        }
+      },
+      "expected": {
+        "mims": [
+          "NewsIntro",
+          "NewsHeadline",
+          "NewsHeadline",
+          "NewsHeadline",
+          "NewsOutro"
+        ],
+        "sourceIDs": [
+          "42208"
+        ],
+        "headlineOrder": [
+          "Landscape image story",
+          "Widescreen image story",
+          "Portrait image story"
+        ],
+        "speechIncludes": [
+          "Landscape image story",
+          "Widescreen image story",
+          "Portrait image story"
+        ],
+        "viewCategories": [
+          "Technology",
+          "Technology",
+          "Technology"
+        ],
+        "viewGeometry": [
+          {
+            "id": "headlineView_0",
+            "source": "landscape-preview",
+            "scale": 2.5,
+            "x": 0,
+            "y": -15,
+            "leaveEmpty": true,
+            "category": "Technology"
+          },
+          {
+            "id": "headlineView_1",
+            "source": "wide-preview",
+            "scale": 1.8,
+            "x": -800,
+            "y": 0,
+            "leaveEmpty": true,
+            "category": "Technology"
+          },
+          {
+            "id": "headlineView_2",
+            "source": "portrait-preview",
+            "scale": 1.2,
+            "x": 460,
+            "y": 0,
+            "leaveEmpty": false,
+            "category": "Technology"
+          }
+        ],
+        "analytics": {
+          "details": "news",
+          "service_details": "news=up",
+          "config_state": "not configured"
+        }
+      }
+    },
+    {
+      "id": "full-news-service-down",
+      "intent": "launchPersonalReport",
+      "fixture": "default",
+      "failure": "all",
+      "prefs": {
+        "weather": false,
+        "news": true,
+        "categories": {
+          "technology": true,
+          "business": true
+        }
+      },
+      "expected": {
+        "mims": [
+          "PersonalReportKickOff",
+          "NewsServiceDown",
+          "PersonalReportOutroConfigured"
+        ],
+        "sourceIDs": [
+          "42208",
+          "42200"
+        ],
+        "speechIncludes": [
+          "news"
+        ],
+        "viewCategories": [],
+        "analytics": {
+          "details": "news",
+          "service_details": "news=up",
+          "config_state": "not configured"
+        }
+      }
+    },
+    {
+      "id": "full-news-partial-category-failure",
+      "intent": "launchPersonalReport",
+      "fixture": "two-categories",
+      "failure": {
+        "sourceIDs": [
+          "42200"
+        ]
+      },
+      "prefs": {
+        "weather": false,
+        "news": true,
+        "categories": {
+          "technology": true,
+          "business": true
+        }
+      },
+      "expected": {
+        "mims": [
+          "PersonalReportKickOff",
+          "NewsServiceDown",
+          "PersonalReportOutroConfigured"
+        ],
+        "sourceIDs": [
+          "42208",
+          "42200"
+        ],
+        "speechIncludes": [
+          "news"
+        ],
+        "viewCategories": [],
+        "analytics": {
+          "details": "news",
+          "service_details": "news=up",
+          "config_state": "not configured"
+        }
+      }
+    },
+    {
+      "id": "single-news-service-down",
+      "intent": "requestNews",
+      "fixture": "default",
+      "failure": "all",
+      "prefs": {
+        "weather": false,
+        "news": true,
+        "categories": {
+          "technology": true
+        }
+      },
+      "expected": {
+        "mims": [
+          "NewsServiceDown"
+        ],
+        "sourceIDs": [
+          "42208"
+        ],
+        "speechIncludes": [
+          "news"
+        ],
+        "viewCategories": [],
+        "analytics": {
+          "details": "news",
+          "service_details": "news=up",
+          "config_state": "not configured"
+        }
+      }
+    },
+    {
+      "id": "full-original-ap-response-one",
+      "intent": "launchPersonalReport",
+      "fixture": "original-ap-response-one",
+      "prefs": {
+        "weather": false,
+        "news": true,
+        "categories": {
+          "entertainment": true
+        }
+      },
+      "expected": {
+        "mims": [
+          "PersonalReportKickOff",
+          "NewsIntro",
+          "NewsHeadline",
+          "NewsHeadline",
+          "NewsHeadline",
+          "PersonalReportOutroConfigured"
+        ],
+        "sourceIDs": [
+          "42201"
+        ],
+        "headlineOrder": [
+          "Arnold Schwarzenegger says he's good, but not great, following heart surgery",
+          "Bill Cosby's chief accuser is telling jurors",
+          "Bill Cosby's chief accuser is set to take the witness stand"
+        ],
+        "speechIncludes": [
+          "associated press",
+          "Arnold Schwarzenegger",
+          "Bill Cosby"
+        ],
+        "viewCategories": [
+          "Entertainment",
+          "Entertainment",
+          "Entertainment"
+        ],
+        "analytics": {
+          "details": "news",
+          "service_details": "news=up",
+          "config_state": "not configured"
+        }
+      }
+    },
+    {
+      "id": "full-original-ap-response-two-empty",
+      "intent": "launchPersonalReport",
+      "fixture": "original-ap-response-two",
+      "prefs": {
+        "weather": false,
+        "news": true,
+        "categories": {
+          "entertainment": true
+        }
+      },
+      "expected": {
+        "mims": [
+          "PersonalReportKickOff",
+          "NewsServiceDown",
+          "PersonalReportOutroConfigured"
+        ],
+        "sourceIDs": [
+          "42201"
+        ],
+        "speechIncludes": [
+          "news"
+        ],
+        "viewCategories": [],
+        "analytics": {
+          "details": "news",
+          "service_details": "news=up",
+          "config_state": "not configured"
+        }
+      }
+    },
+    {
+      "id": "single-unidentified-default-news",
+      "intent": "requestNews",
+      "identity": "unidentified",
+      "fixture": "default",
+      "prefs": {
+        "weather": false,
+        "news": true,
+        "categories": {}
+      },
+      "expected": {
+        "mims": [
+          "NewsIntro",
+          "NewsHeadline",
+          "NewsHeadline",
+          "NewsHeadline",
+          "NewsHeadline",
+          "NewsOutro"
+        ],
+        "sourceIDs": [
+          "42208",
+          "42207",
+          "42200",
+          "42210"
+        ],
+        "headlineOrder": [
+          "technology story A",
+          "sports story B",
+          "business story B",
+          "national story B"
+        ],
+        "speechIncludes": [
+          "associated press",
+          "technology story A",
+          "sports story B",
+          "business story B",
+          "national story B"
+        ],
+        "viewCategories": [
+          "Technology",
+          "Sports",
+          "Business",
+          "National"
+        ],
+        "analytics": {
+          "details": "news",
+          "service_details": "news=up",
+          "config_state": "not configured"
+        }
+      }
+    },
+    {
+      "id": "single-settings-failure-defaults",
+      "intent": "requestNews",
+      "settingsFailure": true,
+      "fixture": "default",
+      "prefs": {
+        "weather": false,
+        "news": true,
+        "categories": {}
+      },
+      "expected": {
+        "mims": [
+          "PersonalReportSettingsFailed",
+          "NewsIntro",
+          "NewsHeadline",
+          "NewsHeadline",
+          "NewsHeadline",
+          "NewsHeadline",
+          "NewsOutro"
+        ],
+        "sourceIDs": [
+          "42208",
+          "42207",
+          "42200",
+          "42210"
+        ],
+        "headlineOrder": [
+          "technology story A",
+          "sports story B",
+          "business story B",
+          "national story B"
+        ],
+        "speechIncludes": [
+          "trouble getting your personal settings",
+          "associated press",
+          "technology story A",
+          "national story B"
+        ],
+        "viewCategories": [
+          "Technology",
+          "Sports",
+          "Business",
+          "National"
+        ],
+        "analytics": {
+          "details": "news",
+          "service_details": "news=up",
+          "config_state": "not configured"
+        }
+      }
+    },
+    {
+      "id": "single-empty-feed",
+      "intent": "requestNews",
+      "fixture": "empty",
+      "prefs": {
+        "weather": false,
+        "news": true,
+        "categories": {
+          "technology": true
+        }
+      },
+      "expected": {
+        "mims": [
+          "NewsServiceDown"
+        ],
+        "sourceIDs": [
+          "42208"
+        ],
+        "speechIncludes": [
+          "news"
+        ],
+        "viewCategories": [],
+        "analytics": {
+          "details": "news",
+          "service_details": "news=up",
+          "config_state": "not configured"
+        }
+      }
+    },
+    {
+      "id": "single-malformed-feed",
+      "intent": "requestNews",
+      "fixture": "malformed",
+      "prefs": {
+        "weather": false,
+        "news": true,
+        "categories": {
+          "technology": true
+        }
+      },
+      "expected": {
+        "mims": [
+          "NewsServiceDown"
+        ],
+        "sourceIDs": [
+          "42208"
+        ],
+        "speechIncludes": [
+          "news"
+        ],
+        "viewCategories": [],
+        "analytics": {
+          "details": "news",
+          "service_details": "news=up",
+          "config_state": "not configured"
+        }
+      }
+    }
+  ],
+  "lanes": {
+    "apSourceGraph": {
+      "description": "Frozen AP XML envelopes replayed through the pinned Pegasus and Phoenix Report HTTP graphs.",
+      "fixtureModule": "ap-fixtures.cjs",
+      "originalFixtures": "original-ap-fixtures.cjs",
+      "cases": [
+        "full-configured-default-order",
+        "full-default-category-fallback",
+        "full-configured-two-category-limits",
+        "single-one-category-three-story-limit",
+        "single-strange-category-title",
+        "single-header-and-image-filtering",
+        "single-news-view-geometry",
+        "full-news-service-down",
+        "full-news-partial-category-failure",
+        "single-news-service-down",
+        "full-original-ap-response-one",
+        "full-original-ap-response-two-empty",
+        "single-unidentified-default-news",
+        "single-settings-failure-defaults",
+        "single-empty-feed",
+        "single-malformed-feed"
+      ]
+    },
+    "rssAdapter": {
+      "description": "Phoenix RSS/Atom-to-AP adapter is verified as a separate Data relay lane; it is not substituted for AP source parity.",
+      "testFiles": [
+        "packages/data/test/news.test.js",
+        "packages/data/test/news-poller.test.js"
+      ],
+      "command": "node --test packages/data/test/news.test.js packages/data/test/news-poller.test.js",
+      "casesVerified": 26
+    }
+  }
+}
