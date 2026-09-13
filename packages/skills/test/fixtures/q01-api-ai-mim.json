@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "repo": "jiborobot/srv-gqa-ws",
+    "revision": "ebe1a7d38f511570060c1fbf61bec89d58419b26",
+    "files": [
+      "gqa/api_ai.py",
+      "gqa/mim_registry.py",
+      "tests/unit/test_api_ai.py",
+      "tests/unit/test_mim_registry.py"
+    ]
+  },
+  "apiAi": {
+    "endpoint": "https://api.api.ai/v1/query?v=20150910",
+    "apiKey": "Bearer fixture-api-ai-key",
+    "request": {
+      "query": "do you like dog?",
+      "robotName": "1234567890"
+    },
+    "successResponse": {
+      "result": {
+        "metadata": {
+          "intentName": "doesJiboLikeThing"
+        },
+        "parameters": {
+          "Activity": "",
+          "Competitor": "",
+          "Experience": "",
+          "Media": "",
+          "Object": "Dogs",
+          "OtherAgent": "",
+          "OtherLikes": "",
+          "RobotCharacter": ""
+        }
+      },
+      "status": {
+        "code": 200,
+        "errorType": "success"
+      }
+    },
+    "emptyResponse": {},
+    "status500Response": {
+      "status": {
+        "code": 500,
+        "errorType": "internal_server_error",
+        "errorDetails": "Unknown error errorid=fixture"
+      }
+    }
+  },
+  "registry": {
+    "lookup": {
+      "OI_JBO_LikesDogs": {
+        "entity_name": ["Object"],
+        "entity_val": ["Dogs"],
+        "intent": "doesJiboLikeThing"
+      },
+      "OI_JBO_HaveOpinion": {
+        "entity_name": [],
+        "entity_val": [],
+        "intent": "doesJiboHaveOpinionAboutThing"
+      }
+    },
+    "payloads": {
+      "OI_JBO_LikesDogs": {
+        "prompts": [
+          {
+            "prompt": "Dogs are great! They have so many more legs than I do.",
+            "prompt_id": "OI_JBO_LikesDogs_AN_01"
+          }
+        ]
+      }
+    }
+  }
+}

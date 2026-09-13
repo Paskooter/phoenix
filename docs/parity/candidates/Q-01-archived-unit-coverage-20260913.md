@@ -4,14 +4,14 @@ Source: `jiborobot/srv-gqa-ws@ebe1a7d38f511570060c1fbf61bec89d58419b26`, read th
 
 This candidate maps every named `test_*` definition counted by the archived inventory (136 rows, 385 assertion calls) to an existing executable Phoenix row or a concrete closure requirement. The two top-level `test_*` helper functions in `test_bing.py` are included as `supporting`; they are called by named tests and are not standalone unittest cases.
 
-Current row counts: covered=72, partial=39, missing=22, skipped=1, supporting=2.
+Current row counts: covered=79, partial=41, missing=13, skipped=1, supporting=2.
 
 The existing replay lane directly executes 28 archived answer rows and 12 async rows. It also executes 10 source-shaped news/AP cases, account/attribution rows, and three captured fake-provider adapter routes. This audit keeps those receipts separate from live-provider and legacy `/structQA` gaps.
 
 ## Closure buckets
 
 - `/structQA`: legacy route-specific no-input, unknown-intent, Scripted/API-AI, News, and live provider cases remain explicitly marked in the rows below.
-- API-AI/MIM registry: the archived client and `doesJiboLikeThing;Object:Dogs` resolver have no Phoenix executable equivalent.
+- API-AI/MIM registry: the injected API-AI client and `doesJiboLikeThing;Object:Dogs` resolver now have focused executable coverage; the live `test_api_ai_real` response and `/structQA` integration remain qualified below.
 - News: archived AP/news source cases map to the existing matrix/provider rows; the moved live AP/vendor sequence remains a qualification.
 - Account/attribution: lookup, insert, retrieve, wipe, source windows, and HTTP parser rows are covered by the existing account suite; `/fakeAccount` remains a developer-helper seam.
 - Fake providers: captured Bing/Wikipedia/Wolfram bodies are decoded and passed through current adapters; live vendor answer assertions remain partial or missing.
@@ -22,8 +22,8 @@ The existing replay lane directly executes 28 archived answer rows and 12 async 
 | --- | --- | --- | --- |
 | `tests/unit/test_account.py:test_account_basic` | `covered` | packages/skills/test/q01GqaAccountAttribution.test.js :: account lookup preserves the source POST body, headers, and first loop ID | — |
 | `tests/unit/test_account.py:test_account_fail` | `covered` | packages/skills/test/q01GqaAccountAttribution.test.js :: account lookup keeps source failure and post-HTTP shape boundaries visible | — |
-| `tests/unit/test_api_ai.py:test_api_ai_real` | `missing` | — | API-AI/Dialogflow client execution with archived credentials or a deterministic response fixture; Phoenix receives NLU and has no API-AI call surface. |
-| `tests/unit/test_api_ai.py:test_api_ai` | `missing` | — | API-AI client exception and empty-JSON fallback behavior, including the two mocked request calls, is not implemented in the Phoenix GQA service. |
+| `tests/unit/test_api_ai.py:test_api_ai_real` | `partial` | packages/skills/test/q01ApiAiMim.test.js :: Q-01 API-AI client sends the archived query/session shape through an injected transport | The client request shape and a pinned response are executable through injection, but the archived live I am angry response (Emotion=Angry, intent=userIsDescriptor) remains an unqualified vendor result. |
+| `tests/unit/test_api_ai.py:test_api_ai` | `covered` | packages/skills/test/q01ApiAiMim.test.js :: Q-01 API-AI exceptions and empty JSON responses fall back to an empty object across two mocked calls | — |
 | `tests/unit/test_async.py:test_fast_bing_slow_wiki` | `covered` | scripts/parity-q01-fixtures/replay.mjs#replayAsyncRows row=tests/unit/test_async.py:test_fast_bing_slow_wiki | — |
 | `tests/unit/test_async.py:test_empty_bing_slow_wiki` | `covered` | scripts/parity-q01-fixtures/replay.mjs#replayAsyncRows row=tests/unit/test_async.py:test_empty_bing_slow_wiki | — |
 | `tests/unit/test_async.py:test_fast_wiki_slow_bing` | `covered` | scripts/parity-q01-fixtures/replay.mjs#replayAsyncRows row=tests/unit/test_async.py:test_fast_wiki_slow_bing | — |
@@ -65,11 +65,11 @@ The existing replay lane directly executes 28 archived answer rows and 12 async 
 | `tests/unit/test_general.py:test_health_check` | `partial` | packages/common/test/service.test.js :: healthcheck route | The route is executable, but the archived GQA helper expects body 42 while Phoenix common healthcheck evidence expects its current common-service body. |
 | `tests/unit/test_general.py:test_fake_account` | `partial` | packages/skills/test/q01GqaAccountAttribution.test.js :: account lookup preserves the source POST body, headers, and first loop ID | The client POST contract is covered through an injected peer; Phoenix does not expose the archived developer-only /fakeAccount endpoint. |
 | `tests/unit/test_general.py:test_scripted_response` | `partial` | packages/skills/test/q01Gqa.test.js :: Q-01 exposes the source scripted question mapping and full MIM inventories; packages/skills/test/assetProvenance.test.js :: scripted MIM provenance | The OI_USR_IsAngry asset exists and MIM inventory is checked, but Phoenix has no archived /structQA Scripted route row returning OI_USR_IsAngry_AN_01 with source timestamps. |
-| `tests/unit/test_general.py:test_age_entity_api_ai` | `missing` | — | The /structQA Scripted age entity path depends on API-AI/Dialogflow entity resolution; Phoenix has no API-AI client execution or equivalent entity fixture. |
+| `tests/unit/test_general.py:test_age_entity_api_ai` | `partial` | packages/skills/test/q01ApiAiMim.test.js :: Q-01 MIM registry formats Dialogflow age entities | The archived /structQA Scripted request and its no-response envelope still require the structQA owner's route integration; the API-AI age pattern itself is replayed here. |
 | `tests/unit/test_general.py:test_bing` | `partial` | packages/skills/test/q01GqaCompositeReplay.test.js :: Q-01 composite success replays selected HTTP profile, account lookup, attribution, MIM/JCP and source wire media | The provider request and response shape are covered through answer-skill routes; the archived /structQA endpoint and live Bing response remain open. |
 | `tests/unit/test_general.py:test_wiki` | `partial` | packages/skills/test/q01Wikipedia.test.js :: Q-01 Wikipedia adapter follows source success request and result contract | Wikipedia adapter behavior is covered through a pinned page body; the archived /structQA route and live Tropisetron page are not replayed. |
 | `tests/unit/test_general.py:test_wiki_contraction` | `partial` | packages/skills/test/q01Gqa.test.js :: archived answer row test_contraction; packages/skills/test/q01Wikipedia.test.js :: lexical preprocessing follows the pinned NLTK source vectors | Cleaning and provider shaping are covered, but no Phoenix /structQA row executes the archived contraction request end to end. |
-| `tests/unit/test_general.py:test_no_input` | `missing` | — | Legacy /structQA must return the exact 200 JSON no-Input message before account/provider work. |
+| `tests/unit/test_general.py:test_no_input` | `missing` | — | Legacy /structQA resolves credentials/account and requires a truthy loop_id before checking Input; the exact 200 no-Input response and route envelope remain unverified until the structQA candidate lands. |
 | `tests/unit/test_general.py:test_pii_filter` | `partial` | packages/skills/test/q01Gqa.test.js :: Q-01 blocked-term response follows IP and PII checks and suppresses provider calls | The PII gate and provider suppression are covered, but the archived /structQA message and route envelope are not. |
 | `tests/unit/test_general.py:test_no_skill_intent` | `missing` | — | Legacy /structQA unknown Intent None response: exact message "Unknown Intent 'None'" and success false. |
 | `tests/unit/test_general.py:test_wrong_skill_intent` | `missing` | — | Legacy /structQA unknown Intent WOW response: exact message "Unknown Intent 'WOW'" and success false. |
@@ -80,12 +80,12 @@ The existing replay lane directly executes 28 archived answer rows and 12 async 
 | `tests/unit/test_general.py:test_retrieve_att` | `covered` | packages/skills/test/q01GqaAccountAttribution.test.js :: Mongo attribution storage returns complete inserted records through retrieveAtt and wipes them | — |
 | `tests/unit/test_general.py:test_wipe_db_for_id` | `covered` | packages/skills/test/q01GqaAccountAttribution.test.js :: attribution HTTP routes preserve source parser boundaries and retrieve ordering | — |
 | `tests/unit/test_general.py:test_crash_me` | `missing` | — | Archived debug-only /crash_me route and its Piep, Piep exception are not a Phoenix product surface. |
-| `tests/unit/test_mim_registry.py:test_mim_registry` | `missing` | — | API-AI result to semicolon-delimited intent/entity pattern resolver (doesJiboLikeThing;Object:Dogs). |
-| `tests/unit/test_mim_registry.py:test_mim_registry_empty` | `missing` | — | Empty API-AI payload handling in the archived MIM registry. |
-| `tests/unit/test_mim_registry.py:test_mim_registry_api_ai_500` | `missing` | — | API-AI 500 response handling in the archived MIM registry. |
-| `tests/unit/test_mim_registry.py:test_mim_registry_no_entity` | `missing` | — | Entity-free API-AI intent pattern ending in a semicolon. |
-| `tests/unit/test_mim_registry.py:test_get_mim_payload` | `missing` | — | Lookup of the legacy doesJiboLikeThing;Object:Dogs MIM payload text. |
-| `tests/unit/test_mim_registry.py:test_get_mim_payload_exception` | `missing` | — | Missing/empty MIM registry key returns None with the archived lookup boundary. |
+| `tests/unit/test_mim_registry.py:test_mim_registry` | `covered` | packages/skills/test/q01ApiAiMim.test.js :: Q-01 MIM registry builds the sorted semicolon intent/entity pattern | — |
+| `tests/unit/test_mim_registry.py:test_mim_registry_empty` | `covered` | packages/skills/test/q01ApiAiMim.test.js :: Q-01 MIM registry preserves empty API-AI output as null | — |
+| `tests/unit/test_mim_registry.py:test_mim_registry_api_ai_500` | `covered` | packages/skills/test/q01ApiAiMim.test.js :: Q-01 API-AI status 500 is retained by the client and rejected by the MIM registry | — |
+| `tests/unit/test_mim_registry.py:test_mim_registry_no_entity` | `covered` | packages/skills/test/q01ApiAiMim.test.js :: Q-01 MIM registry builds the entity-free semicolon intent pattern | — |
+| `tests/unit/test_mim_registry.py:test_get_mim_payload` | `covered` | packages/skills/test/q01ApiAiMim.test.js :: Q-01 MIM payload lookup returns the pinned Dogs response | — |
+| `tests/unit/test_mim_registry.py:test_get_mim_payload_exception` | `covered` | packages/skills/test/q01ApiAiMim.test.js :: Q-01 MIM payload lookup exposes the source empty-key behavior | — |
 | `tests/unit/test_news.py:test_ap_search_haskid` | `covered` | packages/skills/test/q01News.test.js :: Q-01 source gqa/ap.py: AP provider preserves 24h/feed/adult/order/limit/bytes semantics | — |
 | `tests/unit/test_news.py:test_attribute_insert` | `covered` | packages/skills/test/q01GqaAccountAttribution.test.js :: source JSON dumping and attribution memory store preserve source fields and windows | — |
 | `tests/unit/test_nlp.py:test_pii_filter` | `covered` | packages/skills/test/q01Gqa.test.js :: Q-01 query cleaning and PII filtering follow executable original NLP controls | — |
@@ -158,4 +158,3 @@ The existing replay lane directly executes 28 archived answer rows and 12 async 
 | `tests/unit/test_wolfram.py:test_fail_and_empty` | `covered` | packages/skills/test/q01WolframProvider.test.js :: Q-01 Wolfram request/status/JSON failures are timestamped provider messages; Q-01 Wolfram source no-answer paths retain the input URL and omit response | — |
 
 The JSON file is the machine-readable receipt and preserves the source revision, per-file denominator, status definitions, and all 136 rows.
-

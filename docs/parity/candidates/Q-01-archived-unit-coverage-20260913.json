@@ -60,9 +60,9 @@
     "Live integration inputs and live provider assertions without output goldens remain partial or missing even when a local adapter seam exists."
   ],
   "counts": {
-    "covered": 72,
-    "partial": 39,
-    "missing": 22,
+    "covered": 79,
+    "partial": 41,
+    "missing": 13,
     "skipped": 1,
     "supporting": 2
   },
@@ -85,17 +85,16 @@
       "source": "tests/unit/test_api_ai.py:test_api_ai_real",
       "sourceFile": "tests/unit/test_api_ai.py",
       "test": "test_api_ai_real",
-      "status": "missing",
-      "target": null,
-      "closure": "API-AI/Dialogflow client execution with archived credentials or a deterministic response fixture; Phoenix receives NLU and has no API-AI call surface."
+      "status": "partial",
+      "target": "packages/skills/test/q01ApiAiMim.test.js :: Q-01 API-AI client sends the archived query/session shape through an injected transport",
+      "closure": "The client request shape and a pinned response are executable through injection, but the archived live I am angry response (Emotion=Angry, intent=userIsDescriptor) remains an unqualified vendor result."
     },
     {
       "source": "tests/unit/test_api_ai.py:test_api_ai",
       "sourceFile": "tests/unit/test_api_ai.py",
       "test": "test_api_ai",
-      "status": "missing",
-      "target": null,
-      "closure": "API-AI client exception and empty-JSON fallback behavior, including the two mocked request calls, is not implemented in the Phoenix GQA service."
+      "status": "covered",
+      "target": "packages/skills/test/q01ApiAiMim.test.js :: Q-01 API-AI exceptions and empty JSON responses fall back to an empty object across two mocked calls"
     },
     {
       "source": "tests/unit/test_async.py:test_fast_bing_slow_wiki",
@@ -409,9 +408,9 @@
       "source": "tests/unit/test_general.py:test_age_entity_api_ai",
       "sourceFile": "tests/unit/test_general.py",
       "test": "test_age_entity_api_ai",
-      "status": "missing",
-      "target": null,
-      "closure": "The /structQA Scripted age entity path depends on API-AI/Dialogflow entity resolution; Phoenix has no API-AI client execution or equivalent entity fixture."
+      "status": "partial",
+      "target": "packages/skills/test/q01ApiAiMim.test.js :: Q-01 MIM registry formats Dialogflow age entities",
+      "closure": "The archived /structQA Scripted request and its no-response envelope still require the structQA owner's route integration; the API-AI age pattern itself is replayed here."
     },
     {
       "source": "tests/unit/test_general.py:test_bing",
@@ -443,7 +442,7 @@
       "test": "test_no_input",
       "status": "missing",
       "target": null,
-      "closure": "Legacy /structQA must return the exact 200 JSON no-Input message before account/provider work."
+      "closure": "Legacy /structQA resolves credentials/account and requires a truthy loop_id before checking Input; the exact 200 no-Input response and route envelope remain unverified until the structQA candidate lands."
     },
     {
       "source": "tests/unit/test_general.py:test_pii_filter",
@@ -526,49 +525,43 @@
       "source": "tests/unit/test_mim_registry.py:test_mim_registry",
       "sourceFile": "tests/unit/test_mim_registry.py",
       "test": "test_mim_registry",
-      "status": "missing",
-      "target": null,
-      "closure": "API-AI result to semicolon-delimited intent/entity pattern resolver (doesJiboLikeThing;Object:Dogs)."
+      "status": "covered",
+      "target": "packages/skills/test/q01ApiAiMim.test.js :: Q-01 MIM registry builds the sorted semicolon intent/entity pattern"
     },
     {
       "source": "tests/unit/test_mim_registry.py:test_mim_registry_empty",
       "sourceFile": "tests/unit/test_mim_registry.py",
       "test": "test_mim_registry_empty",
-      "status": "missing",
-      "target": null,
-      "closure": "Empty API-AI payload handling in the archived MIM registry."
+      "status": "covered",
+      "target": "packages/skills/test/q01ApiAiMim.test.js :: Q-01 MIM registry preserves empty API-AI output as null"
     },
     {
       "source": "tests/unit/test_mim_registry.py:test_mim_registry_api_ai_500",
       "sourceFile": "tests/unit/test_mim_registry.py",
       "test": "test_mim_registry_api_ai_500",
-      "status": "missing",
-      "target": null,
-      "closure": "API-AI 500 response handling in the archived MIM registry."
+      "status": "covered",
+      "target": "packages/skills/test/q01ApiAiMim.test.js :: Q-01 API-AI status 500 is retained by the client and rejected by the MIM registry"
     },
     {
       "source": "tests/unit/test_mim_registry.py:test_mim_registry_no_entity",
       "sourceFile": "tests/unit/test_mim_registry.py",
       "test": "test_mim_registry_no_entity",
-      "status": "missing",
-      "target": null,
-      "closure": "Entity-free API-AI intent pattern ending in a semicolon."
+      "status": "covered",
+      "target": "packages/skills/test/q01ApiAiMim.test.js :: Q-01 MIM registry builds the entity-free semicolon intent pattern"
     },
     {
       "source": "tests/unit/test_mim_registry.py:test_get_mim_payload",
       "sourceFile": "tests/unit/test_mim_registry.py",
       "test": "test_get_mim_payload",
-      "status": "missing",
-      "target": null,
-      "closure": "Lookup of the legacy doesJiboLikeThing;Object:Dogs MIM payload text."
+      "status": "covered",
+      "target": "packages/skills/test/q01ApiAiMim.test.js :: Q-01 MIM payload lookup returns the pinned Dogs response"
     },
     {
       "source": "tests/unit/test_mim_registry.py:test_get_mim_payload_exception",
       "sourceFile": "tests/unit/test_mim_registry.py",
       "test": "test_get_mim_payload_exception",
-      "status": "missing",
-      "target": null,
-      "closure": "Missing/empty MIM registry key returns None with the archived lookup boundary."
+      "status": "covered",
+      "target": "packages/skills/test/q01ApiAiMim.test.js :: Q-01 MIM payload lookup exposes the source empty-key behavior"
     },
     {
       "source": "tests/unit/test_news.py:test_ap_search_haskid",
@@ -1099,20 +1092,11 @@
     ],
     "apiAi": [
       "tests/unit/test_api_ai.py:test_api_ai_real",
-      "tests/unit/test_api_ai.py:test_api_ai",
-      "tests/unit/test_general.py:test_age_entity_api_ai",
-      "tests/unit/test_mim_registry.py:test_mim_registry",
-      "tests/unit/test_mim_registry.py:test_mim_registry_empty",
-      "tests/unit/test_mim_registry.py:test_mim_registry_api_ai_500",
-      "tests/unit/test_mim_registry.py:test_mim_registry_no_entity"
+      "tests/unit/test_general.py:test_age_entity_api_ai"
     ],
     "scripted": [
       "tests/unit/test_general.py:test_scripted_response",
-      "tests/unit/test_general.py:test_age_entity_api_ai",
-      "tests/unit/test_mim_registry.py:test_mim_registry_empty",
-      "tests/unit/test_mim_registry.py:test_mim_registry_api_ai_500",
-      "tests/unit/test_mim_registry.py:test_get_mim_payload",
-      "tests/unit/test_mim_registry.py:test_get_mim_payload_exception"
+      "tests/unit/test_general.py:test_age_entity_api_ai"
     ],
     "news": [
       "tests/unit/test_news.py:test_ap_search_haskid",
@@ -1200,4 +1184,3 @@
     ]
   }
 }
-
