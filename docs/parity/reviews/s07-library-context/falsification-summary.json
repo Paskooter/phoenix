@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "task": "S-07",
+  "result": "pass",
+  "checks": [
+    {"name": "forged prompt ID fails", "passed": true, "firstFailure": "observable-difference"},
+    {"name": "forged MIM ID fails", "passed": true, "firstFailure": "observable-difference"},
+    {"name": "forged ESML fails", "passed": true, "firstFailure": "observable-difference"},
+    {"name": "forged JCP action fails", "passed": true, "firstFailure": "observable-difference"},
+    {"name": "same row omitted from both receipts fails", "passed": true, "firstFailure": "inventory"},
+    {"name": "swapped overlapping stem categories fails", "passed": true, "firstFailure": "semispecific-matched-order-difference"}
+  ]
+}

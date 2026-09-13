@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "task": "S-07",
+  "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "note": "Raw receipts remain outside Git under /tmp; these hashes and byte sizes identify the exact inputs used by the committed summaries.",
+  "files": [
+    {
+      "label": "plan",
+      "path": "/tmp/s07-library-plan.json",
+      "bytes": 11604379,
+      "sha256": "b803bede71915365400e85930720c55aaeb0b37f866a8a8f58275a319cbfbb09"
+    },
+    {
+      "label": "source",
+      "path": "/tmp/s07-source-library.json",
+      "bytes": 60892684,
+      "sha256": "140d13908db5aaabfca601749350099bf8472d2ed7059f6cba8ddf01d303e2ca"
+    },
+    {
+      "label": "candidate",
+      "path": "/tmp/s07-candidate-library.json",
+      "bytes": 60892664,
+      "sha256": "c6f9dec435fa95e26729f44b9ce555b76fcf74ccd5a8e0331703982fd28f9ae0"
+    },
+    {
+      "label": "differential-summary-input",
+      "path": "/tmp/s07-library-differential-order-audit.json",
+      "bytes": 25687,
+      "sha256": "b2c1e620bdd908ac2f5cd1ef2f7a4295b414b741af7f651ab74f6e0f6a132fe5"
+    },
+    {
+      "label": "falsification-summary-input",
+      "path": "/tmp/s07-library-falsification-order-audit.json",
+      "bytes": 1070,
+      "sha256": "96bf8c406b2df094dc5b830a0528235b74de69b2e8c3cae4b3ba4346881e2b8e"
+    }
+  ]
+}

@@ -97,6 +97,12 @@ analytics. Only the two source-proven generated action ID paths are removed:
 `config.jcp.id` and `config.jcp.config.play.id`; every other `id` remains
 observable and is checked.
 
+The compact durable receipts are [differential-summary.json](./differential-summary.json),
+[falsification-summary.json](./falsification-summary.json), and
+[raw-receipt-manifest.json](./raw-receipt-manifest.json). The manifest records
+the byte sizes and SHA-256 hashes of the raw plan, source, candidate,
+differential, and falsification receipts that remain outside Git.
+
 For 613 rows whose source-defined matching category set had more than one
 member, source and candidate selected the same category for every seeded row:
 
@@ -136,8 +142,9 @@ and `fstat` jobs and appends each path when its stat completes. The source then
 iterates that resulting `Set` to build stem arrays. The candidate preserves the
 same sets and records its synchronous directory order. The comparator therefore
 requires equal mapping sets, exact per-value matching order, and exact row
-outputs; only the seven proven unobservable crossings and the lookup-only CSV
-name order are allowed. A second clean source initializer was not completed:
+outputs. It allows only the seven proven disjoint crossings and the lookup-only
+CSV name order; it has no generic order waiver. A second clean source
+initializer was not completed:
 duplicate mapping-only probes were stopped after their resource cost became
 apparent. The receipt contains one completed source order, and the source
 implementation makes that order an unspecified completion-order detail. No
@@ -179,11 +186,11 @@ client-visible action fields are covered by the passing matrix. Missing/extra
 rows, duplicate IDs, missing MIMs, category-set differences, invalid selected
 categories, prompt/MIM/ESML/action mutations, and paired omissions fail closed.
 
-The remaining limitation is source file-discovery order: one completed source
-receipt is available and the source code makes raw completion order dependent;
-no claim of cross-process raw order stability is made. The observable
-per-value order proof is exhaustive for the 24,148-row plan. Fifteen CSV
-categories are also unreachable through any source stem and are
+The remaining task-level limitation is prompt coverage: this lane does not
+enumerate every weighted prompt branch in every source MIM; it exercises one
+fixed seeded stream per planned row and all requested context dimensions.
+S-07 therefore remains open for the broader weighted-prompt closure. Fifteen
+CSV categories are also unreachable through any source stem and are
 inventory-checked rather than pretended to have a resolver path. No Phoenix
 production code repair is needed from this audit. The isolated branch
 currently contains only the reproducible S-07 harness and this review

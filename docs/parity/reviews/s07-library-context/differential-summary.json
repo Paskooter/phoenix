@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "task": "S-07",
+  "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "result": "pass",
+  "planCases": 24148,
+  "sourceRows": 24148,
+  "candidateRows": 24148,
+  "failures": 0,
+  "sourceErrors": 0,
+  "candidateErrors": 0,
+  "rowObservableDifferences": 0,
+  "generatedActionIdPaths": [
+    "config.jcp.id",
+    "config.jcp.config.play.id"
+  ],
+  "overlapDistribution": {
+    "rows": 613,
+    "invalidSelections": 0,
+    "outputDifferences": 0,
+    "byStemRows": {
+      "OI_USR_Likes_SS": 73,
+      "OI_USR_TravelsTo_SS": 4,
+      "RI_JBO_HasOpinionAbout_SS": 76,
+      "RI_JBO_Likes_SS": 416,
+      "RI_JBO_Wants_SS": 44
+    }
+  },
+  "mappingOrderProof": {
+    "stemCount": 34,
+    "crossedCategoryPairs": 7,
+    "observableCrossedPairs": 0,
+    "matchedValueOrderDifferences": 0,
+    "crossings": [
+      ["RI_JBO_HasOpinionAbout_SS", "Fruit", "FoodGeneral", 0],
+      ["RI_JBO_Is_SS", "Zodiac", "Sealife", 0],
+      ["RI_JBO_Likes_SS", "Drink", "Dinosaur", 0],
+      ["RI_JBO_Likes_SS", "HairType", "Fruit", 0],
+      ["RI_JBO_Likes_SS", "ScaryCreature", "RoomInHouse", 0],
+      ["RI_JBO_Likes_SS", "SchoolSubject", "RoomInHouse", 0],
+      ["RI_JBO_Likes_SS", "Seafood", "RoomInHouse", 0]
+    ],
+    "categoryCsvOrderDifference": true
+  },
+  "allowedDifferences": 4
+}
