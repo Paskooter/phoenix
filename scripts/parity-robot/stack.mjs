@@ -24,16 +24,20 @@ Object.assign(process.env, {
 });
 let traceBytes = 0;
 let capturedAudioBytes = 0;
+let fixtureRuntime = null;
+let fixtureMetadata = null;
 const captureAudio = process.env.PHOENIX_ROBOT_CAPTURE_AUDIO === 'true';
 const maxCapturedAudioBytes = 8 * 1024 * 1024;
 const tracePath = resolve(runDir, `wire-${Date.now()}.jsonl`);
 function record(event) {
-  const line = JSON.stringify({ at: new Date().toISOString(), ...event }) + '\n';
+  const fixture = fixtureMetadata ? { ...fixtureMetadata } : undefined;
+  const line = JSON.stringify({ at: new Date().toISOString(), ...event, ...(fixture ? { fixture } : {}) }) + '\n';
   traceBytes += Buffer.byteLength(line);
   if (traceBytes > 64 * 1024 * 1024) throw new Error('Robot wire capture exceeded 64 MiB; start a reviewed new run');
   appendFileSync(tracePath, line, { mode: 0o600 });
 }
 const services = [];
+let restoreFixtureSettings = () => {};
 try {
   if (process.env.PHOENIX_ROBOT_AUDIO_METRICS === 'true') {
     const { ParakeetASRSession } = await import('../../packages/gateway/src/asr/parakeetSession.js');
@@ -80,9 +84,27 @@ try {
   const skills = await import('../../packages/skills/src/index.js');
   const gateway = await import('../../packages/gateway/src/index.js');
   const { loadConfig } = await import('../../packages/gateway/src/config.js');
+  const fixturePath = process.env.PHOENIX_ROBOT_S13_FIXTURE_FILE || process.env.PHOENIX_ROBOT_FIXTURE_FILE;
+  let fixtureDataOptions;
+  if (fixturePath) {
+    const { createS13FixtureRuntime } = await import('./s13-fixture.mjs');
+    fixtureRuntime = createS13FixtureRuntime({
+      filePath: fixturePath,
+      expectedFileSha256: process.env.PHOENIX_ROBOT_S13_FIXTURE_SHA256 || process.env.PHOENIX_ROBOT_FIXTURE_SHA256,
+      expectedCasesSha256: process.env.PHOENIX_ROBOT_S13_FIXTURE_CASES_SHA256 || process.env.PHOENIX_ROBOT_FIXTURE_CASES_SHA256,
+      onRead: (metadata) => { fixtureMetadata = { ...metadata }; },
+      onProvider: (provider) => record({ kind: 'fixture-provider', ...provider }),
+    });
+    // Validate before opening any listener. A malformed, tampered, or
+    // ambiguous fixture must never leave a partially live diagnostic stack.
+    fixtureRuntime.read();
+    const { SettingsClient } = await import('../../packages/skills/src/report/settingsClient.js');
+    restoreFixtureSettings = fixtureRuntime.installSettingsClient(SettingsClient);
+    fixtureDataOptions = fixtureRuntime.dataOptions();
+  }
   services.push(await nlu.start(base + 5));
   services.push(await history.start(base + 6));
-  services.push(await data.start(base + 7));
+  services.push(await data.start(base + 7, fixtureDataOptions));
   services.push(await skills.start(base + 3));
   const config = await loadConfig();
   // Initial transport-only profile, explicitly not authentication acceptance.
@@ -133,6 +155,7 @@ try {
     profile: { authentication: config.disableAuth ? 'disabled: transport-only trial' : 'enabled', nluLlm: false, answerLlm: false,
       asr: 'parakeet', asrUrl: process.env.ETCO_server_parakeetUrl || process.env.PARAKEET_URL || 'http://192.168.1.252:6972' },
     tracePath,
+    ...(fixtureRuntime ? { fixture: fixtureRuntime.metadata() } : {}),
     audioCapture: { enabled: captureAudio, maxTotalBytes: maxCapturedAudioBytes, maxConnectionBytes: 2 * 1024 * 1024 },
     audioMetrics: process.env.PHOENIX_ROBOT_AUDIO_METRICS === 'true',
   };
@@ -140,11 +163,13 @@ try {
   console.log(JSON.stringify({ ready: true, ...receipt }));
   for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => {
     record({ kind: 'shutdown', signal });
+    restoreFixtureSettings();
     for (const ws of gw.wss.clients) ws.close();
     for (const service of services) (service?.server || service)?.close?.();
     setTimeout(() => process.exit(0), 1000).unref();
   });
 } catch (error) {
+  restoreFixtureSettings();
   console.error(error);
   for (const service of services) (service?.server || service)?.close?.();
   process.exit(1);

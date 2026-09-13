@@ -89,7 +89,7 @@ function sendEmptyOk(res) {
  *   name: string, ttlSeconds: number, cache: import('./cache.js').TTLCache,
  *   validate: (q: URLSearchParams) => any,    // throws on bad input (-> 400)
  *   key: (input: any) => string,
- *   fetchExternal: (input: any, log: any) => Promise<any>,  // returns relayData (or throws)
+ *   fetchExternal: (input: any, log: any, req?: any) => Promise<any>,  // returns relayData (or throws)
  * }} opts
  * @returns {(ctx: any) => Promise<void>} a service route handler
  */
@@ -121,7 +121,7 @@ export function createRelay({ name, ttlSeconds, cache, validate, key, fetchExter
 
       let relayData;
       try {
-        relayData = await fetchExternal(input, log);
+        relayData = await fetchExternal(input, log, req);
       } catch (e) {
         if (!isHead && !res.writableEnded) {
           const ce = fetchError(name, e);

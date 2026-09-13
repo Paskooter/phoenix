@@ -84,7 +84,8 @@ function calendarUpstreamProvider(serviceName) {
 }
 
 /**
- * @param {{ cache?: TTLCache, weatherGet?: Function, newsGet?: Function, mapsGet?: Function,
+ * @param {{ cache?: TTLCache, calendarCache?: TTLCache, weatherGet?: Function, newsGet?: Function, mapsGet?: Function,
+ *           weatherProvider?: Function, newsProvider?: Function, mapsProvider?: Function,
  *           credentialStore?: CredentialStore, googleCalendarProvider?: Function,
  *           outlookCalendarProvider?: Function, oauth?: object, oauthSecretsDir?: string,
  *           newsPolling?: { enabled?: boolean, intervalMS?: number } }} [opts]
@@ -97,7 +98,7 @@ function calendarUpstreamProvider(serviceName) {
  *   newsPolling mirrors the source APNewsConfig (LassoService.ts:28-32); when it is
  *   omitted the ETCO_lasso_apNews* environment wins, and polling stays off by default.
  */
-export function createDataService({ cache = new TTLCache(), weatherGet, newsGet, mapsGet, credentialStore, oauth, oauthSecretsDir, googleCalendarProvider, outlookCalendarProvider, newsPolling } = {}) {
+export function createDataService({ cache = new TTLCache(), calendarCache, weatherGet, newsGet, mapsGet, weatherProvider, newsProvider, mapsProvider, credentialStore, oauth, oauthSecretsDir, googleCalendarProvider, outlookCalendarProvider, newsPolling } = {}) {
   const oauthProvider = oauth || oauthFromEnv(oauthSecretsDir) || null;
   const store = credentialStore || new CredentialStore({ oauth: oauthProvider });
   if (oauthProvider) store.oauth = oauthProvider;
@@ -107,7 +108,7 @@ export function createDataService({ cache = new TTLCache(), weatherGet, newsGet,
     cache,
     validate: validateWeather,
     key: weatherKey,
-    fetchExternal: (input) => fetchWeather(input, weatherGet ? { get: weatherGet } : {}),
+    fetchExternal: (input, log, req) => weatherProvider ? weatherProvider(input, { log, req }) : fetchWeather(input, weatherGet ? { get: weatherGet } : {}),
   });
   const news = createRelay({
     name: 'APNews',
@@ -115,7 +116,7 @@ export function createDataService({ cache = new TTLCache(), weatherGet, newsGet,
     cache,
     validate: validateNews,
     key: newsKey,
-    fetchExternal: (input) => fetchNews(input, newsGet ? { get: newsGet } : {}),
+    fetchExternal: (input, log, req) => newsProvider ? newsProvider(input, { log, req }) : fetchNews(input, newsGet ? { get: newsGet } : {}),
   });
   const maps = createRelay({
     name: 'GoogleMaps',
@@ -123,11 +124,12 @@ export function createDataService({ cache = new TTLCache(), weatherGet, newsGet,
     cache,
     validate: validateMaps,
     key: mapsKey,
-    fetchExternal: (input) => fetchMaps(input, mapsGet ? { get: mapsGet } : {}),
+    fetchExternal: (input, log, req) => mapsProvider ? mapsProvider(input, { log, req }) : fetchMaps(input, mapsGet ? { get: mapsGet } : {}),
   });
 
-  const googleCal = createCalendarHandler({ provider: googleCalendarProvider ?? calendarUpstreamProvider('google') ?? calendarFixtureProvider('google'), store, oauth: oauthProvider, serviceName: 'google', label: 'GoogleCalendar' });
-  const outlookCal = createCalendarHandler({ provider: outlookCalendarProvider ?? calendarUpstreamProvider('outlook') ?? calendarFixtureProvider('outlook'), store, oauth: oauthProvider, serviceName: 'outlook', label: 'OutlookCalendar' });
+  const calendarCacheOption = calendarCache === undefined ? {} : { cache: calendarCache };
+  const googleCal = createCalendarHandler({ provider: googleCalendarProvider ?? calendarUpstreamProvider('google') ?? calendarFixtureProvider('google'), ...calendarCacheOption, store, oauth: oauthProvider, serviceName: 'google', label: 'GoogleCalendar' });
+  const outlookCal = createCalendarHandler({ provider: outlookCalendarProvider ?? calendarUpstreamProvider('outlook') ?? calendarFixtureProvider('outlook'), ...calendarCacheOption, store, oauth: oauthProvider, serviceName: 'outlook', label: 'OutlookCalendar' });
   // LassoService.ts:86-95 — a new credential notifies the calendar handlers, which
   // drop the cached payload for that (skillId, accountId, calendar) key.
   const cred = credentialHandlers(store, {

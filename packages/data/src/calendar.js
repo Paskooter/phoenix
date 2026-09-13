@@ -503,7 +503,7 @@ export function createCalendarHandler({ provider = defaultProvider, store, servi
       const upstreamQuery = buildUpstreamQuery(serviceName, { endDate: input.endDate });
       let raw;
       try {
-        raw = await provider(input, { store, credential, upstreamQuery });
+        raw = await provider(input, { store, credential, upstreamQuery, req });
       } catch (err) {
         if (credential && err && typeof err.message === 'string') {
           if (isOutlook && /InvalidAuthenticationToken/.test(err.message)) {
