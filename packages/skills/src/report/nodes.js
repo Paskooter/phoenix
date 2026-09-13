@@ -213,7 +213,7 @@ export class ParseDataNode extends DefaultNode {
     if (!result) return { transition: DefaultTransition.Done };
 
     if (result.weather) {
-      try { data.local.weather = weather.weatherParse(result.weather, data.local.userPrefs); }
+      try { data.local.weather = await weather.weatherParse(result.weather, data.local.userPrefs); }
       catch (err) { log?.error?.('Error parsing weather:', { error: err.message }); }
     }
     if (result.calendar) {

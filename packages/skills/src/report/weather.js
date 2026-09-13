@@ -51,7 +51,10 @@ export async function getData(userPrefs, data) {
 
 // --- WeatherParse ------------------------------------------------------------
 
-export function weatherParse(responseData, prefs) {
+// The source WeatherParse is async because it loads the prompt JSON through
+// the async getJSON helper. Keep that contract even though Phoenix's local
+// resource reader is synchronous today; callers must await the parser.
+export async function weatherParse(responseData, prefs) {
   if (!responseData) return undefined;
   const [yesterData, todayData] = responseData;
   if (!todayData) return undefined;
@@ -62,7 +65,7 @@ export function weatherParse(responseData, prefs) {
   const tomorrow = parseDarkSkyDaily(todayData, 1, useCelsius);
   const current = parseDarkSkyCurrent(todayData, useCelsius);
 
-  const promptText = getJSON('report-mimPromptText');
+  const promptText = await getJSON('report-mimPromptText');
   const prefix = randFromArray(promptText.weather.prefix) || 'It looks like';
 
   return { yest, today, tomorrow, current, prefix, useCelsius, onlyWeatherActive: onlyActiveSubskill(Names.weather, prefs) };
@@ -77,7 +80,9 @@ function parseDarkSkyDaily(response, daysFromToday, useCelsius = false) {
     highTemp: useCelsius ? fToCelsius(temperatureHigh) : Math.round(temperatureHigh),
     lowTemp: useCelsius ? fToCelsius(temperatureLow) : Math.round(temperatureLow),
     icon,
-    summary: summary != null ? sanitizeSummary(summary) : summary,
+    // Preserve the source's direct sanitizer call. Missing or non-string
+    // summaries therefore reject WeatherParse rather than being coerced.
+    summary: sanitizeSummary(summary),
   };
 }
 
@@ -87,13 +92,15 @@ function parseDarkSkyCurrent(response, useCelsius = false) {
   return {
     temp: useCelsius ? fToCelsius(temperature) : Math.round(temperature),
     icon,
-    summary: summary != null ? sanitizeSummary(summary) : '',
+    // Preserve the source's direct sanitizer call. Missing or non-string
+    // summaries therefore reject WeatherParse rather than being coerced.
+    summary: sanitizeSummary(summary),
   };
 }
 
 /** '<' -> 'less than', '5 in.' -> '5 inches' etc, for TTS. */
 export function sanitizeSummary(summary) {
-  return String(summary)
+  return summary
     .replace(/</g, 'less than')
     .replace(/>/g, 'more than')
     .replace(/(\d+)\s?(in\.|ft\.)/g, (match, group1, group2) => {
