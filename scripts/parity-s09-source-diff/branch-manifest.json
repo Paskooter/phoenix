@@ -55,7 +55,9 @@
   },
   "observableContract": [
     "WeatherParse output and null/undefined branch shapes",
+    "asynchronous WeatherParse resolution and rejection propagation (a rejected promise fails the side receipt)",
     "ordered Weather MIM selection and day/evening selection",
+    "fixed-offset ISO time selection at the source test's noon and 6PM boundaries",
     "condition and temperature change tables",
     "wet-now-dry-later and day/night icon correction",
     "weather high/low view JSON, assets, units, thresholds, and x offsets"
