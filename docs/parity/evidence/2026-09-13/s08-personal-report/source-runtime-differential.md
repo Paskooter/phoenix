@@ -2,6 +2,8 @@
 
 This receipt is the source-executable follow-up to the bounded S-08 review.
 It was produced on branch `w18/s08` from Phoenix base `16c829075358d86a67bbfa0f5488193321c81614`.
+The candidate receipt was regenerated at implementation commit
+`7935fe6`; the evidence-only refresh commit follows it.
 The authoritative Pegasus source is `jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c`,
 run in `node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c`
 (`v8.9.4`). Phoenix ran in host Node `v22.22.0`.
