@@ -95,12 +95,12 @@ reported `rows=50 semanticMatches=49 promptMatches=49 unexpectedDifferences=1`.
 The exact guard was restored with `apply_patch`; the focused test and the
 50-row differential are green again.
 
-The comparator also has a coverage falsification. A temporary copy of the
-candidate receipt with its final graph row removed exits nonzero and reports
-both `candidate.graph cardinality 38 does not equal spec cardinality 39` and
-the missing descriptor ID. The focused self-check
-`s08Comparator.test.js` repeats this control; the comparator cannot pass when
-both sides omit a row.
+The comparator also has a coverage falsification. Temporary copies of both
+receipts with the same final graph descriptor removed exit nonzero and report
+the source and candidate cardinality 38 versus spec cardinality 39, plus the
+missing descriptor ID on both sides. The focused self-check
+`s08Comparator.test.js` repeats this exact control, which falsifies the old
+`undefined === undefined` blind spot when both receipts omit a row.
 
 Validation completed on the final worktree:
 
