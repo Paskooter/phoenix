@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  chmodSync,
   mkdtempSync,
   readFileSync,
   readdirSync,
@@ -108,6 +109,78 @@ test('file attribution rejects corruption without rewriting the destination', (t
     () => createGqaFileAttributionStore({ file, clock: () => NOW }),
     /GQA attribution store has invalid records/,
   );
+});
+
+test('file attribution requires the known snapshot version and records array', (t) => {
+  const cases = [
+    {
+      snapshot: { records: [] },
+      error: /GQA attribution store has an unsupported or missing version/,
+    },
+    {
+      snapshot: { version: 2, records: [] },
+      error: /GQA attribution store has an unsupported or missing version/,
+    },
+    {
+      snapshot: { version: 1 },
+      error: /GQA attribution store has invalid records.*missing/,
+    },
+    {
+      snapshot: { version: 1, records: {} },
+      error: /GQA attribution store has invalid records.*not an array/,
+    },
+  ];
+  for (const { snapshot, error } of cases) {
+    const file = tempFile(t);
+    writeFileSync(file, `${JSON.stringify(snapshot)}\n`);
+    assert.throws(
+      () => createGqaFileAttributionStore({ file, clock: () => NOW }),
+      error,
+    );
+  }
+});
+
+test('file attribution rejects records missing any source field', (t) => {
+  const fields = ['service', 'query', 'url', 'image_url', 'loop_id', 'timestamp'];
+  for (const missing of fields) {
+    const file = tempFile(t);
+    const record = {
+      service: 'Bing',
+      query: 'A fixture answer.',
+      url: 'https://fixture.invalid/a',
+      image_url: null,
+      loop_id: 'loop-1',
+      timestamp: NOW,
+    };
+    delete record[missing];
+    writeFileSync(file, JSON.stringify({ version: 1, records: [record] }));
+    assert.throws(
+      () => createGqaFileAttributionStore({ file, clock: () => NOW }),
+      new RegExp(`GQA attribution store record is missing '${missing}'`),
+    );
+  }
+});
+
+test('file attribution hardens an existing file without changing its parent mode', (t) => {
+  const file = tempFile(t);
+  writeFileSync(file, JSON.stringify({ version: 1, records: [] }), { mode: 0o644 });
+  chmodSync(file, 0o644);
+  const parent = dirname(file);
+  const parentMode = statSync(parent).mode & 0o777;
+  const chmodCalls = [];
+  createGqaFileAttributionStore({
+    file,
+    clock: () => NOW,
+    persistence: {
+      chmod(path, mode) {
+        chmodCalls.push({ path, mode });
+        chmodSync(path, mode);
+      },
+    },
+  });
+  assert.deepEqual(chmodCalls, [{ path: file, mode: 0o600 }]);
+  assert.equal(statSync(file).mode & 0o777, 0o600);
+  assert.equal(statSync(parent).mode & 0o777, parentMode);
 });
 
 test('file attribution rolls back a failed write and leaves no partial snapshot', async (t) => {

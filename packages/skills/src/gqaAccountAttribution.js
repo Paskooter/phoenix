@@ -39,6 +39,16 @@ export const GQA_ATTRIBUTE_INDEX = Object.freeze({
 // path so a process restart can recover the same local attribution history.
 export const GQA_ATTRIBUTE_DEFAULT_FILE = join(tmpdir(), 'phoenix-gqa-attribution.json');
 
+const GQA_ATTRIBUTE_FILE_VERSION = 1;
+const GQA_ATTRIBUTE_RECORD_FIELDS = Object.freeze([
+  'service',
+  'query',
+  'url',
+  'image_url',
+  'loop_id',
+  'timestamp',
+]);
+
 const DEFAULT_FILE_PERSISTENCE = Object.freeze({
   chmod: chmodSync,
   exists: existsSync,
@@ -389,7 +399,9 @@ function attributionSnapshot(records) {
  * a private temporary file and then atomically replaces the destination. The
  * public methods intentionally have the same async insert/search/wipe shape as
  * the Mongo adapter, so callers do not need to know which persistence seam is
- * selected.
+ * selected. A file path has single-writer deployment semantics: separate
+ * processes must not mutate the same path concurrently because an atomic
+ * replace cannot merge snapshots from independently loaded store instances.
  */
 export class GqaFileAttributionStore {
   constructor(
@@ -412,6 +424,10 @@ export class GqaFileAttributionStore {
     if (!this.persistence.exists(this.file)) return;
     let raw;
     try {
+      // Existing files may predate the private-file guarantee. Only the file
+      // itself is hardened here; its parent may be a shared directory such as
+      // /tmp and must retain its own permissions.
+      this.persistence.chmod(this.file, 0o600);
       raw = JSON.parse(this.persistence.readFile(this.file, 'utf8'));
     } catch (error) {
       throw new Error(`GQA attribution store unreadable (${this.file}): ${error.message}`);
@@ -419,12 +435,21 @@ export class GqaFileAttributionStore {
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
       throw new Error(`GQA attribution store has an invalid root (${this.file})`);
     }
-    if (raw.records !== undefined && !Array.isArray(raw.records)) {
-      throw new Error(`GQA attribution store has invalid records (${this.file})`);
+    if (!Object.prototype.hasOwnProperty.call(raw, 'version')
+      || raw.version !== GQA_ATTRIBUTE_FILE_VERSION) {
+      throw new Error(`GQA attribution store has an unsupported or missing version (${this.file})`);
     }
-    for (const record of raw.records || []) {
+    if (!Object.prototype.hasOwnProperty.call(raw, 'records') || !Array.isArray(raw.records)) {
+      throw new Error(`GQA attribution store has invalid records (missing or not an array) (${this.file})`);
+    }
+    for (const record of raw.records) {
       if (!record || typeof record !== 'object' || Array.isArray(record)) {
         throw new Error(`GQA attribution store has an invalid record (${this.file})`);
+      }
+      for (const field of GQA_ATTRIBUTE_RECORD_FIELDS) {
+        if (!Object.prototype.hasOwnProperty.call(record, field)) {
+          throw new Error(`GQA attribution store record is missing '${field}' (${this.file})`);
+        }
       }
       if (typeof record.timestamp !== 'number' || !Number.isFinite(record.timestamp)) {
         throw new Error(`GQA attribution store has an invalid record timestamp (${this.file})`);
@@ -459,7 +484,7 @@ export class GqaFileAttributionStore {
     let renamed = false;
     try {
       const output = {
-        version: 1,
+        version: GQA_ATTRIBUTE_FILE_VERSION,
         records: this._snapshot(),
       };
       const serialized = `${JSON.stringify(output, null, 2)}\n`;
