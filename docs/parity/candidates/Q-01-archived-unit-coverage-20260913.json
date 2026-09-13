@@ -61,12 +61,13 @@
     "Live integration inputs and live provider assertions without output goldens remain partial or missing even when a local adapter seam exists.",
     "Wikipedia decision-matrix rows use injected page JSON and source-derived summaries; they cover deterministic gate/title/normalization decisions and do not claim current/live article output.",
     "The three archived Wikipedia named-case rows use the immutable mocked_wikipedia summaries or constructor error from tests/unit/test_pegasus.py and tests/unit/test_wikipedia.py; the provider is reached through a question-shaped wrapper that preserves each source strict query, and no current/live article body is claimed.",
-    "The blocked-dictionary row pins all 344 archived output words and replays them against the matcher; it remains partial until the full word-list/words.txt corpus is available through the allowed source surface."
+    "The blocked-dictionary row pins all 344 archived output words and replays them against the matcher; it remains partial until the full word-list/words.txt corpus is available through the allowed source surface.",
+    "The integrated /structQA candidate covers the archived no-input and absent/wrong Intent envelopes; the Bing Cortana row is partial because its deterministic Entities carousel decode is covered while its live roster text/order has no immutable golden."
   ],
   "counts": {
-    "covered": 86,
-    "partial": 42,
-    "missing": 4,
+    "covered": 89,
+    "partial": 43,
+    "missing": 0,
     "skipped": 1,
     "supporting": 2,
     "excluded": 1
@@ -260,9 +261,9 @@
       "source": "tests/unit/test_bing.py:test_bing_cortana",
       "sourceFile": "tests/unit/test_bing.py",
       "test": "test_bing_cortana",
-      "status": "missing",
-      "target": null,
-      "closure": "Live Bing entity-carousel/Cortana response ordering and the archived roster text need a pinned provider body or an authorized live replay."
+      "status": "partial",
+      "target": "packages/skills/test/q01BingProvider.test.js :: Q-01 Bing projects source image locations for Entities and SportsTeam",
+      "closure": "The deterministic Entities/Cortana carousel decode, spoken payload, URL and image projection are executable; the archived live Red Sox roster text/order is an unstable vendor result with no immutable provider golden."
     },
     {
       "source": "tests/unit/test_bing.py:test_bing_no_answer",
@@ -445,9 +446,9 @@
       "source": "tests/unit/test_general.py:test_no_input",
       "sourceFile": "tests/unit/test_general.py",
       "test": "test_no_input",
-      "status": "missing",
-      "target": null,
-      "closure": "Legacy /structQA resolves credentials/account and requires a truthy loop_id before checking Input; the exact 200 no-Input response and route envelope remain unverified until the structQA candidate lands."
+      "status": "covered",
+      "target": "packages/skills/test/q01StructQa.test.js :: Q-01 /structQA source route inventories GQA, News, Scripted, and unknown intent branches",
+      "closure": null
     },
     {
       "source": "tests/unit/test_general.py:test_pii_filter",
@@ -461,17 +462,17 @@
       "source": "tests/unit/test_general.py:test_no_skill_intent",
       "sourceFile": "tests/unit/test_general.py",
       "test": "test_no_skill_intent",
-      "status": "missing",
-      "target": null,
-      "closure": "Legacy /structQA unknown Intent None response: exact message \"Unknown Intent 'None'\" and success false."
+      "status": "covered",
+      "target": "packages/skills/test/q01StructQa.test.js :: Q-01 /structQA source route inventories GQA, News, Scripted, and unknown intent branches",
+      "closure": null
     },
     {
       "source": "tests/unit/test_general.py:test_wrong_skill_intent",
       "sourceFile": "tests/unit/test_general.py",
       "test": "test_wrong_skill_intent",
-      "status": "missing",
-      "target": null,
-      "closure": "Legacy /structQA unknown Intent WOW response: exact message \"Unknown Intent 'WOW'\" and success false."
+      "status": "covered",
+      "target": "packages/skills/test/q01StructQa.test.js :: Q-01 malformed successful provider shape is a source HTTP 500, while unknown intent is HTTP 200",
+      "closure": null
     },
     {
       "source": "tests/unit/test_general.py:test_ap_news",

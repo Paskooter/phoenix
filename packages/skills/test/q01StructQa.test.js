@@ -504,6 +504,48 @@ test('Q-01 HTTP framing preserves malformed JSON 400 and x-amz credential parse 
   }
 });
 
+test('Q-01 /structQA HTTP route preserves archived no-input and absent-intent envelopes', async () => {
+  const service = createStructQaService({ clock: () => NOW, accountLookup: async () => 'loop-1' });
+  const server = await service.listen(0);
+  try {
+    const post = async (body) => {
+      const response = await fetch(`http://127.0.0.1:${server.address().port}/structQA`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', ...credentials() },
+        body: JSON.stringify(body),
+      });
+      return {
+        status: response.status,
+        contentType: response.headers.get('content-type'),
+        text: await response.text(),
+      };
+    };
+
+    const noInput = await post({ Intent: 'GQA' });
+    assert.equal(noInput.status, 200);
+    assert.equal(noInput.contentType, 'text/html; charset=utf-8');
+    assert.deepEqual(JSON.parse(noInput.text), {
+      timestamps: { receive_request: NOW, return_response: NOW },
+      message: 'No Input field supplied in query',
+      version: '5.2.15',
+      success: false,
+    });
+
+    const noIntent = await post({ Input: 'test test' });
+    assert.equal(noIntent.status, 200);
+    assert.equal(noIntent.contentType, 'text/html; charset=utf-8');
+    assert.deepEqual(JSON.parse(noIntent.text), {
+      timestamps: { receive_request: NOW, return_response: NOW },
+      input: 'test test',
+      message: "Unknown Intent 'None'",
+      version: '5.2.15',
+      success: false,
+    });
+  } finally {
+    await closeServer(server);
+  }
+});
+
 test('Q-01 500 mode mirrors Python env comparison and supports an explicit production envelope', async () => {
   assert.equal(structQaErrorModeFromEnv({ ETCO_gqa_production: '1' }), 'debug');
   assert.equal(structQaErrorModeFromEnv({ ETCO_gqa_production: 1 }), 'production');
