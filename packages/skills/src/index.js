@@ -143,6 +143,19 @@ export {
   STRUCTQA_SOURCE_VERSION,
 } from './gqaStructQaService.js';
 export {
+  createGqaApiAiClient,
+  createApiAiClient,
+  GQA_API_AI_ENDPOINT,
+  GQA_API_AI_SOURCE_MODULE,
+  GQA_API_AI_SOURCE_REVISION,
+} from './gqaApiAi.js';
+export {
+  createGqaMimRegistry,
+  buildLookupPattern,
+  GQA_MIM_REGISTRY_SOURCE_MODULE,
+  GQA_MIM_REGISTRY_SOURCE_REVISION,
+} from './gqaMimRegistry.js';
+export {
   createGqaAccountLookup,
   createGqaAttributionStore,
   createGqaMemoryAttributionStore,

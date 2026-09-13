@@ -9,6 +9,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createGqaApiAiClient, GQA_API_AI_ENDPOINT } from '../src/gqaApiAi.js';
 import { createGqaMimRegistry } from '../src/gqaMimRegistry.js';
+import { createStructQaHandler } from '../src/gqaStructQaService.js';
 
 const fixture = JSON.parse(readFileSync(new URL('./fixtures/q01-api-ai-mim.json', import.meta.url), 'utf8'));
 
@@ -147,4 +148,33 @@ test('Q-01 MIM registry rejects duplicate patterns and mismatched entity vectors
     },
     payloads: {},
   }), /Different length/);
+});
+
+test('Q-01 /structQA Scripted composes the archived API-AI and MIM registry seams', async () => {
+  const apiAi = createGqaApiAiClient({
+    apiKey: fixture.apiAi.apiKey,
+    request: async () => responseJson(fixture.apiAi.successResponse),
+  });
+  const handler = createStructQaHandler({
+    clock: () => 1700000000000,
+    accountLookup: async () => 'loop-1',
+    apiAi,
+    registry: registry(),
+  });
+  const result = await handler({ Intent: 'Scripted', Input: 'do you like dog?' }, {
+    req: {
+      headers: { 'x-amz-credentials': JSON.stringify({ id: 'account-1' }) },
+      socket: { remoteAddress: '192.0.2.10' },
+    },
+  });
+  assert.equal(result.success, true);
+  assert.equal(result.source, 'Scripted Response');
+  assert.equal(result.response.type, 'mim');
+  assert.equal(result.response.payload.prompts[0].prompt_id, 'OI_JBO_LikesDogs_AN_01');
+  assert.deepEqual(result.timestamps, {
+    receive_request: 1700000000000,
+    api_ai_request: 1700000000000,
+    api_ai_response: 1700000000000,
+    return_response: 1700000000000,
+  });
 });
