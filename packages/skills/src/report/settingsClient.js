@@ -19,7 +19,9 @@ const SETTINGS_ACCEPT = 'application/json, text/plain, */*';
 const SETTINGS_USER_AGENT = 'axios/0.17.1';
 const MAX_SETTINGS_REDIRECTS = 21;
 
-const CommuteModeNames = ['driving', 'walking', 'bicycling', 'transit'];
+// This order is the numeric value order of the source personalreport.googlemaps.CommuteMode
+// enum: driving, transit, bicycling, walking.
+const CommuteModeNames = ['driving', 'transit', 'bicycling', 'walking'];
 
 export class SettingsClient {
   static async getUserPrefs(data, looperID) {

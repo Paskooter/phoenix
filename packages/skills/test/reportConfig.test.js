@@ -236,6 +236,14 @@ test('SettingsClient uses only req.jibo.transID and warns when it is absent', as
   });
 });
 
+test('SettingsClient preserves the source CommuteMode enum order', () => {
+  const modes = ['driving', 'transit', 'bicycling', 'walking'];
+  for (const [value, mode] of modes.entries()) {
+    const prefs = SettingsClient.convertSettingsToPrefs({ commuteType: { value } });
+    assert.equal(prefs.commute.mode, mode, `commuteType ${value}`);
+  }
+});
+
 test('SettingsClient follows source redirects and decodes compressed responses', async () => {
   await withEnv({ prefsFromConfig: 'false' }, async () => {
     const requests = [];
