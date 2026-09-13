@@ -16,7 +16,11 @@ import {
 const FIXED_NOW = 1_700_000_000_000;
 const FIRST_GROUP_TIMEOUT = 25;
 const WOLFRAM_GROUP_TIMEOUT = 160;
-const BOTH_USEFUL_GROUP_TIMEOUT = 80;
+const BOTH_USEFUL_GROUP_TIMEOUT = 1_000;
+const LATE_FIRST_GROUP_TIMEOUT = 250;
+const LATE_WOLFRAM_GROUP_TIMEOUT = 1_200;
+const LATE_BING_DELAY = 500;
+const LATE_WOLFRAM_DELAY = 800;
 
 const REQUEST = {
   type: 'LISTEN_LAUNCH',
@@ -469,17 +473,35 @@ test('Q-01 composite provider replay enforces Bing priority, Wikipedia fallback,
       );
     }
 
+    const lateAttemptStart = state.sequence;
     state.mode = 'late-bing';
-    state.delays.Bing = 55;
-    state.delays['Wolfram Alpha'] = 90;
+    state.delays.Bing = LATE_BING_DELAY;
+    state.delays['Wolfram Alpha'] = LATE_WOLFRAM_DELAY;
     result = await post(baseUrl, '/answer_skill/v1/main', REQUEST);
     assert.equal(result.response.status, 200);
     assertSourceAnswer(result.body, {
       source: 'Bing', text: 'The Bing source answer.', category: 'facts', sourceTiming: 'bing',
     });
     assertProviderRequests(peers, { bing: 4, wikipedia: 4, wolfram: 2 });
-    assert.ok(result.body.timings.total >= FIRST_GROUP_TIMEOUT, 'late answer must cross the first group deadline');
-  }, { mode: 'bing-success' });
+    const lateWolframRequest = peers.wolfram.requests[1].sequence;
+    const lateBingResponse = state.events.find((event) => (
+      event.kind === 'Bing'
+      && event.phase === 'response'
+      && event.sequence > lateAttemptStart
+    ));
+    assert.ok(lateBingResponse, 'late Bing must complete with a source response');
+    assert.ok(
+      lateBingResponse.sequence > lateWolframRequest,
+      'late Bing must remain eligible after Wolfram has started',
+    );
+    assert.ok(
+      result.body.timings.total >= LATE_FIRST_GROUP_TIMEOUT,
+      'late answer must cross the first group deadline',
+    );
+  }, {
+    mode: 'bing-success',
+    timeouts: [LATE_FIRST_GROUP_TIMEOUT, LATE_WOLFRAM_GROUP_TIMEOUT],
+  });
 });
 
 test('Q-01 composite both-useful first-group replay keeps Bing priority after Wikipedia resolves first', async () => {
@@ -517,7 +539,7 @@ test('Q-01 composite both-useful first-group replay keeps Bing priority after Wi
     assert.equal(peers.wolfram.requests.length, 0, 'both useful first-group answers must avoid Wolfram fallback');
   }, {
     mode: 'both-useful-wiki-first',
-    delays: { Wikipedia: 5, Bing: 20 },
+    delays: { Wikipedia: 50, Bing: 200 },
     timeouts: [BOTH_USEFUL_GROUP_TIMEOUT, WOLFRAM_GROUP_TIMEOUT],
   });
 });

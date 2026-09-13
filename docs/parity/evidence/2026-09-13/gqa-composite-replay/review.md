@@ -11,6 +11,10 @@ node --test packages/skills/test/q01GqaCompositeReplay.test.js
 7 tests, 7 passed, 0 failed
 ```
 
+The two timing controls use separated margins: the both-useful phase uses a 1,000ms first-group deadline with 50ms Wikipedia and 200ms Bing delays, while the late phase uses a 250ms first-group deadline, 1,200ms Wolfram-group deadline, 500ms Bing delay, and 800ms Wolfram delay. The assertions still require source timing keys, a Wikipedia-first/Bing-later result within its deadline, and a Bing response after the delayed Wolfram request has started.
+
+To exercise the load that exposed the earlier timing race, the complete integrated Q-01 glob, including the current news tests, was run from a temporary detached `d1564a4` worktree with this replay overlaid. Ten sequential repetitions each completed 130/130 tests: **10/10 runs passed**, with no timing failures.
+
 The plan-order falsifier is [falsify-source-provider-plan.mjs](falsify-source-provider-plan.mjs). It reverses the first `SOURCE_PROVIDER_PLAN` group to Wikipedia before Bing, runs only the named both-useful case, observes that case fail, restores `packages/skills/src/gqaAnswerSkill.js` byte-identically, and reruns the focused case green:
 
 ```text

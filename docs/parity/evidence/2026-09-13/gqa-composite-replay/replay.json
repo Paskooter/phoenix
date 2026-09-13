@@ -31,7 +31,27 @@
     "passed": 7,
     "failed": 0,
     "cancelled": 0,
-    "durationMs": 644
+    "durationMs": 2165
+  },
+  "stability": {
+    "integratedBase": "d1564a4",
+    "command": "node --test packages/skills/test/q01*.test.js (10 sequential repetitions in a temporary detached integration worktree with this replay overlaid)",
+    "repetitions": 10,
+    "testsPerRun": 130,
+    "passedRuns": 10,
+    "failedRuns": 0,
+    "durationMs": [
+      4093,
+      4036,
+      4070,
+      4036,
+      4072,
+      4125,
+      4300,
+      4008,
+      4064,
+      4062
+    ]
   },
   "falsifier": {
     "command": "./docs/parity/evidence/2026-09-13/gqa-composite-replay/falsify-source-provider-plan.mjs",
