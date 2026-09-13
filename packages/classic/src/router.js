@@ -67,6 +67,23 @@ export function createClassicRouter(registrations) {
     if (reg.handler) return reg.handler({ req, res, body: reg.preserveBody ? body : (body || {}), target, op, log });
     return proxy(reg.proxyTo(), req, res, body, log);
   };
+  // A registration may opt into the source parser boundary for one target family. The shared
+  // service runner accepts this as a function so Classic's other services retain their existing
+  // strict JSON parser and error handling.
+  dispatch.jsonStrict = (req) => {
+    const { prefix } = parseTarget(req);
+    const reg = regs.find((entry) => entry.re.test(prefix));
+    if (!reg || !Object.prototype.hasOwnProperty.call(reg, 'jsonStrict')) return undefined;
+    return typeof reg.jsonStrict === 'function' ? reg.jsonStrict(req) : reg.jsonStrict;
+  };
+  // Parser failures are likewise delegated only to the matched source registration. Returning
+  // undefined lets createService continue with its normal error action for every other family.
+  dispatch.parserError = (context) => {
+    const { prefix } = parseTarget(context?.req || {});
+    const reg = regs.find((entry) => entry.re.test(prefix));
+    if (typeof reg?.parserError === 'function') return reg.parserError(context);
+    return undefined;
+  };
   // The Hapi-backed Account CreateHubToken route validates an omitted payload
   // as null; preserve the historical object default for other Classic routes.
   dispatch.rawBody = isClassicRawBodyTarget;

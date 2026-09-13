@@ -69,9 +69,11 @@ export function createService({ name, routes = {}, onUpgrade, jsonStrict = true,
     // existing Phoenix services retain the strict default, while Flask-era
     // endpoints can observe top-level null/array/primitive JSON and produce
     // their own source error status after parsing.
-    const routeStrict = route && typeof route.jsonStrict === 'boolean'
-      ? route.jsonStrict
-      : undefined;
+    const routeStrict = route && typeof route.jsonStrict === 'function'
+      ? route.jsonStrict(req)
+      : route && typeof route.jsonStrict === 'boolean'
+        ? route.jsonStrict
+        : undefined;
     const strict = routeStrict === undefined
       ? (typeof jsonStrict === 'function' ? jsonStrict(req) : jsonStrict)
       : routeStrict;
@@ -121,7 +123,8 @@ export function createService({ name, routes = {}, onUpgrade, jsonStrict = true,
     const parserRoute = findRoute(routes, req);
     if (error?.type === 'entity.parse.failed'
       && typeof parserRoute?.parserError === 'function') {
-      return parserRoute.parserError({ req, res, error });
+      const handled = parserRoute.parserError({ req, res, error });
+      if (res.headersSent || handled !== undefined) return handled;
     }
     const status = Number.isInteger(error?.statusCode)
       ? error.statusCode

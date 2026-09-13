@@ -21,6 +21,7 @@ import { IftttStore, makeIftttHandler } from './ifttt.js';
 import { makeNlpHandler, nlpProviderFromEnv } from './nlp.js';
 import { PersonStore, PersonController, PropertyController, makePersonHandler, PERSON_ERRORS } from './person.js';
 import { makeCollisionHandler, detectCollision, graphemePhonemize, levenshteinDistance, COLLISION_ERRORS, COLLISION_DEFAULTS } from './collision.js';
+import { GQA_ROUTE_OPTIONS, makeGqaHandler } from './gqa.js';
 import { JotStore, makeJotHandler, mediaStoreClient, jotHttpRoutes, unavailableMedia, JOT_ERRORS, JOT_OPERATIONS } from './jot.js';
 import {
   VoiceTrainingStore, makeVoiceTrainingHandler, voiceTrainingBackup, voiceTrainingBlobRoutes,
@@ -49,6 +50,11 @@ export { IftttStore, makeIftttHandler, IFTTT_ERRORS, localPhoneticKey, singleHou
 export { makeNlpHandler, cleanInput, unavailableNlpProvider, createHttpNlpProvider, nlpProviderFromEnv, WH_WORDS } from './nlp.js';
 export { PersonStore, PersonController, PropertyController, makePersonHandler, accountIdFromRequest, PERSON_ERRORS, PERSON_OPERATIONS, MISSING_AUTH_HEADER } from './person.js';
 export { makeCollisionHandler, detectCollision, graphemePhonemize, levenshteinDistance, COLLISION_ERRORS, COLLISION_DEFAULTS, COLLISION_OPERATIONS } from './collision.js';
+export {
+  GQA_SOURCE_REVISION, GQA_API_REVISION, GQA_GATEWAY_REVISION, GQA_TARGET_PREFIX, GQA_OPERATIONS,
+  GQA_VERSION, GQA_BAD_REQUEST_HTML, GQA_NOT_FOUND_HTML, GQA_ROUTE_OPTIONS,
+  gqaCredentials, gqaEmptyJsonEntity, sendGqaJson, sendGqaHtml, sourceTruthy, makeGqaHandler,
+} from './gqa.js';
 export {
   JotStore, JotMessageController, JotMessageCreated, makeJotHandler, jotHttpRoutes,
   mediaStoreClient, unavailableMedia, JOT_ERRORS, JOT_OPERATIONS, JOT_TARGET_PREFIXES,
@@ -87,7 +93,7 @@ function isAccountTarget(req) {
 }
 
 /** Build the entrypoint's route table. `extra` registrations are prepended (later iterations). */
-export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor, media, keyStore, keyMembership, keyBinaryDir, rom, robotStore, key, ifttt, nlp, person, collision, jot, voiceTraining } = {}) {
+export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor, media, keyStore, keyMembership, keyBinaryDir, rom, robotStore, key, ifttt, nlp, person, collision, gqa, jot, voiceTraining } = {}) {
   const mediaStore = media?.store || new MediaStore();
   const personStore = person?.store || new PersonStore();
   const jotStore = jot?.store || new JotStore();
@@ -132,6 +138,10 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
       holidays: person?.holidays, now: person?.now,
     }) },
     { match: /^collision/i, handler: makeCollisionHandler(collision || {}) },
+    // The source GQA API is a Classic AWS target whose security-gateway hop routes Question to
+    // Flask /structQA and ListAttribution to /retrieveAtt. Question is injected so this wire
+    // adapter does not duplicate the parallel Q-01 provider/orchestration implementation.
+    { match: /^gqa_20160930$/i, handler: makeGqaHandler(gqa || {}), ...GQA_ROUTE_OPTIONS },
     // Jot (the loop-scoped family messaging surface) owns a real handler now — the five loop-era
     // operations of server/jot-ws@9a725d3, dispatched by operation name under any Jot* prefix. The
     // media seam defaults to the in-process Media store so a message's parts carry real urls.
@@ -210,7 +220,7 @@ export function makeKeyNeededNotifier(hub, membership) {
  * socket (the wss push door) is attached to the same HTTP server — the robot reaches the REST
  * face and the socket on one host (path /socket/<token>).
  */
-export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership, media, key, keyStore, keyMembership, keyBinaryDir, rom, robotStore, ifttt, nlp, person, collision, jot, voiceTraining } = {}) {
+export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership, media, key, keyStore, keyMembership, keyBinaryDir, rom, robotStore, ifttt, nlp, person, collision, gqa, jot, voiceTraining } = {}) {
   const hub = new NotificationHub({
     file: notificationFile,
     store: notificationStore,
@@ -261,6 +271,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
         nlp: nlp || { provider: nlpProviderFromEnv() },
         person: { store: personStore, account: person?.account, questions: person?.questions, holidays: person?.holidays, now: person?.now },
         collision: collision || {},
+        gqa: gqa || {},
         jot: { ...jot, store: jotStore, media: jotMedia },
         voiceTraining: { ...voiceTraining, store: voiceTrainingStore },
       }),
