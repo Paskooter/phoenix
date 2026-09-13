@@ -11,7 +11,7 @@ npm run parity:q01:fixtures
 ```
 
 The command exited `0`. The async matrix also passed in 10 consecutive runs.
-The focused Phoenix Q-01 suite passed 109 tests with `node --test packages/skills/test/q01*.test.js`.
+The focused Phoenix Q-01 suite passed 120 tests with `node --test packages/skills/test/q01*.test.js`.
 
 | Scope | Inventory | Local result |
 | --- | ---: | --- |
@@ -20,9 +20,10 @@ The focused Phoenix Q-01 suite passed 109 tests with `node --test packages/skill
 | Archived answer rows | 28 | 18 success, 7 no-answer, 3 blocked; JCP/display/metadata/analytics checked |
 | Archived async rows | 12 | 12 matched, including timeout and provider fallback cases |
 | Fake-provider routes | 3 | Bing decoder/provider, Wikipedia provider, and Wolfram extraction/provider replayed |
+| Source-shaped news closure | 3 MIMs / 5 prompts / 3 aliases | Local sequence, speaker, AP seam, analytics, empty/error, and route controls passed |
 | Complete integration inputs | 340 rows | Inventory only; no response goldens exist |
 | Moved live answer suite | 11 cases | Inventory only; live vendor assertions have no goldens |
-| Moved live news suite | 1 sequence | Inventory only; requires NEWS preamble/postamble |
+| Moved live news suite | 1 sequence | Local route/MIM boundary replayed; live AP/vendor execution remains unexecuted |
 
 The answer-row provider is deliberately synthetic: those rows prove source
 request cleaning and Phoenix response shaping. The source fake-provider bodies
@@ -45,7 +46,7 @@ Known blockers remain explicit:
 * The moved `answer.ts` cases depend on live Bing, Wikipedia, and Wolfram
   behavior and contain no output goldens, so they are not claimed as local
   replays.
-* The moved `news.ts` sequence depends on a `news` route and `NEWS_preamble`
-  / `NEWS_postamble` MIMs. The current default GQA profile has neither an
-  archived `/news_skill` contract nor a NEWS_* MIM inventory. Personal Report
-  news assets are not substituted.
+* The moved `news.ts` sequence still requires live AP/vendor execution. Its
+  source-shaped `/news_skill` route, NEWS MIMs, preamble/postamble sequence,
+  and local error/speaker controls are covered; the live source file provides
+  no response golden. Personal Report news assets are not substituted.

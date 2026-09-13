@@ -266,9 +266,42 @@
             "requiredPromptIDContains": ["NEWS_preamble", "NEWS_postamble"]
           }
         ],
-        "status": "live-provider-dependent; unresolved because current default profile has no /news_skill route or NEWS_* MIM inventory"
+        "status": "local source-shaped route/MIM sequence covered; live AP/vendor execution remains unexecuted only for provider availability"
       },
-      "note": "These moved integration-tests-ext cases assert live provider/vendor routing and substring behavior through testSingleSlim/testSequenceSlim; source files provide no response goldens. They are inventoried for authoritative scope and remain an explicit Q-01 blocker."
+      "note": "These moved integration-tests-ext cases assert live provider/vendor routing and substring behavior through testSingleSlim/testSequenceSlim; source files provide no response goldens. The news route/MIM and sequence contract now have local source-shaped coverage, while live AP/vendor execution remains an explicit Q-01 blocker."
+    },
+    "news": {
+      "sourceRevision": "ebe1a7d38f511570060c1fbf61bec89d58419b26",
+      "sourceModule": "gqa/gqa.py:news_pegasus",
+      "sourceRoutes": ["/news_skill", "/news_skill/v1/main", "/v1/news/main"],
+      "sourceUnitCaseCount": 11,
+      "sourceUnitTests": [
+        "tests/unit/test_news.py:test_ap_search_haskid",
+        "tests/unit/test_news.py:test_attribute_insert",
+        "tests/unit/test_pegasus.py:test_news_adult_default",
+        "tests/unit/test_pegasus.py:test_news_adult_affirmative",
+        "tests/unit/test_pegasus.py:test_news_child",
+        "tests/unit/test_pegasus.py:test_news_unknown_speaker",
+        "tests/unit/test_pegasus.py:test_news_unknown_loop",
+        "tests/unit/test_pegasus.py:test_news_speaker_outside_loop",
+        "tests/unit/test_pegasus.py:test_news_speaker_no_birthdate",
+        "tests/unit/test_pegasus.py:test_news_empty_db",
+        "tests/unit/test_pegasus.py:test_news_analytics"
+      ],
+      "localSuite": {
+        "path": "packages/skills/test/q01News.test.js",
+        "testCount": 11,
+        "sourceShapedCases": 11,
+        "supportingAttributionSuite": "packages/skills/test/q01GqaAccountAttribution.test.js",
+        "status": "passed"
+      },
+      "localMimFileCount": 3,
+      "localMimPromptCount": 5,
+      "localRouteAliasCount": 3,
+      "liveProviderIntegrationCases": 1,
+      "locallyReplayedLiveProviderIntegrationCases": 0,
+      "mimNote": "Archived NEWS prompt rows were read from source MIMs; the candidate adds mim_type=announcement for Phoenix loader validation without changing prompt text, IDs, media, or weights.",
+      "status": "source-shaped route, MIM, speaker, AP seam, error, sequence, analytics, and alias coverage is local; only live AP/vendor execution remains"
     },
     "gqaMims": {
       "fileCount": 11,
@@ -636,6 +669,56 @@
         {
           "prompt_id": "GQA_pii_filter_AN_03",
           "prompt": "Sorry, I can't give out personal information like that."
+        }
+      ]
+    }
+  },
+  "newsMims": {
+    "NEWS_preamble": {
+      "sourcePath": "pegasus_mims/NEWS_preamble.mim",
+      "mimType": "announcement",
+      "prompts": [
+        {
+          "prompt_id": "NEWS_preamble_01",
+          "prompt": "Here are the headlines from the Associated Press.",
+          "media": "TTS",
+          "weight": 1
+        },
+        {
+          "prompt_id": "NEWS_preamble_02",
+          "prompt": "The Associated Press says.",
+          "media": "TTS",
+          "weight": 1
+        },
+        {
+          "prompt_id": "NEWS_preamble_03",
+          "prompt": "According to the Associated Press.",
+          "media": "TTS",
+          "weight": 1
+        }
+      ]
+    },
+    "NEWS_content": {
+      "sourcePath": "pegasus_mims/NEWS_content.mim",
+      "mimType": "announcement",
+      "prompts": [
+        {
+          "prompt_id": "NEWS_content_01",
+          "prompt": "<style set=\"NEWS\">{0}</style>",
+          "media": "TTS",
+          "weight": 1
+        }
+      ]
+    },
+    "NEWS_postamble": {
+      "sourcePath": "pegasus_mims/NEWS_postamble.mim",
+      "mimType": "announcement",
+      "prompts": [
+        {
+          "prompt_id": "NEWS_postamble_01",
+          "prompt": "And that's all the news for now.",
+          "media": "TTS",
+          "weight": 1
         }
       ]
     }
@@ -1497,7 +1580,7 @@
   "gaps": {
     "news": {
       "sourceTests": [
-        "tests/unit/test_news.py:test_ap_news",
+        "tests/unit/test_news.py:test_ap_search_haskid",
         "tests/unit/test_news.py:test_attribute_insert",
         "tests/unit/test_pegasus.py:test_news_adult_default",
         "tests/unit/test_pegasus.py:test_news_adult_affirmative",
@@ -1514,7 +1597,7 @@
         "NEWS_content",
         "NEWS_postamble"
       ],
-      "reason": "Phoenix has report-news internals and external news manifest assets, but no archived GQA /news_skill route contract or NEWS_* MIM inventory in the default GQA profile."
+      "reason": "The source-shaped /news_skill route, NEWS_* MIMs, speaker selection, AP seam, sequence, analytics, and error controls are locally covered by packages/skills/test/q01News.test.js; the moved live AP/vendor sequence remains unexecuted and is tracked separately."
     },
     "integration": {
       "sourceRows": null,

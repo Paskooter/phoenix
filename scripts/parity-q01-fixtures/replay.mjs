@@ -17,6 +17,7 @@ import { createWolframProvider, extractWolframSpokenAnswer, cleanWolframAnswer }
 import { createGqaMemoryAttributionStore, createGqaAccountLookup } from '../../packages/skills/src/gqaAccountAttribution.js';
 import { createGqaDefaultSkill, validateGqaDefaultProfile } from '../../packages/skills/src/gqaDefaultService.js';
 import { createBuiltinSkills } from '../../packages/skills/src/index.js';
+import { createNewsAnswerSkill, NEWS_SOURCE_PATHS } from '../../packages/skills/src/newsAnswerSkill.js';
 
 const manifest = JSON.parse(readFileSync(new URL('./fixtures.json', import.meta.url), 'utf8'));
 
@@ -47,6 +48,18 @@ function sourceRequest({ text = 'what is a fixture fact', intent = 'generalWhatQ
   };
 }
 
+function newsRequest({ speaker = null, users = [] } = {}) {
+  return {
+    type: 'LISTEN_LAUNCH',
+    data: {
+      runtime: {
+        perception: { speaker },
+        loop: { users },
+      },
+    },
+  };
+}
+
 function sourceTypeFor(row) {
   const text = row.source || '';
   if (text === 'Bing') return 'bing';
@@ -64,6 +77,14 @@ function assertManifestShape(value) {
   assert.equal(value.inventory.gqaMims.fileCount, 11, 'archived GQA MIM files');
   assert.equal(value.inventory.gqaMims.promptCount, 77, 'archived GQA prompt count');
   assert.equal(Object.values(value.mimMetadata).reduce((total, rows) => total + rows.length, 0), 77, 'archived MIM media/weight rows');
+  assert.equal(value.inventory.news.sourceUnitCaseCount, 11, 'archived news unit case count');
+  assert.equal(value.inventory.news.localSuite.testCount, 11, 'local news test count');
+  assert.equal(value.inventory.news.localSuite.sourceShapedCases, 11, 'local source-shaped news cases');
+  assert.equal(value.inventory.news.localMimFileCount, 3, 'local NEWS MIM file count');
+  assert.equal(value.inventory.news.localMimPromptCount, 5, 'local NEWS MIM prompt count');
+  assert.equal(value.inventory.news.localRouteAliasCount, 3, 'local news route alias count');
+  assert.equal(value.inventory.news.liveProviderIntegrationCases, 1, 'live news integration case count');
+  assert.equal(value.inventory.news.locallyReplayedLiveProviderIntegrationCases, 0, 'live news provider integration remains unexecuted');
   assert.equal(value.inventory.liveSuite.answer.caseCount, 11, 'moved live answer case count');
   assert.equal(value.inventory.liveSuite.news.caseCount, 1, 'moved live news case count');
   assert.equal(value.inventory.liveSuite.totalCaseCount, 12, 'moved live suite case count');
@@ -93,6 +114,77 @@ function replayMims(value = manifest) {
     promptCount += actualPrompts.length;
   }
   return { files: Object.keys(value.mims).length, prompts: promptCount };
+}
+
+function replayNewsMims(value = manifest) {
+  let promptCount = 0;
+  for (const [name, expected] of Object.entries(value.newsMims)) {
+    const current = JSON.parse(readFileSync(new URL('../../packages/skills/resources/mims/news/' + name + '.mim', import.meta.url), 'utf8'));
+    assert.equal(current.mim_type, expected.mimType, 'current NEWS MIM type ' + name);
+    const actualPrompts = current.prompts.map(({ prompt_id, prompt, media, weight }) => ({ prompt_id, prompt, media, weight }));
+    assert.deepEqual(actualPrompts, expected.prompts, 'exact archived NEWS MIM ' + name);
+    promptCount += actualPrompts.length;
+  }
+  assert.deepEqual(NEWS_SOURCE_PATHS, value.inventory.news.sourceRoutes, 'source news route aliases');
+  return { files: Object.keys(value.newsMims).length, prompts: promptCount, routeAliases: NEWS_SOURCE_PATHS.length };
+}
+
+async function replayNewsCoverage() {
+  const mims = replayNewsMims();
+  const now = Date.parse('2026-09-13T00:00:00.000Z');
+  const seen = [];
+  const skill = createNewsAnswerSkill({
+    newsProvider: async ({ isKid }) => {
+      seen.push(isKid);
+      return ['one', 'two', 'three', 'four', 'five'];
+    },
+    rng: () => 0,
+    clock: () => now,
+    idFactory: idFactory(),
+    messageId: () => '00000000000000000000000000000001',
+  });
+  const child = await skill(newsRequest({
+    speaker: 'child',
+    users: [{ id: 'child', birthdate: Date.parse('2017-09-14T00:00:00.000Z') }],
+  }));
+  const children = child.data.action.config.jcp.children;
+  assert.equal(children.length, 7, 'news five-item sequence bound');
+  assert.equal(children[0].config.play.meta.prompt_id, 'NEWS_preamble_01', 'news preamble prompt');
+  assert.equal(children[1].config.play.meta.prompt_id, 'NEWS_content_01', 'news content prompt');
+  assert.equal(children[1].config.play.esml, '<style set="NEWS">one</style>', 'news content shape');
+  assert.equal(children[5].config.play.esml, '<style set="NEWS">five</style>', 'news final headline');
+  assert.equal(children[6].config.play.meta.prompt_id, 'NEWS_postamble_01', 'news postamble prompt');
+  assert.deepEqual(seen, [true], 'news child AP selection');
+  assert.deepEqual(child.data.skill, { id: 'news', version: '5.2.15' }, 'news skill metadata');
+  assert.deepEqual(child.data.analytics.news[1], {
+    event: 'News Query',
+    properties: { type: 'AP', success: true },
+  }, 'news analytics');
+  assert.equal(child.data.final, true, 'news final');
+  assert.equal(child.data.fireAndForget, true, 'news fireAndForget');
+
+  const adult = await skill(newsRequest({
+    speaker: 'adult',
+    users: [{ id: 'adult', birthdate: Date.parse('2000-09-14T00:00:00.000Z') }],
+  }));
+  assert.equal(adult.data.action.config.jcp.children[1].config.play.esml, '<style set="NEWS">one</style>', 'news adult AP selection');
+  assert.deepEqual(seen, [true, false], 'news adult/child provider observations');
+
+  const empty = await createNewsAnswerSkill({ rng: () => 0, clock: () => now, idFactory: idFactory(), messageId: () => '00000000000000000000000000000002' })(newsRequest());
+  assert.equal(empty.data.action.config.jcp.type, 'SLIM', 'empty news GQA_error SLIM');
+  assert.equal(empty.data.action.config.jcp.config.play.meta.prompt_id, 'GQA_error_01', 'empty news error prompt');
+  assert.deepEqual(empty.data.analytics.news[1], {
+    event: 'News Query',
+    properties: { type: 'AP', success: false },
+  }, 'empty news analytics');
+  return {
+    mims,
+    sourceUnitCases: manifest.inventory.news.sourceUnitCaseCount,
+    localSourceShapedCases: manifest.inventory.news.localSuite.sourceShapedCases,
+    sequenceRows: 1,
+    liveProviderIntegrationCases: manifest.inventory.news.liveProviderIntegrationCases,
+    locallyReplayedLiveProviderIntegrationCases: manifest.inventory.news.locallyReplayedLiveProviderIntegrationCases,
+  };
 }
 
 async function replayAnswerRows() {
@@ -386,6 +478,7 @@ function runFalsifierControls() {
 async function main() {
   assertManifestShape(manifest);
   const mims = replayMims();
+  const news = await replayNewsCoverage();
   const answers = await replayAnswerRows();
   const queryBoundary = await replayQueryBoundary();
   const asyncRows = await replayAsyncRows();
@@ -399,6 +492,7 @@ async function main() {
     inventory: manifest.inventory,
     replay: {
       mims,
+      news,
       answers,
       queryBoundary,
       asyncRows,
@@ -411,6 +505,13 @@ async function main() {
     coverage: {
       archivedUnitTests: manifest.inventory.unit.namedTestCount,
       archivedUnitAssertions: manifest.inventory.unit.assertionCalls,
+      newsSourceUnitCases: manifest.inventory.news.sourceUnitCaseCount,
+      newsLocalSourceShapedCases: manifest.inventory.news.localSuite.sourceShapedCases,
+      newsMimFiles: news.mims.files,
+      newsMimPrompts: news.mims.prompts,
+      newsRouteAliases: news.mims.routeAliases,
+      liveNewsIntegrationCases: manifest.inventory.news.liveProviderIntegrationCases,
+      locallyReplayedLiveNewsIntegrationCases: manifest.inventory.news.locallyReplayedLiveProviderIntegrationCases,
       knownCompleteIntegrationRows: manifest.inventory.integration.knownRowCount,
       locallyReplayedIntegrationRows: 0,
       archivedAnswerRows: manifest.replay.archivedPegasusAnswerRows.length,
@@ -422,10 +523,10 @@ async function main() {
       exactMimMetadataRows: mims.prompts,
       providerRoutes: providers.routes,
       gaps: [
-        { area: 'news_skill', sourceCases: manifest.gaps.news.sourceTests.length, locallyReplayed: 0, reason: manifest.gaps.news.reason },
+        { area: 'news_skill', sourceCases: manifest.gaps.news.sourceTests.length, locallyReplayed: manifest.inventory.news.localSuite.sourceShapedCases, reason: manifest.gaps.news.reason },
         { area: 'integration_beta3_4902', sourceCases: null, locallyReplayed: 0, reason: manifest.gaps.integration.reason },
         { area: 'live_answer_integration', sourceCases: manifest.inventory.liveSuite.answer.caseCount, locallyReplayed: manifest.inventory.liveSuite.locallyReplayed, reason: manifest.inventory.liveSuite.answer.status },
-        { area: 'live_news_integration', sourceCases: manifest.inventory.liveSuite.news.caseCount, locallyReplayed: manifest.inventory.liveSuite.locallyReplayed, reason: manifest.inventory.liveSuite.news.status },
+        { area: 'live_news_integration', sourceCases: manifest.inventory.liveSuite.news.caseCount, locallyReplayed: manifest.inventory.news.locallyReplayedLiveProviderIntegrationCases, reason: manifest.inventory.liveSuite.news.status },
         { area: 'remaining_archived_unit_tests', sourceCases: manifest.inventory.unit.namedTestCount, assertionCalls: manifest.inventory.unit.assertionCalls, locallyReplayed: manifest.replay.archivedPegasusAnswerRows.length + manifest.replay.archivedAsyncRows.length, reason: 'The 40 replay rows cover source answer/async shaping controls; the remaining named tests and assertion calls require Mongo/AP/API-AI/live provider behavior or are already represented by separate bounded Q-01 evidence.' },
       ],
     },

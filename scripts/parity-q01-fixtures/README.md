@@ -19,6 +19,11 @@ the current Bing, Wikipedia, and Wolfram adapters. It also checks JCP/display
 envelopes, metadata, account and attribution persistence, malformed-provider
 HTTP error envelopes, default routing, and opt-in provider configuration.
 
+The news closure checks the three source NEWS MIMs and five prompt rows, all
+three source route aliases, child/adult speaker selection, the five-headline
+sequence, analytics, and empty/error behavior through the current
+source-shaped news service.
+
 The integration text files are input corpora without expected output goldens.
 The two complete files account for 340 observed rows. The `beta3-4902.txt`
 filename is retained as a source label only: Gitea metadata reports 177,307
@@ -26,13 +31,11 @@ bytes, while the bounded MCP read observed 69,069 code units and 2,073
 nonblank rows ending mid-line at `tha`. The runner does not claim a 4,902-row
 replay.
 
-The moved `answer.ts` cases and `news.ts` sequence are inventoried but remain
-live-provider assertions. They have no response goldens and therefore are not
-counted as local replays. The news sequence additionally requires
-`NEWS_preamble` and `NEWS_postamble`; the current default GQA profile has no
-archived `/news_skill` route or `NEWS_*` MIM inventory, so this remains an
-explicit gap. Personal Report news assets are not substituted for this source
-contract.
+The moved `answer.ts` cases remain live-provider assertions. The moved
+`news.ts` sequence has a local source-shaped route/MIM and sequence replay, but
+its live AP/vendor execution remains unexecuted because the source file has no
+response golden and the lane does not contact the live provider. Personal
+Report news assets are not substituted for this source contract.
 
 The runner includes paired omission and value-corruption controls. It rejects
 an omitted async row, a modified MIM prompt, and a one-byte-equivalent Bing
