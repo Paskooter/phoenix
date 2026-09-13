@@ -110,6 +110,57 @@ test('Q-01 Wikipedia adapter follows source success request and result contract'
   });
 });
 
+test('Q-01 archived Wikipedia category blacklist and whitelist rows are exact', async () => {
+  const fixtures = {
+    'Omaima Nelson': {
+      extract: 'Intro to Omaima Nelson, an Egyptian cannibal',
+      categories: [
+        'Living people',
+        'Egyptian emigrants to the United States',
+        'Egyptian female murderers',
+        'American female murderers',
+        'American murderers',
+        'American female criminals',
+        'People convicted of murder by California',
+        'Prisoners sentenced to life imprisonment by California',
+        'Egyptian cannibals',
+        'American cannibals',
+      ],
+    },
+    'glove fetish': {
+      extract: 'Glove fetishism is a sexual fetishism where...',
+      categories: ['Gloves', 'Paraphilias', 'Sex', 'Sexuality stubs'],
+    },
+    Jesus: {
+      extract: 'Jesus, also referred to as Jesus of Nazareth and Jesus Christ...',
+      categories: ['People executed by crucifixion'],
+    },
+  };
+  await withFixtureServer((request, response) => {
+    const title = new URL(request.url, 'http://fixture.invalid').searchParams.get('titles');
+    sendJson(response, 200, page({ title, ...fixtures[title] }));
+  }, async ({ endpoint, requests }) => {
+    const provider = createWikipediaProvider({ endpoint });
+    const leaf = await provider({ queryText: 'who is Omaima Nelson', questionType: 'who' });
+    assert.equal(leaf.response, undefined);
+    assert.equal(leaf.message, "Blocked query on 'Omaima Nelson' due to blacklisted category 'Egyptian cannibals'");
+
+    const parent = await provider({ queryText: 'what is a glove fetish', questionType: 'what' });
+    assert.equal(parent.response, undefined);
+    assert.equal(parent.message, "Blocked query on 'glove fetish' due to blacklisted category 'Paraphilias'");
+
+    const allowed = await provider({ queryText: 'who is Jesus', questionType: 'who' });
+    assert.equal(allowed.message, undefined);
+    assert.deepEqual(allowed.response, {
+      type: 'string',
+      payload: 'Jesus, also referred to as Jesus of Nazareth and Jesus Christ...',
+    });
+    assert.deepEqual(requests.map(({ url }) => new URL(url, endpoint).searchParams.get('titles')), [
+      'Omaima Nelson', 'glove fetish', 'Jesus',
+    ]);
+  });
+});
+
 test('Q-01 Wikipedia question gate prevents a source-disallowed request', async () => {
   await withFixtureServer((_request, response) => {
     sendJson(response, 500, { error: 'must not be requested' });

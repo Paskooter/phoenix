@@ -293,8 +293,8 @@ async function replayQueryBoundary() {
 }
 
 function workerFor(mode, service) {
-  const delays = { fast: 0, slow: 10, timeout: 35, 'timeout-long': 90, empty: 0, 'slow-empty': 10 };
-  const delay = delays[mode];
+  const timing = manifest.replay.asyncTiming;
+  const delay = timing.sourceDelaysMs[mode] * timing.replayScale;
   return async () => {
     if (delay > 0) await new Promise(resolve => setTimeout(resolve, delay));
     if (mode === 'empty' || mode === 'slow-empty') return {};
@@ -305,6 +305,18 @@ function workerFor(mode, service) {
 }
 
 async function replayAsyncRows() {
+  const timing = manifest.replay.asyncTiming;
+  assert.deepEqual(timing.sourceTimeoutsMs, [3000, 4000], 'archived provider-group deadlines');
+  assert.deepEqual(timing.sourceDelaysMs, {
+    fast: 0,
+    slow: 500,
+    timeout: 3100,
+    'timeout-long': 4100,
+    empty: 0,
+    'slow-empty': 500,
+  }, 'archived test_async.py worker delays');
+  assert.equal(timing.replayScale, 0.01, 'bounded replay preserves exact delay ratios');
+  const timeouts = timing.sourceTimeoutsMs.map((value) => value * timing.replayScale);
   let matched = 0;
   for (const row of manifest.replay.archivedAsyncRows) {
     const pipeline = createGqaProviderPipeline({
@@ -313,7 +325,7 @@ async function replayAsyncRows() {
         Wikipedia: workerFor(row.wiki, 'Wikipedia'),
         'Wolfram Alpha': workerFor(row.wolfram, 'Wolfram Alpha'),
       },
-      timeouts: [30, 40],
+      timeouts,
     });
     const output = await pipeline({ queryText: 'Dummy query input', questionType: 'generic' });
     if (row.expectedPayload === null) {
@@ -323,7 +335,15 @@ async function replayAsyncRows() {
     }
     matched += 1;
   }
-  return { rows: matched, matched };
+  return {
+    rows: matched,
+    matched,
+    timing: {
+      sourceDelaysMs: timing.sourceDelaysMs,
+      sourceTimeoutsMs: timing.sourceTimeoutsMs,
+      replayScale: timing.replayScale,
+    },
+  };
 }
 
 async function replayFakeProviders() {

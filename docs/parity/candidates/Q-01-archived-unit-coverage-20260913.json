@@ -57,7 +57,7 @@
   "mappingRules": [
     "Rows are one per archived named test_* definition counted by the 136-test inventory; the two test_* helpers in test_bing.py are marked supporting and are not standalone unittest cases.",
     "A target may be reused when one Phoenix matrix row genuinely exercises several archived cases; reuse does not create additional coverage rows.",
-    "The 28 answer and 12 async rows are source-shaped controls; provider outputs are synthetic unless a target explicitly names a pinned adapter body.",
+    "The 28 answer and 12 async rows are source-shaped controls; async replay pins the archived 500/3100/4100 ms worker delays and 3000/4000 ms group deadlines at a uniform 1:100 wall-clock scale, while provider outputs remain synthetic unless a target explicitly names a pinned adapter body.",
     "News source cases are counted as 10 archived cases and 14 local test blocks in the existing receipt; this map does not convert the 14 blocks into 14 source cases.",
     "Live integration inputs and live provider assertions without output goldens remain partial or missing even when a local adapter seam exists.",
     "Wikipedia decision-matrix rows use injected page JSON and source-derived summaries; they cover deterministic gate/title/normalization decisions and do not claim current/live article output.",
@@ -66,8 +66,8 @@
     "The integrated /structQA candidate directly replays the deterministic archived no-input, absent/wrong Intent, Scripted/MIM, age no-answer, PII, and AP cases through injected dependencies; the standalone GQA service also covers the source healthcheck and developer /fakeAccount helper without registering either route in Classic; it does not claim live API-AI/Bing/Wikipedia/Wolfram outputs. The Bing Cortana row remains partial because its live roster text/order has no immutable golden."
   ],
   "counts": {
-    "covered": 96,
-    "partial": 36,
+    "covered": 102,
+    "partial": 30,
     "missing": 0,
     "skipped": 1,
     "supporting": 2,
@@ -170,25 +170,22 @@
       "source": "tests/unit/test_async.py:test_timeout_wolfram",
       "sourceFile": "tests/unit/test_async.py",
       "test": "test_timeout_wolfram",
-      "status": "partial",
-      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAsyncRows row=tests/unit/test_async.py:test_timeout_wolfram",
-      "closure": "The null result is replayed with bounded worker delays, but no current row asserts the archived 4.1-second wall-clock timeout boundary."
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAsyncRows row=tests/unit/test_async.py:test_timeout_wolfram"
     },
     {
       "source": "tests/unit/test_async.py:test_timeout_all",
       "sourceFile": "tests/unit/test_async.py",
       "test": "test_timeout_all",
-      "status": "partial",
-      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAsyncRows row=tests/unit/test_async.py:test_timeout_all",
-      "closure": "The null result is replayed, but no current row asserts the archived aggregate duration < 7.09 seconds."
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAsyncRows row=tests/unit/test_async.py:test_timeout_all"
     },
     {
       "source": "tests/unit/test_async.py:test_bing_post_timeout",
       "sourceFile": "tests/unit/test_async.py",
       "test": "test_bing_post_timeout",
-      "status": "partial",
-      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAsyncRows row=tests/unit/test_async.py:test_bing_post_timeout; packages/skills/test/q01GqaCompositeReplay.test.js :: Q-01 composite provider replay enforces Bing priority, Wikipedia fallback, Wolfram fallback and late priority",
-      "closure": "The late Bing winner is covered with bounded delays; the archived 3.1-second provider delay and exact source timing budget are not reproduced."
+      "status": "covered",
+      "target": "scripts/parity-q01-fixtures/replay.mjs#replayAsyncRows row=tests/unit/test_async.py:test_bing_post_timeout; packages/skills/test/q01GqaCompositeReplay.test.js :: Q-01 composite provider replay enforces Bing priority, Wikipedia fallback, Wolfram fallback and late priority"
     },
     {
       "source": "tests/unit/test_banned_words.py:test_blocked",
@@ -367,25 +364,22 @@
       "source": "tests/unit/test_blacklist.py:test_category_blacklist_leaf",
       "sourceFile": "tests/unit/test_blacklist.py",
       "test": "test_category_blacklist_leaf",
-      "status": "partial",
-      "target": "packages/skills/test/q01GqaProfile.test.js :: Q-01 profile preserves source action selection across answer, no-result, disambiguation, blacklist and provider failure",
-      "closure": "Category suppression is exercised after the page request, but the archived leaf category and exact error message are not asserted."
+      "status": "covered",
+      "target": "packages/skills/test/q01Wikipedia.test.js :: Q-01 archived Wikipedia category blacklist and whitelist rows are exact"
     },
     {
       "source": "tests/unit/test_blacklist.py:test_category_blacklist_parent",
       "sourceFile": "tests/unit/test_blacklist.py",
       "test": "test_category_blacklist_parent",
-      "status": "partial",
-      "target": "packages/skills/test/q01GqaProfile.test.js :: Q-01 profile preserves source action selection across answer, no-result, disambiguation, blacklist and provider failure",
-      "closure": "Category suppression is exercised after the page request, but the archived parent category and exact error message are not asserted."
+      "status": "covered",
+      "target": "packages/skills/test/q01Wikipedia.test.js :: Q-01 archived Wikipedia category blacklist and whitelist rows are exact"
     },
     {
       "source": "tests/unit/test_blacklist.py:test_category_whitelist",
       "sourceFile": "tests/unit/test_blacklist.py",
       "test": "test_category_whitelist",
-      "status": "partial",
-      "target": "packages/skills/test/q01Wikipedia.test.js :: Q-01 Wikipedia adapter follows source success request and result contract",
-      "closure": "A successful page is covered, but no current row proves the archived Jesus category is explicitly allowed while other categories are blocked."
+      "status": "covered",
+      "target": "packages/skills/test/q01Wikipedia.test.js :: Q-01 archived Wikipedia category blacklist and whitelist rows are exact"
     },
     {
       "source": "tests/unit/test_general.py:test_health_check",

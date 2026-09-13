@@ -148,7 +148,11 @@
           "path": "tests/integration/beta3-4902.txt",
           "size": 177307,
           "declaredRows": null,
-          "mcpObservedPrefix": {"codeUnits": 69069, "nonBlankRows": 2073, "tail": "tha"},
+          "mcpObservedPrefix": {
+            "codeUnits": 69069,
+            "nonBlankRows": 2073,
+            "tail": "tha"
+          },
           "observedRows": null,
           "sample": [
             "how far away is the sun",
@@ -175,29 +179,43 @@
           {
             "name": "what is the capital of france",
             "asr": "what is the capital of france",
-            "promptContains": ["paris"],
+            "promptContains": [
+              "paris"
+            ],
             "promptIDContains": "wolfram"
           },
           {
             "name": "who is George Washington (United States)",
             "asr": "who is george washington",
-            "promptContains": ["first president", "founding father"],
+            "promptContains": [
+              "first president",
+              "founding father"
+            ],
             "promptIDContains": "bing",
             "countryCode": "US"
           },
           {
             "name": "who is George Washington (Canada)",
             "asr": "who is george washington",
-            "promptContains": ["first president", "founding father"],
+            "promptContains": [
+              "first president",
+              "founding father"
+            ],
             "promptIDContains": "wikipedia",
             "countryCode": "CA",
-            "location": {"lat": 43.6532, "lng": -79.3832},
+            "location": {
+              "lat": 43.6532,
+              "lng": -79.3832
+            },
             "remoteAddress": "192.206.150.106"
           },
           {
             "name": "who is Harish Iyer",
             "asr": "who is Harish Iyer",
-            "promptContains": ["activist", "gay"],
+            "promptContains": [
+              "activist",
+              "gay"
+            ],
             "promptIDContains": "wikipedia"
           },
           {
@@ -211,7 +229,10 @@
             "asr": "how is the weather",
             "promptIDContains": "bing",
             "countryCode": "CA",
-            "location": {"lat": 43.6532, "lng": -79.3832},
+            "location": {
+              "lat": 43.6532,
+              "lng": -79.3832
+            },
             "remoteAddress": "192.206.150.106"
           },
           {
@@ -219,23 +240,33 @@
             "asr": "how is the weather",
             "promptIDContains": "bing",
             "countryCode": "PR",
-            "location": {"lat": 18.406389, "lng": -66.063889},
+            "location": {
+              "lat": 18.406389,
+              "lng": -66.063889
+            },
             "remoteAddress": "104.16.8.111"
           },
           {
             "name": "how far from Boston to New York (United States)",
             "asr": "how far from Boston to New York",
-            "promptContains": ["miles"],
+            "promptContains": [
+              "miles"
+            ],
             "promptIDContains": "Wolfram",
             "countryCode": "US"
           },
           {
             "name": "how far from Boston to New York (Canada)",
             "asr": "how far from Boston to New York",
-            "promptContains": ["kilometers"],
+            "promptContains": [
+              "kilometers"
+            ],
             "promptIDContains": "Wolfram",
             "countryCode": "CA",
-            "location": {"lat": 43.6532, "lng": -79.3832},
+            "location": {
+              "lat": 43.6532,
+              "lng": -79.3832
+            },
             "remoteAddress": "192.206.150.106"
           },
           {
@@ -248,7 +279,10 @@
             "asr": "how old is albert einstein",
             "promptIDContains": "gqa_no_answer_generic",
             "countryCode": "CA",
-            "location": {"lat": 43.6532, "lng": -79.3832},
+            "location": {
+              "lat": 43.6532,
+              "lng": -79.3832
+            },
             "remoteAddress": "192.206.150.106"
           }
         ],
@@ -263,7 +297,10 @@
             "name": "whats in the news",
             "asr": "whats in the news",
             "skill": "news",
-            "requiredPromptIDContains": ["NEWS_preamble", "NEWS_postamble"]
+            "requiredPromptIDContains": [
+              "NEWS_preamble",
+              "NEWS_postamble"
+            ]
           }
         ],
         "status": "accepted unresolved live-only AP/vendor qualification; local route/MIM sequence is covered"
@@ -278,8 +315,13 @@
         "intents": [],
         "routing": "The selected-host checks cover explicit news paths; no frozen IntentRouter news route is claimed."
       },
-      "sourceRoutes": ["/news_skill", "/news_skill/v1/main"],
-      "adapterRoutes": ["/v1/news/main"],
+      "sourceRoutes": [
+        "/news_skill",
+        "/news_skill/v1/main"
+      ],
+      "adapterRoutes": [
+        "/v1/news/main"
+      ],
       "sourceRouteCount": 2,
       "totalRouteCount": 3,
       "sourceUnitCaseCount": 10,
@@ -1449,7 +1491,23 @@
         "wolfram": "slow",
         "expectedPayload": "Bing timeout reply"
       }
-    ]
+    ],
+    "asyncTiming": {
+      "sourceDelaysMs": {
+        "fast": 0,
+        "slow": 500,
+        "timeout": 3100,
+        "timeout-long": 4100,
+        "empty": 0,
+        "slow-empty": 500
+      },
+      "sourceTimeoutsMs": [
+        3000,
+        4000
+      ],
+      "replayScale": 0.01,
+      "note": "Exact archived delay/timeout schedule replayed at 1:100 wall-clock scale; ordering and deadline relationships are unchanged."
+    }
   },
   "fakeFixtures": {
     "bing": {
