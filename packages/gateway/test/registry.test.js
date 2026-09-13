@@ -48,14 +48,7 @@ test('registry, config and real HTTP boundary match pinned original Node 8 execu
     assert.equal(new Set(actualIDs).size, actualIDs.length, `${group}/unique ids`);
     assert.deepEqual(serial[group], expected[group], group);
   }
-  // The archived JiboV2/pegasus@dev news manifest restores its source
-  // requestNews registration. The older Node-8 registry capture predates
-  // that manifest update and intentionally records an empty list; compare
-  // the recovered source contract while retaining the capture as evidence.
-  const expectedOriginalIndex = structuredClone(expected.originalIndex);
-  const expectedNews = expectedOriginalIndex.skills.find(skill => skill.id === 'news');
-  if (expectedNews) expectedNews.intents = [{ name: 'requestNews' }];
-  assert.deepEqual(serial.originalIndex, expectedOriginalIndex, 'bundled registry preserves the recovered source contract');
+  assert.deepEqual(serial.originalIndex, expected.originalIndex, 'bundled registry is unchanged source data');
   assert.deepEqual(serial.http.map(normalizeHttp), expected.http.map(normalizeHttp));
 });
 

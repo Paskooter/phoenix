@@ -24,7 +24,7 @@
       "phoenix": "packages/gateway/resources/skills",
       "source": "hub skill indexes + pegasus/be manifests",
       "count": 33,
-      "aggregateSha256": "56c973ba67e3d6b49165e008d6b34d85a3b470aab3d5bdb36b4792ce2e4d3ecf",
+      "aggregateSha256": "f6e15c20cc688d8f9bd517d1503f86647bca109fc48be08dd018f3eb8f519294",
       "files": {
         "be-skills/circuit_saver_manifest.json": "72e8da260622d8a8c361a13b8aab134d000a2b2418d7ea6148973a9448b6afa2",
         "be-skills/clock_manifest.json": "f8a4d18a2ddf2329d8024f44382a983c915a4d2d225ab7ff165878b264728021",
@@ -44,7 +44,7 @@
         "be-skills/who_am_i_manifest.json": "0707eb8b193d5a84a91638361b39c1e9512cb1804fca050292ee725782c8fbdf",
         "be-skills/word_of_the_day_manifest.json": "d76d20aec716dca85847545fffe563e1ff393d158ed2c6d1fd6a0d102db24bdc",
         "external-skills/answer_manifest.json": "39d392236cdc9dbd48a2aeaaefb1ef1a03a17fffd9921c1321d93205cf549573",
-        "external-skills/news_manifest.json": "8fd81029872ae7c0e0095ee660da4eef6872d556e72c3b707871d74fde826e2f",
+        "external-skills/news_manifest.json": "e24cca2b6cca2d72f9615449183b5825dbc76cc89c376f35edbaa0ea8afddde9",
         "pegasus-skills/answer_skill_manifest.json": "1028d610d748329b97f69a073f06e8dfc90bb899b847312c53c1dc16bb06eee9",
         "pegasus-skills/chitchat_skill_manifest.json": "29022d7336281f76e63a894a2cf6c34c800f667ffa10c9e90622b68b4059c45b",
         "pegasus-skills/color_skill_manifest.json": "ad23f1864034629b9f6edf10c145e4f9eef3c82625e40ecf3770cc4460bc12a7",
@@ -85,12 +85,10 @@
     "external-skills": {
       "phoenixCount": 2,
       "sourceCount": 2,
-      "identical": false,
+      "identical": true,
       "onlySource": [],
       "onlyPhoenix": [],
-      "differing": [
-        "news_manifest.json"
-      ]
+      "differing": []
     }
   },
   "indexFiles": {
@@ -260,12 +258,5 @@
     "packages/hub/pegasus-skills/example_skill_manifest.json",
     "packages/hub/pegasus-skills/template_skill_manifest.json",
     "packages/hub/be-skills/*.json"
-  ],
-  "externalNewsManifest": {
-    "path": "jiboV2/pegasus:packages/hub/external-skills/news_manifest.json@dev",
-    "id": "news",
-    "intents": [
-      "requestNews"
-    ]
-  }
+  ]
 }

@@ -150,8 +150,8 @@ export function isNewsChild(request, clock = Date.now) {
   const runtime = request.data.runtime;
   const perception = sourceMappingGet(runtime, 'perception');
   const loop = sourceMappingGet(runtime, 'loop');
-  // The source calls `.get()` on both mappings. sourceMappingGet preserves
-  // that mapping-only boundary while allowing absent fields on valid maps.
+  // The source calls `.get()` on these mappings. Keep absent keys undefined
+  // on valid maps while retaining the source failure boundary for non-maps.
   const speakerId = sourceMappingGet(perception, 'speaker');
   const users = sourceMappingGet(loop, 'users');
   if (!sourceTruthy(speakerId) || !sourceTruthy(users)) return false;

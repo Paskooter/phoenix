@@ -8,9 +8,16 @@ service registers the Hub news entrypoints `POST /news_skill` and
 cases covering adult, child, unknown speaker/loop, missing birthdate, empty
 AP data, and analytics. Phoenix HEAD had the external news manifest but no
 host route or `NEWS_preamble`, `NEWS_content`, and `NEWS_postamble` MIMs.
-The archived `jiboV2/pegasus@dev` integration test also sends `whats in the
-news` to skill `news` and requires both preamble and postamble prompt IDs in a
-sequence.
+
+The frozen Pegasus target is authoritative for manifest routing. Both
+`jiboV2/pegasus@5c0a739` and the matching `d682547` checkout keep
+`external-skills/news_manifest.json` at `intents: []`; the pinned
+`report_skill_manifest.json` owns the `requestNews` intent. The later mutable
+`jiboV2/pegasus@dev` archive adds `requestNews` and its integration test calls
+the service with `skill: 'news'`, which proves a direct service boundary but
+does not prove frozen IntentRouter selection. This candidate preserves the
+frozen empty list and records the mutable integration as a separate,
+provider/profile-dependent observation.
 
 This candidate restores that source-shaped contract behind a replaceable
 `newsProvider({ isKid, request })` seam. A configured provider returns the
@@ -35,10 +42,8 @@ routes). The Phoenix descriptor additionally exposes `/v1/news/main` as an
 adapter alias, giving 3 total route aliases through the shared skills host.
 `skills-gqa-default.json`
 now carries the existing `external-skills/news_manifest.json` beside the
-source-backed answer entry, and that manifest restores the archived
-`requestNews` intent. The older local Pegasus checkout had an empty news
-intent list; provenance records this one recovered difference against the
-JiboV2/pegasus@dev archive. A selected `PHOENIX_SKILL_ID=answer-skill` host
+source-backed answer entry, preserving its frozen empty intent list. A
+selected `PHOENIX_SKILL_ID=answer-skill` host
 co-hosts answer and news on the registry's `answer-skill:8080` endpoint while
 keeping answer-skill as `/v1/main`; the registry-to-host test exercises both
 boundaries. `skills-phoenix.json` and unset default startup still select the
@@ -69,8 +74,10 @@ ordering and five-item limit, source analytics and timing type, hyphenated
 UUID response IDs, empty-data `GQA_error`, provider rejection as HTTP 500,
 malformed perception/loop/looper 500 boundaries, first duplicate transID and
 logging-config headers, all three host aliases, missing transID 400 framing,
-the `requestNews` IntentRouter decision, and the registry-to-real-host answer
-and news paths. Gateway manifest provenance tests pin the recovered intent.
+the frozen empty news manifest, and the registry-to-real-host answer and news
+paths. Gateway manifest provenance tests compare the news descriptor byte for
+byte with the pinned source; they do not claim that the mutable @dev
+`requestNews` registration belongs to this profile.
 
 The Phoenix asset inventory requires non-GQA MIMs to declare
 `mim_type: announcement`; that loader metadata is added to the three archived

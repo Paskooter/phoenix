@@ -12,7 +12,6 @@ import {
   start,
 } from '../src/index.js';
 import { loadConfig } from '../../gateway/src/config.js';
-import { IntentRouter } from '../../gateway/src/intentRouter.js';
 
 const NOW = Date.parse('2026-09-13T00:00:00.000Z');
 
@@ -361,7 +360,7 @@ test('Q-01 source falsifiers: duplicate transID uses the first scalar and media 
   }
 });
 
-test('Q-01 registry wiring: explicit GQA default profile carries source news manifest', async () => {
+test('Q-01 registry wiring: explicit GQA default profile carries the frozen news manifest', async () => {
   const config = await loadConfig({
     ETCO_hub_skillsConfig: 'skills-gqa-default.json',
     NET_skills: 'news-host:8080',
@@ -370,15 +369,9 @@ test('Q-01 registry wiring: explicit GQA default profile carries source news man
   const news = config.skills.find((skill) => skill.id === 'news');
   assert.ok(news);
   assert.equal(news.URL, 'http://answer-skill:8080/news_skill/v1/main');
-  assert.deepEqual(news.intents, [{ name: 'requestNews' }]);
+  assert.deepEqual(news.intents, []);
   assert.ok(config.skills.findIndex((skill) => skill.id === 'news')
     < config.skills.findIndex((skill) => skill.id === 'report-skill'));
-  const route = new IntentRouter(config.skills).getSkillIDFromNLU({
-    intent: 'requestNews',
-    rules: ['launch'],
-    entities: {},
-  });
-  assert.deepEqual(route, { skillID: 'news', weight: 0 });
 });
 
 test('Q-01 registry-to-host proof: selected answer-skill co-hosts news and keeps answer /v1/main default', async () => {
