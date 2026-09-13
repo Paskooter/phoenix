@@ -1,0 +1,23 @@
+{
+  "mim_type": "announcement",
+  "prompts": [
+    {
+      "prompt": "Here are the headlines from the Associated Press.",
+      "media": "TTS",
+      "prompt_id": "NEWS_preamble_01",
+      "weight": 1
+    },
+    {
+      "prompt": "The Associated Press says.",
+      "media": "TTS",
+      "prompt_id": "NEWS_preamble_02",
+      "weight": 1
+    },
+    {
+      "prompt": "According to the Associated Press.",
+      "media": "TTS",
+      "prompt_id": "NEWS_preamble_03",
+      "weight": 1
+    }
+  ]
+}

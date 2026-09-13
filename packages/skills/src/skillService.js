@@ -66,17 +66,19 @@ export function skillRoute(skillId, handler) {
 /**
  * Host several skills. Each gets POST /v1/<id>/main; `defaultId` (or the first) is also served at
  * POST /v1/main for back-compat.
- * @param {{ name?:string, skills:Array<{id:string, handler:Function, route?:Function}>, defaultId?:string }} opts
+ * @param {{ name?:string, skills:Array<{id:string, handler:Function, route?:Function, paths?:string[]}>, defaultId?:string }} opts
  */
 export function createSkillsService({ name = 'skills', skills, defaultId }) {
   const routes = {};
-  for (const { id, handler, route } of skills) {
+  for (const { id, handler, route, paths } of skills) {
     // Most skills use the BaseSkill wrapper.  Source services with a distinct
     // HTTP contract (the Flask-era GQA route is one) can provide their own
     // route while remaining part of the same host registry.  Keeping this
     // choice on the descriptor prevents a GQA route from inheriting the
     // generic strict JSON/error envelope.
-    routes[`POST /v1/${id}/main`] = typeof route === 'function' ? route : skillRoute(id, handler);
+    const routeHandler = typeof route === 'function' ? route : skillRoute(id, handler);
+    const routePaths = Array.isArray(paths) && paths.length ? paths : [`/v1/${id}/main`];
+    for (const path of routePaths) routes[`POST ${path}`] = routeHandler;
   }
   const def = skills.find((s) => s.id === defaultId) || skills[0];
   if (def) routes['POST /v1/main'] = typeof def.route === 'function'
@@ -86,8 +88,8 @@ export function createSkillsService({ name = 'skills', skills, defaultId }) {
 }
 
 /** Back-compat single-skill host. */
-export function createSkillService({ name, skillId, handler, route }) {
-  return createSkillsService({ name, skills: [{ id: skillId, handler, route }], defaultId: skillId });
+export function createSkillService({ name, skillId, handler, route, paths }) {
+  return createSkillsService({ name, skills: [{ id: skillId, handler, route, paths }], defaultId: skillId });
 }
 
 function errorResponse(skillId, message) {

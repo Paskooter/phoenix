@@ -27,6 +27,13 @@ import {
   createGqaDefaultSkill,
   validateGqaDefaultProfile,
 } from './gqaDefaultService.js';
+import {
+  NEWS_SOURCE_PATHS,
+  createNewsAnswerSkill,
+  createApNewsProvider,
+  createNewsHttpRoute,
+  newsAnswerSkill,
+} from './newsAnswerSkill.js';
 
 export { createSkillsService, createSkillService } from './skillService.js';
 export { buildSkillAction, buildJcpAction, buildJcpFromSlim, escapeForEsml } from './jcp.js';
@@ -135,6 +142,22 @@ export {
   GQA_ACCOUNT_SERVICE_ENV,
   GQA_ATTRIBUTE_INDEX,
 } from './gqaAccountAttribution.js';
+export {
+  NEWS_SOURCE_REVISION,
+  NEWS_SOURCE_MODULE,
+  NEWS_VERSION,
+  NEWS_SOURCE_PATHS,
+  createNewsAnswerSkill,
+  createApNewsProvider,
+  createNewsHttpRoute,
+  newsAnswerSkill,
+  newsMimPromptIds,
+  buildNewsSlimFromMim,
+  buildNewsSlimFromText,
+  buildNewsSequence,
+  isNewsChild,
+  buildNewsAnalytics,
+} from './newsAnswerSkill.js';
 
 // Compatibility descriptors retain the historical named handlers. A caller
 // that passes SKILLS directly to createSkillsService still represents one
@@ -152,6 +175,7 @@ function publicSkillHandler(skillId) {
 
 export const SKILLS = [
   { id: 'answer-skill', handler: answerSkill },
+  { id: 'news', handler: newsAnswerSkill, route: createNewsHttpRoute({ handler: newsAnswerSkill }), paths: NEWS_SOURCE_PATHS },
   { id: 'chitchat-skill', handler: publicSkillHandler('chitchat-skill') },
   { id: 'report-skill', handler: publicSkillHandler('report-skill') },
   { id: 'color-skill', handler: colorSkill },
@@ -167,14 +191,26 @@ function answerSkillEntry(handler = answerSkill, route) {
   return entry;
 }
 
+function newsSkillEntry(handler = newsAnswerSkill, route) {
+  return {
+    id: 'news',
+    handler,
+    route: typeof route === 'function' ? route : createNewsHttpRoute({ handler }),
+    paths: NEWS_SOURCE_PATHS,
+  };
+}
+
 /** Construct only the handlers hosted by this process, in source order. */
 export function createBuiltinSkills({
   graphManager = new GraphManager(),
   answerHandler = answerSkill,
   answerRoute,
+  newsHandler = newsAnswerSkill,
+  newsRoute,
 } = {}) {
   return [
     answerSkillEntry(answerHandler, answerRoute),
+    newsSkillEntry(newsHandler, newsRoute),
     { id: 'chitchat-skill', handler: getChitchatSkill({ graphManager }) },
     { id: 'report-skill', handler: getReportSkill({ graphManager }) },
     { id: 'color-skill', handler: colorSkill },
@@ -183,10 +219,16 @@ export function createBuiltinSkills({
   ];
 }
 
-function createSelectedSkill(skillId, { answerHandler = answerSkill, answerRoute } = {}) {
+function createSelectedSkill(skillId, {
+  answerHandler = answerSkill,
+  answerRoute,
+  newsHandler = newsAnswerSkill,
+  newsRoute,
+} = {}) {
   if (skillId === 'chitchat-skill') return { id: skillId, handler: getChitchatSkill({ graphManager: new GraphManager() }) };
   if (skillId === 'report-skill') return { id: skillId, handler: getReportSkill({ graphManager: new GraphManager() }) };
   if (skillId === 'answer-skill') return answerSkillEntry(answerHandler, answerRoute);
+  if (skillId === 'news') return newsSkillEntry(newsHandler, newsRoute);
   return SKILLS.find((skill) => skill.id === skillId);
 }
 
@@ -210,6 +252,7 @@ export function start(port = defaultPort(), {
   gqaDefaultProfile = process.env.PHOENIX_GQA_DEFAULT_PROFILE,
   gqaEnvironment = process.env,
   gqaConfig = {},
+  newsConfig = {},
   gqaEndpoint = process.env.ETCO_gqa_wikiApi,
   gqaTimeoutMs = process.env.ETCO_gqa_wikiTimeoutMs,
 } = {}) {
@@ -237,25 +280,36 @@ export function start(port = defaultPort(), {
     const defaultGqa = selectedDefaultProfile && skillId === 'answer-skill'
       ? createGqaDefaultSkill({ env: gqaEnvironment, ...gqaConfig })
       : undefined;
+    const configuredNews = Object.keys(newsConfig || {}).length
+      ? createNewsAnswerSkill(newsConfig)
+      : undefined;
     const selected = createSelectedSkill(skillId, {
       answerHandler: defaultGqa?.handler,
       answerRoute: defaultGqa?.route,
+      newsHandler: configuredNews || newsAnswerSkill,
+      newsRoute: configuredNews ? createNewsHttpRoute({ handler: configuredNews }) : undefined,
     });
     return createSkillService({
       name: selected.id,
       skillId: selected.id,
       handler: selected.handler,
       route: selected.route,
+      paths: selected.paths,
     }).listen(port);
   }
   const defaultGqa = selectedDefaultProfile
     ? createGqaDefaultSkill({ env: gqaEnvironment, ...gqaConfig })
+    : undefined;
+  const configuredNews = Object.keys(newsConfig || {}).length
+    ? createNewsAnswerSkill(newsConfig)
     : undefined;
   return createSkillsService({
     name: 'skills',
     skills: createBuiltinSkills({
       answerHandler: defaultGqa?.handler,
       answerRoute: defaultGqa?.route,
+      newsHandler: configuredNews || newsAnswerSkill,
+      newsRoute: configuredNews ? createNewsHttpRoute({ handler: configuredNews }) : undefined,
     }),
     defaultId: 'answer-skill',
   }).listen(port);

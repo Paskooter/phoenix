@@ -1,0 +1,11 @@
+{
+  "mim_type": "announcement",
+  "prompts": [
+    {
+      "prompt": "And that's all the news for now.",
+      "media": "TTS",
+      "prompt_id": "NEWS_postamble_01",
+      "weight": 1
+    }
+  ]
+}

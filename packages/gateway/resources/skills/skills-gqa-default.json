@@ -5,6 +5,10 @@
             "configPath": "pegasus-skills/answer_skill_manifest.json"
         },
         {
+            "baseURL": "http://answer-skill:8080",
+            "configPath": "external-skills/news_manifest.json"
+        },
+        {
             "baseURL": "http://report-skill:8080",
             "configPath": "pegasus-skills/report_skill_manifest.json"
         },
@@ -73,5 +77,5 @@
         "history_service": "is on port 9006",
         "lasso": "is on port 9007"
     },
-    "_comment_2026": "Shared Phoenix skill host with the source-backed GQA answer-skill profile. Select PHOENIX_GQA_DEFAULT_PROFILE=multi-provider and provide ETCO_gqa_bingApi, ETCO_gqa_wikiApi and ETCO_gqa_wolframApi plus provider credentials; unset selection keeps the ordinary Phoenix answer handler."
+    "_comment_2026": "Shared Phoenix skill host with the source-backed GQA answer-skill and legacy AP-news entries. Select PHOENIX_GQA_DEFAULT_PROFILE=multi-provider and provide ETCO_gqa_bingApi, ETCO_gqa_wikiApi and ETCO_gqa_wolframApi plus provider credentials; configure the replaceable newsProvider/AP store explicitly; unset selection keeps the ordinary Phoenix answer handler."
 }

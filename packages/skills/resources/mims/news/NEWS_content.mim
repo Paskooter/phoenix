@@ -1,0 +1,11 @@
+{
+  "mim_type": "announcement",
+  "prompts": [
+    {
+      "prompt": "<style set=\"NEWS\">{0}</style>",
+      "media": "TTS",
+      "prompt_id": "NEWS_content_01",
+      "weight": 1
+    }
+  ]
+}
