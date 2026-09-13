@@ -4,7 +4,7 @@ Source: `jiborobot/srv-gqa-ws@ebe1a7d38f511570060c1fbf61bec89d58419b26`, read th
 
 This candidate maps every named `test_*` definition counted by the archived inventory (136 rows, 385 assertion calls) to an existing executable Phoenix row or a concrete closure requirement. The two top-level `test_*` helper functions in `test_bing.py` are included as `supporting`; they are called by named tests and are not standalone unittest cases.
 
-Current row counts: covered=83, partial=42, missing=8, skipped=1, supporting=2.
+Current row counts: covered=86, partial=42, missing=4, skipped=1, supporting=2, excluded=1.
 
 The existing replay lane directly executes 28 archived answer rows and 12 async rows. It also executes 10 source-shaped news/AP cases, account/attribution rows, and three captured fake-provider adapter routes. This audit keeps those receipts separate from live-provider and legacy `/structQA` gaps.
 
@@ -15,6 +15,7 @@ The existing replay lane directly executes 28 archived answer rows and 12 async 
 - News: archived AP/news source cases map to the existing matrix/provider rows; the moved live AP/vendor sequence remains a qualification.
 - Account/attribution: lookup, insert, retrieve, wipe, source windows, and HTTP parser rows are covered by the existing account suite; `/fakeAccount` remains a developer-helper seam.
 - Fake providers: captured Bing/Wikipedia/Wolfram bodies are decoded and passed through current adapters; the new Wikipedia decision matrix uses injected page JSON, while live vendor answer assertions remain partial or missing.
+- Accepted exclusions: `/crash_me` is a debug-only developer route and is excluded from the Phoenix product denominator.
 
 ## Per-test map
 
@@ -79,7 +80,7 @@ The existing replay lane directly executes 28 archived answer rows and 12 async 
 | `tests/unit/test_general.py:test_wolfram` | `partial` | packages/skills/test/q01WolframProvider.test.js :: Q-01 Wolfram success sends ordered source parameters and returns spoken output | Wolfram request/response shaping is covered with a deterministic peer; the archived /structQA endpoint and live answer remain open. |
 | `tests/unit/test_general.py:test_retrieve_att` | `covered` | packages/skills/test/q01GqaAccountAttribution.test.js :: Mongo attribution storage returns complete inserted records through retrieveAtt and wipes them | — |
 | `tests/unit/test_general.py:test_wipe_db_for_id` | `covered` | packages/skills/test/q01GqaAccountAttribution.test.js :: attribution HTTP routes preserve source parser boundaries and retrieve ordering | — |
-| `tests/unit/test_general.py:test_crash_me` | `missing` | — | Archived debug-only /crash_me route and its Piep, Piep exception are not a Phoenix product surface. |
+| `tests/unit/test_general.py:test_crash_me` | `excluded` | — | Accepted exclusion: `/crash_me` is a debug-only developer route whose Piep, Piep exception is outside the Phoenix product surface; no implementation or replay is required. |
 | `tests/unit/test_mim_registry.py:test_mim_registry` | `covered` | packages/skills/test/q01ApiAiMim.test.js :: Q-01 MIM registry builds the sorted semicolon intent/entity pattern | — |
 | `tests/unit/test_mim_registry.py:test_mim_registry_empty` | `covered` | packages/skills/test/q01ApiAiMim.test.js :: Q-01 MIM registry preserves empty API-AI output as null | — |
 | `tests/unit/test_mim_registry.py:test_mim_registry_api_ai_500` | `covered` | packages/skills/test/q01ApiAiMim.test.js :: Q-01 API-AI status 500 is retained by the client and rejected by the MIM registry | — |
@@ -137,14 +138,14 @@ The existing replay lane directly executes 28 archived answer rows and 12 async 
 | `tests/unit/test_wikipedia.py:test_wiki_endash` | `covered` | packages/skills/test/q01WikipediaDecisionMatrix.test.js :: Q-01 archived Wikipedia endash decision with injected McCain–Feingold page body | The source mock summary and Unicode endash normalization are replayed with an injected page; current/live Wikipedia article content remains unqualified. |
 | `tests/unit/test_wikipedia.py:test_wiki_no_query` | `covered` | packages/skills/test/q01WikipediaDecisionMatrix.test.js :: Q-01 archived Wikipedia empty-query decision with question_type=what and zero requests | The direct search decision is exercised through the source-compatible provider call; no live article is involved. |
 | `tests/unit/test_wikipedia.py:test_wiki_nonsense` | `partial` | packages/skills/test/q01Wikipedia.test.js :: Q-01 Wikipedia missing page is a no-result source message | A missing-page no-result is covered, but the archived nonsense-query/no-match branch and exact message are not. |
-| `tests/unit/test_wikipedia.py:test_carlton_banks` | `missing` | — | Related-but-different article suppression and its exact error message need a source-derived page fixture. |
+| `tests/unit/test_wikipedia.py:test_carlton_banks` | `covered` | packages/skills/test/q01WikipediaArchivedNamedCases.test.js :: Q-01 archived Wikipedia named case test_carlton_banks with the immutable mocked_wikipedia summary and related-article message | — |
 | `tests/unit/test_wikipedia.py:test_wiki_listblocking` | `covered` | packages/skills/test/q01WikipediaDecisionMatrix.test.js :: Q-01 archived Wikipedia title/list blocking matrix with injected page bodies and positive title controls | All named source list/title cases plus the This TV and This, Ardennes prefix controls run against synthetic page JSON; current/live article bodies remain unqualified. |
 | `tests/unit/test_wikipedia.py:test_can_answer` | `covered` | packages/skills/test/q01WikipediaDecisionMatrix.test.js :: Q-01 archived Wikipedia can_answer matrix with and without question hints | The 32 source positive/negative decisions are checked through request/no-request behavior with injected responses. |
-| `tests/unit/test_wikipedia.py:test_no_response` | `missing` | — | Empty Wikipedia page cleanup/error branch and exact unexpected-exception message need a pinned page fixture. |
+| `tests/unit/test_wikipedia.py:test_no_response` | `covered` | packages/skills/test/q01WikipediaArchivedNamedCases.test.js :: Q-01 archived Wikipedia named case test_no_response with the source patched-constructor TypeError and unexpected-exception message | — |
 | `tests/unit/test_wikipedia.py:test_disambig_basic` | `covered` | packages/skills/test/q01Wikipedia.test.js :: Q-01 Wikipedia disambiguation follows revision options and skips disambiguation pages | — |
 | `tests/unit/test_wikipedia.py:test_disambig_nested` | `covered` | packages/skills/test/q01Wikipedia.test.js :: Q-01 Wikipedia disambiguation follows revision options and skips disambiguation pages | — |
 | `tests/unit/test_wikipedia.py:test_disambig_cat_blacklist` | `partial` | packages/skills/test/q01GqaProfile.test.js :: Q-01 profile preserves source action selection across answer, no-result, disambiguation, blacklist and provider failure | Disambiguation and category suppression are covered separately; the archived Bondage nested disambiguation/category chain is not one executable row. |
-| `tests/unit/test_wikipedia.py:test_broken_article` | `missing` | — | Broken-template detection with the archived NCAA payload and exact error remains unpinned. |
+| `tests/unit/test_wikipedia.py:test_broken_article` | `covered` | packages/skills/test/q01WikipediaArchivedNamedCases.test.js :: Q-01 archived Wikipedia named case test_broken_article with the immutable mocked_wikipedia NCAA summary and broken-template message | — |
 | `tests/unit/test_wikipedia.py:test_many_categories` | `partial` | packages/skills/test/q01Wikipedia.test.js :: Q-01 Wikipedia preserves source first-page category continuation behavior | The no-continuation source rule is covered, but the archived 500-category page and complete category list are not replayed. |
 | `tests/unit/test_wolfram.py:test_wolf_basic` | `partial` | packages/skills/test/q01WolframProvider.test.js :: Q-01 Wolfram success sends ordered source parameters and returns spoken output | Deterministic request/response shaping is covered, but the archived live daughter-of-Donald-Trump answer is not pinned. |
 | `tests/unit/test_wolfram.py:test_picture` | `covered` | packages/skills/test/q01WolframProvider.test.js :: Q-01 Wolfram clean_answer preserves source rejection and parenthesis rules | — |

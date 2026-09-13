@@ -50,7 +50,8 @@
     "partial": "An executable row covers a narrower or synthetic seam; closure remains explicitly stated.",
     "missing": "No executable row currently checks the named behavior; closure is a concrete feature or fixture requirement.",
     "supporting": "A top-level test helper counted by the source inventory; its assertions are exercised by the named callers.",
-    "skipped": "The archived test is explicitly skipped and has no required replay."
+    "skipped": "The archived test is explicitly skipped and has no required replay.",
+    "excluded": "The archived test targets a debug/developer-only route outside Phoenix product scope and is intentionally accepted without implementation."
   },
   "mappingRules": [
     "Rows are one per archived named test_* definition counted by the 136-test inventory; the two test_* helpers in test_bing.py are marked supporting and are not standalone unittest cases.",
@@ -65,9 +66,10 @@
   "counts": {
     "covered": 86,
     "partial": 42,
-    "missing": 5,
+    "missing": 4,
     "skipped": 1,
-    "supporting": 2
+    "supporting": 2,
+    "excluded": 1
   },
   "rows": [
     {
@@ -520,9 +522,9 @@
       "source": "tests/unit/test_general.py:test_crash_me",
       "sourceFile": "tests/unit/test_general.py",
       "test": "test_crash_me",
-      "status": "missing",
+      "status": "excluded",
       "target": null,
-      "closure": "Archived debug-only /crash_me route and its Piep, Piep exception are not a Phoenix product surface."
+      "closure": "Accepted exclusion: /crash_me is a debug-only developer route whose Piep, Piep exception is outside the Phoenix product surface; no implementation or replay is required."
     },
     {
       "source": "tests/unit/test_mim_registry.py:test_mim_registry",
