@@ -59,12 +59,13 @@
     "News source cases are counted as 10 archived cases and 14 local test blocks in the existing receipt; this map does not convert the 14 blocks into 14 source cases.",
     "Live integration inputs and live provider assertions without output goldens remain partial or missing even when a local adapter seam exists.",
     "Wikipedia decision-matrix rows use injected page JSON and source-derived summaries; they cover deterministic gate/title/normalization decisions and do not claim current/live article output.",
+    "The three archived Wikipedia named-case rows use the immutable mocked_wikipedia summaries or constructor error from tests/unit/test_pegasus.py and tests/unit/test_wikipedia.py; the provider is reached through a question-shaped wrapper that preserves each source strict query, and no current/live article body is claimed.",
     "The blocked-dictionary row pins all 344 archived output words and replays them against the matcher; it remains partial until the full word-list/words.txt corpus is available through the allowed source surface."
   ],
   "counts": {
-    "covered": 83,
+    "covered": 86,
     "partial": 42,
-    "missing": 8,
+    "missing": 5,
     "skipped": 1,
     "supporting": 2
   },
@@ -933,9 +934,8 @@
       "source": "tests/unit/test_wikipedia.py:test_carlton_banks",
       "sourceFile": "tests/unit/test_wikipedia.py",
       "test": "test_carlton_banks",
-      "status": "missing",
-      "target": null,
-      "closure": "Related-but-different article suppression and its exact error message need a source-derived page fixture."
+      "status": "covered",
+      "target": "packages/skills/test/q01WikipediaArchivedNamedCases.test.js :: Q-01 archived Wikipedia named case test_carlton_banks with the immutable mocked_wikipedia summary and related-article message"
     },
     {
       "source": "tests/unit/test_wikipedia.py:test_wiki_listblocking",
@@ -957,9 +957,8 @@
       "source": "tests/unit/test_wikipedia.py:test_no_response",
       "sourceFile": "tests/unit/test_wikipedia.py",
       "test": "test_no_response",
-      "status": "missing",
-      "target": null,
-      "closure": "Empty Wikipedia page cleanup/error branch and exact unexpected-exception message need a pinned page fixture."
+      "status": "covered",
+      "target": "packages/skills/test/q01WikipediaArchivedNamedCases.test.js :: Q-01 archived Wikipedia named case test_no_response with the source patched-constructor TypeError and unexpected-exception message"
     },
     {
       "source": "tests/unit/test_wikipedia.py:test_disambig_basic",
@@ -987,9 +986,8 @@
       "source": "tests/unit/test_wikipedia.py:test_broken_article",
       "sourceFile": "tests/unit/test_wikipedia.py",
       "test": "test_broken_article",
-      "status": "missing",
-      "target": null,
-      "closure": "Broken-template detection with the archived NCAA payload and exact error remains unpinned."
+      "status": "covered",
+      "target": "packages/skills/test/q01WikipediaArchivedNamedCases.test.js :: Q-01 archived Wikipedia named case test_broken_article with the immutable mocked_wikipedia NCAA summary and broken-template message"
     },
     {
       "source": "tests/unit/test_wikipedia.py:test_many_categories",

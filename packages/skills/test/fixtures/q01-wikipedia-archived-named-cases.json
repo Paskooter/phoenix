@@ -1,0 +1,51 @@
+{
+  "sourceRevision": "ebe1a7d38f511570060c1fbf61bec89d58419b26",
+  "sourceFiles": [
+    "tests/unit/test_wikipedia.py",
+    "tests/unit/test_pegasus.py"
+  ],
+  "sourceNote": "The two page bodies are the immutable input_output_map_wiki entries used by mocked_wikipedia. test_no_response patches wikipedia.WikipediaPage with mocked_empty_page(text, auto_suggest=False); the source call passes title= and therefore deterministically raises TypeError before a page exists.",
+  "cases": [
+    {
+      "id": "test_carlton_banks",
+      "sourceTest": "tests/unit/test_wikipedia.py:test_carlton_banks",
+      "sourceSearchQuery": "Carlton Banks",
+      "queryText": "what is Carlton Banks",
+      "questionType": "what",
+      "strictQuery": "Carlton Banks",
+      "page": {
+        "title": "Carlton Banks",
+        "extract": "The Fresh Prince of Bel-Air is an American sitcom based on the life of Will \"The Fresh Prince\" Smith.",
+        "categories": []
+      },
+      "expectedMessage": "Query on 'Carlton Banks' apparently got article on related but different topic"
+    },
+    {
+      "id": "test_no_response",
+      "sourceTest": "tests/unit/test_wikipedia.py:test_no_response",
+      "sourceSearchQuery": "Empty Wikipedia page test",
+      "queryText": "what is Empty Wikipedia page test",
+      "questionType": "what",
+      "strictQuery": "Empty Wikipedia page test",
+      "transportError": {
+        "name": "TypeError",
+        "message": "mocked_empty_page() got an unexpected keyword argument 'title'"
+      },
+      "expectedMessageIncludes": "Wikipedia query 'Empty Wikipedia page test' raised unexpected exception"
+    },
+    {
+      "id": "test_broken_article",
+      "sourceTest": "tests/unit/test_wikipedia.py:test_broken_article",
+      "sourceSearchQuery": "NCAA",
+      "queryText": "what is NCAA",
+      "questionType": "what",
+      "strictQuery": "NCAA",
+      "page": {
+        "title": "NCAA",
+        "extract": "NCAA blah blah oh no | picture = National Collegiate Athletic Association logo | name = National Collegiate Athletic Association | size = 200px | caption = | map = | msize = | mcaption = football",
+        "categories": []
+      },
+      "expectedMessage": "Blocked due to apparently broken template"
+    }
+  ]
+}
