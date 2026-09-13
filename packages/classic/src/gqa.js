@@ -38,6 +38,40 @@ function header(req, name) {
   return key === undefined ? undefined : headers[key];
 }
 
+function targetOperation(req) {
+  const target = String(header(req, 'x-amz-target') || '');
+  const dot = target.lastIndexOf('.');
+  return dot >= 0 ? target.slice(dot + 1) : target;
+}
+
+function escapeNonAscii(json) {
+  // Python json.dumps defaults to ensure_ascii=True. Iterate UTF-16 code units so
+  // astral characters become the same pair of \\u escapes as Python.
+  return json.replace(/[\u0080-\uFFFF]/g, (character) => (
+    `\\u${character.charCodeAt(0).toString(16).padStart(4, '0')}`
+  ));
+}
+
+/** The JSON subset returned by Flask's Python json.dumps (spacing and ASCII included). */
+export function sourceJsonDumps(value) {
+  if (value === undefined) throw new TypeError('undefined is not JSON serializable');
+  if (value === null || typeof value === 'boolean' || typeof value === 'string') {
+    const json = JSON.stringify(value);
+    return typeof value === 'string' ? escapeNonAscii(json) : json;
+  }
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) throw new TypeError('non-finite number is not JSON serializable');
+    return JSON.stringify(value);
+  }
+  if (Array.isArray(value)) return `[${value.map(sourceJsonDumps).join(', ')}]`;
+  if (typeof value === 'object') {
+    return `{${Object.entries(value).map(([key, item]) => (
+      `${escapeNonAscii(JSON.stringify(key))}: ${sourceJsonDumps(item)}`
+    )).join(', ')}}`;
+  }
+  throw new TypeError(`${typeof value} is not JSON serializable`);
+}
+
 /** Python truthiness for the account lookup result used by gqa.account.get_loop_id. */
 export function sourceTruthy(value) {
   if (value === null || value === undefined || value === false || value === 0 || value === '') return false;
@@ -46,7 +80,13 @@ export function sourceTruthy(value) {
   return true;
 }
 
-/** Read the identity that srv-security-gw injects before forwarding to Flask. */
+/**
+ * Read the identity that srv-security-gw injects before forwarding to Flask.
+ *
+ * The direct Classic face is LAN-trusted: this code does not verify the SigV4 signature. When the
+ * gateway did not inject x-amz-credentials, the access key is used only as the source account
+ * identity fallback needed by the downstream Flask call.
+ */
 export function gqaCredentials(req, { required = false } = {}) {
   const raw = header(req, 'x-amz-credentials');
   if (raw === undefined) {
@@ -96,16 +136,12 @@ export function gqaEmptyJsonEntity(req) {
   return !hasRequestEntity(req);
 }
 
-function serialized(value) {
-  return JSON.stringify(value === undefined ? null : value);
-}
-
 /** The security gateway's downstream reply is application/json, including Flask error bodies. */
 export function sendGqaJson(res, status, value) {
-  const body = serialized(value);
+  const body = sourceJsonDumps(value === undefined ? null : value);
   if (typeof res.status === 'function') res.status(status);
   if (typeof res.setHeader === 'function') {
-    res.setHeader('content-type', 'application/json');
+    res.setHeader('content-type', 'application/json; charset=utf-8');
     res.setHeader('content-length', String(Buffer.byteLength(body)));
   }
   return res.end(body);
@@ -117,7 +153,7 @@ export function sendGqaHtml(res, status, body) {
     // srv-security-gw's Wreck reply forwards body.toString() and then forces
     // application/json. Preserve the Flask HTML bytes while matching that
     // outer wire media type.
-    res.setHeader('content-type', 'application/json');
+    res.setHeader('content-type', 'application/json; charset=utf-8');
     res.setHeader('content-length', String(Buffer.byteLength(body)));
   }
   return res.end(body);
@@ -168,6 +204,7 @@ function parserError({ req, res }) {
   // The gateway changes the media type before Flask sees malformed input. The Classic adapter
   // accepts both direct AWS JSON and already-rewritten application/json, so both reach this
   // source error body.
+  if (!GQA_OPERATIONS.includes(targetOperation(req))) return sendGqaHtml(res, 404, GQA_NOT_FOUND_HTML);
   if (gqaEmptyJsonEntity(req) || req?.headers?.['content-type']) return sendGqaHtml(res, 400, GQA_BAD_REQUEST_HTML);
   return undefined;
 }
@@ -231,8 +268,8 @@ export function makeGqaHandler(options = {}) {
     });
 
   return async function gqaHandler(context) {
-    const name = String(context.op || '').toLowerCase();
-    if (name === 'question') {
+    const name = context.op;
+    if (name === 'Question') {
       return runSourceHandler({
         ...context,
         send: (status, value) => sendGqaJson(context.res, status, value),
@@ -249,7 +286,7 @@ export function makeGqaHandler(options = {}) {
         });
       });
     }
-    if (name === 'listattribution') {
+    if (name === 'ListAttribution') {
       return runSourceHandler(context, attribution);
     }
     return sendGqaHtml(context.res, 404, GQA_NOT_FOUND_HTML);
@@ -260,6 +297,7 @@ export function makeGqaHandler(options = {}) {
 // lets each view decide how to fail, while malformed/empty entities are its 400 HTML response.
 export const GQA_ROUTE_OPTIONS = Object.freeze({
   jsonStrict: false,
+  jsonTypes: Object.freeze(['application/json', 'application/x-amz-json-1.1', 'application/*+json']),
   bodyDefault: null,
   // Classic's generic dispatch historically replaces a null body with {}. The
   // Flask views receive request.json verbatim, so this family must retain null,

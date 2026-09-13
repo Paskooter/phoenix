@@ -38,6 +38,12 @@ export function createService({ name, routes = {}, onUpgrade, jsonStrict = true,
   const looseJson = bodyParser.json({ type: JSON_CONTENT_TYPES, verify: captureRawBody, strict: false });
   const scopedJsonParsers = new WeakMap();
 
+  function scopedJsonTypeKey(types) {
+    if (typeof types === 'function') return types;
+    if (Array.isArray(types)) return `array:${JSON.stringify(types)}`;
+    return `${typeof types}:${String(types)}`;
+  }
+
   // The trace logger is available to body-parser errors and the final 404 in the
   // same request scope as it is to a handler.
   app.use((req, _res, next) => {
@@ -77,14 +83,23 @@ export function createService({ name, routes = {}, onUpgrade, jsonStrict = true,
     const strict = routeStrict === undefined
       ? (typeof jsonStrict === 'function' ? jsonStrict(req) : jsonStrict)
       : routeStrict;
-    if (route?.jsonTypes !== undefined) {
-      let parsers = scopedJsonParsers.get(route);
+    const routeJsonTypes = route && typeof route.jsonTypes === 'function'
+      ? route.jsonTypes(req)
+      : route?.jsonTypes;
+    if (routeJsonTypes !== undefined) {
+      let parsersByType = scopedJsonParsers.get(route);
+      if (!parsersByType) {
+        parsersByType = new Map();
+        scopedJsonParsers.set(route, parsersByType);
+      }
+      const typeKey = scopedJsonTypeKey(routeJsonTypes);
+      let parsers = parsersByType.get(typeKey);
       if (!parsers) {
         parsers = {
-          strict: bodyParser.json({ type: route.jsonTypes, verify: captureRawBody, strict: true }),
-          loose: bodyParser.json({ type: route.jsonTypes, verify: captureRawBody, strict: false }),
+          strict: bodyParser.json({ type: routeJsonTypes, verify: captureRawBody, strict: true }),
+          loose: bodyParser.json({ type: routeJsonTypes, verify: captureRawBody, strict: false }),
         };
-        scopedJsonParsers.set(route, parsers);
+        parsersByType.set(typeKey, parsers);
       }
       return (strict ? parsers.strict : parsers.loose)(req, res, next);
     }

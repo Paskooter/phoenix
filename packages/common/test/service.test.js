@@ -329,3 +329,35 @@ test('common HTTP service preserves the reference JSON and error boundary contra
     await new Promise((resolve, reject) => service.server.close((error) => error ? reject(error) : resolve()));
   }
 });
+
+test('route-scoped JSON parser caches each resolved dynamic type set independently', async () => {
+  const dynamic = Object.assign(async ({ body }) => body, {
+    jsonStrict: false,
+    jsonTypes: (req) => req.headers['x-parser-mode'] === 'wide'
+      ? ['application/json', 'application/vnd.fixture+json']
+      : ['application/json'],
+  });
+  const service = createService({
+    name: 'dynamic-json-types-test',
+    routes: { 'POST /dynamic': dynamic },
+  });
+  await service.listen(0);
+  const port = service.server.address().port;
+  try {
+    const narrow = await request(port, {
+      method: 'POST', path: '/dynamic', body: '{"parsed":false}',
+      contentType: 'application/vnd.fixture+json', headers: { 'x-parser-mode': 'narrow' },
+    });
+    assert.equal(narrow.status, 200);
+    assert.deepEqual(JSON.parse(narrow.rawBody), {});
+
+    const wide = await request(port, {
+      method: 'POST', path: '/dynamic', body: '{"parsed":true}',
+      contentType: 'application/vnd.fixture+json', headers: { 'x-parser-mode': 'wide' },
+    });
+    assert.equal(wide.status, 200);
+    assert.deepEqual(JSON.parse(wide.rawBody), { parsed: true });
+  } finally {
+    await new Promise((resolve, reject) => service.server.close((error) => error ? reject(error) : resolve()));
+  }
+});

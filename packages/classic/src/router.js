@@ -76,6 +76,12 @@ export function createClassicRouter(registrations) {
     if (!reg || !Object.prototype.hasOwnProperty.call(reg, 'jsonStrict')) return undefined;
     return typeof reg.jsonStrict === 'function' ? reg.jsonStrict(req) : reg.jsonStrict;
   };
+  dispatch.jsonTypes = (req) => {
+    const { prefix } = parseTarget(req);
+    const reg = regs.find((entry) => entry.re.test(prefix));
+    if (!reg || !Object.prototype.hasOwnProperty.call(reg, 'jsonTypes')) return undefined;
+    return typeof reg.jsonTypes === 'function' ? reg.jsonTypes(req) : reg.jsonTypes;
+  };
   // Parser failures are likewise delegated only to the matched source registration. Returning
   // undefined lets createService continue with its normal error action for every other family.
   dispatch.parserError = (context) => {

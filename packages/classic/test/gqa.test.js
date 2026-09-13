@@ -5,6 +5,8 @@ import {
   GQA_BAD_REQUEST_HTML,
   GQA_NOT_FOUND_HTML,
 } from '../src/index.js';
+import { createClassicRouter } from '../src/router.js';
+import { createService } from '@phoenix/common';
 
 const CREDENTIALS = JSON.stringify({
   _id: 'account-1',
@@ -73,7 +75,11 @@ test('Question and ListAttribution targets dispatch through explicit source seam
     Input: 'what is the fixture', Intent: 'GQA', Country: 'US', Latitude: 1, Longitude: 2,
   });
   assert.equal(question.status, 200);
-  assert.equal(question.contentType, 'application/json');
+  assert.equal(question.contentType, 'application/json; charset=utf-8');
+  const questionBytes = Buffer.from(question.text, 'utf8');
+  assert.equal(question.text, '{"success": true, "source": "fixture", "response": {"type": "string", "payload": "fixture answer"}}');
+  assert.deepEqual(questionBytes, Buffer.from('{"success": true, "source": "fixture", "response": {"type": "string", "payload": "fixture answer"}}', 'utf8'));
+  assert.equal(question.response.headers.get('content-length'), String(questionBytes.length));
   assert.deepEqual(question.body, {
     success: true,
     source: 'fixture',
@@ -93,7 +99,7 @@ test('Question and ListAttribution targets dispatch through explicit source seam
     ID: 'model-required-but-source-unused', Service: 'Bing', after: 1, before: 2,
   });
   assert.equal(attribution.status, 200);
-  assert.equal(attribution.contentType, 'application/json');
+  assert.equal(attribution.contentType, 'application/json; charset=utf-8');
   assert.deepEqual(attribution.body, {
     data: [{ service: 'Bing', query: 'fixture', url: 'https://fixture.invalid', timestamp: 1700000000000 }],
   });
@@ -165,7 +171,7 @@ test('ListAttribution preserves source header, account, then body error preceden
 
   const missingHeader = await request(port, 'GQA_20160930.ListAttribution', {}, { credentials: null, authorization: null });
   assert.equal(missingHeader.status, 500);
-  assert.equal(missingHeader.contentType, 'application/json');
+  assert.equal(missingHeader.contentType, 'application/json; charset=utf-8');
   assert.equal(missingHeader.body.version, '5.2.15');
   assert.equal(missingHeader.body.message, "Missing 'x-amz-credentials' header");
   assert.deepEqual(calls, []);
@@ -186,14 +192,14 @@ test('source parser rejects malformed and empty JSON with Flask 400 HTML before 
 
   const malformed = await request(port, 'GQA_20160930.Question', '{', { raw: true });
   assert.equal(malformed.status, 400);
-  assert.equal(malformed.contentType, 'application/json');
+  assert.equal(malformed.contentType, 'application/json; charset=utf-8');
   assert.equal(malformed.response.headers.get('content-length'), String(Buffer.byteLength(GQA_BAD_REQUEST_HTML)));
   assert.equal(malformed.text, GQA_BAD_REQUEST_HTML);
   assert.deepEqual(calls, []);
 
   const empty = await request(port, 'GQA_20160930.ListAttribution', '', { raw: true });
   assert.equal(empty.status, 400);
-  assert.equal(empty.contentType, 'application/json');
+  assert.equal(empty.contentType, 'application/json; charset=utf-8');
   assert.equal(empty.response.headers.get('content-length'), String(Buffer.byteLength(GQA_BAD_REQUEST_HTML)));
   assert.equal(empty.text, GQA_BAD_REQUEST_HTML);
   assert.deepEqual(calls, []);
@@ -203,7 +209,7 @@ test('a mapped GQA operation is source-shaped even before Question core integrat
   const { port } = await start();
   const question = await request(port, 'GQA_20160930.Question', { Input: 'fixture' });
   assert.equal(question.status, 500);
-  assert.equal(question.contentType, 'application/json');
+  assert.equal(question.contentType, 'application/json; charset=utf-8');
   assert.equal(question.body.version, '5.2.15');
   assert.match(question.body.message, /structQA implementation/);
 
@@ -217,9 +223,24 @@ test('unknown GQA operation uses the downstream Flask 404 while unrelated Classi
   const { port } = await start();
   const unknownGqa = await request(port, 'GQA_20160930.Nope', {});
   assert.equal(unknownGqa.status, 404);
-  assert.equal(unknownGqa.contentType, 'application/json');
+  assert.equal(unknownGqa.contentType, 'application/json; charset=utf-8');
   assert.equal(unknownGqa.response.headers.get('content-length'), String(Buffer.byteLength(GQA_NOT_FOUND_HTML)));
   assert.equal(unknownGqa.text, GQA_NOT_FOUND_HTML);
+
+  const unknownMalformed = await request(port, 'GQA_20160930.Nope', '{', { raw: true });
+  assert.equal(unknownMalformed.status, 404);
+  assert.equal(unknownMalformed.contentType, 'application/json; charset=utf-8');
+  assert.equal(unknownMalformed.text, GQA_NOT_FOUND_HTML);
+
+  const unknownEmpty = await request(port, 'GQA_20160930.nope', '', { raw: true });
+  assert.equal(unknownEmpty.status, 404);
+  assert.equal(unknownEmpty.contentType, 'application/json; charset=utf-8');
+  assert.equal(unknownEmpty.text, GQA_NOT_FOUND_HTML);
+
+  const wrongCase = await request(port, 'GQA_20160930.question', {});
+  assert.equal(wrongCase.status, 404);
+  assert.equal(wrongCase.contentType, 'application/json; charset=utf-8');
+  assert.equal(wrongCase.text, GQA_NOT_FOUND_HTML);
 
   const unrelated = await request(port, 'Nothing_20160101.Nope', {});
   assert.equal(unrelated.status, 400);
@@ -228,4 +249,70 @@ test('unknown GQA operation uses the downstream Flask 404 while unrelated Classi
   const log = await request(port, 'Log_20150309.PutEvents', { events: [] });
   assert.equal(log.status, 200);
   assert.deepEqual(log.body, { result: 'Successfully added events' });
+});
+
+test('GQA accepts application/*+json only through its route-scoped parser', async () => {
+  const calls = [];
+  const { port } = await start({
+    structQaHandler: async (body) => {
+      calls.push(body);
+      return { ok: true, text: 'café 😀', nested: [true, null] };
+    },
+  });
+
+  const gqa = await request(port, 'GQA_20160930.Question', { Input: 'fixture' }, {
+    contentType: 'application/vnd.gqa+json',
+  });
+  assert.equal(gqa.status, 200);
+  assert.equal(gqa.contentType, 'application/json; charset=utf-8');
+  assert.deepEqual(calls, [{ Input: 'fixture' }]);
+  const expected = '{"ok": true, "text": "caf\\u00e9 \\ud83d\\ude00", "nested": [true, null]}';
+  assert.equal(gqa.text, expected);
+  assert.deepEqual(Buffer.from(gqa.text, 'utf8'), Buffer.from(expected, 'utf8'));
+
+  const unrelated = await request(port, 'Nothing_20160101.Nope', '{', {
+    contentType: 'application/vnd.unrelated+json',
+    raw: true,
+  });
+  assert.equal(unrelated.status, 400);
+  assert.equal(unrelated.body.__type, 'UnknownOperationException');
+});
+
+test('two Classic registrations keep their resolved JSON type sets independent', async () => {
+  const registrations = [
+    {
+      match: /^gqa_test$/i,
+      jsonStrict: false,
+      jsonTypes: ['application/json', 'application/vnd.gqa+json'],
+      bodyDefault: null,
+      preserveBody: true,
+      handler: async ({ body }) => ({ family: 'gqa', body }),
+    },
+    {
+      match: /^other_test$/i,
+      jsonStrict: false,
+      jsonTypes: ['application/json', 'application/vnd.other+json'],
+      bodyDefault: null,
+      preserveBody: true,
+      handler: async ({ body }) => ({ family: 'other', body }),
+    },
+  ];
+  const service = createService({ name: 'gqa-json-type-control', routes: createClassicRouter(registrations) });
+  await service.listen(0);
+  const port = service.server.address().port;
+  try {
+    const gqa = await request(port, 'GQA_TEST.Question', { first: true }, {
+      contentType: 'application/vnd.gqa+json',
+    });
+    assert.equal(gqa.status, 200);
+    assert.deepEqual(gqa.body, { family: 'gqa', body: { first: true } });
+
+    const other = await request(port, 'OTHER_TEST.Question', { second: true }, {
+      contentType: 'application/vnd.other+json',
+    });
+    assert.equal(other.status, 200);
+    assert.deepEqual(other.body, { family: 'other', body: { second: true } });
+  } finally {
+    await new Promise((resolve, reject) => service.server.close((error) => error ? reject(error) : resolve()));
+  }
 });
