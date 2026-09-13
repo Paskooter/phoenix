@@ -1220,7 +1220,7 @@ Evidence: pending.
 
 Owner: Codex. Dependencies: S-08, D-04.
 
-Pinned Personal Report calendar source and Phoenix now agree through the real local Data HTTP and Report services. The 21-row Google/Outlook source/runtime matrix, 23-row moment.parseZone endDate differential, and two actual CredentialStore/OAuth failure-through-report controls match classifications, MIMs, prompts, analytics and complete actions. Live provider accounts, deployment and robot rendering remain in their separate integration/display tasks.
+Pinned Personal Report calendar source and Phoenix now agree through the real local Data HTTP and Report services. The 37-row Google/Outlook source/direct/HTTP matrix, five-row malformed parse matrix, 23-row moment.parseZone end-date differential, and two actual CredentialStore/OAuth failure-through-report controls match classifications, MIMs, prompts, analytics, and complete actions. Live provider accounts, deployment, and robot rendering remain in their separate integration/display tasks.
 
 Done when:
 
@@ -1232,7 +1232,7 @@ Source: [Original Pegasus packages/report-skill/src/subskills/calendar](https://
 
 Phoenix: [packages/skills/src/report/calendar.js](../../packages/skills/src/report/calendar.js).
 
-Evidence: [docs/parity/evidence/2026-09-13/s12-calendar/review.md](../../docs/parity/evidence/2026-09-13/s12-calendar/review.md) (2026-09-13; Source/runtime and real local HTTP Data -> Report evidence against pinned Pegasus: 21/21 semantic, prompt and complete action matches; 23/23 source moment.parseZone endDate matches; Google refresh failure and Outlook invalid-token rows exercise actual CredentialStore/OAuth/provider operations, 502 route failures, stored inactive error codes and source CalendarServiceDown actions. Focused controls and the complete unit suite pass.).
+Evidence: [docs/parity/evidence/2026-09-13/s12-calendar/review.md](../../docs/parity/evidence/2026-09-13/s12-calendar/review.md) (2026-09-13; Pinned source/direct and source/real-HTTP differentials each match 37/37 semantics, prompt signatures, and complete actions; malformed parse matches 5/5 and end-date formatting matches 23/23. Actual Google refresh-failure and Outlook invalid-token paths exercise CredentialStore/OAuth/provider behavior through Data and Report. Root regenerated every receipt byte-for-byte, and 51 focused plus 1,995 unit tests pass.).
 
 ### S-13 — Implement the report's robot display views
 
