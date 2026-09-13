@@ -1,0 +1,1000 @@
+{
+  "schema": "phoenix.parity.s13.physical-capture-matrix",
+  "schemaVersion": 1,
+  "task": "S-13",
+  "claim": "physical-display-only",
+  "baseRevision": "0902410c597f8dc424af60ee98fc4d32f19a1bb0",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "clockPolicy": {
+    "mode": "relative-fixtures",
+    "timezone": "America/New_York",
+    "captureTimestamp": "receipt.runtime.captureISO",
+    "commuteDeparture": "workHour/workMin minus provider.trafficSeconds; preserve local AM/PM",
+    "calendarDate": "receipt.runtime.localDateISO; fixture event dates must use that local date",
+    "revalidationDate": "receipt.runtime.localDateISO; weather/news providers must record the resolved date"
+  },
+  "referenceContract": {
+    "s11Matrix": {
+      "path": "scripts/parity-s11-http-graph/commute-graph-matrix.json",
+      "sha256": "4f354865507a96284509fafb514ff52d408b3849bc1c47a2b676e9b219d4a1ce"
+    },
+    "s11Review": {
+      "path": "docs/parity/evidence/2026-09-13/s11-commute/review.md",
+      "sha256": "fc0e81d28f30fa6be3776fd3086e3c0e9f495a36efe885b77d3ae65fed8706f0"
+    },
+    "s12Matrix": {
+      "path": "scripts/parity-s12/matrix.json",
+      "sha256": "38a79b79aafef0402af04304b8a7d5adeb55c81e5f113f8b2290c8791d220ca5"
+    },
+    "s12Receipt": {
+      "path": "docs/parity/evidence/2026-09-13/s12-calendar/differential-receipt.json",
+      "sha256": "86100f20ae519ea0614d99ac2215b76ce191050a28738d1ee3b0cdb9aa959b1e"
+    },
+    "assetAudit": {
+      "path": "docs/parity/candidates/S-13-assets.md",
+      "sha256": "7c43ef02070806ad237b31488db62deb6f9c18d362df305998c8c902a034fbe2",
+      "assetManifestSha256": "b541f1e3ac39aa634dd416d28a51e6a191b5de78b10abd95ce1a523979f8c272"
+    }
+  },
+  "physicalProtocol": {
+    "captureMode": "CLIENT_ASR_TEXT_INJECTION_WITH_MICROPHONE_ACCEPTANCE_FALSE",
+    "request": {
+      "method": "POST",
+      "endpoint": "/listen/mimic_global_turn",
+      "bodyShape": {
+        "clientASR": "<case.input.phrase>"
+      },
+      "microphoneAcceptance": false
+    },
+    "requiredProvenance": [
+      "phoenix",
+      "be",
+      "client",
+      "nimbus",
+      "native"
+    ],
+    "requiredArtifactKinds": [
+      "stack-receipt",
+      "native-report",
+      "wire-trace",
+      "provider-trace",
+      "action-payload",
+      "screenshot"
+    ],
+    "idleContract": {
+      "viewCloseBeforeIdle": true,
+      "skill": "@be/idle",
+      "view": "eyeView",
+      "listener": "Idle",
+      "ttsTalking": false
+    },
+    "orderedCapture": "case order is immutable; each view screenshot ordinal follows action order; duplicate view IDs retain distinct ordinals",
+    "receiptHashing": {
+      "algorithm": "sha256",
+      "canonicalJson": "sorted object keys, array order preserved, UTF-8 JSON without trailing newline",
+      "artifacts": "raw bytes; paths are resolved from receipt root and must hash to the recorded value",
+      "screenshotIdentity": "ordinal+viewId; duplicate view IDs are separate captures and must not be deduplicated"
+    },
+    "allowedRequests": [
+      {
+        "operation": "mimicGlobalTurn",
+        "method": "POST",
+        "endpoint": "/listen/mimic_global_turn",
+        "transportMode": "global",
+        "bodyField": "clientASR",
+        "contextSource": "fixture-scoped-runtime"
+      },
+      {
+        "operation": "startLocalTurn",
+        "method": "POST",
+        "endpoint": "/listen/start_local_turn",
+        "transportMode": "local",
+        "bodyField": "nluRules",
+        "contextSource": "native-local-context"
+      }
+    ],
+    "preflight": {
+      "required": true,
+      "binds": "selected allowed request, endpoint, body contract, and runtime.location.iso before case execution",
+      "contextFields": [
+        "runtime.location.iso",
+        "runtime.timezone"
+      ],
+      "contextSourceMustBeExplicit": true
+    }
+  },
+  "falsificationControls": [
+    "matrix-case-omission",
+    "matrix-case-reorder",
+    "receipt-case-omission",
+    "receipt-case-reorder",
+    "stale-phoenix-revision",
+    "provenance-version-omission",
+    "input-payload-mutation",
+    "action-payload-mutation",
+    "view-contract-mutation",
+    "correlation-mismatch",
+    "wire-trace-hash-mismatch",
+    "screenshot-order-mutation",
+    "screenshot-bytes-mutation",
+    "idle-closure-omission",
+    "no-view-screenshot-injection",
+    "blocked-tree-claim",
+    "falsification-control-omission"
+  ],
+  "counts": {
+    "total": 17,
+    "physical": 6,
+    "noViewAssertions": 8,
+    "revalidation": 2,
+    "blocked": 1
+  },
+  "cases": [
+    {
+      "ordinal": 1,
+      "id": "commute-normal-combined",
+      "kind": "physical",
+      "domain": "commute",
+      "reference": {
+        "lane": "s11-http-graph",
+        "caseId": "full-driving-normal-offset",
+        "path": "scripts/parity-s11-http-graph/commute-graph-matrix.json",
+        "sha256": "4f354865507a96284509fafb514ff52d408b3849bc1c47a2b676e9b219d4a1ce"
+      },
+      "input": {
+        "phrase": "check my commute to work",
+        "mode": "CLIENT_ASR",
+        "prefsPolicy": {
+          "schedule": "capture-plus-60-minutes",
+          "mode": "driving",
+          "baseSeconds": 600,
+          "trafficSeconds": 600
+        }
+      },
+      "provider": {
+        "kind": "maps-fixture",
+        "fixture": "normal",
+        "baseSeconds": 600,
+        "trafficSeconds": 600,
+        "fixtureSha256Required": true
+      },
+      "expected": {
+        "mimIds": [
+          "PersonalReportKickOff",
+          "CommuteDriveNormal",
+          "CommuteDepartTimeNormal",
+          "PersonalReportOutroConfigured"
+        ],
+        "viewIds": [
+          "trafficView",
+          "departTimeView"
+        ],
+        "viewContracts": [
+          {
+            "ordinal": 0,
+            "id": "trafficView",
+            "type": "commute-traffic",
+            "asset": "assets/personal-report-skill/commute/trafficNormal_v01.crn",
+            "fields": {
+              "position": {
+                "x": 377,
+                "y": 97
+              },
+              "defaultSelect": "remain",
+              "open": {
+                "transitionOpen": "trans_in",
+                "removeAll": true
+              }
+            }
+          },
+          {
+            "ordinal": 1,
+            "id": "departTimeView",
+            "type": "commute-departure",
+            "labelsFrom": {
+              "workTime": "input.prefs.workHour/workMin",
+              "subtractSeconds": "provider.trafficSeconds"
+            },
+            "fields": {
+              "timePositionX": 715,
+              "ampmPositionX": 720,
+              "open": {
+                "transitionOpen": "trans_in"
+              },
+              "defaultSelect": {
+                "transitionClose": "trans_out",
+                "removeAll": true
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "ordinal": 2,
+      "id": "commute-bad-combined",
+      "kind": "physical",
+      "domain": "commute",
+      "reference": {
+        "lane": "s11-http-graph",
+        "caseId": "driving-traffic-poor-exact-five",
+        "path": "scripts/parity-s11-http-graph/commute-graph-matrix.json",
+        "sha256": "4f354865507a96284509fafb514ff52d408b3849bc1c47a2b676e9b219d4a1ce"
+      },
+      "input": {
+        "phrase": "check my commute to work",
+        "mode": "CLIENT_ASR",
+        "prefsPolicy": {
+          "schedule": "capture-plus-60-minutes",
+          "mode": "driving",
+          "baseSeconds": 600,
+          "trafficSeconds": 900
+        }
+      },
+      "provider": {
+        "kind": "maps-fixture",
+        "fixture": "normal",
+        "baseSeconds": 600,
+        "trafficSeconds": 900,
+        "fixtureSha256Required": true
+      },
+      "expected": {
+        "mimIds": [
+          "CommuteConfirmSpeaker",
+          "CommuteDrivePoor",
+          "CommuteDepartTimeNotNormal"
+        ],
+        "viewIds": [
+          "trafficView",
+          "departTimeView"
+        ],
+        "viewContracts": [
+          {
+            "ordinal": 0,
+            "id": "trafficView",
+            "type": "commute-traffic",
+            "asset": "assets/personal-report-skill/commute/trafficBad_v01.crn",
+            "fields": {
+              "position": {
+                "x": 377,
+                "y": 97
+              },
+              "defaultSelect": "remain",
+              "open": {
+                "transitionOpen": "trans_in",
+                "removeAll": true
+              }
+            }
+          },
+          {
+            "ordinal": 1,
+            "id": "departTimeView",
+            "type": "commute-departure",
+            "labelsFrom": {
+              "workTime": "input.prefs.workHour/workMin",
+              "subtractSeconds": "provider.trafficSeconds"
+            },
+            "fields": {
+              "timePositionX": 715,
+              "ampmPositionX": 720,
+              "open": {
+                "transitionOpen": "trans_in"
+              },
+              "defaultSelect": {
+                "transitionClose": "trans_out",
+                "removeAll": true
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "ordinal": 3,
+      "id": "commute-terrible-combined",
+      "kind": "physical",
+      "domain": "commute",
+      "reference": {
+        "lane": "s11-http-graph",
+        "caseId": "driving-traffic-terrible-exact-fifteen",
+        "path": "scripts/parity-s11-http-graph/commute-graph-matrix.json",
+        "sha256": "4f354865507a96284509fafb514ff52d408b3849bc1c47a2b676e9b219d4a1ce"
+      },
+      "input": {
+        "phrase": "check my commute to work",
+        "mode": "CLIENT_ASR",
+        "prefsPolicy": {
+          "schedule": "capture-plus-60-minutes",
+          "mode": "driving",
+          "baseSeconds": 600,
+          "trafficSeconds": 1500
+        }
+      },
+      "provider": {
+        "kind": "maps-fixture",
+        "fixture": "normal",
+        "baseSeconds": 600,
+        "trafficSeconds": 1500,
+        "fixtureSha256Required": true
+      },
+      "expected": {
+        "mimIds": [
+          "CommuteConfirmSpeaker",
+          "CommuteDriveTerrible",
+          "CommuteDepartTimeNotNormal"
+        ],
+        "viewIds": [
+          "trafficView",
+          "departTimeView"
+        ],
+        "viewContracts": [
+          {
+            "ordinal": 0,
+            "id": "trafficView",
+            "type": "commute-traffic",
+            "asset": "assets/personal-report-skill/commute/trafficTerrible_v01.crn",
+            "fields": {
+              "position": {
+                "x": 377,
+                "y": 97
+              },
+              "defaultSelect": "remain",
+              "open": {
+                "transitionOpen": "trans_in",
+                "removeAll": true
+              }
+            }
+          },
+          {
+            "ordinal": 1,
+            "id": "departTimeView",
+            "type": "commute-departure",
+            "labelsFrom": {
+              "workTime": "input.prefs.workHour/workMin",
+              "subtractSeconds": "provider.trafficSeconds"
+            },
+            "fields": {
+              "timePositionX": 715,
+              "ampmPositionX": 720,
+              "open": {
+                "transitionOpen": "trans_in"
+              },
+              "defaultSelect": {
+                "transitionClose": "trans_out",
+                "removeAll": true
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "ordinal": 4,
+      "id": "commute-pm-departure-combined",
+      "kind": "physical",
+      "domain": "commute",
+      "reference": {
+        "lane": "s11-http-graph",
+        "caseId": "driving-pm-departure-view",
+        "path": "scripts/parity-s11-http-graph/commute-graph-matrix.json",
+        "sha256": "4f354865507a96284509fafb514ff52d408b3849bc1c47a2b676e9b219d4a1ce"
+      },
+      "input": {
+        "phrase": "check my commute to work",
+        "mode": "CLIENT_ASR",
+        "locationMode": "capture-local-clock",
+        "prefsPolicy": {
+          "schedule": "next-local-pm-17:05",
+          "mode": "driving",
+          "baseSeconds": 600,
+          "trafficSeconds": 600
+        }
+      },
+      "provider": {
+        "kind": "maps-fixture",
+        "fixture": "normal",
+        "baseSeconds": 600,
+        "trafficSeconds": 600,
+        "fixtureSha256Required": true
+      },
+      "expected": {
+        "mimIds": [
+          "CommuteConfirmSpeaker",
+          "CommuteDriveNormal",
+          "CommuteDepartTimeNormal"
+        ],
+        "viewIds": [
+          "trafficView",
+          "departTimeView"
+        ],
+        "viewContracts": [
+          {
+            "ordinal": 0,
+            "id": "trafficView",
+            "type": "commute-traffic",
+            "asset": "assets/personal-report-skill/commute/trafficNormal_v01.crn",
+            "fields": {
+              "position": {
+                "x": 377,
+                "y": 97
+              },
+              "defaultSelect": "remain",
+              "open": {
+                "transitionOpen": "trans_in",
+                "removeAll": true
+              }
+            }
+          },
+          {
+            "ordinal": 1,
+            "id": "departTimeView",
+            "type": "commute-departure",
+            "labelsFrom": {
+              "workTime": "input.prefs.workHour/workMin",
+              "subtractSeconds": "provider.trafficSeconds"
+            },
+            "fields": {
+              "timePositionX": 715,
+              "ampmPositionX": 720,
+              "open": {
+                "transitionOpen": "trans_in"
+              },
+              "defaultSelect": {
+                "transitionClose": "trans_out",
+                "removeAll": true
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "ordinal": 5,
+      "id": "calendar-four-card-field-matrix",
+      "kind": "physical",
+      "domain": "calendar",
+      "reference": {
+        "lane": "s12-calendar-builder",
+        "caseId": "full-report-event-today",
+        "path": "scripts/parity-s12/matrix.json",
+        "sha256": "38a79b79aafef0402af04304b8a7d5adeb55c81e5f113f8b2290c8791d220ca5"
+      },
+      "input": {
+        "phrase": "what is on my calendar tomorrow",
+        "mode": "CLIENT_ASR",
+        "calendarFixture": "tomorrow-four-card-field-matrix",
+        "events": [
+          {
+            "summary": "Company holiday",
+            "hour": 0,
+            "minute": 0,
+            "time": null,
+            "fullDay": true
+          },
+          {
+            "summary": "Birthday party and board meeting ..............................",
+            "hour": 11,
+            "minute": 25,
+            "time": "11:25 AM",
+            "fullDay": false
+          },
+          {
+            "summary": "Work meeting",
+            "hour": 14,
+            "minute": 0,
+            "time": "2:00 PM",
+            "fullDay": false
+          },
+          {
+            "summary": "Walk the dog",
+            "hour": 20,
+            "minute": 25,
+            "time": "8:25 PM",
+            "fullDay": false
+          }
+        ],
+        "singleSkill": "calendar"
+      },
+      "provider": {
+        "kind": "calendar-fixture",
+        "fixture": "tomorrow-four-card-field-matrix",
+        "fixtureSha256Required": true
+      },
+      "expected": {
+        "mimIds": [
+          "CalendarEventCountTomorrow",
+          "CalendarSummaryAndTime",
+          "CalendarSummaryAndTime",
+          "CalendarSummaryAndTime",
+          "CalendarSummaryAndTime",
+          "CalendarOutro"
+        ],
+        "viewIds": [
+          "eventView",
+          "eventView",
+          "eventView",
+          "eventView"
+        ],
+        "viewContracts": [
+          {
+            "ordinal": 0,
+            "id": "eventView",
+            "type": "calendar-card",
+            "asset": "assets/personal-report-skill/calendar/cards/eventMorning_v01.crn",
+            "icon": "assets/personal-report-skill/calendar/icons/calendar_v01.crn",
+            "labels": {
+              "time": null,
+              "ampm": null,
+              "summary": "Company holiday"
+            },
+            "fields": {
+              "timePositionX": 618,
+              "ampmPositionX": 620,
+              "fullDay": true,
+              "leaveEmpty": true
+            }
+          },
+          {
+            "ordinal": 1,
+            "id": "eventView",
+            "type": "calendar-card",
+            "asset": "assets/personal-report-skill/calendar/cards/eventMorning_v01.crn",
+            "icon": "assets/personal-report-skill/calendar/icons/birthdaycake_v01.crn",
+            "labels": {
+              "time": "11:25",
+              "ampm": "AM",
+              "summary": "Birthday party and board meeting ................."
+            },
+            "fields": {
+              "timePositionX": 743,
+              "ampmPositionX": 745,
+              "fullDay": false,
+              "leaveEmpty": true
+            }
+          },
+          {
+            "ordinal": 2,
+            "id": "eventView",
+            "type": "calendar-card",
+            "asset": "assets/personal-report-skill/calendar/cards/eventAfternoon_v01.crn",
+            "icon": "assets/personal-report-skill/calendar/icons/calendar_v01.crn",
+            "labels": {
+              "time": "2",
+              "ampm": "PM",
+              "summary": "Work meeting"
+            },
+            "fields": {
+              "timePositionX": 618,
+              "ampmPositionX": 620,
+              "fullDay": false,
+              "leaveEmpty": true
+            }
+          },
+          {
+            "ordinal": 3,
+            "id": "eventView",
+            "type": "calendar-card",
+            "asset": "assets/personal-report-skill/calendar/cards/eventNight_v01.crn",
+            "icon": "assets/personal-report-skill/calendar/icons/dog_v01.crn",
+            "labels": {
+              "time": "8:25",
+              "ampm": "PM",
+              "summary": "Walk the dog"
+            },
+            "fields": {
+              "timePositionX": 743,
+              "ampmPositionX": 745,
+              "fullDay": false,
+              "leaveEmpty": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "ordinal": 6,
+      "id": "calendar-concurrent-parallel",
+      "kind": "physical",
+      "domain": "calendar",
+      "reference": {
+        "lane": "s12-calendar",
+        "caseId": "merge-concurrent-parallel",
+        "path": "scripts/parity-s12/matrix.json",
+        "sha256": "38a79b79aafef0402af04304b8a7d5adeb55c81e5f113f8b2290c8791d220ca5"
+      },
+      "input": {
+        "phrase": "what is on my calendar tomorrow",
+        "mode": "CLIENT_ASR",
+        "calendarFixture": "tomorrow-concurrent-parallel",
+        "events": [
+          {
+            "summary": "Personal concurrent",
+            "hour": 10,
+            "minute": 0,
+            "time": "10:00 AM",
+            "fullDay": false
+          },
+          {
+            "summary": "Work concurrent",
+            "hour": 10,
+            "minute": 0,
+            "time": "10:00 AM",
+            "fullDay": false
+          }
+        ],
+        "singleSkill": "calendar"
+      },
+      "provider": {
+        "kind": "calendar-fixture",
+        "fixture": "tomorrow-concurrent-parallel",
+        "fixtureSha256Required": true,
+        "parallel": true
+      },
+      "expected": {
+        "mimIds": [
+          "CalendarEventCountTomorrow",
+          "CalendarSummaryAndTime",
+          "CalendarParallelEvent",
+          "CalendarOutro"
+        ],
+        "viewIds": [
+          "eventView",
+          "eventView"
+        ],
+        "viewContracts": [
+          {
+            "ordinal": 0,
+            "id": "eventView",
+            "type": "calendar-card",
+            "asset": "assets/personal-report-skill/calendar/cards/eventMorning_v01.crn",
+            "icon": "assets/personal-report-skill/calendar/icons/calendar_v01.crn",
+            "labels": {
+              "time": "10:00",
+              "ampm": "AM",
+              "summary": "Personal concurrent"
+            },
+            "fields": {
+              "timePositionX": 743,
+              "ampmPositionX": 745,
+              "fullDay": false,
+              "leaveEmpty": true
+            }
+          },
+          {
+            "ordinal": 1,
+            "id": "eventView",
+            "type": "calendar-card",
+            "asset": "assets/personal-report-skill/calendar/cards/eventMorning_v01.crn",
+            "icon": "assets/personal-report-skill/calendar/icons/calendar_v01.crn",
+            "labels": {
+              "time": "10:00",
+              "ampm": "AM",
+              "summary": "Work concurrent"
+            },
+            "fields": {
+              "timePositionX": 743,
+              "ampmPositionX": 745,
+              "fullDay": false,
+              "leaveEmpty": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "ordinal": 7,
+      "id": "calendar-tree-park-nature",
+      "kind": "blocked",
+      "domain": "calendar",
+      "reference": {
+        "lane": "s13-assets",
+        "caseId": "tree-park-nature",
+        "path": "docs/parity/candidates/S-13-assets.md",
+        "sha256": "7c43ef02070806ad237b31488db62deb6f9c18d362df305998c8c902a034fbe2"
+      },
+      "input": {
+        "phrase": "what is on my calendar tomorrow",
+        "mode": "CLIENT_ASR",
+        "calendarFixture": "tomorrow-park-nature",
+        "event": {
+          "summary": "Walk in the park",
+          "hour": 10,
+          "minute": 0,
+          "time": "10:00 AM",
+          "fullDay": false
+        },
+        "singleSkill": "calendar"
+      },
+      "blocked": {
+        "reason": "missing-source-asset:tree",
+        "asset": "assets/personal-report-skill/calendar/icons/tree_v01.crn",
+        "sidecar": "assets/personal-report-skill/calendar/icons/tree_v01.png",
+        "sourceKey": "tree|park|nature"
+      },
+      "expected": {
+        "mimIds": [
+          "CalendarEventCountTomorrow",
+          "CalendarSummaryAndTime",
+          "CalendarOutro"
+        ],
+        "viewIds": [
+          "eventView"
+        ],
+        "viewContracts": [
+          {
+            "ordinal": 0,
+            "id": "eventView",
+            "type": "calendar-card",
+            "asset": "assets/personal-report-skill/calendar/cards/eventMorning_v01.crn",
+            "icon": "assets/personal-report-skill/calendar/icons/tree_v01.crn"
+          }
+        ]
+      }
+    },
+    {
+      "ordinal": 8,
+      "id": "commute-no-view-now",
+      "kind": "no-view",
+      "domain": "commute",
+      "reference": {
+        "lane": "s11-http-graph",
+        "caseId": "driving-now-over-two-hours",
+        "path": "docs/parity/evidence/2026-09-13/s11-commute/review.md",
+        "sha256": "fc0e81d28f30fa6be3776fd3086e3c0e9f495a36efe885b77d3ae65fed8706f0"
+      },
+      "assertion": "source/candidate S-11 action has no commute view for the over-two-hour now branch",
+      "expected": {
+        "mimIds": [
+          "CommuteConfirmSpeaker",
+          "CommuteNow"
+        ],
+        "viewIds": [],
+        "viewContracts": []
+      }
+    },
+    {
+      "ordinal": 9,
+      "id": "commute-no-view-hurry",
+      "kind": "no-view",
+      "domain": "commute",
+      "reference": {
+        "lane": "s11-http-graph",
+        "caseId": "driving-hurry-minus-nine",
+        "path": "docs/parity/evidence/2026-09-13/s11-commute/review.md",
+        "sha256": "fc0e81d28f30fa6be3776fd3086e3c0e9f495a36efe885b77d3ae65fed8706f0"
+      },
+      "assertion": "source/candidate S-11 hurry branch has no commute view",
+      "expected": {
+        "mimIds": [
+          "CommuteConfirmSpeaker",
+          "CommuteDriveHurry"
+        ],
+        "viewIds": [],
+        "viewContracts": []
+      }
+    },
+    {
+      "ordinal": 10,
+      "id": "commute-no-view-late",
+      "kind": "no-view",
+      "domain": "commute",
+      "reference": {
+        "lane": "s11-http-graph",
+        "caseId": "driving-late-minus-ten",
+        "path": "docs/parity/evidence/2026-09-13/s11-commute/review.md",
+        "sha256": "fc0e81d28f30fa6be3776fd3086e3c0e9f495a36efe885b77d3ae65fed8706f0"
+      },
+      "assertion": "source/candidate S-11 late branch has no commute view",
+      "expected": {
+        "mimIds": [
+          "CommuteConfirmSpeaker",
+          "CommuteDriveLate"
+        ],
+        "viewIds": [],
+        "viewContracts": []
+      }
+    },
+    {
+      "ordinal": 11,
+      "id": "commute-no-view-app-setup",
+      "kind": "no-view",
+      "domain": "commute",
+      "reference": {
+        "lane": "s11-http-graph",
+        "caseId": "incomplete-prefs-no-maps",
+        "path": "docs/parity/evidence/2026-09-13/s11-commute/review.md",
+        "sha256": "fc0e81d28f30fa6be3776fd3086e3c0e9f495a36efe885b77d3ae65fed8706f0"
+      },
+      "assertion": "source/candidate S-11 incomplete preferences branch has no commute view",
+      "expected": {
+        "mimIds": [
+          "CommuteAppSetup"
+        ],
+        "viewIds": [],
+        "viewContracts": []
+      }
+    },
+    {
+      "ordinal": 12,
+      "id": "commute-no-view-service-down",
+      "kind": "no-view",
+      "domain": "commute",
+      "reference": {
+        "lane": "s11-http-graph",
+        "caseId": "maps-service-failure",
+        "path": "docs/parity/evidence/2026-09-13/s11-commute/review.md",
+        "sha256": "fc0e81d28f30fa6be3776fd3086e3c0e9f495a36efe885b77d3ae65fed8706f0"
+      },
+      "assertion": "source/candidate S-11 service-failure branch has no commute view",
+      "expected": {
+        "mimIds": [
+          "CommuteServiceDown"
+        ],
+        "viewIds": [],
+        "viewContracts": []
+      }
+    },
+    {
+      "ordinal": 13,
+      "id": "calendar-no-view-empty",
+      "kind": "no-view",
+      "domain": "calendar",
+      "reference": {
+        "lane": "s12-calendar",
+        "caseId": "no-events",
+        "path": "docs/parity/evidence/2026-09-13/s12-calendar/differential-receipt.json",
+        "sha256": "86100f20ae519ea0614d99ac2215b76ce191050a28738d1ee3b0cdb9aa959b1e"
+      },
+      "assertion": "S-12 no-events action has no eventView",
+      "expected": {
+        "mimIds": [
+          "CalendarNothing"
+        ],
+        "viewIds": [],
+        "viewContracts": []
+      }
+    },
+    {
+      "ordinal": 14,
+      "id": "calendar-no-view-asked-tomorrow",
+      "kind": "no-view",
+      "domain": "calendar",
+      "reference": {
+        "lane": "s12-calendar",
+        "caseId": "asked-tomorrow-none",
+        "path": "docs/parity/evidence/2026-09-13/s12-calendar/differential-receipt.json",
+        "sha256": "86100f20ae519ea0614d99ac2215b76ce191050a28738d1ee3b0cdb9aa959b1e"
+      },
+      "assertion": "S-12 asked-tomorrow-none action has no eventView",
+      "expected": {
+        "mimIds": [
+          "CalendarNothing"
+        ],
+        "viewIds": [],
+        "viewContracts": []
+      }
+    },
+    {
+      "ordinal": 15,
+      "id": "calendar-no-view-app-setup",
+      "kind": "no-view",
+      "domain": "calendar",
+      "reference": {
+        "lane": "s12-calendar",
+        "caseId": "app-setup",
+        "path": "docs/parity/evidence/2026-09-13/s12-calendar/differential-receipt.json",
+        "sha256": "86100f20ae519ea0614d99ac2215b76ce191050a28738d1ee3b0cdb9aa959b1e"
+      },
+      "assertion": "S-12 calendar app-setup action has no eventView",
+      "expected": {
+        "mimIds": [
+          "CalendarAppSetup"
+        ],
+        "viewIds": [],
+        "viewContracts": []
+      }
+    },
+    {
+      "ordinal": 16,
+      "id": "weather-revalidation",
+      "kind": "revalidation",
+      "domain": "weather",
+      "reference": {
+        "lane": "s13-hardware",
+        "caseId": "s13-weather-reviewed",
+        "path": "docs/parity/evidence/2026-09-05/hardware/s13-weather-reviewed.json",
+        "sha256": "8f0488519e22149a649212b73f298bb9464a471c6fb31678ddc9735d2c08326e"
+      },
+      "input": {
+        "phrase": "what is the weather today",
+        "mode": "CLIENT_ASR",
+        "revalidate": true
+      },
+      "provider": {
+        "kind": "weather-fixture-or-live-revalidated",
+        "fixtureSha256Required": true
+      },
+      "expected": {
+        "mimIds": [],
+        "viewIds": [
+          "weatherTempView"
+        ],
+        "viewContracts": [
+          {
+            "ordinal": 0,
+            "id": "weatherTempView",
+            "type": "weather",
+            "fields": {
+              "visualInspectionRequired": true
+            }
+          }
+        ],
+        "mimIdsPolicy": "capture-derived"
+      }
+    },
+    {
+      "ordinal": 17,
+      "id": "news-revalidation",
+      "kind": "revalidation",
+      "domain": "news",
+      "reference": {
+        "lane": "s13-hardware",
+        "caseId": "s13-news-reviewed",
+        "path": "docs/parity/evidence/2026-09-05/hardware/s13-news-reviewed.json",
+        "sha256": "56ea08c6cd1810f323571c260e75fed98addded2c0bbc179d1743fbcf49d9dab"
+      },
+      "input": {
+        "phrase": "what is in the news",
+        "mode": "CLIENT_ASR",
+        "revalidate": true
+      },
+      "provider": {
+        "kind": "news-fixture-or-live-revalidated",
+        "fixtureSha256Required": true
+      },
+      "expected": {
+        "mimIds": [],
+        "viewIds": [
+          "headlineView_0",
+          "headlineView_1",
+          "headlineView_2"
+        ],
+        "viewContracts": [
+          {
+            "ordinal": 0,
+            "id": "headlineView_0",
+            "type": "news",
+            "fields": {
+              "visualInspectionRequired": true
+            }
+          },
+          {
+            "ordinal": 1,
+            "id": "headlineView_1",
+            "type": "news",
+            "fields": {
+              "visualInspectionRequired": true
+            }
+          },
+          {
+            "ordinal": 2,
+            "id": "headlineView_2",
+            "type": "news",
+            "fields": {
+              "visualInspectionRequired": true
+            }
+          }
+        ],
+        "mimIdsPolicy": "capture-derived"
+      }
+    }
+  ],
+  "integrity": {
+    "algorithm": "sha256",
+    "canonicalExcludes": [
+      "integrity"
+    ],
+    "matrixSha256": "ea64253c1ce045370d115c61b0075663abc2a8f8452b42e466646d4444ce93ea",
+    "caseInventorySha256": "b2410705ee0b7b2f8096fd974a06fdf8b7e983d63c544394a96019ac11671d53"
+  }
+}
