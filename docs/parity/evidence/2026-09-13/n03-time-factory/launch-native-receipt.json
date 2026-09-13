@@ -2,7 +2,8 @@
   "schema": "phoenix.n03.launch-native-phoenix-receipt",
   "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
   "nativeSourceRevision": "91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e",
-  "fixtureSourceSha256": "e0ace19cdad03eff4dd02ff0ffe302cda7ac55241edbe0829643f9db4e267098",
+  "oracleSourceSha256": "e0ace19cdad03eff4dd02ff0ffe302cda7ac55241edbe0829643f9db4e267098",
+  "fixtureSha256": "aa7e8eab150137b6fc2a09633c87659ae17c6ed275ec8545e734408783e5b2bb",
   "nativeParserSha256": "373b6509036c6ab841023fa541b931f1ccc966dee750058cdbbf560ab467ce9b",
   "nativeLaunchFstSha256": "2ba09176e04522d4addbca23074f2bef62b1cbbe9702f03c390abd8b56fdc25a",
   "nativeInputNormalization": "lowercase, matching RobustParserClient",
@@ -2205,4 +2206,3 @@
     }
   ]
 }
-

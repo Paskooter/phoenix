@@ -36,7 +36,7 @@ The N-03 inventory contains 20 named rules (12 `clock/`, 5 `settings/`, 3 `main-
 
 The local-turn WebSocket suite now exercises 149 assertions across 142 distinct rule/text pairs and all 20 public named rules. It covers every source-declared settings destination, every main-menu and personal-report destination, every fun destination, every volume operation plus numeric 0 through 10 levels, shutdown and timer confirmation yes/no boundaries, every alarm and timer cancellation spelling, stop controls, timer query/info cancellation, and no-match rows. The AM cases include both `clock/alarm_set_value "am"` and `clock/alarm_timer_ampm "am"`. An independent replay of these 142 distinct rows against the corresponding pinned native FSTs found 0 native/Phoenix semantic differences; the rows are anchored to the same pinned `.rule` sources used by the WS assertions.
 
-The source directories contain 23 `.rule` files in these groups: 20 public named rules plus the three `launch.rule` components. `rule-inventory.json` places `clock/launch`, `settings/launch`, and `main-menu/launch` only under `publicRules.launch.sourceHandles`, and direct component requests return the intentional empty result. The tracked [89-row native/Phoenix receipt](./launch-native-receipt.json) records 89 native lines and 89 Phoenix matches, with 0 native/Phoenix, native/fixture, or Phoenix/fixture semantic differences. Its native attributions are 7 `handle:clock/launch`, 2 `handle:settings/launch`, and 2 `handle:main-menu/launch`. This proves the components are union inputs rather than independently requestable N-03 named handles.
+The source directories contain 23 `.rule` files in these groups: 20 public named rules plus the three `launch.rule` components. `rule-inventory.json` places `clock/launch`, `settings/launch`, and `main-menu/launch` only under `publicRules.launch.sourceHandles`, and direct component requests return the intentional empty result. The tracked [89-row native/Phoenix receipt](./launch-native-receipt.json) records 89 native lines and 89 Phoenix matches, with 0 native/Phoenix, native/fixture, or Phoenix/fixture semantic differences. Its `oracleSourceSha256` is the raw SHA-256 of `packages/nlu/resources/legacy-oracle/golden.jsonl` (the upstream source named by the fixture provenance), while `fixtureSha256` records the raw SHA-256 of the vendored `packages/nlu/test/fixtures/launch-oracle-89.json`. Its native attributions are 7 `handle:clock/launch`, 2 `handle:settings/launch`, and 2 `handle:main-menu/launch`. This proves the components are union inputs rather than independently requestable N-03 named handles.
 
 ## Action coverage and execution falsification
 
@@ -68,5 +68,13 @@ Focused and parity checks after restoration:
 * `node --test packages/gateway/test/localTurnClockSettingsMenu.test.js`: 6 pass, 0 fail (149 local-turn assertions across 142 distinct rule/text pairs, including no-match and source-matched AM falsifications).
 
 * `npm test`: 1,982 tests across 7 suites, 1,974 pass, 8 skipped, 0 fail; `parity:check` and `parity:gate` also pass.
+
+Root also observed one physical hotword turn on Moth after loading the supported
+BE 11.0.1 validation package. The native microphone path opened the authenticated
+Phoenix Hub, returned `askForTime` with `handle:clock/launch`, opened
+`@be/clock`, completed speech, and returned to idle; the user reported that it
+“worked fantastically.” This is a single launch-path hardware observation, not
+additional coverage for the named follow-up variants. Its private sanitized
+receipt is `.parity/robots/moth/20260913/manual-clock-test-065144.json`.
 
 The acceptance audit is: (1) every public clock/settings/main-menu named rule has positive, negative, and boundary fixture rows with pinned source citations and native/direct/HTTP replay — VERIFIED; (2) alarm/timer values, AM/PM, cancellation, confirmation, volume, and menu selections have source-declared local-turn WS rows, plus independent native FST comparisons — VERIFIED; (3) the three internal launch components are source-pinned union inputs with an actual 89-row native/Phoenix receipt and no public component handle — VERIFIED. The evidence supports closing N-03; `docs/parity/tasks.json` was intentionally left untouched for the parent to update.
