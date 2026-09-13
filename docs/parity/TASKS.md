@@ -10,14 +10,14 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 44 | 46 | 0 | 0 |
+| pegasus | 45 | 46 | 0 | 0 |
 | classic | 18 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
 Current task: none.
 
-Next ready task: **S-11 — Verify report commute calculations and condition tables**.
+Next ready task: **S-13 — Implement the report's robot display views**.
 
 See [PLAN.md](PLAN.md) for execution rules, [COMPATIBILITY.md](COMPATIBILITY.md) for the frozen target and [AUDIT.md](AUDIT.md) for initial findings. Pegasus source links use the original commit; restored-only code and atlas links are labeled separately. API definitions are pinned; other Jibo links are discovery references to be pinned before verification.
 
@@ -1213,22 +1213,30 @@ Lead review: Codex root and independent Luna Max acceptance/falsification review
 
 ### S-11 — Verify report commute calculations and condition tables
 
-- [ ] **todo** · P1 · pegasus · implementation: partial
+- [x] **verified** · P1 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: S-08, D-07.
 
-Commute tables exist but maps mode/traffic fidelity and time boundaries remain open.
+Pinned Pegasus Commute and Phoenix match all 33 archived cases, five supplemental mode probes, 33 real Report HTTP cases, 43 Settings cases, and 20 Data/Maps cases with exact calculations, timing boundaries, MIMs, speech, views, errors, requests, cache behavior, and fail-closed evidence. D-07 separately retains its live provider gaps: transit uses the ORS driving profile and ORS supplies no traffic model, so real poor/terrible traffic is unreachable.
 
 Done when:
 
 - Cover all travel modes, missing traffic data, severity thresholds, departure times, units and invalid preferences.
 - Compare calculations, MIMs, spoken values and failure paths with the reference under frozen time.
 
-Source: [Original Pegasus packages/report-skill/src/subskills/commute](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/src/subskills/commute).
+Source: [Original Pegasus packages/report-skill/src/subskills/commute](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/src/subskills/commute); [Original Pegasus packages/report-skill/tests/subskills/Commute.test.js](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/tests/subskills/Commute.test.js); [Original Pegasus packages/report-skill/src/SettingsClient.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/src/SettingsClient.ts); [Original Pegasus packages/lasso/src/relay/GoogleMapsHandler.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/lasso/src/relay/GoogleMapsHandler.ts); [Original Pegasus packages/lasso/tests/relay/GoogleMaps.test.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/lasso/tests/relay/GoogleMaps.test.ts).
 
-Phoenix: [packages/skills/src/report/commute.js](../../packages/skills/src/report/commute.js).
+Phoenix: [packages/skills/src/report/commute.js](../../packages/skills/src/report/commute.js); [packages/skills/src/report/commuteViews.js](../../packages/skills/src/report/commuteViews.js); [packages/skills/src/report/settingsClient.js](../../packages/skills/src/report/settingsClient.js); [packages/skills/test/s11Commute.test.js](../../packages/skills/test/s11Commute.test.js); [packages/skills/test/s11CommuteFrozenTime.test.js](../../packages/skills/test/s11CommuteFrozenTime.test.js); [packages/skills/test/s11CommuteLanguage.test.js](../../packages/skills/test/s11CommuteLanguage.test.js); [packages/skills/test/s11CommuteSequence.test.js](../../packages/skills/test/s11CommuteSequence.test.js); [packages/skills/test/s11MapsReportBoundary.test.js](../../packages/skills/test/s11MapsReportBoundary.test.js); [packages/skills/test/s11ReportOrchestration.test.js](../../packages/skills/test/s11ReportOrchestration.test.js); [packages/skills/test/s11SettingsData.test.js](../../packages/skills/test/s11SettingsData.test.js); [packages/data/src/maps.js](../../packages/data/src/maps.js); [packages/data/src/relay.js](../../packages/data/src/relay.js); [packages/data/test/maps-modes.test.js](../../packages/data/test/maps-modes.test.js); [packages/data/test/relay-contract.test.js](../../packages/data/test/relay-contract.test.js); [scripts/parity-s11-source-diff](../../scripts/parity-s11-source-diff); [scripts/parity-s11-http-graph](../../scripts/parity-s11-http-graph); [scripts/parity-s11-settings-http](../../scripts/parity-s11-settings-http); [scripts/parity-s11-data-maps-diff](../../scripts/parity-s11-data-maps-diff).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-13/s11-commute/review.md](../../docs/parity/evidence/2026-09-13/s11-commute/review.md) (2026-09-13; Four clean-HEAD, source-backed runtime lanes match with zero differences: 33 archived Commute cases plus five supplemental mode probes; 33 real Report HTTP cases with 34 actions and 31 provider calls; 43 Settings cases with 12 requests; and 20 Data/Maps cases with 28 requests and 17 provider calls. Root reproduced all receipts at the final S-11 implementation revision, independently falsified the arrival and HEAD-order repairs, and two independent Luna Max reviewers found no remaining S-11 calculation, branch, projection, or runtime divergence. The focused suite passes 117 tests; the controlled-concurrency repository rerun passes 2,254 with 9 skips; and the production smoke gate passes 43/43.).
+
+- [x] Candidate implementation — **accepted**; Luna Max S-11 team; Codex root.
+
+Candidate scope: Complete S-11 Report commute closure across archived calculations, all travel-mode inputs, Settings conversion, frozen arrival/departure boundaries, MIM language, speech, views, complete Report HTTP actions, and Data/Maps relay behavior. Root falsified the arrival evaluation and HEAD response-order repairs; retained ORS provider limitations remain owned by D-07.
+
+Candidate report: [docs/parity/evidence/2026-09-13/s11-commute/review.md](../../docs/parity/evidence/2026-09-13/s11-commute/review.md).
+
+Lead review: Codex root and independent Luna Max acceptance/falsification reviewers; [docs/parity/evidence/2026-09-13/s11-commute/review.md](../../docs/parity/evidence/2026-09-13/s11-commute/review.md). Complete task acceptance is still governed by the main checkbox above.
 
 ### S-12 — Verify report calendar classification and phrasing
 

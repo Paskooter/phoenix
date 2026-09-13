@@ -2814,25 +2814,67 @@
       "track": "pegasus",
       "phase": 3,
       "priority": "P1",
-      "status": "todo",
-      "implementation": "partial",
+      "status": "verified",
+      "implementation": "complete",
       "owner": "Codex",
       "dependsOn": [
         "S-08",
         "D-07"
       ],
       "reference": [
-        "pegasus:packages/report-skill/src/subskills/commute"
+        "pegasus:packages/report-skill/src/subskills/commute",
+        "pegasus:packages/report-skill/tests/subskills/Commute.test.js",
+        "pegasus:packages/report-skill/src/SettingsClient.ts",
+        "pegasus:packages/lasso/src/relay/GoogleMapsHandler.ts",
+        "pegasus:packages/lasso/tests/relay/GoogleMaps.test.ts"
       ],
       "phoenix": [
-        "packages/skills/src/report/commute.js"
+        "packages/skills/src/report/commute.js",
+        "packages/skills/src/report/commuteViews.js",
+        "packages/skills/src/report/settingsClient.js",
+        "packages/skills/test/s11Commute.test.js",
+        "packages/skills/test/s11CommuteFrozenTime.test.js",
+        "packages/skills/test/s11CommuteLanguage.test.js",
+        "packages/skills/test/s11CommuteSequence.test.js",
+        "packages/skills/test/s11MapsReportBoundary.test.js",
+        "packages/skills/test/s11ReportOrchestration.test.js",
+        "packages/skills/test/s11SettingsData.test.js",
+        "packages/data/src/maps.js",
+        "packages/data/src/relay.js",
+        "packages/data/test/maps-modes.test.js",
+        "packages/data/test/relay-contract.test.js",
+        "scripts/parity-s11-source-diff",
+        "scripts/parity-s11-http-graph",
+        "scripts/parity-s11-settings-http",
+        "scripts/parity-s11-data-maps-diff"
       ],
-      "finding": "Commute tables exist but maps mode/traffic fidelity and time boundaries remain open.",
+      "finding": "Pinned Pegasus Commute and Phoenix match all 33 archived cases, five supplemental mode probes, 33 real Report HTTP cases, 43 Settings cases, and 20 Data/Maps cases with exact calculations, timing boundaries, MIMs, speech, views, errors, requests, cache behavior, and fail-closed evidence. D-07 separately retains its live provider gaps: transit uses the ORS driving profile and ORS supplies no traffic model, so real poor/terrible traffic is unreachable.",
       "acceptance": [
         "Cover all travel modes, missing traffic data, severity thresholds, departure times, units and invalid preferences.",
         "Compare calculations, MIMs, spoken values and failure paths with the reference under frozen time."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-13",
+          "basis": "Four clean-HEAD, source-backed runtime lanes match with zero differences: 33 archived Commute cases plus five supplemental mode probes; 33 real Report HTTP cases with 34 actions and 31 provider calls; 43 Settings cases with 12 requests; and 20 Data/Maps cases with 28 requests and 17 provider calls. Root reproduced all receipts at the final S-11 implementation revision, independently falsified the arrival and HEAD-order repairs, and two independent Luna Max reviewers found no remaining S-11 calculation, branch, projection, or runtime divergence. The focused suite passes 117 tests; the controlled-concurrency repository rerun passes 2,254 with 9 skips; and the production smoke gate passes 43/43.",
+          "artifact": "docs/parity/evidence/2026-09-13/s11-commute/review.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "8f8c234b80d94dff57eb0396a29fdc098c2d1b7e",
+          "command": "node scripts/parity-s11-source-diff/compare.mjs --out .parity/runs/s11-final-8f8c234/source-clean; node scripts/parity-s11-source-diff/falsify.mjs --run-dir .parity/runs/s11-final-8f8c234/source-clean; node scripts/parity-s11-http-graph/run.mjs --out .parity/runs/s11-final-8f8c234/http-clean; node scripts/parity-s11-settings-http/run.mjs --out .parity/runs/s11-final-8f8c234/settings-clean; node scripts/parity-s11-data-maps-diff/run.mjs --out .parity/runs/s11-final-8f8c234/data-maps-clean; node --test packages/skills/test/s11*.test.js packages/skills/test/reportViews*.test.js packages/skills/test/reportSubskills.test.js packages/data/test/maps*.test.js packages/data/test/relay-contract.test.js; node --test --test-concurrency=4; npm run parity:check; npm run parity:gate",
+          "notes": "S-11 Report behavior is complete. D-07 remains partial: live transit uses ORS driving-car without transit details/departure, and ORS has no traffic model, so duration_in_traffic equals duration. Poor/Terrible branches are verified against pinned Google-shaped source fixtures. Pegasus emits an internal caught-arrival diagnostic that Phoenix omits; results, classifications, actions, and wire behavior match."
+        }
+      ],
+      "implementationReview": {
+        "state": "accepted",
+        "assignee": "Luna Max S-11 team; Codex root",
+        "candidateRevision": "8f8c234b80d94dff57eb0396a29fdc098c2d1b7e",
+        "integratedRevision": "8f8c234b80d94dff57eb0396a29fdc098c2d1b7e",
+        "reviewedBy": "Codex root and independent Luna Max acceptance/falsification reviewers",
+        "scope": "Complete S-11 Report commute closure across archived calculations, all travel-mode inputs, Settings conversion, frozen arrival/departure boundaries, MIM language, speech, views, complete Report HTTP actions, and Data/Maps relay behavior. Root falsified the arrival evaluation and HEAD response-order repairs; retained ORS provider limitations remain owned by D-07.",
+        "artifact": "docs/parity/evidence/2026-09-13/s11-commute/review.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-13/s11-commute/review.md"
+      }
     },
     {
       "id": "S-12",
