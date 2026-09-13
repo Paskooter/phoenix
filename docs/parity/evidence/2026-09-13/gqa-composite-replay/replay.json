@@ -1,0 +1,80 @@
+{
+  "task": "Q-01",
+  "scope": "current-main selected multi-provider answer path",
+  "baseCommit": "48a10fccf0eae8d6f2d6e2a001ee08c4da45e616",
+  "candidateBranch": "codex/q01-composite-replay",
+  "source": {
+    "authority": "Jibo MCP",
+    "repository": "jiborobot/srv-gqa-ws",
+    "revision": "ebe1a7d38f511570060c1fbf61bec89d58419b26",
+    "modules": [
+      "gqa/gqa.py",
+      "gqa/account.py",
+      "gqa/attribute.py",
+      "gqa/analytics.py",
+      "fake_external/fake_external.py"
+    ],
+    "sourcePlan": "Bing + Wikipedia in parallel, then Wolfram Alpha; Bing is selected first when multiple answers are available",
+    "sourceAttribution": "Bing and Wolfram Alpha are inserted after final-period normalization; Wikipedia is not inserted"
+  },
+  "fixture": {
+    "transport": "actual loopback HTTP peers",
+    "providers": ["Bing", "Wikipedia", "Wolfram Alpha"],
+    "account": "loopback account lookup peer",
+    "storage": "explicit deterministic source-shaped attribution store",
+    "liveProviderAccess": false,
+    "liveAccountAccess": false
+  },
+  "command": "node --test packages/skills/test/q01GqaCompositeReplay.test.js",
+  "result": {
+    "tests": 5,
+    "passed": 5,
+    "failed": 0,
+    "cancelled": 0,
+    "durationMs": 554
+  },
+  "controls": [
+    {
+      "name": "selected HTTP success",
+      "observed": "Bing answer over /answer_skill/v1/main; status 200; text/html response; source JCP SLIM/PLAY; Bing timing and facts analytics"
+    },
+    {
+      "name": "provider priority and fallback",
+      "observed": "Bing wins against simultaneous Wikipedia; Wikipedia wins after Bing empty; Wolfram starts only after both first-group peers return empty"
+    },
+    {
+      "name": "late priority",
+      "observed": "Bing completing after the first-group deadline but before delayed Wolfram remains the selected answer"
+    },
+    {
+      "name": "all-empty and upstream errors",
+      "observed": "Both produce source no-answer prompt GQA_no_answer_what_01 plus DISPLAY/MIM_VIEW JSON, success:false analytics, and no provider error text"
+    },
+    {
+      "name": "account and attribution",
+      "observed": "Account HTTP lookup precedes provider calls; Bing and Wolfram records preserve normalized answer, URL, image/null, loop ID and timestamp; retrieveAtt and wipeID operate over HTTP"
+    },
+    {
+      "name": "status/media and route boundaries",
+      "observed": "Success/retrieve/wipe use 200 text/html; missing transID uses 400 text/html; missing path uses 404 ERROR JSON"
+    },
+    {
+      "name": "fail-closed configuration",
+      "observed": "Missing Wolfram or Bing endpoint throws during profile/start construction before a listener is opened"
+    }
+  ],
+  "falsifiers": [
+    "Letting Wikipedia answer before a ready Bing answer fails the priority assertion.",
+    "Starting Wolfram while Bing or Wikipedia has a useful first-group answer fails request-count assertions.",
+    "Settling before the late Bing response fails the late-priority answer assertion.",
+    "Replacing source no-answer MIM/display with a generic placeholder fails prompt, display, analytics and error-leak assertions.",
+    "Skipping account lookup, omitting the final period before insertion, attributing Wikipedia, or losing the Wolfram URL/image-null shape fails the account/attribution receipt.",
+    "Returning JSON media, a generic error status, or exposing an unregistered answer path fails the HTTP boundary assertions.",
+    "Using an implicit provider URL fails the missing-endpoint construction assertion."
+  ],
+  "limitations": [
+    "This is a controlled current-main replay with fake peers; it does not claim live Bing, Wikipedia, Wolfram, Account, Mongo, deployment, or robot reachability.",
+    "The explicit memory attribution store is used for deterministic HTTP retrieve/wipe coverage; Mongo driver behavior remains covered by the adjacent adapter tests.",
+    "The replay covers the existing answer path only and does not exercise news implementation files."
+  ]
+}
