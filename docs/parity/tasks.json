@@ -2571,12 +2571,22 @@
         "packages/skills/src/chitchatSkill.js",
         "packages/skills/src/chitchat"
       ],
-      "finding": "The large library and dispatcher exist, but the current corpus grades intent/memo only.",
+      "finding": "Root accepted a bounded source/native entity repair: the three overlapping chitchat parses now match exact native entities and select the source MIMs. The complete 10,035-utterance diagnostic improves from 9,887 to 9,890 MIM matches with exactly three removals and no new misses. The remaining 117 MIM-only rows are classified as 77 context-free semi-specific categories, 39 loop-context decisions, and one duplicate manifest expectation; the 28 intent residuals remain accepted N-08/N1 families. Full ESML/JCP/analytics, seasonal, fun-and-games and multi-turn source-runtime comparison remains open.",
       "acceptance": [
         "Replay source intent/entity/memo branches, semi-specific categories, fun-and-games transformations and fallback/deflection behavior.",
         "Compare resulting MIM/ESML/JCP/analytics under identity, emotion, birthday and seasonal contexts, including multi-turn paths."
       ],
-      "verification": []
+      "verification": [],
+      "implementationReview": {
+        "state": "accepted",
+        "assignee": "Luna Max / w18_s08_settings; Codex root",
+        "candidateRevision": "d8d4085",
+        "integratedRevision": "6eec06b",
+        "reviewedBy": "Codex root",
+        "scope": "Bounded S-07 entity and MIM repair. Three native-capture entity collisions are corrected at both parser boundaries. Root independently inspected all three native receipts, reran 75 focused checks, and falsified the Emotion mapping. The complete S-07 runtime acceptance remains open.",
+        "artifact": "docs/parity/evidence/2026-09-13/s07-mim-identity/review.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-13/s07-mim-identity/review.md"
+      }
     },
     {
       "id": "S-08",

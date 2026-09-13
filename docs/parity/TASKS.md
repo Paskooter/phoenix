@@ -1109,7 +1109,7 @@ Evidence: [docs/parity/evidence/2026-09-10/s06-asset-provenance/review.md](../..
 
 Owner: Codex. Dependencies: S-03, S-04, S-05, S-06, N-08.
 
-The large library and dispatcher exist, but the current corpus grades intent/memo only.
+Root accepted a bounded source/native entity repair: the three overlapping chitchat parses now match exact native entities and select the source MIMs. The complete 10,035-utterance diagnostic improves from 9,887 to 9,890 MIM matches with exactly three removals and no new misses. The remaining 117 MIM-only rows are classified as 77 context-free semi-specific categories, 39 loop-context decisions, and one duplicate manifest expectation; the 28 intent residuals remain accepted N-08/N1 families. Full ESML/JCP/analytics, seasonal, fun-and-games and multi-turn source-runtime comparison remains open.
 
 Done when:
 
@@ -1121,6 +1121,14 @@ Source: [Original Pegasus packages/chitchat-skill/src](https://pvindex.org/gitea
 Phoenix: [packages/skills/src/chitchatSkill.js](../../packages/skills/src/chitchatSkill.js); [packages/skills/src/chitchat](../../packages/skills/src/chitchat).
 
 Evidence: pending.
+
+- [x] Candidate implementation — **accepted**; Luna Max / w18_s08_settings; Codex root.
+
+Candidate scope: Bounded S-07 entity and MIM repair. Three native-capture entity collisions are corrected at both parser boundaries. Root independently inspected all three native receipts, reran 75 focused checks, and falsified the Emotion mapping. The complete S-07 runtime acceptance remains open.
+
+Candidate report: [docs/parity/evidence/2026-09-13/s07-mim-identity/review.md](../../docs/parity/evidence/2026-09-13/s07-mim-identity/review.md).
+
+Lead review: Codex root; [docs/parity/evidence/2026-09-13/s07-mim-identity/review.md](../../docs/parity/evidence/2026-09-13/s07-mim-identity/review.md). Complete task acceptance is still governed by the main checkbox above.
 
 ### S-08 — Verify personal-report orchestration, preferences and identity
 
