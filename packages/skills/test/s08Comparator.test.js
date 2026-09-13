@@ -43,3 +43,28 @@ test('S-08 comparator rejects the same descriptor missing from both receipts', (
     fs.rmSync(temp, { recursive: true, force: true });
   }
 });
+
+test('S-08 comparator rejects a prompt-only mismatch', () => {
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'phoenix-s08-prompt-'));
+  try {
+    for (const name of ['source-runtime.json', 'candidate-runtime.json']) {
+      fs.copyFileSync(path.join(evidence, name), path.join(temp, name));
+    }
+    const candidatePath = path.join(temp, 'candidate-runtime.json');
+    const candidate = JSON.parse(fs.readFileSync(candidatePath, 'utf8'));
+    const forged = candidate.graph[0].responses[0].mims[0];
+    forged.prompt_id = `${forged.prompt_id}-forged`;
+    fs.writeFileSync(candidatePath, `${JSON.stringify(candidate, null, 2)}\n`);
+
+    const result = spawnSync(process.execPath, [comparator, temp, spec], { encoding: 'utf8' });
+    assert.notEqual(result.status, 0, `comparator unexpectedly passed: ${result.stdout}`);
+    const receipt = JSON.parse(fs.readFileSync(path.join(temp, 'differential-receipt.json'), 'utf8'));
+    assert.equal(receipt.result, 'fail');
+    assert.equal(receipt.semanticMatches, receipt.totalRows);
+    assert.equal(receipt.promptMatches, receipt.totalRows - 1);
+    assert.equal(receipt.promptDifferences.length, 1);
+    assert.equal(receipt.promptDifferences[0].id, candidate.graph[0].id);
+  } finally {
+    fs.rmSync(temp, { recursive: true, force: true });
+  }
+});

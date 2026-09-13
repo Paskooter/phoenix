@@ -14,6 +14,12 @@ const withoutPrompt = value => {
   for (const [key, child] of Object.entries(value)) if (key !== 'prompt_id') out[key] = withoutPrompt(child);
   return out;
 };
+const promptIds = value => {
+  if (Array.isArray(value)) return value.flatMap(promptIds);
+  if (!value || typeof value !== 'object') return [];
+  const ids = value.prompt_id === undefined ? [] : [value.prompt_id];
+  return ids.concat(Object.entries(value).filter(([key]) => key !== 'prompt_id').flatMap(([, child]) => promptIds(child)));
+};
 const rows = [];
 const coverageErrors = [];
 
@@ -69,13 +75,18 @@ function compareGroup(name, descriptors) {
     rows.push({ id: descriptor.id, group: name, expectedDifference: descriptor.expectedDifference || null,
       sourcePresent: Boolean(s), candidatePresent: Boolean(c), sourceOK: !!s?.ok, candidateOK: !!c?.ok,
       semanticEqual: semantic, promptEqual: prompt,
+      sourcePromptIds: promptIds(s), candidatePromptIds: promptIds(c),
       sourceError: s?.error || null, candidateError: c?.error || null });
   }
 }
 compareGroup('graph', spec.graphCases);
 compareGroup('settings', spec.settingsCases);
 const unexpected = rows.filter(row => !row.semanticEqual);
-const failed = coverageErrors.length > 0 || unexpected.length > 0;
+const promptDifferences = rows.filter(row => !row.promptEqual).map(row => ({
+  id: row.id, group: row.group, sourcePromptIds: row.sourcePromptIds,
+  candidatePromptIds: row.candidatePromptIds,
+}));
+const failed = coverageErrors.length > 0 || unexpected.length > 0 || promptDifferences.length > 0;
 const result = {
   schemaVersion: 1,
   sourceRevision: source.referenceRevision,
@@ -87,6 +98,7 @@ const result = {
   promptMatches: rows.filter(row => row.promptEqual).length,
   expectedDifferences: [],
   coverageErrors,
+  promptDifferences,
   unexpectedDifferences: unexpected,
   rows,
   result: failed ? 'fail' : 'pass',
@@ -94,5 +106,5 @@ const result = {
 fs.writeFileSync(path.join(dir, 'differential-receipt.json'), JSON.stringify(result, null, 2) + '\n');
 console.log(JSON.stringify({ result: result.result, rows: result.totalRows, semanticMatches: result.semanticMatches,
   promptMatches: result.promptMatches, expectedDifferences: 0, coverageErrors: coverageErrors.length,
-  unexpectedDifferences: unexpected.length }));
+  promptDifferences: promptDifferences.length, unexpectedDifferences: unexpected.length }));
 if (failed) process.exitCode = 1;
