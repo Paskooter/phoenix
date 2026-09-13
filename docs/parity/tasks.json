@@ -2754,26 +2754,59 @@
       "track": "pegasus",
       "phase": 3,
       "priority": "P1",
-      "status": "todo",
-      "implementation": "partial",
+      "status": "verified",
+      "implementation": "complete",
       "owner": "Codex",
       "dependsOn": [
         "S-08",
         "D-06"
       ],
       "reference": [
-        "pegasus:packages/report-skill/src/subskills/news"
+        "pegasus:packages/report-skill/src/subskills/news",
+        "pegasus:packages/report-skill/tests/subskills/News.test.js",
+        "pegasus:packages/test-utils/src/lasso-test/APNewsTestData.ts"
       ],
       "phoenix": [
         "packages/skills/src/report/news.js",
-        "packages/skills/src/report/xml.js"
+        "packages/skills/src/report/newsViews.js",
+        "packages/skills/src/report/xml.js",
+        "packages/skills/test/s10NewsParse.test.js",
+        "packages/skills/test/s10NewsMim.test.js",
+        "packages/skills/test/s10NewsViews.test.js",
+        "packages/skills/test/s10NewsLanguage.test.js",
+        "packages/skills/test/s10NewsXml.test.js",
+        "packages/data/test/news.test.js",
+        "packages/data/test/news-poller.test.js",
+        "scripts/parity-s10-source-diff",
+        "scripts/parity-s10-http-graph"
       ],
-      "finding": "Image-required and feed-header behavior changed; RSS compatibility is not original AP parity.",
+      "finding": "Pinned Pegasus News and Phoenix match all 22 archived cases, both AP fixture projections, and 16 real Report HTTP graph cases, including category order and limits, filtering, images, XML/error paths, ordered MIMs, ESML, attribution, views, analytics, and relay requests. RSS/Atom replacement-feed behavior is verified separately as a bounded Data adapter and does not claim original AP metadata parity.",
       "acceptance": [
         "Cover configured categories, available/unavailable stories, image/URL requirements, parsing, limits and story order.",
         "Compare original AP fixture MIMs, titles/attributions, ESML and error paths; verify RSS adapter behavior separately."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-13",
+          "basis": "The digest-pinned Node 8 source differential matches 22/22 archived cases and both AP fixture projections with zero differences; the real source/Phoenix Report HTTP differential matches 16/16 cases with zero differences. Root reproduced both receipts, proved both comparators fail closed, compared 57 XML vectors directly against xml2js 0.4.19, and falsified the profanity, view-radix, and malformed-entity repairs. All six News MIMs and both resources match source hashes; the focused suite passes 119 tests and the controlled-concurrency repository suite passes 2,193 tests with 9 skips.",
+          "artifact": "docs/parity/evidence/2026-09-13/s10-news/review.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "f9b76ba",
+          "command": "node scripts/parity-s10-source-diff/compare.mjs --out .parity/runs/s10-news-source-f9b76ba; node scripts/parity-s10-http-graph/run.mjs --out .parity/runs/s10-news-http-f9b76ba; node --test packages/skills/test/s10News*.test.js packages/data/test/news.test.js packages/data/test/news-poller.test.js packages/skills/test/report.e2e.test.js packages/skills/test/reportSubskills.test.js packages/skills/test/reportViews.test.js packages/skills/test/reportViews.source-vectors.test.js packages/skills/test/q01News.test.js; node --test --test-concurrency=4; npm run parity:check; npm run parity:gate",
+          "notes": "Live news-provider availability and freshness, deployment, and Moth rendering are outside S-10. The RSS/Atom adapter intentionally omits AP-only IDs, dates, rights structures, media variants, and authenticated URLs; source News MIMs still say Associated Press. XML equivalence is bounded to tested AP/RSS feed shapes."
+        }
+      ],
+      "implementationReview": {
+        "state": "accepted",
+        "assignee": "Luna Max S-10 team; Codex root",
+        "candidateRevision": "f9b76ba",
+        "integratedRevision": "f9b76ba",
+        "reviewedBy": "Codex root and independent Luna Max acceptance/falsification reviewers",
+        "scope": "Complete S-10 canonical-input closure across archived News branches, original AP fixtures, source language/resources, XML feed behavior, full Report HTTP behavior, and a separately qualified RSS/Atom adapter. Root restored the exact source banned-word set and parser/view/XML semantics, then independently falsified the central repairs.",
+        "artifact": "docs/parity/evidence/2026-09-13/s10-news/review.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-13/s10-news/review.md"
+      }
     },
     {
       "id": "S-11",

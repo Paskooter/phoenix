@@ -10,14 +10,14 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 43 | 46 | 0 | 0 |
+| pegasus | 44 | 46 | 0 | 0 |
 | classic | 18 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
 Current task: none.
 
-Next ready task: **S-10 — Verify report news selection and presentation**.
+Next ready task: **S-11 — Verify report commute calculations and condition tables**.
 
 See [PLAN.md](PLAN.md) for execution rules, [COMPATIBILITY.md](COMPATIBILITY.md) for the frozen target and [AUDIT.md](AUDIT.md) for initial findings. Pegasus source links use the original commit; restored-only code and atlas links are labeled separately. API definitions are pinned; other Jibo links are discovery references to be pinned before verification.
 
@@ -1186,22 +1186,30 @@ Lead review: Codex root and independent Luna Max acceptance/falsification review
 
 ### S-10 — Verify report news selection and presentation
 
-- [ ] **todo** · P1 · pegasus · implementation: partial
+- [x] **verified** · P1 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: S-08, D-06.
 
-Image-required and feed-header behavior changed; RSS compatibility is not original AP parity.
+Pinned Pegasus News and Phoenix match all 22 archived cases, both AP fixture projections, and 16 real Report HTTP graph cases, including category order and limits, filtering, images, XML/error paths, ordered MIMs, ESML, attribution, views, analytics, and relay requests. RSS/Atom replacement-feed behavior is verified separately as a bounded Data adapter and does not claim original AP metadata parity.
 
 Done when:
 
 - Cover configured categories, available/unavailable stories, image/URL requirements, parsing, limits and story order.
 - Compare original AP fixture MIMs, titles/attributions, ESML and error paths; verify RSS adapter behavior separately.
 
-Source: [Original Pegasus packages/report-skill/src/subskills/news](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/src/subskills/news).
+Source: [Original Pegasus packages/report-skill/src/subskills/news](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/src/subskills/news); [Original Pegasus packages/report-skill/tests/subskills/News.test.js](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/tests/subskills/News.test.js); [Original Pegasus packages/test-utils/src/lasso-test/APNewsTestData.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/test-utils/src/lasso-test/APNewsTestData.ts).
 
-Phoenix: [packages/skills/src/report/news.js](../../packages/skills/src/report/news.js); [packages/skills/src/report/xml.js](../../packages/skills/src/report/xml.js).
+Phoenix: [packages/skills/src/report/news.js](../../packages/skills/src/report/news.js); [packages/skills/src/report/newsViews.js](../../packages/skills/src/report/newsViews.js); [packages/skills/src/report/xml.js](../../packages/skills/src/report/xml.js); [packages/skills/test/s10NewsParse.test.js](../../packages/skills/test/s10NewsParse.test.js); [packages/skills/test/s10NewsMim.test.js](../../packages/skills/test/s10NewsMim.test.js); [packages/skills/test/s10NewsViews.test.js](../../packages/skills/test/s10NewsViews.test.js); [packages/skills/test/s10NewsLanguage.test.js](../../packages/skills/test/s10NewsLanguage.test.js); [packages/skills/test/s10NewsXml.test.js](../../packages/skills/test/s10NewsXml.test.js); [packages/data/test/news.test.js](../../packages/data/test/news.test.js); [packages/data/test/news-poller.test.js](../../packages/data/test/news-poller.test.js); [scripts/parity-s10-source-diff](../../scripts/parity-s10-source-diff); [scripts/parity-s10-http-graph](../../scripts/parity-s10-http-graph).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-13/s10-news/review.md](../../docs/parity/evidence/2026-09-13/s10-news/review.md) (2026-09-13; The digest-pinned Node 8 source differential matches 22/22 archived cases and both AP fixture projections with zero differences; the real source/Phoenix Report HTTP differential matches 16/16 cases with zero differences. Root reproduced both receipts, proved both comparators fail closed, compared 57 XML vectors directly against xml2js 0.4.19, and falsified the profanity, view-radix, and malformed-entity repairs. All six News MIMs and both resources match source hashes; the focused suite passes 119 tests and the controlled-concurrency repository suite passes 2,193 tests with 9 skips.).
+
+- [x] Candidate implementation — **accepted**; Luna Max S-10 team; Codex root.
+
+Candidate scope: Complete S-10 canonical-input closure across archived News branches, original AP fixtures, source language/resources, XML feed behavior, full Report HTTP behavior, and a separately qualified RSS/Atom adapter. Root restored the exact source banned-word set and parser/view/XML semantics, then independently falsified the central repairs.
+
+Candidate report: [docs/parity/evidence/2026-09-13/s10-news/review.md](../../docs/parity/evidence/2026-09-13/s10-news/review.md).
+
+Lead review: Codex root and independent Luna Max acceptance/falsification reviewers; [docs/parity/evidence/2026-09-13/s10-news/review.md](../../docs/parity/evidence/2026-09-13/s10-news/review.md). Complete task acceptance is still governed by the main checkbox above.
 
 ### S-11 — Verify report commute calculations and condition tables
 
