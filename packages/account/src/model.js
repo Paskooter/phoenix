@@ -480,9 +480,19 @@ export function deleteToken(store, tokenId) {
 
 /** Purge expired tokens (housekeeping; called opportunistically). */
 export function sweepTokens(store) {
+  const before = store.snapshot();
   let dirty = false;
   for (const [id, t] of store.tokens) {
-    if (Date.now() - t.created > ACCESS_TOKEN_LIFETIME_MS) { store.tokens.delete(id); dirty = true; }
+    if (Date.now() - t.created > ACCESS_TOKEN_LIFETIME_MS) {
+      store.tokens.delete(id);
+      dirty = true;
+    }
   }
-  if (dirty) store.flush();
+  if (!dirty) return;
+  try {
+    store.flush();
+  } catch (error) {
+    store.restore(before);
+    throw error;
+  }
 }

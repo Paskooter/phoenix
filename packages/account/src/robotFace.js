@@ -36,7 +36,7 @@ import { handleLoopMembership, removeRobotFromLoops, saveLoop } from './loopMemb
 import { dispatchLoopCreated } from './loopCreation.js';
 import { handleLoopAgreements } from './loopAgreements.js';
 import { EchoSignProvider } from './echoSignProvider.js';
-import { handleMemberPhotos, isMemberPhotoUpload, stagePhotoDigest } from './loopMemberPhotos.js';
+import { handleMemberPhotos, isMemberPhotoUpload, normalizePhotoMaxBytes, PHOTO_MAX_BYTES, stagePhotoDigest } from './loopMemberPhotos.js';
 import { handleRobotLookup } from './robotLookup.js';
 import { handleAccountIdentity, isAccountPhotoUpload } from './accountIdentity.js';
 import { oauthClientsDispatch } from './oauthClients.js';
@@ -132,10 +132,14 @@ function validatedOtaRedirect(currentUrl, location, configuredOrigin) {
 }
 
 /** @param {import('./store.js').Store} store */
-export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOutbox = new LoopUpdatedOutbox(store), loopConfig = {}, agreementProvider = new EchoSignProvider(loopConfig), invitationProviders, identityProviders, robotReadClient, memberPhotoProvider, stsProvider } = {}) {
+export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOutbox = new LoopUpdatedOutbox(store), loopConfig = {}, agreementProvider = new EchoSignProvider(loopConfig), invitationProviders, identityProviders, robotReadClient, memberPhotoProvider, stsProvider, photoMaxBytes } = {}) {
   // LoopController snapshots this feature flag at construction; only literal
   // lowercase 'off' disables COPPA, matching the source configuration.
   const coppaEnabled = !loopConfig.features || loopConfig.features.coppa !== 'off';
+  const configuredPhotoMaxBytes = photoMaxBytes === undefined
+    ? (loopConfig.server?.photoMaxBytes ?? process.env.ETCO_account_photoMaxBytes ?? PHOTO_MAX_BYTES)
+    : photoMaxBytes;
+  const uploadMaxBytes = normalizePhotoMaxBytes(configuredPhotoMaxBytes);
   // oobe.handler.ts mapping keys (lowercased for the prefix-tolerant match).
   const ops = {
     setuprobot: setupRobot,
@@ -152,8 +156,11 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     // Hapi's binary stream route checks the declared length before dispatch.
     // Its stream output does not impose a cumulative limit on chunked bodies.
     // Account UpdatePhoto uses the same POST /binary maxBytes: 1000000000.
-    if ((isMemberPhotoUpload(req) || isAccountPhotoUpload(req)) && Number(req.headers['content-length']) > 1000000000) {
-      const data = JSON.stringify({ statusCode: 400, error: 'Bad Request', message: 'Payload content length greater than maximum allowed: 1000000000' });
+    const declaredLength = Number(req.headers['content-length']);
+    if ((isMemberPhotoUpload(req) || isAccountPhotoUpload(req))
+      && Number.isSafeInteger(declaredLength)
+      && declaredLength > uploadMaxBytes) {
+      const data = JSON.stringify({ statusCode: 400, error: 'Bad Request', message: `Payload content length greater than maximum allowed: ${uploadMaxBytes}` });
       res.writeHead(400, { 'content-type': 'application/json; charset=utf-8', 'content-length': Buffer.byteLength(data), connection: 'close' });
       res.end(data);
       req.resume();
@@ -201,7 +208,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
       ].includes(String(req.headers['x-amz-target'] || ''));
       if (!anonymousTarget || req.headers.authorization) {
         try {
-          if (isMemberPhotoUpload(req) && req.headers.authorization) await stagePhotoDigest(req);
+          if (isMemberPhotoUpload(req) && req.headers.authorization) await stagePhotoDigest(req, { maxBytes: uploadMaxBytes });
           const verification = verifySigV4({
             method: req.method,
             path: req.originalUrl || req.url || '/',
@@ -245,6 +252,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
           // removed account belonged to, so the outbox has to reach the
           // identity handler alongside the photo/mail providers.
           loopUpdatedOutbox,
+          photoMaxBytes: uploadMaxBytes,
         });
         if (identity !== false) return identity;
       } finally {
@@ -374,44 +382,59 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
         return void sendAmzError(res, Errors.OWNER_CAN_MANIPULATE);
       }
       if (loop.isSuspended) {
-        if (!claim()) return;
-        // ROBOT REPLACEMENT. Source order is exact:
-        //   newRobotAccount = findOrCreateRobotAccount({ robotId: id })
-        //   removeRobotFromLoops(loop.robot)          // old robot -> suspends its loop
-        //   removeRobotFromLoops(newRobotAccount._id) // new robot leaves any other loop
-        //   loop = findById(tokenObj.loopId)          // reread the committed state
-        //   loop.isSuspended = false; loop.robot = newRobotAccount._id
-        //   loop.members.push({ accountId, status: ACCEPTED }); loop.save()
-        const replacement = findOrCreateRobotAccount(store, id);
-        removeRobotFromLoops(store, loop.robot, loopUpdatedOutbox);
-        removeRobotFromLoops(store, replacement._id, loopUpdatedOutbox);
-        loop = activeLoopById(token.loopId);
-        if (!loop) {
-          releaseClaim();
-          return void sendAmzError(res, Errors.LOOP_NOT_FOUND);
-        }
-        // Mutate a detached draft: saveLoop must be able to leave the stored
-        // object untouched when the LoopUpdated write is rejected.
-        const before = JSON.parse(JSON.stringify(loop));
-        const draft = JSON.parse(JSON.stringify(loop));
-        draft.isSuspended = false;
-        draft.robot = replacement._id;
-        draft.members = Array.isArray(draft.members) ? draft.members : [];
-        // Mongoose applies memberSchema defaults to the pushed
-        // `{ accountId, status }`: created, enrolled, invitedAsLegalGuardian and
-        // memberProperties.isChild. Keep the persisted subdocument shaped the
-        // same way so a reopened Store projects identically.
-        draft.members.push({
-          _id: newId(),
-          accountId: replacement._id,
-          status: MEMBER_STATUS.ACCEPTED,
-          created: Date.now(),
-          invitedAsLegalGuardian: false,
-          enrolled: { face: false, voice: false },
-          memberProperties: { isChild: false },
+        // Replacement touches the token, replacement account, any loop that
+        // owns that account, the target loop, and LoopUpdated. Keep all of
+        // those writes inside one Store transaction; individual legacy helpers
+        // still call flush(), but Store suppresses those intermediate calls.
+        const replacementResult = store.transaction(() => {
+          const claimResult = claimSetupToken(store, tokenId);
+          if (claimResult.error) return { error: claimResult.error };
+          claimedToken = claimResult.token;
+
+          // ROBOT REPLACEMENT. Source order is exact:
+          //   newRobotAccount = findOrCreateRobotAccount({ robotId: id })
+          //   removeRobotFromLoops(loop.robot)          // old robot -> suspends its loop
+          //   removeRobotFromLoops(newRobotAccount._id) // new robot leaves any other loop
+          //   loop = findById(tokenObj.loopId)          // reread the committed state
+          //   loop.isSuspended = false; loop.robot = newRobotAccount._id
+          //   loop.members.push({ accountId, status: ACCEPTED }); loop.save()
+          const replacement = findOrCreateRobotAccount(store, id);
+          removeRobotFromLoops(store, loop.robot, loopUpdatedOutbox);
+          removeRobotFromLoops(store, replacement._id, loopUpdatedOutbox);
+          const current = activeLoopById(token.loopId);
+          if (!current) throw Object.assign(new Error('Loop does not exist'), { code: 'LOOP_NOT_FOUND' });
+
+          // Mutate a detached draft: saveLoop must be able to leave the stored
+          // object untouched when the LoopUpdated write is rejected.
+          const before = JSON.parse(JSON.stringify(current));
+          const draft = JSON.parse(JSON.stringify(current));
+          draft.isSuspended = false;
+          draft.robot = replacement._id;
+          draft.members = Array.isArray(draft.members) ? draft.members : [];
+          // Mongoose applies memberSchema defaults to the pushed
+          // `{ accountId, status }`: created, enrolled, invitedAsLegalGuardian and
+          // memberProperties.isChild. Keep the persisted subdocument shaped
+          // the same way so a reopened Store projects identically.
+          draft.members.push({
+            _id: newId(),
+            accountId: replacement._id,
+            status: MEMBER_STATUS.ACCEPTED,
+            created: Date.now(),
+            invitedAsLegalGuardian: false,
+            enrolled: { face: false, voice: false },
+            memberProperties: { isChild: false },
+          });
+          saveLoop(store, draft, loopUpdatedOutbox, before);
+          if (!consumeClaimedSetupToken(store, tokenId, claimedToken)) {
+            throw Object.assign(new Error('Token not found'), { code: 'TOKEN_NOT_FOUND' });
+          }
+          claimedToken = null;
+          return { loop: draft };
         });
-        saveLoop(store, draft, loopUpdatedOutbox, before);
-        loop = draft;
+        if (replacementResult.error) {
+          return void sendAmzError(res, Errors[replacementResult.error]);
+        }
+        loop = replacementResult.loop;
       } else {
         // Same robot after a reset reconnects its live loop and receives its
         // existing credentials. A different robot needs the loop suspended.
@@ -447,7 +470,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     }
 
     const robot = store.accounts.get(loop.robot) || findOrCreateRobotAccount(store, id);
-    if (!consumeClaimedSetupToken(store, tokenId, claimedToken)) {
+    if (claimedToken && !consumeClaimedSetupToken(store, tokenId, claimedToken)) {
       releaseClaim();
       return void sendAmzError(res, Errors.TOKEN_NOT_FOUND);
     }

@@ -14,6 +14,17 @@ const DEFAULT_FILE = join(dirname(fileURLToPath(import.meta.url)), '../data/stor
 const COLLECTIONS = ['accounts', 'loops', 'tokens', 'sessions', 'settings', 'notificationOutbox', 'emailResets', 'phoneVerifications', 'oauthClients'];
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+function clone(value) {
+  return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+}
+
+function restoreReference(reference, value) {
+  if (!reference || typeof reference !== 'object' || !value || typeof value !== 'object') return clone(value);
+  for (const key of Object.keys(reference)) delete reference[key];
+  Object.assign(reference, clone(value));
+  return reference;
+}
+
 export class Store {
   /** @param {string} [file] JSON file path (ETCO_account_dataFile overrides the default) */
   constructor(file = process.env.ETCO_account_dataFile || DEFAULT_FILE) {
@@ -82,6 +93,66 @@ export class Store {
       // Only remove the temporary file this invocation created. Preserve the
       // original write/rename error if cleanup is also unavailable.
       try { unlinkSync(tmp); } catch { /* renamed or cleanup unavailable */ }
+    }
+  }
+
+  /**
+   * Capture every collection before a multi-record operation mutates it.
+   * Entries retain their original object reference so rollback restores callers
+   * that still hold a hydrated record, while the JSON copy restores fields that
+   * an in-place mutation changed.
+   */
+  snapshot() {
+    const snapshot = {};
+    for (const collection of COLLECTIONS) {
+      snapshot[collection] = new Map([...this[collection]].map(([key, value]) => [key, {
+        reference: value,
+        value: clone(value),
+      }]));
+    }
+    return snapshot;
+  }
+
+  /** Restore a snapshot without touching the durable file. */
+  restore(snapshot) {
+    for (const collection of COLLECTIONS) {
+      const target = this[collection];
+      target.clear();
+      for (const [key, entry] of snapshot[collection] || []) {
+        target.set(key, restoreReference(entry.reference, entry.value));
+      }
+    }
+  }
+
+  /**
+   * Run a synchronous multi-collection mutation and commit exactly one Store
+   * snapshot. Existing helpers call `store.flush()` at their individual save
+   * boundaries; suppress those calls while this transaction is open so a
+   * rejected final flush cannot expose a partial topology.
+   */
+  transaction(mutator) {
+    if (typeof mutator !== 'function') throw new TypeError('store transaction requires a function');
+    const before = this.snapshot();
+    const flush = this.flush;
+    let active = true;
+    this.flush = (...args) => {
+      if (active) return undefined;
+      return flush.apply(this, args);
+    };
+    try {
+      const result = mutator();
+      if (result && typeof result.then === 'function') {
+        throw new TypeError('store transaction callback must be synchronous');
+      }
+      active = false;
+      this.flush = flush;
+      flush.apply(this);
+      return result;
+    } catch (error) {
+      active = false;
+      this.flush = flush;
+      this.restore(before);
+      throw error;
     }
   }
 

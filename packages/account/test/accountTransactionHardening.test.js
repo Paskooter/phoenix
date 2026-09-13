@@ -13,6 +13,7 @@ import {
   deleteToken,
   findOrCreateRobotAccount,
   mintSetupToken,
+  sweepTokens,
 } from '../src/model.js';
 import { updatePhoto } from '../src/accountIdentity.js';
 import { updateMemberPhoto } from '../src/loopMemberPhotos.js';
@@ -27,6 +28,15 @@ async function closeServer(server) {
 async function listen(server) {
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   return `http://127.0.0.1:${server.address().port}`;
+}
+
+function selectedState(store) {
+  return JSON.stringify({
+    accounts: [...store.accounts],
+    loops: [...store.loops],
+    tokens: [...store.tokens],
+    notificationOutbox: [...store.notificationOutbox],
+  });
 }
 
 test('token deletion restores memory when its durable flush fails', async () => {
@@ -44,6 +54,86 @@ test('token deletion restores memory when its durable flush fails', async () => 
     store.flush = originalFlush;
     assert.equal(new Store(file).tokens.has(token._id), true, 'the committed token remains available after restart');
   } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test('token sweep restores expired tokens in memory and after reopen when flush fails', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'phoenix-token-sweep-atomic-'));
+  try {
+    const file = join(directory, 'store.json');
+    const store = new Store(file);
+    const token = mintSetupToken(store, 'account-sweep-atomic');
+    store.tokens.get(token._id).created = Date.now() - 16 * 60 * 1000;
+    store.flush();
+    const before = selectedState(store);
+    const originalFlush = store.flush.bind(store);
+    store.flush = () => { throw new Error('synthetic sweep snapshot failure'); };
+
+    assert.throws(() => sweepTokens(store), /synthetic sweep snapshot failure/);
+    assert.equal(selectedState(store), before, 'failed sweep leaves the in-memory token present');
+
+    store.flush = originalFlush;
+    assert.equal(selectedState(new Store(file)), before, 'failed sweep leaves the durable token after reopen');
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test('suspended SetupRobot replacement rolls back the full topology on final flush failure and retries', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'phoenix-oobe-replacement-atomic-'));
+  let service;
+  try {
+    const file = join(directory, 'store.json');
+    const store = new Store(file);
+    const owner = createOwnerAccount(store, { email: 'oobe-replacement-atomic@example.test', password: 'ValidPass1' });
+    const { loop, robot: oldRobot } = createLoop(store, { owner, robotId: 'oobe-replacement-old-robot' });
+    loop.isSuspended = true;
+    store.flush();
+    const setup = mintSetupToken(store, owner._id, loop._id);
+    const before = selectedState(store);
+    const originalFlush = store.flush.bind(store);
+    let failed = false;
+    store.flush = () => {
+      const candidate = store.loops.get(loop._id);
+      const isFinalReplacement = candidate
+        && candidate.robot !== oldRobot._id
+        && candidate.isSuspended === false;
+      if (!failed && isFinalReplacement) {
+        failed = true;
+        throw new Error('synthetic final SetupRobot save failure');
+      }
+      return originalFlush();
+    };
+    service = await createAccountService({ store }).listen(0);
+    const base = `http://127.0.0.1:${service.address().port}`;
+    const request = () => fetch(`${base}/`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/x-amz-json-1.1',
+        'x-amz-target': 'OOBE_20161026.SetupRobot',
+        connection: 'close',
+      },
+      body: JSON.stringify({ token: setup._id, id: 'oobe-replacement-new-robot' }),
+    });
+
+    const failedResponse = await request();
+    assert.equal(failedResponse.status, 500);
+    assert.equal(failed, true, 'the injected failure reached the final replacement save');
+    store.flush = originalFlush;
+    assert.equal(selectedState(store), before, 'failed replacement restores every in-memory collection');
+    assert.equal(selectedState(new Store(file)), before, 'failed replacement restores the durable topology');
+    assert.equal(store.tokens.get(setup._id).claimedAt, undefined, 'the setup token remains retryable');
+
+    const retry = await request();
+    assert.equal(retry.status, 200, await retry.text());
+    const replacement = store.accountByFriendlyId('oobe-replacement-new-robot');
+    assert.ok(replacement, 'retry creates the replacement robot');
+    assert.equal(store.loops.get(loop._id).robot, replacement._id);
+    assert.equal(store.loops.get(loop._id).isSuspended, false);
+    assert.equal(store.tokens.has(setup._id), false, 'successful retry consumes the setup token');
+  } finally {
+    await closeServer(service);
     await rm(directory, { recursive: true, force: true });
   }
 });
@@ -153,7 +243,8 @@ test('account photo commit failure compensates the staged public object', async 
     assert.equal(store.accounts.get(owner._id).photoUrl, 'https://photos.example.test/old-object');
     assert.equal(new Store(file).accounts.get(owner._id).photoUrl, 'https://photos.example.test/old-object');
     assert.equal(objects.has('old-object'), true, 'the old object remains when metadata commit fails');
-    assert.equal(objects.has(owner._id + '17'), false, 'the staged object is compensated');
+    assert.equal(objects.size, 1, 'the staged object is compensated');
+    assert.equal(objects.has(owner._id + '17'), false, 'the deterministic key is never used');
 
     store.flush = originalFlush;
     const result = await updatePhoto(store, {
@@ -162,9 +253,10 @@ test('account photo commit failure compensates the staged public object', async 
       photoProvider: provider,
       clock: () => 18,
     });
-    assert.equal(result.photoUrl, `https://photos.example.test/${owner._id}18`);
+    const resultKey = result.photoUrl.split('/').pop();
+    assert.match(resultKey, new RegExp(`^${owner._id}18\\d+$`));
     assert.equal(objects.has('old-object'), false, 'old object is deleted only after the new metadata commits');
-    assert.equal(objects.has(owner._id + '18'), true);
+    assert.equal(objects.has(resultKey), true);
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
@@ -209,7 +301,8 @@ test('member photo commit failure compensates the staged public object', async (
     assert.equal(store.loops.get(loop._id).members.find((member) => member._id === memberId).memberProperties.photoUrl,
       'https://photos.example.test/old-member-object');
     assert.equal(objects.has('old-member-object'), true);
-    assert.equal(objects.has(memberId + '19'), false, 'the staged member object is compensated');
+    assert.equal(objects.size, 1, 'the staged member object is compensated');
+    assert.equal(objects.has(memberId + '19'), false, 'the deterministic key is never used');
     const reopened = new Store(file);
     assert.equal(reopened.loops.get(loop._id).members.find((member) => member._id === memberId).memberProperties.photoUrl,
       'https://photos.example.test/old-member-object');
