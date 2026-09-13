@@ -128,6 +128,21 @@ export {
   GQA_DEFAULT_PROFILE_ENV,
 } from './gqaDefaultService.js';
 export {
+  createStructQaClassicHandler,
+  createStructQaHandler,
+  createStructQaHttpRoute,
+  createStructQaScriptedProvider,
+  createStructQaService,
+  structQaContract,
+  STRUCTQA_BAD_REQUEST_HTML,
+  STRUCTQA_COUNTRY_CODE_MAP,
+  STRUCTQA_SOURCE_INTENTS,
+  STRUCTQA_SOURCE_MODULE,
+  STRUCTQA_SOURCE_PATH,
+  STRUCTQA_SOURCE_REVISION,
+  STRUCTQA_SOURCE_VERSION,
+} from './gqaStructQaService.js';
+export {
   createGqaAccountLookup,
   createGqaAttributionStore,
   createGqaMemoryAttributionStore,
