@@ -24,6 +24,7 @@ import { parse as parseRules } from './grammar/parser.js';
 import { matchRule, tokenize, parseScore } from './grammar/matcher.js';
 import { loadEqWords } from './grammar/eqWords.js';
 import { loadFactoryWords } from './grammar/factoryWords.js';
+import { normalizeChitchatEntities } from './chitchatEntityNormalization.js';
 
 const GRAMMAR_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'resources', 'grammar');
 
@@ -94,7 +95,7 @@ export function fullParse(text) {
     if (!best || score > bestScore) { best = { id: sk.id, m }; bestScore = score; }
   }
   if (!best) return null;
-  const ent = best.m.entities || {};
+  const ent = normalizeChitchatEntities(best.m.entities?.intent || '', best.m.entities);
   if (!ent.intent && !ent.skill) return null; // a bare wildcard match is not usable
   // Default the skill entity to the matched grammar's skill id so the gateway
   // can route on-robot skills that set only an intent.

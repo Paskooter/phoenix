@@ -17,6 +17,7 @@ import { getCompiledFstRuntime, matchCompiledRule } from './compiledFstRuntime.j
 import { selectBestNative } from './arbitration.js';
 import { LoopMemberDetector } from './loopMemberDetector.js';
 import { attachExternalResult, createDisabledExternalAgentProvider } from './externalAgents.js';
+import { normalizeChitchatEntities } from './chitchatEntityNormalization.js';
 
 const RESOURCE_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'resources');
 const INVENTORY_PATH = join(RESOURCE_ROOT, 'rule-inventory.json');
@@ -343,7 +344,7 @@ export function parseRequest(request, options = {}) {
   if (!winner || (compiledRuntime && (!winner.intent || winner.priority === 'SKIP'))) {
     return attachExternalResult(request, emptyResult(), externalProvider, externalRevision);
   }
-  let entities = winner.entities;
+  let entities = normalizeChitchatEntities(winner.intent, winner.entities);
   if (winner.requestedName === 'launch') {
     const launch = state.publicRules.get('launch');
     entities = { ...entities, union_original_fst_name: launch.sourceHandles[winner.rule] };

@@ -35,7 +35,7 @@ test('punctuation changes remain visible to native-like matching', () => {
     rules: ['launch'],
     intent: 'isJiboDescriptor',
     entities: {
-      GeneralDescriptor: 'Depressed',
+      Emotion: 'Sad',
       union_original_fst_name: 'handle:chitchat/launch',
     },
   });
