@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "task": "S-07 public Chitchat boundary proof falsification",
+  "baseline": {
+    "status": 0,
+    "accepted": true
+  },
+  "cases": [
+    {
+      "label": "paired row and guard omission",
+      "rejected": true,
+      "status": 1,
+      "verifierResult": {
+        "result": "fail",
+        "errors": 5
+      }
+    },
+    {
+      "label": "captured route mutation",
+      "rejected": true,
+      "status": 1,
+      "verifierResult": {
+        "result": "fail",
+        "errors": 1
+      }
+    },
+    {
+      "label": "captured result-shape mutation",
+      "rejected": true,
+      "status": 1,
+      "verifierResult": {
+        "result": "fail",
+        "errors": 1
+      }
+    },
+    {
+      "label": "forged malformed guard",
+      "rejected": true,
+      "status": 1,
+      "verifierResult": {
+        "result": "fail",
+        "errors": 1
+      }
+    },
+    {
+      "label": "scope hash mutation",
+      "rejected": true,
+      "status": 1,
+      "verifierResult": {
+        "result": "fail",
+        "errors": 1
+      }
+    }
+  ],
+  "result": "pass"
+}

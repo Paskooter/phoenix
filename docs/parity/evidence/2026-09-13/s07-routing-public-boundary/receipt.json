@@ -1,0 +1,529 @@
+{
+  "schemaVersion": 1,
+  "task": "S-07 public Chitchat boundary proof",
+  "result": "pass",
+  "verification": "DEFENSIVE_ONLY",
+  "scope": {
+    "worktreeBaseRevision": "1b9b7fdbf72462b65caf538e206625a11ec8b130",
+    "rootEquivalentRevision": "99a758c5d5babe33a1a97d4585e44728efa4e158",
+    "worktreeRevision": "6aa2618e5c83ce223bec41623781f6c7f2b02061",
+    "productionScopeUnchanged": true,
+    "scopeFiles": {
+      "packages/gateway/src/intentRouter.js": "3600536f66895c8c46a86b14faf2d2309d7991bf",
+      "packages/gateway/src/skillClient.js": "808244ae0eefa987c2cda4de20a40d8c6ec6869c",
+      "packages/gateway/resources/skills/skills-local.json": "1047648247cf0144a0d3eb80716a22b787065c43",
+      "packages/nlu/src/requestParser.js": "49f276ada76d8cbb6358835418b548d629428ba8",
+      "packages/nlu/src/chitchatEntityNormalization.js": "d488be26a455db3e52616c088a87631d0c4a1a86",
+      "packages/skills/src/chitchatSkill.js": "0105db60e13cf23754ac23e744bbad299865d5ff"
+    },
+    "note": "This worktree is based on 1b9b7fd; routing/chitchat scope file hashes match the root-equivalent revision. Only proof scripts and compact evidence are added."
+  },
+  "runtime": "v22.22.0",
+  "rows": [
+    {
+      "id": "valid-hot-dogs",
+      "inputKind": "parser",
+      "text": "do you want some hot dogs",
+      "nlu": {
+        "entities": {
+          "FoodGeneral": "SomeFoodGeneral",
+          "union_original_fst_name": "handle:chitchat/launch"
+        },
+        "intent": "doesJiboWantThing",
+        "rules": [
+          "launch"
+        ]
+      },
+      "decision": {
+        "skillID": "chitchat-skill",
+        "weight": 0.5,
+        "memo": {
+          "mim": "RI_JBO_Wants_SS_FoodGeneral",
+          "type": "ScriptedResponse"
+        }
+      },
+      "request": {
+        "type": "LISTEN_LAUNCH",
+        "msgID": "<uuid-v4>",
+        "ts": "<number>",
+        "data": {
+          "general": {
+            "accountID": "s07-public-account",
+            "robotID": "s07-public-robot",
+            "lang": "en-US"
+          },
+          "runtime": {
+            "dialog": {
+              "referent": null
+            },
+            "perception": {
+              "speaker": null
+            },
+            "loop": {
+              "loopId": "s07-public-loop",
+              "owner": null,
+              "users": []
+            },
+            "location": {
+              "iso": "2018-05-30T12:00:00.000Z"
+            },
+            "character": {
+              "emotion": {
+                "name": "NEUTRAL",
+                "valence": 0.45,
+                "confidence": 0.2
+              }
+            }
+          },
+          "skill": {
+            "id": "chitchat-skill"
+          },
+          "result": {
+            "nlu": {
+              "entities": {
+                "FoodGeneral": "SomeFoodGeneral",
+                "union_original_fst_name": "handle:chitchat/launch"
+              },
+              "intent": "doesJiboWantThing",
+              "rules": [
+                "launch"
+              ]
+            },
+            "asr": {
+              "text": "do you want some hot dogs"
+            },
+            "memo": {
+              "mim": "RI_JBO_Wants_SS_FoodGeneral",
+              "type": "ScriptedResponse"
+            }
+          }
+        }
+      },
+      "responseSkillID": "chitchat-skill"
+    },
+    {
+      "id": "valid-semispecific",
+      "inputKind": "parser",
+      "text": "do you like cheddar",
+      "nlu": {
+        "entities": {
+          "Cheese": "SomeCheese",
+          "union_original_fst_name": "handle:chitchat/launch"
+        },
+        "intent": "doesJiboLikeThing",
+        "rules": [
+          "launch"
+        ]
+      },
+      "decision": {
+        "skillID": "chitchat-skill",
+        "weight": 0.5,
+        "memo": {
+          "mim": "RI_JBO_Likes_SS_Cheese",
+          "type": "ScriptedResponse"
+        }
+      },
+      "request": {
+        "type": "LISTEN_LAUNCH",
+        "msgID": "<uuid-v4>",
+        "ts": "<number>",
+        "data": {
+          "general": {
+            "accountID": "s07-public-account",
+            "robotID": "s07-public-robot",
+            "lang": "en-US"
+          },
+          "runtime": {
+            "dialog": {
+              "referent": null
+            },
+            "perception": {
+              "speaker": null
+            },
+            "loop": {
+              "loopId": "s07-public-loop",
+              "owner": null,
+              "users": []
+            },
+            "location": {
+              "iso": "2018-05-30T12:00:00.000Z"
+            },
+            "character": {
+              "emotion": {
+                "name": "NEUTRAL",
+                "valence": 0.45,
+                "confidence": 0.2
+              }
+            }
+          },
+          "skill": {
+            "id": "chitchat-skill"
+          },
+          "result": {
+            "nlu": {
+              "entities": {
+                "Cheese": "SomeCheese",
+                "union_original_fst_name": "handle:chitchat/launch"
+              },
+              "intent": "doesJiboLikeThing",
+              "rules": [
+                "launch"
+              ]
+            },
+            "asr": {
+              "text": "do you like cheddar"
+            },
+            "memo": {
+              "mim": "RI_JBO_Likes_SS_Cheese",
+              "type": "ScriptedResponse"
+            }
+          }
+        }
+      },
+      "responseSkillID": "chitchat-skill"
+    },
+    {
+      "id": "valid-flip-coin",
+      "inputKind": "parser",
+      "text": "flip a coin",
+      "nlu": {
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        },
+        "intent": "requestFlipCoin",
+        "rules": [
+          "launch"
+        ]
+      },
+      "decision": {
+        "skillID": "chitchat-skill",
+        "weight": 0,
+        "memo": {
+          "mim": "RA_JBO_FlipCoin",
+          "type": "ScriptedResponse"
+        }
+      },
+      "request": {
+        "type": "LISTEN_LAUNCH",
+        "msgID": "<uuid-v4>",
+        "ts": "<number>",
+        "data": {
+          "general": {
+            "accountID": "s07-public-account",
+            "robotID": "s07-public-robot",
+            "lang": "en-US"
+          },
+          "runtime": {
+            "dialog": {
+              "referent": null
+            },
+            "perception": {
+              "speaker": null
+            },
+            "loop": {
+              "loopId": "s07-public-loop",
+              "owner": null,
+              "users": []
+            },
+            "location": {
+              "iso": "2018-05-30T12:00:00.000Z"
+            },
+            "character": {
+              "emotion": {
+                "name": "NEUTRAL",
+                "valence": 0.45,
+                "confidence": 0.2
+              }
+            }
+          },
+          "skill": {
+            "id": "chitchat-skill"
+          },
+          "result": {
+            "nlu": {
+              "entities": {
+                "union_original_fst_name": "handle:chitchat/launch"
+              },
+              "intent": "requestFlipCoin",
+              "rules": [
+                "launch"
+              ]
+            },
+            "asr": {
+              "text": "flip a coin"
+            },
+            "memo": {
+              "mim": "RA_JBO_FlipCoin",
+              "type": "ScriptedResponse"
+            }
+          }
+        }
+      },
+      "responseSkillID": "chitchat-skill"
+    },
+    {
+      "id": "valid-no-match",
+      "inputKind": "parser",
+      "text": "asdfghjkl",
+      "nlu": {
+        "intent": null,
+        "entities": null,
+        "rules": []
+      },
+      "decision": null,
+      "request": null,
+      "responseSkillID": null
+    },
+    {
+      "id": "valid-empty-text",
+      "inputKind": "parser",
+      "text": "",
+      "nlu": {
+        "intent": null,
+        "entities": null,
+        "rules": []
+      },
+      "decision": null,
+      "request": null,
+      "responseSkillID": null
+    },
+    {
+      "id": "nlu-omitted",
+      "inputKind": "synthetic-nlu-shape",
+      "text": "",
+      "nlu": {
+        "state": "omitted"
+      },
+      "decision": null,
+      "request": null,
+      "responseSkillID": null
+    },
+    {
+      "id": "nlu-null",
+      "inputKind": "synthetic-nlu-shape",
+      "text": "",
+      "nlu": null,
+      "decision": null,
+      "request": null,
+      "responseSkillID": null
+    },
+    {
+      "id": "semispecific-entities-omitted",
+      "inputKind": "synthetic-nlu-shape",
+      "text": "",
+      "nlu": {
+        "intent": "doesJiboLikeThing",
+        "rules": [
+          "launch"
+        ]
+      },
+      "decision": {
+        "skillID": "chitchat-skill",
+        "weight": 0,
+        "memo": {
+          "mim": "KU_DoYouLike",
+          "type": "ScriptedResponse"
+        }
+      },
+      "request": {
+        "type": "LISTEN_LAUNCH",
+        "msgID": "<uuid-v4>",
+        "ts": "<number>",
+        "data": {
+          "general": {
+            "accountID": "s07-public-account",
+            "robotID": "s07-public-robot",
+            "lang": "en-US"
+          },
+          "runtime": {
+            "dialog": {
+              "referent": null
+            },
+            "perception": {
+              "speaker": null
+            },
+            "loop": {
+              "loopId": "s07-public-loop",
+              "owner": null,
+              "users": []
+            },
+            "location": {
+              "iso": "2018-05-30T12:00:00.000Z"
+            },
+            "character": {
+              "emotion": {
+                "name": "NEUTRAL",
+                "valence": 0.45,
+                "confidence": 0.2
+              }
+            }
+          },
+          "skill": {
+            "id": "chitchat-skill"
+          },
+          "result": {
+            "nlu": {
+              "intent": "doesJiboLikeThing",
+              "rules": [
+                "launch"
+              ]
+            },
+            "asr": {
+              "text": ""
+            },
+            "memo": {
+              "mim": "KU_DoYouLike",
+              "type": "ScriptedResponse"
+            }
+          }
+        }
+      },
+      "responseSkillID": "chitchat-skill"
+    },
+    {
+      "id": "semispecific-entities-null",
+      "inputKind": "synthetic-nlu-shape",
+      "text": "",
+      "nlu": {
+        "intent": "doesJiboLikeThing",
+        "rules": [
+          "launch"
+        ],
+        "entities": null
+      },
+      "decision": {
+        "skillID": "chitchat-skill",
+        "weight": 0,
+        "memo": {
+          "mim": "KU_DoYouLike",
+          "type": "ScriptedResponse"
+        }
+      },
+      "request": {
+        "type": "LISTEN_LAUNCH",
+        "msgID": "<uuid-v4>",
+        "ts": "<number>",
+        "data": {
+          "general": {
+            "accountID": "s07-public-account",
+            "robotID": "s07-public-robot",
+            "lang": "en-US"
+          },
+          "runtime": {
+            "dialog": {
+              "referent": null
+            },
+            "perception": {
+              "speaker": null
+            },
+            "loop": {
+              "loopId": "s07-public-loop",
+              "owner": null,
+              "users": []
+            },
+            "location": {
+              "iso": "2018-05-30T12:00:00.000Z"
+            },
+            "character": {
+              "emotion": {
+                "name": "NEUTRAL",
+                "valence": 0.45,
+                "confidence": 0.2
+              }
+            }
+          },
+          "skill": {
+            "id": "chitchat-skill"
+          },
+          "result": {
+            "nlu": {
+              "intent": "doesJiboLikeThing",
+              "rules": [
+                "launch"
+              ],
+              "entities": null
+            },
+            "asr": {
+              "text": ""
+            },
+            "memo": {
+              "mim": "KU_DoYouLike",
+              "type": "ScriptedResponse"
+            }
+          }
+        }
+      },
+      "responseSkillID": "chitchat-skill"
+    }
+  ],
+  "malformedGuards": [
+    {
+      "id": "malformed-result-omitted",
+      "assertion": "normal SkillClient launch always has data.result",
+      "evidence": [
+        "valid-hot-dogs",
+        "valid-semispecific",
+        "valid-flip-coin"
+      ],
+      "pass": true
+    },
+    {
+      "id": "malformed-result-null",
+      "assertion": "normal SkillClient launch result is an object",
+      "evidence": [
+        "valid-hot-dogs",
+        "valid-semispecific",
+        "valid-flip-coin"
+      ],
+      "pass": true
+    },
+    {
+      "id": "malformed-result-empty",
+      "assertion": "normal SkillClient launch result has nlu/asr/memo",
+      "evidence": [
+        "valid-hot-dogs",
+        "valid-semispecific",
+        "valid-flip-coin"
+      ],
+      "pass": true
+    },
+    {
+      "id": "malformed-nlu-omitted",
+      "assertion": "missing NLU has no IntentRouter decision",
+      "evidence": [
+        "nlu-omitted"
+      ],
+      "pass": true
+    },
+    {
+      "id": "malformed-nlu-null",
+      "assertion": "null NLU has no IntentRouter decision",
+      "evidence": [
+        "nlu-null"
+      ],
+      "pass": true
+    },
+    {
+      "id": "malformed-semi-entities-omitted",
+      "assertion": "missing semispecific entities route only to generic ScriptedResponse",
+      "evidence": [
+        "semispecific-entities-omitted"
+      ],
+      "pass": true
+    },
+    {
+      "id": "malformed-semi-entities-null",
+      "assertion": "null semispecific entities route only to generic ScriptedResponse",
+      "evidence": [
+        "semispecific-entities-null"
+      ],
+      "pass": true
+    }
+  ],
+  "checks": {
+    "count": 55,
+    "passed": 55,
+    "failed": 0
+  },
+  "outboundRequestCount": 5
+}
