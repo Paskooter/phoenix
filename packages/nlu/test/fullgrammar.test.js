@@ -33,11 +33,14 @@ test('full pipeline: new long-tail intents now resolve', async () => {
   assert.equal((await parse('marry me')).intent, 'willJiboDoAction');
 });
 
-test('full pipeline: existing question routing is unchanged (fallback only adds)', async () => {
-  // who-is questions still go to the answer-skill question grammar, not chitchat
+test('full pipeline: source question routing remains the compatibility default', async () => {
+  // The original launch union selects the chitchat intent. Phoenix's answer-skill
+  // continuity profile is covered separately by n08GqaContinuity.test.js.
   const r = await parse('who is ada lovelace');
-  assert.equal(r.intent, 'generalWhoQuestions');
-  assert.equal(r.entities.skill, undefined);
+  assert.equal(r.intent, 'whoIsPerson');
+  assert.equal(r.entities.skill, '@be/chitchat');
+  assert.equal(Object.hasOwn(r.entities, 'intent'), false);
+  assert.equal(Object.hasOwn(r.entities, 'priority'), false);
 });
 
 test('fullParse: pure garbage still returns null', () => {

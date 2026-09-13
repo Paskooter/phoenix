@@ -36,8 +36,13 @@ import { getCompiledFstRuntime } from './compiledFstRuntime.js';
  *   the grammar missed OR came back non-HIGH. Per selectValidResult, a valid LLM
  *   result BEATS a LOW/non-HIGH grammar parse; the grammar parse is returned only
  *   when the LLM produced nothing.
+ *
+ * @param {string} text
+ * @param {object} [options]
+ * @param {boolean} [options.gqaContinuity=false] Opt into Phoenix's answer-skill
+ *   continuity rewrites. The default preserves the original chitchat routing.
  */
-export async function parse(text) {
+export async function parse(text, options = {}) {
   // Stage 1: grammar — the REAL grammar union first (the reference has exactly one
   // grammar pass: the robust-parser FST union). The corpus runner proved the legacy
   // stages were shadowing it: the sim-vendored who-am-i/clock grammars (no weights)
@@ -56,12 +61,22 @@ export async function parse(text) {
     const g = grammarParse(text);
     if (g.intent) parser = g;
   }
-  // GQA continuity (DIVERGENCE B6): the reference sends general-knowledge questions
-  // to chitchat, whose GQA path deflected to Wolfram (dead). Phoenix answers them via
-  // answer-skill (Wikipedia/LLM) instead.
-  if (parser) parser = applyGqaContinuity(parser);
+  // GQA continuity (DIVERGENCE B6) is an explicit Phoenix profile. The source
+  // compatibility profile keeps the parser's original chitchat intent; callers
+  // that have separately verified the answer-skill/Wikipedia path may opt in.
+  if (parser && options?.gqaContinuity === true) parser = applyGqaContinuity(parser);
   const priority = parser && parser.entities ? parser.entities.priority : undefined;
   if (priority === 'SKIP') parser = null;               // isParserResultValid: SKIP → ignored
+  // RobustParserClient.getNLParseEntities strips parser-only fields before the
+  // NLU result crosses its boundary. Keep `priority` in the side-channel above
+  // for SKIP validation, then expose the same clean shape from this legacy
+  // wrapper. `fullParse()` remains the internal scoring-stage representation.
+  if (parser?.entities) {
+    const entities = { ...parser.entities };
+    delete entities.intent;
+    delete entities.priority;
+    parser = { ...parser, entities };
+  }
   const parserResult = parser ? { nlu: parser, priority } : null;
 
   // The broad parse() entry historically returned a skill-only launch match

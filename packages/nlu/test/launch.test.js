@@ -17,10 +17,10 @@ test('be-skill: "open the clock" -> menu + skill=@be/clock', async () => {
   assert.equal(r.entities.skill, '@be/clock');
 });
 
-test('question still routes to answer-skill intents (no be-skill false match)', async () => {
+test('question uses the source chitchat route by default (no be-skill false match)', async () => {
   const r = await parse('who is ada lovelace');
-  assert.equal(r.intent, 'generalWhoQuestions');
-  assert.equal(r.entities.skill, undefined);
+  assert.equal(r.intent, 'whoIsPerson');
+  assert.equal(r.entities.skill, '@be/chitchat');
 });
 
 test('garbage -> no match', async () => {
