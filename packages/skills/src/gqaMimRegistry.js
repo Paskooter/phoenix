@@ -52,6 +52,14 @@ function isSourceDict(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
+function sourceMissingPayloadError(mimId) {
+  // Python's MIM_ID_TO_PAYLOAD[mim_id] raises KeyError when the registry has
+  // a known id but the injected payload table does not contain it.
+  const error = new Error(String(mimId));
+  error.name = 'KeyError';
+  return error;
+}
+
 /** Build the exact semicolon key used by load_lookup_table(). */
 function buildLookupPattern(intentPattern, label) {
   const pattern = sourceMapping(intentPattern, label);
@@ -92,8 +100,12 @@ function readIntentPattern(apiAiOutput, logger) {
         entities.push(`${key}:${value}`);
       } else if (sourceTruthy(value) && isSourceDict(value) && key === 'age') {
         // gqa/mim_registry.py intentionally formats Dialogflow's age object
-        // as amount followed immediately by unit.
-        entities.push(`${key}:${sourceString(value.amount)}${sourceString(value.unit)}`);
+        // as amount followed immediately by unit. Only amount is passed to
+        // str(); Python string concatenation raises for a non-string unit.
+        if (typeof value.unit !== 'string') {
+          throw new TypeError('age entity unit must be a string');
+        }
+        entities.push(`${key}:${sourceString(value.amount)}${value.unit}`);
       }
     }
   }
@@ -105,9 +117,12 @@ function readIntentPattern(apiAiOutput, logger) {
  * Create an injected MIM registry.
  *
  * `lookup` has the archived mimid_lookup.json shape, while `payloads` maps
- * each referenced MIM id to its parsed JSON payload.  Unknown non-empty
- * patterns return `undefined`, matching the source's defaultdict miss; an
- * empty pattern returns `null` as in get_mim_payload().
+ * each referenced MIM id to its parsed JSON payload. Unknown non-empty
+ * patterns return `undefined`, matching the source's defaultdict miss. A
+ * known pattern whose MIM id is absent from payloads raises a source-shaped
+ * `KeyError` when the source indexes MIM_ID_TO_PAYLOAD. An empty string
+ * returns `null`; other falsey values reach the source warning concatenation
+ * and raise a TypeError because Python cannot concatenate them to a string.
  */
 export function createGqaMimRegistry({ lookup, payloads, logger = { error: noOpLogger, warning: noOpLogger } } = {}) {
   if (lookup === undefined) throw new TypeError('MIM lookup data must be injected');
@@ -133,17 +148,22 @@ export function createGqaMimRegistry({ lookup, payloads, logger = { error: noOpL
 
     getMimPayload(intentPatternString) {
       if (!sourceTruthy(intentPatternString)) {
-        log(logger, 'warning', `intent_pattern_string:${sourceString(intentPatternString)}`);
+        // The archived warning uses "prefix" + intent_pattern_string before
+        // returning. Empty strings work; None/false/0/list values raise the
+        // Python concatenation TypeError and must stay observable here.
+        if (typeof intentPatternString !== 'string') {
+          throw new TypeError('can only concatenate str (not a non-string value) to str');
+        }
+        log(logger, 'warning', `intent_pattern_string:${intentPatternString}`);
         log(logger, 'warning', 'Input to the get_mim_payload shouldn\'t have empty value');
         return null;
       }
       const mimId = mimRegistry.get(intentPatternString);
       if (!mimId) return undefined;
-      // JavaScript object lookup deliberately exposes an absent payload key as
-      // undefined, giving callers a deterministic injected-data miss.
-      return Object.prototype.hasOwnProperty.call(payloadTable, mimId)
-        ? payloadTable[mimId]
-        : undefined;
+      if (!Object.prototype.hasOwnProperty.call(payloadTable, mimId)) {
+        throw sourceMissingPayloadError(mimId);
+      }
+      return payloadTable[mimId];
     },
   });
 }

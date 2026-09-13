@@ -108,17 +108,29 @@ test('Q-01 MIM registry formats Dialogflow age entities and preserves source emp
     },
   };
   assert.equal(mim.getIntentPattern(ageOutput), 'ageIntent;age:25year');
+  const nonStringUnit = structuredClone(ageOutput);
+  nonStringUnit.result.parameters.age.unit = 1;
+  assert.throws(() => mim.getIntentPattern(nonStringUnit), /unit must be a string/);
   assert.equal(mim.getIntentPattern({}), null);
   assert.equal(mim.getIntentPattern(null), null);
 });
 
-test('Q-01 MIM payload lookup returns the pinned Dogs response and exposes missing-key behavior', () => {
+test('Q-01 MIM payload lookup returns the pinned Dogs response and distinguishes missing keys', () => {
   const mim = registry();
   const payload = mim.getMimPayload('doesJiboLikeThing;Object:Dogs');
   assert.equal(payload.prompts[0].prompt, 'Dogs are great! They have so many more legs than I do.');
   assert.equal(payload.prompts[0].prompt_id, 'OI_JBO_LikesDogs_AN_01');
+  // Unknown registry patterns take the source defaultdict miss path.
   assert.equal(mim.getMimPayload('doesJiboLikeThing;Object:Cats'), undefined);
+  // A known MIM id then indexes MIM_ID_TO_PAYLOAD and raises if its payload is absent.
+  const missingPayload = createGqaMimRegistry({ lookup: fixture.registry.lookup, payloads: {} });
+  assert.throws(
+    () => missingPayload.getMimPayload('doesJiboLikeThing;Object:Dogs'),
+    (error) => error.name === 'KeyError' && error.message === 'OI_JBO_LikesDogs',
+  );
+  // Empty string returns None; null fails in the source warning concatenation.
   assert.equal(mim.getMimPayload(''), null);
+  assert.throws(() => mim.getMimPayload(null), /concatenate str/);
 });
 
 test('Q-01 MIM registry rejects duplicate patterns and mismatched entity vectors', () => {
