@@ -33,7 +33,9 @@ const MODULE_DIR = dirname(fileURLToPath(import.meta.url));
 const MIM_DIR = join(MODULE_DIR, '../resources/mims/news');
 const MIM_NAMES = ['NEWS_preamble', 'NEWS_content', 'NEWS_postamble'];
 
-const sourceNewsMessageId = () => randomUUID().replaceAll('-', '');
+// Source make_response_for_hub calls str(uuid.uuid4()), retaining the
+// canonical 36-character hyphenated UUID representation.
+const sourceNewsMessageId = () => randomUUID();
 
 function loadMim(name) {
   const value = JSON.parse(readFileSync(join(MIM_DIR, `${name}.mim`), 'utf8'));
@@ -145,15 +147,29 @@ function subtractYears(date, years) {
 
 /** Source `news_pegasus` child/adult selection, with an injectable clock. */
 export function isNewsChild(request, clock = Date.now) {
-  const perception = request.data.runtime.perception;
-  const loop = request.data.runtime.loop;
-  // The source calls `.get()` on both mappings. Direct property reads retain
-  // its malformed-request failure boundary while allowing absent fields.
-  const speakerId = perception.speaker;
-  const users = loop.users;
+  const runtime = request.data.runtime;
+  const perception = sourceMappingGet(runtime, 'perception');
+  const loop = sourceMappingGet(runtime, 'loop');
+  // The source calls `.get()` on both mappings. sourceMappingGet preserves
+  // that mapping-only boundary while allowing absent fields on valid maps.
+  const speakerId = sourceMappingGet(perception, 'speaker');
+  const users = sourceMappingGet(loop, 'users');
   if (!sourceTruthy(speakerId) || !sourceTruthy(users)) return false;
 
-  const speaker = users.find((user) => user.id === speakerId);
+  if (!Array.isArray(users)) throw new TypeError("'users' must be iterable");
+  let speaker;
+  for (const user of users) {
+    // Python's looper['id'] raises for a missing key and for non-mapping
+    // elements. A JavaScript optional property read would incorrectly turn
+    // both cases into an adult/default request.
+    if (!isSourceMapping(user) || !Object.prototype.hasOwnProperty.call(user, 'id')) {
+      throw new TypeError("looper['id'] is required");
+    }
+    if (user.id === speakerId) {
+      speaker = user;
+      break;
+    }
+  }
   if (!speaker || !speaker.birthdate) return false;
 
   const nowValue = typeof clock === 'function' ? clock() : clock;
@@ -176,6 +192,15 @@ function sourceTruthy(value) {
   if (Array.isArray(value)) return value.length > 0;
   if (value && typeof value === 'object') return Object.keys(value).length > 0;
   return Boolean(value);
+}
+
+function isSourceMapping(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function sourceMappingGet(value, key) {
+  if (!isSourceMapping(value)) throw new TypeError(`Object has no attribute 'get' for ${key}`);
+  return value[key];
 }
 
 function normalizeHeadlines(value) {
@@ -299,7 +324,10 @@ export function createNewsAnswerSkill({
         // resolve the template, then allocates the speaking SLIM from text.
         // Preserve both its random draw and its two opaque IDs.
         const base = buildNewsSlimFromMim('NEWS_content', { rng, idFactory });
-        const rendered = base.config.play.esml.replace('{0}', String(headline));
+        // Python str.format inserts the AP summary literally. A JavaScript
+        // string replacement would reinterpret `$&`, `$`` and `$'` in a
+        // headline, so use a callback replacement to keep source text exact.
+        const rendered = base.config.play.esml.replace('{0}', () => String(headline));
         return buildNewsSlimFromText(rendered, base.config.play.meta.prompt_id, idFactory);
       });
       slims.unshift(buildNewsSlimFromMim('NEWS_preamble', { rng, idFactory }));
@@ -338,19 +366,27 @@ function validateNewsEnvelope(body) {
   return body;
 }
 
-function transIdHeaderValues(headers, request = {}) {
+function headerValues(headers, request = {}, wanted) {
   if (Array.isArray(request.rawHeaders)) {
     const values = [];
     for (let index = 0; index + 1 < request.rawHeaders.length; index += 2) {
-      if (String(request.rawHeaders[index]).toLowerCase() === 'x-jibo-transid') values.push(request.rawHeaders[index + 1]);
+      if (String(request.rawHeaders[index]).toLowerCase() === wanted) values.push(request.rawHeaders[index + 1]);
     }
     if (values.length) return values;
   }
   const source = headers && typeof headers === 'object' ? headers : {};
-  const name = Object.keys(source).find((key) => key.toLowerCase() === 'x-jibo-transid');
+  const name = Object.keys(source).find((key) => key.toLowerCase() === wanted);
   if (!name) return [];
   const value = source[name];
   return Array.isArray(value) ? value.slice() : value === undefined ? [] : [value];
+}
+
+function transIdHeaderValues(headers, request = {}) {
+  return headerValues(headers, request, 'x-jibo-transid');
+}
+
+function loggingConfigHeaderValues(headers, request = {}) {
+  return headerValues(headers, request, 'x-jibo-logging-config');
 }
 
 function requestContentType(request) {
@@ -428,6 +464,8 @@ export function createNewsHttpRoute({ skillId = 'news', handler = newsAnswerSkil
     // Flask's getlist(...)[0] is a scalar assignment in the archived route;
     // preserve that value for handlers and provider seams.
     context.body.transID = ids[0];
+    const loggingConfigs = loggingConfigHeaderValues(request.headers, request);
+    if (loggingConfigs.length) context.body['logging-config'] = loggingConfigs[0];
 
     try {
       const result = await handler(context.body, { trace: context.trace, log: context.log, req: request, skillId });

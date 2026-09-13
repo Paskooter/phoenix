@@ -289,6 +289,20 @@ export function start(port = defaultPort(), {
       newsHandler: configuredNews || newsAnswerSkill,
       newsRoute: configuredNews ? createNewsHttpRoute({ handler: configuredNews }) : undefined,
     });
+    // The GQA default registry intentionally points both answer and news at
+    // answer-skill:8080.  A selected answer host therefore has to co-host the
+    // source news aliases while keeping answer-skill as the /v1/main default.
+    if (skillId === 'answer-skill') {
+      return createSkillsService({
+        name: selected.id,
+        skills: [
+          selected,
+          newsSkillEntry(configuredNews || newsAnswerSkill,
+            configuredNews ? createNewsHttpRoute({ handler: configuredNews }) : undefined),
+        ],
+        defaultId: 'answer-skill',
+      }).listen(port);
+    }
     return createSkillService({
       name: selected.id,
       skillId: selected.id,

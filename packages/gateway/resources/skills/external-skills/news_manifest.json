@@ -1,5 +1,9 @@
 {
     "id": "news",
     "basePath": "/news_skill",
-    "intents": []
+    "intents": [
+        {
+            "name": "requestNews"
+        }
+    ]
 }

@@ -84,11 +84,20 @@ test('S-06: index/manifest provenance classified per file (identical, transforme
   for (const name of answer.addedIntents) {
     assert.ok(external.has(name), `added intent ${name} is present in the pinned external answer manifest`);
   }
-  // Re-homed manifest trees.
+  // Re-homed manifest trees. The d682547a working checkout had an empty
+  // news intent list; the pinned JiboV2/pegasus@dev archive retains the
+  // source-backed requestNews registration, so that recovered file is
+  // intentionally classified as differing and asserted below.
   assert.equal(fixture.sourceEquivalence['be-skills'].identical, true, 'be-skills byte-identical');
-  assert.equal(fixture.sourceEquivalence['external-skills'].identical, true, 'external-skills byte-identical');
+  assert.equal(fixture.sourceEquivalence['external-skills'].identical, false, 'external-skills records the recovered news intent');
+  assert.deepEqual(fixture.sourceEquivalence['external-skills'].differing, ['news_manifest.json']);
   assert.deepEqual(fixture.sourceEquivalence['pegasus-skills'].differing, [], 'pegasus-skills: no in-place edits');
   assert.deepEqual(fixture.sourceEquivalence['pegasus-skills'].onlyPhoenix, ['answer_skill_manifest.json', 'color_skill_manifest.json']);
+  assert.deepEqual(fixture.externalNewsManifest, {
+    path: 'jiboV2/pegasus:packages/hub/external-skills/news_manifest.json@dev',
+    id: 'news',
+    intents: ['requestNews'],
+  });
 });
 
 test('S-06 runtime: the gateway resolves every index entry and serves the manifests', async () => {
@@ -124,6 +133,8 @@ test('S-06 runtime: the gateway resolves every index entry and serves the manife
     for (const name of fixture.externalAnswerManifest.intents) {
       assert.ok(names.has(name), `served answer manifest keeps source intent ${name}`);
     }
+    const news = served.body.skills.find((s) => s.id === 'news');
+    assert.deepEqual(news.intents, [{ name: 'requestNews' }]);
   } finally {
     await new Promise((r) => gateway.service.server.close(r));
   }

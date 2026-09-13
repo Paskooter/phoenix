@@ -35,9 +35,14 @@ routes). The Phoenix descriptor additionally exposes `/v1/news/main` as an
 adapter alias, giving 3 total route aliases through the shared skills host.
 `skills-gqa-default.json`
 now carries the existing `external-skills/news_manifest.json` beside the
-source-backed answer entry. `skills-phoenix.json` and unset default startup
-still select the ordinary Phoenix answer handler; the news route is available
-on the host without changing `/v1/main`'s answer default.
+source-backed answer entry, and that manifest restores the archived
+`requestNews` intent. The older local Pegasus checkout had an empty news
+intent list; provenance records this one recovered difference against the
+JiboV2/pegasus@dev archive. A selected `PHOENIX_SKILL_ID=answer-skill` host
+co-hosts answer and news on the registry's `answer-skill:8080` endpoint while
+keeping answer-skill as `/v1/main`; the registry-to-host test exercises both
+boundaries. `skills-phoenix.json` and unset default startup still select the
+ordinary Phoenix answer handler.
 
 ## Route inventory
 
@@ -60,9 +65,12 @@ request or response shape.
 
 `packages/skills/test/q01News.test.js` is source-shaped and fail-closed. It
 checks the archived MIM prompt IDs and text, child/adult selection, sequence
-ordering and five-item limit, source analytics and timing type, empty-data
-`GQA_error`, provider rejection as HTTP 500, all three host aliases, missing
-transID 400 framing, and the explicit gateway registry entry.
+ordering and five-item limit, source analytics and timing type, hyphenated
+UUID response IDs, empty-data `GQA_error`, provider rejection as HTTP 500,
+malformed perception/loop/looper 500 boundaries, first duplicate transID and
+logging-config headers, all three host aliases, missing transID 400 framing,
+the `requestNews` IntentRouter decision, and the registry-to-real-host answer
+and news paths. Gateway manifest provenance tests pin the recovered intent.
 
 The Phoenix asset inventory requires non-GQA MIMs to declare
 `mim_type: announcement`; that loader metadata is added to the three archived

@@ -12,6 +12,7 @@ import {
   start,
 } from '../src/index.js';
 import { loadConfig } from '../../gateway/src/config.js';
+import { IntentRouter } from '../../gateway/src/intentRouter.js';
 
 const NOW = Date.parse('2026-09-13T00:00:00.000Z');
 
@@ -126,7 +127,7 @@ test('Q-01 source fixture: AP sequence, analytics, and five-item bound', async (
   assert.equal(result.type, 'SKILL_ACTION');
   assert.equal(result.data.skill.id, 'news');
   assert.equal(result.data.skill.version, '5.2.15');
-  assert.match(result.msgID, /^[0-9a-f]{32}$/);
+  assert.match(result.msgID, /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
   assert.equal(children.length, 7);
   assert.equal(children[0].config.play.meta.prompt_id, 'NEWS_preamble_01');
   assert.equal(children[1].config.play.esml, '<style set="NEWS">one</style>');
@@ -140,6 +141,17 @@ test('Q-01 source fixture: AP sequence, analytics, and five-item bound', async (
   assert.equal(result.data.final, true);
   assert.equal(result.data.fireAndForget, true);
   assert.equal(typeof result.timings.total, 'string');
+});
+
+test('Q-01 source falsifier: AP headline replacement tokens are inserted literally', async () => {
+  const headline = "$&-$`-$'";
+  const result = await createNewsAnswerSkill({
+    rng: () => 0,
+    clock: () => NOW,
+    newsProvider: async () => [headline],
+  })(request());
+  assert.equal(result.data.action.config.jcp.children[1].config.play.esml,
+    `<style set="NEWS">${headline}</style>`);
 });
 
 test('Q-01 source gqa/ap.py: AP provider preserves 24h/feed/adult/order/limit/bytes semantics', async () => {
@@ -224,6 +236,38 @@ test('Q-01 source falsifier: provider rejection stays an HTTP 500 source error',
   );
 });
 
+test('Q-01 source falsifiers: malformed perception, loop, and looper entries remain HTTP 500', async () => {
+  const route = createNewsHttpRoute({
+    handler: createNewsAnswerSkill({ clock: () => NOW, newsProvider: async () => ['headline'] }),
+  });
+  const invoke = async (body) => {
+    const result = await new Promise((resolve) => {
+      const res = {
+        statusCode: 200,
+        headers: {},
+        status(code) { this.statusCode = code; return this; },
+        type() { return this; },
+        send(value) { resolve({ status: this.statusCode, body: JSON.parse(value) }); },
+        setHeader(name, value) { this.headers[name] = value; },
+        end(value) { resolve({ status: this.statusCode, body: value }); },
+      };
+      route({ req: { headers: { 'x-jibo-transid': 'news-test' } }, res, body });
+    });
+    return result;
+  };
+
+  for (const [label, malformed] of [
+    ['perception array', { data: { runtime: { perception: [], loop: { users: [] } } } }],
+    ['loop array', { data: { runtime: { perception: { speaker: 'u1' }, loop: [] } } }],
+    ['looper missing id', { data: { runtime: { perception: { speaker: 'u1' }, loop: { users: [{ birthdate: 1 }] } } } }],
+    ['looper primitive', { data: { runtime: { perception: { speaker: 'u1' }, loop: { users: ['u1'] } } } }],
+  ]) {
+    const result = await invoke({ ...request(), ...malformed });
+    assert.equal(result.status, 500, label);
+    assert.equal(result.body.version, '5.2.15', label);
+  }
+});
+
 test('Q-01 source aliases: selected news host serves all legacy and registry paths', async () => {
   const server = await start(0, {
     skillId: 'news',
@@ -258,9 +302,11 @@ test('Q-01 source aliases: selected news host serves all legacy and registry pat
 
 test('Q-01 source falsifiers: duplicate transID uses the first scalar and media errors fail closed', async () => {
   let seenTransId;
+  let seenLoggingConfig;
   const route = createNewsHttpRoute({
     handler: async (body) => {
       seenTransId = body.transID;
+      seenLoggingConfig = body['logging-config'];
       return createNewsAnswerSkill({ rng: () => 0, clock: () => NOW, newsProvider: async () => [] })(body);
     },
   });
@@ -275,14 +321,18 @@ test('Q-01 source falsifiers: duplicate transID uses the first scalar and media 
     };
     route({
       req: {
-        headers: { 'x-jibo-transid': 'first' },
-        rawHeaders: ['x-jibo-transid', 'first', 'X-JIBO-transID', 'second'],
+        headers: { 'x-jibo-transid': 'first', 'x-jibo-logging-config': 'first-log' },
+        rawHeaders: [
+          'x-jibo-transid', 'first', 'X-JIBO-transID', 'second',
+          'x-jibo-logging-config', 'first-log', 'X-JIBO-logging-config', 'second-log',
+        ],
       },
       body: request(),
       res,
     });
   });
   assert.equal(seenTransId, 'first');
+  assert.equal(seenLoggingConfig, 'first-log');
   await assert.rejects(
     () => route({ req: { headers: {} }, body: request() }),
     (error) => error.statusCode === 400 && /Missing X-JIBO-transID/.test(error.message),
@@ -320,5 +370,48 @@ test('Q-01 registry wiring: explicit GQA default profile carries source news man
   const news = config.skills.find((skill) => skill.id === 'news');
   assert.ok(news);
   assert.equal(news.URL, 'http://answer-skill:8080/news_skill/v1/main');
-  assert.deepEqual(news.intents, []);
+  assert.deepEqual(news.intents, [{ name: 'requestNews' }]);
+  assert.ok(config.skills.findIndex((skill) => skill.id === 'news')
+    < config.skills.findIndex((skill) => skill.id === 'report-skill'));
+  const route = new IntentRouter(config.skills).getSkillIDFromNLU({
+    intent: 'requestNews',
+    rules: ['launch'],
+    entities: {},
+  });
+  assert.deepEqual(route, { skillID: 'news', weight: 0 });
+});
+
+test('Q-01 registry-to-host proof: selected answer-skill co-hosts news and keeps answer /v1/main default', async () => {
+  const config = await loadConfig({
+    ETCO_hub_skillsConfig: 'skills-gqa-default.json',
+  });
+  const news = config.skills.find((skill) => skill.id === 'news');
+  const server = await start(0, {
+    skillId: 'answer-skill',
+    newsConfig: { rng: () => 0, clock: () => NOW, newsProvider: async () => ['headline'] },
+  });
+  try {
+    const port = server.address().port;
+    assert.equal(new URL(news.URL).pathname, '/news_skill/v1/main');
+    const registryNews = await fetch(`http://127.0.0.1:${port}/news_skill/v1/main`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-jibo-transid': 'news-test' },
+      body: JSON.stringify(request()),
+    });
+    assert.equal(registryNews.status, 200);
+    assert.equal((await registryNews.json()).data.skill.id, 'news');
+
+    const answer = await fetch(`http://127.0.0.1:${port}/v1/main`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        type: 'LISTEN_LAUNCH',
+        data: { result: { asr: { text: 'hello' }, nlu: { entities: {} } } },
+      }),
+    });
+    assert.equal(answer.status, 200);
+    assert.equal((await answer.json()).data.skill.id, 'answer-skill');
+  } finally {
+    await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  }
 });
