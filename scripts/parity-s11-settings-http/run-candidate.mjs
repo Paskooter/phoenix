@@ -8,8 +8,7 @@ import http from 'node:http';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { SettingsClient } from '../../packages/skills/src/report/settingsClient.js';
-import { clearReportEnvCache } from '../../packages/skills/src/report/env.js';
+import { fileURLToPath } from 'node:url';
 
 const [matrixPathArg, outputPathArg] = process.argv.slice(2);
 if (!matrixPathArg || !outputPathArg) throw new Error('usage: run-candidate.mjs <matrix.json> <output.json>');
@@ -18,9 +17,49 @@ const outputPath = path.resolve(outputPathArg);
 const matrix = JSON.parse(fs.readFileSync(matrixPath, 'utf8'));
 const SOURCE_REVISION = 'jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c';
 const SOURCE_IMAGE_DIGEST = 'sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c';
+const PROVENANCE_MANIFEST_SHA256 = '0dce7437bd5d1df7415b77a0bdd7c2fc034d7d11f831584d0ce60171b1654225';
+const here = path.dirname(fileURLToPath(import.meta.url));
+const candidateRoot = path.resolve(here, '../..');
+const provenancePath = path.join(here, 'provenance.json');
 if (matrix.schema !== 's11-settings-http-v1') throw new Error('unsupported S-11 settings matrix schema');
 if (matrix.referenceRevision !== SOURCE_REVISION) throw new Error('unexpected Pegasus reference revision');
 if (matrix.sourceImage !== 'node' || matrix.sourceImageDigest !== SOURCE_IMAGE_DIGEST) throw new Error('unexpected source image pin');
+
+const sha = (value) => crypto.createHash('sha256').update(value).digest('hex');
+function verifyProvenance(root, side) {
+  let raw;
+  try { raw = fs.readFileSync(provenancePath); }
+  catch (error) { throw new Error(`cannot read provenance manifest: ${error.message}`); }
+  if (sha(raw) !== PROVENANCE_MANIFEST_SHA256) throw new Error('provenance manifest hash mismatch');
+  let manifest;
+  try { manifest = JSON.parse(raw.toString('utf8')); }
+  catch (error) { throw new Error(`malformed provenance manifest: ${error.message}`); }
+  if (manifest.schema !== 's11-settings-provenance-v1') throw new Error('unsupported provenance manifest schema');
+  if (manifest.sourceRevision !== SOURCE_REVISION) throw new Error('provenance source revision mismatch');
+  const entries = manifest[side] && manifest[side].files;
+  if (!Array.isArray(entries) || !entries.length) throw new Error(`provenance ${side} file list missing`);
+  const rootPath = path.resolve(root);
+  for (const entry of entries) {
+    if (!entry || typeof entry.path !== 'string' || !entry.path || path.isAbsolute(entry.path)
+      || entry.path.split('/').includes('..') || !/^[0-9a-f]{64}$/.test(entry.sha256 || '')) {
+      throw new Error(`invalid provenance ${side} entry`);
+    }
+    const filePath = path.resolve(rootPath, entry.path);
+    if (filePath !== rootPath && !filePath.startsWith(`${rootPath}${path.sep}`)) {
+      throw new Error(`provenance ${side} path escapes root: ${entry.path}`);
+    }
+    let actual;
+    try { actual = sha(fs.readFileSync(filePath)); }
+    catch (error) { throw new Error(`cannot read provenance ${side} file ${entry.path}: ${error.message}`); }
+    if (actual !== entry.sha256) throw new Error(`provenance ${side} hash mismatch: ${entry.path}`);
+  }
+  return entries.length;
+}
+
+const provenanceFileCount = verifyProvenance(candidateRoot, 'candidate');
+
+const { SettingsClient } = await import('../../packages/skills/src/report/settingsClient.js');
+const { clearReportEnvCache } = await import('../../packages/skills/src/report/env.js');
 
 const RealDate = Date;
 const FIXED_NOW = RealDate.parse(matrix.fixedNowISO);
@@ -31,7 +70,6 @@ globalThis.Date = class FixtureDate extends RealDate {
 process.env.TZ = 'UTC';
 process.env.prefsFromConfig = 'false';
 
-const sha = (value) => crypto.createHash('sha256').update(value).digest('hex');
 const expectedInventory = 'caac62ef04775f8cc02496adc7aaf626a7d33fba0e9cb8d53fd034be6b5e261a';
 const expectedMatrixSemantic = '32739ae87fae1c0928d0acaa6db3ffe2230ac09187df1acacc2655beca39ae80';
 function stable(value) {
@@ -272,7 +310,7 @@ async function mainRunner() {
     await new Promise((resolve) => peer.close(resolve));
   }
   let candidateRevision = 'unknown';
-  try { candidateRevision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: process.cwd(), encoding: 'utf8' }).trim(); } catch {}
+  try { candidateRevision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: candidateRoot, encoding: 'utf8' }).trim(); } catch {}
   const result = {
     schema: 's11-settings-http-receipt-v1',
     mode: 'candidate',
@@ -282,6 +320,9 @@ async function mainRunner() {
     runtime: process.version,
     fixedNowISO: matrix.fixedNowISO,
     matrixSha256: sha(fs.readFileSync(matrixPath)),
+    provenanceManifestSha256: PROVENANCE_MANIFEST_SHA256,
+    provenanceSide: 'candidate',
+    provenanceFileCount,
     caseCount: matrix.cases.length,
     caseInventorySha256: expectedInventory,
     matrixSemanticSha256: expectedMatrixSemantic,

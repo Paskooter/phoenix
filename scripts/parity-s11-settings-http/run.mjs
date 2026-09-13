@@ -16,9 +16,12 @@ const matrix = JSON.parse(fs.readFileSync(matrixPath, 'utf8'));
 const sourceImage = `${matrix.sourceImage}@${matrix.sourceImageDigest}`;
 if (matrix.schema !== 's11-settings-http-v1') throw new Error('unsupported S-11 settings matrix schema');
 if (matrix.sourceImage !== 'node' || matrix.sourceImageDigest !== 'sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c') throw new Error('unexpected source image pin');
+const provenancePath = path.join(here, 'provenance.json');
+const expectedProvenanceManifestSha256 = '0dce7437bd5d1df7415b77a0bdd7c2fc034d7d11f831584d0ce60171b1654225';
 const stable = (value) => Array.isArray(value) ? value.map(stable)
   : value && typeof value === 'object' ? Object.fromEntries(Object.keys(value).sort().map((key) => [key, stable(value[key])])) : value;
 const matrixSha256 = (value) => crypto.createHash('sha256').update(value).digest('hex');
+if (matrixSha256(fs.readFileSync(provenancePath)) !== expectedProvenanceManifestSha256) throw new Error('unexpected S-11 settings provenance manifest pin');
 const expectedCaseIds = [
   'convert-mode-0', 'convert-mode-1', 'convert-mode-2', 'convert-mode-3',
   'convert-mode-negative', 'convert-mode-four', 'convert-mode-large', 'convert-mode-fraction',
@@ -114,4 +117,5 @@ console.log(JSON.stringify({
   sourceRevision: matrix.referenceRevision,
   candidateRevision: revisionResult.stdout.trim(),
   sourceImage,
+  provenanceManifestSha256: expectedProvenanceManifestSha256,
 }));

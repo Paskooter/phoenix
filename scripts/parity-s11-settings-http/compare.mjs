@@ -10,20 +10,22 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
-const [matrixPathArg, sourcePathArg, candidatePathArg, outputPathArg] = process.argv.slice(2);
+const [matrixPathArg, sourcePathArg, candidatePathArg, outputPathArg, provenancePathArg] = process.argv.slice(2);
 if (!matrixPathArg || !sourcePathArg || !candidatePathArg) {
-  throw new Error('usage: compare.mjs <matrix.json> <source.json> <candidate.json> [comparison.json]');
+  throw new Error('usage: compare.mjs <matrix.json> <source.json> <candidate.json> [comparison.json] [provenance.json]');
 }
 const matrixPath = path.resolve(matrixPathArg);
 const sourcePath = path.resolve(sourcePathArg);
 const candidatePath = path.resolve(candidatePathArg);
 const outputPath = path.resolve(outputPathArg || path.join(path.dirname(candidatePath), 'comparison.json'));
 const here = path.dirname(fileURLToPath(import.meta.url));
+const provenancePath = path.resolve(provenancePathArg || path.join(here, 'provenance.json'));
 const SOURCE_REVISION = 'jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c';
 const SOURCE_IMAGE = 'node';
 const EXPECTED_SOURCE_IMAGE_DIGEST = 'sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c';
 const EXPECTED_CASE_INVENTORY = 'caac62ef04775f8cc02496adc7aaf626a7d33fba0e9cb8d53fd034be6b5e261a';
 const EXPECTED_MATRIX_SEMANTIC_SHA256 = '32739ae87fae1c0928d0acaa6db3ffe2230ac09187df1acacc2655beca39ae80';
+const EXPECTED_PROVENANCE_MANIFEST_SHA256 = '0dce7437bd5d1df7415b77a0bdd7c2fc034d7d11f831584d0ce60171b1654225';
 // Keep the ordered acceptance inventory outside matrix.json. The inventory
 // digest catches edits to the ID list, while this literal list makes the
 // expected count and order independently reviewable and fail closed even if
@@ -88,10 +90,49 @@ function canonical(value) {
 function inventoryHash(cases) { return sha(JSON.stringify(cases.map((item) => item && item.id))); }
 function hasOwn(value, key) { return Boolean(value && Object.prototype.hasOwnProperty.call(value, key)); }
 
+function readProvenance(file) {
+  let raw;
+  try { raw = fs.readFileSync(file); }
+  catch (error) {
+    differences.push({ side: 'provenance', kind: 'manifest-read', actual: `${error.name}: ${error.message}` });
+    return { $readError: `${error.name}: ${error.message}` };
+  }
+  const actualHash = sha(raw);
+  if (actualHash !== EXPECTED_PROVENANCE_MANIFEST_SHA256) {
+    differences.push({ side: 'provenance', kind: 'manifest-hash', actual: actualHash, expected: EXPECTED_PROVENANCE_MANIFEST_SHA256 });
+  }
+  let manifest;
+  try { manifest = JSON.parse(raw.toString('utf8')); }
+  catch (error) {
+    differences.push({ side: 'provenance', kind: 'manifest-parse', actual: `${error.name}: ${error.message}` });
+    return { $readError: `${error.name}: ${error.message}` };
+  }
+  if (manifest.schema !== 's11-settings-provenance-v1') differences.push({ side: 'provenance', kind: 'manifest-schema', actual: manifest.schema || null });
+  if (manifest.sourceRevision !== SOURCE_REVISION) differences.push({ side: 'provenance', kind: 'manifest-source-revision', actual: manifest.sourceRevision || null, expected: SOURCE_REVISION });
+  for (const side of ['source', 'candidate']) {
+    const entries = manifest[side] && manifest[side].files;
+    if (!Array.isArray(entries) || !entries.length) {
+      differences.push({ side: 'provenance', kind: 'manifest-files', provenanceSide: side });
+      continue;
+    }
+    const seen = new Set();
+    entries.forEach((entry, index) => {
+      if (!entry || typeof entry.path !== 'string' || !entry.path || path.isAbsolute(entry.path)
+        || entry.path.split('/').includes('..') || !/^[0-9a-f]{64}$/.test(entry.sha256 || '')) {
+        differences.push({ side: 'provenance', kind: 'manifest-entry', provenanceSide: side, index });
+      }
+      if (entry && seen.has(entry.path)) differences.push({ side: 'provenance', kind: 'manifest-duplicate-path', provenanceSide: side, path: entry.path });
+      if (entry) seen.add(entry.path);
+    });
+  }
+  return manifest;
+}
+
 const matrix = readJSON(matrixPath);
 const source = readJSON(sourcePath);
 const candidate = readJSON(candidatePath);
 const differences = [];
+const provenance = readProvenance(provenancePath);
 
 if (matrix.schema !== 's11-settings-http-v1') differences.push({ side: 'matrix', kind: 'schema', actual: matrix.schema || null });
 if (matrix.referenceRevision !== SOURCE_REVISION) differences.push({ side: 'matrix', kind: 'source-revision', actual: matrix.referenceRevision || null, expected: SOURCE_REVISION });
@@ -123,6 +164,10 @@ function validateMetadata(receipt, side) {
   if (receipt.sourceRevision !== SOURCE_REVISION) differences.push({ side, kind: 'source-revision', actual: receipt.sourceRevision || null, expected: SOURCE_REVISION });
   if (receipt.fixedNowISO !== matrix.fixedNowISO) differences.push({ side, kind: 'fixed-time', actual: receipt.fixedNowISO || null, expected: matrix.fixedNowISO });
   if (receipt.matrixSha256 !== sha(fs.readFileSync(matrixPath))) differences.push({ side, kind: 'matrix-hash', actual: receipt.matrixSha256 || null, expected: sha(fs.readFileSync(matrixPath)) });
+  if (receipt.provenanceManifestSha256 !== EXPECTED_PROVENANCE_MANIFEST_SHA256) differences.push({ side, kind: 'provenance-manifest-receipt', actual: receipt.provenanceManifestSha256 || null, expected: EXPECTED_PROVENANCE_MANIFEST_SHA256 });
+  if (receipt.provenanceSide !== side) differences.push({ side, kind: 'provenance-side', actual: receipt.provenanceSide || null, expected: side });
+  const expectedProvenanceCount = provenance[side] && Array.isArray(provenance[side].files) ? provenance[side].files.length : null;
+  if (receipt.provenanceFileCount !== expectedProvenanceCount) differences.push({ side, kind: 'provenance-file-count', actual: receipt.provenanceFileCount, expected: expectedProvenanceCount });
   if (receipt.caseCount !== EXPECTED_CASE_IDS.length) differences.push({ side, kind: 'receipt-case-count', actual: receipt.caseCount, expected: EXPECTED_CASE_IDS.length });
   if (receipt.caseInventorySha256 !== EXPECTED_CASE_INVENTORY) differences.push({ side, kind: 'receipt-case-inventory', actual: receipt.caseInventorySha256 || null, expected: EXPECTED_CASE_INVENTORY });
   if (receipt.matrixSemanticSha256 !== EXPECTED_MATRIX_SEMANTIC_SHA256) differences.push({ side, kind: 'receipt-matrix-semantic-hash', actual: receipt.matrixSemanticSha256 || null, expected: EXPECTED_MATRIX_SEMANTIC_SHA256 });

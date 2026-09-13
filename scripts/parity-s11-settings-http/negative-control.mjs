@@ -18,9 +18,11 @@ const matrixPath = path.resolve(matrixPathArg);
 const sourcePath = path.resolve(sourcePathArg);
 const candidatePath = path.resolve(candidatePathArg);
 const comparator = path.join(path.dirname(fileURLToPath(import.meta.url)), 'compare.mjs');
+const provenancePath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'provenance.json');
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 's11-settings-negative-'));
 const candidate = JSON.parse(fs.readFileSync(candidatePath, 'utf8'));
 const originalMatrix = JSON.parse(fs.readFileSync(matrixPath, 'utf8'));
+const originalProvenance = JSON.parse(fs.readFileSync(provenancePath, 'utf8'));
 const failures = [];
 
 function clone(value) { return JSON.parse(JSON.stringify(value)); }
@@ -31,15 +33,19 @@ function row(receipt, id) {
   return found;
 }
 
+function runComparator(matrixArg, sourceArg, candidateArg, comparisonArg, provenanceArg) {
+  const args = [comparator, matrixArg, sourceArg, candidateArg, comparisonArg];
+  if (provenanceArg) args.push(provenanceArg);
+  return spawnSync(process.execPath, args, { encoding: 'utf8', stdio: 'pipe' });
+}
+
 function runControl(name, mutate, expected) {
   const forged = clone(candidate);
   mutate(forged);
   const forgedPath = path.join(tempDir, `${name}.candidate.json`);
   const comparisonPath = path.join(tempDir, `${name}.comparison.json`);
   fs.writeFileSync(forgedPath, `${JSON.stringify(forged, null, 2)}\n`);
-  const result = spawnSync(process.execPath, [comparator, matrixPath, sourcePath, forgedPath, comparisonPath], {
-    encoding: 'utf8', stdio: 'pipe',
-  });
+  const result = runComparator(matrixPath, sourcePath, forgedPath, comparisonPath);
   let comparison;
   try { comparison = JSON.parse(fs.readFileSync(comparisonPath, 'utf8')); }
   catch (error) {
@@ -50,6 +56,25 @@ function runControl(name, mutate, expected) {
   const matched = comparison.differences.some(expected);
   if (!rejected || !matched) failures.push({ name, rejected, matched, differences: comparison.differences.slice(0, 5) });
   console.log(JSON.stringify({ name, result: rejected && matched ? 'pass' : 'fail', differences: comparison.differences.length }));
+}
+
+function runProvenanceControl() {
+  const forged = clone(originalProvenance);
+  forged.source.files[0].sha256 = '0'.repeat(64);
+  const forgedPath = path.join(tempDir, 'provenance-manifest-rewrite.provenance.json');
+  const comparisonPath = path.join(tempDir, 'provenance-manifest-rewrite.comparison.json');
+  fs.writeFileSync(forgedPath, `${JSON.stringify(forged, null, 2)}\n`);
+  const result = runComparator(matrixPath, sourcePath, candidatePath, comparisonPath, forgedPath);
+  let comparison;
+  try { comparison = JSON.parse(fs.readFileSync(comparisonPath, 'utf8')); }
+  catch (error) {
+    failures.push({ name: 'provenance-manifest-rewrite', error: `comparator did not write receipt: ${error.message}` });
+    return;
+  }
+  const rejected = result.status !== 0 && comparison.result === 'fail';
+  const matched = comparison.differences.some((difference) => difference.side === 'provenance' && difference.kind === 'manifest-hash');
+  if (!rejected || !matched) failures.push({ name: 'provenance-manifest-rewrite', rejected, matched, differences: comparison.differences.slice(0, 5) });
+  console.log(JSON.stringify({ name: 'provenance-manifest-rewrite', result: rejected && matched ? 'pass' : 'fail', differences: comparison.differences.length }));
 }
 
 function runPairedControl(name, mutateMatrix, mutateSource, mutateCandidate, expected) {
@@ -104,6 +129,12 @@ runControl('rewrite-request', (receipt) => {
   row(receipt, 'prefs-adult-transid').requests[0].bodyRaw += ' forged';
 }, (difference) => difference.id === 'prefs-adult-transid' && (difference.kind === 'source-candidate' || difference.kind === 'source-candidate-row'));
 
+runControl('rewrite-provenance-receipt', (receipt) => {
+  receipt.provenanceManifestSha256 = '0'.repeat(64);
+}, (difference) => difference.side === 'candidate' && difference.kind === 'provenance-manifest-receipt');
+
+runProvenanceControl();
+
 runPairedControl('paired-shrink', (matrix) => {
   matrix.cases = matrix.cases.slice(1);
   matrix.caseCount = matrix.cases.length;
@@ -130,7 +161,7 @@ runPairedControl('paired-response-rewrite', (matrix) => {
   (receipt) => { row(receipt, 'prefs-http-503').error.response.status = 502; },
   (difference) => difference.side === 'matrix' && difference.kind === 'matrix-semantic-hash');
 
-const result = { result: failures.length ? 'fail' : 'pass', controls: 9, failures: failures.length, tempDir };
+const result = { result: failures.length ? 'fail' : 'pass', controls: 11, failures: failures.length, tempDir };
 console.log(JSON.stringify(result));
 if (failures.length) {
   console.error(JSON.stringify(failures, null, 2));

@@ -19,6 +19,15 @@ full canonical matrix semantic SHA
 hashes are checked by the comparator. Output encoding preserves `undefined`,
 `NaN`, infinities, and empty response bodies.
 
+`provenance.json` is separately SHA-pinned at
+`0dce7437bd5d1df7415b77a0bdd7c2fc034d7d11f831584d0ce60171b1654225`. The
+Node 8 runner verifies 55 source files before importing the Pegasus index,
+including TypeScript/compiled SettingsClient, EnvVars, utils, report index,
+and the source/compiled CommuteMode enum, plus resolved HTTP/interface/utils
+dependencies and package locks. The Phoenix runner verifies nine candidate
+implementation and dependency files before importing SettingsClient. Each
+receipt records the manifest hash, side, and verified file count.
+
 Run the complete lane from this worktree:
 
 ```bash
@@ -29,10 +38,10 @@ Use `--reference PATH` for a prepared Pegasus checkout and `--out DIR` for
 receipts and logs. The output directory contains `source.json`,
 `candidate.json`, `comparison.json`, `source.log`, `candidate.log`, and
 `negative-control.log`. The negative-control phase must reject a shrunk row
-set, reordered rows, a rewritten converted value, a rewritten error, and a
-rewritten request record. Paired falsifiers reauthor both receipts alongside
-shrunk/reordered inventories and rewritten mode/HTTP descriptors; the static
-matrix semantic hash still rejects those rewritten artifacts.
+set, reordered rows, rewritten output/error/request/provenance receipts, and a
+rewritten provenance manifest. Paired falsifiers reauthor both receipts
+alongside shrunk/reordered inventories and rewritten mode/HTTP descriptors;
+the static matrix semantic hash still rejects those rewritten artifacts.
 
 The matrix covers commute modes `0..3`, negative/fractional/NaN/named-string/
 missing values, all seven archived `commute.complete` missing fields, zero and

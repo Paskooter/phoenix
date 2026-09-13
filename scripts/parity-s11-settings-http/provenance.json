@@ -1,0 +1,334 @@
+{
+  "schema": "s11-settings-provenance-v1",
+  "sourceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+  "source": {
+    "root": "reference-checkout",
+    "files": [
+      {
+        "path": "packages/report-skill/src/SettingsClient.ts",
+        "role": "source",
+        "sha256": "d64a853b1d65be0519be5fd7b57d688427d13be9ad60c7fbe121e0b4dc598635"
+      },
+      {
+        "path": "packages/report-skill/lib/SettingsClient.js",
+        "role": "runtime",
+        "sha256": "bb2387cc3324347b9cce204279c20478271abc88295eb3a882b2ca867e8efbfb"
+      },
+      {
+        "path": "packages/report-skill/src/EnvVars.ts",
+        "role": "source",
+        "sha256": "9b62f558b9c7470f25ca69be4dcadcee647042c8bbe34abb2050ab8157b03f27"
+      },
+      {
+        "path": "packages/report-skill/lib/EnvVars.js",
+        "role": "runtime",
+        "sha256": "fc80a5ed20300fd913e3bd36af5044190c44e45fdad485337a9b9e5c7280d5ca"
+      },
+      {
+        "path": "packages/report-skill/src/utils.ts",
+        "role": "source",
+        "sha256": "a0dcd0219595a1293f051d277533b0de2802aa56f6e010f5d175bc15f47f6dae"
+      },
+      {
+        "path": "packages/report-skill/lib/utils.js",
+        "role": "runtime",
+        "sha256": "fe5bba7fe80870957fa18b339141d41dc127bf3d250e7e1b051666b20b7f1e5c"
+      },
+      {
+        "path": "packages/report-skill/src/index.ts",
+        "role": "entry-source",
+        "sha256": "6cdb6780836c1d2fd87663f375f668ef17aea3adbd7781cb26d07e3ed4dafdc9"
+      },
+      {
+        "path": "packages/report-skill/lib/index.js",
+        "role": "entry-runtime",
+        "sha256": "76dd8a616280a9575012f241e0569ce580e92f6591822a1945b7ebfb1a384768"
+      },
+      {
+        "path": "packages/interfaces/src/personalreport/googlemaps.ts",
+        "role": "commute-enum-source",
+        "sha256": "7296e3f7e7ba0c359705175e416b326fac253c671e5b37aa2507ade7d5835f40"
+      },
+      {
+        "path": "packages/interfaces/lib/personalreport/googlemaps.js",
+        "role": "commute-enum-runtime",
+        "sha256": "2e785c3389ef7f8b1412ae303697f868a4a13f58831721a9316cdcb48e65bde0"
+      },
+      {
+        "path": "packages/interfaces/src/personalreport/index.ts",
+        "role": "interface-entry-source",
+        "sha256": "61120978a695463203d9794abe7ffe8cbde5809f7ab523ba5d856706cb8c67f3"
+      },
+      {
+        "path": "packages/interfaces/lib/personalreport/index.js",
+        "role": "interface-entry-runtime",
+        "sha256": "9cf7dd4a6b3c617bb4e28737d4b93e7fc0aec40aab0437216dcf69fa02fe6c40"
+      },
+      {
+        "path": "packages/interfaces/src/index.ts",
+        "role": "interface-root-source",
+        "sha256": "b218bf03d74dfda24873229fe54bd42fe86517ca767398d5c65068f9958ce41f"
+      },
+      {
+        "path": "packages/interfaces/lib/index.js",
+        "role": "interface-root-runtime",
+        "sha256": "d710106993acdaa654608059e44fb3bc4d8fb370c1bc6030bc71ccb81f744d54"
+      },
+      {
+        "path": "packages/report-skill/package.json",
+        "role": "dependency-manifest",
+        "sha256": "6460d894564435790f914a7906e0128d86e90b8f9c93400d078910137416d33f"
+      },
+      {
+        "path": "packages/interfaces/package.json",
+        "role": "dependency-manifest",
+        "sha256": "d06ba86a5581f33be1f8fbe2baa4c10fab03b319b66bb45f783b3533f30306d2"
+      },
+      {
+        "path": "packages/utils/package.json",
+        "role": "dependency-manifest",
+        "sha256": "338b4415d835e5e4a2f09e10a3b65bc2681da80052158f182a12941a7eb79b14"
+      },
+      {
+        "path": "packages/baseskill/package.json",
+        "role": "dependency-manifest",
+        "sha256": "61d06221eb8a26fa2a59a7fd70d5d5ffff4da4ab3981dfcb566586a030850c31"
+      },
+      {
+        "path": "package.json",
+        "role": "dependency-manifest",
+        "sha256": "410afd8bc2efee5ef2532c3fa57133d175464974352cfb79986d6fbec6aeb4ed"
+      },
+      {
+        "path": "yarn.lock",
+        "role": "dependency-lock",
+        "sha256": "8c271aefba35f68bc7669a99d2f5818836b02e1ea8fde947fa2cac35b5672b60"
+      },
+      {
+        "path": "node_modules/@jibo/interfaces/package.json",
+        "role": "resolved-dependency-manifest",
+        "sha256": "d06ba86a5581f33be1f8fbe2baa4c10fab03b319b66bb45f783b3533f30306d2"
+      },
+      {
+        "path": "node_modules/@jibo/interfaces/lib/interfaces.js",
+        "role": "resolved-runtime",
+        "sha256": "2b45c88302dc0c62819d4008f7c54770f770ac79446e0452ae16052c87ab8149"
+      },
+      {
+        "path": "node_modules/@jibo/interfaces/lib/index.js",
+        "role": "resolved-runtime",
+        "sha256": "d710106993acdaa654608059e44fb3bc4d8fb370c1bc6030bc71ccb81f744d54"
+      },
+      {
+        "path": "node_modules/@jibo/interfaces/lib/personalreport/index.js",
+        "role": "resolved-runtime",
+        "sha256": "9cf7dd4a6b3c617bb4e28737d4b93e7fc0aec40aab0437216dcf69fa02fe6c40"
+      },
+      {
+        "path": "node_modules/@jibo/interfaces/lib/personalreport/googlemaps.js",
+        "role": "resolved-runtime-commute-enum",
+        "sha256": "2e785c3389ef7f8b1412ae303697f868a4a13f58831721a9316cdcb48e65bde0"
+      },
+      {
+        "path": "node_modules/@jibo/utils/package.json",
+        "role": "resolved-dependency-manifest",
+        "sha256": "338b4415d835e5e4a2f09e10a3b65bc2681da80052158f182a12941a7eb79b14"
+      },
+      {
+        "path": "node_modules/@jibo/utils/lib/utils.js",
+        "role": "resolved-runtime",
+        "sha256": "2b45c88302dc0c62819d4008f7c54770f770ac79446e0452ae16052c87ab8149"
+      },
+      {
+        "path": "node_modules/@jibo/utils/lib/index.js",
+        "role": "resolved-runtime",
+        "sha256": "3d5857bfc1f14dbd536ca0b711a4a05926ecace079e532c972192493aa319abb"
+      },
+      {
+        "path": "node_modules/@jibo/utils/lib/config/index.js",
+        "role": "resolved-runtime",
+        "sha256": "7b8b6b1471e42705e291e39c29d4c8a92531296355aa40825744c3fcd3920f69"
+      },
+      {
+        "path": "node_modules/@jibo/utils/lib/config/EnvVars.js",
+        "role": "resolved-runtime",
+        "sha256": "ec90af6f6ce08b8d9b98ba7f50f9ba72d6cfb35dc1f09e6091bf7ec818a0207b"
+      },
+      {
+        "path": "node_modules/@jibo/utils-common/package.json",
+        "role": "resolved-dependency-manifest",
+        "sha256": "50a8dc29e2fb525dbfc3c53b52b466ea1d9a5fc81d74095ed24dbe8fa1e66004"
+      },
+      {
+        "path": "node_modules/@jibo/utils-common/lib/utils-common.js",
+        "role": "resolved-runtime",
+        "sha256": "2b45c88302dc0c62819d4008f7c54770f770ac79446e0452ae16052c87ab8149"
+      },
+      {
+        "path": "node_modules/axios/package.json",
+        "role": "resolved-dependency-manifest",
+        "sha256": "c4da53715686c72861c8876808bb4c3832a93e39eb260b609ea4a0be567ba1e0"
+      },
+      {
+        "path": "node_modules/axios/index.js",
+        "role": "resolved-runtime",
+        "sha256": "8b785b48db6ae7996d6cefc4bf461e1c35eb893b20c3acfd0a17d9888cfa0663"
+      },
+      {
+        "path": "node_modules/axios/lib/axios.js",
+        "role": "resolved-runtime-http",
+        "sha256": "1c80e80b59e1eee16ea62430c88a27be7c8d2022dee0d9d2fadf3c1b6856b0cf"
+      },
+      {
+        "path": "node_modules/axios/lib/adapters/http.js",
+        "role": "resolved-runtime-http",
+        "sha256": "bfdf6268e34b49b7199ef095f2583710f941f9cf502f592781889cdde8e5344e"
+      },
+      {
+        "path": "node_modules/axios/lib/defaults.js",
+        "role": "resolved-runtime-http",
+        "sha256": "943abbaeb22f24c74d3c0fc191c41f04a1df03c10ff1d90ae0342f3c560d5e43"
+      },
+      {
+        "path": "node_modules/axios/lib/core/settle.js",
+        "role": "resolved-runtime-http",
+        "sha256": "8468e1406dc6d67c114b65b0a7d01a9e6cea4a43f1d3778a1679fb8342dc469a"
+      },
+      {
+        "path": "node_modules/axios/lib/core/createError.js",
+        "role": "resolved-runtime-http",
+        "sha256": "fa8ebe583fdc730e1189239195ee8b0ded0abe7a5e50320496f6718e5b96f764"
+      },
+      {
+        "path": "node_modules/axios/lib/core/enhanceError.js",
+        "role": "resolved-runtime-http",
+        "sha256": "a9bda7d13345f2a6fd574eb19b8f49bab2e7c158d03e500cea38648e7b6e3453"
+      },
+      {
+        "path": "node_modules/axios/lib/core/dispatchRequest.js",
+        "role": "resolved-runtime-http",
+        "sha256": "fd647d2d6ddc76fe949c0fab92e76e433cac970fc18ec56c27302a68ef7c5173"
+      },
+      {
+        "path": "node_modules/axios/lib/core/InterceptorManager.js",
+        "role": "resolved-runtime-http",
+        "sha256": "78a7130fad5942fa7e7d1baa0bc30c3c94e1fc6da9abe29e8554f3b1ff5614b2"
+      },
+      {
+        "path": "node_modules/axios/lib/core/Axios.js",
+        "role": "resolved-runtime-http",
+        "sha256": "02f92031a173eef64b24ad809c15d229f0b6fa9ea618498984848ea10bec83d7"
+      },
+      {
+        "path": "node_modules/axios/lib/core/transformData.js",
+        "role": "resolved-runtime-http",
+        "sha256": "a203f106b1fff9fdb9a792c8fdd0c8f9272c286d00cf82811e6803eb8bc4e44c"
+      },
+      {
+        "path": "node_modules/axios/lib/helpers/normalizeHeaderName.js",
+        "role": "resolved-runtime-http",
+        "sha256": "64e9c46d4438800ab23965ccfcc2730fbd0cc49fad3f9caa1df1459a08a0b63e"
+      },
+      {
+        "path": "node_modules/axios/lib/helpers/buildURL.js",
+        "role": "resolved-runtime-http",
+        "sha256": "9f6b41fef812223a1fcd8b8e92297cf09701cab4a7218ae025b1804cfab043b4"
+      },
+      {
+        "path": "node_modules/axios/lib/utils.js",
+        "role": "resolved-runtime-http",
+        "sha256": "817189dc0da74f3ac30c3461ee0f7b20fbf969169ac54b5e6f015e89134a8fc0"
+      },
+      {
+        "path": "node_modules/follow-redirects/package.json",
+        "role": "resolved-dependency-manifest",
+        "sha256": "674ac8ddb853826c220d60f76ff2a84218109f63787388f521aa72f22aa78784"
+      },
+      {
+        "path": "node_modules/follow-redirects/index.js",
+        "role": "resolved-runtime-http",
+        "sha256": "3a30e7a70e6a6559eceba7f0a4bb62536c850f07be63e9e0e4087267a4da5c46"
+      },
+      {
+        "path": "node_modules/jibo-data-utils/package.json",
+        "role": "resolved-dependency-manifest",
+        "sha256": "ed287c658bb39ac4fc502d3bac3e45de241967813cfe0ea508f2580bfb8d31eb"
+      },
+      {
+        "path": "node_modules/jibo-data-utils/lib/jibo-data-utils.js",
+        "role": "resolved-runtime",
+        "sha256": "ddf52f7bcdacb919b5b15be89562a9bee2f42d798395950a64f59561221a7aba"
+      },
+      {
+        "path": "node_modules/jibo-cai-utils/package.json",
+        "role": "resolved-dependency-manifest",
+        "sha256": "1033645d57f8dcc98fdead52761b892e5dacf6acaaa95a6664409292b8d46448"
+      },
+      {
+        "path": "node_modules/jibo-cai-utils/lib/jibo-cai-utils.js",
+        "role": "resolved-runtime",
+        "sha256": "32e1b67d3f6c88a7205dd8d60e4ff47225a45707135bb5b9d7779b01cc7d5b10"
+      },
+      {
+        "path": "node_modules/find-root/package.json",
+        "role": "resolved-dependency-manifest",
+        "sha256": "c63935ce37b96f7081f1b62e5dabf0622f385b2697b438a9ec3839cd2c8ef57b"
+      },
+      {
+        "path": "node_modules/find-root/index.js",
+        "role": "resolved-runtime",
+        "sha256": "809528ba7b0316446a81684a6eae23581cab1dad9909380bf01b50adf649973d"
+      }
+    ]
+  },
+  "candidate": {
+    "root": "phoenix-worktree",
+    "files": [
+      {
+        "path": "packages/skills/src/report/settingsClient.js",
+        "role": "runtime-settings-client",
+        "sha256": "356f4c962b6ff3e0e702851f51acd077c4f4b291e181f2ec55169f8a8e5f593f"
+      },
+      {
+        "path": "packages/skills/src/report/env.js",
+        "role": "runtime-env",
+        "sha256": "51b3e793709bbd2cd8ad8c07f780fd1958cd0c7ea5f69064304caa7cd381bade"
+      },
+      {
+        "path": "packages/skills/src/report/utils.js",
+        "role": "runtime-utils",
+        "sha256": "8b13ff0884b59b7eecf3ff019777d9d09de5eed4eb0794acd5a0f55178ecf13d"
+      },
+      {
+        "path": "packages/skills/src/report/nodes.js",
+        "role": "runtime-settings-entry",
+        "sha256": "2a54212d0c73881f9ac031a2950f08833431a76e8eda7b6ce99cf45ef60f8743"
+      },
+      {
+        "path": "packages/skills/package.json",
+        "role": "dependency-manifest",
+        "sha256": "7fc2dc35ba679e5ed51bebb755919522613f6e2876ecd002fc6a506cbedbcf01"
+      },
+      {
+        "path": "packages/common/package.json",
+        "role": "dependency-manifest",
+        "sha256": "bcfb093abf7cb5623b801afba5e591a516b4dc80dcd1c44f5b14ac977c0e6fdd"
+      },
+      {
+        "path": "packages/contracts/package.json",
+        "role": "dependency-manifest",
+        "sha256": "c118f2a75860af8fa7ba0094b0faee1477e58e2b767394f7c57d632688059429"
+      },
+      {
+        "path": "package.json",
+        "role": "dependency-manifest",
+        "sha256": "efc3628eec21d481c6961a6e706503f52093a6550f900f79969a1f226b3a5c78"
+      },
+      {
+        "path": "package-lock.json",
+        "role": "dependency-lock",
+        "sha256": "38841632b2ab0e8e9d9e01c77aa6ddea5e0cbdc7f8bf9f4a97dee0b8304e34d1"
+      }
+    ]
+  }
+}
