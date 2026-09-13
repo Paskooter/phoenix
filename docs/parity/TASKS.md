@@ -10,14 +10,14 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 41 | 46 | 0 | 0 |
+| pegasus | 42 | 46 | 0 | 0 |
 | classic | 18 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
 Current task: none.
 
-Next ready task: **Q-01 — Restore original GQA service contracts and behaviors**.
+Next ready task: **S-09 — Verify report weather language and condition tables**.
 
 See [PLAN.md](PLAN.md) for execution rules, [COMPATIBILITY.md](COMPATIBILITY.md) for the frozen target and [AUDIT.md](AUDIT.md) for initial findings. Pegasus source links use the original commit; restored-only code and atlas links are labeled separately. API definitions are pinned; other Jibo links are discovery references to be pinned before verification.
 
@@ -1290,11 +1290,11 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-11/s14-example-template/r
 
 ### Q-01 — Restore original GQA service contracts and behaviors
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: V-01, C-02, N-08.
 
-Root accepted bounded GQA core, explicit providers, Account/attribution adapters and attribution HTTP boundaries. Root corrected vendor-JSON parsing and a mock-induced timestamp error;10 fresh original-runtime media cases,36 qualified HTTP-double cases,9 real-Mongo observations,754 units and strict43 pass. Default routing, live providers and whole Q-01 remain open.
+Verified Q-01 at the bounded source-shaped and replaceable-provider scope against jiborobot/srv-gqa-ws@ebe1a7d. The 136-test/385-assertion archive map has 103 covered, 29 explicitly partial, 0 missing, 1 skipped, 2 supporting, and 1 excluded row. Classic now serves Question and ListAttribution through Account resolution and durable attribution. Twenty-eight live-vendor rows and the unavailable complete word-list corpus remain explicit qualifications; implementation stays partial and no live-provider, public-SigV4, deployment, or robot claim is made.
 
 Done when:
 
@@ -1304,17 +1304,17 @@ Done when:
 
 Source: [jiborobot/srv-gqa-ws/README.md](https://pvindex.org/gitea/jiborobot/srv-gqa-ws/src/branch/master/README.md); [jiborobot/srv-gqa-ws/gqa](https://pvindex.org/gitea/jiborobot/srv-gqa-ws/src/branch/master/gqa); [jiborobot/srv-gqa-ws/tests](https://pvindex.org/gitea/jiborobot/srv-gqa-ws/src/branch/master/tests); [jiborobot/srv-gqa-ws/pegasus_mims](https://pvindex.org/gitea/jiborobot/srv-gqa-ws/src/branch/master/pegasus_mims).
 
-Phoenix: [packages/skills/src/answerSkill.js](../../packages/skills/src/answerSkill.js); [packages/skills/src/jcp.js](../../packages/skills/src/jcp.js); [packages/gateway/resources/skills](../../packages/gateway/resources/skills).
+Phoenix: [packages/classic/src/gqa.js](../../packages/classic/src/gqa.js); [packages/classic/src/index.js](../../packages/classic/src/index.js); [packages/account/src/loopResolution.js](../../packages/account/src/loopResolution.js); [packages/skills/src/gqaStructQaService.js](../../packages/skills/src/gqaStructQaService.js); [packages/skills/src/gqaAccountAttribution.js](../../packages/skills/src/gqaAccountAttribution.js); [packages/skills/src/gqaDefaultService.js](../../packages/skills/src/gqaDefaultService.js); [packages/skills/src/gqaAnswerSkill.js](../../packages/skills/src/gqaAnswerSkill.js); [packages/skills/src/gqaBingProvider.js](../../packages/skills/src/gqaBingProvider.js); [packages/skills/src/gqaWikipediaProvider.js](../../packages/skills/src/gqaWikipediaProvider.js); [packages/skills/src/gqaWolframProvider.js](../../packages/skills/src/gqaWolframProvider.js); [scripts/parity-q01-fixtures/replay.mjs](../../scripts/parity-q01-fixtures/replay.mjs).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-13/q01-verification/review.md](../../docs/parity/evidence/2026-09-13/q01-verification/review.md) (2026-09-13; Root reviewed the integrated Classic /structQA and ListAttribution path, Account verify/listAssociatedLoops resolution, durable local attribution, standalone health/fakeAccount routes, exact archived answer/async/news/provider boundaries, and a complete 136-row source map acquired through Jibo MCP. The map records 103 covered, 29 partial, 0 missing, 1 skipped, 2 supporting, and 1 excluded. Three consecutive focused Q-01 runs passed 191/191; the fixture replay passed all 12 exact scaled async schedules and its omission/corruption falsifiers. Root independently broke the direct Classic credential projection, observed the named composition test fail, restored it, and observed it pass.).
 
-- [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair; Codex root.
+- [x] Candidate implementation — **accepted**; Luna Max / Q-01 async, archive-triage, and Wikipedia reviewers; Codex root.
 
-Candidate scope: Explicit GQA attribution HTTP parsing, Account-before-body-validation order, and numeric timestamp filtering in the optional memory store. Shared route parsing is opt-in. 10 fresh source HTTP media cases,36 qualified boundary cases,9 Mongo comparisons;754 units and strict43 pass. Full Q-01 remains open.
+Candidate scope: Bounded default Classic GQA composition, source-shaped StructQA and attribution operations, Account loop resolution, durable single-writer attribution, exact deterministic archive rows, and replaceable provider seams. Live-vendor behavior, public authentication, and deployment remain qualified.
 
-Candidate report: [docs/parity/candidates/Q-01-http-boundaries-root-20260907.md](../../docs/parity/candidates/Q-01-http-boundaries-root-20260907.md).
+Candidate report: [docs/parity/candidates/Q-01-archived-unit-coverage-20260913.md](../../docs/parity/candidates/Q-01-archived-unit-coverage-20260913.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-07/gqa-http-boundaries/review.json](../../docs/parity/evidence/2026-09-07/gqa-http-boundaries/review.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-13/q01-verification/review.md](../../docs/parity/evidence/2026-09-13/q01-verification/review.md). Complete task acceptance is still governed by the main checkbox above.
 
 ## 4. Complete companion-cloud and restored features
 

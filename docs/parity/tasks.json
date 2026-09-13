@@ -2921,7 +2921,7 @@
       "track": "pegasus",
       "phase": 3,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -2936,25 +2936,44 @@
         "jibo:jiborobot/srv-gqa-ws/pegasus_mims"
       ],
       "phoenix": [
-        "packages/skills/src/answerSkill.js",
-        "packages/skills/src/jcp.js",
-        "packages/gateway/resources/skills"
+        "packages/classic/src/gqa.js",
+        "packages/classic/src/index.js",
+        "packages/account/src/loopResolution.js",
+        "packages/skills/src/gqaStructQaService.js",
+        "packages/skills/src/gqaAccountAttribution.js",
+        "packages/skills/src/gqaDefaultService.js",
+        "packages/skills/src/gqaAnswerSkill.js",
+        "packages/skills/src/gqaBingProvider.js",
+        "packages/skills/src/gqaWikipediaProvider.js",
+        "packages/skills/src/gqaWolframProvider.js",
+        "scripts/parity-q01-fixtures/replay.mjs"
       ],
-      "finding": "Root accepted bounded GQA core, explicit providers, Account/attribution adapters and attribution HTTP boundaries. Root corrected vendor-JSON parsing and a mock-induced timestamp error;10 fresh original-runtime media cases,36 qualified HTTP-double cases,9 real-Mongo observations,754 units and strict43 pass. Default routing, live providers and whole Q-01 remain open.",
+      "finding": "Verified Q-01 at the bounded source-shaped and replaceable-provider scope against jiborobot/srv-gqa-ws@ebe1a7d. The 136-test/385-assertion archive map has 103 covered, 29 explicitly partial, 0 missing, 1 skipped, 2 supporting, and 1 excluded row. Classic now serves Question and ListAttribution through Account resolution and durable attribution. Twenty-eight live-vendor rows and the unavailable complete word-list corpus remain explicit qualifications; implementation stays partial and no live-provider, public-SigV4, deployment, or robot claim is made.",
       "acceptance": [
         "Inventory Pegasus GQA/news entrypoints and question routing, Wikipedia/Wolfram/Bing fallbacks, attributions and no-answer behavior from original source.",
         "Replay archived fake-provider/unit/integration fixtures and match MIMs, JCP/display, metadata and error envelopes.",
         "Use replaceable live providers while preserving client-visible functionality and mark unresolved provider-specific features explicitly."
       ],
-      "verification": [],
+      "verification": [
+        {
+          "date": "2026-09-13",
+          "basis": "Root reviewed the integrated Classic /structQA and ListAttribution path, Account verify/listAssociatedLoops resolution, durable local attribution, standalone health/fakeAccount routes, exact archived answer/async/news/provider boundaries, and a complete 136-row source map acquired through Jibo MCP. The map records 103 covered, 29 partial, 0 missing, 1 skipped, 2 supporting, and 1 excluded. Three consecutive focused Q-01 runs passed 191/191; the fixture replay passed all 12 exact scaled async schedules and its omission/corruption falsifiers. Root independently broke the direct Classic credential projection, observed the named composition test fail, restored it, and observed it pass.",
+          "artifact": "docs/parity/evidence/2026-09-13/q01-verification/review.md",
+          "result": "pass",
+          "referenceRevision": "ebe1a7d38f511570060c1fbf61bec89d58419b26",
+          "phoenixRevision": "1fd3c70ae0960e90f09b782ac2f3acf12ba0f7bf",
+          "command": "find packages -path '*/test/q01*.test.js' -print0 | sort -z | xargs -0 node --test && npm run parity:q01:fixtures && node --test --test-concurrency=4 && npm run parity:check && npm run parity:gate",
+          "notes": "Bounded verification under acceptance criterion 3. Live Bing/Wikipedia/Wolfram/API-AI/AP results and credentials are unclaimed; 340 input-only integration rows have no output goldens; beta3-4902 is truncated by the MCP read surface; the full word-list input corpus is unavailable. The malformed archived invalid-service row is covered at its observable pre-dispatch TypeError boundary. Local attribution is single-writer and non-fsync. SigV4 remains A-02/H-frontdoor scope. No Moth run was needed. Final bounded-concurrency suite: 2,101 total, 2,092 pass, 9 skip; strict gate 43/43 with zero differences, invariants, or coverage gaps."
+        }
+      ],
       "implementationReview": {
         "state": "accepted",
-        "assignee": "Luna Max / capture_writer_repair; Codex root",
-        "candidateRevision": "a2452733ff857ece7ce4414eb81c8df568d5df6e",
+        "assignee": "Luna Max / Q-01 async, archive-triage, and Wikipedia reviewers; Codex root",
+        "candidateRevision": "1fd3c70ae0960e90f09b782ac2f3acf12ba0f7bf",
         "reviewedBy": "Codex root",
-        "scope": "Explicit GQA attribution HTTP parsing, Account-before-body-validation order, and numeric timestamp filtering in the optional memory store. Shared route parsing is opt-in. 10 fresh source HTTP media cases,36 qualified boundary cases,9 Mongo comparisons;754 units and strict43 pass. Full Q-01 remains open.",
-        "artifact": "docs/parity/candidates/Q-01-http-boundaries-root-20260907.md",
-        "reviewEvidence": "docs/parity/evidence/2026-09-07/gqa-http-boundaries/review.json"
+        "scope": "Bounded default Classic GQA composition, source-shaped StructQA and attribution operations, Account loop resolution, durable single-writer attribution, exact deterministic archive rows, and replaceable provider seams. Live-vendor behavior, public authentication, and deployment remain qualified.",
+        "artifact": "docs/parity/candidates/Q-01-archived-unit-coverage-20260913.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-13/q01-verification/review.md"
       },
       "implementationReviewHistory": [
         {
@@ -2994,6 +3013,15 @@
           "scope": "Bounded explicit Account lookup and attribution storage/profile wiring; root8 real HTTP source comparisons, exact insertion/account calls, reviewed historical source/real Mongo evidence,750 units and strict43. Additional HTTP boundaries/default/live provider/deployment/full Q-01 remain open.",
           "artifact": "docs/parity/candidates/Q-01-account-attribution-root-20260907.md",
           "reviewEvidence": "docs/parity/evidence/2026-09-07/gqa-account-attribution/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Luna Max / capture_writer_repair; Codex root",
+          "candidateRevision": "a2452733ff857ece7ce4414eb81c8df568d5df6e",
+          "reviewedBy": "Codex root",
+          "scope": "Explicit GQA attribution HTTP parsing, Account-before-body-validation order, and numeric timestamp filtering in the optional memory store. Shared route parsing is opt-in. 10 fresh source HTTP media cases,36 qualified boundary cases,9 Mongo comparisons;754 units and strict43 pass. Full Q-01 remains open.",
+          "artifact": "docs/parity/candidates/Q-01-http-boundaries-root-20260907.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-07/gqa-http-boundaries/review.json"
         }
       ]
     },

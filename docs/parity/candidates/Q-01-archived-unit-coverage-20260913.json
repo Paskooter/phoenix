@@ -66,8 +66,8 @@
     "The integrated /structQA candidate directly replays the deterministic archived no-input, absent/wrong Intent, Scripted/MIM, age no-answer, PII, and AP cases through injected dependencies; the standalone GQA service also covers the source healthcheck and developer /fakeAccount helper without registering either route in Classic; it does not claim live API-AI/Bing/Wikipedia/Wolfram outputs. The Bing Cortana row remains partial because its live roster text/order has no immutable golden."
   ],
   "counts": {
-    "covered": 102,
-    "partial": 30,
+    "covered": 103,
+    "partial": 29,
     "missing": 0,
     "skipped": 1,
     "supporting": 2,
@@ -874,9 +874,9 @@
       "source": "tests/unit/test_pegasus.py:test_invalid_service",
       "sourceFile": "tests/unit/test_pegasus.py",
       "test": "test_invalid_service",
-      "status": "partial",
-      "target": "packages/skills/test/q01Gqa.test.js :: Q-01 provider pipeline rejects an incomplete adapter inventory",
-      "closure": "The configuration-level invalid-provider guard is covered; the archived public GqaParallelQuery.make_async_call invalid service exception is not a direct Phoenix row."
+      "status": "covered",
+      "target": "packages/skills/test/q01Gqa.test.js :: Q-01 archived invalid-service row rejects before provider dispatch",
+      "closure": "—"
     },
     {
       "source": "tests/unit/test_wikipedia.py:test_wiki_basic",

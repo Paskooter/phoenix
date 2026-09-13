@@ -4,7 +4,7 @@ Source: `jiborobot/srv-gqa-ws@ebe1a7d38f511570060c1fbf61bec89d58419b26`, read th
 
 This candidate maps every named `test_*` definition counted by the archived inventory (136 rows, 385 assertion calls) to an existing executable Phoenix row or a concrete closure requirement. The two top-level `test_*` helper functions in `test_bing.py` are included as `supporting`; they are called by named tests and are not standalone unittest cases.
 
-Current row counts: covered=102, partial=30, missing=0, skipped=1, supporting=2, excluded=1.
+Current row counts: covered=103, partial=29, missing=0, skipped=1, supporting=2, excluded=1.
 
 The existing replay lane directly executes 28 archived answer rows and 12 async rows. Its async schedule pins the archived 500/3100/4100 ms worker delays and 3000/4000 ms group deadlines at a uniform 1:100 wall-clock scale, preserving every deadline relationship without adding multi-second sleeps. It also executes 10 source-shaped news/AP cases, two standalone GQA auxiliary routes, account/attribution rows, and three captured fake-provider adapter routes. This audit keeps those receipts separate from live-provider and legacy `/structQA` gaps.
 
@@ -131,7 +131,7 @@ The existing replay lane directly executes 28 archived answer rows and 12 async 
 | `tests/unit/test_pegasus.py:test_news_empty_db` | `covered` | packages/skills/test/q01News.test.js :: Q-01 source falsifier: empty AP data is a 200 GQA_error SLIM with failure analytics | — |
 | `tests/unit/test_pegasus.py:test_news_analytics` | `covered` | packages/skills/test/q01News.test.js :: Q-01 source fixture: AP sequence, analytics, and five-item bound | — |
 | `tests/unit/test_pegasus.py:test_get_question_type` | `covered` | packages/skills/test/q01Gqa.test.js :: Q-01 exposes the source scripted question mapping and full MIM inventories | — |
-| `tests/unit/test_pegasus.py:test_invalid_service` | `partial` | packages/skills/test/q01Gqa.test.js :: Q-01 provider pipeline rejects an incomplete adapter inventory | The configuration-level invalid-provider guard is covered; the archived public GqaParallelQuery.make_async_call invalid service exception is not a direct Phoenix row. |
+| `tests/unit/test_pegasus.py:test_invalid_service` | `covered` | packages/skills/test/q01Gqa.test.js :: Q-01 archived invalid-service row rejects before provider dispatch | — |
 | `tests/unit/test_wikipedia.py:test_wiki_basic` | `partial` | packages/skills/test/q01Wikipedia.test.js :: Q-01 Wikipedia adapter follows source success request and result contract | Pinned page extraction and first-sentence behavior are covered, but the archived Barack Obama mock page and exact assertion are not a local row. |
 | `tests/unit/test_wikipedia.py:test_wiki_hyphen` | `partial` | packages/skills/test/q01Wikipedia.test.js :: Q-01 lexical preprocessing follows the pinned NLTK source vectors | The preprocessing boundary is covered, but the archived Julia Louis-Dreyfus page lookup/output is not. |
 | `tests/unit/test_wikipedia.py:test_wiki_wh_contraction` | `partial` | packages/skills/test/q01Wikipedia.test.js :: Q-01 lexical preprocessing follows the pinned NLTK source vectors | Contraction preprocessing is covered, but the archived France page response is not a pinned provider row. |

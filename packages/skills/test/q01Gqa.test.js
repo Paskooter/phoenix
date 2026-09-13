@@ -294,6 +294,26 @@ test('Q-01 provider pipeline rejects an incomplete adapter inventory', () => {
   );
 });
 
+test('Q-01 archived invalid-service row rejects before provider dispatch', () => {
+  // The archived Python test supplies one list to a bound method that requires
+  // both service and event_flag, so its only observable contract is a
+  // pre-dispatch TypeError. Keep the equivalent invalid provider schedule at
+  // the public Phoenix factory boundary and prove that no adapter can run.
+  let dispatched = false;
+  assert.throws(
+    () => createGqaProviderPipeline({
+      providers: {
+        intentionally_invalid_service: async () => {
+          dispatched = true;
+          return {};
+        },
+      },
+    }),
+    { name: 'TypeError', message: 'Missing GQA provider adapter: Bing' },
+  );
+  assert.equal(dispatched, false);
+});
+
 test('Q-01 provider pipeline advances at the source group deadline and keeps late priority', async () => {
   const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
   const calls = [];
