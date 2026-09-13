@@ -1,0 +1,263 @@
+{
+  "schema": "s11-report-commute-http-v1",
+  "referenceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+  "sourceImage": "node",
+  "sourceImageDigest": "sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+  "locationISO": "2026-06-12T08:00:00.000-04:00",
+  "origin": { "lat": 42.313352, "lng": -71.1273681 },
+  "destination": { "lat": 42.3601, "lng": -71.0589 },
+  "cases": [
+    {
+      "id": "full-driving-normal-offset",
+      "intent": "launchPersonalReport",
+      "fixture": "normal",
+      "prefs": { "mode": "driving", "workHour": 9, "workMin": 0, "baseSeconds": 600, "trafficSeconds": 600 },
+      "expected": { "mims": ["PersonalReportKickOff", "CommuteDriveNormal", "CommuteDepartTimeNormal", "PersonalReportOutroConfigured"], "speechIncludes": ["8:50 AM"] }
+    },
+    {
+      "id": "single-driving-confirm-and-normal",
+      "intent": "requestCommute",
+      "fixture": "normal",
+      "prefs": { "mode": "driving", "workHour": 9, "workMin": 0, "baseSeconds": 600, "trafficSeconds": 600 },
+      "expected": { "mims": ["CommuteConfirmSpeaker", "CommuteDriveNormal", "CommuteDepartTimeNormal"] }
+    },
+    {
+      "id": "driving-traffic-poor-exact-five",
+      "intent": "requestCommute",
+      "fixture": "normal",
+      "prefs": { "mode": "driving", "workHour": 9, "workMin": 0, "baseSeconds": 600, "trafficSeconds": 900 },
+      "expected": { "mims": ["CommuteConfirmSpeaker", "CommuteDrivePoor", "CommuteDepartTimeNotNormal"], "speechIncludes": ["5 extra minutes"] }
+    },
+    {
+      "id": "driving-traffic-poor-fourteen",
+      "intent": "requestCommute",
+      "fixture": "normal",
+      "prefs": { "mode": "driving", "workHour": 9, "workMin": 0, "baseSeconds": 600, "trafficSeconds": 1440 },
+      "expected": { "mims": ["CommuteConfirmSpeaker", "CommuteDrivePoor", "CommuteDepartTimeNotNormal"], "speechIncludes": ["14 extra minutes"] }
+    },
+    {
+      "id": "driving-traffic-terrible-exact-fifteen",
+      "intent": "requestCommute",
+      "fixture": "normal",
+      "prefs": { "mode": "driving", "workHour": 9, "workMin": 0, "baseSeconds": 600, "trafficSeconds": 1500 },
+      "expected": { "mims": ["CommuteConfirmSpeaker", "CommuteDriveTerrible", "CommuteDepartTimeNotNormal"], "speechIncludes": ["15 extra minutes"] }
+    },
+    {
+      "id": "driving-missing-traffic-falls-back",
+      "intent": "requestCommute",
+      "fixture": "normal",
+      "prefs": { "mode": "driving", "workHour": 9, "workMin": 0, "baseSeconds": 600 },
+      "expected": { "mims": ["CommuteConfirmSpeaker", "CommuteDriveNormal", "CommuteDepartTimeNormal"] }
+    },
+    {
+      "id": "transit-ignores-traffic",
+      "intent": "requestCommute",
+      "fixture": "normal",
+      "prefs": { "mode": "transit", "workHour": 9, "workMin": 0, "baseSeconds": 900, "trafficSeconds": 2700 },
+      "expected": { "mims": ["CommuteConfirmSpeaker", "CommuteTransportNormal", "CommuteDepartTimeNormal"], "speechIncludes": ["15 minutes"] }
+    },
+    {
+      "id": "bicycling-normal",
+      "intent": "requestCommute",
+      "fixture": "normal",
+      "prefs": { "mode": "bicycling", "workHour": 9, "workMin": 0, "baseSeconds": 1200, "trafficSeconds": 3000 },
+      "expected": { "mims": ["CommuteConfirmSpeaker", "CommuteTransportNormal", "CommuteDepartTimeNormal"] }
+    },
+    {
+      "id": "walking-normal",
+      "intent": "requestCommute",
+      "fixture": "normal",
+      "prefs": { "mode": "walking", "workHour": 9, "workMin": 0, "baseSeconds": 1500, "trafficSeconds": 3000 },
+      "expected": { "mims": ["CommuteConfirmSpeaker", "CommuteTransportNormal", "CommuteDepartTimeNormal"], "speechIncludes": ["walk"] }
+    },
+    {
+      "id": "driving-hurry-minus-nine",
+      "intent": "requestCommute",
+      "fixture": "normal",
+      "prefs": { "mode": "driving", "workHour": 8, "workMin": 1, "baseSeconds": 600, "trafficSeconds": 600 },
+      "expected": { "mims": ["CommuteConfirmSpeaker", "CommuteDriveHurry"], "speechIncludes": ["10 minutes"] }
+    },
+    {
+      "id": "transit-hurry-minus-nine",
+      "intent": "requestCommute",
+      "fixture": "normal",
+      "prefs": { "mode": "transit", "workHour": 8, "workMin": 1, "baseSeconds": 600, "trafficSeconds": 1800 },
+      "expected": { "mims": ["CommuteConfirmSpeaker", "CommuteTransportHurry"] }
+    },
+    {
+      "id": "driving-late-minus-ten",
+      "intent": "requestCommute",
+      "fixture": "normal",
+      "prefs": { "mode": "driving", "workHour": 8, "workMin": 0, "baseSeconds": 600, "trafficSeconds": 600 },
+      "expected": { "mims": ["CommuteConfirmSpeaker", "CommuteDriveLate"], "speechIncludes": ["10 minutes"] }
+    },
+    {
+      "id": "driving-now-over-two-hours",
+      "intent": "requestCommute",
+      "fixture": "normal",
+      "prefs": { "mode": "driving", "workHour": 11, "workMin": 1, "baseSeconds": 0, "trafficSeconds": 0 },
+      "expected": { "mims": ["CommuteConfirmSpeaker", "CommuteNow"] }
+    },
+    {
+      "id": "driving-normal-exact-120-minutes-left",
+      "intent": "requestCommute",
+      "fixture": "normal",
+      "prefs": { "mode": "driving", "workHour": 10, "workMin": 0, "baseSeconds": 0, "trafficSeconds": 0 },
+      "expected": { "mims": ["CommuteConfirmSpeaker", "CommuteDriveNormal", "CommuteDepartTimeNormal"] }
+    },
+    {
+      "id": "driving-normal-exact-30-minutes-left",
+      "intent": "requestCommute",
+      "fixture": "normal",
+      "prefs": { "mode": "driving", "workHour": 8, "workMin": 30, "baseSeconds": 0, "trafficSeconds": 0 },
+      "expected": { "mims": ["CommuteConfirmSpeaker", "CommuteDriveNormal", "CommuteDepartTimeNormal"] }
+    },
+    {
+      "id": "driving-normal-29-minutes-adds-countdown",
+      "intent": "requestCommute",
+      "fixture": "normal",
+      "prefs": { "mode": "driving", "workHour": 8, "workMin": 29, "baseSeconds": 0, "trafficSeconds": 0 },
+      "expected": { "mims": ["CommuteConfirmSpeaker", "CommuteDriveNormal", "CommuteDepartTimeNormal", "CommuteMinutesLeft"], "speechIncludes": ["29 minutes"] }
+    },
+    {
+      "id": "driving-now-exact-minus-31",
+      "intent": "requestCommute",
+      "fixture": "normal",
+      "prefs": { "mode": "driving", "workHour": 7, "workMin": 29, "baseSeconds": 0, "trafficSeconds": 0 },
+      "expected": { "mims": ["CommuteConfirmSpeaker", "CommuteNow"] }
+    },
+    {
+      "id": "driving-duration-floor-and-minutes",
+      "intent": "requestCommute",
+      "fixture": "normal",
+      "prefs": { "mode": "driving", "workHour": 11, "workMin": 0, "baseSeconds": 125, "trafficSeconds": 125 },
+      "expected": { "mims": ["CommuteConfirmSpeaker", "CommuteNow"], "speechIncludes": ["2 minutes"] }
+    },
+    {
+      "id": "driving-pm-departure-view",
+      "intent": "requestCommute",
+      "locationISO": "2026-06-12T16:00:00.000-04:00",
+      "prefs": { "mode": "driving", "workHour": 17, "workMin": 5, "baseSeconds": 600, "trafficSeconds": 600 },
+      "expected": { "mims": ["CommuteConfirmSpeaker", "CommuteDriveNormal", "CommuteDepartTimeNormal"], "speechIncludes": ["4:55 PM"] }
+    },
+    {
+      "id": "incomplete-prefs-no-maps",
+      "intent": "requestCommute",
+      "fixture": "normal",
+      "prefs": { "complete": false, "mode": null, "workHour": null, "workMin": null, "baseSeconds": 600, "trafficSeconds": 600 },
+      "expected": { "mims": ["CommuteAppSetup"] }
+    },
+    {
+      "id": "maps-service-failure",
+      "intent": "requestCommute",
+      "fixture": "normal",
+      "failure": "all",
+      "prefs": { "mode": "driving", "workHour": 9, "workMin": 0, "baseSeconds": 600, "trafficSeconds": 600 },
+      "expected": { "mims": ["CommuteServiceDown"] }
+    },
+    {
+      "id": "maps-empty-routes-service-down",
+      "intent": "requestCommute",
+      "fixture": "empty-routes",
+      "prefs": { "mode": "driving", "workHour": 9, "workMin": 0, "baseSeconds": 600, "trafficSeconds": 600 },
+      "expected": { "mims": ["CommuteServiceDown"] }
+    },
+    {
+      "id": "maps-malformed-envelope-service-down",
+      "intent": "requestCommute",
+      "fixture": "empty-envelope",
+      "prefs": { "mode": "driving", "workHour": 9, "workMin": 0, "baseSeconds": 600, "trafficSeconds": 600 },
+      "expected": { "mims": ["CommuteServiceDown"] }
+    },
+    {
+      "id": "settings-failure-single",
+      "intent": "requestCommute",
+      "settingsFailure": true,
+      "fixture": "normal",
+      "prefs": { "mode": "driving", "workHour": 9, "workMin": 0, "baseSeconds": 600, "trafficSeconds": 600 },
+      "expected": { "mims": ["PersonalReportSettingsFailed"] }
+    },
+    {
+      "id": "unidentified-speaker",
+      "intent": "requestCommute",
+      "identity": "unidentified",
+      "fixture": "normal",
+      "prefs": { "mode": "driving", "workHour": 9, "workMin": 0, "baseSeconds": 600, "trafficSeconds": 600 },
+      "expected": { "mims": ["PersonalReportWhoIsThis"], "final": false }
+    },
+    {
+      "id": "single-commute-not-in-loop-must-be-looper",
+      "intent": "requestCommute",
+      "identity": "unidentified",
+      "fixture": "normal",
+      "turns": [
+        { "intent": "notInLoop", "identity": "unidentified", "asr": "not in the loop" }
+      ],
+      "prefs": { "mode": "driving", "workHour": 9, "workMin": 0, "baseSeconds": 600, "trafficSeconds": 600 },
+      "expected": {
+        "mims": ["PersonalReportMustBeLooper"],
+        "final": true,
+        "turns": [
+          { "mims": ["PersonalReportWhoIsThis"], "final": false },
+          { "mims": ["PersonalReportMustBeLooper"], "final": true }
+        ]
+      }
+    },
+    {
+      "id": "single-commute-child-must-be-adult",
+      "intent": "requestCommute",
+      "identity": "child",
+      "fixture": "normal",
+      "prefs": { "mode": "driving", "workHour": 9, "workMin": 0, "baseSeconds": 600, "trafficSeconds": 600 },
+      "expected": { "mims": ["PersonalReportMustBeAdult"] }
+    },
+    {
+      "id": "full-commute-active-calendar-off",
+      "intent": "launchPersonalReport",
+      "fixture": "normal",
+      "active": { "weather": false, "calendar": false, "commute": true, "news": false },
+      "prefs": { "mode": "driving", "workHour": 9, "workMin": 0, "baseSeconds": 600, "trafficSeconds": 600 },
+      "expected": { "mims": ["PersonalReportKickOff", "CommuteDriveNormal", "CommuteDepartTimeNormal", "PersonalReportOutroConfigured"] }
+    },
+    {
+      "id": "full-commute-calendar-dependency",
+      "intent": "launchPersonalReport",
+      "fixture": "normal",
+      "active": { "weather": false, "calendar": false, "commute": true, "news": false },
+      "calendarCredentials": ["googlePersonalCreds"],
+      "calendarFixture": "empty",
+      "prefs": { "mode": "driving", "workHour": 9, "workMin": 0, "baseSeconds": 600, "trafficSeconds": 600 },
+      "expected": { "mims": ["PersonalReportKickOff", "CommuteDriveNormal", "CommuteDepartTimeNormal", "PersonalReportOutroConfigured"] }
+    },
+    {
+      "id": "full-all-services-down",
+      "intent": "launchPersonalReport",
+      "failure": "all",
+      "active": { "weather": true, "calendar": true, "commute": true, "news": false },
+      "calendarCredentials": ["googlePersonalCreds"],
+      "prefs": { "mode": "driving", "workHour": 9, "workMin": 0, "baseSeconds": 600, "trafficSeconds": 600 },
+      "expected": { "mims": ["PersonalReportKickOff", "PersonalReportAllServicesDown"] }
+    },
+    {
+      "id": "invalid-commute-prefs-no-maps",
+      "intent": "requestCommute",
+      "fixture": "normal",
+      "prefs": { "invalid": true, "mode": null, "workHour": null, "workMin": null, "baseSeconds": 600, "trafficSeconds": 600 },
+      "expected": { "mims": ["CommuteAppSetup"] }
+    },
+    {
+      "id": "maps-null-envelope-service-down",
+      "intent": "requestCommute",
+      "fixture": "null-envelope",
+      "prefs": { "mode": "driving", "workHour": 9, "workMin": 0, "baseSeconds": 600, "trafficSeconds": 600 },
+      "expected": { "mims": ["CommuteServiceDown"] }
+    },
+    {
+      "id": "maps-malformed-route-service-down",
+      "intent": "requestCommute",
+      "fixture": "malformed-route",
+      "prefs": { "mode": "driving", "workHour": 9, "workMin": 0, "baseSeconds": 600, "trafficSeconds": 600 },
+      "expected": { "mims": ["CommuteServiceDown"] }
+    }
+  ]
+}
