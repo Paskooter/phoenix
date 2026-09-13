@@ -1,0 +1,1526 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "repository": "jiborobot/srv-gqa-ws",
+    "ref": "master",
+    "revision": "ebe1a7d38f511570060c1fbf61bec89d58419b26",
+    "note": "Archived source and fixture inventory was read through Jibo MCP Gitea; no web source was used."
+  },
+  "inventory": {
+    "fakeProvider": {
+      "path": "fake_external/fake_external.py",
+      "size": 13864,
+      "routes": [
+        {
+          "name": "fake_bing",
+          "path": "/fake_bing",
+          "sourceModule": "gqa/bing.py"
+        },
+        {
+          "name": "fake_wiki",
+          "path": "/fake_wiki",
+          "sourceModule": "gqa/wiki.py"
+        },
+        {
+          "name": "fake_wolfram",
+          "path": "/fake_wolfram",
+          "sourceModule": "gqa/wolfram.py"
+        }
+      ]
+    },
+    "unit": {
+      "fileCount": 15,
+      "testModuleCount": 13,
+      "namedTestCount": 136,
+      "assertionCalls": 385,
+      "files": [
+        {
+          "path": "tests/unit/test_account.py",
+          "size": 1173,
+          "namedTests": 2,
+          "assertionCalls": 2
+        },
+        {
+          "path": "tests/unit/test_api_ai.py",
+          "size": 3036,
+          "namedTests": 2,
+          "assertionCalls": 6
+        },
+        {
+          "path": "tests/unit/test_async.py",
+          "size": 8697,
+          "namedTests": 12,
+          "assertionCalls": 14
+        },
+        {
+          "path": "tests/unit/test_banned_words.py",
+          "size": 2963,
+          "namedTests": 3,
+          "assertionCalls": 17
+        },
+        {
+          "path": "tests/unit/test_bing.py",
+          "size": 12709,
+          "namedTests": 19,
+          "assertionCalls": 35
+        },
+        {
+          "path": "tests/unit/test_blacklist.py",
+          "size": 2965,
+          "namedTests": 4,
+          "assertionCalls": 8
+        },
+        {
+          "path": "tests/unit/test_general.py",
+          "size": 15937,
+          "namedTests": 18,
+          "assertionCalls": 55
+        },
+        {
+          "path": "tests/unit/test_mim_registry.py",
+          "size": 4089,
+          "namedTests": 6,
+          "assertionCalls": 6
+        },
+        {
+          "path": "tests/unit/test_news.py",
+          "size": 1357,
+          "namedTests": 2,
+          "assertionCalls": 4
+        },
+        {
+          "path": "tests/unit/test_nlp.py",
+          "size": 2486,
+          "namedTests": 4,
+          "assertionCalls": 24
+        },
+        {
+          "path": "tests/unit/test_pegasus.py",
+          "size": 45685,
+          "namedTests": 39,
+          "assertionCalls": 121
+        },
+        {
+          "path": "tests/unit/test_wikipedia.py",
+          "size": 35239,
+          "namedTests": 15,
+          "assertionCalls": 80
+        },
+        {
+          "path": "tests/unit/test_wolfram.py",
+          "size": 5788,
+          "namedTests": 10,
+          "assertionCalls": 13
+        }
+      ]
+    },
+    "integration": {
+      "knownRowCount": 340,
+      "unverifiedFilenameRowLabel": "beta3-4902",
+      "liveInputOnly": true,
+      "files": [
+        {
+          "path": "tests/integration/example.txt",
+          "size": 323,
+          "declaredRows": 5,
+          "observedRows": 5,
+          "sample": [
+            "What is the GDP of China?",
+            "what is the weather",
+            "where is the nearest dunkin donuts",
+            "where is the nearest krispy kreme doughnuts",
+            "I am angry"
+          ]
+        },
+        {
+          "path": "tests/integration/random-335.txt",
+          "size": 9011,
+          "declaredRows": 335,
+          "observedRows": 335,
+          "sample": [
+            "how many carlories are in a bagel",
+            "Who is Barack Obama?",
+            "When was Elvis Presley born?",
+            "what is the weather"
+          ]
+        },
+        {
+          "path": "tests/integration/beta3-4902.txt",
+          "size": 177307,
+          "declaredRows": null,
+          "mcpObservedPrefix": {"codeUnits": 69069, "nonBlankRows": 2073, "tail": "tha"},
+          "observedRows": null,
+          "sample": [
+            "how far away is the sun",
+            "whats two plus two",
+            "who sang the song superstition",
+            "how many days until thanksgiving"
+          ]
+        }
+      ],
+      "note": "The 177,307-byte beta3-4902 file is live-input-only and has no expected output golden. Jibo MCP read_file was independently observed truncating at 69,069 code units / 2,073 nonblank rows mid-line (tail `tha`); the filename label is retained for provenance, never treated as an authoritative row count."
+    },
+    "liveSuite": {
+      "repository": "jiboV2/pegasus",
+      "ref": "dev",
+      "readThrough": "Jibo MCP gitea_read_file",
+      "totalCaseCount": 12,
+      "locallyReplayed": 0,
+      "outputGoldens": false,
+      "answer": {
+        "path": "packages/integration-tests-ext/src/answer.ts",
+        "size": 4321,
+        "caseCount": 11,
+        "cases": [
+          {
+            "name": "what is the capital of france",
+            "asr": "what is the capital of france",
+            "promptContains": ["paris"],
+            "promptIDContains": "wolfram"
+          },
+          {
+            "name": "who is George Washington (United States)",
+            "asr": "who is george washington",
+            "promptContains": ["first president", "founding father"],
+            "promptIDContains": "bing",
+            "countryCode": "US"
+          },
+          {
+            "name": "who is George Washington (Canada)",
+            "asr": "who is george washington",
+            "promptContains": ["first president", "founding father"],
+            "promptIDContains": "wikipedia",
+            "countryCode": "CA",
+            "location": {"lat": 43.6532, "lng": -79.3832},
+            "remoteAddress": "192.206.150.106"
+          },
+          {
+            "name": "who is Harish Iyer",
+            "asr": "who is Harish Iyer",
+            "promptContains": ["activist", "gay"],
+            "promptIDContains": "wikipedia"
+          },
+          {
+            "name": "how is the weather (United States)",
+            "asr": "how is the weather",
+            "promptIDContains": "bing",
+            "countryCode": "US"
+          },
+          {
+            "name": "how is the weather (Canada)",
+            "asr": "how is the weather",
+            "promptIDContains": "bing",
+            "countryCode": "CA",
+            "location": {"lat": 43.6532, "lng": -79.3832},
+            "remoteAddress": "192.206.150.106"
+          },
+          {
+            "name": "how is the weather (Puerto Rico)",
+            "asr": "how is the weather",
+            "promptIDContains": "bing",
+            "countryCode": "PR",
+            "location": {"lat": 18.406389, "lng": -66.063889},
+            "remoteAddress": "104.16.8.111"
+          },
+          {
+            "name": "how far from Boston to New York (United States)",
+            "asr": "how far from Boston to New York",
+            "promptContains": ["miles"],
+            "promptIDContains": "Wolfram",
+            "countryCode": "US"
+          },
+          {
+            "name": "how far from Boston to New York (Canada)",
+            "asr": "how far from Boston to New York",
+            "promptContains": ["kilometers"],
+            "promptIDContains": "Wolfram",
+            "countryCode": "CA",
+            "location": {"lat": 43.6532, "lng": -79.3832},
+            "remoteAddress": "192.206.150.106"
+          },
+          {
+            "name": "Routes to Answers but there is no answer how do toilets work",
+            "asr": "how do toilets work",
+            "promptIDContains": "gqa_no_answer_generic"
+          },
+          {
+            "name": "Test suppression of unhelpful answers how old is albert einstein (Canada)",
+            "asr": "how old is albert einstein",
+            "promptIDContains": "gqa_no_answer_generic",
+            "countryCode": "CA",
+            "location": {"lat": 43.6532, "lng": -79.3832},
+            "remoteAddress": "192.206.150.106"
+          }
+        ],
+        "status": "live-provider-dependent; unresolved current vendor assertions"
+      },
+      "news": {
+        "path": "packages/integration-tests-ext/src/news.ts",
+        "size": 401,
+        "caseCount": 1,
+        "cases": [
+          {
+            "name": "whats in the news",
+            "asr": "whats in the news",
+            "skill": "news",
+            "requiredPromptIDContains": ["NEWS_preamble", "NEWS_postamble"]
+          }
+        ],
+        "status": "live-provider-dependent; unresolved because current default profile has no /news_skill route or NEWS_* MIM inventory"
+      },
+      "note": "These moved integration-tests-ext cases assert live provider/vendor routing and substring behavior through testSingleSlim/testSequenceSlim; source files provide no response goldens. They are inventoried for authoritative scope and remain an explicit Q-01 blocker."
+    },
+    "gqaMims": {
+      "fileCount": 11,
+      "promptCount": 77
+    }
+  },
+  "mims": {
+    "GQA_banned_word": {
+      "sourcePath": "pegasus_mims/GQA_banned_word.mim",
+      "prompts": [
+        {
+          "prompt_id": "GQA_banned_word_01",
+          "prompt": "So, that's on my list of <duration stretch='1.2'><pitch mult='1.1'>bad words</pitch></duration>, I just can't talk about that stuff out loud.<break size='0.3'/> Sorry, I know that makes you want to hear it even more, but I can't do it."
+        },
+        {
+          "prompt_id": "GQA_banned_word_02",
+          "prompt": "Um, sorry, but I've heard that's a <duration stretch='1.2'><pitch mult='1.1'>bad word</pitch></duration>, so I'm not really allowed to talk about it."
+        },
+        {
+          "prompt_id": "GQA_banned_word_03",
+          "prompt": "Um, it seems we've entered into <duration stretch='1.2'><pitch mult='1.1'>bad word</pitch></duration> territory, I can't talk about stuff like that.<break size='0.3'/> I guess we'll have to find something else to talk about."
+        },
+        {
+          "prompt_id": "GQA_banned_word_04",
+          "prompt": "Um, it turns out your request is on my list of <duration stretch='1.2'><pitch mult='1.1'>bad words</pitch></duration> that I don't like to talk about. Sorry about that, I'm just trying to do what's right."
+        }
+      ]
+    },
+    "GQA_error": {
+      "sourcePath": "pegasus_mims/GQA_error.mim",
+      "prompts": [
+        {
+          "prompt_id": "GQA_error_01",
+          "prompt": "<ssa cat='oops'/>. Something's off with the connection to my sources. Maybe ask me again in a little while."
+        },
+        {
+          "prompt_id": "GQA_error_02",
+          "prompt": "<ssa cat='oops'/>. It seems I can't connect to my favorite info sources at the moment. Maybe you can try again a little later."
+        },
+        {
+          "prompt_id": "GQA_error_03",
+          "prompt": "<ssa cat='oops'/>. My info sources seem to be down at the moment. Maybe try again a little later."
+        },
+        {
+          "prompt_id": "GQA_error_04",
+          "prompt": "<ssa cat='oops'/>. The place where I get info like that, isn't responding to me. Maybe you can try again a little later."
+        },
+        {
+          "prompt_id": "GQA_error_05",
+          "prompt": "Huh, it seems like my info sources are down. Try asking me again a little later."
+        },
+        {
+          "prompt_id": "GQA_error_06",
+          "prompt": "It looks like my info sources aren't answering me. How bout you try again in a little while."
+        },
+        {
+          "prompt_id": "GQA_error_07",
+          "prompt": "My search source seems to be down. Try again soon?"
+        },
+        {
+          "prompt_id": "GQA_error_08",
+          "prompt": "My connection to the world's information seems to be off right now. Give it another try soon."
+        },
+        {
+          "prompt_id": "GQA_error_09",
+          "prompt": "I can't seem to connect right now to the big wide world of information online. Try again in a little bit."
+        }
+      ]
+    },
+    "GQA_no_answer_generic": {
+      "sourcePath": "pegasus_mims/GQA_no_answer_generic.mim",
+      "prompts": [
+        {
+          "prompt_id": "GQA_no_answer_generic_01",
+          "prompt": "I couldn't find anything about this. Sorry."
+        },
+        {
+          "prompt_id": "GQA_no_answer_generic_02",
+          "prompt": "Sorry, I checked for you, but I’m coming up empty."
+        },
+        {
+          "prompt_id": "GQA_no_answer_generic_03",
+          "prompt": "Sorry, I looked this up, but I’m drawing a blank."
+        },
+        {
+          "prompt_id": "GQA_no_answer_generic_04",
+          "prompt": "I couldn’t find anything about this. I tried."
+        },
+        {
+          "prompt_id": "GQA_no_answer_generic_05",
+          "prompt": "I’m sorry, I’m not finding anything on this."
+        },
+        {
+          "prompt_id": "GQA_no_answer_generic_06",
+          "prompt": "I searched for this, but I came up empty."
+        },
+        {
+          "prompt_id": "GQA_no_answer_generic_07",
+          "prompt": "Sorry, I looked this up, but I’ve drawn a blank."
+        },
+        {
+          "prompt_id": "GQA_no_answer_generic_08",
+          "prompt": "I didn’t find anything on this in my searches."
+        },
+        {
+          "prompt_id": "GQA_no_answer_generic_09",
+          "prompt": "I looked this up, but didn't find anything."
+        },
+        {
+          "prompt_id": "GQA_no_answer_generic_10",
+          "prompt": "I checked for you, but didn't find anything."
+        },
+        {
+          "prompt_id": "GQA_no_answer_generic_11",
+          "prompt": "Well I checked for you, but I couldn't find this."
+        },
+        {
+          "prompt_id": "GQA_no_answer_generic_12",
+          "prompt": "Well I searched, but my search was fruitless."
+        },
+        {
+          "prompt_id": "GQA_no_answer_generic_13",
+          "prompt": "My searches didn't turn anything up."
+        },
+        {
+          "prompt_id": "GQA_no_answer_generic_14",
+          "prompt": "I turned over a few stones, but didn't find anything, sorry."
+        },
+        {
+          "prompt_id": "GQA_no_answer_generic_15",
+          "prompt": "I did some looking, but couldn't find the answer for you."
+        },
+        {
+          "prompt_id": "GQA_no_answer_generic_16",
+          "prompt": "I searched around a bit, but couldn't seem to find an answer."
+        },
+        {
+          "prompt_id": "GQA_no_answer_generic_17",
+          "prompt": "Sorry, I’m coming up empty."
+        },
+        {
+          "prompt_id": "GQA_no_answer_generic_18",
+          "prompt": "Sorry, I’m drawing a blank."
+        },
+        {
+          "prompt_id": "GQA_no_answer_generic_19",
+          "prompt": "I can’t find anything."
+        },
+        {
+          "prompt_id": "GQA_no_answer_generic_20",
+          "prompt": "I've come up empty."
+        },
+        {
+          "prompt_id": "GQA_no_answer_generic_21",
+          "prompt": "I didn't find anything."
+        },
+        {
+          "prompt_id": "GQA_no_answer_generic_22",
+          "prompt": "Seems I can’t find that info for you."
+        },
+        {
+          "prompt_id": "GQA_no_answer_generic_23",
+          "prompt": "I've drawn a blank."
+        },
+        {
+          "prompt_id": "GQA_no_answer_generic_24",
+          "prompt": "I’m sorry, I couldn’t find anything in my searches."
+        }
+      ]
+    },
+    "GQA_no_answer_how": {
+      "sourcePath": "pegasus_mims/GQA_no_answer_how.mim",
+      "prompts": [
+        {
+          "prompt_id": "GQA_no_answer_how_01",
+          "prompt": "I looked this up, but didn't find anything about how."
+        },
+        {
+          "prompt_id": "GQA_no_answer_how_02",
+          "prompt": "I checked for you, but didn't find anything on how."
+        },
+        {
+          "prompt_id": "GQA_no_answer_how_03",
+          "prompt": "Well I searched for how, but my search was fruitless."
+        },
+        {
+          "prompt_id": "GQA_no_answer_how_04",
+          "prompt": "I searched around a bit, but couldn't seem to find an answer for how."
+        }
+      ]
+    },
+    "GQA_no_answer_what": {
+      "sourcePath": "pegasus_mims/GQA_no_answer_what.mim",
+      "prompts": [
+        {
+          "prompt_id": "GQA_no_answer_what_01",
+          "prompt": "I can't seem to find what this is. Sorry."
+        },
+        {
+          "prompt_id": "GQA_no_answer_what_02",
+          "prompt": "Turns out I can't find what this is."
+        },
+        {
+          "prompt_id": "GQA_no_answer_what_03",
+          "prompt": "I searched my sources, but didn't find what you're looking for."
+        }
+      ]
+    },
+    "GQA_no_answer_when": {
+      "sourcePath": "pegasus_mims/GQA_no_answer_when.mim",
+      "prompts": [
+        {
+          "prompt_id": "GQA_no_answer_when_01",
+          "prompt": "Sorry, I can't seem to find out when. I tried."
+        },
+        {
+          "prompt_id": "GQA_no_answer_when_02",
+          "prompt": "Sorry, I checked for you but couldn't find when."
+        },
+        {
+          "prompt_id": "GQA_no_answer_when_03",
+          "prompt": "Turns out I couldn't find out when."
+        },
+        {
+          "prompt_id": "GQA_no_answer_when_04",
+          "prompt": "Sorry, it seems I couldn't find out when."
+        },
+        {
+          "prompt_id": "GQA_no_answer_when_05",
+          "prompt": "I looked this up but couldn't find out when."
+        }
+      ]
+    },
+    "GQA_no_answer_where": {
+      "sourcePath": "pegasus_mims/GQA_no_answer_where.mim",
+      "prompts": [
+        {
+          "prompt_id": "GQA_no_answer_where_01",
+          "prompt": "I can't seem to find out where. I tried."
+        },
+        {
+          "prompt_id": "GQA_no_answer_where_02",
+          "prompt": "I looked this up but couldn't find out where."
+        },
+        {
+          "prompt_id": "GQA_no_answer_where_03",
+          "prompt": "Turns out I couldn't find out where, but I bet it's a place."
+        },
+        {
+          "prompt_id": "GQA_no_answer_where_04",
+          "prompt": "Seems I can't find out where, but I'm pretty sure it's somewhere in this universe."
+        }
+      ]
+    },
+    "GQA_no_answer_which": {
+      "sourcePath": "pegasus_mims/GQA_no_answer_which.mim",
+      "prompts": [
+        {
+          "prompt_id": "GQA_no_answer_which_01",
+          "prompt": "I can't seem to find which. I tried."
+        },
+        {
+          "prompt_id": "GQA_no_answer_which_02",
+          "prompt": "I looked this up but couldn't find which."
+        },
+        {
+          "prompt_id": "GQA_no_answer_which_03",
+          "prompt": "Turns out I can't find out which. Your guess is as good as mine."
+        },
+        {
+          "prompt_id": "GQA_no_answer_which_04",
+          "prompt": "I guess I can't find out which after all. Sorry."
+        }
+      ]
+    },
+    "GQA_no_answer_who": {
+      "sourcePath": "pegasus_mims/GQA_no_answer_who.mim",
+      "prompts": [
+        {
+          "prompt_id": "GQA_no_answer_who_01",
+          "prompt": "I can't seem to find out who. Sorry."
+        },
+        {
+          "prompt_id": "GQA_no_answer_who_02",
+          "prompt": "Sorry I couldn't find out who, but I'm pretty sure it's either a person or an animal."
+        },
+        {
+          "prompt_id": "GQA_no_answer_who_03",
+          "prompt": "Turns out I couldn't find out who after all. I tried."
+        },
+        {
+          "prompt_id": "GQA_no_answer_who_04",
+          "prompt": "I looked this up, but I'm coming up empty on who."
+        },
+        {
+          "prompt_id": "GQA_no_answer_who_05",
+          "prompt": "I looked this up, but didn't find anything about who."
+        },
+        {
+          "prompt_id": "GQA_no_answer_who_06",
+          "prompt": "I checked for you, but didn't find who this is."
+        },
+        {
+          "prompt_id": "GQA_no_answer_who_07",
+          "prompt": "Well I checked for you, but I couldn't find out who."
+        },
+        {
+          "prompt_id": "GQA_no_answer_who_08",
+          "prompt": "I searched for who, but my search was fruitless."
+        },
+        {
+          "prompt_id": "GQA_no_answer_who_09",
+          "prompt": "My searches didn't turn up who."
+        },
+        {
+          "prompt_id": "GQA_no_answer_who_10",
+          "prompt": "I turned over a few stones, but didn't find anything on who, sorry."
+        },
+        {
+          "prompt_id": "GQA_no_answer_who_11",
+          "prompt": "I searched around a bit, but couldn't seem to find an answer for who."
+        },
+        {
+          "prompt_id": "GQA_no_answer_who_12",
+          "prompt": "I searched my sources, but couldn't find out who."
+        }
+      ]
+    },
+    "GQA_no_answer_why": {
+      "sourcePath": "pegasus_mims/GQA_no_answer_why.mim",
+      "prompts": [
+        {
+          "prompt_id": "GQA_no_answer_why_01",
+          "prompt": "Sorry, I can't seem to find why this is. I tried."
+        },
+        {
+          "prompt_id": "GQA_no_answer_why_02",
+          "prompt": "I looked this up but couldn't find why."
+        },
+        {
+          "prompt_id": "GQA_no_answer_why_03",
+          "prompt": "Turns out I can't find out why. Your guess is as good as mine."
+        },
+        {
+          "prompt_id": "GQA_no_answer_why_04",
+          "prompt": "I couldn't find why. Sorry."
+        },
+        {
+          "prompt_id": "GQA_no_answer_why_05",
+          "prompt": "I checked for you, but came up empty on why."
+        }
+      ]
+    },
+    "GQA_pii_filter": {
+      "sourcePath": "pegasus_mims/GQA_pii_filter.mim",
+      "prompts": [
+        {
+          "prompt_id": "GQA_pii_filter_AN_01",
+          "prompt": "Sorry, I'm not allowed to give out that kind of personal information."
+        },
+        {
+          "prompt_id": "GQA_pii_filter_AN_02",
+          "prompt": "Sorry, I don't give out personal information like that."
+        },
+        {
+          "prompt_id": "GQA_pii_filter_AN_03",
+          "prompt": "Sorry, I can't give out personal information like that."
+        }
+      ]
+    }
+  },
+  "mimMetadata": {
+    "GQA_banned_word": [
+      {
+        "media": "TTS",
+        "weight": 0.2
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      }
+    ],
+    "GQA_error": [
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      }
+    ],
+    "GQA_no_answer_generic": [
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      }
+    ],
+    "GQA_no_answer_how": [
+      {
+        "media": "TTS",
+        "weight": null
+      },
+      {
+        "media": "TTS",
+        "weight": null
+      },
+      {
+        "media": "TTS",
+        "weight": null
+      },
+      {
+        "media": "TTS",
+        "weight": null
+      }
+    ],
+    "GQA_no_answer_what": [
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      }
+    ],
+    "GQA_no_answer_when": [
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      }
+    ],
+    "GQA_no_answer_where": [
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 0.5
+      },
+      {
+        "media": "TTS",
+        "weight": 0.1
+      }
+    ],
+    "GQA_no_answer_which": [
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      }
+    ],
+    "GQA_no_answer_who": [
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 0.2
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      }
+    ],
+    "GQA_no_answer_why": [
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      }
+    ],
+    "GQA_pii_filter": [
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      },
+      {
+        "media": "TTS",
+        "weight": 1
+      }
+    ]
+  },
+  "replay": {
+    "archivedPegasusAnswerRows": [
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_what",
+        "intent": "generalWhatQuestions",
+        "text": "what is the largest country in the world",
+        "kind": "success",
+        "source": "Bing",
+        "payload": "Russia."
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_when",
+        "intent": "generalWhenQuestions",
+        "text": "when is hunting season",
+        "kind": "success",
+        "source": "Wikipedia",
+        "payload": "legal to hunt and kill"
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_where",
+        "intent": "generalWhereQuestions",
+        "text": "where are the Galapagos Islands",
+        "kind": "success",
+        "source": "Wikipedia",
+        "payload": "Republic of Ecuador"
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_which",
+        "intent": "generalWhichQuestions",
+        "text": "which team won the football game",
+        "kind": "success",
+        "source": "Bing",
+        "payload": "Nairobi"
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_who",
+        "intent": "generalWhoQuestions",
+        "text": "who is the president of Liberia",
+        "kind": "success",
+        "source": "Wikipedia",
+        "payload": "head of state and government"
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_why",
+        "intent": "generalWhyQuestions",
+        "text": "why is there air",
+        "kind": "success",
+        "source": "Wolfram Alpha",
+        "payload": "Gaseous molecules"
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_how",
+        "intent": "generalHowQuestions",
+        "text": "how far from Honolulu to Washington DC",
+        "kind": "success",
+        "source": "Wolfram Alpha",
+        "payload": "miles"
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_new_intent",
+        "intent": "scripted",
+        "text": "who is the president of Liberia",
+        "kind": "success",
+        "source": "Wikipedia",
+        "payload": "head of state and government",
+        "mimId": "USR_WhoIsLoopMember"
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_contraction",
+        "intent": "generalWhatQuestions",
+        "text": "what's a cannoli",
+        "kind": "success",
+        "source": "Wikipedia",
+        "payload": "Cannoli are Italian pastries of the Sicily region."
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_what_is_definition",
+        "intent": "generalQuestions",
+        "text": "what is the definition of done",
+        "kind": "success",
+        "source": "Wolfram Alpha",
+        "payload": "having finished"
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_spell",
+        "intent": "generalQuestions",
+        "text": "can you please spell Worcester",
+        "kind": "success",
+        "source": "Wolfram Alpha",
+        "payload": "W o r c e s t e r"
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_movie",
+        "intent": "generalQuestions",
+        "text": "what was the release date of Star Wars",
+        "kind": "success",
+        "source": "Bing",
+        "payload": "Star Wars: The Last Jedi will be released"
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_indirect_weather",
+        "intent": "requestWeather",
+        "text": "should I grab an umbrella",
+        "kind": "success",
+        "source": "Bing",
+        "payload": "not necessary"
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_math",
+        "intent": "generalQuestions",
+        "text": "multiply five and ten",
+        "kind": "success",
+        "source": "Bing",
+        "payload": "50"
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_geometry",
+        "intent": "generalQuestions",
+        "text": "what's the volume of a sphere",
+        "kind": "success",
+        "source": "Wikipedia",
+        "payload": "a perfectly round geometrical object"
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_how_long",
+        "intent": "generalHowQuestions",
+        "text": "how long is it till July 4th",
+        "kind": "success",
+        "source": "Wolfram Alpha",
+        "payload": "answer"
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_random",
+        "intent": "generalQuestions",
+        "text": "give me a random number between 1 and 10",
+        "kind": "success",
+        "source": "Wolfram Alpha",
+        "payload": "7"
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_banned_but_cleaned",
+        "intent": "generalWhatQuestions",
+        "text": "fuck, who is OPANAL",
+        "kind": "success",
+        "source": "Wikipedia",
+        "payload": "nuclear"
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_what_neg",
+        "intent": "generalWhatQuestions",
+        "text": "what is a fixture with no answer",
+        "kind": "no-answer",
+        "questionType": "what"
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_when_neg",
+        "intent": "generalWhenQuestions",
+        "text": "when is a fixture with no answer",
+        "kind": "no-answer",
+        "questionType": "when"
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_where_neg",
+        "intent": "generalWhereQuestions",
+        "text": "where is a fixture with no answer",
+        "kind": "no-answer",
+        "questionType": "where"
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_which_neg",
+        "intent": "generalWhichQuestions",
+        "text": "which is a fixture with no answer",
+        "kind": "no-answer",
+        "questionType": "which"
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_who_neg",
+        "intent": "generalWhoQuestions",
+        "text": "who is a fixture with no answer",
+        "kind": "no-answer",
+        "questionType": "who"
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_why_neg",
+        "intent": "generalWhyQuestions",
+        "text": "why is a fixture with no answer",
+        "kind": "no-answer",
+        "questionType": "why"
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_how_neg",
+        "intent": "generalHowQuestions",
+        "text": "how is a fixture with no answer",
+        "kind": "no-answer",
+        "questionType": "how"
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_pii_neg",
+        "intent": "generalWhoQuestions",
+        "text": "who is at phone number 617-555-1234",
+        "kind": "pii",
+        "promptPrefix": "GQA_pii_filter"
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_banned_word_neg",
+        "intent": "generalWhatQuestions",
+        "text": "what is shit",
+        "kind": "banned",
+        "promptPrefix": "GQA_banned_word"
+      },
+      {
+        "sourceFile": "tests/unit/test_pegasus.py",
+        "sourceTest": "test_banned_not_cleaned",
+        "intent": "generalWhatQuestions",
+        "text": "who the fuck is David Hasselhoff",
+        "kind": "banned",
+        "promptPrefix": "GQA_banned_word"
+      }
+    ],
+    "expectedProviderQueries": {
+      "test_what": "what is the largest country in the world",
+      "test_when": "when is hunting season",
+      "test_where": "where are the Galapagos Islands",
+      "test_which": "which team won the football game",
+      "test_who": "who is the president of Liberia",
+      "test_why": "why is there air",
+      "test_how": "how far from Honolulu to Washington DC",
+      "test_new_intent": "who is the president of Liberia",
+      "test_contraction": "what's a cannoli",
+      "test_what_is_definition": "what is the definition of done",
+      "test_spell": "can you please spell Worcester",
+      "test_movie": "what was the release date of Star Wars",
+      "test_indirect_weather": "should I grab an umbrella",
+      "test_math": "multiply five and ten",
+      "test_geometry": "what's the volume of a sphere",
+      "test_how_long": "how long is it till July 4th",
+      "test_random": "give me a random number between 1 and 10",
+      "test_banned_but_cleaned": "who is OPANAL",
+      "test_what_neg": "what is a fixture with no answer",
+      "test_when_neg": "when is a fixture with no answer",
+      "test_where_neg": "where is a fixture with no answer",
+      "test_which_neg": "which is a fixture with no answer",
+      "test_who_neg": "who is a fixture with no answer",
+      "test_why_neg": "why is a fixture with no answer",
+      "test_how_neg": "how is a fixture with no answer",
+      "test_pii_neg": "who is at phone number 617-555-1234",
+      "test_banned_word_neg": "what is shit",
+      "test_banned_not_cleaned": "who the fuck is David Hasselhoff"
+    },
+    "archivedAsyncRows": [
+      {
+        "sourceFile": "tests/unit/test_async.py",
+        "sourceTest": "test_fast_bing_slow_wiki",
+        "bing": "fast",
+        "wiki": "slow",
+        "wolfram": "none",
+        "expectedPayload": "Bing fast reply"
+      },
+      {
+        "sourceFile": "tests/unit/test_async.py",
+        "sourceTest": "test_empty_bing_slow_wiki",
+        "bing": "empty",
+        "wiki": "slow",
+        "wolfram": "none",
+        "expectedPayload": "Wikipedia slow reply"
+      },
+      {
+        "sourceFile": "tests/unit/test_async.py",
+        "sourceTest": "test_fast_wiki_slow_bing",
+        "bing": "slow",
+        "wiki": "fast",
+        "wolfram": "none",
+        "expectedPayload": "Bing slow reply"
+      },
+      {
+        "sourceFile": "tests/unit/test_async.py",
+        "sourceTest": "test_fast_wiki_empty_slow_bing",
+        "bing": "slow-empty",
+        "wiki": "fast",
+        "wolfram": "none",
+        "expectedPayload": "Wikipedia fast reply"
+      },
+      {
+        "sourceFile": "tests/unit/test_async.py",
+        "sourceTest": "test_fast_wiki_timeout_bing",
+        "bing": "timeout",
+        "wiki": "fast",
+        "wolfram": "none",
+        "expectedPayload": "Wikipedia fast reply"
+      },
+      {
+        "sourceFile": "tests/unit/test_async.py",
+        "sourceTest": "test_fast_bing_timeout_wiki",
+        "bing": "fast",
+        "wiki": "timeout",
+        "wolfram": "none",
+        "expectedPayload": "Bing fast reply"
+      },
+      {
+        "sourceFile": "tests/unit/test_async.py",
+        "sourceTest": "test_timeout_bing_timeout_wiki",
+        "bing": "timeout",
+        "wiki": "timeout",
+        "wolfram": "fast",
+        "expectedPayload": "Wolfram fast reply"
+      },
+      {
+        "sourceFile": "tests/unit/test_async.py",
+        "sourceTest": "test_fast_wolfram",
+        "bing": "empty",
+        "wiki": "empty",
+        "wolfram": "fast",
+        "expectedPayload": "Wolfram fast reply"
+      },
+      {
+        "sourceFile": "tests/unit/test_async.py",
+        "sourceTest": "test_empty_wolfram",
+        "bing": "empty",
+        "wiki": "empty",
+        "wolfram": "empty",
+        "expectedPayload": null
+      },
+      {
+        "sourceFile": "tests/unit/test_async.py",
+        "sourceTest": "test_timeout_wolfram",
+        "bing": "empty",
+        "wiki": "empty",
+        "wolfram": "timeout-long",
+        "expectedPayload": null
+      },
+      {
+        "sourceFile": "tests/unit/test_async.py",
+        "sourceTest": "test_timeout_all",
+        "bing": "timeout-long",
+        "wiki": "timeout-long",
+        "wolfram": "timeout-long",
+        "expectedPayload": null
+      },
+      {
+        "sourceFile": "tests/unit/test_async.py",
+        "sourceTest": "test_bing_post_timeout",
+        "bing": "timeout",
+        "wiki": "empty",
+        "wolfram": "slow",
+        "expectedPayload": "Bing timeout reply"
+      }
+    ]
+  },
+  "fakeFixtures": {
+    "bing": {
+      "sourcePath": "fake_external/fake_external.py:/fake_bing",
+      "body": {
+        "rankingResponse": {
+          "mainline": {
+            "items": [
+              {
+                "answerType": "Facts"
+              },
+              {
+                "answerType": "WebPages"
+              },
+              {
+                "answerType": "News"
+              }
+            ]
+          }
+        },
+        "facts": {
+          "screenshot": {
+            "webSearchUrl": "https://www.bing.com/search?q=What+is+the+GDP+of+China&location=lat%3a40.7252%3blong%3a-73.9986%3bdisp%3aNew+York%252C%2520New+York%3b",
+            "thumbnailUrl": "https://www.bingapis.com/widget/apiscreenshotproxy?q=What+is+the+GDP+of+China&screenshotstyle=small&conversation=true&responseFilter=knowledge&responseformat=html&apicache=450a82ef60a84f31ba82efa328787f70&contentid=yeaPgwU8bfCWPSeKFHgcCA&apiversion=v6&w=285&z=3&scale=300&location=lat%3a40.7252%3blong%3a-73.9986%3bdisp%3aNew+York%252C%2520New+York%3b&mkt=en-US&setlang=en-US&ip=127.0.0.1&clientid=2584923558CA6C662354993059656D9D&ua=python-requests%2f2.18.2&sessionId=96F1A51061584C658DEFA06E237A2B72&expire=1508694125&seemorefilter=TaskPanePromotionAnswer_Graph&apipl=oPrN-fCnpp0ILZ5gUcnybGDXOU8issjpAsCU3gvVto57hFsHDzWK_1BfbsWkN-M_aABFL9pMEBY2mq5_l729IA"
+          },
+          "conversation": {
+            "spokenText": "The GDP of China was 11.01 trillion USD in 2015."
+          }
+        }
+      },
+      "expected": {
+        "response": {
+          "type": "string",
+          "payload": "The GDP of China was 11.01 trillion USD in 2015."
+        },
+        "type": "facts",
+        "url": "https://www.bing.com/search?q=What+is+the+GDP+of+China&location=lat%3a40.7252%3blong%3a-73.9986%3bdisp%3aNew+York%252C%2520New+York%3b",
+        "image_url": "https://www.bingapis.com/widget/apiscreenshotproxy?q=What+is+the+GDP+of+China&screenshotstyle=small&conversation=true&responseFilter=knowledge&responseformat=html&apicache=450a82ef60a84f31ba82efa328787f70&contentid=yeaPgwU8bfCWPSeKFHgcCA&apiversion=v6&w=285&z=3&scale=300&location=lat%3a40.7252%3blong%3a-73.9986%3bdisp%3aNew+York%252C%2520New+York%3b&mkt=en-US&setlang=en-US&ip=127.0.0.1&clientid=2584923558CA6C662354993059656D9D&ua=python-requests%2f2.18.2&sessionId=96F1A51061584C658DEFA06E237A2B72&expire=1508694125&seemorefilter=TaskPanePromotionAnswer_Graph&apipl=oPrN-fCnpp0ILZ5gUcnybGDXOU8issjpAsCU3gvVto57hFsHDzWK_1BfbsWkN-M_aABFL9pMEBY2mq5_l729IA"
+      }
+    },
+    "wikipedia": {
+      "sourcePath": "fake_external/fake_external.py:/fake_wiki",
+      "body": {
+        "batchcomplete": "",
+        "query": {
+          "pages": {
+            "36023212": {
+              "pageid": 36023212,
+              "ns": 0,
+              "title": "John Henry Brooke",
+              "contentmodel": "wikitext",
+              "pagelanguage": "en",
+              "pagelanguagehtmlcode": "en",
+              "pagelanguagedir": "ltr",
+              "touched": "2017-06-19T04:11:41Z",
+              "lastrevid": 737962530,
+              "length": 3342,
+              "fullurl": "https://en.wikipedia.org/wiki/John_Henry_Brooke",
+              "editurl": "https://en.wikipedia.org/w/index.php?title=John_Henry_Brooke&action=edit",
+              "canonicalurl": "https://en.wikipedia.org/wiki/John_Henry_Brooke",
+              "extract": "Hon John Henry Brooke MLA (15 May 1826 – 8 January 1902), was a colonial Victorian politician.",
+              "categories": [
+                {
+                  "ns": 14,
+                  "title": "Category:1825 births"
+                },
+                {
+                  "ns": 14,
+                  "title": "Category:1902 deaths"
+                },
+                {
+                  "ns": 14,
+                  "title": "Category:19th-century Australian politicians"
+                },
+                {
+                  "ns": 14,
+                  "title": "Category:All Wikipedia articles written in Australian English"
+                },
+                {
+                  "ns": 14,
+                  "title": "Category:All stub articles"
+                },
+                {
+                  "ns": 14,
+                  "title": "Category:Australian politician stubs"
+                },
+                {
+                  "ns": 14,
+                  "title": "Category:Members of the Victorian Legislative Assembly"
+                },
+                {
+                  "ns": 14,
+                  "title": "Category:People from Lincolnshire"
+                },
+                {
+                  "ns": 14,
+                  "title": "Category:Use Australian English from June 2015"
+                },
+                {
+                  "ns": 14,
+                  "title": "Category:Use dmy dates from June 2015"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "expected": {
+        "source": "Wikipedia",
+        "response": {
+          "type": "string",
+          "payload": "Hon John Henry Brooke MLA , was a colonial Victorian politician."
+        },
+        "attribution": "omitted"
+      }
+    },
+    "wolfram": {
+      "sourcePath": "fake_external/fake_external.py:/fake_wolfram",
+      "body": {
+        "queryresult": {
+          "success": true,
+          "pods": [
+            {
+              "title": "Result",
+              "primary": true,
+              "subpods": [
+                {
+                  "plaintext": "0.0838  (8.38%)  (2014 estimate and 12:00:00 am UTC  |  Saturday, June 1, 2013)"
+                }
+              ]
+            }
+          ],
+          "spokenresult": {
+            "generictemplate": "TheResultIs",
+            "resulttype": "Quantity",
+            "sampletext": "The answer is about 0.0838",
+            "result": {
+              "values": [
+                "0.0838"
+              ]
+            }
+          }
+        }
+      },
+      "expectedSpoken": "The answer is about 0.0838",
+      "expectedClean": "The answer is about 0.0838"
+    }
+  },
+  "gaps": {
+    "news": {
+      "sourceTests": [
+        "tests/unit/test_news.py:test_ap_news",
+        "tests/unit/test_news.py:test_attribute_insert",
+        "tests/unit/test_pegasus.py:test_news_adult_default",
+        "tests/unit/test_pegasus.py:test_news_adult_affirmative",
+        "tests/unit/test_pegasus.py:test_news_child",
+        "tests/unit/test_pegasus.py:test_news_unknown_speaker",
+        "tests/unit/test_pegasus.py:test_news_unknown_loop",
+        "tests/unit/test_pegasus.py:test_news_speaker_outside_loop",
+        "tests/unit/test_pegasus.py:test_news_speaker_no_birthdate",
+        "tests/unit/test_pegasus.py:test_news_empty_db",
+        "tests/unit/test_pegasus.py:test_news_analytics"
+      ],
+      "expectedSourceMims": [
+        "NEWS_preamble",
+        "NEWS_content",
+        "NEWS_postamble"
+      ],
+      "reason": "Phoenix has report-news internals and external news manifest assets, but no archived GQA /news_skill route contract or NEWS_* MIM inventory in the default GQA profile."
+    },
+    "integration": {
+      "sourceRows": null,
+      "knownCompleteRows": 340,
+      "locallyReplayed": 0,
+      "reason": "These archived files are live-input-only (no expected response goldens). The complete beta3-4902 payload is also unavailable through the bounded MCP response; Gitea metadata is 177,307 bytes while the observed read_file prefix ended at 69,069 code units / 2,073 nonblank rows mid-line `tha`."
+    }
+  }
+}

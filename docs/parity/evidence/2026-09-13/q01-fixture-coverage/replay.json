@@ -1,0 +1,413 @@
+{
+  "source": {
+    "repository": "jiborobot/srv-gqa-ws",
+    "ref": "master",
+    "revision": "ebe1a7d38f511570060c1fbf61bec89d58419b26",
+    "note": "Archived source and fixture inventory was read through Jibo MCP Gitea; no web source was used."
+  },
+  "inventory": {
+    "fakeProvider": {
+      "path": "fake_external/fake_external.py",
+      "size": 13864,
+      "routes": [
+        {
+          "name": "fake_bing",
+          "path": "/fake_bing",
+          "sourceModule": "gqa/bing.py"
+        },
+        {
+          "name": "fake_wiki",
+          "path": "/fake_wiki",
+          "sourceModule": "gqa/wiki.py"
+        },
+        {
+          "name": "fake_wolfram",
+          "path": "/fake_wolfram",
+          "sourceModule": "gqa/wolfram.py"
+        }
+      ]
+    },
+    "unit": {
+      "fileCount": 15,
+      "testModuleCount": 13,
+      "namedTestCount": 136,
+      "assertionCalls": 385,
+      "files": [
+        {
+          "path": "tests/unit/test_account.py",
+          "size": 1173,
+          "namedTests": 2,
+          "assertionCalls": 2
+        },
+        {
+          "path": "tests/unit/test_api_ai.py",
+          "size": 3036,
+          "namedTests": 2,
+          "assertionCalls": 6
+        },
+        {
+          "path": "tests/unit/test_async.py",
+          "size": 8697,
+          "namedTests": 12,
+          "assertionCalls": 14
+        },
+        {
+          "path": "tests/unit/test_banned_words.py",
+          "size": 2963,
+          "namedTests": 3,
+          "assertionCalls": 17
+        },
+        {
+          "path": "tests/unit/test_bing.py",
+          "size": 12709,
+          "namedTests": 19,
+          "assertionCalls": 35
+        },
+        {
+          "path": "tests/unit/test_blacklist.py",
+          "size": 2965,
+          "namedTests": 4,
+          "assertionCalls": 8
+        },
+        {
+          "path": "tests/unit/test_general.py",
+          "size": 15937,
+          "namedTests": 18,
+          "assertionCalls": 55
+        },
+        {
+          "path": "tests/unit/test_mim_registry.py",
+          "size": 4089,
+          "namedTests": 6,
+          "assertionCalls": 6
+        },
+        {
+          "path": "tests/unit/test_news.py",
+          "size": 1357,
+          "namedTests": 2,
+          "assertionCalls": 4
+        },
+        {
+          "path": "tests/unit/test_nlp.py",
+          "size": 2486,
+          "namedTests": 4,
+          "assertionCalls": 24
+        },
+        {
+          "path": "tests/unit/test_pegasus.py",
+          "size": 45685,
+          "namedTests": 39,
+          "assertionCalls": 121
+        },
+        {
+          "path": "tests/unit/test_wikipedia.py",
+          "size": 35239,
+          "namedTests": 15,
+          "assertionCalls": 80
+        },
+        {
+          "path": "tests/unit/test_wolfram.py",
+          "size": 5788,
+          "namedTests": 10,
+          "assertionCalls": 13
+        }
+      ]
+    },
+    "integration": {
+      "knownRowCount": 340,
+      "unverifiedFilenameRowLabel": "beta3-4902",
+      "liveInputOnly": true,
+      "files": [
+        {
+          "path": "tests/integration/example.txt",
+          "size": 323,
+          "declaredRows": 5,
+          "observedRows": 5,
+          "sample": [
+            "What is the GDP of China?",
+            "what is the weather",
+            "where is the nearest dunkin donuts",
+            "where is the nearest krispy kreme doughnuts",
+            "I am angry"
+          ]
+        },
+        {
+          "path": "tests/integration/random-335.txt",
+          "size": 9011,
+          "declaredRows": 335,
+          "observedRows": 335,
+          "sample": [
+            "how many carlories are in a bagel",
+            "Who is Barack Obama?",
+            "When was Elvis Presley born?",
+            "what is the weather"
+          ]
+        },
+        {
+          "path": "tests/integration/beta3-4902.txt",
+          "size": 177307,
+          "declaredRows": null,
+          "mcpObservedPrefix": {
+            "codeUnits": 69069,
+            "nonBlankRows": 2073,
+            "tail": "tha"
+          },
+          "observedRows": null,
+          "sample": [
+            "how far away is the sun",
+            "whats two plus two",
+            "who sang the song superstition",
+            "how many days until thanksgiving"
+          ]
+        }
+      ],
+      "note": "The 177,307-byte beta3-4902 file is live-input-only and has no expected output golden. Jibo MCP read_file was independently observed truncating at 69,069 code units / 2,073 nonblank rows mid-line (tail `tha`); the filename label is retained for provenance, never treated as an authoritative row count."
+    },
+    "liveSuite": {
+      "repository": "jiboV2/pegasus",
+      "ref": "dev",
+      "readThrough": "Jibo MCP gitea_read_file",
+      "totalCaseCount": 12,
+      "locallyReplayed": 0,
+      "outputGoldens": false,
+      "answer": {
+        "path": "packages/integration-tests-ext/src/answer.ts",
+        "size": 4321,
+        "caseCount": 11,
+        "cases": [
+          {
+            "name": "what is the capital of france",
+            "asr": "what is the capital of france",
+            "promptContains": [
+              "paris"
+            ],
+            "promptIDContains": "wolfram"
+          },
+          {
+            "name": "who is George Washington (United States)",
+            "asr": "who is george washington",
+            "promptContains": [
+              "first president",
+              "founding father"
+            ],
+            "promptIDContains": "bing",
+            "countryCode": "US"
+          },
+          {
+            "name": "who is George Washington (Canada)",
+            "asr": "who is george washington",
+            "promptContains": [
+              "first president",
+              "founding father"
+            ],
+            "promptIDContains": "wikipedia",
+            "countryCode": "CA",
+            "location": {
+              "lat": 43.6532,
+              "lng": -79.3832
+            },
+            "remoteAddress": "192.206.150.106"
+          },
+          {
+            "name": "who is Harish Iyer",
+            "asr": "who is Harish Iyer",
+            "promptContains": [
+              "activist",
+              "gay"
+            ],
+            "promptIDContains": "wikipedia"
+          },
+          {
+            "name": "how is the weather (United States)",
+            "asr": "how is the weather",
+            "promptIDContains": "bing",
+            "countryCode": "US"
+          },
+          {
+            "name": "how is the weather (Canada)",
+            "asr": "how is the weather",
+            "promptIDContains": "bing",
+            "countryCode": "CA",
+            "location": {
+              "lat": 43.6532,
+              "lng": -79.3832
+            },
+            "remoteAddress": "192.206.150.106"
+          },
+          {
+            "name": "how is the weather (Puerto Rico)",
+            "asr": "how is the weather",
+            "promptIDContains": "bing",
+            "countryCode": "PR",
+            "location": {
+              "lat": 18.406389,
+              "lng": -66.063889
+            },
+            "remoteAddress": "104.16.8.111"
+          },
+          {
+            "name": "how far from Boston to New York (United States)",
+            "asr": "how far from Boston to New York",
+            "promptContains": [
+              "miles"
+            ],
+            "promptIDContains": "Wolfram",
+            "countryCode": "US"
+          },
+          {
+            "name": "how far from Boston to New York (Canada)",
+            "asr": "how far from Boston to New York",
+            "promptContains": [
+              "kilometers"
+            ],
+            "promptIDContains": "Wolfram",
+            "countryCode": "CA",
+            "location": {
+              "lat": 43.6532,
+              "lng": -79.3832
+            },
+            "remoteAddress": "192.206.150.106"
+          },
+          {
+            "name": "Routes to Answers but there is no answer how do toilets work",
+            "asr": "how do toilets work",
+            "promptIDContains": "gqa_no_answer_generic"
+          },
+          {
+            "name": "Test suppression of unhelpful answers how old is albert einstein (Canada)",
+            "asr": "how old is albert einstein",
+            "promptIDContains": "gqa_no_answer_generic",
+            "countryCode": "CA",
+            "location": {
+              "lat": 43.6532,
+              "lng": -79.3832
+            },
+            "remoteAddress": "192.206.150.106"
+          }
+        ],
+        "status": "live-provider-dependent; unresolved current vendor assertions"
+      },
+      "news": {
+        "path": "packages/integration-tests-ext/src/news.ts",
+        "size": 401,
+        "caseCount": 1,
+        "cases": [
+          {
+            "name": "whats in the news",
+            "asr": "whats in the news",
+            "skill": "news",
+            "requiredPromptIDContains": [
+              "NEWS_preamble",
+              "NEWS_postamble"
+            ]
+          }
+        ],
+        "status": "live-provider-dependent; unresolved because current default profile has no /news_skill route or NEWS_* MIM inventory"
+      },
+      "note": "These moved integration-tests-ext cases assert live provider/vendor routing and substring behavior through testSingleSlim/testSequenceSlim; source files provide no response goldens. They are inventoried for authoritative scope and remain an explicit Q-01 blocker."
+    },
+    "gqaMims": {
+      "fileCount": 11,
+      "promptCount": 77
+    }
+  },
+  "replay": {
+    "mims": {
+      "files": 11,
+      "prompts": 77
+    },
+    "answers": {
+      "rows": 28,
+      "success": 18,
+      "noAnswer": 7,
+      "blocked": 3,
+      "providerObserved": 25,
+      "providerOutput": "synthetic; response shaping only"
+    },
+    "queryBoundary": {
+      "input": "what is a fixture?",
+      "providerObservedQuery": "what is a fixture"
+    },
+    "asyncRows": {
+      "rows": 12,
+      "matched": 12
+    },
+    "fakeProviders": {
+      "routes": 3,
+      "bing": 2,
+      "wikipedia": 1,
+      "wolfram": 2
+    },
+    "attribution": {
+      "accountCalls": 2,
+      "inserted": 1,
+      "retrieved": 1,
+      "wiped": 1
+    },
+    "errors": {
+      "status": 500,
+      "envelopeKeys": [
+        "message",
+        "stacktrace",
+        "version"
+      ]
+    },
+    "routing": {
+      "defaultSkillId": "answer-skill",
+      "explicitProfile": "multi-provider",
+      "registeredImplicitly": false
+    },
+    "falsifiers": {
+      "omissionRejected": true,
+      "valueCorruptionRejected": true,
+      "providerByteCorruptionRejected": true
+    }
+  },
+  "coverage": {
+    "archivedUnitTests": 136,
+    "archivedUnitAssertions": 385,
+    "knownCompleteIntegrationRows": 340,
+    "locallyReplayedIntegrationRows": 0,
+    "archivedAnswerRows": 28,
+    "archivedAsyncRows": 12,
+    "liveSuiteAnswerCases": 11,
+    "liveSuiteNewsCases": 1,
+    "locallyReplayedLiveSuiteCases": 0,
+    "exactMimPrompts": 77,
+    "exactMimMetadataRows": 77,
+    "providerRoutes": 3,
+    "gaps": [
+      {
+        "area": "news_skill",
+        "sourceCases": 11,
+        "locallyReplayed": 0,
+        "reason": "Phoenix has report-news internals and external news manifest assets, but no archived GQA /news_skill route contract or NEWS_* MIM inventory in the default GQA profile."
+      },
+      {
+        "area": "integration_beta3_4902",
+        "sourceCases": null,
+        "locallyReplayed": 0,
+        "reason": "These archived files are live-input-only (no expected response goldens). The complete beta3-4902 payload is also unavailable through the bounded MCP response; Gitea metadata is 177,307 bytes while the observed read_file prefix ended at 69,069 code units / 2,073 nonblank rows mid-line `tha`."
+      },
+      {
+        "area": "live_answer_integration",
+        "sourceCases": 11,
+        "locallyReplayed": 0,
+        "reason": "live-provider-dependent; unresolved current vendor assertions"
+      },
+      {
+        "area": "live_news_integration",
+        "sourceCases": 1,
+        "locallyReplayed": 0,
+        "reason": "live-provider-dependent; unresolved because current default profile has no /news_skill route or NEWS_* MIM inventory"
+      },
+      {
+        "area": "remaining_archived_unit_tests",
+        "sourceCases": 136,
+        "assertionCalls": 385,
+        "locallyReplayed": 40,
+        "reason": "The 40 replay rows cover source answer/async shaping controls; the remaining named tests and assertion calls require Mongo/AP/API-AI/live provider behavior or are already represented by separate bounded Q-01 evidence."
+      }
+    ]
+  }
+}

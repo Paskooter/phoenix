@@ -18,6 +18,7 @@
     "parity:check": "node scripts/parity-status.mjs --check",
     "parity:reference": "python3 scripts/parity-reference/run.py",
     "parity:coverage": "python3 scripts/parity-coverage/inventory.py",
+    "parity:q01:fixtures": "node scripts/parity-q01-fixtures/replay.mjs",
     "parity:production": "python3 scripts/parity-production/run.py",
     "parity:gate": "node scripts/parity-production/gate.mjs",
     "start:gateway": "node packages/gateway/src/index.js",
