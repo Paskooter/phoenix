@@ -24,10 +24,11 @@
     }
   },
   "candidate": {
-    "implementationFiles": {
+    "implementationFilesAtBase": {
       "packages/skills/src/report/weather.js": "7a3d303c991e66f20cb571ea1ecd1277b1c10d11c184932e0fb19df267996974",
       "packages/skills/src/report/weatherViews.js": "e3166522922ae986ab40eac925604efa4b14f17154f95d83cbc52714de5f5ea6"
     },
+    "runnerReadsCurrentCandidate": true,
     "runtime": "host Node (the comparator records the exact version)"
   },
   "coverage": {
