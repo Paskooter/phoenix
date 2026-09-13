@@ -163,6 +163,21 @@ test('S-09 preserves basic and service-down fallback paths', async () => {
   const serviceDown = makeData({ weatherData: null });
   await new WeatherMimLogic('Weather Logic').exit(serviceDown);
   assert.deepEqual(mimIds(serviceDown), ['WeatherServiceDown']);
+
+  // The source switch has no default. An out-of-domain provider icon is
+  // therefore concatenated as `undefined` in both full-data and basic paths.
+  const unknownComment = await run({ weatherData: {
+    today: { icon: 'mystery-icon' },
+    current: { icon: 'mystery-icon' },
+  } });
+  assert.deepEqual(mimIds(unknownComment), [
+    'WeatherIntro', 'WeatherCommentundefined', 'WeatherTodayHighLow',
+  ]);
+
+  const unknownBasic = await run({ weatherData: {
+    today: { highTemp: null, lowTemp: null, icon: 'mystery-icon' },
+  } });
+  assert.deepEqual(mimIds(unknownBasic), ['WeatherIntro', 'WeatherBasicundefined']);
 });
 
 test('S-09 selects today/tomorrow for full reports and honors single-skill tomorrow', async () => {

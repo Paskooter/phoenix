@@ -224,7 +224,6 @@ function getMimFromIcon(icon) {
     case Icon.cloudy: return MimPath.Cloudy;
     case Icon.partlyCloudyDay: return MimPath.PartlyCloudyDay;
     case Icon.partlyCloudyNight: return MimPath.PartlyCloudyNight;
-    default: return '';
   }
 }
 
