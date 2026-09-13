@@ -25,8 +25,12 @@ archived source route paths plus the Phoenix `/v1/news/main` adapter alias
 child/adult speaker selection, the five-headline sequence, analytics, and
 empty/error behavior through the current source-shaped news service. The
 archived news/AP unit inventory is 10 cases (one AP case plus nine Pegasus
-news cases); the separate attribution test is tracked with existing
-account/attribution coverage.
+news cases), while the local suite has 14 test blocks. Four additional
+boundary coverage areas cover UUID/literal replacement, malformed structures,
+logging-config headers, and selected-host routing; these coverage areas span
+new and existing blocks and are not a one-to-one source-case mapping. The
+separate attribution test is tracked with existing account/attribution
+coverage. The frozen news manifest remains `intents: []`.
 
 The integration text files are input corpora without expected output goldens.
 The two complete files account for 340 observed rows. The `beta3-4902.txt`

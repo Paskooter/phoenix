@@ -12,12 +12,12 @@ host route or `NEWS_preamble`, `NEWS_content`, and `NEWS_postamble` MIMs.
 The frozen Pegasus target is authoritative for manifest routing. Both
 `jiboV2/pegasus@5c0a739` and the matching `d682547` checkout keep
 `external-skills/news_manifest.json` at `intents: []`; the pinned
-`report_skill_manifest.json` owns the `requestNews` intent. The later mutable
-`jiboV2/pegasus@dev` archive adds `requestNews` and its integration test calls
-the service with `skill: 'news'`, which proves a direct service boundary but
-does not prove frozen IntentRouter selection. This candidate preserves the
-frozen empty list and records the mutable integration as a separate,
-provider/profile-dependent observation.
+`report_skill_manifest.json` owns the related news intent. The later mutable
+`jiboV2/pegasus@dev` archive adds that intent and its integration test calls
+the service explicitly with `skill: 'news'`, which proves a direct service
+boundary but does not prove frozen IntentRouter selection. This candidate
+preserves the frozen empty list and records the mutable integration as a
+separate, provider/profile-dependent observation.
 
 This candidate restores that source-shaped contract behind a replaceable
 `newsProvider({ isKid, request })` seam. A configured provider returns the
@@ -75,9 +75,11 @@ UUID response IDs, empty-data `GQA_error`, provider rejection as HTTP 500,
 malformed perception/loop/looper 500 boundaries, first duplicate transID and
 logging-config headers, all three host aliases, missing transID 400 framing,
 the frozen empty news manifest, and the registry-to-real-host answer and news
-paths. Gateway manifest provenance tests compare the news descriptor byte for
-byte with the pinned source; they do not claim that the mutable @dev
-`requestNews` registration belongs to this profile.
+paths. The 14 test blocks provide four boundary coverage areas spanning new
+and existing blocks; they are not a one-to-one mapping to the 10 archived
+news/AP cases. Gateway manifest provenance tests compare the news descriptor
+byte for byte with the pinned source and keep its intent list empty; they do
+not claim mutable @dev intent registration as frozen news routing.
 
 The Phoenix asset inventory requires non-GQA MIMs to declare
 `mim_type: announcement`; that loader metadata is added to the three archived

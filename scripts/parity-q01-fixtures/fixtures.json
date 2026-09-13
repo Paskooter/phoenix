@@ -273,6 +273,11 @@
     "news": {
       "sourceRevision": "ebe1a7d38f511570060c1fbf61bec89d58419b26",
       "sourceModule": "gqa/gqa.py:news_pegasus",
+      "frozenManifest": {
+        "path": "packages/gateway/resources/skills/external-skills/news_manifest.json",
+        "intents": [],
+        "routing": "The selected-host checks cover explicit news paths; no frozen IntentRouter news route is claimed."
+      },
       "sourceRoutes": ["/news_skill", "/news_skill/v1/main"],
       "adapterRoutes": ["/v1/news/main"],
       "sourceRouteCount": 2,
@@ -292,9 +297,16 @@
       ],
       "localSuite": {
         "path": "packages/skills/test/q01News.test.js",
-        "testCount": 11,
+        "testCount": 14,
         "sourceShapedCases": 10,
-        "additionalBoundaryTests": 1,
+        "additionalBoundaryTests": 4,
+        "additionalBoundaryCoverageAreas": [
+          "UUID response IDs and literal AP headline replacement",
+          "malformed perception, loop, and looper structures",
+          "duplicate transID and logging-config header selection",
+          "selected answer-skill host routing for news and the /v1/main answer default"
+        ],
+        "testBlockAccounting": "The 14 local test blocks are suite accounting; sourceShapedCases is archived-case coverage, not a one-to-one test-block mapping. additionalBoundaryTests counts four boundary coverage areas that span new and existing blocks.",
         "supportingAttributionSuite": "packages/skills/test/q01GqaAccountAttribution.test.js",
         "status": "passed"
       },
@@ -1605,7 +1617,7 @@
         "NEWS_content",
         "NEWS_postamble"
       ],
-      "reason": "The source-shaped /news_skill route paths, NEWS_* MIMs, speaker selection, AP seam, sequence, analytics, and error controls are locally covered by packages/skills/test/q01News.test.js; the moved live AP/vendor sequence remains unexecuted and is tracked separately."
+      "reason": "The 14-block local suite covers the 10 archived source-shaped news/AP cases plus four boundary coverage areas (UUID/literal replacement, malformed structures, logging-config headers, and selected-host routing); source-case counts are not a one-to-one test-block mapping. Frozen news intents remain [] and the moved live AP/vendor sequence remains unexecuted and tracked separately."
     },
     "integration": {
       "sourceRows": null,

@@ -11,7 +11,7 @@ npm run parity:q01:fixtures
 ```
 
 The command exited `0`. The async matrix also passed in 10 consecutive runs.
-The focused Phoenix Q-01 suite passed 120 tests with `node --test packages/skills/test/q01*.test.js`.
+The focused Phoenix Q-01 suite passed 123 tests with `node --test packages/skills/test/q01*.test.js`; the news file contributed 14 passing test blocks.
 
 | Scope | Inventory | Local result |
 | --- | ---: | --- |
@@ -20,7 +20,7 @@ The focused Phoenix Q-01 suite passed 120 tests with `node --test packages/skill
 | Archived answer rows | 28 | 18 success, 7 no-answer, 3 blocked; JCP/display/metadata/analytics checked |
 | Archived async rows | 12 | 12 matched, including timeout and provider fallback cases |
 | Fake-provider routes | 3 | Bing decoder/provider, Wikipedia provider, and Wolfram extraction/provider replayed |
-| Source-shaped news closure | 3 MIMs / 5 prompts / 2 source routes + 1 adapter alias (3 total) | Local sequence, speaker, AP seam, analytics, empty/error, and route controls passed; 10 archived news/AP cases covered |
+| Source-shaped news closure | 3 MIMs / 5 prompts / 2 source routes + 1 adapter alias (3 total) | 14 local test blocks passed across 10 archived news/AP cases and four boundary coverage areas; source-case counts are not a one-to-one test-block mapping |
 | Complete integration inputs | 340 rows | Inventory only; no response goldens exist |
 | Moved live answer suite | 11 cases | Accepted unresolved live-only provider assertions; no goldens |
 | Moved live news suite | 1 sequence | Local route/MIM boundary replayed; live AP/vendor execution remains unresolved |
@@ -28,7 +28,12 @@ The focused Phoenix Q-01 suite passed 120 tests with `node --test packages/skill
 The archived news/AP count is 10: one `test_news.py` AP case plus nine
 `test_pegasus.py` news cases. `test_news.py:test_attribute_insert` is an
 attribution case and remains separately covered by the existing account and
-attribution Q-01 suite.
+attribution Q-01 suite. The local news suite has 14 test blocks. Its four
+boundary coverage areas are UUID/literal replacement, malformed perception/
+loop/looper structures, logging-config header selection, and selected-host
+routing; those areas span new and existing blocks. The frozen news manifest
+continues to expose `intents: []`, so the selected-host checks do not claim an
+IntentRouter news route.
 
 The answer-row provider is deliberately synthetic: those rows prove source
 request cleaning and Phoenix response shaping. The source fake-provider bodies
@@ -52,7 +57,7 @@ Accepted qualifications remain explicit:
   behavior and contain no output goldens, so they remain accepted unresolved
   live-only provider assertions.
 * The moved `news.ts` sequence still requires live AP/vendor execution. Its
-  source-shaped `/news_skill` route, NEWS MIMs, preamble/postamble sequence,
+  source-shaped `/news_skill` route paths, NEWS MIMs, preamble/postamble sequence,
   and local error/speaker controls are covered; the live source file provides
   no response golden, so the live case remains an accepted unresolved
   live-only qualification. Personal Report news assets are not substituted.

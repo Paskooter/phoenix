@@ -20,6 +20,7 @@ import { createBuiltinSkills } from '../../packages/skills/src/index.js';
 import { createNewsAnswerSkill, NEWS_SOURCE_PATHS } from '../../packages/skills/src/newsAnswerSkill.js';
 
 const manifest = JSON.parse(readFileSync(new URL('./fixtures.json', import.meta.url), 'utf8'));
+const NEWS_MANIFEST = JSON.parse(readFileSync(new URL('../../packages/gateway/resources/skills/external-skills/news_manifest.json', import.meta.url), 'utf8'));
 const ARCHIVED_NEWS_SOURCE_PATHS = Object.freeze(['/news_skill', '/news_skill/v1/main']);
 
 function idFactory() {
@@ -78,13 +79,18 @@ function assertManifestShape(value) {
   assert.equal(value.inventory.gqaMims.fileCount, 11, 'archived GQA MIM files');
   assert.equal(value.inventory.gqaMims.promptCount, 77, 'archived GQA prompt count');
   assert.equal(Object.values(value.mimMetadata).reduce((total, rows) => total + rows.length, 0), 77, 'archived MIM media/weight rows');
+  assert.deepEqual(value.inventory.news.frozenManifest.intents, [], 'frozen news manifest intents');
+  assert.deepEqual(NEWS_MANIFEST.intents, value.inventory.news.frozenManifest.intents, 'current frozen news manifest intents');
   assert.deepEqual(value.inventory.news.sourceRoutes, ARCHIVED_NEWS_SOURCE_PATHS, 'archived news source routes');
   assert.equal(value.inventory.news.sourceRouteCount, 2, 'archived news source route count');
   assert.deepEqual(value.inventory.news.adapterRoutes, ['/v1/news/main'], 'Phoenix news adapter route');
   assert.equal(value.inventory.news.totalRouteCount, 3, 'total Phoenix news route count');
   assert.equal(value.inventory.news.sourceUnitCaseCount, 10, 'archived news unit case count');
-  assert.equal(value.inventory.news.localSuite.testCount, 11, 'local news test count');
+  assert.equal(value.inventory.news.localSuite.testCount, 14, 'local news test count');
   assert.equal(value.inventory.news.localSuite.sourceShapedCases, 10, 'local source-shaped news cases');
+  assert.equal(value.inventory.news.localSuite.additionalBoundaryTests, 4, 'local news boundary coverage area count');
+  assert.equal(value.inventory.news.localSuite.additionalBoundaryCoverageAreas.length, 4, 'local news boundary coverage areas');
+  assert.match(value.inventory.news.localSuite.testBlockAccounting, /not a one-to-one test-block mapping/);
   assert.equal(value.inventory.news.attributionSourceCase.sourceShapedNewsCase, false, 'news attribution case classification');
   assert.equal(value.inventory.news.localMimFileCount, 3, 'local NEWS MIM file count');
   assert.equal(value.inventory.news.localMimPromptCount, 5, 'local NEWS MIM prompt count');
@@ -197,6 +203,9 @@ async function replayNewsCoverage() {
     mims,
     sourceUnitCases: manifest.inventory.news.sourceUnitCaseCount,
     localSourceShapedCases: manifest.inventory.news.localSuite.sourceShapedCases,
+    localTestBlocks: manifest.inventory.news.localSuite.testCount,
+    additionalBoundaryCoverageAreas: manifest.inventory.news.localSuite.additionalBoundaryCoverageAreas,
+    frozenNewsIntents: manifest.inventory.news.frozenManifest.intents,
     attributionUnitCases: manifest.inventory.news.attributionSourceCase ? 1 : 0,
     attributionCoveredByExistingQ01: Boolean(manifest.inventory.news.attributionSourceCase?.coveredBy),
     sequenceRows: 1,
@@ -525,6 +534,9 @@ async function main() {
       archivedUnitAssertions: manifest.inventory.unit.assertionCalls,
       newsSourceUnitCases: manifest.inventory.news.sourceUnitCaseCount,
       newsLocalSourceShapedCases: manifest.inventory.news.localSuite.sourceShapedCases,
+      newsLocalTestBlocks: manifest.inventory.news.localSuite.testCount,
+      newsAdditionalBoundaryCoverageAreas: manifest.inventory.news.localSuite.additionalBoundaryCoverageAreas.length,
+      frozenNewsIntents: manifest.inventory.news.frozenManifest.intents,
       newsAttributionUnitCases: manifest.inventory.news.attributionSourceCase ? 1 : 0,
       newsAttributionCoveredByExistingQ01: Boolean(manifest.inventory.news.attributionSourceCase?.coveredBy),
       newsMimFiles: news.mims.files,
