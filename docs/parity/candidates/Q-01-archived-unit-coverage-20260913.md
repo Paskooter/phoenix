@@ -4,7 +4,7 @@ Source: `jiborobot/srv-gqa-ws@ebe1a7d38f511570060c1fbf61bec89d58419b26`, read th
 
 This candidate maps every named `test_*` definition counted by the archived inventory (136 rows, 385 assertion calls) to an existing executable Phoenix row or a concrete closure requirement. The two top-level `test_*` helper functions in `test_bing.py` are included as `supporting`; they are called by named tests and are not standalone unittest cases.
 
-Current row counts: covered=79, partial=41, missing=13, skipped=1, supporting=2.
+Current row counts: covered=83, partial=42, missing=8, skipped=1, supporting=2.
 
 The existing replay lane directly executes 28 archived answer rows and 12 async rows. It also executes 10 source-shaped news/AP cases, account/attribution rows, and three captured fake-provider adapter routes. This audit keeps those receipts separate from live-provider and legacy `/structQA` gaps.
 
@@ -14,7 +14,7 @@ The existing replay lane directly executes 28 archived answer rows and 12 async 
 - API-AI/MIM registry: the injected API-AI client and `doesJiboLikeThing;Object:Dogs` resolver now have focused executable coverage; the live `test_api_ai_real` response and `/structQA` integration remain qualified below.
 - News: archived AP/news source cases map to the existing matrix/provider rows; the moved live AP/vendor sequence remains a qualification.
 - Account/attribution: lookup, insert, retrieve, wipe, source windows, and HTTP parser rows are covered by the existing account suite; `/fakeAccount` remains a developer-helper seam.
-- Fake providers: captured Bing/Wikipedia/Wolfram bodies are decoded and passed through current adapters; live vendor answer assertions remain partial or missing.
+- Fake providers: captured Bing/Wikipedia/Wolfram bodies are decoded and passed through current adapters; the new Wikipedia decision matrix uses injected page JSON, while live vendor answer assertions remain partial or missing.
 
 ## Per-test map
 
@@ -38,7 +38,7 @@ The existing replay lane directly executes 28 archived answer rows and 12 async 
 | `tests/unit/test_async.py:test_bing_post_timeout` | `partial` | scripts/parity-q01-fixtures/replay.mjs#replayAsyncRows row=tests/unit/test_async.py:test_bing_post_timeout; packages/skills/test/q01GqaCompositeReplay.test.js :: Q-01 composite provider replay enforces Bing priority, Wikipedia fallback, Wolfram fallback and late priority | The late Bing winner is covered with bounded delays; the archived 3.1-second provider delay and exact source timing budget are not reproduced. |
 | `tests/unit/test_banned_words.py:test_blocked` | `covered` | packages/skills/test/q01Gqa.test.js :: Q-01 blocked-term matching agrees with 473 original Python 3.6 results | — |
 | `tests/unit/test_banned_words.py:test_allowed` | `covered` | packages/skills/test/q01Gqa.test.js :: Q-01 blocked-term matching agrees with 473 original Python 3.6 results | — |
-| `tests/unit/test_banned_words.py:test_against_dictionary` | `missing` | — | Replay of tests/unit/blocked_dictionary_words.out against the archived word-list/words.txt corpus with the expected 344 blocked rows. |
+| `tests/unit/test_banned_words.py:test_against_dictionary` | `partial` | packages/skills/test/q01BannedDictionary.test.js :: Q-01 pinned blocked_dictionary_words.out rows replay against the Phoenix matcher | The 344 expected rows are pinned and replayed; a full word-list/words.txt iteration remains open because the Jibo npm tarball is binary-only through the available MCP read surface. |
 | `tests/unit/test_bing.py:test_comparison_helper` | `supporting` | packages/skills/test/q01BingProvider.test.js :: Q-01 Bing success preserves request parameters, location headers, and screenshot output | — |
 | `tests/unit/test_bing.py:test_boolean_helper` | `supporting` | packages/skills/test/q01BingProvider.test.js :: Q-01 Bing success preserves request parameters, location headers, and screenshot output | — |
 | `tests/unit/test_bing.py:test_bing_local_live` | `partial` | packages/skills/test/q01BingProvider.test.js :: Q-01 Bing success preserves request parameters, location headers, and screenshot output | Archived live Bing execution and the unstable "I found" response are not locally replayed; the loopback adapter row proves request/decoder shape only. |
@@ -134,12 +134,12 @@ The existing replay lane directly executes 28 archived answer rows and 12 async 
 | `tests/unit/test_wikipedia.py:test_wiki_basic` | `partial` | packages/skills/test/q01Wikipedia.test.js :: Q-01 Wikipedia adapter follows source success request and result contract | Pinned page extraction and first-sentence behavior are covered, but the archived Barack Obama mock page and exact assertion are not a local row. |
 | `tests/unit/test_wikipedia.py:test_wiki_hyphen` | `partial` | packages/skills/test/q01Wikipedia.test.js :: Q-01 lexical preprocessing follows the pinned NLTK source vectors | The preprocessing boundary is covered, but the archived Julia Louis-Dreyfus page lookup/output is not. |
 | `tests/unit/test_wikipedia.py:test_wiki_wh_contraction` | `partial` | packages/skills/test/q01Wikipedia.test.js :: Q-01 lexical preprocessing follows the pinned NLTK source vectors | Contraction preprocessing is covered, but the archived France page response is not a pinned provider row. |
-| `tests/unit/test_wikipedia.py:test_wiki_endash` | `missing` | — | Unicode endash-to-ASCII-title lookup and the McCain-Feingold page assertion need a pinned source page row. |
-| `tests/unit/test_wikipedia.py:test_wiki_no_query` | `missing` | — | Direct Wikipedia empty-query return ("", ["Empty query"]) has no executable Phoenix row. |
+| `tests/unit/test_wikipedia.py:test_wiki_endash` | `covered` | packages/skills/test/q01WikipediaDecisionMatrix.test.js :: Q-01 archived Wikipedia endash decision with injected McCain–Feingold page body | The source mock summary and Unicode endash normalization are replayed with an injected page; current/live Wikipedia article content remains unqualified. |
+| `tests/unit/test_wikipedia.py:test_wiki_no_query` | `covered` | packages/skills/test/q01WikipediaDecisionMatrix.test.js :: Q-01 archived Wikipedia empty-query decision with question_type=what and zero requests | The direct search decision is exercised through the source-compatible provider call; no live article is involved. |
 | `tests/unit/test_wikipedia.py:test_wiki_nonsense` | `partial` | packages/skills/test/q01Wikipedia.test.js :: Q-01 Wikipedia missing page is a no-result source message | A missing-page no-result is covered, but the archived nonsense-query/no-match branch and exact message are not. |
 | `tests/unit/test_wikipedia.py:test_carlton_banks` | `missing` | — | Related-but-different article suppression and its exact error message need a source-derived page fixture. |
-| `tests/unit/test_wikipedia.py:test_wiki_listblocking` | `missing` | — | The full source title/list blocking matrix (oldest person, capital of India, presidents, highest mountain, etc.) has no Phoenix fixture row. |
-| `tests/unit/test_wikipedia.py:test_can_answer` | `missing` | — | The source can_answer question-type gate matrix (positive/negative with and without hints) has no Phoenix executable equivalent. |
+| `tests/unit/test_wikipedia.py:test_wiki_listblocking` | `covered` | packages/skills/test/q01WikipediaDecisionMatrix.test.js :: Q-01 archived Wikipedia title/list blocking matrix with injected page bodies and positive title controls | All named source list/title cases plus the This TV and This, Ardennes prefix controls run against synthetic page JSON; current/live article bodies remain unqualified. |
+| `tests/unit/test_wikipedia.py:test_can_answer` | `covered` | packages/skills/test/q01WikipediaDecisionMatrix.test.js :: Q-01 archived Wikipedia can_answer matrix with and without question hints | The 32 source positive/negative decisions are checked through request/no-request behavior with injected responses. |
 | `tests/unit/test_wikipedia.py:test_no_response` | `missing` | — | Empty Wikipedia page cleanup/error branch and exact unexpected-exception message need a pinned page fixture. |
 | `tests/unit/test_wikipedia.py:test_disambig_basic` | `covered` | packages/skills/test/q01Wikipedia.test.js :: Q-01 Wikipedia disambiguation follows revision options and skips disambiguation pages | — |
 | `tests/unit/test_wikipedia.py:test_disambig_nested` | `covered` | packages/skills/test/q01Wikipedia.test.js :: Q-01 Wikipedia disambiguation follows revision options and skips disambiguation pages | — |

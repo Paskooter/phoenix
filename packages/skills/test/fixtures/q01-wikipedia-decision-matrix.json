@@ -1,0 +1,197 @@
+{
+  "sourceRevision": "ebe1a7d38f511570060c1fbf61bec89d58419b26",
+  "sourceTests": [
+    "tests/unit/test_wikipedia.py:test_can_answer",
+    "tests/unit/test_wikipedia.py:test_wiki_no_query",
+    "tests/unit/test_wikipedia.py:test_wiki_endash",
+    "tests/unit/test_wikipedia.py:test_wiki_listblocking"
+  ],
+  "provenance": "Question-gate and search-decision controls are replayed with injected MediaWiki page JSON. Article bodies are synthetic and do not claim a current Wikipedia result.",
+  "canAnswer": [
+    {"id":"explicit-who","queryText":"Who is Barack Obama","questionType":"who","expected":true},
+    {"id":"explicit-when","queryText":"when is breakfast","questionType":"when","expected":true},
+    {"id":"explicit-what","queryText":"what is rain?","questionType":"what","expected":true},
+    {"id":"explicit-who-name","queryText":"Who is Wolfgang Pauli?","questionType":"who","expected":true},
+    {"id":"explicit-where","queryText":"Where is Guatamala?","questionType":"where","expected":true},
+    {"id":"explicit-whats-unicorn","queryText":"what's a unicorn","questionType":"what","expected":true},
+    {"id":"explicit-whats-milk","queryText":"what's milk","questionType":"what","expected":true},
+    {"id":"explicit-whos-president","queryText":"who's the president of Malawi","questionType":"who","expected":true},
+    {"id":"explicit-whatd","queryText":"what'd be a unicorn","questionType":"what","expected":true},
+    {"id":"explicit-how","queryText":"how do toilets work","questionType":"how","expected":false},
+    {"id":"explicit-why","queryText":"why did the Roman Empire collapse","questionType":"why","expected":false},
+    {"id":"explicit-which","queryText":"which way is north","questionType":"which","expected":false},
+    {"id":"explicit-how-kesha","queryText":"how is kesha","questionType":"how","expected":false},
+    {"id":"explicit-which-tallest","queryText":"which is tallest","questionType":"which","expected":false},
+    {"id":"explicit-which-boys","queryText":"which of the Back Street Boys is tallest","questionType":"which","expected":false},
+    {"id":"explicit-generic","queryText":"Tell me a joke","questionType":"generic","expected":false},
+    {"id":"inferred-who","queryText":"Who is Barack Obama","questionType":"","expected":true},
+    {"id":"inferred-when","queryText":"when is breakfast","questionType":"","expected":true},
+    {"id":"inferred-what","queryText":"what is rain?","questionType":"","expected":true},
+    {"id":"inferred-who-name","queryText":"Who is Wolfgang Pauli?","questionType":"","expected":true},
+    {"id":"inferred-where","queryText":"Where is Guatamala?","questionType":"","expected":true},
+    {"id":"inferred-whats-unicorn","queryText":"what's a unicorn","questionType":"","expected":true},
+    {"id":"inferred-whats-milk","queryText":"what's milk","questionType":"","expected":true},
+    {"id":"inferred-whos-president","queryText":"who's the president of Malawi","questionType":"","expected":true},
+    {"id":"inferred-whatd","queryText":"what'd be a unicorn","questionType":"","expected":true},
+    {"id":"inferred-how","queryText":"how do toilets work","questionType":"","expected":false},
+    {"id":"inferred-why","queryText":"why did the Roman Empire collapse","questionType":"","expected":false},
+    {"id":"inferred-which","queryText":"which way is north","questionType":"","expected":false},
+    {"id":"inferred-how-kesha","queryText":"how is kesha","questionType":"","expected":false},
+    {"id":"inferred-which-tallest","queryText":"which is tallest","questionType":"","expected":false},
+    {"id":"inferred-which-boys","queryText":"which of the Back Street Boys is tallest","questionType":"","expected":false},
+    {"id":"inferred-generic","queryText":"Tell me a joke","questionType":"generic","expected":false}
+  ],
+  "searchDecisions": [
+    {
+      "id":"empty-query",
+      "queryText":"",
+      "questionType":"what",
+      "page":null,
+      "expectedMessage":"Empty query",
+      "expectedRequests":0
+    },
+    {
+      "id":"endash-normalization",
+      "queryText":"what is McCain-Feingold",
+      "questionType":"what",
+      "page":{
+        "title":"McCain-Feingold",
+        "extract":"The Bipartisan Campaign Reform Act of 2002 (BCRA, McCain–Feingold Act) is a United States federal law."
+      },
+      "expectedAnswer":"The Bipartisan Campaign Reform Act of 2002 is a United States federal law.",
+      "expectedRequests":1
+    },
+    {
+      "id":"answer-not-suited-prefix",
+      "queryText":"what is oldest person",
+      "questionType":"what",
+      "page":{
+        "title":"Oldest person",
+        "extract":"This is a list about oldest person. More details follow."
+      },
+      "expectedMessage":"Blocked due to answer not suited for speak out",
+      "expectedRequests":1
+    },
+    {
+      "id":"list-capital-of-india",
+      "queryText":"what is capital of India",
+      "questionType":"what",
+      "page":{
+        "title":"List of capitals of India",
+        "extract":"List of capitals of India includes capital of India."
+      },
+      "expectedMessageContains":"due to title contains word indicating it's list",
+      "expectedRequests":1
+    },
+    {
+      "id":"list-president-of-south-sudan",
+      "queryText":"what is president of South Sudan",
+      "questionType":"what",
+      "page":{
+        "title":"List of presidents of South Sudan",
+        "extract":"List of presidents of South Sudan includes president of South Sudan."
+      },
+      "expectedMessageContains":"due to title contains word indicating it's list",
+      "expectedRequests":1
+    },
+    {
+      "id":"list-presidents-united-states",
+      "queryText":"what is presidents of the United States",
+      "questionType":"what",
+      "page":{
+        "title":"List of presidents of the United States",
+        "extract":"List of presidents of the United States includes presidents of the United States."
+      },
+      "expectedMessageContains":"due to title contains word indicating it's list",
+      "expectedRequests":1
+    },
+    {
+      "id":"list-highest-mountain",
+      "queryText":"what is highest mountain",
+      "questionType":"what",
+      "page":{
+        "title":"Lists of highest mountains",
+        "extract":"Lists of highest mountains describes highest mountain."
+      },
+      "expectedMessageContains":"due to title contains word indicating it's list",
+      "expectedRequests":1
+    },
+    {
+      "id":"list-branches-christianity",
+      "queryText":"what is branches of Christianity",
+      "questionType":"what",
+      "page":{
+        "title":"List of branches of Christianity",
+        "extract":"List of branches of Christianity describes branches of Christianity."
+      },
+      "expectedMessageContains":"due to title contains word indicating it's list",
+      "expectedRequests":1
+    },
+    {
+      "id":"list-pathogenic-disease",
+      "queryText":"what is pathogenic disease",
+      "questionType":"what",
+      "page":{
+        "title":"List of pathogenic diseases",
+        "extract":"List of pathogenic diseases describes pathogenic disease."
+      },
+      "expectedMessageContains":"due to title contains word indicating it's list",
+      "expectedRequests":1
+    },
+    {
+      "id":"list-greek-mythological-figures",
+      "queryText":"what is Greek mythological figures",
+      "questionType":"what",
+      "page":{
+        "title":"List of Greek mythological figures",
+        "extract":"List of Greek mythological figures describes Greek mythological figures."
+      },
+      "expectedMessageContains":"due to title contains word indicating it's list",
+      "expectedRequests":1
+    },
+    {
+      "id":"list-pharaohs",
+      "queryText":"what is List of pharaohs",
+      "questionType":"what",
+      "page":{
+        "title":"List of pharaohs",
+        "extract":"List of pharaohs describes List of pharaohs."
+      },
+      "expectedMessageContains":"due to title contains word indicating it's list",
+      "expectedRequests":1
+    },
+    {
+      "id":"lists-films",
+      "queryText":"what is Lists of films",
+      "questionType":"what",
+      "page":{
+        "title":"Lists of films",
+        "extract":"Lists of films describes Lists of films."
+      },
+      "expectedMessageContains":"due to title contains word indicating it's list",
+      "expectedRequests":1
+    },
+    {
+      "id":"title-this-positive",
+      "queryText":"what is This TV",
+      "questionType":"what",
+      "page":{
+        "title":"This TV",
+        "extract":"This TV is owned by ThisTV, LLC."
+      },
+      "expectedAnswer":"This TV is owned by ThisTV, LLC.",
+      "expectedRequests":1
+    },
+    {
+      "id":"title-this-ardennes-positive",
+      "queryText":"what is This, Ardennes",
+      "questionType":"what",
+      "page":{
+        "title":"This, Ardennes",
+        "extract":"This is a commune in the Ardennes department of northern France."
+      },
+      "expectedAnswer":"This is a commune in the Ardennes department of northern France.",
+      "expectedRequests":1
+    }
+  ]
+}

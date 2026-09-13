@@ -57,12 +57,14 @@
     "A target may be reused when one Phoenix matrix row genuinely exercises several archived cases; reuse does not create additional coverage rows.",
     "The 28 answer and 12 async rows are source-shaped controls; provider outputs are synthetic unless a target explicitly names a pinned adapter body.",
     "News source cases are counted as 10 archived cases and 14 local test blocks in the existing receipt; this map does not convert the 14 blocks into 14 source cases.",
-    "Live integration inputs and live provider assertions without output goldens remain partial or missing even when a local adapter seam exists."
+    "Live integration inputs and live provider assertions without output goldens remain partial or missing even when a local adapter seam exists.",
+    "Wikipedia decision-matrix rows use injected page JSON and source-derived summaries; they cover deterministic gate/title/normalization decisions and do not claim current/live article output.",
+    "The blocked-dictionary row pins all 344 archived output words and replays them against the matcher; it remains partial until the full word-list/words.txt corpus is available through the allowed source surface."
   ],
   "counts": {
-    "covered": 79,
-    "partial": 41,
-    "missing": 13,
+    "covered": 83,
+    "partial": 42,
+    "missing": 8,
     "skipped": 1,
     "supporting": 2
   },
@@ -201,9 +203,9 @@
       "source": "tests/unit/test_banned_words.py:test_against_dictionary",
       "sourceFile": "tests/unit/test_banned_words.py",
       "test": "test_against_dictionary",
-      "status": "missing",
-      "target": null,
-      "closure": "Replay of tests/unit/blocked_dictionary_words.out against the archived word-list/words.txt corpus with the expected 344 blocked rows."
+      "status": "partial",
+      "target": "packages/skills/test/q01BannedDictionary.test.js :: Q-01 pinned blocked_dictionary_words.out rows replay against the Phoenix matcher",
+      "closure": "The 344 expected rows are pinned from the archived output and replayed. A full iteration over the archived word-list/words.txt corpus remains open because the Jibo npm tarball is binary-only through the available MCP read surface."
     },
     {
       "source": "tests/unit/test_bing.py:test_comparison_helper",
@@ -907,17 +909,17 @@
       "source": "tests/unit/test_wikipedia.py:test_wiki_endash",
       "sourceFile": "tests/unit/test_wikipedia.py",
       "test": "test_wiki_endash",
-      "status": "missing",
-      "target": null,
-      "closure": "Unicode endash-to-ASCII-title lookup and the McCain-Feingold page assertion need a pinned source page row."
+      "status": "covered",
+      "target": "packages/skills/test/q01WikipediaDecisionMatrix.test.js :: Q-01 archived Wikipedia endash decision with injected McCain–Feingold page body",
+      "closure": "The source mock summary and Unicode endash normalization are replayed with an injected page; current/live Wikipedia article content remains unqualified."
     },
     {
       "source": "tests/unit/test_wikipedia.py:test_wiki_no_query",
       "sourceFile": "tests/unit/test_wikipedia.py",
       "test": "test_wiki_no_query",
-      "status": "missing",
-      "target": null,
-      "closure": "Direct Wikipedia empty-query return (\"\", [\"Empty query\"]) has no executable Phoenix row."
+      "status": "covered",
+      "target": "packages/skills/test/q01WikipediaDecisionMatrix.test.js :: Q-01 archived Wikipedia empty-query decision with question_type=what and zero requests",
+      "closure": "The direct search decision is exercised through the source-compatible provider call; no live article is involved."
     },
     {
       "source": "tests/unit/test_wikipedia.py:test_wiki_nonsense",
@@ -939,17 +941,17 @@
       "source": "tests/unit/test_wikipedia.py:test_wiki_listblocking",
       "sourceFile": "tests/unit/test_wikipedia.py",
       "test": "test_wiki_listblocking",
-      "status": "missing",
-      "target": null,
-      "closure": "The full source title/list blocking matrix (oldest person, capital of India, presidents, highest mountain, etc.) has no Phoenix fixture row."
+      "status": "covered",
+      "target": "packages/skills/test/q01WikipediaDecisionMatrix.test.js :: Q-01 archived Wikipedia title/list blocking matrix with injected page bodies and positive title controls",
+      "closure": "All named source list/title cases plus the This TV and This, Ardennes prefix controls run against synthetic page JSON; current/live article bodies remain unqualified."
     },
     {
       "source": "tests/unit/test_wikipedia.py:test_can_answer",
       "sourceFile": "tests/unit/test_wikipedia.py",
       "test": "test_can_answer",
-      "status": "missing",
-      "target": null,
-      "closure": "The source can_answer question-type gate matrix (positive/negative with and without hints) has no Phoenix executable equivalent."
+      "status": "covered",
+      "target": "packages/skills/test/q01WikipediaDecisionMatrix.test.js :: Q-01 archived Wikipedia can_answer matrix with and without question hints",
+      "closure": "The 32 source positive/negative decisions are checked through request/no-request behavior with injected responses."
     },
     {
       "source": "tests/unit/test_wikipedia.py:test_no_response",
