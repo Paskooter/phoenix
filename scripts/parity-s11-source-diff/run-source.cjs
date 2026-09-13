@@ -42,6 +42,16 @@ if (fileSha(compiledPath) !== matrix.reference.compiledRecordSha256) fail('pinne
 var compiled = JSON.parse(fs.readFileSync(compiledPath, 'utf8'));
 if (compiled.referenceRevision !== matrix.reference.revision) fail('source revision mismatch: ' + compiled.referenceRevision);
 
+// The compiled record is the immutable source dependency manifest. Check every
+// recorded TypeScript input and JavaScript output, including transitive local
+// modules that are not needed by the small receipt projection.
+Object.keys(compiled.inputs || {}).forEach(function (file) {
+  requirePinnedFile(file, compiled.inputs, 'source dependency');
+});
+Object.keys(compiled.outputs || {}).forEach(function (file) {
+  requirePinnedFile(file, compiled.outputs, 'compiled dependency');
+});
+
 var sourcePaths = matrix.reference.sourcePaths || [];
 var compiledPaths = matrix.reference.compiledPaths || [];
 var sourceHashes = matrix.reference.sourceHashes || {};
@@ -119,7 +129,9 @@ function logicForRun(item) {
   }).then(function (commute) {
     item.data.local.commute = commute;
     return new CommuteMimLogic().exit(item.data).then(function () {
-      return fixture.projectLocal(item.data.local);
+      return fixture.projectLocal(item.data.local, {
+        sourceMimRoot: path.join('/ref', 'packages/report-skill/mims/en-us'),
+      });
     });
   });
 }
@@ -128,7 +140,7 @@ function execute(run) {
   var materialized = fixture.materialize(run);
   materialized.run = run;
   if (run.operation === 'getData') {
-    return commuteGetData({ commute: materialized.prefs.commute }, materialized.data);
+    return commuteGetData({ commute: materialized.prefs.commute }, materialized.data).then(fixture.encode);
   }
   if (run.operation === 'parse') return parseForRun(materialized);
   if (run.operation === 'logic') return logicForRun(materialized);
@@ -154,11 +166,15 @@ function makeReceipt(cases) {
       testSupportPath: testSupportPath,
       testSupportSha256: fileSha(path.join(ref, testSupportPath)),
       compiledRecordSha256: fileSha(compiledPath),
+      matrixSha256: fileSha(matrixPath),
+      contractSha256: fileSha(path.join(__dirname, 'contract.json')),
       sourcePaths: sourcePaths,
       sourceHashes: {},
       compiledPaths: compiledPaths,
       compiledHashes: {},
       resourceHashes: {},
+      sourceDependencyHashes: compiled.inputs || {},
+      compiledDependencyHashes: compiled.outputs || {},
     },
     counts: {
       namedCases: cases.length,

@@ -13,8 +13,14 @@ import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const worktree = path.resolve(here, '../..');
-const matrixPath = path.join(here, 'matrix.json');
-const matrix = JSON.parse(fs.readFileSync(matrixPath, 'utf8'));
+const defaultMatrixPath = path.join(here, 'matrix.json');
+const contractPath = path.join(here, 'contract.json');
+// This digest is deliberately code-pinned. A matrix or contract replacement
+// therefore cannot change the expected inventory by rehashing itself.
+const CONTRACT_SHA256 = 'd5a9ded0f9b0c609f66aa986555b59b4e96b2ee01ed5c0eda37f7961b740eef2';
+const contract = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
+let matrixPath;
+let matrix;
 
 function sha(value) { return crypto.createHash('sha256').update(value).digest('hex'); }
 function fileSha(file) { return sha(fs.readFileSync(file)); }
@@ -66,6 +72,39 @@ const EXPECTED = {
   ],
 };
 
+function expectContractFile() {
+  if (CONTRACT_SHA256.indexOf('__') === 0 || fileSha(contractPath) !== CONTRACT_SHA256) {
+    throw new Error('immutable S-11 contract changed');
+  }
+  if (contract.schema !== 'phoenix.parity.s11.commute-contract.v1') throw new Error('S-11 contract schema mismatch');
+  const comparator = fs.readFileSync(path.join(here, 'compare.mjs'), 'utf8')
+    .replace(/const CONTRACT_SHA256 = '[0-9a-f]{64}';/, "const CONTRACT_SHA256 = '__CONTRACT_SHA256__';");
+  if (sha(comparator) !== contract.comparatorSha256) throw new Error('comparator implementation changed');
+}
+
+function validateContractMatrix() {
+  if (fileSha(matrixPath) !== contract.matrixSha256) throw new Error('matrix file is not the pinned S-11 matrix');
+  if (matrix.schema !== contract.matrix.schema || matrix.task !== contract.matrix.task
+    || matrix.base !== contract.matrix.base || matrix.branch !== contract.matrix.branch) {
+    throw new Error('matrix identity differs from immutable S-11 contract');
+  }
+  if (canonical(matrix.counts) !== canonical(contract.matrix.counts)
+    || canonical(matrix.runtime) !== canonical(contract.runtime)
+    || canonical(matrix.reference) !== canonical(contract.reference)
+    || canonical(matrix.candidate) !== canonical(contract.candidate)) {
+    throw new Error('matrix provenance/runtime differs from immutable S-11 contract');
+  }
+  if (sha(canonical(matrix.cases)) !== contract.matrix.primaryCasesSha256
+    || matrix.caseMatrixSha256 !== contract.matrix.caseMatrixSha256
+    || matrix.inventorySha256 !== contract.matrix.inventorySha256) {
+    throw new Error('primary case inventory differs from immutable S-11 contract');
+  }
+  if (sha(canonical(matrix.supplemental)) !== contract.matrix.supplementalCasesSha256
+    || matrix.supplementalMatrixSha256 !== contract.matrix.supplementalMatrixSha256) {
+    throw new Error('supplemental inventory differs from immutable S-11 contract');
+  }
+}
+
 function validatePrimaryMatrix() {
   if (matrix.schema !== EXPECTED.schema || matrix.task !== EXPECTED.task || matrix.base !== EXPECTED.base || matrix.branch !== EXPECTED.branch) throw new Error('matrix identity mismatch');
   if (canonical(matrix.counts) !== canonical({ ...EXPECTED.primaryCounts, groups: EXPECTED.primaryGroups })) throw new Error('matrix primary counts/group mismatch');
@@ -108,6 +147,7 @@ function parseArgs(argv) {
   const args = {
     out: path.join(worktree, '.parity/runs/s11-commute'),
     reference: process.env.PHOENIX_S11_REFERENCE || defaultReference,
+    matrix: defaultMatrixPath,
     sourceReceipt: null,
     candidateReceipt: null,
     candidateRevision: null,
@@ -115,11 +155,12 @@ function parseArgs(argv) {
   for (let i = 0; i < argv.length; i += 1) {
     if (argv[i] === '--out') args.out = path.resolve(argv[++i]);
     else if (argv[i] === '--reference') args.reference = path.resolve(argv[++i]);
+    else if (argv[i] === '--matrix') args.matrix = path.resolve(argv[++i]);
     else if (argv[i] === '--source-receipt') args.sourceReceipt = path.resolve(argv[++i]);
     else if (argv[i] === '--candidate-receipt') args.candidateReceipt = path.resolve(argv[++i]);
     else if (argv[i] === '--candidate-revision') args.candidateRevision = argv[++i];
     else if (argv[i] === '--help') {
-      console.log('Usage: node compare.mjs [--reference PATH] [--out DIR]');
+      console.log('Usage: node compare.mjs [--reference PATH] [--matrix PATH] [--out DIR]');
       console.log('       node compare.mjs --source-receipt PATH --candidate-receipt PATH --candidate-revision REV [--out DIR]');
       process.exit(0);
     }
@@ -130,12 +171,73 @@ function parseArgs(argv) {
   return args;
 }
 
-function currentRevision() {
-  const result = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: worktree, encoding: 'utf8' });
+function currentRevision(cwd = worktree) {
+  const result = spawnSync('git', ['rev-parse', 'HEAD'], { cwd, encoding: 'utf8' });
   if (result.status !== 0) throw new Error(`cannot determine candidate revision: ${result.stderr || result.status}`);
   const revision = result.stdout.trim();
   if (!/^[0-9a-f]{40}$/.test(revision)) throw new Error(`invalid candidate revision: ${revision}`);
   return revision;
+}
+
+function candidateStatus(cwd = worktree) {
+  const result = spawnSync('git', ['status', '--porcelain', '--untracked-files=all'], { cwd, encoding: 'utf8' });
+  if (result.status !== 0) throw new Error('cannot determine candidate worktree status: ' + (result.stderr || result.status));
+  return result.stdout.replace(/\s+$/, '');
+}
+
+function validateCandidateFiles() {
+  const candidate = contract.candidate;
+  const check = (files, hashes, label) => {
+    if (!Array.isArray(files) || !hashes) throw new Error('contract omits candidate ' + label + ' provenance');
+    files.forEach(file => {
+      const absolute = path.join(worktree, file);
+      if (!fs.existsSync(absolute) || fileSha(absolute) !== hashes[file]) throw new Error('candidate ' + label + ' changed: ' + file);
+    });
+  };
+  check(candidate.paths, candidate.hashes, 'module');
+  check(candidate.resourcePaths, candidate.resourceHashes, 'resource');
+  check(candidate.dependencyPaths, candidate.dependencyHashes, 'dependency');
+}
+
+function validateCandidateWorktree(expectedRevision) {
+  if (currentRevision() !== expectedRevision) throw new Error('candidate revision does not match receipt run');
+  validateCandidateFiles();
+  const allowedHarness = new Set([
+    ...contract.harness.paths,
+    'scripts/parity-s11-source-diff/compare.mjs',
+    'scripts/parity-s11-source-diff/contract.json',
+    'scripts/parity-s11-source-diff/make-matrix.mjs',
+  ]);
+  const dirty = candidateStatus().split('\n').filter(Boolean).filter(line => {
+    const file = line.slice(3).replace(/^"|"$/g, '');
+    return !allowedHarness.has(file);
+  });
+  if (dirty.length) throw new Error('candidate worktree is dirty outside the harness: ' + dirty.join(', '));
+}
+
+function validateReferenceFiles(referenceRoot) {
+  const reference = contract.reference;
+  const actual = file => fileSha(path.join(referenceRoot, file));
+  if (actual('parity-compiled.json') !== reference.compiledRecordSha256) throw new Error('pinned compiled source record changed');
+  const compiled = JSON.parse(fs.readFileSync(path.join(referenceRoot, 'parity-compiled.json'), 'utf8'));
+  if (compiled.referenceRevision !== reference.revision) throw new Error('source revision differs from immutable contract');
+  for (const [file, expected] of Object.entries(compiled.inputs || {})) {
+    if (actual(file) !== expected) throw new Error('pinned source dependency changed: ' + file);
+  }
+  for (const [file, expected] of Object.entries(compiled.outputs || {})) {
+    if (actual(file) !== expected) throw new Error('pinned compiled dependency changed: ' + file);
+  }
+  if (actual(reference.testPath) !== reference.testSha256) throw new Error('archived Commute test hash mismatch');
+  if (actual(reference.testSupportPath) !== reference.testSupportSha256) throw new Error('archived TestUtils hash mismatch');
+  for (const [file, expected] of Object.entries(reference.resourceHashes || {})) {
+    if (actual(file) !== expected) throw new Error('pinned source resource changed: ' + file);
+  }
+}
+
+function validateHarnessFiles() {
+  for (const [file, expected] of Object.entries(contract.harness.hashes || {})) {
+    if (fileSha(path.join(worktree, file)) !== expected) throw new Error('harness file changed: ' + file);
+  }
 }
 
 function run(argv, cwd, logPath, env = {}) {
@@ -181,17 +283,27 @@ function validateReceipt(receipt, side) {
   validateRows(receipt.cases, side, matrix.cases);
   validateRows(receipt.supplemental && receipt.supplemental.cases, side, matrix.supplemental.cases, true);
   if (!receipt.supplemental || canonical(receipt.supplemental.counts) !== canonical(matrix.supplemental.counts)) throw new Error(`${side} supplemental receipt counts mismatch`);
+  if (!receipt.runtime || receipt.runtime.timezone !== contract.runtime.timezone || receipt.runtime.clockISO !== contract.runtime.clockISO || receipt.runtime.randomSeed !== contract.runtime.randomSeed) throw new Error(side + ' runtime differs from immutable contract');
   if (side === 'source') {
     const reference = receipt.reference;
     if (!reference || reference.repo !== matrix.reference.repo || reference.revision !== matrix.reference.revision || reference.testPath !== matrix.reference.testPath || reference.testSha256 !== matrix.reference.testSha256 || reference.testSupportPath !== matrix.reference.testSupportPath || reference.testSupportSha256 !== matrix.reference.testSupportSha256 || reference.compiledRecordSha256 !== matrix.reference.compiledRecordSha256) throw new Error('source reference metadata mismatch');
     if (canonical(reference.sourcePaths) !== canonical(matrix.reference.sourcePaths) || canonical(reference.sourceHashes) !== canonical(matrix.reference.sourceHashes) || canonical(reference.compiledPaths) !== canonical(matrix.reference.compiledPaths) || canonical(reference.compiledHashes) !== canonical(matrix.reference.compiledHashes) || canonical(reference.resourceHashes) !== canonical(matrix.reference.resourceHashes)) throw new Error('source reference hash receipt mismatch');
+    if (reference.matrixSha256 !== contract.matrixSha256 || reference.contractSha256 !== CONTRACT_SHA256) throw new Error('source run provenance mismatch');
+    if (!reference.sourceDependencyHashes || !reference.compiledDependencyHashes) throw new Error('source dependency provenance missing');
+    const compiled = JSON.parse(fs.readFileSync(path.join(args.reference, 'parity-compiled.json'), 'utf8'));
+    if (canonical(reference.sourceDependencyHashes) !== canonical(compiled.inputs) || canonical(reference.compiledDependencyHashes) !== canonical(compiled.outputs)) throw new Error('source dependency receipt mismatch');
   } else {
     if (!receipt.candidate || receipt.candidate.revision !== expectedCandidateRevision) throw new Error('candidate revision provenance mismatch');
     if (canonical(receipt.candidate.moduleSha256) !== canonical(matrix.candidate.hashes) || canonical(receipt.candidate.resourceSha256) !== canonical(matrix.candidate.resourceHashes)) throw new Error('candidate source/resource provenance mismatch');
+    if (canonical(receipt.candidate.dependencySha256) !== canonical(contract.candidate.dependencyHashes)
+      || receipt.candidate.matrixSha256 !== contract.matrixSha256
+      || receipt.candidate.contractSha256 !== CONTRACT_SHA256) throw new Error('candidate run provenance mismatch');
   }
 }
 
 const args = parseArgs(process.argv.slice(2));
+matrixPath = args.matrix;
+matrix = JSON.parse(fs.readFileSync(matrixPath, 'utf8'));
 fs.mkdirSync(args.out, { recursive: true });
 const sourceOut = args.sourceReceipt || path.join(args.out, 'source.json');
 const candidateOut = args.candidateReceipt || path.join(args.out, 'candidate.json');
@@ -200,12 +312,20 @@ const candidateLog = path.join(args.out, 'candidate.log');
 const commands = [];
 let fatal = null;
 let expectedCandidateRevision = null;
-try { validatePrimaryMatrix(); validateSupplementalMatrix(); } catch (error) { fatal = String(error && error.stack || error); }
+try {
+  expectContractFile();
+  validateHarnessFiles();
+  validateReferenceFiles(args.reference);
+  validateContractMatrix();
+  validatePrimaryMatrix();
+  validateSupplementalMatrix();
+} catch (error) { fatal = String(error && error.stack || error); }
 
 if (!fatal) try {
   if (args.sourceReceipt) {
     if (!fs.existsSync(sourceOut) || !fs.existsSync(candidateOut)) throw new Error('receipt check input is missing');
     expectedCandidateRevision = args.candidateRevision || currentRevision();
+    validateCandidateWorktree(expectedCandidateRevision);
     commands.push({
       mode: 'receipt-check',
       sourceReceipt: sourceOut,
@@ -230,6 +350,7 @@ if (!fatal) try {
     if (sourceRun.status !== 0) throw new Error(`source runner failed (see ${sourceLog})`);
     const revision = currentRevision();
     expectedCandidateRevision = revision;
+    validateCandidateWorktree(expectedCandidateRevision);
     const candidateArgv = ['node', path.join(here, 'run-candidate.mjs'), matrixPath, candidateOut];
     const candidateRun = run(candidateArgv, worktree, candidateLog, { PHOENIX_S11_REVISION: revision, PHOENIX_S11_EXPECTED_REVISION: revision });
     commands.push({ side: 'candidate', ...candidateRun });
@@ -269,6 +390,12 @@ const report = {
   task: matrix.task,
   base: matrix.base,
   branch: matrix.branch,
+  contract: {
+    sha256: CONTRACT_SHA256,
+    matrixSha256: contract.matrixSha256,
+    primaryCasesSha256: contract.matrix.primaryCasesSha256,
+    supplementalCasesSha256: contract.matrix.supplementalCasesSha256,
+  },
   reference: { ...matrix.reference, sourceImage: matrix.runtime.sourceImage, sourceImageDigest: matrix.runtime.sourceImageDigest, path: args.reference },
   candidate: { worktree, revision: candidate && candidate.candidate && candidate.candidate.revision },
   coverage: {

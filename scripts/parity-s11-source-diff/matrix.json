@@ -310,7 +310,11 @@
       "packages/report-skill/src/subskills/commute/CommuteViews.ts",
       "packages/report-skill/src/subskills/commute/index.ts",
       "packages/report-skill/src/subskills/calendar/CalendarParse.ts",
-      "packages/report-skill/src/utils.ts"
+      "packages/report-skill/src/utils.ts",
+      "packages/report-skill/src/Names.ts",
+      "packages/report-skill/src/LassoClient.ts",
+      "packages/report-skill/src/LassoClientUtils.ts",
+      "packages/report-skill/src/EnvVars.ts"
     ],
     "sourceHashes": {
       "packages/report-skill/src/subskills/commute/CommuteData.ts": "305edcb112d4cb7d8dbb711f35f445537ca738066311706f8ba7569c9b7eb5ff",
@@ -320,7 +324,11 @@
       "packages/report-skill/src/subskills/commute/CommuteViews.ts": "2a11818e948f45c640450b1db825c778b74cbd8f9aa37b6f37aebb9ad2f82086",
       "packages/report-skill/src/subskills/commute/index.ts": "c2d9923e04feaea032b11c6418c1e4ea90a41d5a85598b33841b5941afea5833",
       "packages/report-skill/src/subskills/calendar/CalendarParse.ts": "9415b98b5893530bf444aa872bd25fbaab833d329ff200480d6ea8ae7f0a73ea",
-      "packages/report-skill/src/utils.ts": "a0dcd0219595a1293f051d277533b0de2802aa56f6e010f5d175bc15f47f6dae"
+      "packages/report-skill/src/utils.ts": "a0dcd0219595a1293f051d277533b0de2802aa56f6e010f5d175bc15f47f6dae",
+      "packages/report-skill/src/Names.ts": "6442d871900f1a95c4973baf9f7532623aa263c4157069fc48a4d24e99796320",
+      "packages/report-skill/src/LassoClient.ts": "03c51556c302c9ddf48147b62b3abea2ecd250db55a00b03cca5820bc148c2c5",
+      "packages/report-skill/src/LassoClientUtils.ts": "6d45345b87df0e3c325c5e8f8317f57f4894a595b4d530915110a5bcd53eb121",
+      "packages/report-skill/src/EnvVars.ts": "9b62f558b9c7470f25ca69be4dcadcee647042c8bbe34abb2050ab8157b03f27"
     },
     "compiledPaths": [
       "packages/report-skill/lib/subskills/commute/CommuteData.js",
@@ -330,7 +338,11 @@
       "packages/report-skill/lib/subskills/commute/CommuteViews.js",
       "packages/report-skill/lib/subskills/commute/index.js",
       "packages/report-skill/lib/subskills/calendar/CalendarParse.js",
-      "packages/report-skill/lib/utils.js"
+      "packages/report-skill/lib/utils.js",
+      "packages/report-skill/lib/Names.js",
+      "packages/report-skill/lib/LassoClient.js",
+      "packages/report-skill/lib/LassoClientUtils.js",
+      "packages/report-skill/lib/EnvVars.js"
     ],
     "compiledHashes": {
       "packages/report-skill/lib/subskills/commute/CommuteData.js": "adb56959a8b5703ae363be8dd32133767d91b7005f77aef79a783997c93af05c",
@@ -340,7 +352,11 @@
       "packages/report-skill/lib/subskills/commute/CommuteViews.js": "651af074a57ff0ba16c890daa9c9ec9d249c32060efc01c29ebbffa8014242e0",
       "packages/report-skill/lib/subskills/commute/index.js": "08df0da67e92b5c5c8aa165b6ec89217a3cf8450bdeecedb64b8f8c48803e000",
       "packages/report-skill/lib/subskills/calendar/CalendarParse.js": "30263f8b8ceb5a1af13160d27eafffc1fd61cec35388acefae35aabd956373ba",
-      "packages/report-skill/lib/utils.js": "fe5bba7fe80870957fa18b339141d41dc127bf3d250e7e1b051666b20b7f1e5c"
+      "packages/report-skill/lib/utils.js": "fe5bba7fe80870957fa18b339141d41dc127bf3d250e7e1b051666b20b7f1e5c",
+      "packages/report-skill/lib/Names.js": "d0980ccd164e63c5ebcdd312fd19adb70d72863e64ed36c115e85b5a16e37a31",
+      "packages/report-skill/lib/LassoClient.js": "38c2640d359d693228d422daa015d99007fdb3d8a4c1de34bd0de2e692dc1501",
+      "packages/report-skill/lib/LassoClientUtils.js": "67da130fffb04b8c3ffada3f6675e96c3017e15240d7e424a8f4e60081a0e053",
+      "packages/report-skill/lib/EnvVars.js": "fc80a5ed20300fd913e3bd36af5044190c44e45fdad485337a9b9e5c7280d5ca"
     },
     "resourcePaths": [
       "packages/report-skill/resources/views/commuteTraffic.json",
@@ -361,7 +377,12 @@
       "packages/skills/src/graph/nodes.js",
       "packages/skills/src/graph/node.js",
       "packages/skills/src/graph/graph.js",
-      "packages/skills/src/report/lassoClient.js"
+      "packages/skills/src/report/lassoClient.js",
+      "packages/skills/src/jcpId.js",
+      "packages/skills/src/graph/mims/protocol.js",
+      "packages/skills/src/report/calendarViews.js",
+      "packages/skills/src/report/xml.js",
+      "packages/skills/src/report/env.js"
     ],
     "hashes": {
       "packages/skills/src/report/commute.js": "609e4bca42da771ea4bea7dcbcfd985d220648242504e21610f3b0072e22c414",
@@ -372,7 +393,12 @@
       "packages/skills/src/graph/nodes.js": "26547c609c7c391e6a44c6c27268235e664d5d30fe38b565124521498af42ce0",
       "packages/skills/src/graph/node.js": "e93cc738a0f3c2d5a4b99d6b2cc110663f13c5bbf163034df769b17614fafde3",
       "packages/skills/src/graph/graph.js": "8b97b2a0553c1e3ce093bf5e892df2678dffaa30c26887180b09e53c354f516f",
-      "packages/skills/src/report/lassoClient.js": "aa3640331e473a216bcef21982b0eb47cb2f4bfd7a1909e4cd8b37dedaa44f6c"
+      "packages/skills/src/report/lassoClient.js": "aa3640331e473a216bcef21982b0eb47cb2f4bfd7a1909e4cd8b37dedaa44f6c",
+      "packages/skills/src/jcpId.js": "57f39697d96b1550f0c2a7fa36d81456764b4ef375f73dd027a89b6f8436e6f5",
+      "packages/skills/src/graph/mims/protocol.js": "17afb1d1039916e59af9dfff70b5fecce15cfbc1b794a19da2b6c57513acbe75",
+      "packages/skills/src/report/calendarViews.js": "5ecbf7dd8ee69562874b3eb1c648dbd1178cedfd1c66cb4767f7f2a57459acef",
+      "packages/skills/src/report/xml.js": "f00e20833e65743d6217b4f58677136b7b08ca1a2fa0731f1cbe8184632ad358",
+      "packages/skills/src/report/env.js": "51b3e793709bbd2cd8ad8c07f780fd1958cd0c7ea5f69064304caa7cd381bade"
     },
     "resourcePaths": [
       "packages/skills/resources/views/commuteTraffic.json",
@@ -381,6 +407,16 @@
     "resourceHashes": {
       "packages/skills/resources/views/commuteTraffic.json": "dd91bbd037f4b6493a979c55af3f0337bdda5f8c76883747aaffbf379dcd910e",
       "packages/skills/resources/views/commuteDepart.json": "b57b7d1188a27231d60bb24f99392882fb24796a005c74fd031b41ffec0995e5"
+    },
+    "dependencyPaths": [
+      "package.json",
+      "package-lock.json",
+      "packages/skills/package.json"
+    ],
+    "dependencyHashes": {
+      "package.json": "efc3628eec21d481c6961a6e706503f52093a6550f900f79969a1f226b3a5c78",
+      "package-lock.json": "38841632b2ab0e8e9d9e01c77aa6ddea5e0cbdc7f8bf9f4a97dee0b8304e34d1",
+      "packages/skills/package.json": "7fc2dc35ba679e5ed51bebb755919522613f6e2876ecd002fc6a506cbedbcf01"
     }
   },
   "cases": [

@@ -23,6 +23,10 @@ const sourcePaths = [
   'packages/report-skill/src/subskills/commute/index.ts',
   'packages/report-skill/src/subskills/calendar/CalendarParse.ts',
   'packages/report-skill/src/utils.ts',
+  'packages/report-skill/src/Names.ts',
+  'packages/report-skill/src/LassoClient.ts',
+  'packages/report-skill/src/LassoClientUtils.ts',
+  'packages/report-skill/src/EnvVars.ts',
 ];
 const sourceHashes = {
   'packages/report-skill/src/subskills/commute/CommuteData.ts': '305edcb112d4cb7d8dbb711f35f445537ca738066311706f8ba7569c9b7eb5ff',
@@ -33,6 +37,10 @@ const sourceHashes = {
   'packages/report-skill/src/subskills/commute/index.ts': 'c2d9923e04feaea032b11c6418c1e4ea90a41d5a85598b33841b5941afea5833',
   'packages/report-skill/src/subskills/calendar/CalendarParse.ts': '9415b98b5893530bf444aa872bd25fbaab833d329ff200480d6ea8ae7f0a73ea',
   'packages/report-skill/src/utils.ts': 'a0dcd0219595a1293f051d277533b0de2802aa56f6e010f5d175bc15f47f6dae',
+  'packages/report-skill/src/Names.ts': '6442d871900f1a95c4973baf9f7532623aa263c4157069fc48a4d24e99796320',
+  'packages/report-skill/src/LassoClient.ts': '03c51556c302c9ddf48147b62b3abea2ecd250db55a00b03cca5820bc148c2c5',
+  'packages/report-skill/src/LassoClientUtils.ts': '6d45345b87df0e3c325c5e8f8317f57f4894a595b4d530915110a5bcd53eb121',
+  'packages/report-skill/src/EnvVars.ts': '9b62f558b9c7470f25ca69be4dcadcee647042c8bbe34abb2050ab8157b03f27',
 };
 const compiledPaths = [
   'packages/report-skill/lib/subskills/commute/CommuteData.js',
@@ -43,6 +51,10 @@ const compiledPaths = [
   'packages/report-skill/lib/subskills/commute/index.js',
   'packages/report-skill/lib/subskills/calendar/CalendarParse.js',
   'packages/report-skill/lib/utils.js',
+  'packages/report-skill/lib/Names.js',
+  'packages/report-skill/lib/LassoClient.js',
+  'packages/report-skill/lib/LassoClientUtils.js',
+  'packages/report-skill/lib/EnvVars.js',
 ];
 const compiledHashes = {
   'packages/report-skill/lib/subskills/commute/CommuteData.js': 'adb56959a8b5703ae363be8dd32133767d91b7005f77aef79a783997c93af05c',
@@ -53,6 +65,10 @@ const compiledHashes = {
   'packages/report-skill/lib/subskills/commute/index.js': '08df0da67e92b5c5c8aa165b6ec89217a3cf8450bdeecedb64b8f8c48803e000',
   'packages/report-skill/lib/subskills/calendar/CalendarParse.js': '30263f8b8ceb5a1af13160d27eafffc1fd61cec35388acefae35aabd956373ba',
   'packages/report-skill/lib/utils.js': 'fe5bba7fe80870957fa18b339141d41dc127bf3d250e7e1b051666b20b7f1e5c',
+  'packages/report-skill/lib/Names.js': 'd0980ccd164e63c5ebcdd312fd19adb70d72863e64ed36c115e85b5a16e37a31',
+  'packages/report-skill/lib/LassoClient.js': '38c2640d359d693228d422daa015d99007fdb3d8a4c1de34bd0de2e692dc1501',
+  'packages/report-skill/lib/LassoClientUtils.js': '67da130fffb04b8c3ffada3f6675e96c3017e15240d7e424a8f4e60081a0e053',
+  'packages/report-skill/lib/EnvVars.js': 'fc80a5ed20300fd913e3bd36af5044190c44e45fdad485337a9b9e5c7280d5ca',
 };
 const resourcePaths = [
   'packages/report-skill/resources/views/commuteTraffic.json',
@@ -72,6 +88,11 @@ const candidatePaths = [
   'packages/skills/src/graph/node.js',
   'packages/skills/src/graph/graph.js',
   'packages/skills/src/report/lassoClient.js',
+  'packages/skills/src/jcpId.js',
+  'packages/skills/src/graph/mims/protocol.js',
+  'packages/skills/src/report/calendarViews.js',
+  'packages/skills/src/report/xml.js',
+  'packages/skills/src/report/env.js',
 ];
 const candidateHashes = Object.fromEntries(candidatePaths.map(file => [file, fileSha(file)]));
 const candidateResourcePaths = [
@@ -79,6 +100,12 @@ const candidateResourcePaths = [
   'packages/skills/resources/views/commuteDepart.json',
 ];
 const candidateResourceHashes = Object.fromEntries(candidateResourcePaths.map(file => [file, fileSha(file)]));
+const candidateDependencyPaths = [
+  'package.json',
+  'package-lock.json',
+  'packages/skills/package.json',
+];
+const candidateDependencyHashes = Object.fromEntries(candidateDependencyPaths.map(file => [file, fileSha(file)]));
 
 const run = (operation, opts = {}, prefs = {}, extra = {}) => ({ operation, opts, prefs, ...extra });
 const row = (id, group, sourceName, sourceLine, assertionCount, operation, opts, prefs, extra) => ({
@@ -169,7 +196,14 @@ const matrix = {
     sourcePaths, sourceHashes, compiledPaths, compiledHashes,
     resourcePaths, resourceHashes,
   },
-  candidate: { paths: candidatePaths, hashes: candidateHashes, resourcePaths: candidateResourcePaths, resourceHashes: candidateResourceHashes },
+  candidate: {
+    paths: candidatePaths,
+    hashes: candidateHashes,
+    resourcePaths: candidateResourcePaths,
+    resourceHashes: candidateResourceHashes,
+    dependencyPaths: candidateDependencyPaths,
+    dependencyHashes: candidateDependencyHashes,
+  },
   cases,
   supplemental: supplementalRecord,
 };

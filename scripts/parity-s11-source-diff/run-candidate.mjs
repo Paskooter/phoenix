@@ -32,6 +32,11 @@ matrix.candidate.paths.forEach(file => {
   const actual = fileSha(path.join(root, file));
   if (!matrix.candidate.resourceHashes || matrix.candidate.resourceHashes[file] !== actual) fail(`candidate resource changed: ${file}`);
 });
+if (!Array.isArray(matrix.candidate.dependencyPaths) || !matrix.candidate.dependencyHashes) fail('matrix omits candidate dependency provenance');
+matrix.candidate.dependencyPaths.forEach(file => {
+  const actual = fileSha(path.join(root, file));
+  if (matrix.candidate.dependencyHashes[file] !== actual) fail('candidate dependency changed: ' + file);
+});
 
 process.env.TZ = matrix.runtime.timezone;
 const RealDate = Date;
@@ -71,7 +76,9 @@ async function logicForRun(item) {
   });
   item.data.local.commute = parsed;
   await new commute.CommuteMimLogic().exit(item.data);
-  return fixture.projectLocal(item.data.local);
+  return fixture.projectLocal(item.data.local, {
+    candidateMimRoot: path.join(root, 'packages/skills/resources/mims/report/en-us'),
+  });
 }
 
 async function execute(run) {
@@ -97,7 +104,7 @@ function runSpecs(specs) {
         runs: [],
       };
       for (let index = 0; index < spec.runs.length; index += 1) {
-        const value = await execute(spec.runs[index]);
+        const value = fixture.encode(await execute(spec.runs[index]));
         result.runs.push({ index, sha256: rowHash(value), value });
         expandedRuns += 1;
       }
@@ -129,6 +136,9 @@ const receipt = {
     revision: process.env.PHOENIX_S11_REVISION || 'worktree',
     moduleSha256: Object.fromEntries(matrix.candidate.paths.map(file => [file, fileSha(path.join(root, file))])),
     resourceSha256: Object.fromEntries((matrix.candidate.resourcePaths || []).map(file => [file, fileSha(path.join(root, file))])),
+    dependencySha256: Object.fromEntries(matrix.candidate.dependencyPaths.map(file => [file, fileSha(path.join(root, file))])),
+    matrixSha256: fileSha(matrixPath),
+    contractSha256: fileSha(path.join(here, 'contract.json')),
   },
   counts: {
     namedCases: primary.results.length,

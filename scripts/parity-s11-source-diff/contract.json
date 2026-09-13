@@ -1,0 +1,181 @@
+{
+  "schema": "phoenix.parity.s11.commute-contract.v1",
+  "matrixSha256": "70e7cd8e59b8efeb59036214a0c7f31d265c54a935c59a60b602cd3a6949c8fe",
+  "matrix": {
+    "schema": "phoenix.parity.s11.commute-matrix.v1",
+    "task": "S-11",
+    "base": "0599e8fe60a2877cda089454a58f50f5316b7098",
+    "branch": "w-s11-source-diff",
+    "counts": {
+      "namedCases": 33,
+      "expandedRuns": 33,
+      "expandedAssertions": 36,
+      "groups": {
+        "top-level": 3,
+        "get-data": 1,
+        "parse": 12,
+        "not-driving": 2,
+        "driving-departure-over-2h": 2,
+        "driving-departure-within-2h": 4,
+        "driving-late": 4,
+        "views": 5
+      }
+    },
+    "inventorySha256": "ab8481f7ae1773e075111ee5889140abea346f25bc4d0e92386038058d47c0e8",
+    "caseMatrixSha256": "c193d763dd18ae29d8628e00e04dbc739e3fe31043eb833d0221da3da44e7e1b",
+    "primaryCasesSha256": "98981acdb2117dce427ce02da8805d894c97967aeb4a10cf64558b751a625230",
+    "supplementalMatrixSha256": "1d04ed9d7909e39dfec0174291457fccfc4396de9242fe76adfb6f1aeb4573c9",
+    "supplementalCasesSha256": "1cddc36be7f5c37a20f17be989edac5e0dde885b2cfc98d15fd70fa05c779d75"
+  },
+  "runtime": {
+    "sourceImage": "node:8.9.4-slim",
+    "sourceImageDigest": "sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+    "timezone": "America/New_York",
+    "clockISO": "2017-11-09T08:00:00.000-05:00",
+    "randomSeed": 1109
+  },
+  "reference": {
+    "repo": "jiboV2/pegasus",
+    "revision": "5c0a7390539663ba749d360de348a428c088505c",
+    "testPath": "packages/report-skill/tests/subskills/Commute.test.js",
+    "testSha256": "71140b44f5fe3cfda25a15fe85d425afd929f872165d5787276571c0f4c31ec6",
+    "testSupportPath": "packages/report-skill/tests/TestUtils.js",
+    "testSupportSha256": "298daca08946f19de78617bfdfb446df2988ed28507941c20473d3fd1a288e9c",
+    "compiledRecordSha256": "5a387ec70ce48f9cfacb3dd10857cbbb3840352355f379916a83c98311cb4884",
+    "sourcePaths": [
+      "packages/report-skill/src/subskills/commute/CommuteData.ts",
+      "packages/report-skill/src/subskills/commute/CommuteFactory.ts",
+      "packages/report-skill/src/subskills/commute/CommuteMimLogic.ts",
+      "packages/report-skill/src/subskills/commute/CommuteParse.ts",
+      "packages/report-skill/src/subskills/commute/CommuteViews.ts",
+      "packages/report-skill/src/subskills/commute/index.ts",
+      "packages/report-skill/src/subskills/calendar/CalendarParse.ts",
+      "packages/report-skill/src/utils.ts",
+      "packages/report-skill/src/Names.ts",
+      "packages/report-skill/src/LassoClient.ts",
+      "packages/report-skill/src/LassoClientUtils.ts",
+      "packages/report-skill/src/EnvVars.ts"
+    ],
+    "sourceHashes": {
+      "packages/report-skill/src/subskills/commute/CommuteData.ts": "305edcb112d4cb7d8dbb711f35f445537ca738066311706f8ba7569c9b7eb5ff",
+      "packages/report-skill/src/subskills/commute/CommuteFactory.ts": "37483a53e4ea2f25de239b7fd46c65c8154a9ced494c066a50567e2c2e3e3dff",
+      "packages/report-skill/src/subskills/commute/CommuteMimLogic.ts": "9026fe354b98032b20b5c6540898426cb30285906a89638d41c1d67d98d5ba1b",
+      "packages/report-skill/src/subskills/commute/CommuteParse.ts": "c9d0ab6eafaf3fb40c741246bd791f9dd1e87bc13062cec505036c2b5f12506f",
+      "packages/report-skill/src/subskills/commute/CommuteViews.ts": "2a11818e948f45c640450b1db825c778b74cbd8f9aa37b6f37aebb9ad2f82086",
+      "packages/report-skill/src/subskills/commute/index.ts": "c2d9923e04feaea032b11c6418c1e4ea90a41d5a85598b33841b5941afea5833",
+      "packages/report-skill/src/subskills/calendar/CalendarParse.ts": "9415b98b5893530bf444aa872bd25fbaab833d329ff200480d6ea8ae7f0a73ea",
+      "packages/report-skill/src/utils.ts": "a0dcd0219595a1293f051d277533b0de2802aa56f6e010f5d175bc15f47f6dae",
+      "packages/report-skill/src/Names.ts": "6442d871900f1a95c4973baf9f7532623aa263c4157069fc48a4d24e99796320",
+      "packages/report-skill/src/LassoClient.ts": "03c51556c302c9ddf48147b62b3abea2ecd250db55a00b03cca5820bc148c2c5",
+      "packages/report-skill/src/LassoClientUtils.ts": "6d45345b87df0e3c325c5e8f8317f57f4894a595b4d530915110a5bcd53eb121",
+      "packages/report-skill/src/EnvVars.ts": "9b62f558b9c7470f25ca69be4dcadcee647042c8bbe34abb2050ab8157b03f27"
+    },
+    "compiledPaths": [
+      "packages/report-skill/lib/subskills/commute/CommuteData.js",
+      "packages/report-skill/lib/subskills/commute/CommuteFactory.js",
+      "packages/report-skill/lib/subskills/commute/CommuteMimLogic.js",
+      "packages/report-skill/lib/subskills/commute/CommuteParse.js",
+      "packages/report-skill/lib/subskills/commute/CommuteViews.js",
+      "packages/report-skill/lib/subskills/commute/index.js",
+      "packages/report-skill/lib/subskills/calendar/CalendarParse.js",
+      "packages/report-skill/lib/utils.js",
+      "packages/report-skill/lib/Names.js",
+      "packages/report-skill/lib/LassoClient.js",
+      "packages/report-skill/lib/LassoClientUtils.js",
+      "packages/report-skill/lib/EnvVars.js"
+    ],
+    "compiledHashes": {
+      "packages/report-skill/lib/subskills/commute/CommuteData.js": "adb56959a8b5703ae363be8dd32133767d91b7005f77aef79a783997c93af05c",
+      "packages/report-skill/lib/subskills/commute/CommuteFactory.js": "022d7961daa278e0b0ffb9cb558dae84331710e64be70603dae9fb17b8fabf15",
+      "packages/report-skill/lib/subskills/commute/CommuteMimLogic.js": "a7bb0ee985a25213f03b4c3c4203f24f6cef668ec432b565c4486720a84c12ae",
+      "packages/report-skill/lib/subskills/commute/CommuteParse.js": "47e62a9c063b1601b28acebff2bdeb3ac73c44790504c2fe814035d7513e1922",
+      "packages/report-skill/lib/subskills/commute/CommuteViews.js": "651af074a57ff0ba16c890daa9c9ec9d249c32060efc01c29ebbffa8014242e0",
+      "packages/report-skill/lib/subskills/commute/index.js": "08df0da67e92b5c5c8aa165b6ec89217a3cf8450bdeecedb64b8f8c48803e000",
+      "packages/report-skill/lib/subskills/calendar/CalendarParse.js": "30263f8b8ceb5a1af13160d27eafffc1fd61cec35388acefae35aabd956373ba",
+      "packages/report-skill/lib/utils.js": "fe5bba7fe80870957fa18b339141d41dc127bf3d250e7e1b051666b20b7f1e5c",
+      "packages/report-skill/lib/Names.js": "d0980ccd164e63c5ebcdd312fd19adb70d72863e64ed36c115e85b5a16e37a31",
+      "packages/report-skill/lib/LassoClient.js": "38c2640d359d693228d422daa015d99007fdb3d8a4c1de34bd0de2e692dc1501",
+      "packages/report-skill/lib/LassoClientUtils.js": "67da130fffb04b8c3ffada3f6675e96c3017e15240d7e424a8f4e60081a0e053",
+      "packages/report-skill/lib/EnvVars.js": "fc80a5ed20300fd913e3bd36af5044190c44e45fdad485337a9b9e5c7280d5ca"
+    },
+    "resourcePaths": [
+      "packages/report-skill/resources/views/commuteTraffic.json",
+      "packages/report-skill/resources/views/commuteDepart.json"
+    ],
+    "resourceHashes": {
+      "packages/report-skill/resources/views/commuteTraffic.json": "dd91bbd037f4b6493a979c55af3f0337bdda5f8c76883747aaffbf379dcd910e",
+      "packages/report-skill/resources/views/commuteDepart.json": "b57b7d1188a27231d60bb24f99392882fb24796a005c74fd031b41ffec0995e5"
+    }
+  },
+  "candidate": {
+    "paths": [
+      "packages/skills/src/report/commute.js",
+      "packages/skills/src/report/commuteViews.js",
+      "packages/skills/src/report/calendar.js",
+      "packages/skills/src/report/dateTime.js",
+      "packages/skills/src/report/utils.js",
+      "packages/skills/src/graph/nodes.js",
+      "packages/skills/src/graph/node.js",
+      "packages/skills/src/graph/graph.js",
+      "packages/skills/src/report/lassoClient.js",
+      "packages/skills/src/jcpId.js",
+      "packages/skills/src/graph/mims/protocol.js",
+      "packages/skills/src/report/calendarViews.js",
+      "packages/skills/src/report/xml.js",
+      "packages/skills/src/report/env.js"
+    ],
+    "hashes": {
+      "packages/skills/src/report/commute.js": "609e4bca42da771ea4bea7dcbcfd985d220648242504e21610f3b0072e22c414",
+      "packages/skills/src/report/commuteViews.js": "268c66636792a1b5c809b1b0fd7487d60bdcfa7a25379fac3db870f2b791c7cf",
+      "packages/skills/src/report/calendar.js": "25159277f76a14632b24b8a437bb1d4e33d14d95b3d3fb69c19ef50d29f8d475",
+      "packages/skills/src/report/dateTime.js": "6573c8b560826619f1f4d16df92a1b47390b991be2efe9e55d4338d9214080ef",
+      "packages/skills/src/report/utils.js": "8b13ff0884b59b7eecf3ff019777d9d09de5eed4eb0794acd5a0f55178ecf13d",
+      "packages/skills/src/graph/nodes.js": "26547c609c7c391e6a44c6c27268235e664d5d30fe38b565124521498af42ce0",
+      "packages/skills/src/graph/node.js": "e93cc738a0f3c2d5a4b99d6b2cc110663f13c5bbf163034df769b17614fafde3",
+      "packages/skills/src/graph/graph.js": "8b97b2a0553c1e3ce093bf5e892df2678dffaa30c26887180b09e53c354f516f",
+      "packages/skills/src/report/lassoClient.js": "aa3640331e473a216bcef21982b0eb47cb2f4bfd7a1909e4cd8b37dedaa44f6c",
+      "packages/skills/src/jcpId.js": "57f39697d96b1550f0c2a7fa36d81456764b4ef375f73dd027a89b6f8436e6f5",
+      "packages/skills/src/graph/mims/protocol.js": "17afb1d1039916e59af9dfff70b5fecce15cfbc1b794a19da2b6c57513acbe75",
+      "packages/skills/src/report/calendarViews.js": "5ecbf7dd8ee69562874b3eb1c648dbd1178cedfd1c66cb4767f7f2a57459acef",
+      "packages/skills/src/report/xml.js": "f00e20833e65743d6217b4f58677136b7b08ca1a2fa0731f1cbe8184632ad358",
+      "packages/skills/src/report/env.js": "51b3e793709bbd2cd8ad8c07f780fd1958cd0c7ea5f69064304caa7cd381bade"
+    },
+    "resourcePaths": [
+      "packages/skills/resources/views/commuteTraffic.json",
+      "packages/skills/resources/views/commuteDepart.json"
+    ],
+    "resourceHashes": {
+      "packages/skills/resources/views/commuteTraffic.json": "dd91bbd037f4b6493a979c55af3f0337bdda5f8c76883747aaffbf379dcd910e",
+      "packages/skills/resources/views/commuteDepart.json": "b57b7d1188a27231d60bb24f99392882fb24796a005c74fd031b41ffec0995e5"
+    },
+    "dependencyPaths": [
+      "package.json",
+      "package-lock.json",
+      "packages/skills/package.json"
+    ],
+    "dependencyHashes": {
+      "package.json": "efc3628eec21d481c6961a6e706503f52093a6550f900f79969a1f226b3a5c78",
+      "package-lock.json": "38841632b2ab0e8e9d9e01c77aa6ddea5e0cbdc7f8bf9f4a97dee0b8304e34d1",
+      "packages/skills/package.json": "7fc2dc35ba679e5ed51bebb755919522613f6e2876ecd002fc6a506cbedbcf01"
+    }
+  },
+  "harness": {
+    "paths": [
+      "scripts/parity-s11-source-diff/matrix.json",
+      "scripts/parity-s11-source-diff/fixtures.cjs",
+      "scripts/parity-s11-source-diff/run-source.cjs",
+      "scripts/parity-s11-source-diff/run-candidate.mjs",
+      "scripts/parity-s11-source-diff/falsify.mjs",
+      "scripts/parity-s11-source-diff/README.md"
+    ],
+    "hashes": {
+      "scripts/parity-s11-source-diff/matrix.json": "70e7cd8e59b8efeb59036214a0c7f31d265c54a935c59a60b602cd3a6949c8fe",
+      "scripts/parity-s11-source-diff/fixtures.cjs": "b00f6a6501d3750157b75b181a7fee0449d9f350be7cc4f408e22c2a3003a4a1",
+      "scripts/parity-s11-source-diff/run-source.cjs": "e9da7215b6d19c725f64e21b494cb33ce7c2b64d11532e0f8f4cc90adf751b25",
+      "scripts/parity-s11-source-diff/run-candidate.mjs": "e096132e4d61e84e9096309558f9c33be82c9515b1783060fe63109edae66b8b",
+      "scripts/parity-s11-source-diff/falsify.mjs": "8b925645e630e4f0985ddf0e271175501af9bfc99b811b5eec39d44a5918796d",
+      "scripts/parity-s11-source-diff/README.md": "ea0816c0fc889203de09aef92d2fe65b8e6a74bf4c3f25f6aeb2e1b80fe1bba8"
+    }
+  },
+  "comparatorSha256": "de3e535ca0a5516fe8feba79609f7283ac4f6aeea922f0efcde56729cdf12d77"
+}

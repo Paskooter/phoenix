@@ -14,6 +14,7 @@ var DEFAULT_OPTS = {
 };
 
 var DEFAULT_PREFS = {
+  weather: { active: true },
   commute: {
     active: true,
     workTime: { hour: 9, min: 0 },
@@ -22,7 +23,11 @@ var DEFAULT_PREFS = {
     mode: 'driving',
     complete: true,
   },
-  calendar: { googlePersonalCreds: true },
+  calendar: { active: true, googlePersonalCreds: true },
+  news: {
+    active: true,
+    activeNewsCategories: { general: true, technology: true, sports: true, business: true },
+  },
   cats: { active: 'all' },
 };
 
@@ -51,6 +56,17 @@ function makePrefs(run) {
       prefs[key] = clone(run.replacePrefs[key]);
     });
   }
+  var cats = prefs.cats || {};
+  var active = cats.active;
+  if (!cats || active === undefined || active === 'all') active = ['weather', 'calendar', 'commute', 'news'];
+  else if (active === 'none') active = [];
+  else if (cats.userNotIDed) active = ['weather', 'news'];
+  var includes = function (category) {
+    return Array.isArray(active) ? active.indexOf(category) !== -1 : String(active).indexOf(category) !== -1;
+  };
+  ['weather', 'calendar', 'commute', 'news'].forEach(function (category) {
+    prefs[category] = merge(prefs[category], { active: includes(category) });
+  });
   return prefs;
 }
 
@@ -167,7 +183,10 @@ function materialize(run) {
   var opts = makeOptions(run);
   var prefs = makePrefs(run);
   var rawCommute = run.mapsData === null ? null : createRawCommuteData(opts.commute);
-  var rawCalendar = createRawCalendarData(opts.calendar && Object.assign({ localISO: opts.localISO }, opts.calendar), prefs.calendar);
+  // Commute.test.js calls Object.assign({ localISO }, opts.calendar), including
+  // when opts.calendar is null. Object.assign ignores null and therefore still
+  // supplies the default calendar event; retain that source-backed behavior.
+  var rawCalendar = createRawCalendarData(Object.assign({ localISO: opts.localISO }, opts.calendar), prefs.calendar);
   return {
     opts: opts,
     prefs: prefs,
@@ -178,14 +197,37 @@ function materialize(run) {
   };
 }
 
-function basenameMim(value) {
-  if (typeof value !== 'string') return value;
-  var name = value.split('/').pop();
-  return name && name.slice(-4) === '.mim' ? name.slice(0, -4) : name;
+function projectUndefined(value) {
+  return value === undefined ? { __phoenixType: 'undefined' } : value;
+}
+
+function encode(value) {
+  if (value === undefined) return projectUndefined(value);
+  if (Array.isArray(value)) return value.map(encode);
+  if (value && typeof value === 'object') {
+    var result = {};
+    Object.keys(value).forEach(function (key) { result[key] = encode(value[key]); });
+    return result;
+  }
+  return value;
+}
+
+function projectMimPath(value, roots) {
+  if (typeof value !== 'string') return projectUndefined(value);
+  var normalized = value.replace(/\\/g, '/');
+  roots = roots || {};
+  var sourceRoot = String(roots.sourceMimRoot || '').replace(/\\/g, '/').replace(/\/+$/, '');
+  var candidateRoot = String(roots.candidateMimRoot || '').replace(/\\/g, '/').replace(/\/+$/, '');
+  if (sourceRoot && normalized.indexOf(sourceRoot + '/') === 0) return 'mims/en-us/' + normalized.slice(sourceRoot.length + 1);
+  if (candidateRoot && normalized.indexOf(candidateRoot + '/') === 0) return 'mims/en-us/' + normalized.slice(candidateRoot.length + 1);
+  // An unrecognized root or inserted directory remains visible in the
+  // projection and therefore cannot be hidden by basename normalization.
+  return normalized;
 }
 
 function projectDateTime(dt) {
-  if (!dt) return null;
+  if (dt === undefined) return projectUndefined(dt);
+  if (dt === null) return null;
   var local = dt.getLocalTime();
   return {
     utc: dt.utc,
@@ -201,8 +243,9 @@ function projectDateTime(dt) {
 }
 
 function projectCommute(commute) {
-  if (!commute) return null;
-  return {
+  if (commute === undefined) return projectUndefined(commute);
+  if (commute === null) return null;
+  return encode({
     departDT: projectDateTime(commute.departDT),
     arriveDT: projectDateTime(commute.arriveDT),
     minsLeft: commute.minsLeft,
@@ -210,15 +253,15 @@ function projectCommute(commute) {
     eventIsEarly: commute.eventIsEarly,
     durationMins: commute.durationMins,
     extraMins: commute.extraMins,
-  };
+  });
 }
 
-function projectView(view) { return view === undefined ? null : clone(view); }
+function projectView(view) { return view === undefined ? projectUndefined(view) : encode(clone(view)); }
 
-function projectLocal(local) {
+function projectLocal(local, roots) {
   return {
     commute: projectCommute(local && local.commute),
-    mims: ((local && local.mimPaths) || []).map(basenameMim),
+    mims: ((local && local.mimPaths) || []).map(function (value) { return projectMimPath(value, roots); }),
     views: {
       commuteTraffic: projectView(local && local.views && local.views.commuteTraffic),
       commuteDepart: projectView(local && local.views && local.views.commuteDepart),
@@ -227,6 +270,7 @@ function projectLocal(local) {
 }
 
 function stable(value) {
+  if (value === undefined) return projectUndefined(value);
   if (Array.isArray(value)) return value.map(stable);
   if (value && typeof value === 'object') {
     return Object.keys(value).sort().reduce(function (out, key) {
@@ -248,5 +292,8 @@ module.exports = {
   materialize: materialize,
   projectCommute: projectCommute,
   projectLocal: projectLocal,
+  projectMimPath: projectMimPath,
+  projectUndefined: projectUndefined,
+  encode: encode,
   stable: stable,
 };
