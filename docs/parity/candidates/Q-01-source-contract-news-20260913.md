@@ -30,8 +30,10 @@ and five-item limit. It decodes byte summaries as UTF-8. A deployment may
 provide this adapter around Mongo or an equivalent AP cache; no store is
 selected implicitly.
 
-The news descriptor exposes `/news_skill`, `/news_skill/v1/main`, and
-`/v1/news/main` through the shared skills host. `skills-gqa-default.json`
+The archived source registers `/news_skill` and `/news_skill/v1/main` (2 source
+routes). The Phoenix descriptor additionally exposes `/v1/news/main` as an
+adapter alias, giving 3 total route aliases through the shared skills host.
+`skills-gqa-default.json`
 now carries the existing `external-skills/news_manifest.json` beside the
 source-backed answer entry. `skills-phoenix.json` and unset default startup
 still select the ordinary Phoenix answer handler; the news route is available
@@ -43,6 +45,7 @@ on the host without changing `/v1/main`'s answer default.
 | --- | --- | --- |
 | `/answer_skill`, `/answer_skill/v1/main` | covered by the existing source GQA profiles | Bing/Wikipedia/Wolfram provider and attribution seams remain explicit |
 | `/news_skill`, `/news_skill/v1/main` | restored here | AP/news store is replaceable; source JCP, MIM, age filter, analytics, and empty/error behavior are covered |
+| `/v1/news/main` | Phoenix adapter alias | Same local source-shaped news handler; this path is not an archived source route |
 | `/structQA` | classified unresolved | Legacy FCS surface routes `News`, `Scripted`, and `GQA`, and additionally depends on account credentials, API-AI, and the FCS response finalizer. It is a different contract from the Hub news/answer routes; this candidate does not silently map it to the new provider seam |
 | `/retrieveAtt`, `/wipeID` | covered by the existing opt-in attribution profile | account and storage must be selected explicitly |
 | `/healthcheck` | covered for HTTP health status by the common service | source payload is arbitrary (`42`); Phoenix returns its common health body |

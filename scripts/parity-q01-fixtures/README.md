@@ -19,10 +19,14 @@ the current Bing, Wikipedia, and Wolfram adapters. It also checks JCP/display
 envelopes, metadata, account and attribution persistence, malformed-provider
 HTTP error envelopes, default routing, and opt-in provider configuration.
 
-The news closure checks the three source NEWS MIMs and five prompt rows, all
-three source route aliases, child/adult speaker selection, the five-headline
-sequence, analytics, and empty/error behavior through the current
-source-shaped news service.
+The news closure checks the three source NEWS MIMs and five prompt rows, both
+archived source route paths plus the Phoenix `/v1/news/main` adapter alias
+(2 source routes, 1 adapter route, 3 total aliases),
+child/adult speaker selection, the five-headline sequence, analytics, and
+empty/error behavior through the current source-shaped news service. The
+archived news/AP unit inventory is 10 cases (one AP case plus nine Pegasus
+news cases); the separate attribution test is tracked with existing
+account/attribution coverage.
 
 The integration text files are input corpora without expected output goldens.
 The two complete files account for 340 observed rows. The `beta3-4902.txt`
@@ -31,11 +35,12 @@ bytes, while the bounded MCP read observed 69,069 code units and 2,073
 nonblank rows ending mid-line at `tha`. The runner does not claim a 4,902-row
 replay.
 
-The moved `answer.ts` cases remain live-provider assertions. The moved
-`news.ts` sequence has a local source-shaped route/MIM and sequence replay, but
-its live AP/vendor execution remains unexecuted because the source file has no
-response golden and the lane does not contact the live provider. Personal
-Report news assets are not substituted for this source contract.
+The moved `answer.ts` cases remain accepted unresolved live-only provider
+assertions. The moved `news.ts` sequence has a local source-shaped route/MIM
+and sequence replay, while its live AP/vendor execution remains unresolved
+because the source file has no response golden and the lane does not contact
+the live provider. Personal Report news assets are not substituted for this
+source contract.
 
 The runner includes paired omission and value-corruption controls. It rejects
 an omitted async row, a modified MIM prompt, and a one-byte-equivalent Bing

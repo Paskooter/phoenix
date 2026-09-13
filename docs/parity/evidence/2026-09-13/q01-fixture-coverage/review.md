@@ -20,10 +20,15 @@ The focused Phoenix Q-01 suite passed 120 tests with `node --test packages/skill
 | Archived answer rows | 28 | 18 success, 7 no-answer, 3 blocked; JCP/display/metadata/analytics checked |
 | Archived async rows | 12 | 12 matched, including timeout and provider fallback cases |
 | Fake-provider routes | 3 | Bing decoder/provider, Wikipedia provider, and Wolfram extraction/provider replayed |
-| Source-shaped news closure | 3 MIMs / 5 prompts / 3 aliases | Local sequence, speaker, AP seam, analytics, empty/error, and route controls passed |
+| Source-shaped news closure | 3 MIMs / 5 prompts / 2 source routes + 1 adapter alias (3 total) | Local sequence, speaker, AP seam, analytics, empty/error, and route controls passed; 10 archived news/AP cases covered |
 | Complete integration inputs | 340 rows | Inventory only; no response goldens exist |
-| Moved live answer suite | 11 cases | Inventory only; live vendor assertions have no goldens |
-| Moved live news suite | 1 sequence | Local route/MIM boundary replayed; live AP/vendor execution remains unexecuted |
+| Moved live answer suite | 11 cases | Accepted unresolved live-only provider assertions; no goldens |
+| Moved live news suite | 1 sequence | Local route/MIM boundary replayed; live AP/vendor execution remains unresolved |
+
+The archived news/AP count is 10: one `test_news.py` AP case plus nine
+`test_pegasus.py` news cases. `test_news.py:test_attribute_insert` is an
+attribution case and remains separately covered by the existing account and
+attribution Q-01 suite.
 
 The answer-row provider is deliberately synthetic: those rows prove source
 request cleaning and Phoenix response shaping. The source fake-provider bodies
@@ -37,16 +42,17 @@ mutated archived Bing thumbnail byte (`%252C` → `%2520`). Attribution insert,
 retrieve, and wipe passed; malformed provider output returned the expected
 HTTP 500 HTML envelope with `message`, `stacktrace`, and `version`.
 
-Known blockers remain explicit:
+Accepted qualifications remain explicit:
 
 * `beta3-4902.txt` is live-input-only. Gitea metadata reports 177,307 bytes;
   the bounded MCP read exposed 69,069 code units and 2,073 nonblank rows,
   ending mid-line at `tha`. The filename label is not treated as a 4,902-row
   authoritative count.
 * The moved `answer.ts` cases depend on live Bing, Wikipedia, and Wolfram
-  behavior and contain no output goldens, so they are not claimed as local
-  replays.
+  behavior and contain no output goldens, so they remain accepted unresolved
+  live-only provider assertions.
 * The moved `news.ts` sequence still requires live AP/vendor execution. Its
   source-shaped `/news_skill` route, NEWS MIMs, preamble/postamble sequence,
   and local error/speaker controls are covered; the live source file provides
-  no response golden. Personal Report news assets are not substituted.
+  no response golden, so the live case remains an accepted unresolved
+  live-only qualification. Personal Report news assets are not substituted.
