@@ -2152,7 +2152,7 @@
         "packages/data/src/news.js",
         "packages/data/src/index.js"
       ],
-      "finding": "Bounded RSS\u2192AP image adapter integrated: provider URLs/dimensions reach original NewsParse/NewsViews and real Moth news screens. NPR image gaps, original AP attribution, full AP metadata and poll/cache lifecycle remain open.",
+      "finding": "Bounded RSS→AP image adapter integrated: provider URLs/dimensions reach original NewsParse/NewsViews and real Moth news screens. NPR image gaps, original AP attribution, full AP metadata and poll/cache lifecycle remain open.",
       "acceptance": [
         "Match all category IDs, XML structure, image/attribution/header handling and upstream/cache errors with original AP fixtures.",
         "Reproduce configurable polling/prefetch behavior, category-specific cache updates and shutdown cleanup.",
@@ -2594,8 +2594,8 @@
       "track": "pegasus",
       "phase": 3,
       "priority": "P0",
-      "status": "todo",
-      "implementation": "partial",
+      "status": "verified",
+      "implementation": "complete",
       "owner": "Codex",
       "dependsOn": [
         "S-03",
@@ -2614,23 +2614,44 @@
         "packages/skills/src/report/userId.js",
         "packages/skills/src/report/settingsClient.js"
       ],
-      "finding": "Root accepted Report Results analytics, bounded Lasso transport, the source Settings transID boundary and commute enum order. The launch/identity/opt-in/preferences/provider/continuation/analytics matrix passes 96 focused tests, the integrated suite passes 1,965 tests with zero failures, and strict43 has zero differences/invariants/gaps. Detached prefetch rejection remains process-observably different, and complete source-runtime differential plus live provider/deployment evidence remain open.",
+      "finding": "The complete Personal Report source-runtime matrix now matches the pinned original in all 54 rows: 43 graph conversations and 11 Settings seams, with exact semantics and prompt selection. It covers all five launches, identity and opt-in continuations, preference/default/toggle behavior, every provider failure subset, ordered MIMs, state, calls and analytics. Root independently reran the Node 8 oracle, deep-compared the added source-test branches, falsified the MultiTurn repair, and required fail-closed missing-row and prompt checks. Phoenix intentionally consumes a detached prefetch rejection that source leaves unhandled; live provider/deployment and hardware evidence remain with their integration/release tasks.",
       "acceptance": [
         "Compare launch intents, UserID/opt-in, ordering/toggles, prefsFromConfig and Settings requests/defaults using the original report tests.",
         "Verify recognized/unknown speaker, no prefs, all-disabled prefs, partial failures, multi-turn continuation and matching analytics."
       ],
-      "verification": [],
+      "verification": [
+        {
+          "date": "2026-09-13",
+          "basis": "Both written criteria are covered by a 54-row differential against the original compiled Personal Report and Settings code under pinned Node 8.9.4: 54 semantic matches, 54 prompt matches, and zero coverage/prompt/unexpected differences. Root independently reproduced the source and candidate, inspected the four adversarially requested multi-turn branches, falsified the source-aligned MultiTurn boundary, and confirmed paired-row omission and prompt-only mutations fail closed. The clean integrated suite passed 1,981 tests with 9 environment skips; strict43 was exact.",
+          "artifact": "docs/parity/evidence/2026-09-13/s08-personal-report/root-verification.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "24c21e2",
+          "command": "docker run --rm --network none --mount type=bind,source=.parity/reference/5c0a7390539663ba749d360de348a428c088505c,target=/ref,readonly --mount type=bind,source=$PWD,target=/work node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c node /work/scripts/parity-s08/run-source.cjs /ref /work/.parity/reviews/root-s08-final/source-runtime.json; node scripts/parity-s08/run-candidate.mjs .parity/reviews/root-s08-final/candidate-runtime.json; node scripts/parity-s08/compare.mjs .parity/reviews/root-s08-final scripts/parity-s08/matrix-spec.json; node --test packages/skills/test/s08SourceRuntimeMatrix.test.js packages/skills/test/s08Comparator.test.js; npm test",
+          "notes": "Known accepted divergence: failed detached weather prefetch produces one source unhandled rejection and none in Phoenix. Both return a Promise immediately; no resolved value or enclosing Report response is claimed by that control. No live provider, deployment, Hub, or hardware result is claimed."
+        }
+      ],
       "implementationReview": {
         "state": "accepted",
-        "assignee": "Luna Max / w18_s08_settings; Codex root",
-        "candidateRevision": "09587f2",
-        "integratedRevision": "c9433d8",
+        "assignee": "Luna Max / w18_n03_rules; Codex root; independent Luna Max review",
+        "candidateRevision": "d0c9f95",
+        "integratedRevision": "24c21e2",
         "reviewedBy": "Codex root",
-        "scope": "Bounded Personal Report review: Settings requests use only req.jibo.transID with the source warning on absence, commute modes follow the source enum order, and launch, speaker, opt-in, preferences, defaults, partial provider failure, continuation and analytics matrices pass. Root independently falsified both source repairs. Detached prefetch rejection and complete live/source-runtime comparison remain open, so S-08 receives no whole-task credit.",
-        "artifact": "docs/parity/evidence/2026-09-13/s08-personal-report/review.md",
-        "reviewEvidence": "docs/parity/evidence/2026-09-13/s08-personal-report/review.md"
+        "scope": "Complete S-08 source-runtime closure: 43 graph conversations plus 11 Settings seams match original semantics and prompts. Root corrected two invalid fixture assumptions, required missing-row and prompt fail-closed controls, falsified the MultiTurn repair, and accepted the documented detached-prefetch process difference under the consumer-focused compatibility policy.",
+        "artifact": "docs/parity/evidence/2026-09-13/s08-personal-report/source-runtime-differential.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-13/s08-personal-report/root-verification.md"
       },
       "implementationReviewHistory": [
+        {
+          "state": "accepted",
+          "assignee": "Luna Max / w18_s08_settings; Codex root",
+          "candidateRevision": "09587f2",
+          "integratedRevision": "c9433d8",
+          "reviewedBy": "Codex root",
+          "scope": "Bounded Personal Report review: Settings requests use only req.jibo.transID with the source warning on absence, commute modes follow the source enum order, and launch, speaker, opt-in, preferences, defaults, partial provider failure, continuation and analytics matrices pass. Root independently falsified both source repairs. Detached prefetch rejection and complete live/source-runtime comparison remain open, so S-08 receives no whole-task credit.",
+          "artifact": "docs/parity/evidence/2026-09-13/s08-personal-report/review.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-13/s08-personal-report/review.md"
+        },
         {
           "state": "accepted",
           "assignee": "Codex root with Luna Max candidate",
@@ -2656,7 +2677,7 @@
           "assignee": "Luna Max / capture_writer_repair; root acceptance",
           "candidateRevision": "db15280b6c5ee54bdbefe2b09acd221d32e1402e",
           "worktree": ".parity/worktrees/report-lasso-integration",
-          "scope": "Agent reports strict43 zero differences for the isolated Report Lasso transport candidate. Historical review found redirect header reconstruction and requested exact source TypeError wording. The wording request is superseded by the user\u2019s consumer-focused compatibility policy: it is nonblocking unless client interpretation changes. Later bounded acceptance is recorded above; prefetch rejection behavior remains an explicit Node8/Node22 divergence."
+          "scope": "Agent reports strict43 zero differences for the isolated Report Lasso transport candidate. Historical review found redirect header reconstruction and requested exact source TypeError wording. The wording request is superseded by the user’s consumer-focused compatibility policy: it is nonblocking unless client interpretation changes. Later bounded acceptance is recorded above; prefetch rejection behavior remains an explicit Node8/Node22 divergence."
         }
       ]
     },

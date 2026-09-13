@@ -10,7 +10,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 38 | 46 | 0 | 0 |
+| pegasus | 39 | 46 | 0 | 0 |
 | classic | 18 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
@@ -1132,11 +1132,11 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-13/s07-mim-identity/revie
 
 ### S-08 — Verify personal-report orchestration, preferences and identity
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: S-03, S-05, H-05, C-03.
 
-Root accepted Report Results analytics, bounded Lasso transport, the source Settings transID boundary and commute enum order. The launch/identity/opt-in/preferences/provider/continuation/analytics matrix passes 96 focused tests, the integrated suite passes 1,965 tests with zero failures, and strict43 has zero differences/invariants/gaps. Detached prefetch rejection remains process-observably different, and complete source-runtime differential plus live provider/deployment evidence remain open.
+The complete Personal Report source-runtime matrix now matches the pinned original in all 54 rows: 43 graph conversations and 11 Settings seams, with exact semantics and prompt selection. It covers all five launches, identity and opt-in continuations, preference/default/toggle behavior, every provider failure subset, ordered MIMs, state, calls and analytics. Root independently reran the Node 8 oracle, deep-compared the added source-test branches, falsified the MultiTurn repair, and required fail-closed missing-row and prompt checks. Phoenix intentionally consumes a detached prefetch rejection that source leaves unhandled; live provider/deployment and hardware evidence remain with their integration/release tasks.
 
 Done when:
 
@@ -1147,15 +1147,15 @@ Source: [Original Pegasus packages/report-skill/src/PersonalReport.ts](https://p
 
 Phoenix: [packages/skills/src/report/personalReport.js](../../packages/skills/src/report/personalReport.js); [packages/skills/src/report/nodes.js](../../packages/skills/src/report/nodes.js); [packages/skills/src/report/userId.js](../../packages/skills/src/report/userId.js); [packages/skills/src/report/settingsClient.js](../../packages/skills/src/report/settingsClient.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-13/s08-personal-report/root-verification.md](../../docs/parity/evidence/2026-09-13/s08-personal-report/root-verification.md) (2026-09-13; Both written criteria are covered by a 54-row differential against the original compiled Personal Report and Settings code under pinned Node 8.9.4: 54 semantic matches, 54 prompt matches, and zero coverage/prompt/unexpected differences. Root independently reproduced the source and candidate, inspected the four adversarially requested multi-turn branches, falsified the source-aligned MultiTurn boundary, and confirmed paired-row omission and prompt-only mutations fail closed. The clean integrated suite passed 1,981 tests with 9 environment skips; strict43 was exact.).
 
-- [x] Candidate implementation — **accepted**; Luna Max / w18_s08_settings; Codex root.
+- [x] Candidate implementation — **accepted**; Luna Max / w18_n03_rules; Codex root; independent Luna Max review.
 
-Candidate scope: Bounded Personal Report review: Settings requests use only req.jibo.transID with the source warning on absence, commute modes follow the source enum order, and launch, speaker, opt-in, preferences, defaults, partial provider failure, continuation and analytics matrices pass. Root independently falsified both source repairs. Detached prefetch rejection and complete live/source-runtime comparison remain open, so S-08 receives no whole-task credit.
+Candidate scope: Complete S-08 source-runtime closure: 43 graph conversations plus 11 Settings seams match original semantics and prompts. Root corrected two invalid fixture assumptions, required missing-row and prompt fail-closed controls, falsified the MultiTurn repair, and accepted the documented detached-prefetch process difference under the consumer-focused compatibility policy.
 
-Candidate report: [docs/parity/evidence/2026-09-13/s08-personal-report/review.md](../../docs/parity/evidence/2026-09-13/s08-personal-report/review.md).
+Candidate report: [docs/parity/evidence/2026-09-13/s08-personal-report/source-runtime-differential.md](../../docs/parity/evidence/2026-09-13/s08-personal-report/source-runtime-differential.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-13/s08-personal-report/review.md](../../docs/parity/evidence/2026-09-13/s08-personal-report/review.md). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-13/s08-personal-report/root-verification.md](../../docs/parity/evidence/2026-09-13/s08-personal-report/root-verification.md). Complete task acceptance is still governed by the main checkbox above.
 
 ### S-09 — Verify report weather language and condition tables
 
