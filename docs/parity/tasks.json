@@ -3483,7 +3483,7 @@
         "packages/account/src/qrPayload.js",
         "packages/account/portal/qr.js"
       ],
-      "finding": "The accepted Account implementation covers setup/reconnect, suspended replacement, unbound relocation, token persistence/expiry, OOBE authentication, administrator service-token issuance and UTF-8 QR framing. The integrated public parser now matches the pinned Hapi media/entity boundary, defaults a truly absent Content-Type to JSON, bounds declared/chunked/compressed entities, and preserves the pinned source-simple reconnect behavior. Root falsification and the combined 1,969-test/strict43 run pass. Complete installed-client, restart, A-03/A-04 and fresh hardware evidence remain open.",
+      "finding": "The accepted Account implementation covers setup/reconnect, suspended replacement, unbound relocation, token persistence/expiry, OOBE authentication, administrator service-token issuance and UTF-8 QR framing. The public parser matches the pinned Hapi media/entity boundary and preserves source-simple reconnect behavior. The installed original @jibo/jibo-server-client 3.0.110 under Node 8.9.4 now drives all five normal/admin OOBE operations across both Account and Classic faces: 38 initial and 46 post-restart checks pass, issued ordinary/replacement/service credentials survive a real service-process restart, and all nine Store collections match disk. A-03/A-04 completion, robot restart and fresh hardware/firmware/date evidence remain open.",
       "acceptance": [
         "Verify every normal/admin OOBE target and the complete setup, expired/used-token, reconnect, robot replacement and suspended-loop flows.",
         "Compare SDK request/response and QR payload framing with original consumers; preserve issued credentials across service/robot restart.",
@@ -3493,12 +3493,12 @@
       "implementationReview": {
         "state": "accepted",
         "assignee": "Luna Max / w18_a05_review; Codex root",
-        "candidateRevision": "51b66c9",
-        "integratedRevision": "e784f95",
+        "candidateRevision": "5365b28",
+        "integratedRevision": "3f950ad",
         "reviewedBy": "Codex root",
-        "scope": "Bounded public OOBE parser/reconnect integration. Pinned source rejects later membership checks; raw node:http proves the missing Content-Type boundary; declared, chunked and compressed expansion paths are bounded. Root falsified the default parser behavior and restored it. Combined 1,969 tests and strict43 pass. Whole A-05 consumer/restart/hardware acceptance remains open.",
-        "artifact": "docs/parity/evidence/2026-09-13/a05-oobe-parser/review.md",
-        "reviewEvidence": "docs/parity/evidence/2026-09-13/a05-oobe-parser/review.md"
+        "scope": "Bounded installed-original-client and service-restart closure. Root independently reran 84 Node 8 SDK checks across Account/Classic, inspected exact sanitized wire rows and durable Store snapshots, and accepted the harness after the 1,970-pass suite and strict43. Whole A-05 remains open for A-03/A-04 dependencies, robot restart, native pairing/TLS and fresh hardware evidence.",
+        "artifact": "docs/parity/evidence/2026-09-13/a05-installed-sdk-restart-6e817e3/README.md",
+        "reviewEvidence": "docs/parity/evidence/2026-09-13/a05-installed-sdk-restart-6e817e3/review.json"
       },
       "implementationReviewHistory": [
         {
@@ -3507,12 +3507,22 @@
           "scope": "Published combined candidate6b600f9 passes924/7skip andstrict43;28 installed-client synthetic checks passed. Token encoding accepted within bounded scope. Public parser candidate7cf0cba requires root review before combined acceptance/deployment.",
           "artifact": "packages/account/src/robotFace.js",
           "reviewEvidence": "docs/parity/evidence/2026-09-08/oobe-integration-root/review.json"
+        },
+        {
+          "state": "accepted",
+          "assignee": "Luna Max / w18_a05_review; Codex root",
+          "candidateRevision": "51b66c9",
+          "integratedRevision": "e784f95",
+          "reviewedBy": "Codex root",
+          "scope": "Bounded public OOBE parser/reconnect integration. Pinned source rejects later membership checks; raw node:http proves the missing Content-Type boundary; declared, chunked and compressed expansion paths are bounded. Root falsified the default parser behavior and restored it. Combined 1,969 tests and strict43 pass. Whole A-05 consumer/restart/hardware acceptance remains open.",
+          "artifact": "docs/parity/evidence/2026-09-13/a05-oobe-parser/review.md",
+          "reviewEvidence": "docs/parity/evidence/2026-09-13/a05-oobe-parser/review.md"
         }
       ],
       "nextImplementation": {
         "state": "ready",
-        "assignee": "Luna Max candidate; Codex root review",
-        "scope": "Replay every installed original normal/admin SDK target against the exact integrated revision, prove issued credentials across service and robot restart, reconcile complete A-03/A-04 flows, then retain fresh robot/firmware/date evidence."
+        "assignee": "Codex root with Luna Max analysis",
+        "scope": "Reconcile the remaining A-03/A-04 dependency gaps, then run fresh native OOBE against an identified robot/firmware/date, including TLS ingress and issued-credential preservation across both service and robot restart. Preserve the household and avoid destructive pairing unless the selected hardware state explicitly permits it."
       }
     },
     {

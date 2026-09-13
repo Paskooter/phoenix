@@ -1433,7 +1433,7 @@ Lead review: Hermes root (pasketti); [docs/parity/evidence/2026-09-10/a04-loop-o
 
 Owner: Codex. Dependencies: A-03, A-04.
 
-The accepted Account implementation covers setup/reconnect, suspended replacement, unbound relocation, token persistence/expiry, OOBE authentication, administrator service-token issuance and UTF-8 QR framing. The integrated public parser now matches the pinned Hapi media/entity boundary, defaults a truly absent Content-Type to JSON, bounds declared/chunked/compressed entities, and preserves the pinned source-simple reconnect behavior. Root falsification and the combined 1,969-test/strict43 run pass. Complete installed-client, restart, A-03/A-04 and fresh hardware evidence remain open.
+The accepted Account implementation covers setup/reconnect, suspended replacement, unbound relocation, token persistence/expiry, OOBE authentication, administrator service-token issuance and UTF-8 QR framing. The public parser matches the pinned Hapi media/entity boundary and preserves source-simple reconnect behavior. The installed original @jibo/jibo-server-client 3.0.110 under Node 8.9.4 now drives all five normal/admin OOBE operations across both Account and Classic faces: 38 initial and 46 post-restart checks pass, issued ordinary/replacement/service credentials survive a real service-process restart, and all nine Store collections match disk. A-03/A-04 completion, robot restart and fresh hardware/firmware/date evidence remain open.
 
 Done when:
 
@@ -1449,11 +1449,11 @@ Evidence: pending.
 
 - [x] Candidate implementation — **accepted**; Luna Max / w18_a05_review; Codex root.
 
-Candidate scope: Bounded public OOBE parser/reconnect integration. Pinned source rejects later membership checks; raw node:http proves the missing Content-Type boundary; declared, chunked and compressed expansion paths are bounded. Root falsified the default parser behavior and restored it. Combined 1,969 tests and strict43 pass. Whole A-05 consumer/restart/hardware acceptance remains open.
+Candidate scope: Bounded installed-original-client and service-restart closure. Root independently reran 84 Node 8 SDK checks across Account/Classic, inspected exact sanitized wire rows and durable Store snapshots, and accepted the harness after the 1,970-pass suite and strict43. Whole A-05 remains open for A-03/A-04 dependencies, robot restart, native pairing/TLS and fresh hardware evidence.
 
-Candidate report: [docs/parity/evidence/2026-09-13/a05-oobe-parser/review.md](../../docs/parity/evidence/2026-09-13/a05-oobe-parser/review.md).
+Candidate report: [docs/parity/evidence/2026-09-13/a05-installed-sdk-restart-6e817e3/README.md](../../docs/parity/evidence/2026-09-13/a05-installed-sdk-restart-6e817e3/README.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-13/a05-oobe-parser/review.md](../../docs/parity/evidence/2026-09-13/a05-oobe-parser/review.md). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-13/a05-installed-sdk-restart-6e817e3/review.json](../../docs/parity/evidence/2026-09-13/a05-installed-sdk-restart-6e817e3/review.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### A-07 — Complete Robot records, provisioning and calibration/history behavior
 
