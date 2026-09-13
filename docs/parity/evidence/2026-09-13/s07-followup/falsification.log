@@ -1,0 +1,7 @@
+{"label":"paired-row-omission","rejected":true,"status":1}
+{"label":"launch-action-omission","rejected":true,"status":1}
+{"label":"update-trace-omission","rejected":true,"status":1}
+{"label":"launch-effects-omission","rejected":true,"status":1}
+{"label":"esml-mutation","rejected":true,"status":1}
+{"label":"paired-mim-transition-corruption","rejected":true,"status":1}
+{"result":"pass","cases":6}

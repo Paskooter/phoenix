@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "runnerSha256": "d1330a0809f23ebe98d4545a9062360141d055a1b8a35004296bede0c42a50de",
+  "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "source": {
+    "root": "/home/shell/work/phoenix/.parity/reference/5c0a7390539663ba749d360de348a428c088505c/packages/chitchat-skill/mims",
+    "files": 4424,
+    "byDirectory": {
+      "core-responses": 1,
+      "emotion-responses": 54,
+      "scripted-responses": 4369
+    },
+    "types": {
+      "announcement": 4424
+    },
+    "prompts": 11883,
+    "malformed": 0,
+    "embeddedMimIds": 34,
+    "idDigest": "81a89fe41266295232e4bfdd0abd287b3d4a5efd1c1fcfff373a4a3251c5eb9b",
+    "treeDigest": "928b8c1a714a54ea0df46af02cef989ce0a4706c4d486bc6d849a9bd3bd25190"
+  },
+  "candidate": {
+    "root": "/home/shell/work/phoenix-s07-followup/packages/skills/resources/mims/chitchat",
+    "files": 4424,
+    "byDirectory": {
+      "core-responses": 1,
+      "emotion-responses": 54,
+      "scripted-responses": 4369
+    },
+    "types": {
+      "announcement": 4424
+    },
+    "prompts": 11883,
+    "malformed": 0,
+    "embeddedMimIds": 34,
+    "idDigest": "81a89fe41266295232e4bfdd0abd287b3d4a5efd1c1fcfff373a4a3251c5eb9b",
+    "treeDigest": "928b8c1a714a54ea0df46af02cef989ce0a4706c4d486bc6d849a9bd3bd25190"
+  },
+  "allAnnouncement": true,
+  "sameTree": true
+}
