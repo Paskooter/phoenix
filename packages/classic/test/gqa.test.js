@@ -211,18 +211,20 @@ test('source parser rejects malformed and empty JSON with Flask 400 HTML before 
   assert.deepEqual(calls, []);
 });
 
-test('a mapped GQA operation is source-shaped even before Question core integration', async () => {
+test('the default GQA composition serves source-shaped no-answer and attribution responses', async () => {
   const { port } = await start();
   const question = await request(port, 'GQA_20160930.Question', { Input: 'fixture' });
-  assert.equal(question.status, 500);
+  assert.equal(question.status, 200);
   assert.equal(question.contentType, 'application/json; charset=utf-8');
-  assert.equal(question.body.version, '5.2.15');
-  assert.match(question.body.message, /structQA implementation/);
+  const { timestamps, ...questionWithoutTimestamps } = question.body;
+  assert.deepEqual(questionWithoutTimestamps, { message: 'Missing robot_id!', version: '5.2.15', success: false });
+  assert.equal(typeof timestamps.receive_request, 'number');
+  assert.equal(typeof timestamps.return_response, 'number');
 
   const attribution = await request(port, 'GQA_20160930.ListAttribution', { ID: 'fixture' });
-  assert.equal(attribution.status, 500);
+  assert.equal(attribution.status, 500, 'the default attribution route still resolves Account before requiring an identity');
   assert.equal(attribution.body.version, '5.2.15');
-  assert.equal(attribution.body.message, 'GQA attribution service not configured');
+  assert.equal(attribution.body.message, 'No robot ID!');
 });
 
 test('unknown GQA operation uses the downstream Flask 404 while unrelated Classic routing is unchanged', async () => {

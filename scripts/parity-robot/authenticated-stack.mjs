@@ -118,6 +118,7 @@ export async function startAuthenticatedRobotStack({
     ETCO_account_dataFile: accountPath,
     ETCO_classic_backupDir: resolve(directory, 'backups'),
     ETCO_classic_notificationFile: resolve(directory, 'notifications.json'),
+    ETCO_gqa_attributionFile: resolve(directory, 'gqa-attribution.json'),
     ETCO_classic_publicUrl: publicUrl,
     HUB_TOKEN_SECRET: secret, ETCO_server_hubTokenSecret: secret,
     ETCO_hub_disableAuth: 'false', ETCO_hub_accountUrl: '',

@@ -8,6 +8,12 @@
 
 import { createService, sendJson, logger } from '@phoenix/common';
 import { DefaultPort } from '@phoenix/contracts';
+import {
+  createGqaFileAttributionStore,
+  createPhoenixGqaAccountLookup,
+  createStructQaHandler,
+  GQA_ATTRIBUTE_DEFAULT_FILE,
+} from '@phoenix/skills';
 import { createClassicRouter } from './router.js';
 import { LogStore, makeLogHandler, logHttpRoutes } from './log.js';
 import { makeRobotHandler, RobotStore } from './robot.js';
@@ -75,6 +81,126 @@ const netUrl = (name, defPort) => {
   if (!v) return `http://localhost:${defPort}`;
   return /^https?:\/\//.test(v) ? v : `http://${v}`;
 };
+
+const GQA_ACCOUNT_SERVICE_ENV = 'ETCO_server_accountService';
+const GQA_ATTRIBUTION_FILE_ENV = 'ETCO_gqa_attributionFile';
+
+const own = (value, key) => Object.prototype.hasOwnProperty.call(value, key);
+
+function httpPeerUrl(value) {
+  if (typeof value !== 'string' || value.length === 0) return value;
+  return /^https?:\/\//i.test(value) ? value : `http://${value}`;
+}
+
+function isAssociatedLoopsEndpoint(value) {
+  if (typeof value !== 'string' || value.length === 0) return false;
+  try {
+    return /\/listAssociatedLoops\/?$/i.test(new URL(httpPeerUrl(value)).pathname);
+  } catch (_error) {
+    return /\/listAssociatedLoops\/?$/i.test(value);
+  }
+}
+
+function accountLookupFromObject(value) {
+  if (typeof value === 'function') return value;
+  if (value && typeof value.getLoopId === 'function') return value.getLoopId.bind(value);
+  if (value && typeof value.get_loop_id === 'function') return value.get_loop_id.bind(value);
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    const config = { ...value };
+    if (config.endpoint !== undefined) {
+      const endpoint = httpPeerUrl(config.endpoint);
+      if (isAssociatedLoopsEndpoint(endpoint)) config.endpoint = endpoint;
+      else {
+        delete config.endpoint;
+        config.baseUrl = endpoint;
+      }
+    } else if (config.baseUrl !== undefined) {
+      config.baseUrl = httpPeerUrl(config.baseUrl);
+    }
+    return createPhoenixGqaAccountLookup(config);
+  }
+  throw new TypeError('Classic GQA account configuration must be a function or mapping');
+}
+
+function defaultGqaAccountLookup(options) {
+  if (own(options, 'accountLookup') && options.accountLookup !== undefined) return options.accountLookup;
+  if (own(options, 'account') && options.account !== undefined && options.account !== null) {
+    return accountLookupFromObject(options.account);
+  }
+
+  const configuredEndpoint = options.accountEndpoint
+    || options.accountServiceEndpoint
+    || process.env[GQA_ACCOUNT_SERVICE_ENV];
+  if (configuredEndpoint) {
+    const endpoint = httpPeerUrl(configuredEndpoint);
+    return createPhoenixGqaAccountLookup(isAssociatedLoopsEndpoint(endpoint)
+      ? { endpoint }
+      : { baseUrl: endpoint });
+  }
+
+  // NET_account is the same private peer used by Classic's OOBE/Account/Loop
+  // proxies. Keep GQA on that boundary and derive the source internal route;
+  // no public account URL or provider endpoint is selected implicitly.
+  return createPhoenixGqaAccountLookup({ baseUrl: netUrl('account', DefaultPort.account) });
+}
+
+function attributionStoreFromValue(value, clock) {
+  // A custom Classic attribution handler may only need the source search face;
+  // retain that explicit seam when Question itself is also injected.
+  if (typeof value === 'function') return value;
+  if (value && typeof value.search === 'function') return value;
+  if (value && typeof value === 'object' && !Array.isArray(value) && value.file) {
+    return createGqaFileAttributionStore({ ...value, clock });
+  }
+  if (value === undefined || value === null) return undefined;
+  throw new TypeError('Classic GQA attribution must be a store or file mapping');
+}
+
+/**
+ * Compose Classic's production GQA route from the source-shaped handler and
+ * the private Phoenix Account/durable attribution seams. Provider clients are
+ * deliberately absent unless a caller supplies `gqaProvider` or `providers`.
+ * Explicit handler/store/account options remain replaceable for focused
+ * tests and deployments.
+ */
+export function createClassicGqa(gqa = {}) {
+  if (gqa !== undefined && gqa !== null
+    && (typeof gqa !== 'object' || Array.isArray(gqa))) {
+    throw new TypeError('Classic GQA configuration must be a mapping');
+  }
+  const options = gqa || {};
+  const clock = typeof options.clock === 'function' ? options.clock : Date.now;
+  const accountLookup = defaultGqaAccountLookup(options);
+  const configuredAttribution = own(options, 'attribution')
+    ? options.attribution
+    : own(options, 'store') ? options.store : undefined;
+  const attribution = attributionStoreFromValue(configuredAttribution, clock)
+    || createGqaFileAttributionStore({
+      file: options.attributionFile
+        || process.env[GQA_ATTRIBUTION_FILE_ENV]
+        || GQA_ATTRIBUTE_DEFAULT_FILE,
+      clock: typeof options.attributionClock === 'function' ? options.attributionClock : clock,
+    });
+  const question = options.structQaHandler
+    || options.question
+    || options.questionHandler
+    || options.structQA;
+  const questionAttribution = attribution && typeof attribution.insert === 'function'
+    ? attribution : undefined;
+  const structQaHandler = question || createStructQaHandler({
+    ...options,
+    accountLookup,
+    attribution: questionAttribution,
+    clock,
+  });
+
+  return {
+    ...options,
+    accountLookup,
+    attribution,
+    structQaHandler,
+  };
+}
 
 function isNotificationTarget(req) {
   return /^notification[^.]*\./i.test(String(req?.headers?.['x-amz-target'] || ''));
@@ -221,6 +347,7 @@ export function makeKeyNeededNotifier(hub, membership) {
  * face and the socket on one host (path /socket/<token>).
  */
 export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership, media, key, keyStore, keyMembership, keyBinaryDir, rom, robotStore, ifttt, nlp, person, collision, gqa, jot, voiceTraining } = {}) {
+  const classicGqa = createClassicGqa(gqa);
   const hub = new NotificationHub({
     file: notificationFile,
     store: notificationStore,
@@ -271,7 +398,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
         nlp: nlp || { provider: nlpProviderFromEnv() },
         person: { store: personStore, account: person?.account, questions: person?.questions, holidays: person?.holidays, now: person?.now },
         collision: collision || {},
-        gqa: gqa || {},
+        gqa: classicGqa,
         jot: { ...jot, store: jotStore, media: jotMedia },
         voiceTraining: { ...voiceTraining, store: voiceTrainingStore },
       }),
@@ -311,7 +438,20 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
   const wss = attachNotificationSocket(service.server, hub);
   hub.startDelivery();
   service.server.on('close', () => hub.stopDelivery());
-  return { ...service, hub, wss, backups, logStore, mediaStore, keys, iftttStore, personStore, jotStore, voiceTrainingStore };
+  return {
+    ...service,
+    hub,
+    wss,
+    backups,
+    logStore,
+    mediaStore,
+    keys,
+    iftttStore,
+    personStore,
+    jotStore,
+    voiceTrainingStore,
+    gqa: classicGqa,
+  };
 }
 
 export function start(port = Number(process.env.PORT) || DefaultPort.classic) {
