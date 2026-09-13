@@ -104,11 +104,54 @@ function isOobeRequest(req) {
   return /^oobe[^.]*\./i.test(String(req?.headers?.['x-amz-target'] || ''));
 }
 
+function oobePayloadLimitError() {
+  return {
+    statusCode: 400,
+    error: 'Bad Request',
+    message: `Payload content length greater than maximum allowed: ${OOBE_MAX_PAYLOAD_BYTES}`,
+  };
+}
+
+function declaredContentLength(req) {
+  const header = req?.headers?.['content-length'];
+  if (header === undefined || header === null || String(header).trim() === '') return null;
+  const length = Number.parseInt(String(header), 10);
+  return Number.isSafeInteger(length) && length >= 0 ? length : null;
+}
+
 async function readRequestBody(req) {
-  if (Buffer.isBuffer(req.rawBody)) return req.rawBody;
+  if (Buffer.isBuffer(req.rawBody)) {
+    return req.rawBody.length > OOBE_MAX_PAYLOAD_BYTES
+      ? { body: null, error: oobePayloadLimitError() }
+      : { body: req.rawBody, error: null };
+  }
+
+  // The pinned source gateway authenticates before handing the entity to the
+  // Account Hapi parser. Phoenix keeps the raw bytes here for that boundary,
+  // but its compatibility face has no separate upstream gateway process. A
+  // declared over-limit entity can therefore take the source parser response
+  // immediately; absent or forged Content-Length values are checked while the
+  // stream is captured. Drain the remainder without retaining it so a rejected
+  // keep-alive request cannot leave the connection in an unread state.
+  if (declaredContentLength(req) > OOBE_MAX_PAYLOAD_BYTES) {
+    req.resume();
+    return { body: null, error: oobePayloadLimitError() };
+  }
+
   const chunks = [];
-  for await (const chunk of req) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-  return Buffer.concat(chunks);
+  let total = 0;
+  for await (const chunk of req) {
+    const length = Buffer.isBuffer(chunk)
+      ? chunk.length
+      : typeof chunk === 'string' ? Buffer.byteLength(chunk) : Number(chunk?.byteLength || chunk?.length || 0);
+    if (!Number.isSafeInteger(length) || length < 0 || length > OOBE_MAX_PAYLOAD_BYTES - total) {
+      req.resume();
+      return { body: null, error: oobePayloadLimitError() };
+    }
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    total += length;
+  }
+  return { body: Buffer.concat(chunks, total), error: null };
 }
 
 function parseOobePublicBody(req, rawBody) {
@@ -117,29 +160,28 @@ function parseOobePublicBody(req, rawBody) {
   if (Number.isInteger(contentLength) && contentLength > OOBE_MAX_PAYLOAD_BYTES) {
     return {
       body: null,
-      error: {
-        statusCode: 400,
-        error: 'Bad Request',
-        message: `Payload content length greater than maximum allowed: ${OOBE_MAX_PAYLOAD_BYTES}`,
-      },
+      error: oobePayloadLimitError(),
     };
   }
   const contentEncoding = String(req?.headers?.['content-encoding'] || '');
   if (contentEncoding === 'gzip' || contentEncoding === 'deflate') {
     try {
-      entity = contentEncoding === 'gzip' ? gunzipSync(entity) : inflateSync(entity);
+      // Keep the source's post-decompression Hapi limit without allowing a
+      // compressed entity to expand past the bounded parser buffer first.
+      entity = contentEncoding === 'gzip'
+        ? gunzipSync(entity, { maxOutputLength: OOBE_MAX_PAYLOAD_BYTES })
+        : inflateSync(entity, { maxOutputLength: OOBE_MAX_PAYLOAD_BYTES });
     } catch (error) {
+      if (error?.code === 'ERR_BUFFER_TOO_LARGE') {
+        return { body: null, error: oobePayloadLimitError() };
+      }
       return { body: null, error: { statusCode: 400, error: 'Bad Request', message: 'Invalid compressed payload' } };
     }
   }
   if (entity.length > OOBE_MAX_PAYLOAD_BYTES) {
     return {
       body: null,
-      error: {
-        statusCode: 400,
-        error: 'Bad Request',
-        message: `Payload content length greater than maximum allowed: ${OOBE_MAX_PAYLOAD_BYTES}`,
-      },
+      error: oobePayloadLimitError(),
     };
   }
   const raw = entity.toString('utf8');
@@ -219,10 +261,16 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     // Hapi parser. Keep those original bytes available to the source-compatible
     // parser, including when no Content-Type header was sent.
     if (isOobeRequest(req)) {
-      req.rawBody = await readRequestBody(req);
-      const parsed = parseOobePublicBody(req, req.rawBody);
-      body = parsed.body;
-      parserFailure = parsed.error;
+      const captured = await readRequestBody(req);
+      req.rawBody = captured.body;
+      if (captured.error) {
+        body = null;
+        parserFailure = captured.error;
+      } else {
+        const parsed = parseOobePublicBody(req, req.rawBody);
+        body = parsed.body;
+        parserFailure = parsed.error;
+      }
     }
     // Hapi's binary stream route checks the declared length before dispatch.
     // Its stream output does not impose a cumulative limit on chunked bodies.
