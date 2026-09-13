@@ -12,6 +12,11 @@ import { resolve } from 'node:path';
 
 export const S13_FIXTURE_SCHEMA = 'phoenix-s13-robot-fixture-v1';
 export const S13_FIXTURE_MAX_BYTES = 16 * 1024 * 1024;
+// This value is deliberately recognizable as a diagnostic-only identity. It is
+// supplied only for the calendar Lasso/Data request when the selected loop user
+// has no accountId; it is never persisted, authenticated, or used by a live
+// provider. Keeping it constant makes the physical fixture request reproducible.
+export const S13_FIXTURE_CALENDAR_ACCOUNT_ID = 'phoenix-s13-fixture-calendar-account-v1';
 
 const HASH = /^[0-9a-f]{64}$/i;
 const CASE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
@@ -109,6 +114,88 @@ function formatOffset(minutes) {
 
 function reject(message) {
   throw new Error(`S13 fixture rejected: ${message}`);
+}
+
+function calendarIdentityMetadata() {
+  return {
+    enabled: true,
+    accountId: S13_FIXTURE_CALENDAR_ACCOUNT_ID,
+    fill: 'missing-only',
+    scope: 'LassoClient.fetchCalendarEvents -> fixture Data calendar provider',
+    credentials: 'none',
+  };
+}
+
+/**
+ * Make the source LassoClient calendar call usable with a physical WhoIsThis
+ * result whose loop user has an id but no accountId. The report data object is
+ * shallow-cloned so the graph's real runtime context is never mutated. Any
+ * malformed or ambiguous speaker context rejects before the original method is
+ * called; there is no fallback account and no fixture provider bypass here.
+ */
+function calendarDataWithFixtureIdentity(data) {
+  if (!isRecord(data)) reject('calendar identity bridge requires report data');
+  const runtime = data.runtime;
+  if (!isRecord(runtime)) reject('calendar identity bridge requires runtime data');
+  const perception = runtime.perception;
+  const speaker = perception && perception.speaker;
+  if (typeof speaker !== 'string' || !speaker) {
+    reject('calendar identity bridge requires a selected speaker');
+  }
+  const loop = runtime.loop;
+  if (!isRecord(loop) || !Array.isArray(loop.users)) {
+    reject('calendar identity bridge requires loop.users');
+  }
+  const matches = loop.users.filter((user) => isRecord(user) && user.id === speaker);
+  if (matches.length !== 1) {
+    reject(`calendar identity bridge requires exactly one loop user for speaker '${speaker}'`);
+  }
+  const selected = matches[0];
+  const existing = selected.accountId;
+  const missing = existing === undefined || existing === null || existing === '';
+  if (!missing) {
+    if (typeof existing !== 'string' || !existing.trim()) {
+      reject(`calendar identity bridge found an invalid accountId for speaker '${speaker}'`);
+    }
+    return data;
+  }
+
+  const users = loop.users.map((user) => user === selected
+    ? { ...user, accountId: S13_FIXTURE_CALENDAR_ACCOUNT_ID }
+    : user);
+  return {
+    ...data,
+    runtime: {
+      ...runtime,
+      loop: { ...loop, users },
+    },
+  };
+}
+
+/**
+ * Install the S13-only identity bridge on the already imported LassoClient.
+ * The original implementation remains responsible for constructing the
+ * request, headers, URL, and response handling; this wrapper changes only the
+ * cloned loop context passed to that call.
+ */
+export function installCalendarIdentityBridge(lassoClient) {
+  if (!lassoClient || typeof lassoClient.fetchCalendarEvents !== 'function') {
+    reject('calendar identity bridge requires LassoClient.fetchCalendarEvents');
+  }
+  const original = lassoClient.fetchCalendarEvents;
+  const wrapped = function fixtureCalendarFetch(data, ...args) {
+    return original.call(this, calendarDataWithFixtureIdentity(data), ...args);
+  };
+  lassoClient.fetchCalendarEvents = wrapped;
+  let restored = false;
+  return () => {
+    if (restored) return;
+    if (lassoClient.fetchCalendarEvents !== wrapped && lassoClient.fetchCalendarEvents !== original) {
+      reject('calendar identity bridge was replaced before restoration');
+    }
+    if (lassoClient.fetchCalendarEvents === wrapped) lassoClient.fetchCalendarEvents = original;
+    restored = true;
+  };
 }
 
 function hashBytes(bytes) {
@@ -478,7 +565,12 @@ export function createS13FixtureRuntime({
   let last;
   const turnCases = new Map();
   const read = () => {
-    last = readS13Fixture(filePath, { expectedFileSha256, expectedCasesSha256, onRead });
+    last = readS13Fixture(filePath, {
+      expectedFileSha256,
+      expectedCasesSha256,
+      onRead: (metadata) => onRead?.({ ...metadata, calendarIdentity: calendarIdentityMetadata() }),
+    });
+    last = { ...last, metadata: { ...last.metadata, calendarIdentity: calendarIdentityMetadata() } };
     return last;
   };
   const notifyProvider = (service, input, snapshot) => {
@@ -506,6 +598,7 @@ export function createS13FixtureRuntime({
     if (!prior) turnCases.set(transID, snapshot.metadata.caseId);
   };
   let restoreSettings = () => {};
+  let restoreCalendarIdentity = () => {};
   return {
     read,
     metadata() {
@@ -575,6 +668,13 @@ export function createS13FixtureRuntime({
       restoreSettings = () => { SettingsClient.getUserPrefs = original; };
       return restoreSettings;
     },
-    restore() { restoreSettings(); },
+    installCalendarIdentityBridge(lassoClient) {
+      restoreCalendarIdentity = installCalendarIdentityBridge(lassoClient);
+      return restoreCalendarIdentity;
+    },
+    restore() {
+      restoreCalendarIdentity();
+      restoreSettings();
+    },
   };
 }

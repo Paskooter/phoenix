@@ -140,3 +140,31 @@ not claim physical Nimbus rendering, authenticated Classic/Account startup,
 live Google/Outlook credentials, live Maps availability, server-side ASR, or
 production deployment behavior. `stack.mjs` without either fixture-path
 environment variable retains its existing startup and provider behavior.
+
+### Physical WhoIsThis identity bridge
+
+On a physical Moth turn, the source `WhoIsThis` graph can select a loop user
+whose runtime object has an `id` but no `accountId`. The original
+`LassoClient.fetchCalendarEvents` requires that field to build the unchanged
+calendar request, so an absent value would make Data reject the request with
+HTTP 400. When (and only when) the S13 fixture path is enabled, `stack.mjs`
+installs a small bridge around that original Lasso method. For the selected
+speaker only, it passes a shallow-cloned report runtime whose missing
+`accountId` is the deterministic value
+`phoenix-s13-fixture-calendar-account-v1`.
+
+The bridge preserves the original Lasso method's URL construction, headers,
+transaction, service selection, Data HTTP request, provider callback, and
+calendar normalization. It does not mutate the graph's runtime object, replace
+NLU/Gateway/Report/Data, or create an account, loop membership, token, OAuth
+credential, or live-provider fallback. An existing non-empty string
+`accountId` is preserved. Missing or malformed speaker, loop, user, or account
+data fails closed before the original method is called. The synthetic identity
+is accepted only by the fixture Data provider path, is not persisted, and is
+reported in `stack.json` and wire metadata under `fixture.calendarIdentity`
+with `credentials: "none"` and a calendar Lasso/Data-only scope.
+
+The wrapper has an explicit restoration hook and is removed during diagnostic
+stack shutdown or startup failure. Runs without
+`PHOENIX_ROBOT_S13_FIXTURE_FILE` (or its compatibility alias) never install
+this identity bridge.

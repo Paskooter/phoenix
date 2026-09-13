@@ -11,11 +11,14 @@ import { createSkillService } from '../../packages/skills/src/skillService.js';
 import { createReportSkill } from '../../packages/skills/src/reportSkill.js';
 import { GraphManager } from '../../packages/skills/src/graph/graphManager.js';
 import { SettingsClient } from '../../packages/skills/src/report/settingsClient.js';
+import { LassoClient } from '../../packages/skills/src/report/lassoClient.js';
 import { clearReportEnvCache } from '../../packages/skills/src/report/env.js';
 import {
   S13_FIXTURE_SCHEMA,
+  S13_FIXTURE_CALENDAR_ACCOUNT_ID,
   casesSha256,
   createS13FixtureRuntime,
+  installCalendarIdentityBridge,
   readS13Fixture,
   resolveLocalOffset,
 } from './s13-fixture.mjs';
@@ -198,6 +201,119 @@ test('S-13 fixture runtime rejects a case switch in the middle of one transactio
   assert.throws(() => runtime.mapsProvider({ mode: 'driving' }, {
     req: { headers: { 'x-jibo-transid': 'turn-1' } },
   }), /case changed during transaction/);
+});
+
+test('S-13 calendar identity bridge fills only the selected missing loop user without mutating report data', async () => {
+  const { file } = fixtureFile();
+  const fixtureRuntime = createS13FixtureRuntime({ filePath: file });
+  const calls = [];
+  const client = {
+    fetchCalendarEvents: async function fetchCalendarEvents(data, ...args) {
+      calls.push({ data, args, receiver: this });
+      return { events: [] };
+    },
+  };
+  const original = client.fetchCalendarEvents;
+  const restore = fixtureRuntime.installCalendarIdentityBridge(client);
+  const input = {
+    marker: 'same-report-data',
+    runtime: {
+      perception: { speaker: 'adult' },
+      loop: { loopId: 'loop-1', users: [
+        { id: 'adult', birthdate: '1990-01-01' },
+        { id: 'other', accountId: 'real-account' },
+      ] },
+    },
+  };
+  try {
+    const result = await client.fetchCalendarEvents(input, 'google', 'personalCalendar', '2050-01-01T00:00:00Z');
+    assert.deepEqual(result, { events: [] });
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].receiver, client);
+    assert.deepEqual(calls[0].args, ['google', 'personalCalendar', '2050-01-01T00:00:00Z']);
+    assert.notEqual(calls[0].data, input);
+    assert.notEqual(calls[0].data.runtime, input.runtime);
+    assert.notEqual(calls[0].data.runtime.loop, input.runtime.loop);
+    assert.notEqual(calls[0].data.runtime.loop.users, input.runtime.loop.users);
+    assert.equal(calls[0].data.runtime.loop.users[0].accountId, S13_FIXTURE_CALENDAR_ACCOUNT_ID);
+    assert.equal(calls[0].data.runtime.loop.users[1].accountId, 'real-account');
+    assert.equal(input.runtime.loop.users[0].accountId, undefined);
+    assert.equal(fixtureRuntime.metadata().calendarIdentity.accountId, S13_FIXTURE_CALENDAR_ACCOUNT_ID);
+    assert.equal(fixtureRuntime.metadata().calendarIdentity.credentials, 'none');
+  } finally {
+    fixtureRuntime.restore();
+  }
+  assert.equal(client.fetchCalendarEvents, original);
+});
+
+test('S-13 calendar identity bridge preserves valid identity and rejects malformed speaker context', () => {
+  let calls = 0;
+  const client = {
+    fetchCalendarEvents: () => { calls += 1; return 'original'; },
+  };
+  const original = client.fetchCalendarEvents;
+  const restore = installCalendarIdentityBridge(client);
+  try {
+    const valid = {
+      runtime: {
+        perception: { speaker: 'adult' },
+        loop: { users: [{ id: 'adult', accountId: 'existing-account' }] },
+      },
+    };
+    assert.equal(client.fetchCalendarEvents(valid, 'google', 'personalCalendar'), 'original');
+    assert.equal(calls, 1);
+
+    const invalid = [
+      [{ runtime: { perception: {}, loop: { users: [] } } }, /requires a selected speaker/],
+      [{ runtime: { perception: { speaker: 'unknown' }, loop: { users: [{ id: 'adult' }] } } }, /exactly one loop user/],
+      [{ runtime: { perception: { speaker: 'adult' }, loop: { users: [{ id: 'adult' }, { id: 'adult' }] } } }, /exactly one loop user/],
+      [{ runtime: { perception: { speaker: 'adult' }, loop: { users: [{ id: 'adult', accountId: 42 }] } } }, /invalid accountId/],
+      [{ runtime: { perception: { speaker: 'adult' } } }, /requires loop\.users/],
+    ];
+    for (const [input, error] of invalid) assert.throws(() => client.fetchCalendarEvents(input), error);
+    assert.equal(calls, 1, 'malformed context must fail before the original call');
+  } finally {
+    restore();
+    restore();
+  }
+  assert.equal(client.fetchCalendarEvents, original);
+});
+
+test('S-13 identity bridge reaches the real Lasso calendar request and fixture Data provider', { concurrency: false }, async () => {
+  const { file } = fixtureFile();
+  const providerCalls = [];
+  const fixtureRuntime = createS13FixtureRuntime({ filePath: file, onProvider: (event) => providerCalls.push(event) });
+  const dataServer = await createDataService(fixtureRuntime.dataOptions()).listen(0);
+  const previousLasso = process.env.NET_lasso;
+  process.env.NET_lasso = `127.0.0.1:${dataServer.address().port}`;
+  clearReportEnvCache();
+  const original = LassoClient.fetchCalendarEvents;
+  fixtureRuntime.installCalendarIdentityBridge(LassoClient);
+  const data = {
+    log: { debug() {}, info() {}, warn() {}, error() {} },
+    req: { jibo: { toHeader: () => ({}) } },
+    skill: { id: 'report-skill' },
+    runtime: {
+      perception: { speaker: 'adult' },
+      loop: { users: [{ id: 'adult' }] },
+      location: { iso: '2026-06-12T08:00:00+00:00' },
+    },
+  };
+  try {
+    const result = await LassoClient.fetchCalendarEvents(data, 'google', 'personalCalendar', '2050-01-01T00:00:00Z');
+    assert.deepEqual(result, { events: [] });
+    assert.equal(data.runtime.loop.users[0].accountId, undefined);
+    assert.equal(providerCalls.length, 1);
+    assert.equal(providerCalls[0].service, 'google-calendar');
+    assert.equal(providerCalls[0].input.accountId, S13_FIXTURE_CALENDAR_ACCOUNT_ID);
+  } finally {
+    fixtureRuntime.restore();
+    assert.equal(LassoClient.fetchCalendarEvents, original);
+    await new Promise((resolve, reject) => dataServer.close((error) => error ? reject(error) : resolve()));
+    if (previousLasso === undefined) delete process.env.NET_lasso;
+    else process.env.NET_lasso = previousLasso;
+    clearReportEnvCache();
+  }
 });
 
 test('S-13 Data HTTP uses source-shaped Maps and Google/Outlook provider fixtures, then sees a case edit', async () => {

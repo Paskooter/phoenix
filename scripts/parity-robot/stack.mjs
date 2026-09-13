@@ -38,6 +38,7 @@ function record(event) {
 }
 const services = [];
 let restoreFixtureSettings = () => {};
+let restoreFixtureCalendarIdentity = () => {};
 try {
   if (process.env.PHOENIX_ROBOT_AUDIO_METRICS === 'true') {
     const { ParakeetASRSession } = await import('../../packages/gateway/src/asr/parakeetSession.js');
@@ -99,7 +100,9 @@ try {
     // ambiguous fixture must never leave a partially live diagnostic stack.
     fixtureRuntime.read();
     const { SettingsClient } = await import('../../packages/skills/src/report/settingsClient.js');
+    const { LassoClient } = await import('../../packages/skills/src/report/lassoClient.js');
     restoreFixtureSettings = fixtureRuntime.installSettingsClient(SettingsClient);
+    restoreFixtureCalendarIdentity = fixtureRuntime.installCalendarIdentityBridge(LassoClient);
     fixtureDataOptions = fixtureRuntime.dataOptions();
   }
   services.push(await nlu.start(base + 5));
@@ -163,12 +166,14 @@ try {
   console.log(JSON.stringify({ ready: true, ...receipt }));
   for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => {
     record({ kind: 'shutdown', signal });
+    restoreFixtureCalendarIdentity();
     restoreFixtureSettings();
     for (const ws of gw.wss.clients) ws.close();
     for (const service of services) (service?.server || service)?.close?.();
     setTimeout(() => process.exit(0), 1000).unref();
   });
 } catch (error) {
+  restoreFixtureCalendarIdentity();
   restoreFixtureSettings();
   console.error(error);
   for (const service of services) (service?.server || service)?.close?.();
