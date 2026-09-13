@@ -1,6 +1,6 @@
 # N-03 time factory native differential review
 
-Review date: 2026-09-13. The review starts from candidate revision `740385408870aa4c77a392d772f64682e721093a` (`7403854`) on branch `w17/n03`, based on `d7b766f`. The matcher/native review is `6a354f41dcabe35a752ce2ad2e2b39c93fd1ff48` (`6a354f4`); the local-turn assertion update and this artifact follow-up remain local and are not integrated or pushed.
+Review date: 2026-09-13. This follow-up starts from root revision `6e817e31985dfc578dc4dc8bbf745955eee657d7` (`6e817e3`) on fresh branch `w18/n03`. The bounded time implementation originated at `7403854`/`3f3dd77`, was reviewed at `6a354f4`/`9b86312`, and is present in the root base. The local-turn breadth and launch-component tests below are this branch’s local follow-up; they are not pushed or integrated.
 
 ## Native oracle and source basis
 
@@ -32,9 +32,11 @@ The pinned native probe also settles the local-turn contract for the previously 
 
 ## Named-rule and local-turn breadth
 
-The N-03 inventory contains 20 named rules (12 `clock/`, 5 `settings/`, 3 `main-menu/`). The fixture covers all 20 with 134 rows: 45 positive, 62 boundary, and 27 negative (the 18 non-factory rules contribute 122 rows; the two time rules contribute 12). The `clockSettingsMenu.test.js` suite replays every row through both `parseRequest` and a live `POST /v1/parse`; the latest run passed all seven subtests. The pinned source citation is present on every row.
+The N-03 inventory contains 20 named rules (12 `clock/`, 5 `settings/`, 3 `main-menu/`). The fixture covers all 20 with 134 rows: 45 positive, 62 boundary, and 27 negative (the 18 non-factory rules contribute 122 rows; the two time rules contribute 12). The `clockSettingsMenu.test.js` suite replays every row through both `parseRequest` and a live `POST /v1/parse`; the latest run passed all eight subtests. The pinned source citation is present on every row.
 
-The local-turn WebSocket suite now covers 13 distinct representative inputs across the required contract: timer/alarm values, AM/PM, stop/cancel, confirmation, volume, and settings/weather menu selections. The AM cases include both `clock/alarm_set_value "am"` and `clock/alarm_timer_ampm "am"`; all three gateway subtests pass. The exact test paths are `packages/gateway/test/localTurnClockSettingsMenu.test.js` and `packages/nlu/test/clockSettingsMenu.test.js`.
+The local-turn WebSocket suite now exercises 149 assertions across 142 distinct rule/text pairs and all 20 public named rules. It covers every source-declared settings destination, every main-menu and personal-report destination, every fun destination, every volume operation plus numeric 0 through 10 levels, shutdown and timer confirmation yes/no boundaries, every alarm and timer cancellation spelling, stop controls, timer query/info cancellation, and no-match rows. The AM cases include both `clock/alarm_set_value "am"` and `clock/alarm_timer_ampm "am"`. An independent replay of these 142 distinct rows against the corresponding pinned native FSTs found 0 native/Phoenix semantic differences; the rows are anchored to the same pinned `.rule` sources used by the WS assertions.
+
+The source directories contain 23 `.rule` files in these groups: 20 public named rules plus the three `launch.rule` components. `rule-inventory.json` places `clock/launch`, `settings/launch`, and `main-menu/launch` only under `publicRules.launch.sourceHandles`, and direct component requests return the intentional empty result. The tracked [89-row native/Phoenix receipt](./launch-native-receipt.json) records 89 native lines and 89 Phoenix matches, with 0 native/Phoenix, native/fixture, or Phoenix/fixture semantic differences. Its native attributions are 7 `handle:clock/launch`, 2 `handle:settings/launch`, and 2 `handle:main-menu/launch`. This proves the components are union inputs rather than independently requestable N-03 named handles.
 
 ## Action coverage and execution falsification
 
@@ -52,19 +54,19 @@ All 120 files parsed successfully. For each file, the AST tag count of the sourc
 | `rules-src/greetings/proactive_playful_question.rule` | 1 |
 | `rules-src/word-of-the-day/right_word.rule` | 1 |
 
-The named test `falsification: bypassing the recovered time action removes its published fields` executes the `TopRule` action and verifies `_time_*` publication plus `top_time` deletion. A temporary `apply_patch` bypass of `executeSemanticAction` made the focused suite exit 1 with the two action-dependent tests failing; restoring the call made the same suite exit 0 with all 3 tests passing. This falsifies a semantic-action execution omission independently of colon lexing.
+The named test `falsification: bypassing the recovered time action removes its published fields` executes the `TopRule` action and verifies `_time_*` publication plus `top_time` deletion. A deliberate temporary `apply_patch` replaced the production `executeSemanticAction(tag.program, ...)` call in `packages/nlu/src/grammar/matcher.js`; `node --test packages/nlu/test/timeFactory.test.js` then exited 1 with 1 pass and 2 action-dependent failures. Restoring the exact call made the same suite exit 0 with all 3 tests passing, and `git diff` showed no remaining matcher change. This falsifies a semantic-action execution omission independently of colon lexing.
 
 ## Verification
 
 Focused and parity checks after restoration:
 
 * `node --test packages/nlu/test/timeFactory.test.js`: 3 pass, 0 fail.
-* `node --test packages/nlu/test/*.test.js`: 260 tests, 254 pass, 6 skipped, 0 fail.
-* `npm run parity:check`: pass; tracker reports 61/79 verified and leaves N-03 `todo`.
+* `node --test packages/nlu/test/*.test.js`: 266 tests, 260 pass, 6 skipped, 0 fail.
+* `npm run parity:check`: pass; tracker reports 62/79 verified and leaves N-03 `todo`.
 * `npm run parity:gate`: pass; strict production smoke 43 cases, 0 differences, 0 invariants, 0 coverage gaps.
-* `node --test packages/nlu/test/clockSettingsMenu.test.js`: 7 pass, 0 fail (134 named-rule rows exercised in each runtime phase).
-* `node --test packages/gateway/test/localTurnClockSettingsMenu.test.js`: 3 pass, 0 fail (13 distinct local-turn inputs including the source-matched AM falsification).
+* `node --test packages/nlu/test/clockSettingsMenu.test.js`: 8 pass, 0 fail (134 named-rule rows exercised in each runtime phase plus the launch-component boundary test).
+* `node --test packages/gateway/test/localTurnClockSettingsMenu.test.js`: 6 pass, 0 fail (149 local-turn assertions across 142 distinct rule/text pairs, including no-match and source-matched AM falsifications).
 
-* `npm test`: 1,970 tests across 7 suites, 1,962 pass, 8 skipped, 0 fail; `parity:check` and `parity:gate` also pass.
+* `npm test`: 1,982 tests across 7 suites, 1,974 pass, 8 skipped, 0 fail; `parity:check` and `parity:gate` also pass.
 
-N-03 remains open in `docs/parity/tasks.json` as requested: this artifact proves the bounded native two-FST differential, complete direct/HTTP named-rule fixture replay, and representative local-turn contract, while exhaustive native scoring/wire-cardinality equivalence and a per-rule local-turn replay remain outside the bounded claim.
+The acceptance audit is: (1) every public clock/settings/main-menu named rule has positive, negative, and boundary fixture rows with pinned source citations and native/direct/HTTP replay — VERIFIED; (2) alarm/timer values, AM/PM, cancellation, confirmation, volume, and menu selections have source-declared local-turn WS rows, plus independent native FST comparisons — VERIFIED; (3) the three internal launch components are source-pinned union inputs with an actual 89-row native/Phoenix receipt and no public component handle — VERIFIED. The evidence supports closing N-03; `docs/parity/tasks.json` was intentionally left untouched for the parent to update.

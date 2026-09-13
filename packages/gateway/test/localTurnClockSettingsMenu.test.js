@@ -80,6 +80,16 @@ const finalNlu = messages => {
   return final;
 };
 
+async function assertLocalTurns(rows) {
+  for (const [rule, text, intent, entities] of rows) {
+    const final = finalNlu(await localTurn([rule], text));
+    assert.equal(final.type, 'LISTEN', `${rule} ${JSON.stringify(text)}: expected a LISTEN final`);
+    assert.equal(final.data.nlu.intent, intent, `${rule} ${JSON.stringify(text)}: intent`);
+    assert.deepEqual(final.data.nlu.entities, entities, `${rule} ${JSON.stringify(text)}: entities`);
+    assert.deepEqual(final.data.nlu.rules, intent === null ? [] : [rule], `${rule} ${JSON.stringify(text)}: echoed rule set`);
+  }
+}
+
 test('N-03 local turn: clock rules reach the NLU and route on the final LISTEN', async () => {
   for (const [rules, text, intent, entities] of [
     [['clock/clock_menu'], 'what time is it', 'askForTime', { domain: 'clock' }],
@@ -112,7 +122,19 @@ test('N-03 local turn: source-declared time and AM/PM arms yield final LISTEN re
   for (const [rule, text, intent, entities] of [
     ['clock/alarm_set_value', 'am', 'alarmValue', { time: 'am', ampm: 'AM', domain: 'alarm' }],
     ['clock/alarm_set_value', 'seven thirty am', 'alarmValue', { time: '7:30', ampm: 'AM', domain: 'alarm' }],
+    ['clock/alarm_set_value', 'pm', 'alarmValue', { time: 'pm', ampm: 'PM', domain: 'alarm' }],
+    ['clock/alarm_set_value', 'a.m.', 'alarmValue', { time: 'am', ampm: 'AM', domain: 'alarm' }],
+    ['clock/alarm_set_value', 'a m', 'alarmValue', { time: 'am', ampm: 'AM', domain: 'alarm' }],
+    ['clock/alarm_set_value', 'p m', 'alarmValue', { time: 'pm', ampm: 'PM', domain: 'alarm' }],
+    ['clock/alarm_set_value', 'a. m.', 'alarmValue', { time: 'am', ampm: 'AM', domain: 'alarm' }],
+    ['clock/alarm_set_value', 'p. m.', 'alarmValue', { time: 'pm', ampm: 'PM', domain: 'alarm' }],
     ['clock/alarm_timer_ampm', 'am', 'set', { ampm: 'AM', domain: 'alarm' }],
+    ['clock/alarm_timer_ampm', 'pm', 'set', { ampm: 'PM', domain: 'alarm' }],
+    ['clock/alarm_timer_ampm', 'a.m.', 'set', { ampm: 'AM', domain: 'alarm' }],
+    ['clock/alarm_timer_ampm', 'a m', 'set', { ampm: 'AM', domain: 'alarm' }],
+    ['clock/alarm_timer_ampm', 'p m', 'set', { ampm: 'PM', domain: 'alarm' }],
+    ['clock/alarm_timer_ampm', 'a. m.', 'set', { ampm: 'AM', domain: 'alarm' }],
+    ['clock/alarm_timer_ampm', 'p. m.', 'set', { ampm: 'PM', domain: 'alarm' }],
     ['clock/alarm_timer_ampm', 'p.m.', 'set', { ampm: 'PM', domain: 'alarm' }],
   ]) {
     const messages = await localTurn([rule], text);
@@ -133,4 +155,126 @@ test('N-03 local turn falsification: bare AM is not a parser refusal', async () 
   assert.equal(final.type, 'LISTEN');
   assert.equal(final.data.nlu.intent, 'alarmValue');
   assert.deepEqual(final.data.nlu.entities, { time: 'am', ampm: 'AM', domain: 'alarm' });
+});
+
+test('N-03 local turn: timer cancellation and confirmation responses follow source variants', async () => {
+  // timer_set_value.rule:60-63 declares the cancellation vocabulary. The
+  // alarm_set_value.rule:53-56 reuses the same cancellation vocabulary, and
+  // stop_timer.rule:7-9 declares the stop/cancel control vocabulary.
+  // confirmation rows follow alarm_timer_change.rule:5-14,
+  // alarm_timer_other_set.rule:5-14, alarm_timer_none_set.rule:6-10,
+  // alarm_timer_too_long.rule:5-10, alarm_timer_info.rule:5-21,
+  // alarm_timer_query_menu.rule:5-21, and alarm_timer_okay.rule:5-9.
+  await assertLocalTurns([
+    ...['cancel', 'exit', 'escape', 'quit', 'go back', 'nevermind', 'never mind', "that's enough", 'that is enough', 'forget about it', 'cancel the timer']
+      .map(text => ['clock/timer_set_value', text, 'cancel', { hours: 'null', minutes: 'null', seconds: 'null', domain: 'timer' }]),
+    ...['cancel', 'exit', 'escape', 'quit', 'go back', 'nevermind', 'never mind', "that's enough", 'that is enough', 'forget about it']
+      .map(text => ['clock/alarm_set_value', text, 'cancel', { time: 'null', ampm: 'null', domain: 'alarm' }]),
+    ...['stop', 'kill', 'end', 'quit', 'cancel', 'terminate']
+      .map(text => ['clock/stop_timer', text, 'stop', {}]),
+    ['clock/timer_set_value', 'start the timer', null, null],
+    ['clock/alarm_timer_change', 'no', 'keep', {}],
+    ['clock/alarm_timer_change', 'keep it', 'keep', {}],
+    ['clock/alarm_timer_change', 'sure', 'delete', {}],
+    ['clock/alarm_timer_change', 'qzx florp', null, null],
+    ['clock/alarm_timer_other_set', 'no', 'keep', {}],
+    ['clock/alarm_timer_other_set', 'fine', 'replace', {}],
+    ['clock/alarm_timer_other_set', 'qzx florp', null, null],
+    ['clock/alarm_timer_none_set', 'no', 'no', {}],
+    ['clock/alarm_timer_none_set', 'sounds good', 'yes', {}],
+    ['clock/alarm_timer_none_set', 'qzx florp', null, null],
+    ['clock/alarm_timer_too_long', 'no', 'no', {}],
+    ['clock/alarm_timer_too_long', 'sounds good', 'yes', {}],
+    ['clock/alarm_timer_too_long', 'qzx florp', null, null],
+    ['clock/alarm_timer_info', 'cancel it', 'cancel', {}],
+    ['clock/alarm_timer_info', 'edit that', 'change', {}],
+    ['clock/alarm_timer_info', 'qzx florp', null, null],
+    ['clock/alarm_timer_query_menu', 'cancel that', 'cancel', {}],
+    ['clock/alarm_timer_query_menu', 'change it', 'change', {}],
+    ['clock/alarm_timer_query_menu', 'qzx florp', null, null],
+    ['clock/alarm_timer_okay', 'wrong', 'wrong', {}],
+    ['clock/alarm_timer_okay', 'cancel', 'wrong', {}],
+    ['clock/alarm_timer_okay', 'qzx florp', null, null],
+  ]);
+});
+
+test('N-03 local turn: shutdown confirmation and every volume operation reach LISTEN', async () => {
+  // shut_down_confirmation.rule:5-41 declares yes/no plus boundary wording.
+  // volume_control.rule:11-32 declares query, max, min, up, down, and numeric
+  // level arms; its numeric vocabulary is source-declared at lines 84-96.
+  await assertLocalTurns([
+    ['settings/shut_down_confirmation', 'yes', 'yes', {}],
+    ['settings/shut_down_confirmation', 'no', 'no', {}],
+    ['settings/shut_down_confirmation', 'definitely', 'yes', {}],
+    ['settings/shut_down_confirmation', 'certainly', 'yes', {}],
+    ['settings/shut_down_confirmation', 'stay on', 'no', {}],
+    ['settings/shut_down_confirmation', 'qzx florp', null, null],
+    ['settings/volume_control', 'turn the volume up', 'volumeUp', { volumeLevel: 'null', domain: 'gui_command' }],
+    ['settings/volume_control', 'turn the volume down', 'volumeDown', { volumeLevel: 'null', domain: 'gui_command' }],
+    ['settings/volume_control', "what's your volume", 'volumeQuery', { volumeLevel: 'null', domain: 'gui_command' }],
+    ['settings/volume_control', 'maximum volume', 'volumeToValue', { volumeLevel: '10', domain: 'gui_command' }],
+    ['settings/volume_control', 'minimum volume', 'volumeToValue', { volumeLevel: '01', domain: 'gui_command' }],
+    ...[['zero', '0'], ['one', '01'], ['two', '02'], ['three', '03'], ['four', '04'], ['five', '05'], ['six', '06'], ['seven', '07'], ['eight', '08'], ['nine', '09'], ['ten', '10']]
+      .map(([word, value]) => ['settings/volume_control', `set the volume to ${word}`, 'volumeToValue', { volumeLevel: value, domain: 'gui_command' }]),
+    ['settings/volume_control', 'turn it up a bit', 'volumeUp', { volumeLevel: 'null', domain: 'gui_command' }],
+    ['settings/volume_control', 'qzx florp', null, null],
+  ]);
+});
+
+test('N-03 local turn: every settings and main-menu destination is source-covered', async () => {
+  // execute_settings_menu.rule:17-25 declares all seven settings destinations.
+  // download_now_later.rule:3-9 and okay_thanks_to_clear.rule:6-16 provide
+  // the remaining settings confirmation/acknowledgement response variants.
+  // execute_main_menu.rule:12-25 declares all twelve main-menu destinations.
+  // execute_fun_stuff.rule:13-20 and execute_personal_report.rule:13-20
+  // declare the remaining fun and personal-report destinations.
+  await assertLocalTurns([
+    ['settings/execute_settings_menu', 'battery', 'battery', {}],
+    ['settings/execute_settings_menu', 'shut down', 'shutDown', {}],
+    ['settings/execute_settings_menu', 'about', 'about', {}],
+    ['settings/execute_settings_menu', 'volume', 'volumeQuery', {}],
+    ['settings/execute_settings_menu', 'wifi', 'wifiStatus', {}],
+    ['settings/execute_settings_menu', 'updates', 'updates', {}],
+    ['settings/execute_settings_menu', 'wipe', 'wipe', {}],
+    ['settings/execute_settings_menu', 'turn it off', 'shutDown', {}],
+    ['settings/execute_settings_menu', 'qzx florp', null, null],
+    ['settings/download_now_later', 'yes', 'yes', {}],
+    ['settings/download_now_later', 'no thanks', 'no', {}],
+    ['settings/download_now_later', 'why not', 'yes', {}],
+    ['settings/download_now_later', 'not now', 'no', {}],
+    ['settings/download_now_later', 'cancel', 'no', {}],
+    ['settings/download_now_later', 'never', 'never', {}],
+    ['settings/download_now_later', 'qzx florp', null, null],
+    ['settings/okay_thanks_to_clear', 'okay thanks', 'okayThanks', {}],
+    ['settings/okay_thanks_to_clear', 'got it', 'okayThanks', {}],
+    ['settings/okay_thanks_to_clear', 'thank you', 'okayThanks', {}],
+    ['settings/okay_thanks_to_clear', 'thanks', 'okayThanks', {}],
+    ['settings/okay_thanks_to_clear', 'no', null, null],
+    ['settings/okay_thanks_to_clear', 'qzx florp', null, null],
+    ['main-menu/execute_main_menu', 'tutorial', 'loadMenu', { destination: 'tutorial' }],
+    ['main-menu/execute_main_menu', 'things I can do', 'loadMenu', { destination: 'friendly-tips' }],
+    ['main-menu/execute_main_menu', 'fun stuff', 'loadMenu', { destination: 'fun' }],
+    ['main-menu/execute_main_menu', 'snapshot', 'loadMenu', { destination: 'snapshot' }],
+    ['main-menu/execute_main_menu', 'personal report', 'loadMenu', { destination: 'personal-report' }],
+    ['main-menu/execute_main_menu', 'photobooth', 'loadMenu', { destination: 'photobooth' }],
+    ['main-menu/execute_main_menu', 'gallery', 'loadMenu', { destination: 'gallery' }],
+    ['main-menu/execute_main_menu', 'clock', 'loadMenu', { destination: 'clock' }],
+    ['main-menu/execute_main_menu', 'introductions', 'loadMenu', { destination: 'introductions' }],
+    ['main-menu/execute_main_menu', 'settings', 'loadMenu', { destination: 'settings' }],
+    ['main-menu/execute_main_menu', 'radio', 'loadMenu', { destination: 'radio' }],
+    ['main-menu/execute_main_menu', 'yoga', 'loadMenu', { destination: 'exercise' }],
+    ['main-menu/execute_main_menu', 'qzx florp', null, null],
+    ['main-menu/execute_fun_stuff', 'circuit saver game', 'loadMenu', { destination: 'circuit-saver' }],
+    ['main-menu/execute_fun_stuff', 'word of the day', 'loadMenu', { destination: 'word-of-the-day' }],
+    ['main-menu/execute_fun_stuff', 'joke', 'loadMenu', { destination: 'joke' }],
+    ['main-menu/execute_fun_stuff', 'dance', 'loadMenu', { destination: 'dance' }],
+    ['main-menu/execute_fun_stuff', 'surprise me', 'loadMenu', { destination: 'surprise' }],
+    ['main-menu/execute_fun_stuff', 'qzx florp', null, null],
+    ['main-menu/execute_personal_report', 'full report', 'loadMenu', { destination: 'full-report' }],
+    ['main-menu/execute_personal_report', 'weather', 'loadMenu', { destination: 'weather' }],
+    ['main-menu/execute_personal_report', 'calendar', 'loadMenu', { destination: 'calendar' }],
+    ['main-menu/execute_personal_report', 'commute', 'loadMenu', { destination: 'commute' }],
+    ['main-menu/execute_personal_report', 'news', 'loadMenu', { destination: 'news' }],
+    ['main-menu/execute_personal_report', 'qzx florp', null, null],
+  ]);
 });

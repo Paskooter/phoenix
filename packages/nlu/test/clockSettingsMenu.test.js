@@ -107,6 +107,37 @@ test('N-03 fixture covers every clock/settings/main-menu named rule with cited c
   assert.deepEqual([...kinds].sort(), ['boundary', 'negative', 'positive'], 'all three case kinds must be present');
 });
 
+test('N-03 launch components are union-only handles, not public named rules', () => {
+  // The three launch.rule files are source components of the public `launch`
+  // union. They are not independently requestable public rules: the pinned
+  // inventory exposes their handle names only under publicRules.launch.
+  const components = ['clock/launch', 'settings/launch', 'main-menu/launch'];
+  assert.ok(inventory.publicRules.launch, 'the public launch union must be present');
+  for (const component of components) {
+    assert.equal(Object.hasOwn(inventory.publicRules, component), false, `${component} must not be a public named rule`);
+    assert.equal(inventory.publicRules.launch.sourceHandles[component], `handle:${component}`);
+    assert.ok(inventory.publicRules.launch.sources.includes(component), `${component} must be listed as a launch source`);
+    assert.ok(inventory.rules[component]?.path.endsWith(`rules-src/${component}.rule`), `${component} source must remain inventory-pinned`);
+    assert.deepEqual(parseRequest({ text: 'settings', rules: [component] }), { rules: [], intent: null, entities: null });
+  }
+
+  // The archived native launch oracle attributes its successful union results
+  // to these handles (7 clock, 2 settings, 2 main-menu). This is the valid
+  // request boundary for the components; direct component requests above are
+  // intentionally empty.
+  const oracle = JSON.parse(readFileSync(join(HERE, 'fixtures', 'launch-oracle-89.json'), 'utf8'));
+  assert.equal(oracle.provenance.nativeSourceRevision, '91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e');
+  const counts = Object.fromEntries(components.map(component => [
+    `handle:${component}`,
+    oracle.cases.filter(row => row.entities?.union_original_fst_name === `handle:${component}`).length,
+  ]));
+  assert.deepEqual(counts, {
+    'handle:clock/launch': 7,
+    'handle:settings/launch': 2,
+    'handle:main-menu/launch': 2,
+  });
+});
+
 test('N-03 every clock/settings/main-menu fixture matches at runtime through parseRequest', () => {
   const rows = matchRows();
   assert.ok(rows.length >= 100, `expected a broad fixture set, got ${rows.length}`);

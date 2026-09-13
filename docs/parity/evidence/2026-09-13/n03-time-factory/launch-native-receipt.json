@@ -1,0 +1,2208 @@
+{
+  "schema": "phoenix.n03.launch-native-phoenix-receipt",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "nativeSourceRevision": "91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e",
+  "fixtureSourceSha256": "e0ace19cdad03eff4dd02ff0ffe302cda7ac55241edbe0829643f9db4e267098",
+  "nativeParserSha256": "373b6509036c6ab841023fa541b931f1ccc966dee750058cdbbf560ab467ce9b",
+  "nativeLaunchFstSha256": "2ba09176e04522d4addbca23074f2bef62b1cbbe9702f03c390abd8b56fdc25a",
+  "nativeInputNormalization": "lowercase, matching RobustParserClient",
+  "nativeCommand": "build/bin/parse --fst rules_fst/launch.fst --txt <temporary input> --json",
+  "summary": {
+    "rows": 89,
+    "nativeLines": 89,
+    "nativeMatched": 89,
+    "phoenixMatched": 89,
+    "nativePhoenixDiffs": 0,
+    "nativeFixtureDiffs": 0,
+    "phoenixFixtureDiffs": 0,
+    "nativeAttribution": {
+      "handle:chitchat/launch": 47,
+      "handle:clock/launch": 7,
+      "handle:create/launch": 1,
+      "handle:exercise/launch": 1,
+      "handle:friendly-tips/launch": 2,
+      "handle:gallery/launch": 1,
+      "handle:greetings/launch": 8,
+      "handle:hue-control/launch": 2,
+      "handle:main-menu/launch": 2,
+      "handle:personal-report/launch": 12,
+      "handle:radio/launch": 1,
+      "handle:settings/launch": 2,
+      "handle:who-am-i/launch": 2,
+      "handle:word-of-the-day/launch": 1
+    }
+  },
+  "rows": [
+    {
+      "text": "what time is it",
+      "native": {
+        "status": "matched",
+        "intent": "askForTime",
+        "entities": {
+          "domain": "clock",
+          "country": "null",
+          "state": "null",
+          "city": "null",
+          "day_of_week": "null",
+          "skill": "@be/clock",
+          "union_original_fst_name": "handle:clock/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "askForTime",
+        "entities": {
+          "domain": "clock",
+          "country": "null",
+          "state": "null",
+          "city": "null",
+          "day_of_week": "null",
+          "skill": "@be/clock",
+          "union_original_fst_name": "handle:clock/launch"
+        }
+      },
+      "nativeScore": 16,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "whats the time",
+      "native": {
+        "status": "matched",
+        "intent": "askForTime",
+        "entities": {
+          "domain": "clock",
+          "country": "null",
+          "state": "null",
+          "city": "null",
+          "day_of_week": "null",
+          "skill": "@be/clock",
+          "union_original_fst_name": "handle:clock/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "askForTime",
+        "entities": {
+          "domain": "clock",
+          "country": "null",
+          "state": "null",
+          "city": "null",
+          "day_of_week": "null",
+          "skill": "@be/clock",
+          "union_original_fst_name": "handle:clock/launch"
+        }
+      },
+      "nativeScore": 11,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "tell me the time",
+      "native": {
+        "status": "matched",
+        "intent": "askForTime",
+        "entities": {
+          "domain": "clock",
+          "country": "null",
+          "state": "null",
+          "city": "null",
+          "day_of_week": "null",
+          "skill": "@be/clock",
+          "union_original_fst_name": "handle:clock/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "askForTime",
+        "entities": {
+          "domain": "clock",
+          "country": "null",
+          "state": "null",
+          "city": "null",
+          "day_of_week": "null",
+          "skill": "@be/clock",
+          "union_original_fst_name": "handle:clock/launch"
+        }
+      },
+      "nativeScore": 17,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "do you have the time",
+      "native": {
+        "status": "matched",
+        "intent": "askForTime",
+        "entities": {
+          "domain": "clock",
+          "country": "null",
+          "state": "null",
+          "city": "null",
+          "day_of_week": "null",
+          "skill": "@be/clock",
+          "union_original_fst_name": "handle:clock/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "askForTime",
+        "entities": {
+          "domain": "clock",
+          "country": "null",
+          "state": "null",
+          "city": "null",
+          "day_of_week": "null",
+          "skill": "@be/clock",
+          "union_original_fst_name": "handle:clock/launch"
+        }
+      },
+      "nativeScore": 17,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "what is the current time",
+      "native": {
+        "status": "matched",
+        "intent": "askForTime",
+        "entities": {
+          "domain": "clock",
+          "country": "null",
+          "state": "null",
+          "city": "null",
+          "day_of_week": "null",
+          "skill": "@be/clock",
+          "union_original_fst_name": "handle:clock/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "askForTime",
+        "entities": {
+          "domain": "clock",
+          "country": "null",
+          "state": "null",
+          "city": "null",
+          "day_of_week": "null",
+          "skill": "@be/clock",
+          "union_original_fst_name": "handle:clock/launch"
+        }
+      },
+      "nativeScore": 13,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "whats the date",
+      "native": {
+        "status": "matched",
+        "intent": "askForDate",
+        "entities": {
+          "domain": "clock",
+          "country": "null",
+          "state": "null",
+          "city": "null",
+          "day_of_week": "null",
+          "skill": "@be/clock",
+          "union_original_fst_name": "handle:clock/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "askForDate",
+        "entities": {
+          "domain": "clock",
+          "country": "null",
+          "state": "null",
+          "city": "null",
+          "day_of_week": "null",
+          "skill": "@be/clock",
+          "union_original_fst_name": "handle:clock/launch"
+        }
+      },
+      "nativeScore": 11,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "what day is it today",
+      "native": {
+        "status": "matched",
+        "intent": "generalWhatQuestions",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "generalWhatQuestions",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 15,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "what year is it",
+      "native": {
+        "status": "matched",
+        "intent": "generalWhatQuestions",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "generalWhatQuestions",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 4.90039,
+      "nativePriority": "LOW",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "hello",
+      "native": {
+        "status": "matched",
+        "intent": "hello",
+        "entities": {
+          "domain": "greetings",
+          "skill": "@be/greetings",
+          "union_original_fst_name": "handle:greetings/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "hello",
+        "entities": {
+          "domain": "greetings",
+          "skill": "@be/greetings",
+          "union_original_fst_name": "handle:greetings/launch"
+        }
+      },
+      "nativeScore": 6,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "hi jibo",
+      "native": {
+        "status": "matched",
+        "intent": "heyJibo",
+        "entities": {
+          "domain": "greetings",
+          "skill": "@be/greetings",
+          "union_original_fst_name": "handle:greetings/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "heyJibo",
+        "entities": {
+          "domain": "greetings",
+          "skill": "@be/greetings",
+          "union_original_fst_name": "handle:greetings/launch"
+        }
+      },
+      "nativeScore": 5,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "hey there",
+      "native": {
+        "status": "matched",
+        "intent": "hello",
+        "entities": {
+          "domain": "greetings",
+          "skill": "@be/greetings",
+          "union_original_fst_name": "handle:greetings/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "hello",
+        "entities": {
+          "domain": "greetings",
+          "skill": "@be/greetings",
+          "union_original_fst_name": "handle:greetings/launch"
+        }
+      },
+      "nativeScore": 10,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "good morning",
+      "native": {
+        "status": "matched",
+        "intent": "goodMorning",
+        "entities": {
+          "domain": "greetings",
+          "skill": "@be/greetings",
+          "union_original_fst_name": "handle:greetings/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "goodMorning",
+        "entities": {
+          "domain": "greetings",
+          "skill": "@be/greetings",
+          "union_original_fst_name": "handle:greetings/launch"
+        }
+      },
+      "nativeScore": 13,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "good evening",
+      "native": {
+        "status": "matched",
+        "intent": "goodEvening",
+        "entities": {
+          "domain": "greetings",
+          "skill": "@be/greetings",
+          "union_original_fst_name": "handle:greetings/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "goodEvening",
+        "entities": {
+          "domain": "greetings",
+          "skill": "@be/greetings",
+          "union_original_fst_name": "handle:greetings/launch"
+        }
+      },
+      "nativeScore": 13,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "howdy",
+      "native": {
+        "status": "matched",
+        "intent": "hello",
+        "entities": {
+          "domain": "greetings",
+          "skill": "@be/greetings",
+          "union_original_fst_name": "handle:greetings/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "hello",
+        "entities": {
+          "domain": "greetings",
+          "skill": "@be/greetings",
+          "union_original_fst_name": "handle:greetings/launch"
+        }
+      },
+      "nativeScore": 6,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "whats up",
+      "native": {
+        "status": "matched",
+        "intent": "whatsUp",
+        "entities": {
+          "domain": "greetings",
+          "skill": "@be/greetings",
+          "union_original_fst_name": "handle:greetings/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "whatsUp",
+        "entities": {
+          "domain": "greetings",
+          "skill": "@be/greetings",
+          "union_original_fst_name": "handle:greetings/launch"
+        }
+      },
+      "nativeScore": 9,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "whats the weather",
+      "native": {
+        "status": "matched",
+        "intent": "requestWeatherPR",
+        "entities": {
+          "union_original_fst_name": "handle:personal-report/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "requestWeatherPR",
+        "entities": {
+          "union_original_fst_name": "handle:personal-report/launch"
+        }
+      },
+      "nativeScore": 14,
+      "nativePriority": "high",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "weather",
+      "native": {
+        "status": "matched",
+        "intent": "requestWeatherPR",
+        "entities": {
+          "union_original_fst_name": "handle:personal-report/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "requestWeatherPR",
+        "entities": {
+          "union_original_fst_name": "handle:personal-report/launch"
+        }
+      },
+      "nativeScore": 8,
+      "nativePriority": "high",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "is it going to rain",
+      "native": {
+        "status": "matched",
+        "intent": "requestWeather",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "requestWeather",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 20,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "will it rain tomorrow",
+      "native": {
+        "status": "matched",
+        "intent": "requestWeather",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "requestWeather",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 22,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "how hot is it outside",
+      "native": {
+        "status": "matched",
+        "intent": "generalHowQuestions",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "generalHowQuestions",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 3.90039,
+      "nativePriority": "LOW",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "do i need an umbrella",
+      "native": {
+        "status": "matched",
+        "intent": "requestWeather",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "requestWeather",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 19,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "whats the forecast",
+      "native": {
+        "status": "matched",
+        "intent": "requestWeatherPR",
+        "entities": {
+          "union_original_fst_name": "handle:personal-report/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "requestWeatherPR",
+        "entities": {
+          "union_original_fst_name": "handle:personal-report/launch"
+        }
+      },
+      "nativeScore": 15,
+      "nativePriority": "high",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "is it cold out",
+      "native": {
+        "status": "matched",
+        "intent": "thingIsDescriptor",
+        "entities": {
+          "GeneralDescriptor": "Cold",
+          "Location": "Outside",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "thingIsDescriptor",
+        "entities": {
+          "GeneralDescriptor": "Cold",
+          "Location": "Outside",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 12,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "tell me the news",
+      "native": {
+        "status": "matched",
+        "intent": "requestNews",
+        "entities": {
+          "union_original_fst_name": "handle:personal-report/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "requestNews",
+        "entities": {
+          "union_original_fst_name": "handle:personal-report/launch"
+        }
+      },
+      "nativeScore": 13,
+      "nativePriority": "high",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "whats happening",
+      "native": {
+        "status": "matched",
+        "intent": "whatsUp",
+        "entities": {
+          "domain": "greetings",
+          "skill": "@be/greetings",
+          "union_original_fst_name": "handle:greetings/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "whatsUp",
+        "entities": {
+          "domain": "greetings",
+          "skill": "@be/greetings",
+          "union_original_fst_name": "handle:greetings/launch"
+        }
+      },
+      "nativeScore": 16,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "give me the headlines",
+      "native": {
+        "status": "matched",
+        "intent": "requestJiboGiveThing",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "requestJiboGiveThing",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 10,
+      "nativePriority": null,
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "whats going on in the world",
+      "native": {
+        "status": "matched",
+        "intent": "requestNews",
+        "entities": {
+          "union_original_fst_name": "handle:personal-report/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "requestNews",
+        "entities": {
+          "union_original_fst_name": "handle:personal-report/launch"
+        }
+      },
+      "nativeScore": 28,
+      "nativePriority": "high",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "my personal report",
+      "native": {
+        "status": "matched",
+        "intent": "launchPersonalReport",
+        "entities": {
+          "union_original_fst_name": "handle:personal-report/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "launchPersonalReport",
+        "entities": {
+          "union_original_fst_name": "handle:personal-report/launch"
+        }
+      },
+      "nativeScore": 19,
+      "nativePriority": "high",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "morning report",
+      "native": {
+        "status": "matched",
+        "intent": "launchPersonalReport",
+        "entities": {
+          "union_original_fst_name": "handle:personal-report/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "launchPersonalReport",
+        "entities": {
+          "union_original_fst_name": "handle:personal-report/launch"
+        }
+      },
+      "nativeScore": 15,
+      "nativePriority": "high",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "how long is my commute",
+      "native": {
+        "status": "matched",
+        "intent": "requestCommute",
+        "entities": {
+          "union_original_fst_name": "handle:personal-report/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "requestCommute",
+        "entities": {
+          "union_original_fst_name": "handle:personal-report/launch"
+        }
+      },
+      "nativeScore": 12,
+      "nativePriority": "high",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "whats traffic like",
+      "native": {
+        "status": "matched",
+        "intent": "generalWhatQuestions",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "generalWhatQuestions",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 5.90039,
+      "nativePriority": "LOW",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "how long to get to work",
+      "native": {
+        "status": "matched",
+        "intent": "requestCommute",
+        "entities": {
+          "union_original_fst_name": "handle:personal-report/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "requestCommute",
+        "entities": {
+          "union_original_fst_name": "handle:personal-report/launch"
+        }
+      },
+      "nativeScore": 13,
+      "nativePriority": "high",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "whats on my calendar",
+      "native": {
+        "status": "matched",
+        "intent": "requestCalendar",
+        "entities": {
+          "union_original_fst_name": "handle:personal-report/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "requestCalendar",
+        "entities": {
+          "union_original_fst_name": "handle:personal-report/launch"
+        }
+      },
+      "nativeScore": 15,
+      "nativePriority": "high",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "what do i have today",
+      "native": {
+        "status": "matched",
+        "intent": "idle",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "idle",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 5.5,
+      "nativePriority": "LOW",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "my schedule",
+      "native": {
+        "status": "matched",
+        "intent": "requestCalendar",
+        "entities": {
+          "union_original_fst_name": "handle:personal-report/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "requestCalendar",
+        "entities": {
+          "union_original_fst_name": "handle:personal-report/launch"
+        }
+      },
+      "nativeScore": 12,
+      "nativePriority": "high",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "do i have any meetings",
+      "native": {
+        "status": "matched",
+        "intent": "requestCalendar",
+        "entities": {
+          "union_original_fst_name": "handle:personal-report/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "requestCalendar",
+        "entities": {
+          "union_original_fst_name": "handle:personal-report/launch"
+        }
+      },
+      "nativeScore": 23,
+      "nativePriority": "high",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "who is ada lovelace",
+      "native": {
+        "status": "matched",
+        "intent": "whoIsPerson",
+        "entities": {
+          "GivenName": "ada",
+          "LastName": "lovelace",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "whoIsPerson",
+        "entities": {
+          "GivenName": "ada",
+          "LastName": "lovelace",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 14.7002,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "who was albert einstein",
+      "native": {
+        "status": "matched",
+        "intent": "whoIsPerson",
+        "entities": {
+          "GivenName": "albert",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "whoIsPerson",
+        "entities": {
+          "GivenName": "albert",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 10.2998,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "what is photosynthesis",
+      "native": {
+        "status": "matched",
+        "intent": "generalWhatQuestions",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "generalWhatQuestions",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 7.90039,
+      "nativePriority": "LOW",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "how tall is mount everest",
+      "native": {
+        "status": "matched",
+        "intent": "generalHowQuestions",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "generalHowQuestions",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 3.90039,
+      "nativePriority": "LOW",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "why is the sky blue",
+      "native": {
+        "status": "matched",
+        "intent": "whyIsThingDescriptor",
+        "entities": {
+          "GeneralLikes": "Sky",
+          "Color": "Blue",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "whyIsThingDescriptor",
+        "entities": {
+          "GeneralLikes": "Sky",
+          "Color": "Blue",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 20,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "when did world war two end",
+      "native": {
+        "status": "matched",
+        "intent": "generalWhenQuestions",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "generalWhenQuestions",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 4.90039,
+      "nativePriority": "LOW",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "where is paris",
+      "native": {
+        "status": "matched",
+        "intent": "whereIsPerson",
+        "entities": {
+          "GivenName": "paris",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "whereIsPerson",
+        "entities": {
+          "GivenName": "paris",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 14.4004,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "how many planets are there",
+      "native": {
+        "status": "matched",
+        "intent": "generalHowQuestions",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "generalHowQuestions",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 3.90039,
+      "nativePriority": "LOW",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "what is the capital of france",
+      "native": {
+        "status": "matched",
+        "intent": "requestTellAboutThing",
+        "entities": {
+          "GivenName": "france",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "requestTellAboutThing",
+        "entities": {
+          "GivenName": "france",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 10.2998,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "tell me about dolphins",
+      "native": {
+        "status": "matched",
+        "intent": "generalQuestions",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "generalQuestions",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 13.9004,
+      "nativePriority": "LOW",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "how do airplanes fly",
+      "native": {
+        "status": "matched",
+        "intent": "generalHowQuestions",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "generalHowQuestions",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 3.90039,
+      "nativePriority": "LOW",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "what is the meaning of life",
+      "native": {
+        "status": "matched",
+        "intent": "whatDoesThingMean",
+        "entities": {
+          "Concept": "Life",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "whatDoesThingMean",
+        "entities": {
+          "Concept": "Life",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 28,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "tell me a joke",
+      "native": {
+        "status": "matched",
+        "intent": "requestTellJiboContent",
+        "entities": {
+          "JiboContent": "Joke",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "requestTellJiboContent",
+        "entities": {
+          "JiboContent": "Joke",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 15,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "sing me a song",
+      "native": {
+        "status": "matched",
+        "intent": "requestSingSong",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "requestSingSong",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 5,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "how are you",
+      "native": {
+        "status": "matched",
+        "intent": "emotionQuery",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "emotionQuery",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 12,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "i love you",
+      "native": {
+        "status": "matched",
+        "intent": "userLovesThing",
+        "entities": {
+          "Person": "Jibo",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "userLovesThing",
+        "entities": {
+          "Person": "Jibo",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 11,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "you are funny",
+      "native": {
+        "status": "matched",
+        "intent": "jiboIsDescriptor",
+        "entities": {
+          "GeneralDescriptor": "Funny",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "jiboIsDescriptor",
+        "entities": {
+          "GeneralDescriptor": "Funny",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 14,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "what is your favorite color",
+      "native": {
+        "status": "matched",
+        "intent": "doesJiboHaveFavorite",
+        "entities": {
+          "FavoriteCategory": "Color",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "doesJiboHaveFavorite",
+        "entities": {
+          "FavoriteCategory": "Color",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 28,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "do you like me",
+      "native": {
+        "status": "matched",
+        "intent": "doesJiboLikeThing",
+        "entities": {
+          "Person": "User",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "doesJiboLikeThing",
+        "entities": {
+          "Person": "User",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 15,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "are you a robot",
+      "native": {
+        "status": "matched",
+        "intent": "isJiboDescriptor",
+        "entities": {
+          "GeneralDescriptor": "Robot",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "isJiboDescriptor",
+        "entities": {
+          "GeneralDescriptor": "Robot",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 16,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "whats your name",
+      "native": {
+        "status": "matched",
+        "intent": "idle",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "idle",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 6.5,
+      "nativePriority": "LOW",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "how old are you",
+      "native": {
+        "status": "matched",
+        "intent": "howDescriptorIsJibo",
+        "entities": {
+          "GeneralDescriptor": "Old",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "howDescriptorIsJibo",
+        "entities": {
+          "GeneralDescriptor": "Old",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 16,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "can you dance",
+      "native": {
+        "status": "matched",
+        "intent": "canJiboAction",
+        "entities": {
+          "Action": "Dance",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "canJiboAction",
+        "entities": {
+          "Action": "Dance",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 14,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "do a dance",
+      "native": {
+        "status": "matched",
+        "intent": "requestDance",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "requestDance",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 11,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "tell me a story",
+      "native": {
+        "status": "matched",
+        "intent": "requestStory",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "requestStory",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 11,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "menu",
+      "native": {
+        "status": "matched",
+        "intent": "launchMainMenu",
+        "entities": {
+          "skill": "@be/main-menu",
+          "union_original_fst_name": "handle:main-menu/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "launchMainMenu",
+        "entities": {
+          "skill": "@be/main-menu",
+          "union_original_fst_name": "handle:main-menu/launch"
+        }
+      },
+      "nativeScore": 5,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "main menu",
+      "native": {
+        "status": "matched",
+        "intent": "launchMainMenu",
+        "entities": {
+          "skill": "@be/main-menu",
+          "union_original_fst_name": "handle:main-menu/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "launchMainMenu",
+        "entities": {
+          "skill": "@be/main-menu",
+          "union_original_fst_name": "handle:main-menu/launch"
+        }
+      },
+      "nativeScore": 10,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "show me what you can do",
+      "native": {
+        "status": "matched",
+        "intent": "whatCanIDo",
+        "entities": {
+          "skill": "@be/friendly-tips",
+          "domain": "friendly-tips",
+          "union_original_fst_name": "handle:friendly-tips/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "whatCanIDo",
+        "entities": {
+          "skill": "@be/friendly-tips",
+          "domain": "friendly-tips",
+          "union_original_fst_name": "handle:friendly-tips/launch"
+        }
+      },
+      "nativeScore": 24,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "open settings",
+      "native": {
+        "status": "matched",
+        "intent": "menu",
+        "entities": {
+          "domain": "settings",
+          "skill": "@be/settings",
+          "union_original_fst_name": "handle:settings/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "menu",
+        "entities": {
+          "domain": "settings",
+          "skill": "@be/settings",
+          "union_original_fst_name": "handle:settings/launch"
+        }
+      },
+      "nativeScore": 14,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "settings",
+      "native": {
+        "status": "matched",
+        "intent": "menu",
+        "entities": {
+          "domain": "settings",
+          "skill": "@be/settings",
+          "union_original_fst_name": "handle:settings/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "menu",
+        "entities": {
+          "domain": "settings",
+          "skill": "@be/settings",
+          "union_original_fst_name": "handle:settings/launch"
+        }
+      },
+      "nativeScore": 9,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "who am i",
+      "native": {
+        "status": "matched",
+        "intent": "launchWhoAmI",
+        "entities": {
+          "skill": "@be/who-am-i",
+          "union_original_fst_name": "handle:who-am-i/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "launchWhoAmI",
+        "entities": {
+          "skill": "@be/who-am-i",
+          "union_original_fst_name": "handle:who-am-i/launch"
+        }
+      },
+      "nativeScore": 9,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "whats my name",
+      "native": {
+        "status": "matched",
+        "intent": "launchWhoAmI",
+        "entities": {
+          "skill": "@be/who-am-i",
+          "union_original_fst_name": "handle:who-am-i/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "launchWhoAmI",
+        "entities": {
+          "skill": "@be/who-am-i",
+          "union_original_fst_name": "handle:who-am-i/launch"
+        }
+      },
+      "nativeScore": 14,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "show me the gallery",
+      "native": {
+        "status": "matched",
+        "intent": "galleryOpen",
+        "entities": {
+          "itemType": "all",
+          "skill": "@be/gallery",
+          "domain": "gallery",
+          "union_original_fst_name": "handle:gallery/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "galleryOpen",
+        "entities": {
+          "itemType": "all",
+          "skill": "@be/gallery",
+          "domain": "gallery",
+          "union_original_fst_name": "handle:gallery/launch"
+        }
+      },
+      "nativeScore": 16,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "take a photo",
+      "native": {
+        "status": "matched",
+        "intent": "createOnePhoto",
+        "entities": {
+          "skill": "@be/create",
+          "domain": "create",
+          "union_original_fst_name": "handle:create/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "createOnePhoto",
+        "entities": {
+          "skill": "@be/create",
+          "domain": "create",
+          "union_original_fst_name": "handle:create/launch"
+        }
+      },
+      "nativeScore": 11,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "word of the day",
+      "native": {
+        "status": "matched",
+        "intent": "play",
+        "entities": {
+          "skill": "@be/word-of-the-day",
+          "domain": "word-of-the-day",
+          "union_original_fst_name": "handle:word-of-the-day/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "play",
+        "entities": {
+          "skill": "@be/word-of-the-day",
+          "domain": "word-of-the-day",
+          "union_original_fst_name": "handle:word-of-the-day/launch"
+        }
+      },
+      "nativeScore": 13,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "what can i ask you",
+      "native": {
+        "status": "matched",
+        "intent": "idle",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "idle",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 6.5,
+      "nativePriority": "LOW",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "i want to exercise",
+      "native": {
+        "status": "matched",
+        "intent": "exerciseDoYoga",
+        "entities": {
+          "domain": "exercise",
+          "skill": "@be/exercise",
+          "union_original_fst_name": "handle:exercise/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "exerciseDoYoga",
+        "entities": {
+          "domain": "exercise",
+          "skill": "@be/exercise",
+          "union_original_fst_name": "handle:exercise/launch"
+        }
+      },
+      "nativeScore": 19,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "turn on the lights",
+      "native": {
+        "status": "matched",
+        "intent": "lightsOn",
+        "entities": {
+          "domain": "hue-control",
+          "skill": "@be/hue-control",
+          "union_original_fst_name": "handle:hue-control/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "lightsOn",
+        "entities": {
+          "domain": "hue-control",
+          "skill": "@be/hue-control",
+          "union_original_fst_name": "handle:hue-control/launch"
+        }
+      },
+      "nativeScore": 15,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "turn off the lights",
+      "native": {
+        "status": "matched",
+        "intent": "lightsOff",
+        "entities": {
+          "domain": "hue-control",
+          "skill": "@be/hue-control",
+          "union_original_fst_name": "handle:hue-control/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "lightsOff",
+        "entities": {
+          "domain": "hue-control",
+          "skill": "@be/hue-control",
+          "union_original_fst_name": "handle:hue-control/launch"
+        }
+      },
+      "nativeScore": 16,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "play some music",
+      "native": {
+        "status": "matched",
+        "intent": "play",
+        "entities": {
+          "domain": "radio",
+          "skill": "@be/radio",
+          "union_original_fst_name": "handle:radio/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "play",
+        "entities": {
+          "domain": "radio",
+          "skill": "@be/radio",
+          "union_original_fst_name": "handle:radio/launch"
+        }
+      },
+      "nativeScore": 11,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "set a timer for five minutes",
+      "native": {
+        "status": "matched",
+        "intent": "start",
+        "entities": {
+          "domain": "timer",
+          "hours": "null",
+          "minutes": "5",
+          "seconds": "null",
+          "skill": "@be/clock",
+          "union_original_fst_name": "handle:clock/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "start",
+        "entities": {
+          "domain": "timer",
+          "hours": "null",
+          "minutes": "5",
+          "seconds": "null",
+          "skill": "@be/clock",
+          "union_original_fst_name": "handle:clock/launch"
+        }
+      },
+      "nativeScore": 27,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "twerk",
+      "native": {
+        "status": "matched",
+        "intent": "requestTwerk",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "requestTwerk",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 6,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "beatbox",
+      "native": {
+        "status": "matched",
+        "intent": "requestBeatbox",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "requestBeatbox",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 8,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "introduce yourself",
+      "native": {
+        "status": "matched",
+        "intent": "requestIntroduceSelf",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "requestIntroduceSelf",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 19,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "flip a coin",
+      "native": {
+        "status": "matched",
+        "intent": "requestFlipCoin",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "requestFlipCoin",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 10,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "roll a dice",
+      "native": {
+        "status": "matched",
+        "intent": "requestRollTwoDice",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "requestRollTwoDice",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 10,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "what can you do",
+      "native": {
+        "status": "matched",
+        "intent": "whatCanIDo",
+        "entities": {
+          "skill": "@be/friendly-tips",
+          "domain": "friendly-tips",
+          "union_original_fst_name": "handle:friendly-tips/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "whatCanIDo",
+        "entities": {
+          "skill": "@be/friendly-tips",
+          "domain": "friendly-tips",
+          "union_original_fst_name": "handle:friendly-tips/launch"
+        }
+      },
+      "nativeScore": 16,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "are you happy",
+      "native": {
+        "status": "matched",
+        "intent": "isJiboDescriptor",
+        "entities": {
+          "Emotion": "Happy",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "isJiboDescriptor",
+        "entities": {
+          "Emotion": "Happy",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 14,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "why are you sad",
+      "native": {
+        "status": "matched",
+        "intent": "whyIsJiboDescriptor",
+        "entities": {
+          "Emotion": "Sad",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "whyIsJiboDescriptor",
+        "entities": {
+          "Emotion": "Sad",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 16,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "do you love me",
+      "native": {
+        "status": "matched",
+        "intent": "doesJiboLikeThing",
+        "entities": {
+          "Person": "User",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "doesJiboLikeThing",
+        "entities": {
+          "Person": "User",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 15,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "marry me",
+      "native": {
+        "status": "matched",
+        "intent": "willJiboDoAction",
+        "entities": {
+          "Action": "MarryUser",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "willJiboDoAction",
+        "entities": {
+          "Action": "MarryUser",
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 9,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "how is the weather in tokyo",
+      "native": {
+        "status": "matched",
+        "intent": "requestWeather",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "requestWeather",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 21,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    },
+    {
+      "text": "what is the weather like today",
+      "native": {
+        "status": "matched",
+        "intent": "requestWeather",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "phoenix": {
+        "status": "matched",
+        "intent": "requestWeather",
+        "entities": {
+          "union_original_fst_name": "handle:chitchat/launch"
+        }
+      },
+      "nativeScore": 13,
+      "nativePriority": "HIGH",
+      "nativeVsPhoenix": true,
+      "nativeVsFixture": true,
+      "phoenixVsFixture": true
+    }
+  ]
+}
+
