@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "task": "S-07 routing closure falsification",
+  "baseline": {
+    "status": 0,
+    "accepted": true
+  },
+  "cases": [
+    {
+      "label": "paired plan/spec/source/candidate omission",
+      "rejected": true,
+      "status": 1,
+      "aggregateResult": {
+        "result": "fail",
+        "coverageErrors": 23
+      }
+    },
+    {
+      "label": "candidate row ID mutation",
+      "rejected": true,
+      "status": 1,
+      "aggregateResult": {
+        "result": "fail",
+        "coverageErrors": 3
+      }
+    },
+    {
+      "label": "candidate routing mutation",
+      "rejected": true,
+      "status": 1,
+      "aggregateResult": {
+        "result": "fail",
+        "coverageErrors": 3
+      }
+    },
+    {
+      "label": "candidate result mutation",
+      "rejected": true,
+      "status": 1,
+      "aggregateResult": {
+        "result": "fail",
+        "coverageErrors": 2
+      }
+    },
+    {
+      "label": "candidate error mutation",
+      "rejected": true,
+      "status": 1,
+      "aggregateResult": {
+        "result": "fail",
+        "coverageErrors": 1
+      }
+    },
+    {
+      "label": "paired candidate metadata mutation",
+      "rejected": true,
+      "status": 1,
+      "aggregateResult": {
+        "result": "fail",
+        "coverageErrors": 2
+      }
+    },
+    {
+      "label": "normalization provenance mutation",
+      "rejected": true,
+      "status": 1,
+      "aggregateResult": {
+        "result": "fail",
+        "coverageErrors": 1
+      }
+    },
+    {
+      "label": "source metadata mutation",
+      "rejected": true,
+      "status": 1,
+      "aggregateResult": {
+        "result": "fail",
+        "coverageErrors": 2
+      }
+    }
+  ],
+  "result": "pass"
+}

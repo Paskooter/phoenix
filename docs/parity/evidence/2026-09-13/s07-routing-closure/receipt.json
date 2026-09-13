@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "task": "S-07 routing closure",
+  "result": "open",
+  "verification": "UNKNOWN",
+  "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "candidateRevision": "1b9b7fdbf72462b65caf538e206625a11ec8b130",
+  "sourceRuntime": "v8.9.4",
+  "sourceImage": "node@sha256:8233daae003ba0ecba4e6d70cab8525c30a3f085935afc624a275892ebe23f7c",
+  "sourceRunnerSha256": "bb8d094f5301c89a9aed78e0cd4aa65274e317c132d667f99a13b4ef6f4e2b97",
+  "candidateRunnerSha256": "f0247407b5c05d0035deeace4103e9549fcdc3a366852bb55ecc0d16a9af83de",
+  "candidateRuntime": "v22.22.0",
+  "batchSize": 256,
+  "batches": 19,
+  "plannedRows": 4808,
+  "retainedRows": 4808,
+  "sourceRowsObserved": 4808,
+  "candidateRowsObserved": 4808,
+  "semanticMatches": 4801,
+  "exactMatches": 4801,
+  "expectedMalformedDifferences": [
+    "malformed-result-omitted",
+    "malformed-result-null",
+    "malformed-result-empty",
+    "malformed-nlu-omitted",
+    "malformed-nlu-null",
+    "malformed-semi-entities-omitted",
+    "malformed-semi-entities-null"
+  ],
+  "observedMalformedDifferences": [
+    "malformed-result-omitted",
+    "malformed-result-null",
+    "malformed-result-empty",
+    "malformed-nlu-omitted",
+    "malformed-nlu-null",
+    "malformed-semi-entities-omitted",
+    "malformed-semi-entities-null"
+  ],
+  "normalization": {
+    "result": "pass",
+    "mode": "candidate-normalization-differential",
+    "rows": 3,
+    "exactRows": 3,
+    "differences": 0,
+    "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+    "candidateRevision": "1b9b7fdbf72462b65caf538e206625a11ec8b130",
+    "candidateRuntime": "v22.22.0",
+    "sourceCapture": {
+      "path": "/home/shell/work/phoenix/.parity/reviews/full-original-parser.json",
+      "sha256": "ef747cbdce0cd495a4561807fa035f6763252b5f88d55cffd780b14fa39f755d",
+      "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+      "runtime": "v8.9.4"
+    }
+  },
+  "classCounts": {
+    "dice": 18,
+    "direct-emotion-mim": 216,
+    "direct-scripted-mim": 4369,
+    "fallback": 11,
+    "fallback-mim": 1,
+    "malformed": 13,
+    "memo-type": 6,
+    "normalization-collision": 3,
+    "semispecific": 148,
+    "semispecific-unreachable-category": 15,
+    "semispecific-unresolvable-category": 3,
+    "valid": 4,
+    "wrong-family": 1
+  },
+  "inventory": {
+    "source": {
+      "scripted": {
+        "count": 4369,
+        "sortedSha256": "9c77e0a971c192eb31e47d7ed6f44217e8b1546159e5ce21fe3a754baed14a46"
+      },
+      "emotion": {
+        "count": 54,
+        "sortedSha256": "a6eca8b701574703da34975fb9acfa8245380d3084f84ab8d5a9823220db36b2"
+      },
+      "fallback": {
+        "count": 1,
+        "sortedSha256": "a5ddf758944232d679aa1bd115bf69590b28f408894b0f772f7f4de6e9097a26"
+      },
+      "semispecificMims": {
+        "count": 151,
+        "sortedSha256": "1577805300822dcea00fbf2b3d665f4a8e44fff2b66593081508483dbc0f9254"
+      },
+      "stems": {
+        "count": 34,
+        "sortedSha256": "8a8e8129928c1e42b714d931dfaee63f4a9b3995bfa4ee80987eac956d87957d"
+      },
+      "categories": {
+        "count": 66,
+        "sortedSha256": "986a0b23a78306b8a06c932ac18e3c43350fb41e225d01b35fcd2eb8fa1ed0c7"
+      },
+      "categoryValues": {
+        "sortedSha256": "083b4661c2a4ebb38a461f9632bbd55bb84bd060d5f9bf650a20f2921266e498"
+      }
+    },
+    "candidate": {
+      "scripted": {
+        "count": 4369,
+        "sortedSha256": "9c77e0a971c192eb31e47d7ed6f44217e8b1546159e5ce21fe3a754baed14a46"
+      },
+      "emotion": {
+        "count": 54,
+        "sortedSha256": "a6eca8b701574703da34975fb9acfa8245380d3084f84ab8d5a9823220db36b2"
+      },
+      "fallback": {
+        "count": 1,
+        "sortedSha256": "a5ddf758944232d679aa1bd115bf69590b28f408894b0f772f7f4de6e9097a26"
+      },
+      "semispecificMims": {
+        "count": 151,
+        "sortedSha256": "1577805300822dcea00fbf2b3d665f4a8e44fff2b66593081508483dbc0f9254"
+      },
+      "stems": {
+        "count": 34,
+        "sortedSha256": "8a8e8129928c1e42b714d931dfaee63f4a9b3995bfa4ee80987eac956d87957d"
+      },
+      "categories": {
+        "count": 66,
+        "sortedSha256": "986a0b23a78306b8a06c932ac18e3c43350fb41e225d01b35fcd2eb8fa1ed0c7"
+      },
+      "categoryValues": {
+        "sortedSha256": "083b4661c2a4ebb38a461f9632bbd55bb84bd060d5f9bf650a20f2921266e498"
+      }
+    }
+  },
+  "rowIdsSha256": "d2b3ba54c18089626c4b6200ef8967761e1fbba9f8e7f4e977f4f8c119be0d86",
+  "batchInventorySha256": "702db977fa9a76f366d12166b48255b039758675bc6bc70671132ca7748f317c",
+  "boundarySpecSha256": "42ac896e6fcdfade8ad2e16e53d139375b610259891033301119287754d7a9f9",
+  "mimRouteInventorySha256": "39364874da75b33e7a84391bb269d25e5ccdc8b29055b2913f7c6ab216b538f5",
+  "sourceRunnersSha256": "6d7f0a874529561c0af948f6cc38b154d6bbac9438230d19661c3d22b4440068",
+  "candidateRunnersSha256": "8a0fda33b4d2846624c746bbf7427ee9665b514a1fbc09800b2081767ccec13c",
+  "promptlessRoutingRows": {
+    "count": 466,
+    "idsSha256": "d724cf3ad18f69ef2d59fa4523507a77909eec460af2a9e9d08811e8faf5d8ef"
+  },
+  "promptlessSemispecificRows": {
+    "count": 2,
+    "idsSha256": "906b734e3e54f4f4e6571604de1f2c9f29f3cdf49fe8adabd1966b1a6a411dd6"
+  },
+  "coverageErrors": []
+}
