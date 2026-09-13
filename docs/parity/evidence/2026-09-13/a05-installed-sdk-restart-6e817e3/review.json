@@ -1,0 +1,1793 @@
+{
+  "schema": 1,
+  "generatedAt": "2026-09-13T06:51:17.804Z",
+  "passed": true,
+  "candidateRevision": "6e817e31985dfc578dc4dc8bbf745955eee657d7",
+  "worktree": "/home/shell/work/phoenix/.parity/worktrees/w18-a05-sdk-restart",
+  "processRestart": {
+    "server": "scripts/parity-a05/sdkFixtureServer.mjs",
+    "initial": {
+      "phase": "initial",
+      "node": "v22.22.0",
+      "readySnapshot": {
+        "phase": "initial",
+        "accounts": 8,
+        "robots": 4,
+        "serviceAccounts": 0,
+        "loops": 4,
+        "suspendedLoops": 2,
+        "tokens": 10,
+        "collectionMatches": {
+          "accounts": true,
+          "loops": true,
+          "tokens": true,
+          "sessions": true,
+          "settings": true,
+          "notificationOutbox": true,
+          "emailResets": true,
+          "phoneVerifications": true,
+          "oauthClients": true
+        },
+        "allCollectionsMatchDisk": true
+      },
+      "orderlyExit": {
+        "label": "initial",
+        "code": 0,
+        "signal": null
+      }
+    },
+    "restart": {
+      "phase": "restart",
+      "node": "v22.22.0",
+      "readySnapshot": {
+        "phase": "restart",
+        "accounts": 16,
+        "robots": 10,
+        "serviceAccounts": 2,
+        "loops": 8,
+        "suspendedLoops": 0,
+        "tokens": 6,
+        "collectionMatches": {
+          "accounts": true,
+          "loops": true,
+          "tokens": true,
+          "sessions": true,
+          "settings": true,
+          "notificationOutbox": true,
+          "emailResets": true,
+          "phoneVerifications": true,
+          "oauthClients": true
+        },
+        "allCollectionsMatchDisk": true
+      },
+      "orderlyExit": {
+        "label": "restart",
+        "code": 0,
+        "signal": null
+      }
+    },
+    "beforeRestart": {
+      "phase": "initial",
+      "accounts": 16,
+      "robots": 10,
+      "serviceAccounts": 2,
+      "loops": 8,
+      "suspendedLoops": 0,
+      "tokens": 6,
+      "collectionMatches": {
+        "accounts": true,
+        "loops": true,
+        "tokens": true,
+        "sessions": true,
+        "settings": true,
+        "notificationOutbox": true,
+        "emailResets": true,
+        "phoneVerifications": true,
+        "oauthClients": true
+      },
+      "allCollectionsMatchDisk": true
+    },
+    "afterRestart": {
+      "phase": "restart",
+      "accounts": 16,
+      "robots": 10,
+      "serviceAccounts": 2,
+      "loops": 8,
+      "suspendedLoops": 0,
+      "tokens": 4,
+      "collectionMatches": {
+        "accounts": true,
+        "loops": true,
+        "tokens": true,
+        "sessions": true,
+        "settings": true,
+        "notificationOutbox": true,
+        "emailResets": true,
+        "phoneVerifications": true,
+        "oauthClients": true
+      },
+      "allCollectionsMatchDisk": true
+    }
+  },
+  "installedSdk": {
+    "package": "@jibo/jibo-server-client",
+    "version": "3.0.110",
+    "root": "/home/shell/work/phoenix/.parity/yarn-cache/v1/npm-@jibo/jibo-server-client-3.0.110-dc0962bd91de9392ecf2ef6f96c6d9f7642d23e8",
+    "packageTarballSha256": "6a13a5fee5e8a4dba12746340de488e0c8e06a3a41f7d7ffee31eaf94c9a9658",
+    "files": {
+      "oobe": "98cf9a7b2372a757fa1b7ab5f54beb0426663a5d643cb2643301035960e5bdcb",
+      "oobeadmin": "b18c8995b2567125046b5de4d42c5bb20fb187e561f043845dcdfffb94a473e9",
+      "account": "aafd7906807789b8ea2987c316fbae8d6009c968bda2bcbd3be7c0732ddf0339",
+      "loop": "0ed26fd89bdf0bde31f552c3c155c0025314e987dd298d66b432a86d59f0cdfc",
+      "oobeModel": "29122e8a4ae495dc051400a733714c01eae2a1ee746f9404220a180e3a3e97ce",
+      "oobeAdminModel": "977b970101b3ff6df15114319fae945387c60ad609fae754aa17394c81d5a1ee"
+    },
+    "node8": {
+      "executable": "/home/shell/work/phoenix/.parity/reviews/n08-original-multirule-20260906/perf-diagnosis/node-v8.9.4-extracted",
+      "version": "v8.9.4",
+      "sha256": "03841801a7957b0eb5e2dbb1257eeda9d3edd18291d18d03bd57515c83107c5d"
+    }
+  },
+  "commands": [
+    "git rev-parse HEAD  # 6e817e31985dfc578dc4dc8bbf745955eee657d7",
+    "node scripts/parity-a05/sdkFixtureServer.mjs <temporary store> <temporary metadata>",
+    "/home/shell/work/phoenix/.parity/reviews/n08-original-multirule-20260906/perf-diagnosis/node-v8.9.4-extracted scripts/parity-a05/sdkMatrixClient.cjs",
+    "/home/shell/work/phoenix/.parity/reviews/n08-original-multirule-20260906/perf-diagnosis/node-v8.9.4-extracted scripts/parity-a05/sdkRestartClient.cjs",
+    "orderly control GET /shutdown; wait for child exit code 0; repeat after restart"
+  ],
+  "initial": {
+    "phase": "initial",
+    "runtime": "v8.9.4",
+    "clientVersion": "3.0.110",
+    "checks": 38,
+    "faces": [
+      {
+        "face": "account",
+        "operations": [
+          "PrepareRobot",
+          "GetStatus",
+          "SetupRobot",
+          "ReconnectRobot",
+          "GetServiceToken"
+        ]
+      },
+      {
+        "face": "classic",
+        "operations": [
+          "PrepareRobot",
+          "GetStatus",
+          "SetupRobot",
+          "ReconnectRobot",
+          "GetServiceToken"
+        ]
+      }
+    ],
+    "rows": [
+      {
+        "face": "account",
+        "name": "GetStatus pending setup token",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "complete": false
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "SetupRobot ordinary",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "fields": [
+              "accessKeyId",
+              "secretAccessKey"
+            ],
+            "credentialHash": "0ac94f56302ca72a1e7781518344308d566f646caaf3bfaee16e25c7725966c3"
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "GetStatus used setup token",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "complete": true
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "FALSIFY used SetupRobot replay",
+        "passed": true,
+        "details": {
+          "error": {
+            "code": "TOKEN_NOT_FOUND",
+            "statusCode": 404,
+            "message": "Token not found"
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "GetStatus expired token",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "complete": true
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "FALSIFY expired SetupRobot",
+        "passed": true,
+        "details": {
+          "error": {
+            "code": "TOKEN_EXPIRED",
+            "statusCode": 401,
+            "message": "Token expired"
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "FALSIFY expired token remains expired",
+        "passed": true,
+        "details": {
+          "error": {
+            "code": "TOKEN_EXPIRED",
+            "statusCode": 401,
+            "message": "Token expired"
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "FALSIFY live loop replacement refusal",
+        "passed": true,
+        "details": {
+          "error": {
+            "code": "LOOP_MUST_BE_SUSPENDED",
+            "statusCode": 409,
+            "message": "Loop must be suspended prior to robot change"
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "GetStatus live-loop refusal preserves token",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "complete": false
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "SetupRobot suspended-loop replacement",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "fields": [
+              "accessKeyId",
+              "secretAccessKey"
+            ],
+            "credentialHash": "414cfea1ea7bfd0115bb8312e9493a77a1e78e74213c0843cc3173cfe1472e2c"
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "GetStatus used replacement token",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "complete": true
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "PrepareRobot signed",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "fields": [
+              "expires",
+              "token"
+            ],
+            "tokenHash": "0859295b9dcf87a46c6e635795f372b2224d867497dbe3eeb0fc4112aacb91d5",
+            "expires": 1789283172180
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "ReconnectRobot signed",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "result": "Command accepted"
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "FALSIFY used ReconnectRobot replay",
+        "passed": true,
+        "details": {
+          "error": {
+            "code": "TOKEN_NOT_FOUND",
+            "statusCode": 404,
+            "message": "Token not found"
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "GetStatus used reconnect token",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "complete": true
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "FALSIFY non-admin GetServiceToken",
+        "passed": true,
+        "details": {
+          "error": {
+            "code": "AUTHORIZED_UNDER_ADMIN",
+            "statusCode": 401,
+            "message": "Must be authorized under admin account"
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "GetServiceToken admin",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "fields": [
+              "expires",
+              "token"
+            ],
+            "tokenHash": "4e2afe391f9c94de00cc20352269c2cab526a40e57c67827fad23d7815afe948",
+            "expires": 1789283172843
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "SetupRobot service mode",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "fields": [
+              "accessKeyId",
+              "secretAccessKey",
+              "serviceMode"
+            ],
+            "credentialHash": "4d3579ab9fef51ae7d5d475c918f531654ecdb1ad70446f2b36b52e56f54a482",
+            "serviceMode": true
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "GetStatus used service token",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "complete": true
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "GetStatus pending setup token",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "complete": false
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "SetupRobot ordinary",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "fields": [
+              "accessKeyId",
+              "secretAccessKey"
+            ],
+            "credentialHash": "8ce0a88dbff87daa2fa3bf4ea6aa72120a36d349242aad3401ba0b6cdfe6185e"
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "GetStatus used setup token",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "complete": true
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "FALSIFY used SetupRobot replay",
+        "passed": true,
+        "details": {
+          "error": {
+            "code": "TOKEN_NOT_FOUND",
+            "statusCode": 404,
+            "message": "Token not found"
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "GetStatus expired token",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "complete": true
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "FALSIFY expired SetupRobot",
+        "passed": true,
+        "details": {
+          "error": {
+            "code": "TOKEN_EXPIRED",
+            "statusCode": 401,
+            "message": "Token expired"
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "FALSIFY expired token remains expired",
+        "passed": true,
+        "details": {
+          "error": {
+            "code": "TOKEN_EXPIRED",
+            "statusCode": 401,
+            "message": "Token expired"
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "FALSIFY live loop replacement refusal",
+        "passed": true,
+        "details": {
+          "error": {
+            "code": "LOOP_MUST_BE_SUSPENDED",
+            "statusCode": 409,
+            "message": "Loop must be suspended prior to robot change"
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "GetStatus live-loop refusal preserves token",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "complete": false
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "SetupRobot suspended-loop replacement",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "fields": [
+              "accessKeyId",
+              "secretAccessKey"
+            ],
+            "credentialHash": "7ed23ff47dfcc40efb783a275f7ced7de7d3689b73918cfc47eb9c534aafa20e"
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "GetStatus used replacement token",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "complete": true
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "PrepareRobot signed",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "fields": [
+              "expires",
+              "token"
+            ],
+            "tokenHash": "543dc5ad165805e3c81fb77b07e51eb31c700c6a4bdb0549c087a34724d4293c",
+            "expires": 1789283174883
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "ReconnectRobot signed",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "result": "Command accepted"
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "FALSIFY used ReconnectRobot replay",
+        "passed": true,
+        "details": {
+          "error": {
+            "code": "TOKEN_NOT_FOUND",
+            "statusCode": 404,
+            "message": "Token not found"
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "GetStatus used reconnect token",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "complete": true
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "FALSIFY non-admin GetServiceToken",
+        "passed": true,
+        "details": {
+          "error": {
+            "code": "AUTHORIZED_UNDER_ADMIN",
+            "statusCode": 401,
+            "message": "Must be authorized under admin account"
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "GetServiceToken admin",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "fields": [
+              "expires",
+              "token"
+            ],
+            "tokenHash": "e5cde63c5e474c0a9557d1fc37aa2f492de9d78d4c9497d5c4967eaf22a51ce4",
+            "expires": 1789283175220
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "SetupRobot service mode",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "fields": [
+              "accessKeyId",
+              "secretAccessKey",
+              "serviceMode"
+            ],
+            "credentialHash": "35adb0bc28beb4bf8d8d454d4ee16adac48ef3345ef24f41fe05c9b4893239c2",
+            "serviceMode": true
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "GetStatus used service token",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "complete": true
+          }
+        }
+      }
+    ],
+    "coverage": {
+      "account": [
+        {
+          "name": "GetStatus pending setup token",
+          "present": true
+        },
+        {
+          "name": "SetupRobot ordinary",
+          "present": true
+        },
+        {
+          "name": "GetStatus used setup token",
+          "present": true
+        },
+        {
+          "name": "FALSIFY used SetupRobot replay",
+          "present": true
+        },
+        {
+          "name": "GetStatus expired token",
+          "present": true
+        },
+        {
+          "name": "FALSIFY expired SetupRobot",
+          "present": true
+        },
+        {
+          "name": "FALSIFY expired token remains expired",
+          "present": true
+        },
+        {
+          "name": "FALSIFY live loop replacement refusal",
+          "present": true
+        },
+        {
+          "name": "GetStatus live-loop refusal preserves token",
+          "present": true
+        },
+        {
+          "name": "SetupRobot suspended-loop replacement",
+          "present": true
+        },
+        {
+          "name": "GetStatus used replacement token",
+          "present": true
+        },
+        {
+          "name": "PrepareRobot signed",
+          "present": true
+        },
+        {
+          "name": "ReconnectRobot signed",
+          "present": true
+        },
+        {
+          "name": "FALSIFY used ReconnectRobot replay",
+          "present": true
+        },
+        {
+          "name": "GetStatus used reconnect token",
+          "present": true
+        },
+        {
+          "name": "FALSIFY non-admin GetServiceToken",
+          "present": true
+        },
+        {
+          "name": "GetServiceToken admin",
+          "present": true
+        },
+        {
+          "name": "SetupRobot service mode",
+          "present": true
+        },
+        {
+          "name": "GetStatus used service token",
+          "present": true
+        }
+      ],
+      "classic": [
+        {
+          "name": "GetStatus pending setup token",
+          "present": true
+        },
+        {
+          "name": "SetupRobot ordinary",
+          "present": true
+        },
+        {
+          "name": "GetStatus used setup token",
+          "present": true
+        },
+        {
+          "name": "FALSIFY used SetupRobot replay",
+          "present": true
+        },
+        {
+          "name": "GetStatus expired token",
+          "present": true
+        },
+        {
+          "name": "FALSIFY expired SetupRobot",
+          "present": true
+        },
+        {
+          "name": "FALSIFY expired token remains expired",
+          "present": true
+        },
+        {
+          "name": "FALSIFY live loop replacement refusal",
+          "present": true
+        },
+        {
+          "name": "GetStatus live-loop refusal preserves token",
+          "present": true
+        },
+        {
+          "name": "SetupRobot suspended-loop replacement",
+          "present": true
+        },
+        {
+          "name": "GetStatus used replacement token",
+          "present": true
+        },
+        {
+          "name": "PrepareRobot signed",
+          "present": true
+        },
+        {
+          "name": "ReconnectRobot signed",
+          "present": true
+        },
+        {
+          "name": "FALSIFY used ReconnectRobot replay",
+          "present": true
+        },
+        {
+          "name": "GetStatus used reconnect token",
+          "present": true
+        },
+        {
+          "name": "FALSIFY non-admin GetServiceToken",
+          "present": true
+        },
+        {
+          "name": "GetServiceToken admin",
+          "present": true
+        },
+        {
+          "name": "SetupRobot service mode",
+          "present": true
+        },
+        {
+          "name": "GetStatus used service token",
+          "present": true
+        }
+      ]
+    }
+  },
+  "restart": {
+    "phase": "restart",
+    "runtime": "v8.9.4",
+    "clientVersion": "3.0.110",
+    "checks": 46,
+    "faces": [
+      {
+        "face": "account",
+        "checks": 23
+      },
+      {
+        "face": "classic",
+        "checks": 23
+      }
+    ],
+    "rows": [
+      {
+        "face": "account",
+        "name": "RESTART Account.Get ordinary",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": [
+            {
+              "email": null,
+              "facebookConnected": false,
+              "firstName": "",
+              "id": "2e2656655db23d6c03133a2e",
+              "isActive": true,
+              "lastName": "",
+              "messagingAllowed": true,
+              "roles": [
+                "user"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "face": "account",
+        "name": "RESTART issued ordinary account credential accepted",
+        "passed": true,
+        "details": {
+          "accountId": "2e2656655db23d6c03133a2e"
+        }
+      },
+      {
+        "face": "account",
+        "name": "RESTART Loop.List ordinary",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": [
+            {
+              "created": 1789282271230,
+              "id": "32ffec69715e7ce1357c379d",
+              "isSuspended": false,
+              "members": [
+                {
+                  "account": {
+                    "email": "a05-account-owner@matrix.invalid",
+                    "firstName": "A05account",
+                    "lastName": "Owner",
+                    "photoUrl": null
+                  },
+                  "accountId": "2ecca336f6f5491344f8c056",
+                  "created": 1789282271230,
+                  "enrolled": {
+                    "face": false,
+                    "voice": false
+                  },
+                  "id": "4bba8a2f40acf806a85b3f27",
+                  "loopId": "32ffec69715e7ce1357c379d",
+                  "status": "accepted",
+                  "type": "incoming"
+                },
+                {
+                  "account": {
+                    "firstName": "",
+                    "lastName": "",
+                    "photoUrl": null
+                  },
+                  "accountId": "2e2656655db23d6c03133a2e",
+                  "created": 1789282271230,
+                  "enrolled": {
+                    "face": false,
+                    "voice": false
+                  },
+                  "id": "394efd6d9459304bfeee50c0",
+                  "loopId": "32ffec69715e7ce1357c379d",
+                  "status": "accepted",
+                  "type": "outgoing"
+                }
+              ],
+              "name": "A05account's 3 Jibo",
+              "owner": "2ecca336f6f5491344f8c056",
+              "robot": "2e2656655db23d6c03133a2e",
+              "robotFriendlyId": "a05-account-ordinary-robot"
+            }
+          ]
+        }
+      },
+      {
+        "face": "account",
+        "name": "RESTART issued ordinary loop credential accepted",
+        "passed": true,
+        "details": {
+          "loopId": "32ffec69715e7ce1357c379d",
+          "robotFriendlyId": "a05-account-ordinary-robot"
+        }
+      },
+      {
+        "face": "account",
+        "name": "RESTART Account.Get replacement",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": [
+            {
+              "email": null,
+              "facebookConnected": false,
+              "firstName": "",
+              "id": "3b6c7cf27e6facf7ebc14306",
+              "isActive": true,
+              "lastName": "",
+              "messagingAllowed": true,
+              "roles": [
+                "user"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "face": "account",
+        "name": "RESTART issued replacement account credential accepted",
+        "passed": true,
+        "details": {
+          "accountId": "3b6c7cf27e6facf7ebc14306"
+        }
+      },
+      {
+        "face": "account",
+        "name": "RESTART Loop.List replacement",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": [
+            {
+              "created": 1789282270308,
+              "id": "7eb08ce237033db42aa82d53",
+              "isSuspended": false,
+              "members": [
+                {
+                  "account": {
+                    "email": "a05-account-owner@matrix.invalid",
+                    "firstName": "A05account",
+                    "lastName": "Owner",
+                    "photoUrl": null
+                  },
+                  "accountId": "2ecca336f6f5491344f8c056",
+                  "created": 1789282270308,
+                  "enrolled": {
+                    "face": false,
+                    "voice": false
+                  },
+                  "id": "3f40f56c88327bede2333048",
+                  "loopId": "7eb08ce237033db42aa82d53",
+                  "status": "accepted",
+                  "type": "incoming"
+                },
+                {
+                  "account": {
+                    "firstName": "",
+                    "lastName": "",
+                    "photoUrl": null
+                  },
+                  "accountId": "3b6c7cf27e6facf7ebc14306",
+                  "created": 1789282271657,
+                  "enrolled": {
+                    "face": false,
+                    "voice": false
+                  },
+                  "id": "531ace9e6b0ba74a068cf477",
+                  "loopId": "7eb08ce237033db42aa82d53",
+                  "status": "accepted",
+                  "type": "outgoing"
+                }
+              ],
+              "name": "A05account's 2 Jibo",
+              "owner": "2ecca336f6f5491344f8c056",
+              "robot": "3b6c7cf27e6facf7ebc14306",
+              "robotFriendlyId": "a05-account-replacement-robot",
+              "updated": 1789282271657
+            }
+          ]
+        }
+      },
+      {
+        "face": "account",
+        "name": "RESTART issued replacement loop credential accepted",
+        "passed": true,
+        "details": {
+          "loopId": "7eb08ce237033db42aa82d53",
+          "robotFriendlyId": "a05-account-replacement-robot"
+        }
+      },
+      {
+        "face": "account",
+        "name": "RESTART Account.Get service-mode",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": [
+            {
+              "email": null,
+              "facebookConnected": false,
+              "firstName": "",
+              "id": "507cd839176bc0ec9f669cb5",
+              "isActive": true,
+              "lastName": "",
+              "messagingAllowed": true,
+              "roles": [
+                "user"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "face": "account",
+        "name": "RESTART issued service-mode account credential accepted",
+        "passed": true,
+        "details": {
+          "accountId": "507cd839176bc0ec9f669cb5"
+        }
+      },
+      {
+        "face": "account",
+        "name": "RESTART Loop.List service-mode",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": [
+            {
+              "created": 1789282273067,
+              "id": "a227f871ea57771eb017d110",
+              "isSuspended": false,
+              "members": [
+                {
+                  "account": {
+                    "email": "service-mode-owner-31fdc1ba-9c9a-4e1e-8c57-5081e1f9e41d@jibo.com",
+                    "firstName": "",
+                    "lastName": "",
+                    "photoUrl": null
+                  },
+                  "accountId": "dcf1d049673b3b1cbc16e546",
+                  "created": 1789282273067,
+                  "enrolled": {
+                    "face": false,
+                    "voice": false
+                  },
+                  "id": "1a901fd86a01fbcfbb240ce7",
+                  "loopId": "a227f871ea57771eb017d110",
+                  "status": "accepted",
+                  "type": "incoming"
+                },
+                {
+                  "account": {
+                    "firstName": "",
+                    "lastName": "",
+                    "photoUrl": null
+                  },
+                  "accountId": "507cd839176bc0ec9f669cb5",
+                  "created": 1789282273067,
+                  "enrolled": {
+                    "face": false,
+                    "voice": false
+                  },
+                  "id": "b35ba73e41a988aed4213de7",
+                  "loopId": "a227f871ea57771eb017d110",
+                  "status": "accepted",
+                  "type": "outgoing"
+                }
+              ],
+              "name": "service-mode-owner-31fdc1ba-9c9a-4e1e-8c57-5081e1f9e41d@jibo.com's Jibo",
+              "owner": "dcf1d049673b3b1cbc16e546",
+              "robot": "507cd839176bc0ec9f669cb5",
+              "robotFriendlyId": "a05-account-service-robot"
+            }
+          ]
+        }
+      },
+      {
+        "face": "account",
+        "name": "RESTART issued service-mode loop credential accepted",
+        "passed": true,
+        "details": {
+          "loopId": "a227f871ea57771eb017d110",
+          "robotFriendlyId": "a05-account-service-robot"
+        }
+      },
+      {
+        "face": "account",
+        "name": "RESTART GetStatus consumed setup token",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "complete": true
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "RESTART FALSIFY consumed setup token replay",
+        "passed": true,
+        "details": {
+          "error": {
+            "code": "TOKEN_NOT_FOUND",
+            "statusCode": 404,
+            "message": "Token not found"
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "RESTART GetStatus consumed replacement token",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "complete": true
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "RESTART GetStatus consumed reconnect token",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "complete": true
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "RESTART FALSIFY consumed reconnect token replay",
+        "passed": true,
+        "details": {
+          "error": {
+            "code": "TOKEN_NOT_FOUND",
+            "statusCode": 404,
+            "message": "Token not found"
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "RESTART GetStatus consumed service token",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "complete": true
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "RESTART GetStatus expired token",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "complete": true
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "RESTART FALSIFY expired token remains expired",
+        "passed": true,
+        "details": {
+          "error": {
+            "code": "TOKEN_EXPIRED",
+            "statusCode": 401,
+            "message": "Token expired"
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "RESTART GetStatus newly issued token remains pending",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "complete": false
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "RESTART ReconnectRobot newly issued token",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "result": "Command accepted"
+          }
+        }
+      },
+      {
+        "face": "account",
+        "name": "RESTART FALSIFY newly issued token replay",
+        "passed": true,
+        "details": {
+          "error": {
+            "code": "TOKEN_NOT_FOUND",
+            "statusCode": 404,
+            "message": "Token not found"
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "RESTART Account.Get ordinary",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": [
+            {
+              "email": null,
+              "facebookConnected": false,
+              "firstName": "",
+              "id": "c1bd8b359fb4237f54c4a45e",
+              "isActive": true,
+              "lastName": "",
+              "messagingAllowed": true,
+              "roles": [
+                "user"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "face": "classic",
+        "name": "RESTART issued ordinary account credential accepted",
+        "passed": true,
+        "details": {
+          "accountId": "c1bd8b359fb4237f54c4a45e"
+        }
+      },
+      {
+        "face": "classic",
+        "name": "RESTART Loop.List ordinary",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": [
+            {
+              "created": 1789282274092,
+              "id": "2181cffcf36c1aedbce9b1c5",
+              "isSuspended": false,
+              "members": [
+                {
+                  "account": {
+                    "email": "a05-classic-owner@matrix.invalid",
+                    "firstName": "A05classic",
+                    "lastName": "Owner",
+                    "photoUrl": null
+                  },
+                  "accountId": "27d6abee0b2f607118aa127b",
+                  "created": 1789282274092,
+                  "enrolled": {
+                    "face": false,
+                    "voice": false
+                  },
+                  "id": "fc052f400c567fcb2b95081b",
+                  "loopId": "2181cffcf36c1aedbce9b1c5",
+                  "status": "accepted",
+                  "type": "incoming"
+                },
+                {
+                  "account": {
+                    "firstName": "",
+                    "lastName": "",
+                    "photoUrl": null
+                  },
+                  "accountId": "c1bd8b359fb4237f54c4a45e",
+                  "created": 1789282274092,
+                  "enrolled": {
+                    "face": false,
+                    "voice": false
+                  },
+                  "id": "68ca8f832158fae213d0b592",
+                  "loopId": "2181cffcf36c1aedbce9b1c5",
+                  "status": "accepted",
+                  "type": "outgoing"
+                }
+              ],
+              "name": "A05classic's 3 Jibo",
+              "owner": "27d6abee0b2f607118aa127b",
+              "robot": "c1bd8b359fb4237f54c4a45e",
+              "robotFriendlyId": "a05-classic-ordinary-robot"
+            }
+          ]
+        }
+      },
+      {
+        "face": "classic",
+        "name": "RESTART issued ordinary loop credential accepted",
+        "passed": true,
+        "details": {
+          "loopId": "2181cffcf36c1aedbce9b1c5",
+          "robotFriendlyId": "a05-classic-ordinary-robot"
+        }
+      },
+      {
+        "face": "classic",
+        "name": "RESTART Account.Get replacement",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": [
+            {
+              "email": null,
+              "facebookConnected": false,
+              "firstName": "",
+              "id": "05487c70d084669ec7a6b16b",
+              "isActive": true,
+              "lastName": "",
+              "messagingAllowed": true,
+              "roles": [
+                "user"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "face": "classic",
+        "name": "RESTART issued replacement account credential accepted",
+        "passed": true,
+        "details": {
+          "accountId": "05487c70d084669ec7a6b16b"
+        }
+      },
+      {
+        "face": "classic",
+        "name": "RESTART Loop.List replacement",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": [
+            {
+              "created": 1789282270785,
+              "id": "0c9bfd5b31480866f2ee0fde",
+              "isSuspended": false,
+              "members": [
+                {
+                  "account": {
+                    "email": "a05-classic-owner@matrix.invalid",
+                    "firstName": "A05classic",
+                    "lastName": "Owner",
+                    "photoUrl": null
+                  },
+                  "accountId": "27d6abee0b2f607118aa127b",
+                  "created": 1789282270785,
+                  "enrolled": {
+                    "face": false,
+                    "voice": false
+                  },
+                  "id": "f5cd8d22110c3b22f87fd5bc",
+                  "loopId": "0c9bfd5b31480866f2ee0fde",
+                  "status": "accepted",
+                  "type": "incoming"
+                },
+                {
+                  "account": {
+                    "firstName": "",
+                    "lastName": "",
+                    "photoUrl": null
+                  },
+                  "accountId": "05487c70d084669ec7a6b16b",
+                  "created": 1789282274766,
+                  "enrolled": {
+                    "face": false,
+                    "voice": false
+                  },
+                  "id": "04d84dccf865baedf23c1f13",
+                  "loopId": "0c9bfd5b31480866f2ee0fde",
+                  "status": "accepted",
+                  "type": "outgoing"
+                }
+              ],
+              "name": "A05classic's 2 Jibo",
+              "owner": "27d6abee0b2f607118aa127b",
+              "robot": "05487c70d084669ec7a6b16b",
+              "robotFriendlyId": "a05-classic-replacement-robot",
+              "updated": 1789282274766
+            }
+          ]
+        }
+      },
+      {
+        "face": "classic",
+        "name": "RESTART issued replacement loop credential accepted",
+        "passed": true,
+        "details": {
+          "loopId": "0c9bfd5b31480866f2ee0fde",
+          "robotFriendlyId": "a05-classic-replacement-robot"
+        }
+      },
+      {
+        "face": "classic",
+        "name": "RESTART Account.Get service-mode",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": [
+            {
+              "email": null,
+              "facebookConnected": false,
+              "firstName": "",
+              "id": "2e2ca6f168718da3dd29de2f",
+              "isActive": true,
+              "lastName": "",
+              "messagingAllowed": true,
+              "roles": [
+                "user"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "face": "classic",
+        "name": "RESTART issued service-mode account credential accepted",
+        "passed": true,
+        "details": {
+          "accountId": "2e2ca6f168718da3dd29de2f"
+        }
+      },
+      {
+        "face": "classic",
+        "name": "RESTART Loop.List service-mode",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": [
+            {
+              "created": 1789282275517,
+              "id": "f19816c50ad34d9578f4a9fd",
+              "isSuspended": false,
+              "members": [
+                {
+                  "account": {
+                    "email": "service-mode-owner-47d7ae93-a809-4f8e-b24c-8d739d41241b@jibo.com",
+                    "firstName": "",
+                    "lastName": "",
+                    "photoUrl": null
+                  },
+                  "accountId": "69d7a4fe21cc8e46e65bdd81",
+                  "created": 1789282275517,
+                  "enrolled": {
+                    "face": false,
+                    "voice": false
+                  },
+                  "id": "01f568a35c2d280e1ab58ea3",
+                  "loopId": "f19816c50ad34d9578f4a9fd",
+                  "status": "accepted",
+                  "type": "incoming"
+                },
+                {
+                  "account": {
+                    "firstName": "",
+                    "lastName": "",
+                    "photoUrl": null
+                  },
+                  "accountId": "2e2ca6f168718da3dd29de2f",
+                  "created": 1789282275517,
+                  "enrolled": {
+                    "face": false,
+                    "voice": false
+                  },
+                  "id": "3961cce6128e5a9f8f9ab76a",
+                  "loopId": "f19816c50ad34d9578f4a9fd",
+                  "status": "accepted",
+                  "type": "outgoing"
+                }
+              ],
+              "name": "service-mode-owner-47d7ae93-a809-4f8e-b24c-8d739d41241b@jibo.com's Jibo",
+              "owner": "69d7a4fe21cc8e46e65bdd81",
+              "robot": "2e2ca6f168718da3dd29de2f",
+              "robotFriendlyId": "a05-classic-service-robot"
+            }
+          ]
+        }
+      },
+      {
+        "face": "classic",
+        "name": "RESTART issued service-mode loop credential accepted",
+        "passed": true,
+        "details": {
+          "loopId": "f19816c50ad34d9578f4a9fd",
+          "robotFriendlyId": "a05-classic-service-robot"
+        }
+      },
+      {
+        "face": "classic",
+        "name": "RESTART GetStatus consumed setup token",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "complete": true
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "RESTART FALSIFY consumed setup token replay",
+        "passed": true,
+        "details": {
+          "error": {
+            "code": "TOKEN_NOT_FOUND",
+            "statusCode": 404,
+            "message": "Token not found"
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "RESTART GetStatus consumed replacement token",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "complete": true
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "RESTART GetStatus consumed reconnect token",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "complete": true
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "RESTART FALSIFY consumed reconnect token replay",
+        "passed": true,
+        "details": {
+          "error": {
+            "code": "TOKEN_NOT_FOUND",
+            "statusCode": 404,
+            "message": "Token not found"
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "RESTART GetStatus consumed service token",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "complete": true
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "RESTART GetStatus expired token",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "complete": true
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "RESTART FALSIFY expired token remains expired",
+        "passed": true,
+        "details": {
+          "error": {
+            "code": "TOKEN_EXPIRED",
+            "statusCode": 401,
+            "message": "Token expired"
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "RESTART GetStatus newly issued token remains pending",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "complete": false
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "RESTART ReconnectRobot newly issued token",
+        "passed": true,
+        "details": {
+          "statusCode": 200,
+          "wire": {
+            "result": "Command accepted"
+          }
+        }
+      },
+      {
+        "face": "classic",
+        "name": "RESTART FALSIFY newly issued token replay",
+        "passed": true,
+        "details": {
+          "error": {
+            "code": "TOKEN_NOT_FOUND",
+            "statusCode": 404,
+            "message": "Token not found"
+          }
+        }
+      }
+    ],
+    "coverage": {
+      "account": [
+        {
+          "name": "RESTART Account.Get ordinary",
+          "present": true
+        },
+        {
+          "name": "RESTART Loop.List ordinary",
+          "present": true
+        },
+        {
+          "name": "RESTART Account.Get replacement",
+          "present": true
+        },
+        {
+          "name": "RESTART Loop.List replacement",
+          "present": true
+        },
+        {
+          "name": "RESTART Account.Get service-mode",
+          "present": true
+        },
+        {
+          "name": "RESTART Loop.List service-mode",
+          "present": true
+        },
+        {
+          "name": "RESTART GetStatus consumed setup token",
+          "present": true
+        },
+        {
+          "name": "RESTART FALSIFY consumed setup token replay",
+          "present": true
+        },
+        {
+          "name": "RESTART GetStatus consumed replacement token",
+          "present": true
+        },
+        {
+          "name": "RESTART GetStatus consumed reconnect token",
+          "present": true
+        },
+        {
+          "name": "RESTART FALSIFY consumed reconnect token replay",
+          "present": true
+        },
+        {
+          "name": "RESTART GetStatus consumed service token",
+          "present": true
+        },
+        {
+          "name": "RESTART GetStatus expired token",
+          "present": true
+        },
+        {
+          "name": "RESTART FALSIFY expired token remains expired",
+          "present": true
+        },
+        {
+          "name": "RESTART GetStatus newly issued token remains pending",
+          "present": true
+        },
+        {
+          "name": "RESTART ReconnectRobot newly issued token",
+          "present": true
+        },
+        {
+          "name": "RESTART FALSIFY newly issued token replay",
+          "present": true
+        }
+      ],
+      "classic": [
+        {
+          "name": "RESTART Account.Get ordinary",
+          "present": true
+        },
+        {
+          "name": "RESTART Loop.List ordinary",
+          "present": true
+        },
+        {
+          "name": "RESTART Account.Get replacement",
+          "present": true
+        },
+        {
+          "name": "RESTART Loop.List replacement",
+          "present": true
+        },
+        {
+          "name": "RESTART Account.Get service-mode",
+          "present": true
+        },
+        {
+          "name": "RESTART Loop.List service-mode",
+          "present": true
+        },
+        {
+          "name": "RESTART GetStatus consumed setup token",
+          "present": true
+        },
+        {
+          "name": "RESTART FALSIFY consumed setup token replay",
+          "present": true
+        },
+        {
+          "name": "RESTART GetStatus consumed replacement token",
+          "present": true
+        },
+        {
+          "name": "RESTART GetStatus consumed reconnect token",
+          "present": true
+        },
+        {
+          "name": "RESTART FALSIFY consumed reconnect token replay",
+          "present": true
+        },
+        {
+          "name": "RESTART GetStatus consumed service token",
+          "present": true
+        },
+        {
+          "name": "RESTART GetStatus expired token",
+          "present": true
+        },
+        {
+          "name": "RESTART FALSIFY expired token remains expired",
+          "present": true
+        },
+        {
+          "name": "RESTART GetStatus newly issued token remains pending",
+          "present": true
+        },
+        {
+          "name": "RESTART ReconnectRobot newly issued token",
+          "present": true
+        },
+        {
+          "name": "RESTART FALSIFY newly issued token replay",
+          "present": true
+        }
+      ]
+    }
+  },
+  "qualification": "Original installed Node 8 SDK exercised both local Account and Classic HTTP faces and replayed issued credentials plus consumed/pending token state after orderly process restart. Synthetic Store only; no Moth, robot, firmware, native pairing, TLS ingress, or household mutation.",
+  "a03A04Dependencies": {
+    "A03": "tasks.json remains verified but partial: root acceptance, public/internal boundary coverage, complete operation/SNS/Mongo/bootstrap lifecycle remain open.",
+    "A04": "tasks.json remains verified but partial: source-backed duplicate/reinvite, conditional adoption/revival, uncovered failure/persistence states, deployment and live effects remain open.",
+    "classification": "This matrix validates A-05 OOBE/Account/Loop SDK composition against the current synthetic Store. It provides dependency evidence for A-03/A-04 flows but does not close either task or their fresh deployment/hardware requirements."
+  },
+  "freshHardwareGap": "Root-only acceptance remains: fresh robot identity, firmware/date, native pairing and TLS ingress, camera/mic/screen/notification behavior, household preservation/migration, and deployment evidence. This worker did not access Moth or hardware."
+}
