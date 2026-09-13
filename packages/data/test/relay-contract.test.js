@@ -206,6 +206,38 @@ test('D01/9 prefetch responds immediately, before the provider settles', async (
   assert.equal(JSON.parse(g.body).lassoDataFromRedis, true);
 });
 
+test('D01/9a prefetch starts only after the HEAD response reaches the client', async () => {
+  let providerStarted = false;
+  let providerFinished = false;
+  const probeCache = {
+    get() { return null; },
+    set() {},
+  };
+  const relay = createRelay({
+    name: 'HeadOrderProbe',
+    ttlSeconds: 60,
+    cache: probeCache,
+    validate: (q) => ({ key: q.get('key') }),
+    key: (input) => `head-order:${input.key}`,
+    fetchExternal: async () => {
+      providerStarted = true;
+      providerFinished = true;
+      return { ok: true };
+    },
+  });
+  const svc = createService({
+    name: 'head-order-probe',
+    routes: { 'GET /head-order': relay, 'HEAD /head-order': relay },
+  });
+  const { server: s, port: p } = await listen(svc);
+  try {
+    const r = await call(p, '/head-order?key=one', 'HEAD');
+    assert.equal(r.status, 200);
+    assert.equal(providerStarted, false, 'provider must not start before the HEAD response reaches the client');
+    await waitFor(() => providerFinished);
+  } finally { s.close(); }
+});
+
 test('D01/9b a prefetch whose provider fails still answers the empty 200', async () => {
   // Source: line 71 sends the HEAD response before the provider is called, so
   // the client already holds the empty 200 when line 107 runs. Phoenix returns
