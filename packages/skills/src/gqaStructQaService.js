@@ -43,6 +43,9 @@ export const STRUCTQA_COUNTRY_CODE_MAP = Object.freeze({
 
 const SOURCE_JSON_TYPES = Object.freeze(['application/json', 'application/*+json']);
 
+export const STRUCTQA_ERROR_MODES = Object.freeze(['debug', 'production']);
+export const STRUCTQA_PRODUCTION_ERROR_MESSAGE = 'Fatal error.  Please see the cloud-side logs for the GQA container.';
+
 // Flask 0.12/Werkzeug 0.12 emits this HTML for malformed JSON and an empty
 // application/json entity.  The route keeps the body as text/html because
 // this endpoint is a Flask-era FCS surface rather than a Phoenix JSON API.
@@ -54,11 +57,55 @@ function isMapping(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
-function sourceString(value) {
-  if (value === null || value === undefined) return 'None';
-  if (value === true) return 'True';
-  if (value === false) return 'False';
+function pythonStringLiteral(value) {
+  const singleQuotes = [...value].filter((character) => character === "'").length;
+  const doubleQuotes = [...value].filter((character) => character === '"').length;
+  const quote = singleQuotes > doubleQuotes ? '"' : "'";
+  const escaped = Array.from(value, (character) => {
+    switch (character) {
+      case '\\': return '\\\\';
+      case "'": return quote === "'" ? "\\'" : character;
+      case '"': return quote === '"' ? '\\"' : character;
+      case '\b': return '\\b';
+      case '\f': return '\\f';
+      case '\n': return '\\n';
+      case '\r': return '\\r';
+      case '\t': return '\\t';
+      case '\v': return '\\v';
+      default: {
+        const code = character.charCodeAt(0);
+        return code < 0x20 ? `\\x${code.toString(16).padStart(2, '0')}` : character;
+      }
+    }
+  }).join('');
+  return `${quote}${escaped}${quote}`;
+}
+
+function pythonNumberString(value) {
+  // JSON.parse has already converted the wire token to a JavaScript Number.
+  // Keep the value's ordinary decimal spelling where it remains observable;
+  // the original `1.0` versus `1` lexical distinction cannot be recovered.
+  if (Object.is(value, -0)) return '0';
   return String(value);
+}
+
+/** Python `str()` formatting for values that arrived through JSON.parse. */
+export function formatStructQaPythonValue(value, { nested = false } = {}) {
+  if (value === null || value === undefined) return 'None';
+  if (typeof value === 'boolean') return value ? 'True' : 'False';
+  if (typeof value === 'number') return pythonNumberString(value);
+  if (typeof value === 'string') return nested ? pythonStringLiteral(value) : value;
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => formatStructQaPythonValue(item, { nested: true })).join(', ')}]`;
+  }
+  if (typeof value === 'object') {
+    return `{${Object.entries(value).map(([key, item]) => `${pythonStringLiteral(key)}: ${formatStructQaPythonValue(item, { nested: true })}`).join(', ')}}`;
+  }
+  return String(value);
+}
+
+function sourceString(value) {
+  return formatStructQaPythonValue(value);
 }
 
 function timestampMs(clock) {
@@ -113,7 +160,35 @@ function hasEmptyJsonEntity(request) {
   return Number.isFinite(length) && length === 0;
 }
 
-function sourceError(error) {
+function normalizeErrorMode(value) {
+  if (value === undefined) return undefined;
+  if (!STRUCTQA_ERROR_MODES.includes(value)) {
+    throw new TypeError(`StructQA errorMode must be one of: ${STRUCTQA_ERROR_MODES.join(', ')}`);
+  }
+  return value;
+}
+
+/**
+ * Mirrors the pinned Python expression `os.getenv(...) == 1` exactly. Node's
+ * process.env values are strings, so the ordinary environment value `"1"`
+ * intentionally resolves to debug; production is an explicit adapter mode or
+ * only reachable with a non-string test/configuration object.
+ */
+export function structQaErrorModeFromEnv(env = process.env) {
+  return env?.ETCO_gqa_production === 1 ? 'production' : 'debug';
+}
+
+function resolveErrorMode(errorMode, env) {
+  return normalizeErrorMode(errorMode) || structQaErrorModeFromEnv(env);
+}
+
+function sourceError(error, mode = 'debug') {
+  if (mode === 'production') {
+    return {
+      version: STRUCTQA_SOURCE_VERSION,
+      message: STRUCTQA_PRODUCTION_ERROR_MESSAGE,
+    };
+  }
   return {
     version: STRUCTQA_SOURCE_VERSION,
     message: error?.message || String(error),
@@ -202,7 +277,11 @@ export function createStructQaScriptedProvider({ apiAi, registry, mimRegistry } 
       // visible to the outer HTTP 500 boundary just as source code does.
       apiAiOutput = await apiAiCall(queryText, ipAddress);
     } catch (_error) {
-      return undefined;
+      // The source API-AI helper catches its transport/JSON exception and
+      // returns an empty mapping. The registry still receives that mapping;
+      // skipping the registry would change both its call contract and any
+      // registry-specific empty-result behavior.
+      apiAiOutput = {};
     }
     const pattern = await getIntentPattern(apiAiOutput);
     const payload = await getMimPayload(pattern);
@@ -288,12 +367,31 @@ async function finalizeStructQa(output, start, loopId, attribution, clock) {
         throw new TypeError('StructQA provider success is missing source');
       }
       output.success = true;
+      const attributedSource = output.source === 'Bing' || output.source === 'Wolfram Alpha';
+      // In finalize_fcs, attribution is outside the string-response branch
+      // and still uses `answer`. A truthy non-string payload from either
+      // attributed provider therefore raises when the response type is not
+      // string (the source `answer` local is unbound). A list under the
+      // string type remains source-valid: Python list += "." extends it by
+      // one element and the attribution store receives that list.
+      if (attributedSource && output.response.type !== 'string') {
+        throw new TypeError('StructQA attributed provider response type must be string');
+      }
       if (output.response.type === 'string') {
-        if (typeof payload !== 'string') throw new TypeError('StructQA string response payload must be a string');
-        let answer = payload;
-        if (!answer.endsWith('.')) answer += '.';
+        let answer;
+        if (typeof payload === 'string') {
+          answer = payload;
+          if (!answer.endsWith('.')) answer += '.';
+        } else if (Array.isArray(payload)) {
+          // `sourceTruthy` already excludes an empty list. Python's
+          // `answer[-1]` and `answer += "."` are represented explicitly so
+          // Wikipedia and attributed providers retain the source list edge.
+          answer = payload[payload.length - 1] === '.' ? payload : [...payload, '.'];
+        } else {
+          throw new TypeError('StructQA string response payload must be subscriptable');
+        }
         output.response.payload = answer;
-        if (output.source === 'Bing' || output.source === 'Wolfram Alpha') {
+        if (attributedSource) {
           if (!Object.prototype.hasOwnProperty.call(output, 'url')) {
             throw new TypeError('StructQA attributed result is missing url');
           }
@@ -470,8 +568,8 @@ function sendSourceBody(context, status, body, html = false) {
   return undefined;
 }
 
-function sendSourceError(context, error) {
-  const body = sourceJsonDumps(sourceError(error));
+function sendSourceError(context, error, errorMode) {
+  const body = sourceJsonDumps(sourceError(error, errorMode));
   if (context?.res) return sendSourceBody(context, 500, body);
   const wrapped = error instanceof Error ? error : new Error(String(error));
   wrapped.statusCode = 500;
@@ -479,8 +577,9 @@ function sendSourceError(context, error) {
 }
 
 /** Preserve source parser and 500 envelopes around a selected handler. */
-export function createStructQaHttpRoute({ handler } = {}) {
+export function createStructQaHttpRoute({ handler, errorMode, env } = {}) {
   if (typeof handler !== 'function') throw new TypeError('StructQA HTTP handler must be a function');
+  const selectedErrorMode = resolveErrorMode(errorMode, env);
   const route = async function structQaHttpRoute(context = {}) {
     const request = context.req || {};
     if (hasEmptyJsonEntity(request)) return sendSourceBody(context, 400, STRUCTQA_BAD_REQUEST_HTML, true);
@@ -490,11 +589,12 @@ export function createStructQaHttpRoute({ handler } = {}) {
       return result;
     } catch (error) {
       context.log?.error?.('StructQA handler failed', { error });
-      return sendSourceError(context, error);
+      return sendSourceError(context, error, selectedErrorMode);
     }
   };
   route.jsonStrict = false;
   route.jsonTypes = SOURCE_JSON_TYPES;
+  route.errorMode = selectedErrorMode;
   route.parserError = (context) => sendSourceBody(context, 400, STRUCTQA_BAD_REQUEST_HTML, true);
   route.bodyDefault = {};
   return route;
@@ -509,8 +609,8 @@ export function createStructQaHttpRoute({ handler } = {}) {
  * without copying branch, provider, or response logic.
  */
 export function createStructQaClassicHandler(options = {}) {
-  const { handler = createStructQaHandler(options) } = options;
-  return createStructQaHttpRoute({ handler });
+  const { handler = createStructQaHandler(options), errorMode, env } = options;
+  return createStructQaHttpRoute({ handler, errorMode, env });
 }
 
 /** Create the opt-in service; Classic/router registration is intentionally left to another seam. */
@@ -519,10 +619,12 @@ export function createStructQaService(options = {}) {
     name = 'gqa-structqa',
     handler = createStructQaHandler(options),
     path = STRUCTQA_SOURCE_PATH,
+    errorMode,
+    env,
   } = options;
   return createService({
     name,
-    routes: { [`POST ${path}`]: createStructQaClassicHandler({ handler }) },
+    routes: { [`POST ${path}`]: createStructQaClassicHandler({ handler, errorMode, env }) },
   });
 }
 
@@ -535,5 +637,5 @@ export const structQaContract = Object.freeze({
   sourceHandler: '(body, { req, headers }) => response object',
   classicAdapter: 'createStructQaClassicHandler({ handler }) -> (context) => Flask-shaped HTTP response',
   noAnswer: 'HTTP 200 {success:false,timestamps,version} with no response payload',
-  error: 'HTTP 500 {version,message,stacktrace} for provider/shape failures',
+  error: 'HTTP 500 debug {version,message,stacktrace}; explicit production mode emits {version,message} (the pinned env comparison keeps ordinary env "1" in debug)',
 });

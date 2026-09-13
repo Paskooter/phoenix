@@ -141,6 +141,10 @@ export {
   STRUCTQA_SOURCE_PATH,
   STRUCTQA_SOURCE_REVISION,
   STRUCTQA_SOURCE_VERSION,
+  STRUCTQA_ERROR_MODES,
+  STRUCTQA_PRODUCTION_ERROR_MESSAGE,
+  formatStructQaPythonValue,
+  structQaErrorModeFromEnv,
 } from './gqaStructQaService.js';
 export {
   createGqaApiAiClient,

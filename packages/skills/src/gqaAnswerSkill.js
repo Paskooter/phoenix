@@ -419,9 +419,23 @@ export function createGqaProviderPipeline({
     const results = new Map();
     const startedAt = new Map();
     const finishedAt = new Map();
+    // GqaParallelQuery publishes the parent fork/timed-out checkpoints in
+    // the selected provider's `timestamps` object. Keep that source timing
+    // channel separate from the Phoenix `timings` diagnostics so a caller
+    // using the FCS/structQA boundary can preserve both shapes.
+    const sourceTimestamps = {};
     const previousServices = [];
     const waiters = new Set();
     let resultVersion = 0;
+
+    const sourceTimestamp = () => {
+      const value = clock();
+      const number = value instanceof Date ? value.getTime() : Number(value);
+      if (!Number.isFinite(number)) throw new TypeError('GQA clock must return a finite timestamp');
+      return Math.trunc(number);
+    };
+
+    const sourceServiceKey = (name) => name.toLowerCase().replace(/ /g, '_');
 
     const notify = () => {
       resultVersion += 1;
@@ -430,7 +444,9 @@ export function createGqaProviderPipeline({
 
     const start = ([name, key]) => {
       const adapter = providers[name] || providers[key];
-      startedAt.set(name, clock());
+      const started = sourceTimestamp();
+      startedAt.set(name, started);
+      sourceTimestamps[`${sourceServiceKey(name)}_fork`] = started;
       // Deliberately detach workers from the caller's await.  The source
       // leaves timed-out threads alive and a late result can still be chosen
       // while the next service group is active.
@@ -498,6 +514,9 @@ export function createGqaProviderPipeline({
       const key = name === 'Wolfram Alpha' ? 'wolfram' : name === 'Wikipedia' ? 'wiki' : 'bing';
       return {
         ...output,
+        // The Python worker does `provider_timestamps.update(shared_output)`:
+        // parent fork/timed-out keys win over any same-named adapter field.
+        timestamps: { ...(output.timestamps || {}), ...sourceTimestamps },
         timings: { ...(output.timings || {}), [key]: Math.max(0, finished - started) / 1000 },
       };
     };
@@ -515,10 +534,20 @@ export function createGqaProviderPipeline({
           previousServices.find((name) => results.get(name) === picked.output),
           picked.output,
         );
-        if (!event || picked.status === 'FAIL') break;
+        if (!event) {
+          // Preserve the pinned source loop literally. It iterates the group
+          // dictionary itself (`{"services": ..., "timeout": ...}`), so the
+          // observable keys are `services_timedout` and `timeout_timedout`,
+          // rather than one key per provider.
+          for (const groupKey of ['services', 'timeout']) {
+            sourceTimestamps[`${groupKey}_timedout`] = sourceTimestamp();
+          }
+          break;
+        }
+        if (picked.status === 'FAIL') break;
       }
     }
-    return {};
+    return { timestamps: { ...sourceTimestamps } };
   };
 }
 

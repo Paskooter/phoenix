@@ -9,8 +9,12 @@ import {
   createStructQaScriptedProvider,
   createStructQaService,
   STRUCTQA_BAD_REQUEST_HTML,
+  STRUCTQA_PRODUCTION_ERROR_MESSAGE,
+  formatStructQaPythonValue,
+  structQaErrorModeFromEnv,
   structQaContract,
 } from '../src/gqaStructQaService.js';
+import { createGqaProviderPipeline } from '../src/gqaAnswerSkill.js';
 
 const NOW = 1700000000000;
 
@@ -172,6 +176,27 @@ test('Q-01 Scripted API-AI no-answer stays HTTP-200 success false', async () => 
   assert.equal(result.message, undefined);
 });
 
+test('Q-01 Scripted API-AI transport failure reaches the registry as an empty mapping', async () => {
+  const calls = [];
+  const scripted = createStructQaScriptedProvider({
+    apiAi: async () => { throw new Error('API-AI unavailable'); },
+    registry: {
+      getIntentPattern(value) {
+        calls.push(['pattern', value]);
+        return '';
+      },
+      getMimPayload(pattern) {
+        calls.push(['mim', pattern]);
+        return undefined;
+      },
+    },
+  });
+  const handler = createStructQaHandler({ clock: () => NOW, accountLookup: async () => 'loop-1', scriptedProvider: scripted });
+  const result = await handler({ Intent: 'Scripted', Input: 'transport failure' }, { req: sourceRequest({}) });
+  assert.equal(result.success, false);
+  assert.deepEqual(calls, [['pattern', {}], ['mim', '']]);
+});
+
 test('Q-01 GQA success appends punctuation and reuses accepted attribution storage', async () => {
   const attribution = createGqaMemoryAttributionStore({ clock: () => NOW });
   let seen;
@@ -236,6 +261,73 @@ test('Q-01 GQA provider exceptions and empty/fallback results remain no-answer H
   assert.equal(result.response.payload, 'A wiki answer.');
 });
 
+test('Q-01 configured providers retain source provider timestamps and parent fork checkpoints', async () => {
+  const handler = createStructQaHandler({
+    clock: () => NOW,
+    accountLookup: async () => 'loop-1',
+    providers: {
+      Bing: async () => ({
+        timestamps: { bing_request: NOW + 1, bing_response: NOW + 2 },
+      }),
+      Wikipedia: async () => ({
+        timestamps: {
+          wiki_begin_tokenization: NOW + 3,
+          wikipedia_fork: NOW - 1,
+          wiki_request: NOW + 4,
+          wiki_response: NOW + 5,
+        },
+      }),
+      'Wolfram Alpha': async () => ({
+        source: 'Wolfram Alpha',
+        url: 'https://fixture.invalid/wolfram',
+        response: { type: 'string', payload: 'A computed answer' },
+        timestamps: {
+          wolfram_alpha_fork: NOW - 2,
+          wolfram_request: NOW + 6,
+          wolfram_response: NOW + 7,
+        },
+      }),
+    },
+  });
+  const result = await handler({ Intent: 'GQA', Input: 'what is a computed answer' }, { req: sourceRequest({}) });
+  assert.equal(result.success, true);
+  assert.equal(result.source, 'Wolfram Alpha');
+  assert.equal(result.timestamps.bing_fork, NOW);
+  assert.equal(result.timestamps.wikipedia_fork, NOW);
+  assert.equal(result.timestamps.wolfram_alpha_fork, NOW);
+  assert.equal(result.timestamps.bing_request, undefined);
+  assert.equal(result.timestamps.wiki_begin_tokenization, undefined);
+  assert.equal(result.timestamps.wolfram_request, NOW + 6);
+  assert.equal(result.timestamps.wolfram_response, NOW + 7);
+  assert.equal(result.timestamps.services_timedout, undefined);
+  assert.equal(result.timestamps.timeout_timedout, undefined);
+});
+
+test('Q-01 configured provider timeout preserves the pinned source timedout-key bug', async () => {
+  const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+  const pipeline = createGqaProviderPipeline({
+    providers: {
+      Bing: async () => { await sleep(35); return {}; },
+      Wikipedia: async () => { await sleep(35); return {}; },
+      'Wolfram Alpha': async () => ({
+        source: 'Wolfram Alpha',
+        response: { type: 'string', payload: 'fallback' },
+        timestamps: { wolfram_response: Date.now() },
+      }),
+    },
+    timeouts: [5, 100],
+  });
+  const result = await pipeline({ queryText: 'timeout fixture' });
+  assert.equal(result.source, 'Wolfram Alpha');
+  assert.equal(typeof result.timestamps.bing_fork, 'number');
+  assert.equal(typeof result.timestamps.wikipedia_fork, 'number');
+  assert.equal(typeof result.timestamps.wolfram_alpha_fork, 'number');
+  assert.equal(typeof result.timestamps.services_timedout, 'number');
+  assert.equal(typeof result.timestamps.timeout_timedout, 'number');
+  assert.equal(result.timestamps.bing_timedout, undefined);
+  assert.equal(result.timestamps.wikipedia_timedout, undefined);
+});
+
 test('Q-01 provider payload uses Python truthiness at the no-answer boundary', async () => {
   for (const payload of [false, 0, '', [], {}]) {
     const handler = createStructQaHandler({
@@ -264,6 +356,89 @@ test('Q-01 provider payload uses Python truthiness at the no-answer boundary', a
   const result = await truthy({ Intent: 'GQA', Input: 'array answer' }, { req: sourceRequest({}) });
   assert.equal(result.success, true);
   assert.deepEqual(result.response, { type: 'array', payload: ['answer'] });
+});
+
+test('Q-01 truthy non-string Bing/Wolfram payloads retain the source attribution 500 boundary', async () => {
+  for (const source of ['Bing', 'Wolfram Alpha']) {
+    for (const response of [
+      { type: 'array', payload: ['truthy'] },
+      { type: 'string', payload: 7 },
+    ]) {
+      const service = createStructQaService({
+        clock: () => NOW,
+        accountLookup: async () => 'loop-1',
+        gqaProvider: async () => ({ source, url: 'https://fixture.invalid/answer', response }),
+      });
+      const server = await service.listen(0);
+      try {
+        const result = await fetch(`http://127.0.0.1:${server.address().port}/structQA`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', ...credentials() },
+          body: JSON.stringify({ Intent: 'GQA', Input: 'truthy non-string' }),
+        });
+        assert.equal(result.status, 500, `${source}/${response.type} must preserve source failure`);
+        const body = JSON.parse(await result.text());
+        assert.equal(body.version, '5.2.15');
+        assert.match(body.message, /attributed provider (payload|response type)|string response payload/);
+      } finally {
+        await closeServer(server);
+      }
+    }
+  }
+});
+
+test('Q-01 source string-type list payloads append a list period before attribution', async () => {
+  const attribution = createGqaMemoryAttributionStore({ clock: () => NOW });
+  const handler = createStructQaHandler({
+    clock: () => NOW,
+    accountLookup: async () => 'loop-1',
+    attribution,
+    gqaProvider: async () => ({
+      source: 'Bing',
+      url: 'https://fixture.invalid/list',
+      response: { type: 'string', payload: ['list answer'] },
+    }),
+  });
+  const result = await handler({ Intent: 'GQA', Input: 'list answer' }, { req: sourceRequest({}) });
+  assert.equal(result.success, true);
+  assert.deepEqual(result.response.payload, ['list answer', '.']);
+  assert.deepEqual(attribution.snapshot(), [{
+    service: 'Bing',
+    query: ['list answer', '.'],
+    url: 'https://fixture.invalid/list',
+    image_url: null,
+    loop_id: 'loop-1',
+    timestamp: NOW,
+  }]);
+
+  const wikipedia = createStructQaHandler({
+    clock: () => NOW,
+    accountLookup: async () => 'loop-1',
+    gqaProvider: async () => ({ source: 'Wikipedia', response: { type: 'string', payload: ['wiki answer'] } }),
+  });
+  const wikiResult = await wikipedia({ Intent: 'GQA', Input: 'wiki list' }, { req: sourceRequest({}) });
+  assert.deepEqual(wikiResult.response.payload, ['wiki answer', '.']);
+});
+
+test('Q-01 unknown intents and provider coordinates use Python JSON-value formatting', async () => {
+  assert.equal(formatStructQaPythonValue({ answer: true, missing: null, words: ['a', false] }), "{'answer': True, 'missing': None, 'words': ['a', False]}");
+  assert.equal(formatStructQaPythonValue({ quote: "can't" }), "{'quote': \"can't\"}");
+  assert.equal(formatStructQaPythonValue(1.0), '1');
+  const unknownHandler = createStructQaHandler({ clock: () => NOW, accountLookup: async () => 'loop-1' });
+  const unknown = await unknownHandler({ Intent: { answer: true, missing: null }, Input: 'unknown' }, { req: sourceRequest({}) });
+  assert.equal(unknown.message, "Unknown Intent '{'answer': True, 'missing': None}'");
+
+  let seen;
+  const coordinateHandler = createStructQaHandler({
+    clock: () => NOW,
+    accountLookup: async () => 'loop-1',
+    gqaProvider: async (context) => { seen = context; return {}; },
+  });
+  await coordinateHandler({ Intent: 'GQA', Input: 'coordinates', Latitude: { north: true }, Longitude: [1, null] }, {
+    req: sourceRequest({}),
+  });
+  assert.equal(seen.latitude, "{'north': True}");
+  assert.equal(seen.longitude, '[1, None]');
 });
 
 test('Q-01 news provider empty/error behavior retains source message and status boundaries', async () => {
@@ -324,6 +499,34 @@ test('Q-01 HTTP framing preserves malformed JSON 400 and x-amz credential parse 
       headers: { 'content-type': 'application/json', 'content-length': '0' },
     });
     assert.equal(emptyEntity.status, 400);
+  } finally {
+    await closeServer(server);
+  }
+});
+
+test('Q-01 500 mode mirrors Python env comparison and supports an explicit production envelope', async () => {
+  assert.equal(structQaErrorModeFromEnv({ ETCO_gqa_production: '1' }), 'debug');
+  assert.equal(structQaErrorModeFromEnv({ ETCO_gqa_production: 1 }), 'production');
+
+  const service = createStructQaService({
+    errorMode: 'production',
+    clock: () => NOW,
+    accountLookup: async () => 'loop-1',
+    newsProvider: async () => { throw new Error('private fixture failure'); },
+  });
+  const server = await service.listen(0);
+  try {
+    const response = await fetch(`http://127.0.0.1:${server.address().port}/structQA`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', ...credentials() },
+      body: JSON.stringify({ Intent: 'News' }),
+    });
+    assert.equal(response.status, 500);
+    assert.equal(response.headers.get('content-type'), 'text/html; charset=utf-8');
+    assert.deepEqual(JSON.parse(await response.text()), {
+      version: '5.2.15',
+      message: STRUCTQA_PRODUCTION_ERROR_MESSAGE,
+    });
   } finally {
     await closeServer(server);
   }
