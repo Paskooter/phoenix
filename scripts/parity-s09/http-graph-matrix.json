@@ -1,0 +1,273 @@
+{
+  "schema": "s09-report-weather-http-v1",
+  "referenceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+  "runtimeISO": "2026-06-12T12:00:00.000Z",
+  "coordinates": {
+    "lat": 42.313352,
+    "lng": -71.1273681,
+    "queryLat": "42.3134",
+    "queryLon": "-71.1274"
+  },
+  "defaultNewsSourceIDs": ["42208", "42207", "42200", "42210"],
+  "cases": [
+    {
+      "id": "full-day-cloudy-wet-warmer",
+      "intent": "launchPersonalReport",
+      "prefs": "weatherOnly",
+      "locationISO": "2026-06-12T12:00:00.000Z",
+      "weather": {
+        "yesterday": { "high": 60, "low": 45, "icon": "cloudy", "summary": "Cloudy yesterday" },
+        "today": { "high": 75, "low": 58, "icon": "rain", "summary": "Light rain" },
+        "tomorrow": { "high": 68, "low": 51, "icon": "fog", "summary": "Fog tomorrow" },
+        "current": { "temp": 71, "icon": "rain", "summary": "Rain now" }
+      },
+      "expected": {
+        "mims": ["PersonalReportKickOff", "WeatherIntro", "WeatherChangeCloudyWet", "WeatherTodayWarmer", "PersonalReportOutroConfigured"],
+        "weatherView": true,
+        "speechIncludes": ["75", "58"]
+      }
+    },
+    {
+      "id": "full-evening-tomorrow",
+      "intent": "launchPersonalReport",
+      "prefs": "weatherOnly",
+      "locationISO": "2026-06-12T18:00:00.000Z",
+      "weather": {
+        "yesterday": { "high": 60, "low": 45, "icon": "cloudy", "summary": "Cloudy yesterday" },
+        "today": { "high": 75, "low": 58, "icon": "rain", "summary": "Light rain" },
+        "tomorrow": { "high": 68, "low": 51, "icon": "fog", "summary": "Fog tomorrow" },
+        "current": { "temp": 71, "icon": "rain", "summary": "Rain now" }
+      },
+      "expected": {
+        "mims": ["PersonalReportKickOff", "WeatherIntroTomorrow", "WeatherCommentFog", "WeatherTomorrowHighLow", "PersonalReportOutroConfigured"],
+        "weatherView": true,
+        "speechIncludes": ["68", "51", "Fog tomorrow"]
+      }
+    },
+    {
+      "id": "single-weather-today",
+      "intent": "requestWeatherPR",
+      "prefs": "weatherOnly",
+      "locationISO": "2026-06-12T12:00:00.000Z",
+      "weather": {
+        "yesterday": { "high": 60, "low": 45, "icon": "clear-day", "summary": "Clear yesterday" },
+        "today": { "high": 75, "low": 58, "icon": "rain", "summary": "Light rain" },
+        "tomorrow": { "high": 68, "low": 51, "icon": "fog", "summary": "Fog tomorrow" },
+        "current": { "temp": 71, "icon": "rain", "summary": "Rain now" }
+      },
+      "expected": {
+        "mims": ["WeatherIntro", "WeatherChangeClearWet", "WeatherTodayWarmer"],
+        "weatherView": true,
+        "speechIncludes": ["Light rain"]
+      }
+    },
+    {
+      "id": "single-weather-tomorrow",
+      "intent": "requestWeatherPR",
+      "entities": { "date": "tomorrow" },
+      "prefs": "weatherOnly",
+      "locationISO": "2026-06-12T12:00:00.000Z",
+      "weather": {
+        "yesterday": { "high": 60, "low": 45, "icon": "clear-day", "summary": "Clear yesterday" },
+        "today": { "high": 75, "low": 58, "icon": "rain", "summary": "Light rain" },
+        "tomorrow": { "high": 68, "low": 51, "icon": "fog", "summary": "Fog tomorrow" },
+        "current": { "temp": 71, "icon": "rain", "summary": "Rain now" }
+      },
+      "expected": {
+        "mims": ["WeatherIntroTomorrow", "WeatherCommentFog", "WeatherTomorrowHighLow"],
+        "weatherView": true,
+        "speechIncludes": ["68", "51", "Fog tomorrow"]
+      }
+    },
+    {
+      "id": "wet-now-dry-later",
+      "intent": "requestWeatherPR",
+      "prefs": "weatherOnly",
+      "locationISO": "2026-06-12T12:00:00.000Z",
+      "weather": {
+        "yesterday": { "high": 60, "low": 45, "icon": "rain", "summary": "Rain yesterday" },
+        "today": { "high": 60, "low": 45, "icon": "clear-day", "summary": "Clear later" },
+        "tomorrow": { "high": 62, "low": 44, "icon": "clear-day", "summary": "Clear tomorrow" },
+        "current": { "temp": 48, "icon": "sleet", "summary": "Sleet now" }
+      },
+      "expected": {
+        "mims": ["WeatherIntro", "WeatherChangeWetClear", "WeatherWetNowDryLater", "WeatherTodayHighLow"],
+        "weatherView": true,
+        "speechIncludes": ["60", "45"]
+      }
+    },
+    {
+      "id": "condition-clear-to-wet",
+      "intent": "requestWeatherPR",
+      "prefs": "weatherOnly",
+      "locationISO": "2026-06-12T12:00:00.000Z",
+      "weather": {
+        "yesterday": { "high": 70, "low": 50, "icon": "clear-day", "summary": "Clear yesterday" },
+        "today": { "high": 70, "low": 50, "icon": "rain", "summary": "Rain today" },
+        "tomorrow": { "high": 70, "low": 50, "icon": "rain", "summary": "Rain tomorrow" },
+        "current": { "temp": 65, "icon": "rain", "summary": "Rain now" }
+      },
+      "expected": {
+        "mims": ["WeatherIntro", "WeatherChangeClearWet", "WeatherTodayHighLow"],
+        "weatherView": true,
+        "speechIncludes": ["Rain today"]
+      }
+    },
+    {
+      "id": "condition-cloudy-to-clear",
+      "intent": "requestWeatherPR",
+      "prefs": "weatherOnly",
+      "locationISO": "2026-06-12T12:00:00.000Z",
+      "weather": {
+        "yesterday": { "high": 70, "low": 50, "icon": "cloudy", "summary": "Cloudy yesterday" },
+        "today": { "high": 70, "low": 50, "icon": "clear-day", "summary": "Clear today" },
+        "tomorrow": { "high": 70, "low": 50, "icon": "clear-day", "summary": "Clear tomorrow" },
+        "current": { "temp": 65, "icon": "cloudy", "summary": "Clouds now" }
+      },
+      "expected": {
+        "mims": ["WeatherIntro", "WeatherChangeCloudyClear", "WeatherTodayHighLow"],
+        "weatherView": true,
+        "speechIncludes": ["70", "50"]
+      }
+    },
+    {
+      "id": "celsius-colder",
+      "intent": "requestWeatherPR",
+      "prefs": "weatherOnlyCelsius",
+      "locationISO": "2026-06-12T12:00:00.000Z",
+      "weather": {
+        "yesterday": { "high": 50, "low": 40, "icon": "rain", "summary": "Rain yesterday" },
+        "today": { "high": 30, "low": 20, "icon": "rain", "summary": "Rain today" },
+        "tomorrow": { "high": 32, "low": 21, "icon": "rain", "summary": "Rain tomorrow" },
+        "current": { "temp": 28, "icon": "rain", "summary": "Rain now" }
+      },
+      "expected": {
+        "mims": ["WeatherIntro", "WeatherCommentRain", "WeatherTodayColder"],
+        "weatherView": true,
+        "speechIncludes": ["-1", "-7"]
+      }
+    },
+    {
+      "id": "sanitized-summary",
+      "intent": "requestWeatherPR",
+      "prefs": "weatherOnly",
+      "locationISO": "2026-06-12T12:00:00.000Z",
+      "weather": {
+        "yesterday": { "high": 70, "low": 50, "icon": "rain", "summary": "Rain yesterday" },
+        "today": { "high": 72, "low": 50, "icon": "rain", "summary": "Light snow (< 1 in.) and > 2 ft." },
+        "tomorrow": { "high": 70, "low": 50, "icon": "rain", "summary": "Rain tomorrow" },
+        "current": { "temp": 65, "icon": "rain", "summary": "Rain now" }
+      },
+      "expected": {
+        "mims": ["WeatherIntro", "WeatherCommentRain", "WeatherTodayHighLow"],
+        "weatherView": true,
+        "speechIncludes": ["less than 1 inch", "more than 2 feet"]
+      }
+    },
+    {
+      "id": "fallback-icon-only",
+      "intent": "requestWeatherPR",
+      "prefs": "weatherOnly",
+      "locationISO": "2026-06-12T12:00:00.000Z",
+      "weather": {
+        "yesterday": { "high": 70, "low": 50, "icon": "cloudy", "summary": "Cloudy yesterday" },
+        "today": { "high": null, "low": null, "icon": "clear-day", "summary": "Clear skies" },
+        "tomorrow": { "high": 70, "low": 50, "icon": "clear-day", "summary": "Clear tomorrow" },
+        "current": { "temp": 65, "icon": "clear-day", "summary": "Clear now" }
+      },
+      "expected": {
+        "mims": ["WeatherIntro", "WeatherBasicClearDay"],
+        "weatherView": false,
+        "speechIncludes": ["clear day"]
+      }
+    },
+    {
+      "id": "missing-yesterday-data",
+      "intent": "requestWeatherPR",
+      "prefs": "weatherOnly",
+      "locationISO": "2026-06-12T12:00:00.000Z",
+      "weather": {
+        "yesterday": null,
+        "today": { "high": 70, "low": 50, "icon": "rain", "summary": "Rain today" },
+        "tomorrow": { "high": 70, "low": 50, "icon": "rain", "summary": "Rain tomorrow" },
+        "current": { "temp": 65, "icon": "rain", "summary": "Rain now" }
+      },
+      "expected": {
+        "mims": ["WeatherServiceDown"],
+        "weatherView": false,
+        "speechIncludes": ["offline"]
+      }
+    },
+    {
+      "id": "night-offset-icon-normalization",
+      "intent": "requestWeatherPR",
+      "prefs": "weatherOnly",
+      "locationISO": "2026-06-12T01:00:00.000-04:00",
+      "weather": {
+        "yesterday": { "high": 70, "low": 50, "icon": "clear-day", "summary": "Clear yesterday" },
+        "today": { "high": 70, "low": 50, "icon": "clear-day", "summary": "Clear today" },
+        "tomorrow": { "high": 70, "low": 50, "icon": "clear-day", "summary": "Clear tomorrow" },
+        "current": { "temp": 65, "icon": "clear-day", "summary": "Clear now" }
+      },
+      "expected": {
+        "mims": ["WeatherIntro", "WeatherCommentClearNight", "WeatherTodayHighLow"],
+        "weatherView": true,
+        "speechIncludes": ["70", "50"]
+      }
+    },
+    {
+      "id": "unknown-icon-basic-fallback",
+      "intent": "requestWeatherPR",
+      "prefs": "weatherOnly",
+      "locationISO": "2026-06-12T12:00:00.000Z",
+      "weather": {
+        "yesterday": { "high": 70, "low": 50, "icon": "cloudy", "summary": "Cloudy yesterday" },
+        "today": { "high": null, "low": null, "icon": "mystery-icon", "summary": "Unrecognized skies" },
+        "tomorrow": { "high": 70, "low": 50, "icon": "clear-day", "summary": "Clear tomorrow" },
+        "current": { "temp": 65, "icon": "mystery-icon", "summary": "Unknown now" }
+      },
+      "expected": {
+        "responseType": "ERROR",
+        "mims": [],
+        "weatherView": false,
+        "speechIncludes": []
+      }
+    },
+    {
+      "id": "unknown-icon-comment-fallback",
+      "intent": "requestWeatherPR",
+      "prefs": "weatherOnly",
+      "locationISO": "2026-06-12T12:00:00.000Z",
+      "weather": {
+        "yesterday": { "high": 70, "low": 50, "icon": "cloudy", "summary": "Cloudy yesterday" },
+        "today": { "high": 70, "low": 50, "icon": "mystery-icon", "summary": "Unrecognized skies" },
+        "tomorrow": { "high": 70, "low": 50, "icon": "clear-day", "summary": "Clear tomorrow" },
+        "current": { "temp": 65, "icon": "mystery-icon", "summary": "Unknown now" }
+      },
+      "expected": {
+        "responseType": "ERROR",
+        "mims": [],
+        "weatherView": false,
+        "speechIncludes": []
+      }
+    },
+    {
+      "id": "partial-weather-failure-news-survives",
+      "intent": "launchPersonalReport",
+      "prefs": "weatherNews",
+      "failure": "yesterday",
+      "locationISO": "2026-06-12T12:00:00.000Z",
+      "weather": {
+        "yesterday": { "high": 60, "low": 45, "icon": "cloudy", "summary": "Cloudy yesterday" },
+        "today": { "high": 75, "low": 58, "icon": "rain", "summary": "Light rain" },
+        "tomorrow": { "high": 68, "low": 51, "icon": "fog", "summary": "Fog tomorrow" },
+        "current": { "temp": 71, "icon": "rain", "summary": "Rain now" }
+      },
+      "expected": {
+        "mims": ["PersonalReportKickOff", "WeatherServiceDown", "NewsIntro", "NewsHeadline", "PersonalReportOutroConfigured"],
+        "weatherView": false,
+        "speechIncludes": ["Jibo robot makes a comeback"]
+      }
+    }
+  ]
+}
