@@ -10,14 +10,14 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 37 | 46 | 0 | 0 |
+| pegasus | 38 | 46 | 0 | 0 |
 | classic | 18 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
 Current task: none.
 
-Next ready task: **N-03 — Verify clock, alarm, timer and settings/menu follow-up rules**.
+Next ready task: **S-07 — Verify the complete chitchat behavior**.
 
 See [PLAN.md](PLAN.md) for execution rules, [COMPATIBILITY.md](COMPATIBILITY.md) for the frozen target and [AUDIT.md](AUDIT.md) for initial findings. Pegasus source links use the original commit; restored-only code and atlas links are labeled separately. API definitions are pinned; other Jibo links are discovery references to be pinned before verification.
 
@@ -601,11 +601,11 @@ Evidence: [docs/parity/evidence/2026-09-10/n02-grammar-factory/review.md](../../
 
 ### N-03 — Verify clock, alarm, timer and settings/menu follow-up rules
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: N-02.
 
-The clock/settings/menu graphs are present in the compiled inventory, and source time-factory semantic actions now execute in the AST profile. All 20 public named rules pass 134 source/native-backed positive, boundary and negative rows through direct and HTTP paths; a 5,955-input matrix matches both public time FSTs exactly, and representative local-turn WS rows cover every required category. Exhaustive local-turn variants and the three internal launch components remain unverified, so N-03 stays open.
+All 20 public clock/settings/main-menu named rules match pinned source/native behavior across 134 positive, boundary and negative fixture rows through direct and HTTP paths. The active source time factory matches 5,955 native inputs for each of two public time FSTs. Local-turn WebSocket coverage now has 149 assertions across 142 distinct rule/text pairs and all 20 named rules, including all required value, AM/PM, cancellation, confirmation, volume and menu classes. The three launch.rule files are proven union-only components by an exact 89-row native/Phoenix receipt. Root independently checked receipt provenance and 89/89 current runtime semantics; one physical Moth clock launch also completed.
 
 Done when:
 
@@ -616,15 +616,15 @@ Source: [Original Pegasus packages/parser/robust-parser/rules_src/clock](https:/
 
 Phoenix: [packages/nlu/resources/grammar](../../packages/nlu/resources/grammar); [packages/harness](../../packages/harness).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-13/n03-time-factory/review.md](../../docs/parity/evidence/2026-09-13/n03-time-factory/review.md) (2026-09-13; Every written criterion is covered: 20/20 public named rules with 134 cited positive/boundary/negative rows; 149 local-turn assertions across 142 distinct pairs; two exhaustive 5,955-input time-FST differentials; and an 89-row pinned-native launch receipt with zero semantic differences. Root reran 14 focused subtests, independently deep-compared all 89 receipt rows, corrected the receipt provenance label, and previously falsified semantic-action execution. The full candidate suite passed 1,974 with 8 skips and strict43 was exact. A physical BE11.0.1 clock turn traversed hotword, authenticated Hub, askForTime, clock speech and idle.).
 
 - [x] Candidate implementation — **accepted**; Luna Max / w18_n03_rules; Codex root.
 
-Candidate scope: Bounded N-03 recovery: activate the pinned time factory, execute all 2,780 supported semantic-action bodies, match 5,955 native inputs against both public time FSTs, replay 134 rows across all 20 public named rules, and cover each requested local-turn category. Root disabled action execution and observed five named failures, then restored six passes. The integrated suite passes 1,969 tests and strict43, but exhaustive local-turn breadth and internal launch-component interpretation remain open.
+Candidate scope: Complete N-03 closure: active source time semantics, all public named rules, exhaustive required local-turn operation classes and explicit native proof for union-only launch components. Root caught and corrected a provenance field before acceptance, independently replayed focused paths and all 89 receipt rows, and retained the physical launch observation as bounded evidence.
 
 Candidate report: [docs/parity/evidence/2026-09-13/n03-time-factory/review.md](../../docs/parity/evidence/2026-09-13/n03-time-factory/review.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-13/n03-time-factory/review.md](../../docs/parity/evidence/2026-09-13/n03-time-factory/review.md). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-13/n03-time-factory/launch-native-receipt.json](../../docs/parity/evidence/2026-09-13/n03-time-factory/launch-native-receipt.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### N-04 — Verify identity, introduction and greeting follow-up rules
 
