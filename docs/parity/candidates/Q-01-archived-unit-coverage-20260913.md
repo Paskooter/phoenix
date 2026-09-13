@@ -4,16 +4,16 @@ Source: `jiborobot/srv-gqa-ws@ebe1a7d38f511570060c1fbf61bec89d58419b26`, read th
 
 This candidate maps every named `test_*` definition counted by the archived inventory (136 rows, 385 assertion calls) to an existing executable Phoenix row or a concrete closure requirement. The two top-level `test_*` helper functions in `test_bing.py` are included as `supporting`; they are called by named tests and are not standalone unittest cases.
 
-Current row counts: covered=89, partial=43, missing=0, skipped=1, supporting=2, excluded=1.
+Current row counts: covered=91, partial=41, missing=0, skipped=1, supporting=2, excluded=1.
 
-The existing replay lane directly executes 28 archived answer rows and 12 async rows. It also executes 10 source-shaped news/AP cases, account/attribution rows, and three captured fake-provider adapter routes. This audit keeps those receipts separate from live-provider and legacy `/structQA` gaps.
+The existing replay lane directly executes 28 archived answer rows and 12 async rows. It also executes 10 source-shaped news/AP cases, two standalone GQA auxiliary routes, account/attribution rows, and three captured fake-provider adapter routes. This audit keeps those receipts separate from live-provider and legacy `/structQA` gaps.
 
 ## Closure buckets
 
 - `/structQA`: the integrated source-shaped handler now covers the archived no-input and unknown-intent envelopes; Scripted/API-AI, News, and live provider qualifications remain explicitly marked below.
 - API-AI/MIM registry: the injected API-AI client and `doesJiboLikeThing;Object:Dogs` resolver now have focused executable coverage; the live `test_api_ai_real` response and `/structQA` integration remain qualified below.
 - News: archived AP/news source cases map to the existing matrix/provider rows; the moved live AP/vendor sequence remains a qualification.
-- Account/attribution: lookup, insert, retrieve, wipe, source windows, and HTTP parser rows are covered by the existing account suite; `/fakeAccount` remains a developer-helper seam.
+- Account/attribution: lookup, insert, retrieve, wipe, source windows, and HTTP parser rows are covered by the existing account suite; standalone GQA now exposes the source-shaped developer `/fakeAccount` helper while Classic remains unregistered.
 - Fake providers: captured Bing/Wikipedia/Wolfram bodies are decoded and passed through current adapters; the new Wikipedia decision matrix uses injected page JSON, while live vendor answer assertions remain partial or missing.
 - Accepted exclusions: `/crash_me` is a debug-only developer route and is excluded from the Phoenix product denominator.
 
@@ -63,8 +63,8 @@ The existing replay lane directly executes 28 archived answer rows and 12 async 
 | `tests/unit/test_blacklist.py:test_category_blacklist_leaf` | `partial` | packages/skills/test/q01GqaProfile.test.js :: Q-01 profile preserves source action selection across answer, no-result, disambiguation, blacklist and provider failure | Category suppression is exercised after the page request, but the archived leaf category and exact error message are not asserted. |
 | `tests/unit/test_blacklist.py:test_category_blacklist_parent` | `partial` | packages/skills/test/q01GqaProfile.test.js :: Q-01 profile preserves source action selection across answer, no-result, disambiguation, blacklist and provider failure | Category suppression is exercised after the page request, but the archived parent category and exact error message are not asserted. |
 | `tests/unit/test_blacklist.py:test_category_whitelist` | `partial` | packages/skills/test/q01Wikipedia.test.js :: Q-01 Wikipedia adapter follows source success request and result contract | A successful page is covered, but no current row proves the archived Jesus category is explicitly allowed while other categories are blocked. |
-| `tests/unit/test_general.py:test_health_check` | `partial` | packages/common/test/service.test.js :: healthcheck route | The route is executable, but the archived GQA helper expects body 42 while Phoenix common healthcheck evidence expects its current common-service body. |
-| `tests/unit/test_general.py:test_fake_account` | `partial` | packages/skills/test/q01GqaAccountAttribution.test.js :: account lookup preserves the source POST body, headers, and first loop ID | The client POST contract is covered through an injected peer; Phoenix does not expose the archived developer-only /fakeAccount endpoint. |
+| `tests/unit/test_general.py:test_health_check` | `covered` | packages/skills/test/q01StructQa.test.js :: Q-01 standalone GQA auxiliary routes preserve source health 42 and developer fakeAccount JSON | — |
+| `tests/unit/test_general.py:test_fake_account` | `covered` | packages/skills/test/q01StructQa.test.js :: Q-01 standalone GQA auxiliary routes preserve source health 42 and developer fakeAccount JSON | — |
 | `tests/unit/test_general.py:test_scripted_response` | `partial` | packages/skills/test/q01Gqa.test.js :: Q-01 exposes the source scripted question mapping and full MIM inventories; packages/skills/test/assetProvenance.test.js :: scripted MIM provenance | The OI_USR_IsAngry asset exists and MIM inventory is checked, but Phoenix has no archived /structQA Scripted route row returning OI_USR_IsAngry_AN_01 with source timestamps. |
 | `tests/unit/test_general.py:test_age_entity_api_ai` | `partial` | packages/skills/test/q01ApiAiMim.test.js :: Q-01 MIM registry formats Dialogflow age entities | The archived /structQA Scripted request and its no-response envelope still require the structQA owner's route integration; the API-AI age pattern itself is replayed here. |
 | `tests/unit/test_general.py:test_bing` | `partial` | packages/skills/test/q01GqaCompositeReplay.test.js :: Q-01 composite success replays selected HTTP profile, account lookup, attribution, MIM/JCP and source wire media | The provider request and response shape are covered through answer-skill routes; the archived /structQA endpoint and live Bing response remain open. |

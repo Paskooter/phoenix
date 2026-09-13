@@ -20,13 +20,15 @@ import {
   gqaPiiFilter,
 } from './gqaAnswerSkill.js';
 import { createApNewsProvider } from './newsAnswerSkill.js';
-import { createService } from '@phoenix/common';
+import { createService, sendText } from '@phoenix/common';
 
 export const STRUCTQA_SOURCE_REVISION = 'ebe1a7d38f511570060c1fbf61bec89d58419b26';
 export const STRUCTQA_SOURCE_MODULE = 'gqa/gqa.py';
 export const STRUCTQA_SOURCE_PATH = '/structQA';
 export const STRUCTQA_SOURCE_VERSION = '5.2.15';
 export const STRUCTQA_SOURCE_INTENTS = Object.freeze(['GQA', 'News', 'Scripted']);
+export const STRUCTQA_HEALTHCHECK_BODY = '42';
+export const STRUCTQA_FAKE_ACCOUNT_PATH = '/fakeAccount';
 
 export const STRUCTQA_COUNTRY_CODE_MAP = Object.freeze({
   usa: 'US',
@@ -107,6 +109,27 @@ export function formatStructQaPythonValue(value, { nested = false } = {}) {
 
 function sourceString(value) {
   return formatStructQaPythonValue(value);
+}
+
+/**
+ * Preserve the developer account helper from the pinned Flask service. The
+ * normal test/development input is `{accountsIds: ["unit-test"]}`, for which
+ * Python's json.dumps emits the spaces retained by sourceJsonDumps().
+ */
+export function formatStructQaFakeAccountResponse(body) {
+  const accountIds = body?.accountsIds;
+  if (accountIds === undefined || accountIds === null) {
+    throw new TypeError("fakeAccount request is missing 'accountsIds'");
+  }
+  const accountId = accountIds[0];
+  if (accountId === undefined) throw new TypeError("fakeAccount 'accountsIds' is empty");
+  if (typeof accountId === 'object' && accountId !== null) {
+    throw new TypeError("fakeAccount account id must be JSON scalar");
+  }
+  const key = accountId === null
+    ? 'null'
+    : typeof accountId === 'boolean' ? String(accountId).toLowerCase() : String(accountId);
+  return sourceJsonDumps({ [key]: [accountId] });
 }
 
 function timestampMs(clock) {
@@ -606,6 +629,25 @@ export function createStructQaHttpRoute({ handler, errorMode, env } = {}) {
   return route;
 }
 
+/** Preserve the pinned developer-only `/fakeAccount` Flask route on the opt-in service. */
+export function createStructQaFakeAccountRoute({ errorMode, env } = {}) {
+  const selectedErrorMode = resolveErrorMode(errorMode, env);
+  const route = async function structQaFakeAccountRoute(context = {}) {
+    try {
+      return sendText(context.res, 200, formatStructQaFakeAccountResponse(context.body));
+    } catch (error) {
+      context.log?.error?.('fakeAccount handler failed', { error });
+      return sendSourceError(context, error, selectedErrorMode);
+    }
+  };
+  route.jsonStrict = false;
+  route.jsonTypes = SOURCE_JSON_TYPES;
+  route.errorMode = selectedErrorMode;
+  route.parserError = (context) => sendSourceBody(context, 400, STRUCTQA_BAD_REQUEST_HTML, true);
+  route.bodyDefault = {};
+  return route;
+}
+
 /**
  * Explicit Classic-compatible context adapter for the source handler.
  *
@@ -627,10 +669,18 @@ export function createStructQaService(options = {}) {
     path = STRUCTQA_SOURCE_PATH,
     errorMode,
     env,
+    includeFakeAccount = true,
   } = options;
+  const routes = {
+    [`POST ${path}`]: createStructQaClassicHandler({ handler, errorMode, env }),
+  };
+  if (includeFakeAccount) {
+    routes[`POST ${STRUCTQA_FAKE_ACCOUNT_PATH}`] = createStructQaFakeAccountRoute({ errorMode, env });
+  }
   return createService({
     name,
-    routes: { [`POST ${path}`]: createStructQaClassicHandler({ handler, errorMode, env }) },
+    healthcheckBody: STRUCTQA_HEALTHCHECK_BODY,
+    routes,
   });
 }
 

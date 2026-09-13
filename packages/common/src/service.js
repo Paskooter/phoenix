@@ -28,9 +28,19 @@ function captureRawBody(req, _res, buffer) {
  *   onUpgrade?: (req: import('node:http').IncomingMessage, socket: import('node:stream').Duplex, head: Buffer) => void,
  *   jsonStrict?: boolean | ((req: import('node:http').IncomingMessage) => boolean),
  *   tls?: import('node:https').ServerOptions,
+ *   healthcheckBody?: string | ((req: import('node:http').IncomingMessage) => string),
  * }} opts
  */
-export function createService({ name, routes = {}, onUpgrade, jsonStrict = true, tls } = {}) {
+export function createService({
+  name,
+  routes = {},
+  onUpgrade,
+  jsonStrict = true,
+  tls,
+  // BaseService's shared health response is `ok`. A source service may opt into
+  // its own literal while leaving every other service on that common value.
+  healthcheckBody = 'ok',
+} = {}) {
   const log = logger(name);
   const app = express();
   const urlencoded = bodyParser.urlencoded({ extended: true, verify: captureRawBody });
@@ -64,7 +74,10 @@ export function createService({ name, routes = {}, onUpgrade, jsonStrict = true,
   // Express's default routing is case-insensitive and ignores a trailing slash.
   // Registering the health route before JSON parsing preserves the source
   // middleware order and its health OPTIONS/404 behavior.
-  app.get('/healthcheck', (_req, res) => res.status(200).send('ok'));
+  app.get('/healthcheck', (req, res) => {
+    const body = typeof healthcheckBody === 'function' ? healthcheckBody(req) : healthcheckBody;
+    return res.status(200).send(body);
+  });
 
   // This is intentionally after healthcheck and before application handlers.
   app.use((req, res, next) => {

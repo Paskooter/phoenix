@@ -42,6 +42,7 @@
       "async": 12,
       "directAnswerAndAsync": 40,
       "newsSourceCases": 10,
+      "standaloneGqaAuxiliaryRoutes": 2,
       "fakeProviderRoutes": 3
     }
   },
@@ -62,11 +63,11 @@
     "Wikipedia decision-matrix rows use injected page JSON and source-derived summaries; they cover deterministic gate/title/normalization decisions and do not claim current/live article output.",
     "The three archived Wikipedia named-case rows use the immutable mocked_wikipedia summaries or constructor error from tests/unit/test_pegasus.py and tests/unit/test_wikipedia.py; the provider is reached through a question-shaped wrapper that preserves each source strict query, and no current/live article body is claimed.",
     "The blocked-dictionary row pins all 344 archived output words and replays them against the matcher; it remains partial until the full word-list/words.txt corpus is available through the allowed source surface.",
-    "The integrated /structQA candidate covers the archived no-input and absent/wrong Intent envelopes; the Bing Cortana row is partial because its deterministic Entities carousel decode is covered while its live roster text/order has no immutable golden."
+    "The integrated /structQA candidate covers the archived no-input and absent/wrong Intent envelopes; the standalone GQA service also covers the source healthcheck and developer /fakeAccount helper without registering either route in Classic; the Bing Cortana row is partial because its deterministic Entities carousel decode is covered while its live roster text/order has no immutable golden."
   ],
   "counts": {
-    "covered": 89,
-    "partial": 43,
+    "covered": 91,
+    "partial": 41,
     "missing": 0,
     "skipped": 1,
     "supporting": 2,
@@ -390,17 +391,15 @@
       "source": "tests/unit/test_general.py:test_health_check",
       "sourceFile": "tests/unit/test_general.py",
       "test": "test_health_check",
-      "status": "partial",
-      "target": "packages/common/test/service.test.js :: healthcheck route",
-      "closure": "The route is executable, but the archived GQA helper expects body 42 while Phoenix common healthcheck evidence expects its current common-service body."
+      "status": "covered",
+      "target": "packages/skills/test/q01StructQa.test.js :: Q-01 standalone GQA auxiliary routes preserve source health 42 and developer fakeAccount JSON"
     },
     {
       "source": "tests/unit/test_general.py:test_fake_account",
       "sourceFile": "tests/unit/test_general.py",
       "test": "test_fake_account",
-      "status": "partial",
-      "target": "packages/skills/test/q01GqaAccountAttribution.test.js :: account lookup preserves the source POST body, headers, and first loop ID",
-      "closure": "The client POST contract is covered through an injected peer; Phoenix does not expose the archived developer-only /fakeAccount endpoint."
+      "status": "covered",
+      "target": "packages/skills/test/q01StructQa.test.js :: Q-01 standalone GQA auxiliary routes preserve source health 42 and developer fakeAccount JSON"
     },
     {
       "source": "tests/unit/test_general.py:test_scripted_response",

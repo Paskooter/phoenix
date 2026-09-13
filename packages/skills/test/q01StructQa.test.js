@@ -5,11 +5,14 @@ import {
 } from '../src/gqaAccountAttribution.js';
 import {
   createStructQaClassicHandler,
+  formatStructQaFakeAccountResponse,
   createStructQaHandler,
   createStructQaScriptedProvider,
   createStructQaService,
   STRUCTQA_BAD_REQUEST_HTML,
   STRUCTQA_PRODUCTION_ERROR_MESSAGE,
+  STRUCTQA_FAKE_ACCOUNT_PATH,
+  STRUCTQA_HEALTHCHECK_BODY,
   formatStructQaPythonValue,
   structQaErrorModeFromEnv,
   structQaContract,
@@ -524,6 +527,32 @@ test('Q-01 HTTP framing preserves malformed JSON 400 and x-amz credential parse 
       headers: { 'content-type': 'application/json', 'content-length': '0' },
     });
     assert.equal(emptyEntity.status, 400);
+  } finally {
+    await closeServer(server);
+  }
+});
+
+test('Q-01 standalone GQA auxiliary routes preserve source health 42 and developer fakeAccount JSON', async () => {
+  assert.equal(STRUCTQA_HEALTHCHECK_BODY, '42');
+  assert.equal(formatStructQaFakeAccountResponse({ accountsIds: ['unit-test'] }), '{"unit-test": ["unit-test"]}');
+
+  const service = createStructQaService({ clock: () => NOW, accountLookup: async () => 'loop-1' });
+  const server = await service.listen(0);
+  try {
+    const base = `http://127.0.0.1:${server.address().port}`;
+    const health = await fetch(`${base}/healthcheck`);
+    assert.equal(health.status, 200);
+    assert.equal(health.headers.get('content-type'), 'text/html; charset=utf-8');
+    assert.equal(await health.text(), '42');
+
+    const fakeAccount = await fetch(`${base}${STRUCTQA_FAKE_ACCOUNT_PATH}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ accountsIds: ['unit-test'] }),
+    });
+    assert.equal(fakeAccount.status, 200);
+    assert.equal(fakeAccount.headers.get('content-type'), 'text/html; charset=utf-8');
+    assert.equal(await fakeAccount.text(), '{"unit-test": ["unit-test"]}');
   } finally {
     await closeServer(server);
   }

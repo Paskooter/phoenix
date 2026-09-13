@@ -129,6 +129,7 @@ export {
 } from './gqaDefaultService.js';
 export {
   createStructQaClassicHandler,
+  createStructQaFakeAccountRoute,
   createStructQaHandler,
   createStructQaHttpRoute,
   createStructQaScriptedProvider,
@@ -142,8 +143,11 @@ export {
   STRUCTQA_SOURCE_REVISION,
   STRUCTQA_SOURCE_VERSION,
   STRUCTQA_ERROR_MODES,
+  STRUCTQA_FAKE_ACCOUNT_PATH,
+  STRUCTQA_HEALTHCHECK_BODY,
   STRUCTQA_PRODUCTION_ERROR_MESSAGE,
   formatStructQaPythonValue,
+  formatStructQaFakeAccountResponse,
   structQaErrorModeFromEnv,
 } from './gqaStructQaService.js';
 export {
