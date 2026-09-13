@@ -161,11 +161,13 @@ export {
 } from './gqaMimRegistry.js';
 export {
   createGqaAccountLookup,
+  createPhoenixGqaAccountLookup,
   createGqaAttributionStore,
   createGqaFileAttributionStore,
   createGqaMemoryAttributionStore,
   createGqaRetrieveAttributionRoute,
   createGqaWipeAttributionRoute,
+  normalizePhoenixGqaIdentity,
   sourceJsonDumps,
   sourceTruthy,
   GQA_ACCOUNT_SOURCE_REVISION,
@@ -173,6 +175,8 @@ export {
   GQA_ATTRIBUTE_SOURCE_REVISION,
   GQA_ATTRIBUTE_SOURCE_MODULE,
   GQA_ACCOUNT_SERVICE_ENV,
+  PHOENIX_ACCOUNT_LOOP_PATH,
+  PHOENIX_ACCOUNT_VERIFY_PATH,
   GQA_ATTRIBUTE_INDEX,
   GQA_ATTRIBUTE_DEFAULT_FILE,
   GqaFileAttributionStore,

@@ -29,6 +29,7 @@ import {
 } from './accountIdentity.js';
 import { createLpsStsProvider } from './lps.js';
 import { createSmtpAccountMailProviders, smtpConfigFromEnv } from './smtpMail.js';
+import { listAssociatedLoopsRoute } from './loopResolution.js';
 
 export { Store, getStore, resetStore } from './store.js';
 export * as model from './model.js';
@@ -102,6 +103,12 @@ export {
   smtpConfigFromEnv,
 } from './smtpMail.js';
 export { staticRoutes } from './static.js';
+export {
+  accountIdentityKey,
+  hasAssociatedLoopKey,
+  listAssociatedLoops,
+  listAssociatedLoopsRoute,
+} from './loopResolution.js';
 
 function isCreateHubTokenTarget(req) {
   return /\.createhubtoken$/i.test(String(req?.headers?.['x-amz-target'] || ''));
@@ -307,6 +314,7 @@ export function createAccountService({
       ...settingsPeerRoutes(store), // internal Account client seams used by source Settings
       ...backupPeerRoutes(store),   // internal Account client seam used by source Backup (getLoop)
       ...keyPeerRoutes(store),      // internal Account client seam used by source Key (loop members)
+      ...listAssociatedLoopsRoute(store), // trusted Account -> GQA loop resolution peer
       ...settingsPortalRoutes(store), // GET/PUT /api/settings (the report-settings editor)
       ...robotFaceRoutes(store, {
         settingsProviders: effectiveSettingsProviders,

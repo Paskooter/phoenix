@@ -23,6 +23,8 @@ export const GQA_ACCOUNT_SOURCE_MODULE = 'gqa/account.py';
 export const GQA_ATTRIBUTE_SOURCE_REVISION = 'ebe1a7d38f511570060c1fbf61bec89d58419b26';
 export const GQA_ATTRIBUTE_SOURCE_MODULE = 'gqa/attribute.py';
 export const GQA_ACCOUNT_SERVICE_ENV = 'ETCO_server_accountService';
+export const PHOENIX_ACCOUNT_LOOP_PATH = '/listAssociatedLoops';
+export const PHOENIX_ACCOUNT_VERIFY_PATH = '/api/verify';
 
 // gqa/attribute.py creates this index after every insert.  The object form is
 // the native Node Mongo representation of the same ordered source keys.
@@ -121,6 +123,175 @@ function configuredEndpoint(endpoint) {
   return endpoint;
 }
 
+function trimEndpoint(endpoint) {
+  return String(endpoint).replace(/\/+$/, '');
+}
+
+function endpointFromBase(base, path) {
+  if (typeof base !== 'string' || base.length === 0) return null;
+  return `${trimEndpoint(base)}${path}`;
+}
+
+function deriveVerifyEndpoint(endpoint) {
+  try {
+    const parsed = new URL(endpoint);
+    return `${parsed.origin}${PHOENIX_ACCOUNT_VERIFY_PATH}`;
+  } catch (_error) {
+    // Relative endpoint values are useful in local adapters; callers that
+    // need verification for one must provide verifyEndpoint explicitly.
+    return null;
+  }
+}
+
+function valueOrNull(value) {
+  if (value === undefined) return undefined;
+  return value === null || value === '' ? null : String(value);
+}
+
+function looksLikeAccessKey(value) {
+  // Phoenix/Mongoose account IDs are ObjectId-shaped (24 hex characters),
+  // while Account access keys are 20 alphanumeric characters. Keep fixture
+  // IDs such as "account-1" on the direct account-id path; callers with an
+  // ambiguous key can pass { accessKeyId } or { kind: 'accessKeyId' }.
+  return typeof value === 'string'
+    && /^[A-Za-z0-9]{20}$/.test(value)
+    && !/^[a-f0-9]{24}$/i.test(value);
+}
+
+/**
+ * Normalize the two identities that reach the source account lookup:
+ * an Account `_id`, or a Classic request's direct SigV4 accessKeyId.
+ *
+ * The object forms are intentionally explicit. The string form remains the
+ * historical account-id API, with the source-shaped 20-character access key
+ * heuristic for direct Classic callers. A caller may pass a second context
+ * object with `accessKeyId`, `kind: 'accessKeyId'`, or `directSigV4: true` to
+ * disambiguate a nonstandard fixture key.
+ */
+export function normalizePhoenixGqaIdentity(identity, context = {}) {
+  const source = identity && typeof identity === 'object' && !Array.isArray(identity)
+    ? identity : null;
+  const credentials = context?.credentials && typeof context.credentials === 'object'
+    ? context.credentials : null;
+  const explicitAccessKey = valueOrNull(source?.accessKeyId)
+    || valueOrNull(context?.accessKeyId)
+    || valueOrNull(credentials?.accessKeyId);
+  const explicitAccountId = valueOrNull(source?._id)
+    || valueOrNull(source?.accountId)
+    || valueOrNull(context?.accountId)
+    || valueOrNull(credentials?.id && credentials?.accessKeyId ? credentials.id : null);
+
+  if (explicitAccessKey) {
+    return { accessKeyId: explicitAccessKey, accountId: explicitAccountId || explicitAccessKey };
+  }
+  if (source) {
+    const id = valueOrNull(source._id) || valueOrNull(source.accountId) || valueOrNull(source.id);
+    if (id !== null && (source.kind === 'accessKeyId' || source.identityType === 'accessKeyId')) {
+      return { accessKeyId: id, accountId: id };
+    }
+    return { accountId: id };
+  }
+
+  const id = valueOrNull(identity);
+  if (context?.kind === 'accessKeyId'
+    || context?.identityType === 'accessKeyId'
+    || context?.directSigV4 === true
+    || looksLikeAccessKey(id)) {
+    return { accessKeyId: id, accountId: id };
+  }
+  return { accountId: id };
+}
+
+async function responseJson(response, label) {
+  if (!response || typeof response.json !== 'function') {
+    throw new TypeError(`${label} response has no json() method`);
+  }
+  return response.json();
+}
+
+async function verifyPhoenixAccessKey({ verifyEndpoint, accessKeyId, fetchImpl }) {
+  if (!verifyEndpoint) return null;
+  const separator = verifyEndpoint.includes('?') ? '&' : '?';
+  const response = await fetchImpl(
+    `${verifyEndpoint}${separator}accessKeyId=${encodeURIComponent(accessKeyId)}`,
+    { method: 'GET', headers: { Accept: 'application/json' } },
+  );
+  const value = await responseJson(response, 'Phoenix account verify');
+  return value && value.valid === true && value.id !== undefined && value.id !== null
+    ? String(value.id) : null;
+}
+
+/**
+ * Construct the Phoenix-aware source account lookup.
+ *
+ * `endpoint` is the Account peer `POST /listAssociatedLoops` URL. When a
+ * `baseUrl` is supplied instead, both peer paths are derived from it. An
+ * explicit `verifyEndpoint` overrides the derived `/api/verify` URL. Account
+ * IDs go directly to the POST; explicit/direct access keys first use verify,
+ * then fall back to the raw account-id candidate before the source-shaped
+ * first-loop selection.
+ */
+export function createPhoenixGqaAccountLookup({
+  endpoint,
+  baseUrl,
+  verifyEndpoint,
+  verifyAccessKeys = true,
+  fetchImpl = globalThis.fetch,
+} = {}) {
+  const accountEndpoint = configuredEndpoint(endpoint || endpointFromBase(baseUrl, PHOENIX_ACCOUNT_LOOP_PATH));
+  const accountVerifyEndpoint = verifyEndpoint || endpointFromBase(baseUrl, PHOENIX_ACCOUNT_VERIFY_PATH)
+    || deriveVerifyEndpoint(accountEndpoint);
+  if (typeof fetchImpl !== 'function') throw new TypeError('GQA account fetch implementation must be a function');
+
+  return async function getLoopId(identity, context = {}) {
+    const normalized = normalizePhoenixGqaIdentity(identity, context);
+    if (!verifyAccessKeys && normalized.accessKeyId) {
+      normalized.accessKeyId = undefined;
+      normalized.accountId = identity;
+    }
+    let accountId = normalized.accountId;
+    if (normalized.accessKeyId) {
+      try {
+        accountId = await verifyPhoenixAccessKey({
+          verifyEndpoint: accountVerifyEndpoint,
+          accessKeyId: normalized.accessKeyId,
+          fetchImpl,
+        }) || accountId;
+      } catch (_error) {
+        // The source account call treats a failed identity service as a
+        // recoverable empty lookup. Preserve the raw candidate so a trusted
+        // peer that already accepts it still gets the normal POST attempt.
+      }
+    }
+
+    let accountServiceOutput;
+    try {
+      const response = await fetchImpl(accountEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: sourceJsonDumps({ accountsIds: [accountId] }),
+      });
+      accountServiceOutput = await responseJson(response, 'GQA account');
+    } catch (_error) {
+      return {};
+    }
+
+    const mapping = sourceObject(accountServiceOutput, 'account service response');
+    const key = accountKey(accountId);
+    if (!Object.prototype.hasOwnProperty.call(mapping, key)) {
+      // gqa/account.py uses account_service_output[user_id], so a missing
+      // source key is a visible post-HTTP failure rather than an empty map.
+      throw new Error(`Account service response is missing '${key}'`);
+    }
+    const loopValues = mapping[key];
+    if (!sourceTruthy(loopValues)) return {};
+    if (loopValues === null || loopValues === undefined || typeof loopValues[0] === 'undefined') {
+      throw new TypeError(`Account service value for '${key}' is not indexable`);
+    }
+    return loopValues[0];
+  };
+}
+
 /**
  * Construct the source account.get_loop_id boundary.
  *
@@ -131,37 +302,7 @@ function configuredEndpoint(endpoint) {
  * outside its try/except block.
  */
 export function createGqaAccountLookup({ endpoint, fetchImpl = globalThis.fetch } = {}) {
-  const accountEndpoint = configuredEndpoint(endpoint);
-  if (typeof fetchImpl !== 'function') throw new TypeError('GQA account fetch implementation must be a function');
-
-  return async function getLoopId(userId) {
-    let accountServiceOutput;
-    try {
-      const response = await fetchImpl(accountEndpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: sourceJsonDumps({ accountsIds: [userId] }),
-      });
-      if (!response || typeof response.json !== 'function') throw new TypeError('GQA account response has no json() method');
-      accountServiceOutput = await response.json();
-    } catch (_error) {
-      return {};
-    }
-
-    const mapping = sourceObject(accountServiceOutput, 'account service response');
-    const key = accountKey(userId);
-    if (!Object.prototype.hasOwnProperty.call(mapping, key)) {
-      // account.py uses account_service_output[user_id], so a missing source
-      // key is a visible post-HTTP failure rather than an empty successful map.
-      throw new Error(`Account service response is missing '${key}'`);
-    }
-    const loopValues = mapping[key];
-    if (!sourceTruthy(loopValues)) return {};
-    if (loopValues === null || loopValues === undefined || typeof loopValues[0] === 'undefined') {
-      throw new TypeError(`Account service value for '${key}' is not indexable`);
-    }
-    return loopValues[0];
-  };
+  return createPhoenixGqaAccountLookup({ endpoint, fetchImpl, verifyEndpoint: null, verifyAccessKeys: false });
 }
 
 function timestampMs(clock) {
