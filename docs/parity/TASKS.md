@@ -10,7 +10,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 34 | 46 | 0 | 0 |
+| pegasus | 36 | 46 | 0 | 0 |
 | classic | 18 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
@@ -701,7 +701,7 @@ Evidence: [docs/parity/evidence/2026-09-11/n07-fallback/w14-review.md](../../doc
 
 Owner: Codex. Dependencies: N-02, N-07, H-03, V-03.
 
-The default AST parser matches 20,479/20,528 original HTTP requests with 49 residual differences, after the F1 launch-union repair (f3ed0c8) removed the grammar-priority boost from union scoring and fixed two rows with zero regressions. Those 51 are now classified into three source-backed families: F1 launch-union priority (2 rows), F2 optimized graph order (47 rows) and F3 AST cost versus native heuristic (2 rows). F2 is NOT repairable in the AST parser: it is the first-path-after-optimization behavior of the native graphs, and the same class as the rejected 700e40c. Root verified on 2026-09-08 that the compiled graph runtime, provisioned with the 98 approved graphs, matches the original on the COMPLETE pinned corpus: 20,528/20,528 with zero differences (docs/parity/evidence/2026-09-08/nlu-compiled-full-replay/review.json). The AST baseline is unchanged and the repo default is still AST, so this closes the corpus-mismatch criterion for the compiled profile only. Remaining: the other acceptance criteria, the served-default decision, external coverage, persistent deployment, and microphone/physical-ring acceptance. DECIDED 2026-09-08 (user): the default parser stays the AST engine and the 49 residuals are accepted as a minor, explained gap, recorded as divergence N1 in DIVERGENCES.md. The compiled runtime remains available opt-in and is exact, but its graph data is not vendored and making it the default would change what a plain checkout runs. No further AST ranking work is warranted: the remaining families are not repairable in that engine.
+The default AST parser matches 20,479/20,528 original HTTP requests with 49 residual differences, after the F1 launch-union repair (f3ed0c8) removed the grammar-priority boost from union scoring and fixed two rows with zero regressions. Those 51 are now classified into three source-backed families: F1 launch-union priority (2 rows), F2 optimized graph order (47 rows) and F3 AST cost versus native heuristic (2 rows). F2 is NOT repairable in the AST parser: it is the first-path-after-optimization behavior of the native graphs, and the same class as the rejected 700e40c. Root verified on 2026-09-08 that the compiled graph runtime, provisioned with the 98 approved graphs, matches the original on the COMPLETE pinned corpus: 20,528/20,528 with zero differences (docs/parity/evidence/2026-09-08/nlu-compiled-full-replay/review.json). The AST baseline is unchanged and the repo default is still AST, so this closes the corpus-mismatch criterion for the compiled profile only. DECIDED 2026-09-08 (user): the default parser stays the AST engine and the 49 residuals are accepted as a minor, explained gap, recorded as divergence N1 in DIVERGENCES.md. The compiled runtime remains available opt-in and is exact, but its graph data is not vendored and making it the default would change what a plain checkout runs. No further AST ranking work is warranted: the remaining families are not repairable in that engine. Wave 16 additionally stopped two unserved clock factory dependencies from becoming wildcards: the 10,035-utterance manifest corpus improved from 162 to 160 mismatches with no new failures, while the accepted 49-row AST HTTP residual set stayed byte-identical. The 160 manifest mismatches are classified; 14 GQA/weather rewrites still belong behind explicit configuration, so the routing criterion and N-08 remain open.
 
 Done when:
 
@@ -1050,11 +1050,11 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-05/production/integration
 
 ### S-05 — Match runtime prompt data and date/time behavior
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: S-04.
 
-Source-backed runtime prompt helpers integrated after independent root correction.433 additional contexts plus a direct DateTime case match the original checked surface, and UTC/Tokyo host results agree. Broader DateTime NLU parsing/mutation APIs and complete task acceptance remain open.
+Runtime prompt data and DateTime behavior match the pinned original across the complete checked surface. The source differential covers 100 adversarial contexts, 1,573,644 seasonal-window comparisons per timezone, 16,623 date-phrasing records and the full DateTime option/mutation matrix across five host timezones. Phoenix preserves the original UTC-cloud birthdate result without inheriting its host-timezone leak.
 
 Done when:
 
@@ -1065,7 +1065,7 @@ Source: [Original Pegasus packages/baseskill/src/graph/mims/utils/slimmer/Prompt
 
 Phoenix: [packages/skills/src/graph/mims/promptData.js](../../packages/skills/src/graph/mims/promptData.js); [packages/skills/src/report/dateTime.js](../../packages/skills/src/report/dateTime.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-11/s05-runtime-prompt-datetime/review.md](../../docs/parity/evidence/2026-09-11/s05-runtime-prompt-datetime/review.md) (2026-09-13; Pinned-original differential: zero field differences for all prompt contexts and DateTime matrices across five host timezones; the live MIM entrypoint is host-timezone stable. Root repeated the 12 focused tests, reviewed the named falsification, and passed the integrated 1,967-test suite plus the 43-case strict production gate.).
 
 - [x] Candidate implementation — **accepted**; Luna Max / http_contract_repair.
 
@@ -1247,11 +1247,11 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-05/production/report-view
 
 ### S-14 — Verify example/template skills and skill-host compatibility
 
-- [ ] **todo** · P1 · pegasus · implementation: partial
+- [x] **verified** · P1 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: S-01, S-02.
 
-Implementations and tests exist; default /v1/main selection and independently deployed skill equivalence need verification.
+The example and template graphs, malformed/error behavior and skill-host routes match the pinned original runtime. Independent hosts serve /v1/main and their explicit namespaced aliases with identical stable response fields; the shared host preserves both explicit routes.
 
 Done when:
 
@@ -1262,7 +1262,15 @@ Source: [Original Pegasus packages/example-skill](https://pvindex.org/gitea/jibo
 
 Phoenix: [packages/skills/src/exampleSkill.js](../../packages/skills/src/exampleSkill.js); [packages/skills/src/templateSkill.js](../../packages/skills/src/templateSkill.js); [packages/skills/src/skillService.js](../../packages/skills/src/skillService.js); [packages/skills/src/index.js](../../packages/skills/src/index.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-11/s14-example-template/review.md](../../docs/parity/evidence/2026-09-11/s14-example-template/review.md) (2026-09-13; Pinned Node 8.9.4 original versus live Phoenix HTTP replay: 178 leaf checks and zero differences across example/template graphs and host error behavior. All standalone default/explicit and shared explicit route forms passed. Root repeated the 11 focused tests and differential, reviewed the named falsification, and passed the integrated 1,967-test suite plus the 43-case strict production gate.).
+
+- [x] Candidate implementation — **accepted**; Luna Max / Wave 16 S-14; Codex root.
+
+Candidate scope: Pinned original graph and malformed/error replay plus standalone and shared host routing.
+
+Candidate report: [docs/parity/evidence/2026-09-11/s14-example-template/review.md](../../docs/parity/evidence/2026-09-11/s14-example-template/review.md).
+
+Lead review: Codex root; [docs/parity/evidence/2026-09-11/s14-example-template/replay.json](../../docs/parity/evidence/2026-09-11/s14-example-template/replay.json). Complete task acceptance is still governed by the main checkbox above.
 
 ### Q-01 — Restore original GQA service contracts and behaviors
 
