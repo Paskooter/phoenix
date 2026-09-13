@@ -1,143 +1,86 @@
-# S-12 calendar bounded review
+# S-12 calendar expanded review
 
 Status: **verification complete; candidate recommends `verified`**
 
 Branch: `w21/s12-calendar`
-Base: Phoenix `/home/shell/work/phoenix` `4bcdfbacb2c36623fd01b7dfb3fc2b168a1979e1`
+Base: Phoenix `4bcdfbacb2c36623fd01b7dfb3fc2b168a1979e1`
 Reference: `jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c`
 Worktree: `/home/shell/work/phoenix-s12-calendar`
 
-The first Jibo MCP operation was `jibo_search` for `Pegasus CalendarData endOfTomorrowISO Google Outlook calendar events`; it returned no hits. I then used the Jibo Gitea source tools against the pinned `jiboV2/pegasus` repository. No web source was used. The cached source root used by the Node 8 runner is `/home/shell/work/phoenix/.parity/reference/5c0a7390539663ba749d360de348a428c088505c`.
+The first archive lookup was Jibo MCP `jibo_search` for the Pegasus calendar source; it returned no hits. Gitea source reads then pinned the archive above. No web source was used. The Node 8 source runner reads `/home/shell/work/phoenix/.parity/reference/5c0a7390539663ba749d360de348a428c088505c`.
 
-## Source finding and repair
+## Source branches audited
 
-Pinned `packages/report-skill/src/subskills/calendar/CalendarData.ts:22` computes the request boundary as:
+The pinned source was read at these paths and ranges:
 
-```ts
-moment.parseZone(iso).add(1, 'day').endOf('day').format()
-```
+- `packages/report-skill/src/subskills/calendar/CalendarData.ts:22-69`: `moment.parseZone(...).add(1, 'day').endOf('day').format()`, Google-over-Outlook precedence per personal/work slot, no-connected empty result, concurrent `Promise.all`, merge/sort, and all-or-nothing null on either provider failure.
+- `packages/report-skill/src/subskills/calendar/CalendarParse.ts:29-97`: null input, today/tomorrow selection, asked-tomorrow selection, missing-summary fallback, missing-start/dateTime filtering, past timed filtering, full-day inclusion, and work-arrival/early classification.
+- `packages/report-skill/src/subskills/calendar/CalendarMimLogic.ts:38-166`: ServiceDown/AppSetup, single-skill count/tomorrow/parallel/cap/Outro, full-report Nothing/NothingToday/EventToday/EventTomorrow/full-day variants, and EarlyEvent suppression.
+- `packages/report-skill/tests/subskills/Calendar.test.js:70-560`: source controls for AppSetup/ServiceDown, Data provider selection and failure, malformed parse rows, full-report branches, and the two server-timezone controls.
 
-That preserves the written offset and emits second precision. Phoenix previously converted the same instant to UTC with `.999` milliseconds. For an Eastern location, the old request was `2026-06-14T03:59:59.999Z`; the source request is `2026-06-13T23:59:59-04:00`. The Phoenix implementation in `packages/skills/src/report/calendar.js` now implements the source ISO calendar forms locally, preserving `Z`, `±HH:mm`, `±HHmm`, hour-only offsets, wall-date arithmetic, and `Invalid date` for malformed input. It does not add moment to the Phoenix runtime.
+The existing Phoenix repair in `packages/skills/src/report/calendar.js` keeps the source end-date wall date, written offset, and second precision. The repair remains bounded to the runtime ISO contract; it does not add Moment to Phoenix.
 
-The source and candidate end-date receipts cover 23 rows, including UTC and zero offsets, `±HH:mm`, `±HHmm`, hour-only offsets, `+24:00`, `+99:00`, bare/date-only/month-only/year-only values, leap and non-leap February, month/year rollover, `24:00`, malformed dates, and trailing whitespace. The pinned Node 8 source and Phoenix candidate match `23/23`, with `coverageErrors=0`:
+## Graph matrix and branch manifest
 
-- matrix SHA256: `0b90e021f645c74d14d78b70ae45e44714cf03b4972342be7a5f6bc7a8adc8bc`
-- source receipt SHA256: `bee25cc9afcb17395a72193fde3b1293e206db2e1b317c65b954e6c62e2f7dd2`
-- candidate receipt SHA256: `5fb44214f3fb5225713d927ba10f8593b0ebd3b1a947c104f11653ee248d794e`
-- differential receipt SHA256: `6fb28eb595b162794c7f188cf820dd286fc7301c339472427ae775e79aa5535f`
+The expanded main matrix has 37 rows and runs every row through the pinned source graph, direct Phoenix graph, and the real Phoenix Data HTTP service with fixture upstreams. It includes AppSetup, asked-tomorrow with no events, missing-summary spoken fallback, isolated non-early full-report today/tomorrow, both full-day report variants, early plus full-day suppression for today/tomorrow, custom work time, both Google slots, both Outlook slots, Google-over-Outlook precedence on both slots, mixed provider failure/all-or-nothing, original merge/count/parallel/cap rows, provider failures, DST, and the two `-05:00`/`+05:00` source timezone controls.
 
-The missing `iso` case is fail-closed as `Invalid date`. The source's `moment.parseZone(undefined)` uses a live clock, while the report request contract supplies `runtime.location.iso`; this live-clock fallback is outside the S-12 request boundary.
+The 5-row parse matrix separately exercises raw null, missing summary, missing start, missing `start.dateTime`, and past timed filtering. Malformed starts are kept in direct `CalendarParse` controls because source `CalendarData` sorts `start.timestamp` before parsing; the main matrix still carries missing-summary through the real provider normalization and complete action.
 
-## Source/runtime differential
+`scripts/parity-s12/branch-manifest.json` is fail-closed: every main row and every parse row is named, each material MIM branch has required/forbidden IDs or row-specific sequences/counts, provider selection has exact slot expectations, precedence has required/forbidden summaries, mixed failure has ordered probe statuses, and source paths are recorded per branch.
 
-The source paths read from the pinned archive were `CalendarData.ts`, `CalendarParse.ts`, `CalendarMimLogic.ts`, `CalendarFactory.ts`, `index.ts`, and `packages/report-skill/tests/subskills/Calendar.test.js`. The Phoenix paths are `packages/skills/src/report/calendar.js`, `packages/skills/src/report/calendar-lasso-integration.test.js`, and the S-12 runner/comparator files under `scripts/parity-s12/`.
+Hashes and differential results:
 
-The 21-row matrix covers:
+- main matrix: `38a79b79aafef0402af04304b8a7d5adeb55c81e5f113f8b2290c8791d220ca5`
+- parse matrix: `2ecf96554f49bc34e81a00b547d0ced61fd1305bea18c09510011be347d38820`
+- branch manifest: `e9569c74e5386c66bbd94db97d81cbefbb860b9c7ac349723774ef239a61057d`
+- source runtime: `9b64c4ab2ea25d356319049b9971fd4bc13f63f6f53b3892aff2163170c58af1`
+- direct candidate: `50e646fcbea5451fec57ca5b7f4af787876593efeae2427c4ad7f971901185f3`
+- source/direct differential: `86100f20ae519ea0614d99ac2215b76ce191050a28738d1ee3b0cdb9aa959b1e`
+- real-service candidate: `29be08a836cc45f08615f27573adae4f0487cb0beb656aa82bbe5ee071b35eef`
+- source/real differential: `86100f20ae519ea0614d99ac2215b76ce191050a28738d1ee3b0cdb9aa959b1e`
+- parse source: `74ea62285e84c083e2419885612686b97a5d9055dfe965484786749de76332ca`
+- parse candidate: `a235f692b8cab959c910c7ad2afd1ef1426588498b0c8b3614f850dc8da09f3b`
+- parse differential: `a2a763348740ff4f49a7f18d06d302353f80f688adde0e543aadfcfd4084838b`
 
-- personal/work Google and Outlook requests, mixed Google-personal plus Outlook-work merge, no events, and concurrent equal-start events;
-- today/tomorrow selection, an explicit tomorrow request, all-day and overnight events, daily event count/walk cap;
-- early events against work arrival, before-noon and after-noon no-event full reports;
-- Eastern spring/fall boundaries and a Pacific offset;
-- Google and Outlook fixture provider failures representing expired credentials.
+The source/direct result is `pass`, 37/37 semantic matches, 37/37 prompt-signature matches, 37/37 complete normalized action matches, and zero coverage errors. Source/real is the same. The parse result is `pass`, 5/5 matches, and zero coverage errors.
 
-The pinned source graph ran in `node:8.9.4-slim`; the Phoenix direct runner and real-service runner used host Node `22.22.0`. For the direct graph differential:
+The complete action comparator keeps prompt text, prompt IDs, MIM IDs, ESML, display/view data, analytics, transitions, and stable asset IDs. It strips only the four observed graph-generated paths: `config.jcp.id`, `config.jcp.children[*].id`, `config.jcp.children[*].config.play.id`, and `config.jcp.children[*].config.display.id`.
 
-- matrix SHA256: `a03c57429001e4ff884c7c7b58f036528408795cfce78be3d213edfa3c5e33c5`
-- source runtime SHA256: `b35fff753c7637a0de650ab6339f8313d25b1e12e7bf24f5095f5844d72e70b3`
-- candidate runtime SHA256: `183f91f28094b101e80fddbb36456c1a754dd7d8c640ad991283c6b53e08636a`
-- differential SHA256: `08135d1d6e714d30cf1eb9b120d72cca0e117082aea7206be16ec35d5b5f8939`
+## Real Data HTTP path
 
-The direct source/candidate result is `pass`, `21/21` semantic matches, `21/21` prompt signature matches, `21/21` complete normalized action matches, and zero coverage errors.
+`run-real-service-candidate.mjs` starts `createDataService`, injects Google and Outlook fixture providers, sets the report `NET_data` peer, and runs the actual `reportSkill` graph. Each report therefore uses the HTTP calendar route, relay envelope, provider normalization, cache, and report action. The runner probes every initiated route after the report and records cache/failure behavior. HTTP arrival order is scheduler-dependent, so the semantic receipt canonicalizes requests to the source personal-then-work order while retaining actual provider-call order in the service trace. The ephemeral listener port is emitted as `http://localhost:<ephemeral>` so the receipt hash is reproducible.
 
-Action comparison retains all consumer-visible fields. The only generated IDs observed to differ across source and Phoenix are these four paths:
+The receipt has 42 provider calls (32 Google, 10 Outlook) across 37 rows. AppSetup makes zero calls. Three rows have a 502 probe (`google-personal-expired`, `outlook-work-expired`, and `mixed-provider-failure-all-or-nothing`); the other 33 provider-bearing rows have cached 200 probes with `lassoDataFromRedis=true`. The mixed row initiates both selected slots, receives `[502, 200]` in source slot order, and the report action is `CalendarServiceDown` with null parsed data, proving the source `Promise.all` all-or-nothing result even though the successful route is independently cacheable.
 
-```text
-config.jcp.id
-config.jcp.children[*].id
-config.jcp.children[*].config.play.id
-config.jcp.children[*].config.display.id
-```
+The Google-over-Outlook row initiates exactly Google personal and Google work, and its complete parsed/action data contains the two Google summaries while excluding both Outlook summaries. Both-Google and both-Outlook rows each initiate exactly their two selected slots.
 
-No `nodeID` path differed. Stable component asset IDs and view IDs remain in the comparison. The comparator rejects a paired row omission, duplicate row ID, prompt mutation, and action-only mutation; the focused comparator controls pass `6/6`.
+## Malformed parse and end-date controls
 
-## Real Phoenix data-service path
+The parse receipt proves `No event description`, filters events without `start` or `start.dateTime`, and filters a past timed event. These rows match source and direct Phoenix exactly.
 
-`scripts/parity-s12/run-real-service-candidate.mjs` starts `createDataService` with Google and Outlook fixture upstreams, sets the report's `NET_data` peer, and runs the actual `reportSkill` graph. Each report request therefore traverses the HTTP calendar route, relay envelope, provider normalization, cache, and report action graph. After each report call the runner probes the same route again to verify the cached envelope; failed provider rows are probed as 502 text responses without allowing an uncached probe to extend the report-call loop.
+The pinned end-date matrix has 23 accepted/malformed ISO forms, including `Z`, zero and signed offsets, `±HH:mm`, `±HHmm`, hour-only offsets, `+24:00`, `+99:00`, date-only/bare values, leap/month/year rollover, `24:00`, and invalid input. Source and candidate match 23/23 with zero coverage errors:
 
-The real-service receipt covers all 21 matrix rows and 23 report provider calls: 16 Google and 7 Outlook. It has 21 successful route probes with `lassoDataFromRedis=true` across 19 rows and two 502 fixture failures for the expired Google and Outlook rows. Source versus real-service candidate is exact: `21/21` semantic, prompt, and action matches with zero coverage errors.
+- end-date matrix: `0b90e021f645c74d14d78b70ae45e44714cf03b4972342be7a5f6bc7a8adc8bc`
+- source: `bee25cc9afcb17395a72193fde3b1293e206db2e1b317c65b954e6c62e2f7dd2`
+- candidate: `5fb44214f3fb5225713d927ba10f8593b0ebd3b1a947c104f11653ee248d794e`
+- differential: `6fb28eb595b162794c7f188cf820dd286fc7301c339472427ae775e79aa5535f`
 
-- real-service candidate SHA256: `e011747a897b68d7ef0d6d586a46c79c8397d5286d1f3b9a16484888fa8963d7`
-- real-service differential SHA256: `08135d1d6e714d30cf1eb9b120d72cca0e117082aea7206be16ec35d5b5f8939`
+The runtime ISO contract is the standard uppercase-T form supplied by report location data. Malformed/nonstandard forms are documented by the end-date receipt rather than generalized into a regional timezone promise; `parseZone` preserves the written fixed offset.
 
-The real HTTP route evidence is local fixture evidence. It does not claim a live Google/Outlook account, external OAuth token, deployed Phoenix peer, or robot run. Existing data-service checks also pass 19 calendar relay tests and 15 OAuth/expired-credential tests (34 total in the focused command).
+## Credential lifecycle
 
-## Credential lifecycle through the real chain
+The existing OAuth lifecycle receipt remains `pass` for Google refresh failure and Outlook invalid token through actual CredentialStore/OAuth -> Data HTTP -> Report operations. It records one Google token request and zero Google provider calls for the Google row, and one Outlook provider call with zero token requests for the Outlook row; both credentials become inactive with `REFRESH_FAILED`/`INVALID_TOKEN`, and both report actions select `CalendarServiceDown`. Receipt SHA256: `9f6dbdb9db95d037e7704254bbfd7b398d1dca92761710b7221fae7914065022`.
 
-The additional lifecycle runner seeds actual `CredentialStore` records and uses the real
-`createOAuthProvider`, Data HTTP service, calendar relay and `reportSkill` graph. Google's
-local token endpoint returns `invalid_grant` for an expired refresh; Outlook's fixture
-provider raises the source-shaped 401 invalid-token error. Both report launches finish with
-the exact source `CalendarServiceDown` action and the stored credential is inactive with the
-source error code. A follow-up HTTP route request returns 502 after invalidation, proving the
-Data failure is observable at the service boundary.
+## Fail-closed falsification and commands
 
-The lifecycle receipt is `pass` for both rows, with operation counters captured immediately
-after the report and again after the follow-up probe:
+Removing `asked-tomorrow-none` from the branch manifest with `apply_patch` made `node --test packages/skills/test/s12CalendarBranchCoverage.test.js` exit 1 with `single-asked-tomorrow-none: branch row IDs missing`; restoring the row made both branch tests pass. Temporarily forcing the old UTC/millisecond helper output made `node --test packages/skills/test/calendar-lasso-integration.test.js` fail 2/4 (D-04/i1 and S-12/i3 expected `2026-06-13T23:59:59-04:00` but received `2026-06-14T03:59:59.999Z`); removing the mutation restored 4/4.
 
-- `google-refresh-failure`: HTTP 502, `REFRESH_FAILED`, one `CalendarServiceDown` MIM,
-  complete action match to source row `google-personal-expired`; the report made exactly one
-  `/google-token` request and zero Google provider calls, and the follow-up made no calls.
-- `outlook-invalid-token`: HTTP 502, `INVALID_TOKEN`, one `CalendarServiceDown` MIM,
-  complete action match to source row `outlook-work-expired`; the report made exactly one
-  Outlook provider call and zero token requests, and the follow-up made no calls.
-
-- OAuth lifecycle receipt SHA256: `9f6dbdb9db95d037e7704254bbfd7b398d1dca92761710b7221fae7914065022`
-
-The focused lifecycle test executes this runner against a temporary output and asserts both
-credential states, 502 responses, MIMs and complete source action matches.
-
-## Verification matrix
-
-| Acceptance item | Status | Evidence |
-| --- | --- | --- |
-| Personal/work Google and Outlook fixtures through real Phoenix data and report services | VERIFIED (bounded) | 21-row real-service runner; 23 HTTP provider calls; cached relay probes; exact source action receipt |
-| No events and merged ordering | VERIFIED | `no-events`, `merge-google-personal-outlook-work`, `merge-concurrent-parallel` rows; source/runtime exact |
-| All-day and overnight | VERIFIED | `all-day-today`, `overnight-today`; real HTTP normalization and exact action output |
-| Today/tomorrow and explicit tomorrow | VERIFIED | `today-and-tomorrow`, `asked-tomorrow`, provider-specific rows |
-| Work hours | VERIFIED | early today/tomorrow plus before/after noon full-report rows |
-| Timezone and DST | VERIFIED | Eastern spring/fall, Pacific offset, source end-date 23-row differential |
-| Expired credentials/provider failures | VERIFIED | two actual CredentialStore/OAuth -> Data HTTP -> Report rows; 502, stored `REFRESH_FAILED`/`INVALID_TOKEN`, `CalendarServiceDown`, and complete action matches; D-03 covers deeper OAuth permutations |
-| Classifications, MIM selection, names/times, complete action output | VERIFIED (matrix) | source/direct and source/real receipts: 21/21 semantic, prompt, complete action |
-| Live provider credentials, deployed peer, and robot rendering | SEPARATE SCOPE | S-12 acceptance is satisfied by local provider fixtures through real Phoenix Data/Report services; live accounts/deployment/robot rendering belong to other lanes |
-
-The S-12 acceptance is complete on the written local-service boundary. Live provider accounts,
-deployment and robot rendering remain explicit limits of this candidate and are tracked by the
-other provider/deployment/display tasks; they are not S-12 blockers.
-
-## Commands and results
+The focused command was:
 
 ```text
-docker run --rm --network none --mount ... node:8.9.4-slim node /work/scripts/parity-s12/run-source.cjs ...
-node scripts/parity-s12/run-candidate.mjs scripts/parity-s12/matrix.json .../candidate-runtime.json
-node scripts/parity-s12/compare.mjs .../source-runtime.json .../candidate-runtime.json .../differential-receipt.json
-node scripts/parity-s12/run-real-service-candidate.mjs scripts/parity-s12/matrix.json .../real-service-candidate.json
-node scripts/parity-s12/compare.mjs .../source-runtime.json .../real-service-candidate.json .../real-service-differential.json
-docker run --rm --network none --mount ... node:8.9.4-slim node /work/scripts/parity-s12/run-end-date-source.cjs ...
-node scripts/parity-s12/run-end-date-candidate.mjs ...
-node scripts/parity-s12/compare-end-date.mjs ...
-node scripts/parity-s12/run-oauth-lifecycle-candidate.mjs scripts/parity-s12/matrix.json .../source-runtime.json .../oauth-lifecycle.json
-node --test packages/skills/test/calendar-lasso-integration.test.js packages/skills/test/s12CalendarComparator.test.js packages/skills/test/s12CalendarOAuthLifecycle.test.js packages/data/test/calendar-relay.test.js packages/data/test/oauth.test.js
-npm run test:unit
+node --test packages/skills/test/calendar-lasso-integration.test.js packages/skills/test/s12CalendarComparator.test.js packages/skills/test/s12CalendarOAuthLifecycle.test.js packages/skills/test/s12CalendarBranchCoverage.test.js packages/data/test/calendar-relay.test.js packages/data/test/oauth.test.js
 ```
 
-The focused command passes `45/45` with zero failures. The final full suite passes `1,989/1,998` with zero failures and nine skips (`npm run test:unit`).
+It passed 51/51 with zero failures. The comparator tests include paired-null and paired-omitted semantic/action falsifications, paired-omitted and wrong-ISO end-date falsifications, prompt/action mutations, duplicate IDs, and paired row omission. Temporary comparator directories are removed in `finally` blocks.
 
-The falsification temporarily restored the old UTC `.999` helper with `apply_patch` and ran `node --test packages/skills/test/calendar-lasso-integration.test.js`: `1/4` passed and `3/4` failed, with the request reverting to `2026-06-14T03:59:59.999Z`. The source-shaped helper was restored with `apply_patch`; the restore check passed `4/4`.
-
-The lifecycle counter guard was separately falsified by changing the expected Google token
-path to an empty list. The runner exited with status `1` at its lifecycle assertion; restoring
-the expected `/google-token` path returned the receipt to `pass` with the hash above.
-
-No root checkout, remotes, Moth, deployment, hardware, or Android files were changed. This
-candidate updates only S-12's ledger entry and generated checklist/progress after the evidence
-above; root may independently promote or revise that entry during integration.
+The source commands use `docker run --rm --network none` with `node:8.9.4-slim`; direct and real candidates use host Node 22. `npm run test:unit` passed 1,995/2,004 with zero failures and nine skips. No live provider account, deployment, Android, robot, Moth, or hardware run is required by S-12's local fixture-through-Data/Report acceptance boundary.

@@ -1,0 +1,213 @@
+{
+  "schema": "s12-calendar-branch-manifest-v1",
+  "sourceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+  "matrix": "matrix.json",
+  "parseMatrix": "parse-matrix.json",
+  "branches": [
+    {
+      "id": "mim-app-setup",
+      "kind": "action",
+      "rowIds": ["app-setup"],
+      "requiredMims": ["CalendarAppSetup"],
+      "expectedRequests": [],
+      "sourceRefs": ["packages/report-skill/src/subskills/calendar/CalendarMimLogic.ts:59-62", "packages/report-skill/tests/subskills/Calendar.test.js:77-86"]
+    },
+    {
+      "id": "mim-service-down",
+      "kind": "action",
+      "rowIds": ["google-personal-expired", "outlook-work-expired", "mixed-provider-failure-all-or-nothing"],
+      "requiredMims": ["CalendarServiceDown"],
+      "expectedParsed": null,
+      "sourceRefs": ["packages/report-skill/src/subskills/calendar/CalendarMimLogic.ts:38-54,64-67", "packages/report-skill/src/subskills/calendar/CalendarData.ts:53-69", "packages/report-skill/tests/subskills/Calendar.test.js:70-75"]
+    },
+    {
+      "id": "single-today-count",
+      "kind": "action",
+      "rowIds": ["google-personal-today", "outlook-personal-today", "location-west-offset", "missing-summary-main", "merge-google-personal-outlook-work", "today-and-tomorrow", "all-day-today", "overnight-today"],
+      "requiredMims": ["CalendarEventCountToday", "CalendarSummaryAndTime", "CalendarOutro"],
+      "rowExpectations": {
+        "missing-summary-main": { "requiredActionText": ["No event description"] }
+      },
+      "sourceRefs": ["packages/report-skill/src/subskills/calendar/CalendarMimLogic.ts:85-136"]
+    },
+    {
+      "id": "single-tomorrow-fallback",
+      "kind": "action",
+      "rowIds": ["google-work-tomorrow", "outlook-work-tomorrow", "dst-spring-boundary", "dst-fall-boundary"],
+      "requiredMims": ["CalendarTomorrowOnly", "CalendarEventCountTomorrow", "CalendarSummaryAndTime", "CalendarOutro"],
+      "sourceRefs": ["packages/report-skill/src/subskills/calendar/CalendarMimLogic.ts:95-98"]
+    },
+    {
+      "id": "single-asked-tomorrow",
+      "kind": "action",
+      "rowIds": ["asked-tomorrow"],
+      "requiredMims": ["CalendarEventCountTomorrow", "CalendarSummaryAndTime", "CalendarOutro"],
+      "forbiddenMims": ["CalendarTomorrowOnly"],
+      "sourceRefs": ["packages/report-skill/src/subskills/calendar/CalendarMimLogic.ts:88-94"]
+    },
+    {
+      "id": "single-asked-tomorrow-none",
+      "kind": "action",
+      "rowIds": ["asked-tomorrow-none"],
+      "requiredMims": ["CalendarNothing"],
+      "sourceRefs": ["packages/report-skill/src/subskills/calendar/CalendarMimLogic.ts:88-92"]
+    },
+    {
+      "id": "single-no-events",
+      "kind": "action",
+      "rowIds": ["no-events"],
+      "requiredMims": ["CalendarNothing"],
+      "sourceRefs": ["packages/report-skill/src/subskills/calendar/CalendarMimLogic.ts:99-100"]
+    },
+    {
+      "id": "single-parallel-and-cap",
+      "kind": "action",
+      "rowIds": ["merge-concurrent-parallel", "many-events-daily-cap"],
+      "rowExpectations": {
+        "merge-concurrent-parallel": {
+          "mimSequence": ["CalendarEventCountToday", "CalendarSummaryAndTime", "CalendarParallelEvent", "CalendarOutro"]
+        },
+        "many-events-daily-cap": {
+          "mimCounts": { "CalendarEventCountToday": 1, "CalendarSummaryAndTime": 5, "CalendarOutro": 1 },
+          "forbiddenActionText": ["Event 6"]
+        }
+      },
+      "sourceRefs": ["packages/report-skill/src/subskills/calendar/CalendarMimLogic.ts:103-135"]
+    },
+    {
+      "id": "full-report-no-events",
+      "kind": "action",
+      "rowIds": ["before-noon-no-events"],
+      "requiredMims": ["CalendarNothingToday"],
+      "sourceRefs": ["packages/report-skill/src/subskills/calendar/CalendarMimLogic.ts:138-166", "packages/report-skill/tests/subskills/Calendar.test.js:468-482"]
+    },
+    {
+      "id": "full-report-after-noon-no-events",
+      "kind": "action",
+      "rowIds": ["after-noon-no-events"],
+      "requiredMims": ["CalendarNothing"],
+      "sourceRefs": ["packages/report-skill/src/subskills/calendar/CalendarMimLogic.ts:138-166", "packages/report-skill/tests/subskills/Calendar.test.js:395-401"]
+    },
+    {
+      "id": "full-report-event-today",
+      "kind": "action",
+      "rowIds": ["full-report-event-today"],
+      "requiredMims": ["CalendarEventToday"],
+      "sourceRefs": ["packages/report-skill/src/subskills/calendar/CalendarMimLogic.ts:155-157", "packages/report-skill/tests/subskills/Calendar.test.js:403-409"]
+    },
+    {
+      "id": "full-report-event-tomorrow",
+      "kind": "action",
+      "rowIds": ["full-report-event-tomorrow"],
+      "requiredMims": ["CalendarEventTomorrow"],
+      "sourceRefs": ["packages/report-skill/src/subskills/calendar/CalendarMimLogic.ts:162-163", "packages/report-skill/tests/subskills/Calendar.test.js:420-426"]
+    },
+    {
+      "id": "full-report-full-day",
+      "kind": "action",
+      "rowIds": ["full-report-event-today-full-day", "full-report-event-tomorrow-full-day"],
+      "rowExpectations": {
+        "full-report-event-today-full-day": { "requiredMims": ["CalendarEventTodayFullDay"] },
+        "full-report-event-tomorrow-full-day": { "requiredMims": ["CalendarEventTomorrowFullDay"] }
+      },
+      "sourceRefs": ["packages/report-skill/src/subskills/calendar/CalendarMimLogic.ts:155-163", "packages/report-skill/tests/subskills/Calendar.test.js:411-435"]
+    },
+    {
+      "id": "full-report-early-full-day-suppression",
+      "kind": "action",
+      "rowIds": ["full-report-event-today-early-full-day", "full-report-event-tomorrow-early-full-day"],
+      "rowExpectations": {
+        "full-report-event-today-early-full-day": {
+          "requiredMims": ["CalendarEventToday", "CalendarEarlyEvent"],
+          "forbiddenMims": ["CalendarEventTodayFullDay", "CalendarEventTomorrowFullDay"]
+        },
+        "full-report-event-tomorrow-early-full-day": {
+          "requiredMims": ["CalendarEventTomorrow", "CalendarEarlyEvent"],
+          "forbiddenMims": ["CalendarEventTodayFullDay", "CalendarEventTomorrowFullDay"]
+        }
+      },
+      "sourceRefs": ["packages/report-skill/src/subskills/calendar/CalendarMimLogic.ts:143-150", "packages/report-skill/tests/subskills/Calendar.test.js:437-458,501-520"]
+    },
+    {
+      "id": "full-report-custom-work-time",
+      "kind": "action",
+      "rowIds": ["custom-work-time-non-early"],
+      "requiredMims": ["CalendarEventToday"],
+      "forbiddenMims": ["CalendarEarlyEvent"],
+      "sourceRefs": ["packages/report-skill/src/subskills/calendar/CalendarParse.ts:91-97", "packages/report-skill/src/subskills/calendar/CalendarMimLogic.ts:155-157"]
+    },
+    {
+      "id": "full-report-early-event",
+      "kind": "action",
+      "rowIds": ["early-today-work-hours", "early-tomorrow-work-hours"],
+      "requiredMims": ["CalendarEarlyEvent"],
+      "sourceRefs": ["packages/report-skill/src/subskills/calendar/CalendarParse.ts:91-97", "packages/report-skill/src/subskills/calendar/CalendarMimLogic.ts:143-150"]
+    },
+    {
+      "id": "data-both-google-slots",
+      "kind": "service",
+      "rowIds": ["both-google-slots"],
+      "expectedRequests": [{"service":"google","calendar":"personalCalendar"},{"service":"google","calendar":"workCalendar"}],
+      "sourceRefs": ["packages/report-skill/src/subskills/calendar/CalendarData.ts:27-31,38-42,53-64"]
+    },
+    {
+      "id": "data-both-outlook-slots",
+      "kind": "service",
+      "rowIds": ["both-outlook-slots"],
+      "expectedRequests": [{"service":"outlook","calendar":"personalCalendar"},{"service":"outlook","calendar":"workCalendar"}],
+      "sourceRefs": ["packages/report-skill/src/subskills/calendar/CalendarData.ts:32-36,43-47,53-64"]
+    },
+    {
+      "id": "data-google-over-outlook-precedence",
+      "kind": "service",
+      "rowIds": ["google-over-outlook-precedence-both-slots"],
+      "expectedRequests": [{"service":"google","calendar":"personalCalendar"},{"service":"google","calendar":"workCalendar"}],
+      "requiredSummaries": ["Google wins personal", "Google wins work"],
+      "forbiddenSummaries": ["Outlook loses personal", "Outlook loses work"],
+      "sourceRefs": ["packages/report-skill/src/subskills/calendar/CalendarData.ts:27-47"]
+    },
+    {
+      "id": "data-mixed-provider-all-or-nothing",
+      "kind": "service",
+      "rowIds": ["mixed-provider-failure-all-or-nothing"],
+      "expectedRequests": [{"service":"google","calendar":"personalCalendar"},{"service":"outlook","calendar":"workCalendar"}],
+      "expectedProbeStatuses": [502, 200],
+      "sourceRefs": ["packages/report-skill/src/subskills/calendar/CalendarData.ts:53-69"]
+    },
+    {
+      "id": "timezone-source-controls",
+      "kind": "action",
+      "rowIds": ["timezone-source-minus-five", "timezone-source-plus-five"],
+      "requiredMims": ["CalendarEventToday"],
+      "sourceRefs": ["packages/report-skill/tests/subskills/Calendar.test.js:530-560", "packages/report-skill/src/subskills/calendar/CalendarParse.ts:33-44"]
+    },
+    {
+      "id": "parse-raw-null",
+      "kind": "parse",
+      "parseRowIds": ["parse-no-data"],
+      "expectedParsed": null,
+      "sourceRefs": ["packages/report-skill/src/subskills/calendar/CalendarParse.ts:29-32", "packages/report-skill/tests/subskills/Calendar.test.js:267-270"]
+    },
+    {
+      "id": "parse-missing-summary",
+      "kind": "parse",
+      "parseRowIds": ["parse-missing-summary"],
+      "requiredSummaries": ["No event description"],
+      "sourceRefs": ["packages/report-skill/src/subskills/calendar/CalendarParse.ts:46-58", "packages/report-skill/tests/subskills/Calendar.test.js:272-277"]
+    },
+    {
+      "id": "parse-invalid-starts",
+      "kind": "parse",
+      "parseRowIds": ["parse-missing-start", "parse-missing-start-datetime"],
+      "expectedEventCount": 0,
+      "sourceRefs": ["packages/report-skill/src/subskills/calendar/CalendarParse.ts:75-81", "packages/report-skill/tests/subskills/Calendar.test.js:279-289"]
+    },
+    {
+      "id": "parse-past-timed",
+      "kind": "parse",
+      "parseRowIds": ["parse-past-timed"],
+      "expectedEventCount": 0,
+      "sourceRefs": ["packages/report-skill/src/subskills/calendar/CalendarParse.ts:75-81", "packages/report-skill/tests/subskills/Calendar.test.js:296-304"]
+    }
+  ]
+}

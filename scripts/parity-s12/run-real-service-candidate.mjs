@@ -51,8 +51,27 @@ function prefsFor(vector) {
 
 function dateOnly(value) { return value && value.dateTime ? value.dateTime.slice(0, 10) : undefined; }
 
+function selectedService(vector, calendar) {
+  const c = vector.credentials || {};
+  if (calendar === 'personalCalendar') return c.googlePersonal ? 'google' : (c.outlookPersonal ? 'outlook' : null);
+  return c.googleWork ? 'google' : (c.outlookWork ? 'outlook' : null);
+}
+
+function eventsFor(vector, service, calendar) {
+  const slot = calendar === 'personalCalendar' ? 'Personal' : 'Work';
+  const specific = vector[`${service}${slot}Events`];
+  if (specific !== undefined) return specific;
+  return calendar === 'personalCalendar' ? (vector.personalEvents || []) : (vector.workEvents || []);
+}
+
+function expectedRequests(vector) {
+  return ['personalCalendar', 'workCalendar']
+    .map((calendar) => ({ calendar, service: selectedService(vector, calendar) }))
+    .filter((request) => request.service);
+}
+
 function rawEvents(vector, service, calendar) {
-  const events = calendar === 'personalCalendar' ? vector.personalEvents : vector.workEvents;
+  const events = eventsFor(vector, service, calendar);
   return (events || []).map((event) => {
     if (service === 'google') {
       if (event.fullDay) {
@@ -192,7 +211,14 @@ const state = { vector: null, providerCalls: [] };
 const provider = (service) => async (input) => {
   const vector = state.vector;
   state.providerCalls.push({ service, calendar: input.calendar, endDate: input.endDate });
-  if (vector.failureService === service) throw new Error(`${service} fixture expired`);
+  // Let both concurrently selected slots enter the real HTTP handler before
+  // the failing fixture rejects. CalendarData uses Promise.all: the source
+  // still returns all-or-nothing, while this keeps the initiation count
+  // observable for the mixed-provider control.
+  if (vector.failureService === service) {
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    throw new Error(`${service} fixture expired`);
+  }
   return {
     events: rawEvents(vector, service, input.calendar),
     ...(service === 'google' ? { calendarTimezone: 'America/New_York' } : {}),
@@ -223,10 +249,21 @@ try {
     const response = await reportSkill(launch(vector, accountID), requestContext());
     const endDate = endOfTomorrowISO(vector.locationISO);
     const reportCalls = [...state.providerCalls];
-    const expectedCalls = Object.values(vector.credentials || {}).filter(Boolean).length;
+    const expected = expectedRequests(vector);
+    const expectedCalls = expected.length;
     if (reportCalls.length !== expectedCalls) {
       throw new Error(`${vector.id}: report provider calls ${reportCalls.length} != expected credential calls ${expectedCalls}`);
     }
+    const unmatched = [...expected];
+    for (const request of reportCalls) {
+      const match = unmatched.findIndex((expectedRequest) => request.service === expectedRequest.service && request.calendar === expectedRequest.calendar);
+      if (match < 0) throw new Error(`${vector.id}: provider request ${JSON.stringify(request)} is not a selected source slot`);
+      unmatched.splice(match, 1);
+    }
+    if (unmatched.length) throw new Error(`${vector.id}: selected source slots were not requested: ${JSON.stringify(unmatched)}`);
+    // HTTP arrival order is scheduler-dependent; the source semantic receipt
+    // uses CalendarData's personal-then-work construction order.
+    const canonicalReportCalls = expected.map((expectedRequest) => reportCalls.find((request) => request.service === expectedRequest.service && request.calendar === expectedRequest.calendar));
     const probes = [];
     // Snapshot report calls first: a failed route is deliberately uncached, so
     // probing it invokes the fixture provider again and must not extend this loop.
@@ -239,14 +276,15 @@ try {
         throw new Error(`${vector.id}: expected cached relay envelope for ${probe.service}/${probe.calendar}`);
       }
     }
-    const expectedPostProbeCalls = reportCalls.length + (vector.failureService ? 1 : 0);
+    const failedReportCalls = reportCalls.filter((request) => request.service === vector.failureService).length;
+    const expectedPostProbeCalls = reportCalls.length + failedReportCalls;
     if (state.providerCalls.length !== expectedPostProbeCalls) {
       throw new Error(`${vector.id}: provider calls after probes ${state.providerCalls.length} != ${expectedPostProbeCalls}`);
     }
     serviceTrace.push({ id: vector.id, providerCalls: reportCalls, postProbeProviderCalls: state.providerCalls, probes });
     const events = probes.flatMap((probe) => (probe.envelope && probe.envelope.events) || [])
       .sort((a, b) => a.start.timestamp - b.start.timestamp);
-    const parsed = calendarParse(events, {
+    const parsed = vector.failureService ? null : calendarParse(events, {
       skill: { session: { data: { _personalReport: { nlu: { entities: vector.entities || {} } } } } },
       runtime: { location: { iso: vector.locationISO } },
       local: { userPrefs: prefs },
@@ -255,7 +293,7 @@ try {
     rows.push({ id: vector.id, semantic: {
       candidateRevision,
       endDate,
-      requests: reportCalls,
+      requests: canonicalReportCalls,
       parsed: parsedSummary(parsed),
     }, action: actionSummary(response) });
   }
@@ -270,6 +308,8 @@ fs.writeFileSync(outputPath, `${JSON.stringify({
   schema: 's12-calendar-receipt-v1',
   runtime: `phoenix-node-${process.versions.node}`,
   actionIdPaths,
-  service: { base, rows: serviceTrace },
+  // The actual listener uses an ephemeral port; keep the receipt hash stable
+  // while retaining the fact that every row traversed the HTTP service.
+  service: { base: 'http://localhost:<ephemeral>', rows: serviceTrace },
   rows,
 }, null, 2)}\n`);

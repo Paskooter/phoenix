@@ -1,0 +1,112 @@
+{
+  "schema": "s12-calendar-parse-receipt-v1",
+  "runtime": "phoenix-node-22.22.0",
+  "rows": [
+    {
+      "id": "parse-no-data",
+      "candidateRevision": "phoenix-w21/s12-calendar",
+      "parsed": null
+    },
+    {
+      "id": "parse-missing-summary",
+      "candidateRevision": "phoenix-w21/s12-calendar",
+      "parsed": {
+        "numEventsToday": 1,
+        "numEventsTomorrow": 0,
+        "workArrivalDT": {
+          "utc": 1781269200000,
+          "local": {
+            "year": 2026,
+            "monthNum": 5,
+            "date": 12,
+            "hour": 9,
+            "minute": 0
+          },
+          "timeOnly": "9:00 AM",
+          "onAt": "at 9:00 AM"
+        },
+        "events": [
+          {
+            "summary": "No event description",
+            "isEarly": false,
+            "dateTime": {
+              "utc": 1781272800000,
+              "local": {
+                "year": 2026,
+                "monthNum": 5,
+                "date": 12,
+                "hour": 10,
+                "minute": 0
+              },
+              "timeOnly": "10:00 AM",
+              "onAt": "at 10:00 AM"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "parse-missing-start",
+      "candidateRevision": "phoenix-w21/s12-calendar",
+      "parsed": {
+        "numEventsToday": 0,
+        "numEventsTomorrow": 0,
+        "workArrivalDT": {
+          "utc": 1781269200000,
+          "local": {
+            "year": 2026,
+            "monthNum": 5,
+            "date": 12,
+            "hour": 9,
+            "minute": 0
+          },
+          "timeOnly": "9:00 AM",
+          "onAt": "at 9:00 AM"
+        },
+        "events": []
+      }
+    },
+    {
+      "id": "parse-missing-start-datetime",
+      "candidateRevision": "phoenix-w21/s12-calendar",
+      "parsed": {
+        "numEventsToday": 0,
+        "numEventsTomorrow": 0,
+        "workArrivalDT": {
+          "utc": 1781269200000,
+          "local": {
+            "year": 2026,
+            "monthNum": 5,
+            "date": 12,
+            "hour": 9,
+            "minute": 0
+          },
+          "timeOnly": "9:00 AM",
+          "onAt": "at 9:00 AM"
+        },
+        "events": []
+      }
+    },
+    {
+      "id": "parse-past-timed",
+      "candidateRevision": "phoenix-w21/s12-calendar",
+      "parsed": {
+        "numEventsToday": 0,
+        "numEventsTomorrow": 0,
+        "workArrivalDT": {
+          "utc": 1781269200000,
+          "local": {
+            "year": 2026,
+            "monthNum": 5,
+            "date": 12,
+            "hour": 9,
+            "minute": 0
+          },
+          "timeOnly": "9:00 AM",
+          "onAt": "at 9:00 AM"
+        },
+        "events": []
+      }
+    }
+  ]
+}

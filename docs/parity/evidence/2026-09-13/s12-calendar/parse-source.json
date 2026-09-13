@@ -1,0 +1,112 @@
+{
+  "schema": "s12-calendar-parse-receipt-v1",
+  "runtime": "pegasus-node8-compatible",
+  "rows": [
+    {
+      "id": "parse-no-data",
+      "sourceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+      "parsed": null
+    },
+    {
+      "id": "parse-missing-summary",
+      "sourceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+      "parsed": {
+        "numEventsToday": 1,
+        "numEventsTomorrow": 0,
+        "workArrivalDT": {
+          "utc": 1781269200000,
+          "local": {
+            "year": 2026,
+            "monthNum": 5,
+            "date": 12,
+            "hour": 9,
+            "minute": 0
+          },
+          "timeOnly": "9:00 AM",
+          "onAt": "at 9:00 AM"
+        },
+        "events": [
+          {
+            "summary": "No event description",
+            "isEarly": false,
+            "dateTime": {
+              "utc": 1781272800000,
+              "local": {
+                "year": 2026,
+                "monthNum": 5,
+                "date": 12,
+                "hour": 10,
+                "minute": 0
+              },
+              "timeOnly": "10:00 AM",
+              "onAt": "at 10:00 AM"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "parse-missing-start",
+      "sourceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+      "parsed": {
+        "numEventsToday": 0,
+        "numEventsTomorrow": 0,
+        "workArrivalDT": {
+          "utc": 1781269200000,
+          "local": {
+            "year": 2026,
+            "monthNum": 5,
+            "date": 12,
+            "hour": 9,
+            "minute": 0
+          },
+          "timeOnly": "9:00 AM",
+          "onAt": "at 9:00 AM"
+        },
+        "events": []
+      }
+    },
+    {
+      "id": "parse-missing-start-datetime",
+      "sourceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+      "parsed": {
+        "numEventsToday": 0,
+        "numEventsTomorrow": 0,
+        "workArrivalDT": {
+          "utc": 1781269200000,
+          "local": {
+            "year": 2026,
+            "monthNum": 5,
+            "date": 12,
+            "hour": 9,
+            "minute": 0
+          },
+          "timeOnly": "9:00 AM",
+          "onAt": "at 9:00 AM"
+        },
+        "events": []
+      }
+    },
+    {
+      "id": "parse-past-timed",
+      "sourceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+      "parsed": {
+        "numEventsToday": 0,
+        "numEventsTomorrow": 0,
+        "workArrivalDT": {
+          "utc": 1781269200000,
+          "local": {
+            "year": 2026,
+            "monthNum": 5,
+            "date": 12,
+            "hour": 9,
+            "minute": 0
+          },
+          "timeOnly": "9:00 AM",
+          "onAt": "at 9:00 AM"
+        },
+        "events": []
+      }
+    }
+  ]
+}

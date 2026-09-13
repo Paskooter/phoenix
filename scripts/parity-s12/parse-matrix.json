@@ -1,0 +1,43 @@
+{
+  "schema": "s12-calendar-parse-matrix-v1",
+  "cases": [
+    {
+      "id": "parse-no-data",
+      "nowISO": "2026-06-12T08:00:00-04:00",
+      "locationISO": "2026-06-12T08:00:00-04:00",
+      "rawEvents": null
+    },
+    {
+      "id": "parse-missing-summary",
+      "nowISO": "2026-06-12T08:00:00-04:00",
+      "locationISO": "2026-06-12T08:00:00-04:00",
+      "rawEvents": [
+        { "start": { "dateTime": "2026-06-12T10:00:00-04:00" } }
+      ]
+    },
+    {
+      "id": "parse-missing-start",
+      "nowISO": "2026-06-12T08:00:00-04:00",
+      "locationISO": "2026-06-12T08:00:00-04:00",
+      "rawEvents": [
+        { "summary": "Missing start" }
+      ]
+    },
+    {
+      "id": "parse-missing-start-datetime",
+      "nowISO": "2026-06-12T08:00:00-04:00",
+      "locationISO": "2026-06-12T08:00:00-04:00",
+      "rawEvents": [
+        { "summary": "Missing dateTime", "start": {} }
+      ]
+    },
+    {
+      "id": "parse-past-timed",
+      "nowISO": "2026-06-12T08:00:00-04:00",
+      "locationISO": "2026-06-12T08:00:00-04:00",
+      "rawEvents": [
+        { "summary": "Past timed", "start": { "dateTime": "2026-06-12T07:00:00-04:00" } }
+      ]
+    }
+  ]
+}

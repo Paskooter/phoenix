@@ -52,8 +52,26 @@ function decorateEvents(events) {
   });
 }
 
+function selectedService(vector, calendar) {
+  const c = vector.credentials || {};
+  if (calendar === 'personalCalendar') return c.googlePersonal ? 'google' : (c.outlookPersonal ? 'outlook' : null);
+  return c.googleWork ? 'google' : (c.outlookWork ? 'outlook' : null);
+}
+
+function eventsFor(vector, service, calendar) {
+  const slot = calendar === 'personalCalendar' ? 'Personal' : 'Work';
+  const specific = vector[`${service}${slot}Events`];
+  if (specific !== undefined) return specific;
+  return calendar === 'personalCalendar' ? (vector.personalEvents || []) : (vector.workEvents || []);
+}
+
 function mergedEvents(vector) {
-  return decorateEvents([...(vector.personalEvents || []), ...(vector.workEvents || [])])
+  const events = [];
+  for (const calendar of ['personalCalendar', 'workCalendar']) {
+    const service = selectedService(vector, calendar);
+    if (service) events.push(...eventsFor(vector, service, calendar));
+  }
+  return decorateEvents(events)
     .sort((a, b) => a.start.timestamp - b.start.timestamp);
 }
 
@@ -168,7 +186,7 @@ async function runCase(vector) {
   LassoClient.fetchCalendarEvents = async (data, service, calendar, endDate) => {
     requests.push({ service, calendar, endDate });
     if (vector.failureService === service) throw new Error(`${service} credentials expired`);
-    return { events: decorateEvents(calendar === 'personalCalendar' ? vector.personalEvents : vector.workEvents) };
+    return { events: decorateEvents(eventsFor(vector, service, calendar)) };
   };
 
   const response = await reportSkill(launch(vector), requestContext());
@@ -178,7 +196,7 @@ async function runCase(vector) {
     local: { userPrefs: prefs },
     result: { nlu: { entities: vector.entities || {} } },
   };
-  const parsed = calendarParse(mergedEvents(vector), parsedData);
+  const parsed = vector.failureService ? null : calendarParse(mergedEvents(vector), parsedData);
   return {
     id: vector.id,
     semantic: {

@@ -23,6 +23,8 @@ function rowsFor(value, label) {
     if (!row || typeof row.id !== 'string' || !row.id) coverageErrors.push(`${label}.rows[${index}] missing id`);
     else if (seen.has(row.id)) coverageErrors.push(`${label} duplicate row ID ${row.id}`);
     else seen.add(row.id);
+    if (!row || typeof row.iso !== 'string') coverageErrors.push(`${label}.${row?.id || index} missing iso`);
+    if (!row || typeof row.endDate !== 'string') coverageErrors.push(`${label}.${row?.id || index} missing endDate`);
   }
   return value.rows;
 }
@@ -42,7 +44,10 @@ const differences = [];
 for (let index = 0; index < Math.max(sourceRows.length, candidateRows.length); index += 1) {
   const left = sourceRows[index];
   const right = candidateRows[index];
+  const expectedRow = expected.cases[index];
   const id = left?.id || right?.id || `row-${index}`;
+  if (left && expectedRow && left.iso !== expectedRow.iso) coverageErrors.push(`source ${id} iso does not match expected matrix`);
+  if (right && expectedRow && right.iso !== expectedRow.iso) coverageErrors.push(`candidate ${id} iso does not match expected matrix`);
   const match = !!left && !!right && left.id === right.id && left.iso === right.iso && left.endDate === right.endDate;
   rows.push({ id, match });
   if (match) matches += 1;

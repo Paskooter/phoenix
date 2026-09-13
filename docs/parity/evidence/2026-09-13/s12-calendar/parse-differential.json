@@ -1,0 +1,8 @@
+{
+  "schema": "s12-calendar-parse-differential-v1",
+  "result": "pass",
+  "totalRows": 5,
+  "matches": 5,
+  "coverageErrors": [],
+  "differences": []
+}

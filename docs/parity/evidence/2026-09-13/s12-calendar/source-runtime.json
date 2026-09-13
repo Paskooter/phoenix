@@ -6276,7 +6276,99 @@
       }
     },
     {
-      "id": "google-personal-expired",
+      "id": "app-setup",
+      "semantic": {
+        "sourceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+        "endDate": "2026-06-13T23:59:59-04:00",
+        "requests": [],
+        "parsed": {
+          "numEventsToday": 0,
+          "numEventsTomorrow": 0,
+          "workArrivalDT": {
+            "utc": 1781269200000,
+            "local": {
+              "year": 2026,
+              "monthNum": 5,
+              "date": 12,
+              "hour": 9,
+              "minute": 0
+            },
+            "timeOnly": "9:00 AM",
+            "onAt": "at 9:00 AM"
+          },
+          "events": []
+        }
+      },
+      "action": {
+        "responseType": "SKILL_ACTION",
+        "final": true,
+        "action": {
+          "config": {
+            "jcp": {
+              "children": [
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "Jane to hear what's on your calendar, you need to connect your calendar in the Jibo <phoneme ph='a p p'> app </phoneme>. It's in the personal report section.",
+                      "meta": {
+                        "mim_id": "CalendarAppSetup",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarAppSetup_AN_03",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                }
+              ],
+              "type": "SEQUENCE"
+            },
+            "version": "2.0"
+          },
+          "type": "JCP"
+        },
+        "analytics": {
+          "report-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "domain": "",
+                "initial_intent": "n/a",
+                "last_skill": "n/a",
+                "user_initiated": true,
+                "was_hey_jibo_launch": true
+              }
+            },
+            {
+              "event": "Personal Report Results",
+              "properties": {
+                "config_state": "not configured",
+                "details": "calendar",
+                "service_details": "calendar=up"
+              }
+            }
+          ]
+        },
+        "transitions": [
+          "Reactive",
+          "True",
+          "GetData",
+          "GotData",
+          "Done",
+          "Off",
+          "On",
+          "Done",
+          "Done",
+          "Off",
+          "Off",
+          null
+        ]
+      }
+    },
+    {
+      "id": "asked-tomorrow-none",
       "semantic": {
         "sourceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
         "endDate": "2026-06-13T23:59:59-04:00",
@@ -6304,6 +6396,4426 @@
           },
           "events": []
         }
+      },
+      "action": {
+        "responseType": "SKILL_ACTION",
+        "final": true,
+        "action": {
+          "config": {
+            "jcp": {
+              "children": [
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "Jane taking a look at your calendar for the rest of the day and tomorrow, I don't see anything scheduled, you're all clear.",
+                      "meta": {
+                        "mim_id": "CalendarNothing",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarNothing_AN_11",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                }
+              ],
+              "type": "SEQUENCE"
+            },
+            "version": "2.0"
+          },
+          "type": "JCP"
+        },
+        "analytics": {
+          "report-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "domain": "",
+                "initial_intent": "n/a",
+                "last_skill": "n/a",
+                "user_initiated": true,
+                "was_hey_jibo_launch": true
+              }
+            },
+            {
+              "event": "Personal Report Results",
+              "properties": {
+                "config_state": "not configured",
+                "details": "calendar",
+                "service_details": "calendar=up"
+              }
+            }
+          ]
+        },
+        "transitions": [
+          "Reactive",
+          "True",
+          "GetData",
+          "GotData",
+          "Done",
+          "Off",
+          "On",
+          "Done",
+          "Done",
+          "Off",
+          "Off",
+          null
+        ]
+      }
+    },
+    {
+      "id": "missing-summary-main",
+      "semantic": {
+        "sourceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+        "endDate": "2026-06-13T23:59:59-04:00",
+        "requests": [
+          {
+            "service": "google",
+            "calendar": "personalCalendar",
+            "endDate": "2026-06-13T23:59:59-04:00"
+          }
+        ],
+        "parsed": {
+          "numEventsToday": 1,
+          "numEventsTomorrow": 0,
+          "workArrivalDT": {
+            "utc": 1781269200000,
+            "local": {
+              "year": 2026,
+              "monthNum": 5,
+              "date": 12,
+              "hour": 9,
+              "minute": 0
+            },
+            "timeOnly": "9:00 AM",
+            "onAt": "at 9:00 AM"
+          },
+          "events": [
+            {
+              "summary": "No event description",
+              "fullDay": false,
+              "isEarly": false,
+              "dateTime": {
+                "utc": 1781272800000,
+                "local": {
+                  "year": 2026,
+                  "monthNum": 5,
+                  "date": 12,
+                  "hour": 10,
+                  "minute": 0
+                },
+                "timeOnly": "10:00 AM",
+                "onAt": "at 10:00 AM"
+              }
+            }
+          ]
+        }
+      },
+      "action": {
+        "responseType": "SKILL_ACTION",
+        "final": true,
+        "action": {
+          "config": {
+            "jcp": {
+              "children": [
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "Jane looking at your calendar, you have one item on the docket today.",
+                      "meta": {
+                        "mim_id": "CalendarEventCountToday",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarEventCountToday_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "display": {
+                      "keepDisplay": false,
+                      "layer": 0,
+                      "name": "PEGASUS_VIEW",
+                      "onCancel": [
+                        {
+                          "name": "HIDE_MIM_VIEW",
+                          "type": "HIDE_DISPLAY"
+                        }
+                      ],
+                      "type": "DISPLAY",
+                      "view": {
+                        "context": {
+                          "data": {
+                            "componentConfigs": [
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventCard",
+                                    "src": "assets/personal-report-skill/calendar/cards/eventMorning_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "cardClip",
+                                "position": {
+                                  "x": 140,
+                                  "y": 110
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventIcon",
+                                    "src": "assets/personal-report-skill/calendar/icons/calendar_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "iconClip",
+                                "position": {
+                                  "x": 534,
+                                  "y": 0
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "id": "timeLabel",
+                                "position": {
+                                  "x": 618,
+                                  "y": 684
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "160",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 1,
+                                  "y": 1
+                                },
+                                "text": "10",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "ampmLabel",
+                                "position": {
+                                  "x": 620,
+                                  "y": 670
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "90",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 0,
+                                  "y": 1
+                                },
+                                "text": "AM",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "eventSummary",
+                                "position": {
+                                  "x": 640,
+                                  "y": 330
+                                },
+                                "style": {
+                                  "align": "center",
+                                  "breakWords": true,
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Light",
+                                  "fontSize": "90",
+                                  "leading": -10,
+                                  "letterSpacing": 0,
+                                  "wordWrap": true,
+                                  "wordWrapWidth": 800
+                                },
+                                "targetAnchor": {
+                                  "x": 0.5,
+                                  "y": 0.5
+                                },
+                                "text": "No event description",
+                                "type": "Label"
+                              }
+                            ],
+                            "defaultSelect": {
+                              "leaveEmpty": false,
+                              "removeAll": true,
+                              "transitionClose": "trans_out"
+                            },
+                            "open": {
+                              "removeAll": true,
+                              "transitionOpen": "trans_in"
+                            },
+                            "viewConfig": {
+                              "category": "gui",
+                              "id": "eventView",
+                              "type": "View"
+                            }
+                          },
+                          "pause": true,
+                          "type": "Javascript"
+                        },
+                        "name": "MIM_VIEW",
+                        "type": "SKILL"
+                      },
+                      "visible": true
+                    },
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "No event description, at 10:00 AM.",
+                      "meta": {
+                        "mim_id": "CalendarSummaryAndTime",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarSummaryAndTime_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "And that's it.",
+                      "meta": {
+                        "mim_id": "CalendarOutro",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarOutro_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                }
+              ],
+              "type": "SEQUENCE"
+            },
+            "version": "2.0"
+          },
+          "type": "JCP"
+        },
+        "analytics": {
+          "report-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "domain": "",
+                "initial_intent": "n/a",
+                "last_skill": "n/a",
+                "user_initiated": true,
+                "was_hey_jibo_launch": true
+              }
+            },
+            {
+              "event": "Personal Report Results",
+              "properties": {
+                "config_state": "not configured",
+                "details": "calendar",
+                "service_details": "calendar=up"
+              }
+            }
+          ]
+        },
+        "transitions": [
+          "Reactive",
+          "True",
+          "GetData",
+          "GotData",
+          "Done",
+          "Off",
+          "On",
+          "Done",
+          "Done",
+          "Off",
+          "Off",
+          null
+        ]
+      }
+    },
+    {
+      "id": "full-report-event-today",
+      "semantic": {
+        "sourceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+        "endDate": "2026-06-13T23:59:59-04:00",
+        "requests": [
+          {
+            "service": "google",
+            "calendar": "personalCalendar",
+            "endDate": "2026-06-13T23:59:59-04:00"
+          }
+        ],
+        "parsed": {
+          "numEventsToday": 1,
+          "numEventsTomorrow": 0,
+          "workArrivalDT": {
+            "utc": 1781269200000,
+            "local": {
+              "year": 2026,
+              "monthNum": 5,
+              "date": 12,
+              "hour": 9,
+              "minute": 0
+            },
+            "timeOnly": "9:00 AM",
+            "onAt": "at 9:00 AM"
+          },
+          "events": [
+            {
+              "summary": "Afternoon today",
+              "fullDay": false,
+              "isEarly": false,
+              "dateTime": {
+                "utc": 1781290800000,
+                "local": {
+                  "year": 2026,
+                  "monthNum": 5,
+                  "date": 12,
+                  "hour": 15,
+                  "minute": 0
+                },
+                "timeOnly": "3:00 PM",
+                "onAt": "at 3:00 PM"
+              }
+            }
+          ]
+        }
+      },
+      "action": {
+        "responseType": "SKILL_ACTION",
+        "final": true,
+        "action": {
+          "config": {
+            "jcp": {
+              "children": [
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "<anim cat='happy'>Sure Jane. Here it is.</anim>",
+                      "meta": {
+                        "mim_id": "PersonalReportKickOff",
+                        "mim_type": "announcement",
+                        "prompt_id": "PersonalReportKickOff_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "display": {
+                      "keepDisplay": false,
+                      "layer": 0,
+                      "name": "PEGASUS_VIEW",
+                      "onCancel": [
+                        {
+                          "name": "HIDE_MIM_VIEW",
+                          "type": "HIDE_DISPLAY"
+                        }
+                      ],
+                      "type": "DISPLAY",
+                      "view": {
+                        "context": {
+                          "data": {
+                            "componentConfigs": [
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventCard",
+                                    "src": "assets/personal-report-skill/calendar/cards/eventAfternoon_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "cardClip",
+                                "position": {
+                                  "x": 140,
+                                  "y": 110
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventIcon",
+                                    "src": "assets/personal-report-skill/calendar/icons/calendar_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "iconClip",
+                                "position": {
+                                  "x": 534,
+                                  "y": 0
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "id": "timeLabel",
+                                "position": {
+                                  "x": 618,
+                                  "y": 684
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "160",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 1,
+                                  "y": 1
+                                },
+                                "text": "3",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "ampmLabel",
+                                "position": {
+                                  "x": 620,
+                                  "y": 670
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "90",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 0,
+                                  "y": 1
+                                },
+                                "text": "PM",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "eventSummary",
+                                "position": {
+                                  "x": 640,
+                                  "y": 330
+                                },
+                                "style": {
+                                  "align": "center",
+                                  "breakWords": true,
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Light",
+                                  "fontSize": "90",
+                                  "leading": -10,
+                                  "letterSpacing": 0,
+                                  "wordWrap": true,
+                                  "wordWrapWidth": 800
+                                },
+                                "targetAnchor": {
+                                  "x": 0.5,
+                                  "y": 0.5
+                                },
+                                "text": "Afternoon today",
+                                "type": "Label"
+                              }
+                            ],
+                            "defaultSelect": {
+                              "leaveEmpty": false,
+                              "removeAll": true,
+                              "transitionClose": "trans_out"
+                            },
+                            "open": {
+                              "removeAll": true,
+                              "transitionOpen": "trans_in"
+                            },
+                            "viewConfig": {
+                              "category": "gui",
+                              "id": "eventView",
+                              "type": "View"
+                            }
+                          },
+                          "pause": true,
+                          "type": "Javascript"
+                        },
+                        "name": "MIM_VIEW",
+                        "type": "SKILL"
+                      },
+                      "visible": true
+                    },
+                    "play": {
+                      "autoRuleConfig": {
+                        "beat": true,
+                        "hotWords": false,
+                        "punctuation": true,
+                        "voice": true
+                      },
+                      "esml": "On your calendar today, I see one thing, it's called Afternoon today. <break size='0.3'/>It starts at 3:00 PM.",
+                      "meta": {
+                        "mim_id": "CalendarEventToday",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarEventToday_AN_07",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "And <pitch mult='1.2'>that's</pitch> your report! Have a <pitch mult='1.1'>great</pitch> day.",
+                      "meta": {
+                        "mim_id": "PersonalReportOutroConfigured",
+                        "mim_type": "announcement",
+                        "prompt_id": "PersonalReportOutroConfigured_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                }
+              ],
+              "type": "SEQUENCE"
+            },
+            "version": "2.0"
+          },
+          "type": "JCP"
+        },
+        "analytics": {
+          "report-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "domain": "",
+                "initial_intent": "n/a",
+                "last_skill": "n/a",
+                "user_initiated": true,
+                "was_hey_jibo_launch": true
+              }
+            },
+            {
+              "event": "Personal Report Results",
+              "properties": {
+                "config_state": "not configured",
+                "details": "calendar",
+                "service_details": "calendar=up"
+              }
+            }
+          ]
+        },
+        "transitions": [
+          "Reactive",
+          "True",
+          "GetData",
+          "GotData",
+          "Done",
+          "Off",
+          "On",
+          "Done",
+          "Done",
+          "Off",
+          "Off",
+          null
+        ]
+      }
+    },
+    {
+      "id": "full-report-event-tomorrow",
+      "semantic": {
+        "sourceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+        "endDate": "2026-06-13T23:59:59-04:00",
+        "requests": [
+          {
+            "service": "google",
+            "calendar": "personalCalendar",
+            "endDate": "2026-06-13T23:59:59-04:00"
+          }
+        ],
+        "parsed": {
+          "numEventsToday": 0,
+          "numEventsTomorrow": 1,
+          "workArrivalDT": {
+            "utc": 1781355600000,
+            "local": {
+              "year": 2026,
+              "monthNum": 5,
+              "date": 13,
+              "hour": 9,
+              "minute": 0
+            },
+            "timeOnly": "9:00 AM",
+            "onAt": "tomorrow at 9:00 AM"
+          },
+          "events": [
+            {
+              "summary": "Afternoon tomorrow",
+              "fullDay": false,
+              "isEarly": false,
+              "dateTime": {
+                "utc": 1781377200000,
+                "local": {
+                  "year": 2026,
+                  "monthNum": 5,
+                  "date": 13,
+                  "hour": 15,
+                  "minute": 0
+                },
+                "timeOnly": "3:00 PM",
+                "onAt": "tomorrow at 3:00 PM"
+              }
+            }
+          ]
+        }
+      },
+      "action": {
+        "responseType": "SKILL_ACTION",
+        "final": true,
+        "action": {
+          "config": {
+            "jcp": {
+              "children": [
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "<anim cat='happy'>Sure Jane. Here it is.</anim>",
+                      "meta": {
+                        "mim_id": "PersonalReportKickOff",
+                        "mim_type": "announcement",
+                        "prompt_id": "PersonalReportKickOff_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "display": {
+                      "keepDisplay": false,
+                      "layer": 0,
+                      "name": "PEGASUS_VIEW",
+                      "onCancel": [
+                        {
+                          "name": "HIDE_MIM_VIEW",
+                          "type": "HIDE_DISPLAY"
+                        }
+                      ],
+                      "type": "DISPLAY",
+                      "view": {
+                        "context": {
+                          "data": {
+                            "componentConfigs": [
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventCard",
+                                    "src": "assets/personal-report-skill/calendar/cards/eventAfternoon_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "cardClip",
+                                "position": {
+                                  "x": 140,
+                                  "y": 110
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventIcon",
+                                    "src": "assets/personal-report-skill/calendar/icons/calendar_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "iconClip",
+                                "position": {
+                                  "x": 534,
+                                  "y": 0
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "id": "timeLabel",
+                                "position": {
+                                  "x": 618,
+                                  "y": 684
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "160",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 1,
+                                  "y": 1
+                                },
+                                "text": "3",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "ampmLabel",
+                                "position": {
+                                  "x": 620,
+                                  "y": 670
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "90",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 0,
+                                  "y": 1
+                                },
+                                "text": "PM",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "eventSummary",
+                                "position": {
+                                  "x": 640,
+                                  "y": 330
+                                },
+                                "style": {
+                                  "align": "center",
+                                  "breakWords": true,
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Light",
+                                  "fontSize": "90",
+                                  "leading": -10,
+                                  "letterSpacing": 0,
+                                  "wordWrap": true,
+                                  "wordWrapWidth": 800
+                                },
+                                "targetAnchor": {
+                                  "x": 0.5,
+                                  "y": 0.5
+                                },
+                                "text": "Afternoon tomorrow",
+                                "type": "Label"
+                              }
+                            ],
+                            "defaultSelect": {
+                              "leaveEmpty": false,
+                              "removeAll": true,
+                              "transitionClose": "trans_out"
+                            },
+                            "open": {
+                              "removeAll": true,
+                              "transitionOpen": "trans_in"
+                            },
+                            "viewConfig": {
+                              "category": "gui",
+                              "id": "eventView",
+                              "type": "View"
+                            }
+                          },
+                          "pause": true,
+                          "type": "Javascript"
+                        },
+                        "name": "MIM_VIEW",
+                        "type": "SKILL"
+                      },
+                      "visible": true
+                    },
+                    "play": {
+                      "autoRuleConfig": {
+                        "beat": true,
+                        "hotWords": false,
+                        "punctuation": true,
+                        "voice": true
+                      },
+                      "esml": "As for your calendar, there's nothing scheduled for the rest of the day. But tomorrow, your first item is called Afternoon tomorrow, and it starts at 3:00 PM.",
+                      "meta": {
+                        "mim_id": "CalendarEventTomorrow",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarEventTomorrow_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "And <pitch mult='1.2'>that's</pitch> your report! Have a <pitch mult='1.1'>great</pitch> day.",
+                      "meta": {
+                        "mim_id": "PersonalReportOutroConfigured",
+                        "mim_type": "announcement",
+                        "prompt_id": "PersonalReportOutroConfigured_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                }
+              ],
+              "type": "SEQUENCE"
+            },
+            "version": "2.0"
+          },
+          "type": "JCP"
+        },
+        "analytics": {
+          "report-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "domain": "",
+                "initial_intent": "n/a",
+                "last_skill": "n/a",
+                "user_initiated": true,
+                "was_hey_jibo_launch": true
+              }
+            },
+            {
+              "event": "Personal Report Results",
+              "properties": {
+                "config_state": "not configured",
+                "details": "calendar",
+                "service_details": "calendar=up"
+              }
+            }
+          ]
+        },
+        "transitions": [
+          "Reactive",
+          "True",
+          "GetData",
+          "GotData",
+          "Done",
+          "Off",
+          "On",
+          "Done",
+          "Done",
+          "Off",
+          "Off",
+          null
+        ]
+      }
+    },
+    {
+      "id": "full-report-event-today-full-day",
+      "semantic": {
+        "sourceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+        "endDate": "2026-06-13T23:59:59-04:00",
+        "requests": [
+          {
+            "service": "google",
+            "calendar": "personalCalendar",
+            "endDate": "2026-06-13T23:59:59-04:00"
+          }
+        ],
+        "parsed": {
+          "numEventsToday": 1,
+          "numEventsTomorrow": 0,
+          "workArrivalDT": {
+            "utc": 1781269200000,
+            "local": {
+              "year": 2026,
+              "monthNum": 5,
+              "date": 12,
+              "hour": 9,
+              "minute": 0
+            },
+            "timeOnly": "9:00 AM",
+            "onAt": "at 9:00 AM"
+          },
+          "events": [
+            {
+              "summary": "Full day today",
+              "fullDay": true,
+              "isEarly": false,
+              "dateTime": {
+                "utc": 1781236800000,
+                "local": {
+                  "year": 2026,
+                  "monthNum": 5,
+                  "date": 12,
+                  "hour": 0,
+                  "minute": 0
+                },
+                "timeOnly": "12:00 AM",
+                "onAt": "at 12:00 AM"
+              }
+            }
+          ]
+        }
+      },
+      "action": {
+        "responseType": "SKILL_ACTION",
+        "final": true,
+        "action": {
+          "config": {
+            "jcp": {
+              "children": [
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "<anim cat='happy'>Sure Jane. Here it is.</anim>",
+                      "meta": {
+                        "mim_id": "PersonalReportKickOff",
+                        "mim_type": "announcement",
+                        "prompt_id": "PersonalReportKickOff_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "display": {
+                      "keepDisplay": false,
+                      "layer": 0,
+                      "name": "PEGASUS_VIEW",
+                      "onCancel": [
+                        {
+                          "name": "HIDE_MIM_VIEW",
+                          "type": "HIDE_DISPLAY"
+                        }
+                      ],
+                      "type": "DISPLAY",
+                      "view": {
+                        "context": {
+                          "data": {
+                            "componentConfigs": [
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventCard",
+                                    "src": "assets/personal-report-skill/calendar/cards/eventMorning_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "cardClip",
+                                "position": {
+                                  "x": 140,
+                                  "y": 110
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventIcon",
+                                    "src": "assets/personal-report-skill/calendar/icons/calendar_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "iconClip",
+                                "position": {
+                                  "x": 534,
+                                  "y": 0
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "id": "timeLabel",
+                                "position": {
+                                  "x": 618,
+                                  "y": 684
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "160",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 1,
+                                  "y": 1
+                                },
+                                "text": "",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "ampmLabel",
+                                "position": {
+                                  "x": 620,
+                                  "y": 670
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "90",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 0,
+                                  "y": 1
+                                },
+                                "text": "",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "eventSummary",
+                                "position": {
+                                  "x": 640,
+                                  "y": 330
+                                },
+                                "style": {
+                                  "align": "center",
+                                  "breakWords": true,
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Light",
+                                  "fontSize": "90",
+                                  "leading": -10,
+                                  "letterSpacing": 0,
+                                  "wordWrap": true,
+                                  "wordWrapWidth": 800
+                                },
+                                "targetAnchor": {
+                                  "x": 0.5,
+                                  "y": 0.5
+                                },
+                                "text": "Full day today",
+                                "type": "Label"
+                              }
+                            ],
+                            "defaultSelect": {
+                              "leaveEmpty": false,
+                              "removeAll": true,
+                              "transitionClose": "trans_out"
+                            },
+                            "open": {
+                              "removeAll": true,
+                              "transitionOpen": "trans_in"
+                            },
+                            "viewConfig": {
+                              "category": "gui",
+                              "id": "eventView",
+                              "type": "View"
+                            }
+                          },
+                          "pause": true,
+                          "type": "Javascript"
+                        },
+                        "name": "MIM_VIEW",
+                        "type": "SKILL"
+                      },
+                      "visible": true
+                    },
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "Taking a look at your calendar for today, I'm seeing one thing. It's called Full day today, and it lasts all day.",
+                      "meta": {
+                        "mim_id": "CalendarEventTodayFullDay",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarEventTodayFullDay_AN_04",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "And <pitch mult='1.2'>that's</pitch> your report! Have a <pitch mult='1.1'>great</pitch> day.",
+                      "meta": {
+                        "mim_id": "PersonalReportOutroConfigured",
+                        "mim_type": "announcement",
+                        "prompt_id": "PersonalReportOutroConfigured_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                }
+              ],
+              "type": "SEQUENCE"
+            },
+            "version": "2.0"
+          },
+          "type": "JCP"
+        },
+        "analytics": {
+          "report-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "domain": "",
+                "initial_intent": "n/a",
+                "last_skill": "n/a",
+                "user_initiated": true,
+                "was_hey_jibo_launch": true
+              }
+            },
+            {
+              "event": "Personal Report Results",
+              "properties": {
+                "config_state": "not configured",
+                "details": "calendar",
+                "service_details": "calendar=up"
+              }
+            }
+          ]
+        },
+        "transitions": [
+          "Reactive",
+          "True",
+          "GetData",
+          "GotData",
+          "Done",
+          "Off",
+          "On",
+          "Done",
+          "Done",
+          "Off",
+          "Off",
+          null
+        ]
+      }
+    },
+    {
+      "id": "full-report-event-tomorrow-full-day",
+      "semantic": {
+        "sourceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+        "endDate": "2026-06-13T23:59:59-04:00",
+        "requests": [
+          {
+            "service": "google",
+            "calendar": "personalCalendar",
+            "endDate": "2026-06-13T23:59:59-04:00"
+          }
+        ],
+        "parsed": {
+          "numEventsToday": 0,
+          "numEventsTomorrow": 1,
+          "workArrivalDT": {
+            "utc": 1781269200000,
+            "local": {
+              "year": 2026,
+              "monthNum": 5,
+              "date": 12,
+              "hour": 9,
+              "minute": 0
+            },
+            "timeOnly": "9:00 AM",
+            "onAt": "at 9:00 AM"
+          },
+          "events": [
+            {
+              "summary": "Full day tomorrow",
+              "fullDay": true,
+              "isEarly": false,
+              "dateTime": {
+                "utc": 1781323200000,
+                "local": {
+                  "year": 2026,
+                  "monthNum": 5,
+                  "date": 13,
+                  "hour": 0,
+                  "minute": 0
+                },
+                "timeOnly": "12:00 AM",
+                "onAt": "tomorrow at 12:00 AM"
+              }
+            }
+          ]
+        }
+      },
+      "action": {
+        "responseType": "SKILL_ACTION",
+        "final": true,
+        "action": {
+          "config": {
+            "jcp": {
+              "children": [
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "<anim cat='happy'>Sure Jane. Here it is.</anim>",
+                      "meta": {
+                        "mim_id": "PersonalReportKickOff",
+                        "mim_type": "announcement",
+                        "prompt_id": "PersonalReportKickOff_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "display": {
+                      "keepDisplay": false,
+                      "layer": 0,
+                      "name": "PEGASUS_VIEW",
+                      "onCancel": [
+                        {
+                          "name": "HIDE_MIM_VIEW",
+                          "type": "HIDE_DISPLAY"
+                        }
+                      ],
+                      "type": "DISPLAY",
+                      "view": {
+                        "context": {
+                          "data": {
+                            "componentConfigs": [
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventCard",
+                                    "src": "assets/personal-report-skill/calendar/cards/eventMorning_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "cardClip",
+                                "position": {
+                                  "x": 140,
+                                  "y": 110
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventIcon",
+                                    "src": "assets/personal-report-skill/calendar/icons/calendar_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "iconClip",
+                                "position": {
+                                  "x": 534,
+                                  "y": 0
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "id": "timeLabel",
+                                "position": {
+                                  "x": 618,
+                                  "y": 684
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "160",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 1,
+                                  "y": 1
+                                },
+                                "text": "",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "ampmLabel",
+                                "position": {
+                                  "x": 620,
+                                  "y": 670
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "90",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 0,
+                                  "y": 1
+                                },
+                                "text": "",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "eventSummary",
+                                "position": {
+                                  "x": 640,
+                                  "y": 330
+                                },
+                                "style": {
+                                  "align": "center",
+                                  "breakWords": true,
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Light",
+                                  "fontSize": "90",
+                                  "leading": -10,
+                                  "letterSpacing": 0,
+                                  "wordWrap": true,
+                                  "wordWrapWidth": 800
+                                },
+                                "targetAnchor": {
+                                  "x": 0.5,
+                                  "y": 0.5
+                                },
+                                "text": "Full day tomorrow",
+                                "type": "Label"
+                              }
+                            ],
+                            "defaultSelect": {
+                              "leaveEmpty": false,
+                              "removeAll": true,
+                              "transitionClose": "trans_out"
+                            },
+                            "open": {
+                              "removeAll": true,
+                              "transitionOpen": "trans_in"
+                            },
+                            "viewConfig": {
+                              "category": "gui",
+                              "id": "eventView",
+                              "type": "View"
+                            }
+                          },
+                          "pause": true,
+                          "type": "Javascript"
+                        },
+                        "name": "MIM_VIEW",
+                        "type": "SKILL"
+                      },
+                      "visible": true
+                    },
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "As for your calendar, there's nothing scheduled for the rest of the day. But tomorrow, your first item is called Full day tomorrow, and it goes all day.",
+                      "meta": {
+                        "mim_id": "CalendarEventTomorrowFullDay",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarEventTomorrowFullDay_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "And <pitch mult='1.2'>that's</pitch> your report! Have a <pitch mult='1.1'>great</pitch> day.",
+                      "meta": {
+                        "mim_id": "PersonalReportOutroConfigured",
+                        "mim_type": "announcement",
+                        "prompt_id": "PersonalReportOutroConfigured_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                }
+              ],
+              "type": "SEQUENCE"
+            },
+            "version": "2.0"
+          },
+          "type": "JCP"
+        },
+        "analytics": {
+          "report-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "domain": "",
+                "initial_intent": "n/a",
+                "last_skill": "n/a",
+                "user_initiated": true,
+                "was_hey_jibo_launch": true
+              }
+            },
+            {
+              "event": "Personal Report Results",
+              "properties": {
+                "config_state": "not configured",
+                "details": "calendar",
+                "service_details": "calendar=up"
+              }
+            }
+          ]
+        },
+        "transitions": [
+          "Reactive",
+          "True",
+          "GetData",
+          "GotData",
+          "Done",
+          "Off",
+          "On",
+          "Done",
+          "Done",
+          "Off",
+          "Off",
+          null
+        ]
+      }
+    },
+    {
+      "id": "full-report-event-today-early-full-day",
+      "semantic": {
+        "sourceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+        "endDate": "2026-06-13T23:59:59-04:00",
+        "requests": [
+          {
+            "service": "google",
+            "calendar": "personalCalendar",
+            "endDate": "2026-06-13T23:59:59-04:00"
+          }
+        ],
+        "parsed": {
+          "numEventsToday": 2,
+          "numEventsTomorrow": 0,
+          "workArrivalDT": {
+            "utc": 1781269200000,
+            "local": {
+              "year": 2026,
+              "monthNum": 5,
+              "date": 12,
+              "hour": 9,
+              "minute": 0
+            },
+            "timeOnly": "9:00 AM",
+            "onAt": "at 9:00 AM"
+          },
+          "events": [
+            {
+              "summary": "Full day today with early",
+              "fullDay": true,
+              "isEarly": false,
+              "dateTime": {
+                "utc": 1781236800000,
+                "local": {
+                  "year": 2026,
+                  "monthNum": 5,
+                  "date": 12,
+                  "hour": 0,
+                  "minute": 0
+                },
+                "timeOnly": "12:00 AM",
+                "onAt": "at 12:00 AM"
+              }
+            },
+            {
+              "summary": "Early today with full day",
+              "fullDay": false,
+              "isEarly": true,
+              "dateTime": {
+                "utc": 1781262000000,
+                "local": {
+                  "year": 2026,
+                  "monthNum": 5,
+                  "date": 12,
+                  "hour": 7,
+                  "minute": 0
+                },
+                "timeOnly": "7:00 AM",
+                "onAt": "at 7:00 AM"
+              }
+            }
+          ]
+        }
+      },
+      "action": {
+        "responseType": "SKILL_ACTION",
+        "final": true,
+        "action": {
+          "config": {
+            "jcp": {
+              "children": [
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "<anim cat='happy'>Sure Jane. Here it is.</anim>",
+                      "meta": {
+                        "mim_id": "PersonalReportKickOff",
+                        "mim_type": "announcement",
+                        "prompt_id": "PersonalReportKickOff_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "display": {
+                      "keepDisplay": false,
+                      "layer": 0,
+                      "name": "PEGASUS_VIEW",
+                      "onCancel": [
+                        {
+                          "name": "HIDE_MIM_VIEW",
+                          "type": "HIDE_DISPLAY"
+                        }
+                      ],
+                      "type": "DISPLAY",
+                      "view": {
+                        "context": {
+                          "data": {
+                            "componentConfigs": [
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventCard",
+                                    "src": "assets/personal-report-skill/calendar/cards/eventMorning_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "cardClip",
+                                "position": {
+                                  "x": 140,
+                                  "y": 110
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventIcon",
+                                    "src": "assets/personal-report-skill/calendar/icons/calendar_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "iconClip",
+                                "position": {
+                                  "x": 534,
+                                  "y": 0
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "id": "timeLabel",
+                                "position": {
+                                  "x": 618,
+                                  "y": 684
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "160",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 1,
+                                  "y": 1
+                                },
+                                "text": "",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "ampmLabel",
+                                "position": {
+                                  "x": 620,
+                                  "y": 670
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "90",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 0,
+                                  "y": 1
+                                },
+                                "text": "",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "eventSummary",
+                                "position": {
+                                  "x": 640,
+                                  "y": 330
+                                },
+                                "style": {
+                                  "align": "center",
+                                  "breakWords": true,
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Light",
+                                  "fontSize": "90",
+                                  "leading": -10,
+                                  "letterSpacing": 0,
+                                  "wordWrap": true,
+                                  "wordWrapWidth": 800
+                                },
+                                "targetAnchor": {
+                                  "x": 0.5,
+                                  "y": 0.5
+                                },
+                                "text": "Full day today with early",
+                                "type": "Label"
+                              }
+                            ],
+                            "defaultSelect": {
+                              "leaveEmpty": false,
+                              "removeAll": true,
+                              "transitionClose": "trans_out"
+                            },
+                            "open": {
+                              "removeAll": true,
+                              "transitionOpen": "trans_in"
+                            },
+                            "viewConfig": {
+                              "category": "gui",
+                              "id": "eventView",
+                              "type": "View"
+                            }
+                          },
+                          "pause": true,
+                          "type": "Javascript"
+                        },
+                        "name": "MIM_VIEW",
+                        "type": "SKILL"
+                      },
+                      "visible": true
+                    },
+                    "play": {
+                      "autoRuleConfig": {
+                        "beat": true,
+                        "hotWords": false,
+                        "punctuation": true,
+                        "voice": true
+                      },
+                      "esml": "Checking your calendar, I see a couple of items today. <break size='0.3'/>The first one is called Full day today with early. It starts at 12:00 AM.",
+                      "meta": {
+                        "mim_id": "CalendarEventToday",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarEventToday_AN_15",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "That's a bit earlier than you usually start work.",
+                      "meta": {
+                        "mim_id": "CalendarEarlyEvent",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarEarlyEvent_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "And <pitch mult='1.2'>that's</pitch> your report! Have a <pitch mult='1.1'>great</pitch> day.",
+                      "meta": {
+                        "mim_id": "PersonalReportOutroConfigured",
+                        "mim_type": "announcement",
+                        "prompt_id": "PersonalReportOutroConfigured_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                }
+              ],
+              "type": "SEQUENCE"
+            },
+            "version": "2.0"
+          },
+          "type": "JCP"
+        },
+        "analytics": {
+          "report-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "domain": "",
+                "initial_intent": "n/a",
+                "last_skill": "n/a",
+                "user_initiated": true,
+                "was_hey_jibo_launch": true
+              }
+            },
+            {
+              "event": "Personal Report Results",
+              "properties": {
+                "config_state": "not configured",
+                "details": "calendar",
+                "service_details": "calendar=up"
+              }
+            }
+          ]
+        },
+        "transitions": [
+          "Reactive",
+          "True",
+          "GetData",
+          "GotData",
+          "Done",
+          "Off",
+          "On",
+          "Done",
+          "Done",
+          "Off",
+          "Off",
+          null
+        ]
+      }
+    },
+    {
+      "id": "full-report-event-tomorrow-early-full-day",
+      "semantic": {
+        "sourceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+        "endDate": "2026-06-13T23:59:59-04:00",
+        "requests": [
+          {
+            "service": "google",
+            "calendar": "personalCalendar",
+            "endDate": "2026-06-13T23:59:59-04:00"
+          }
+        ],
+        "parsed": {
+          "numEventsToday": 0,
+          "numEventsTomorrow": 2,
+          "workArrivalDT": {
+            "utc": 1781355600000,
+            "local": {
+              "year": 2026,
+              "monthNum": 5,
+              "date": 13,
+              "hour": 9,
+              "minute": 0
+            },
+            "timeOnly": "9:00 AM",
+            "onAt": "tomorrow at 9:00 AM"
+          },
+          "events": [
+            {
+              "summary": "Full day tomorrow with early",
+              "fullDay": true,
+              "isEarly": false,
+              "dateTime": {
+                "utc": 1781323200000,
+                "local": {
+                  "year": 2026,
+                  "monthNum": 5,
+                  "date": 13,
+                  "hour": 0,
+                  "minute": 0
+                },
+                "timeOnly": "12:00 AM",
+                "onAt": "tomorrow at 12:00 AM"
+              }
+            },
+            {
+              "summary": "Early tomorrow with full day",
+              "fullDay": false,
+              "isEarly": true,
+              "dateTime": {
+                "utc": 1781348400000,
+                "local": {
+                  "year": 2026,
+                  "monthNum": 5,
+                  "date": 13,
+                  "hour": 7,
+                  "minute": 0
+                },
+                "timeOnly": "7:00 AM",
+                "onAt": "tomorrow at 7:00 AM"
+              }
+            }
+          ]
+        }
+      },
+      "action": {
+        "responseType": "SKILL_ACTION",
+        "final": true,
+        "action": {
+          "config": {
+            "jcp": {
+              "children": [
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "<anim cat='happy'>Sure Jane. Here it is.</anim>",
+                      "meta": {
+                        "mim_id": "PersonalReportKickOff",
+                        "mim_type": "announcement",
+                        "prompt_id": "PersonalReportKickOff_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "display": {
+                      "keepDisplay": false,
+                      "layer": 0,
+                      "name": "PEGASUS_VIEW",
+                      "onCancel": [
+                        {
+                          "name": "HIDE_MIM_VIEW",
+                          "type": "HIDE_DISPLAY"
+                        }
+                      ],
+                      "type": "DISPLAY",
+                      "view": {
+                        "context": {
+                          "data": {
+                            "componentConfigs": [
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventCard",
+                                    "src": "assets/personal-report-skill/calendar/cards/eventMorning_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "cardClip",
+                                "position": {
+                                  "x": 140,
+                                  "y": 110
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventIcon",
+                                    "src": "assets/personal-report-skill/calendar/icons/calendar_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "iconClip",
+                                "position": {
+                                  "x": 534,
+                                  "y": 0
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "id": "timeLabel",
+                                "position": {
+                                  "x": 618,
+                                  "y": 684
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "160",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 1,
+                                  "y": 1
+                                },
+                                "text": "",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "ampmLabel",
+                                "position": {
+                                  "x": 620,
+                                  "y": 670
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "90",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 0,
+                                  "y": 1
+                                },
+                                "text": "",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "eventSummary",
+                                "position": {
+                                  "x": 640,
+                                  "y": 330
+                                },
+                                "style": {
+                                  "align": "center",
+                                  "breakWords": true,
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Light",
+                                  "fontSize": "90",
+                                  "leading": -10,
+                                  "letterSpacing": 0,
+                                  "wordWrap": true,
+                                  "wordWrapWidth": 800
+                                },
+                                "targetAnchor": {
+                                  "x": 0.5,
+                                  "y": 0.5
+                                },
+                                "text": "Full day tomorrow with early",
+                                "type": "Label"
+                              }
+                            ],
+                            "defaultSelect": {
+                              "leaveEmpty": false,
+                              "removeAll": true,
+                              "transitionClose": "trans_out"
+                            },
+                            "open": {
+                              "removeAll": true,
+                              "transitionOpen": "trans_in"
+                            },
+                            "viewConfig": {
+                              "category": "gui",
+                              "id": "eventView",
+                              "type": "View"
+                            }
+                          },
+                          "pause": true,
+                          "type": "Javascript"
+                        },
+                        "name": "MIM_VIEW",
+                        "type": "SKILL"
+                      },
+                      "visible": true
+                    },
+                    "play": {
+                      "autoRuleConfig": {
+                        "beat": true,
+                        "hotWords": false,
+                        "punctuation": true,
+                        "voice": true
+                      },
+                      "esml": "As for your calendar, there's nothing scheduled for the rest of the day. But tomorrow, your first item is called Full day tomorrow with early, and it starts at 12:00 AM.",
+                      "meta": {
+                        "mim_id": "CalendarEventTomorrow",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarEventTomorrow_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "That's a bit earlier than you usually start work.",
+                      "meta": {
+                        "mim_id": "CalendarEarlyEvent",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarEarlyEvent_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "And <pitch mult='1.2'>that's</pitch> your report! Have a <pitch mult='1.1'>great</pitch> day.",
+                      "meta": {
+                        "mim_id": "PersonalReportOutroConfigured",
+                        "mim_type": "announcement",
+                        "prompt_id": "PersonalReportOutroConfigured_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                }
+              ],
+              "type": "SEQUENCE"
+            },
+            "version": "2.0"
+          },
+          "type": "JCP"
+        },
+        "analytics": {
+          "report-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "domain": "",
+                "initial_intent": "n/a",
+                "last_skill": "n/a",
+                "user_initiated": true,
+                "was_hey_jibo_launch": true
+              }
+            },
+            {
+              "event": "Personal Report Results",
+              "properties": {
+                "config_state": "not configured",
+                "details": "calendar",
+                "service_details": "calendar=up"
+              }
+            }
+          ]
+        },
+        "transitions": [
+          "Reactive",
+          "True",
+          "GetData",
+          "GotData",
+          "Done",
+          "Off",
+          "On",
+          "Done",
+          "Done",
+          "Off",
+          "Off",
+          null
+        ]
+      }
+    },
+    {
+      "id": "custom-work-time-non-early",
+      "semantic": {
+        "sourceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+        "endDate": "2026-06-13T23:59:59-04:00",
+        "requests": [
+          {
+            "service": "google",
+            "calendar": "personalCalendar",
+            "endDate": "2026-06-13T23:59:59-04:00"
+          }
+        ],
+        "parsed": {
+          "numEventsToday": 1,
+          "numEventsTomorrow": 0,
+          "workArrivalDT": {
+            "utc": 1781280000000,
+            "local": {
+              "year": 2026,
+              "monthNum": 5,
+              "date": 12,
+              "hour": 12,
+              "minute": 0
+            },
+            "timeOnly": "12:00 PM",
+            "onAt": "at 12:00 PM"
+          },
+          "events": [
+            {
+              "summary": "After custom work time",
+              "fullDay": false,
+              "isEarly": false,
+              "dateTime": {
+                "utc": 1781285400000,
+                "local": {
+                  "year": 2026,
+                  "monthNum": 5,
+                  "date": 12,
+                  "hour": 13,
+                  "minute": 30
+                },
+                "timeOnly": "1:30 PM",
+                "onAt": "at 1:30 PM"
+              }
+            }
+          ]
+        }
+      },
+      "action": {
+        "responseType": "SKILL_ACTION",
+        "final": true,
+        "action": {
+          "config": {
+            "jcp": {
+              "children": [
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "<anim cat='happy'>Sure Jane. Here it is.</anim>",
+                      "meta": {
+                        "mim_id": "PersonalReportKickOff",
+                        "mim_type": "announcement",
+                        "prompt_id": "PersonalReportKickOff_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "display": {
+                      "keepDisplay": false,
+                      "layer": 0,
+                      "name": "PEGASUS_VIEW",
+                      "onCancel": [
+                        {
+                          "name": "HIDE_MIM_VIEW",
+                          "type": "HIDE_DISPLAY"
+                        }
+                      ],
+                      "type": "DISPLAY",
+                      "view": {
+                        "context": {
+                          "data": {
+                            "componentConfigs": [
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventCard",
+                                    "src": "assets/personal-report-skill/calendar/cards/eventAfternoon_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "cardClip",
+                                "position": {
+                                  "x": 140,
+                                  "y": 110
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventIcon",
+                                    "src": "assets/personal-report-skill/calendar/icons/clock_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "iconClip",
+                                "position": {
+                                  "x": 534,
+                                  "y": 0
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "id": "timeLabel",
+                                "position": {
+                                  "x": 743,
+                                  "y": 684
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "160",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 1,
+                                  "y": 1
+                                },
+                                "text": "1:30",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "ampmLabel",
+                                "position": {
+                                  "x": 745,
+                                  "y": 670
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "90",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 0,
+                                  "y": 1
+                                },
+                                "text": "PM",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "eventSummary",
+                                "position": {
+                                  "x": 640,
+                                  "y": 330
+                                },
+                                "style": {
+                                  "align": "center",
+                                  "breakWords": true,
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Light",
+                                  "fontSize": "90",
+                                  "leading": -10,
+                                  "letterSpacing": 0,
+                                  "wordWrap": true,
+                                  "wordWrapWidth": 800
+                                },
+                                "targetAnchor": {
+                                  "x": 0.5,
+                                  "y": 0.5
+                                },
+                                "text": "After custom work time",
+                                "type": "Label"
+                              }
+                            ],
+                            "defaultSelect": {
+                              "leaveEmpty": false,
+                              "removeAll": true,
+                              "transitionClose": "trans_out"
+                            },
+                            "open": {
+                              "removeAll": true,
+                              "transitionOpen": "trans_in"
+                            },
+                            "viewConfig": {
+                              "category": "gui",
+                              "id": "eventView",
+                              "type": "View"
+                            }
+                          },
+                          "pause": true,
+                          "type": "Javascript"
+                        },
+                        "name": "MIM_VIEW",
+                        "type": "SKILL"
+                      },
+                      "visible": true
+                    },
+                    "play": {
+                      "autoRuleConfig": {
+                        "beat": true,
+                        "hotWords": false,
+                        "punctuation": true,
+                        "voice": true
+                      },
+                      "esml": "On your calendar today, I see one thing, it's called After custom work time. <break size='0.3'/>It starts at 1:30 PM.",
+                      "meta": {
+                        "mim_id": "CalendarEventToday",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarEventToday_AN_07",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "And <pitch mult='1.2'>that's</pitch> your report! Have a <pitch mult='1.1'>great</pitch> day.",
+                      "meta": {
+                        "mim_id": "PersonalReportOutroConfigured",
+                        "mim_type": "announcement",
+                        "prompt_id": "PersonalReportOutroConfigured_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                }
+              ],
+              "type": "SEQUENCE"
+            },
+            "version": "2.0"
+          },
+          "type": "JCP"
+        },
+        "analytics": {
+          "report-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "domain": "",
+                "initial_intent": "n/a",
+                "last_skill": "n/a",
+                "user_initiated": true,
+                "was_hey_jibo_launch": true
+              }
+            },
+            {
+              "event": "Personal Report Results",
+              "properties": {
+                "config_state": "not configured",
+                "details": "calendar",
+                "service_details": "calendar=up"
+              }
+            }
+          ]
+        },
+        "transitions": [
+          "Reactive",
+          "True",
+          "GetData",
+          "GotData",
+          "Done",
+          "Off",
+          "On",
+          "Done",
+          "Done",
+          "Off",
+          "Off",
+          null
+        ]
+      }
+    },
+    {
+      "id": "both-google-slots",
+      "semantic": {
+        "sourceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+        "endDate": "2026-06-13T23:59:59-04:00",
+        "requests": [
+          {
+            "service": "google",
+            "calendar": "personalCalendar",
+            "endDate": "2026-06-13T23:59:59-04:00"
+          },
+          {
+            "service": "google",
+            "calendar": "workCalendar",
+            "endDate": "2026-06-13T23:59:59-04:00"
+          }
+        ],
+        "parsed": {
+          "numEventsToday": 2,
+          "numEventsTomorrow": 0,
+          "workArrivalDT": {
+            "utc": 1781269200000,
+            "local": {
+              "year": 2026,
+              "monthNum": 5,
+              "date": 12,
+              "hour": 9,
+              "minute": 0
+            },
+            "timeOnly": "9:00 AM",
+            "onAt": "at 9:00 AM"
+          },
+          "events": [
+            {
+              "summary": "Google personal slot",
+              "fullDay": false,
+              "isEarly": false,
+              "dateTime": {
+                "utc": 1781272800000,
+                "local": {
+                  "year": 2026,
+                  "monthNum": 5,
+                  "date": 12,
+                  "hour": 10,
+                  "minute": 0
+                },
+                "timeOnly": "10:00 AM",
+                "onAt": "at 10:00 AM"
+              }
+            },
+            {
+              "summary": "Google work slot",
+              "fullDay": false,
+              "isEarly": false,
+              "dateTime": {
+                "utc": 1781276400000,
+                "local": {
+                  "year": 2026,
+                  "monthNum": 5,
+                  "date": 12,
+                  "hour": 11,
+                  "minute": 0
+                },
+                "timeOnly": "11:00 AM",
+                "onAt": "at 11:00 AM"
+              }
+            }
+          ]
+        }
+      },
+      "action": {
+        "responseType": "SKILL_ACTION",
+        "final": true,
+        "action": {
+          "config": {
+            "jcp": {
+              "children": [
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "Looking at your calendar Jane, you have 2 things on the schedule today.",
+                      "meta": {
+                        "mim_id": "CalendarEventCountToday",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarEventCountToday_AN_07",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "display": {
+                      "keepDisplay": false,
+                      "layer": 0,
+                      "name": "PEGASUS_VIEW",
+                      "onCancel": [
+                        {
+                          "name": "HIDE_MIM_VIEW",
+                          "type": "HIDE_DISPLAY"
+                        }
+                      ],
+                      "type": "DISPLAY",
+                      "view": {
+                        "context": {
+                          "data": {
+                            "componentConfigs": [
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventCard",
+                                    "src": "assets/personal-report-skill/calendar/cards/eventMorning_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "cardClip",
+                                "position": {
+                                  "x": 140,
+                                  "y": 110
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventIcon",
+                                    "src": "assets/personal-report-skill/calendar/icons/calendar_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "iconClip",
+                                "position": {
+                                  "x": 534,
+                                  "y": 0
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "id": "timeLabel",
+                                "position": {
+                                  "x": 618,
+                                  "y": 684
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "160",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 1,
+                                  "y": 1
+                                },
+                                "text": "10",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "ampmLabel",
+                                "position": {
+                                  "x": 620,
+                                  "y": 670
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "90",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 0,
+                                  "y": 1
+                                },
+                                "text": "AM",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "eventSummary",
+                                "position": {
+                                  "x": 640,
+                                  "y": 330
+                                },
+                                "style": {
+                                  "align": "center",
+                                  "breakWords": true,
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Light",
+                                  "fontSize": "90",
+                                  "leading": -10,
+                                  "letterSpacing": 0,
+                                  "wordWrap": true,
+                                  "wordWrapWidth": 800
+                                },
+                                "targetAnchor": {
+                                  "x": 0.5,
+                                  "y": 0.5
+                                },
+                                "text": "Google personal slot",
+                                "type": "Label"
+                              }
+                            ],
+                            "defaultSelect": {
+                              "leaveEmpty": true,
+                              "removeAll": true,
+                              "transitionClose": "trans_out"
+                            },
+                            "open": {
+                              "removeAll": true,
+                              "transitionOpen": "trans_in"
+                            },
+                            "viewConfig": {
+                              "category": "gui",
+                              "id": "eventView",
+                              "type": "View"
+                            }
+                          },
+                          "pause": true,
+                          "type": "Javascript"
+                        },
+                        "name": "MIM_VIEW",
+                        "type": "SKILL"
+                      },
+                      "visible": true
+                    },
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "Google personal slot, at 10:00 AM.",
+                      "meta": {
+                        "mim_id": "CalendarSummaryAndTime",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarSummaryAndTime_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "display": {
+                      "keepDisplay": false,
+                      "layer": 0,
+                      "name": "PEGASUS_VIEW",
+                      "onCancel": [
+                        {
+                          "name": "HIDE_MIM_VIEW",
+                          "type": "HIDE_DISPLAY"
+                        }
+                      ],
+                      "type": "DISPLAY",
+                      "view": {
+                        "context": {
+                          "data": {
+                            "componentConfigs": [
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventCard",
+                                    "src": "assets/personal-report-skill/calendar/cards/eventMorning_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "cardClip",
+                                "position": {
+                                  "x": 140,
+                                  "y": 110
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventIcon",
+                                    "src": "assets/personal-report-skill/calendar/icons/calendar_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "iconClip",
+                                "position": {
+                                  "x": 534,
+                                  "y": 0
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "id": "timeLabel",
+                                "position": {
+                                  "x": 618,
+                                  "y": 684
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "160",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 1,
+                                  "y": 1
+                                },
+                                "text": "11",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "ampmLabel",
+                                "position": {
+                                  "x": 620,
+                                  "y": 670
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "90",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 0,
+                                  "y": 1
+                                },
+                                "text": "AM",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "eventSummary",
+                                "position": {
+                                  "x": 640,
+                                  "y": 330
+                                },
+                                "style": {
+                                  "align": "center",
+                                  "breakWords": true,
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Light",
+                                  "fontSize": "90",
+                                  "leading": -10,
+                                  "letterSpacing": 0,
+                                  "wordWrap": true,
+                                  "wordWrapWidth": 800
+                                },
+                                "targetAnchor": {
+                                  "x": 0.5,
+                                  "y": 0.5
+                                },
+                                "text": "Google work slot",
+                                "type": "Label"
+                              }
+                            ],
+                            "defaultSelect": {
+                              "leaveEmpty": false,
+                              "removeAll": true,
+                              "transitionClose": "trans_out"
+                            },
+                            "open": {
+                              "removeAll": true,
+                              "transitionOpen": "trans_in"
+                            },
+                            "viewConfig": {
+                              "category": "gui",
+                              "id": "eventView",
+                              "type": "View"
+                            }
+                          },
+                          "pause": true,
+                          "type": "Javascript"
+                        },
+                        "name": "MIM_VIEW",
+                        "type": "SKILL"
+                      },
+                      "visible": true
+                    },
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "Google work slot, at 11:00 AM.",
+                      "meta": {
+                        "mim_id": "CalendarSummaryAndTime",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarSummaryAndTime_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "And that's it.",
+                      "meta": {
+                        "mim_id": "CalendarOutro",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarOutro_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                }
+              ],
+              "type": "SEQUENCE"
+            },
+            "version": "2.0"
+          },
+          "type": "JCP"
+        },
+        "analytics": {
+          "report-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "domain": "",
+                "initial_intent": "n/a",
+                "last_skill": "n/a",
+                "user_initiated": true,
+                "was_hey_jibo_launch": true
+              }
+            },
+            {
+              "event": "Personal Report Results",
+              "properties": {
+                "config_state": "not configured",
+                "details": "calendar",
+                "service_details": "calendar=up"
+              }
+            }
+          ]
+        },
+        "transitions": [
+          "Reactive",
+          "True",
+          "GetData",
+          "GotData",
+          "Done",
+          "Off",
+          "On",
+          "Done",
+          "Done",
+          "Off",
+          "Off",
+          null
+        ]
+      }
+    },
+    {
+      "id": "both-outlook-slots",
+      "semantic": {
+        "sourceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+        "endDate": "2026-06-13T23:59:59-04:00",
+        "requests": [
+          {
+            "service": "outlook",
+            "calendar": "personalCalendar",
+            "endDate": "2026-06-13T23:59:59-04:00"
+          },
+          {
+            "service": "outlook",
+            "calendar": "workCalendar",
+            "endDate": "2026-06-13T23:59:59-04:00"
+          }
+        ],
+        "parsed": {
+          "numEventsToday": 2,
+          "numEventsTomorrow": 0,
+          "workArrivalDT": {
+            "utc": 1781269200000,
+            "local": {
+              "year": 2026,
+              "monthNum": 5,
+              "date": 12,
+              "hour": 9,
+              "minute": 0
+            },
+            "timeOnly": "9:00 AM",
+            "onAt": "at 9:00 AM"
+          },
+          "events": [
+            {
+              "summary": "Outlook personal slot",
+              "fullDay": false,
+              "isEarly": false,
+              "dateTime": {
+                "utc": 1781272800000,
+                "local": {
+                  "year": 2026,
+                  "monthNum": 5,
+                  "date": 12,
+                  "hour": 10,
+                  "minute": 0
+                },
+                "timeOnly": "10:00 AM",
+                "onAt": "at 10:00 AM"
+              }
+            },
+            {
+              "summary": "Outlook work slot",
+              "fullDay": false,
+              "isEarly": false,
+              "dateTime": {
+                "utc": 1781276400000,
+                "local": {
+                  "year": 2026,
+                  "monthNum": 5,
+                  "date": 12,
+                  "hour": 11,
+                  "minute": 0
+                },
+                "timeOnly": "11:00 AM",
+                "onAt": "at 11:00 AM"
+              }
+            }
+          ]
+        }
+      },
+      "action": {
+        "responseType": "SKILL_ACTION",
+        "final": true,
+        "action": {
+          "config": {
+            "jcp": {
+              "children": [
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "Looking at your calendar Jane, you have 2 things on the schedule today.",
+                      "meta": {
+                        "mim_id": "CalendarEventCountToday",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarEventCountToday_AN_07",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "display": {
+                      "keepDisplay": false,
+                      "layer": 0,
+                      "name": "PEGASUS_VIEW",
+                      "onCancel": [
+                        {
+                          "name": "HIDE_MIM_VIEW",
+                          "type": "HIDE_DISPLAY"
+                        }
+                      ],
+                      "type": "DISPLAY",
+                      "view": {
+                        "context": {
+                          "data": {
+                            "componentConfigs": [
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventCard",
+                                    "src": "assets/personal-report-skill/calendar/cards/eventMorning_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "cardClip",
+                                "position": {
+                                  "x": 140,
+                                  "y": 110
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventIcon",
+                                    "src": "assets/personal-report-skill/calendar/icons/calendar_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "iconClip",
+                                "position": {
+                                  "x": 534,
+                                  "y": 0
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "id": "timeLabel",
+                                "position": {
+                                  "x": 618,
+                                  "y": 684
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "160",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 1,
+                                  "y": 1
+                                },
+                                "text": "10",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "ampmLabel",
+                                "position": {
+                                  "x": 620,
+                                  "y": 670
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "90",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 0,
+                                  "y": 1
+                                },
+                                "text": "AM",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "eventSummary",
+                                "position": {
+                                  "x": 640,
+                                  "y": 330
+                                },
+                                "style": {
+                                  "align": "center",
+                                  "breakWords": true,
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Light",
+                                  "fontSize": "90",
+                                  "leading": -10,
+                                  "letterSpacing": 0,
+                                  "wordWrap": true,
+                                  "wordWrapWidth": 800
+                                },
+                                "targetAnchor": {
+                                  "x": 0.5,
+                                  "y": 0.5
+                                },
+                                "text": "Outlook personal slot",
+                                "type": "Label"
+                              }
+                            ],
+                            "defaultSelect": {
+                              "leaveEmpty": true,
+                              "removeAll": true,
+                              "transitionClose": "trans_out"
+                            },
+                            "open": {
+                              "removeAll": true,
+                              "transitionOpen": "trans_in"
+                            },
+                            "viewConfig": {
+                              "category": "gui",
+                              "id": "eventView",
+                              "type": "View"
+                            }
+                          },
+                          "pause": true,
+                          "type": "Javascript"
+                        },
+                        "name": "MIM_VIEW",
+                        "type": "SKILL"
+                      },
+                      "visible": true
+                    },
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "Outlook personal slot, at 10:00 AM.",
+                      "meta": {
+                        "mim_id": "CalendarSummaryAndTime",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarSummaryAndTime_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "display": {
+                      "keepDisplay": false,
+                      "layer": 0,
+                      "name": "PEGASUS_VIEW",
+                      "onCancel": [
+                        {
+                          "name": "HIDE_MIM_VIEW",
+                          "type": "HIDE_DISPLAY"
+                        }
+                      ],
+                      "type": "DISPLAY",
+                      "view": {
+                        "context": {
+                          "data": {
+                            "componentConfigs": [
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventCard",
+                                    "src": "assets/personal-report-skill/calendar/cards/eventMorning_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "cardClip",
+                                "position": {
+                                  "x": 140,
+                                  "y": 110
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventIcon",
+                                    "src": "assets/personal-report-skill/calendar/icons/calendar_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "iconClip",
+                                "position": {
+                                  "x": 534,
+                                  "y": 0
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "id": "timeLabel",
+                                "position": {
+                                  "x": 618,
+                                  "y": 684
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "160",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 1,
+                                  "y": 1
+                                },
+                                "text": "11",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "ampmLabel",
+                                "position": {
+                                  "x": 620,
+                                  "y": 670
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "90",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 0,
+                                  "y": 1
+                                },
+                                "text": "AM",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "eventSummary",
+                                "position": {
+                                  "x": 640,
+                                  "y": 330
+                                },
+                                "style": {
+                                  "align": "center",
+                                  "breakWords": true,
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Light",
+                                  "fontSize": "90",
+                                  "leading": -10,
+                                  "letterSpacing": 0,
+                                  "wordWrap": true,
+                                  "wordWrapWidth": 800
+                                },
+                                "targetAnchor": {
+                                  "x": 0.5,
+                                  "y": 0.5
+                                },
+                                "text": "Outlook work slot",
+                                "type": "Label"
+                              }
+                            ],
+                            "defaultSelect": {
+                              "leaveEmpty": false,
+                              "removeAll": true,
+                              "transitionClose": "trans_out"
+                            },
+                            "open": {
+                              "removeAll": true,
+                              "transitionOpen": "trans_in"
+                            },
+                            "viewConfig": {
+                              "category": "gui",
+                              "id": "eventView",
+                              "type": "View"
+                            }
+                          },
+                          "pause": true,
+                          "type": "Javascript"
+                        },
+                        "name": "MIM_VIEW",
+                        "type": "SKILL"
+                      },
+                      "visible": true
+                    },
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "Outlook work slot, at 11:00 AM.",
+                      "meta": {
+                        "mim_id": "CalendarSummaryAndTime",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarSummaryAndTime_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "And that's it.",
+                      "meta": {
+                        "mim_id": "CalendarOutro",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarOutro_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                }
+              ],
+              "type": "SEQUENCE"
+            },
+            "version": "2.0"
+          },
+          "type": "JCP"
+        },
+        "analytics": {
+          "report-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "domain": "",
+                "initial_intent": "n/a",
+                "last_skill": "n/a",
+                "user_initiated": true,
+                "was_hey_jibo_launch": true
+              }
+            },
+            {
+              "event": "Personal Report Results",
+              "properties": {
+                "config_state": "not configured",
+                "details": "calendar",
+                "service_details": "calendar=up"
+              }
+            }
+          ]
+        },
+        "transitions": [
+          "Reactive",
+          "True",
+          "GetData",
+          "GotData",
+          "Done",
+          "Off",
+          "On",
+          "Done",
+          "Done",
+          "Off",
+          "Off",
+          null
+        ]
+      }
+    },
+    {
+      "id": "google-over-outlook-precedence-both-slots",
+      "semantic": {
+        "sourceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+        "endDate": "2026-06-13T23:59:59-04:00",
+        "requests": [
+          {
+            "service": "google",
+            "calendar": "personalCalendar",
+            "endDate": "2026-06-13T23:59:59-04:00"
+          },
+          {
+            "service": "google",
+            "calendar": "workCalendar",
+            "endDate": "2026-06-13T23:59:59-04:00"
+          }
+        ],
+        "parsed": {
+          "numEventsToday": 2,
+          "numEventsTomorrow": 0,
+          "workArrivalDT": {
+            "utc": 1781269200000,
+            "local": {
+              "year": 2026,
+              "monthNum": 5,
+              "date": 12,
+              "hour": 9,
+              "minute": 0
+            },
+            "timeOnly": "9:00 AM",
+            "onAt": "at 9:00 AM"
+          },
+          "events": [
+            {
+              "summary": "Google wins personal",
+              "fullDay": false,
+              "isEarly": false,
+              "dateTime": {
+                "utc": 1781272800000,
+                "local": {
+                  "year": 2026,
+                  "monthNum": 5,
+                  "date": 12,
+                  "hour": 10,
+                  "minute": 0
+                },
+                "timeOnly": "10:00 AM",
+                "onAt": "at 10:00 AM"
+              }
+            },
+            {
+              "summary": "Google wins work",
+              "fullDay": false,
+              "isEarly": false,
+              "dateTime": {
+                "utc": 1781276400000,
+                "local": {
+                  "year": 2026,
+                  "monthNum": 5,
+                  "date": 12,
+                  "hour": 11,
+                  "minute": 0
+                },
+                "timeOnly": "11:00 AM",
+                "onAt": "at 11:00 AM"
+              }
+            }
+          ]
+        }
+      },
+      "action": {
+        "responseType": "SKILL_ACTION",
+        "final": true,
+        "action": {
+          "config": {
+            "jcp": {
+              "children": [
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "Looking at your calendar Jane, you have 2 things on the schedule today.",
+                      "meta": {
+                        "mim_id": "CalendarEventCountToday",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarEventCountToday_AN_07",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "display": {
+                      "keepDisplay": false,
+                      "layer": 0,
+                      "name": "PEGASUS_VIEW",
+                      "onCancel": [
+                        {
+                          "name": "HIDE_MIM_VIEW",
+                          "type": "HIDE_DISPLAY"
+                        }
+                      ],
+                      "type": "DISPLAY",
+                      "view": {
+                        "context": {
+                          "data": {
+                            "componentConfigs": [
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventCard",
+                                    "src": "assets/personal-report-skill/calendar/cards/eventMorning_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "cardClip",
+                                "position": {
+                                  "x": 140,
+                                  "y": 110
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventIcon",
+                                    "src": "assets/personal-report-skill/calendar/icons/calendar_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "iconClip",
+                                "position": {
+                                  "x": 534,
+                                  "y": 0
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "id": "timeLabel",
+                                "position": {
+                                  "x": 618,
+                                  "y": 684
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "160",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 1,
+                                  "y": 1
+                                },
+                                "text": "10",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "ampmLabel",
+                                "position": {
+                                  "x": 620,
+                                  "y": 670
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "90",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 0,
+                                  "y": 1
+                                },
+                                "text": "AM",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "eventSummary",
+                                "position": {
+                                  "x": 640,
+                                  "y": 330
+                                },
+                                "style": {
+                                  "align": "center",
+                                  "breakWords": true,
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Light",
+                                  "fontSize": "90",
+                                  "leading": -10,
+                                  "letterSpacing": 0,
+                                  "wordWrap": true,
+                                  "wordWrapWidth": 800
+                                },
+                                "targetAnchor": {
+                                  "x": 0.5,
+                                  "y": 0.5
+                                },
+                                "text": "Google wins personal",
+                                "type": "Label"
+                              }
+                            ],
+                            "defaultSelect": {
+                              "leaveEmpty": true,
+                              "removeAll": true,
+                              "transitionClose": "trans_out"
+                            },
+                            "open": {
+                              "removeAll": true,
+                              "transitionOpen": "trans_in"
+                            },
+                            "viewConfig": {
+                              "category": "gui",
+                              "id": "eventView",
+                              "type": "View"
+                            }
+                          },
+                          "pause": true,
+                          "type": "Javascript"
+                        },
+                        "name": "MIM_VIEW",
+                        "type": "SKILL"
+                      },
+                      "visible": true
+                    },
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "Google wins personal, at 10:00 AM.",
+                      "meta": {
+                        "mim_id": "CalendarSummaryAndTime",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarSummaryAndTime_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "display": {
+                      "keepDisplay": false,
+                      "layer": 0,
+                      "name": "PEGASUS_VIEW",
+                      "onCancel": [
+                        {
+                          "name": "HIDE_MIM_VIEW",
+                          "type": "HIDE_DISPLAY"
+                        }
+                      ],
+                      "type": "DISPLAY",
+                      "view": {
+                        "context": {
+                          "data": {
+                            "componentConfigs": [
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventCard",
+                                    "src": "assets/personal-report-skill/calendar/cards/eventMorning_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "cardClip",
+                                "position": {
+                                  "x": 140,
+                                  "y": 110
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventIcon",
+                                    "src": "assets/personal-report-skill/calendar/icons/calendar_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "iconClip",
+                                "position": {
+                                  "x": 534,
+                                  "y": 0
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "id": "timeLabel",
+                                "position": {
+                                  "x": 618,
+                                  "y": 684
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "160",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 1,
+                                  "y": 1
+                                },
+                                "text": "11",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "ampmLabel",
+                                "position": {
+                                  "x": 620,
+                                  "y": 670
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "90",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 0,
+                                  "y": 1
+                                },
+                                "text": "AM",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "eventSummary",
+                                "position": {
+                                  "x": 640,
+                                  "y": 330
+                                },
+                                "style": {
+                                  "align": "center",
+                                  "breakWords": true,
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Light",
+                                  "fontSize": "90",
+                                  "leading": -10,
+                                  "letterSpacing": 0,
+                                  "wordWrap": true,
+                                  "wordWrapWidth": 800
+                                },
+                                "targetAnchor": {
+                                  "x": 0.5,
+                                  "y": 0.5
+                                },
+                                "text": "Google wins work",
+                                "type": "Label"
+                              }
+                            ],
+                            "defaultSelect": {
+                              "leaveEmpty": false,
+                              "removeAll": true,
+                              "transitionClose": "trans_out"
+                            },
+                            "open": {
+                              "removeAll": true,
+                              "transitionOpen": "trans_in"
+                            },
+                            "viewConfig": {
+                              "category": "gui",
+                              "id": "eventView",
+                              "type": "View"
+                            }
+                          },
+                          "pause": true,
+                          "type": "Javascript"
+                        },
+                        "name": "MIM_VIEW",
+                        "type": "SKILL"
+                      },
+                      "visible": true
+                    },
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "Google wins work, at 11:00 AM.",
+                      "meta": {
+                        "mim_id": "CalendarSummaryAndTime",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarSummaryAndTime_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "And that's it.",
+                      "meta": {
+                        "mim_id": "CalendarOutro",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarOutro_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                }
+              ],
+              "type": "SEQUENCE"
+            },
+            "version": "2.0"
+          },
+          "type": "JCP"
+        },
+        "analytics": {
+          "report-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "domain": "",
+                "initial_intent": "n/a",
+                "last_skill": "n/a",
+                "user_initiated": true,
+                "was_hey_jibo_launch": true
+              }
+            },
+            {
+              "event": "Personal Report Results",
+              "properties": {
+                "config_state": "not configured",
+                "details": "calendar",
+                "service_details": "calendar=up"
+              }
+            }
+          ]
+        },
+        "transitions": [
+          "Reactive",
+          "True",
+          "GetData",
+          "GotData",
+          "Done",
+          "Off",
+          "On",
+          "Done",
+          "Done",
+          "Off",
+          "Off",
+          null
+        ]
+      }
+    },
+    {
+      "id": "mixed-provider-failure-all-or-nothing",
+      "semantic": {
+        "sourceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+        "endDate": "2026-06-13T23:59:59-04:00",
+        "requests": [
+          {
+            "service": "google",
+            "calendar": "personalCalendar",
+            "endDate": "2026-06-13T23:59:59-04:00"
+          },
+          {
+            "service": "outlook",
+            "calendar": "workCalendar",
+            "endDate": "2026-06-13T23:59:59-04:00"
+          }
+        ],
+        "parsed": null
+      },
+      "action": {
+        "responseType": "SKILL_ACTION",
+        "final": true,
+        "action": {
+          "config": {
+            "jcp": {
+              "children": [
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "Looks like I can't access calendars right now. Sorry.",
+                      "meta": {
+                        "mim_id": "CalendarServiceDown",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarServiceDown_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                }
+              ],
+              "type": "SEQUENCE"
+            },
+            "version": "2.0"
+          },
+          "type": "JCP"
+        },
+        "analytics": {
+          "report-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "domain": "",
+                "initial_intent": "n/a",
+                "last_skill": "n/a",
+                "user_initiated": true,
+                "was_hey_jibo_launch": true
+              }
+            },
+            {
+              "event": "Personal Report Results",
+              "properties": {
+                "config_state": "not configured",
+                "details": "calendar",
+                "service_details": "calendar=down"
+              }
+            }
+          ]
+        },
+        "transitions": [
+          "Reactive",
+          "True",
+          "GetData",
+          "GotData",
+          "Done",
+          "Off",
+          "On",
+          "Done",
+          "Done",
+          "Off",
+          "Off",
+          null
+        ]
+      }
+    },
+    {
+      "id": "timezone-source-minus-five",
+      "semantic": {
+        "sourceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+        "endDate": "2017-11-10T23:59:59-05:00",
+        "requests": [
+          {
+            "service": "google",
+            "calendar": "personalCalendar",
+            "endDate": "2017-11-10T23:59:59-05:00"
+          }
+        ],
+        "parsed": {
+          "numEventsToday": 1,
+          "numEventsTomorrow": 0,
+          "workArrivalDT": {
+            "utc": 1510236000000,
+            "local": {
+              "year": 2017,
+              "monthNum": 10,
+              "date": 9,
+              "hour": 9,
+              "minute": 0
+            },
+            "timeOnly": "9:00 AM",
+            "onAt": "at 9:00 AM"
+          },
+          "events": [
+            {
+              "summary": "San Francisco event",
+              "fullDay": false,
+              "isEarly": true,
+              "dateTime": {
+                "utc": 1510210800000,
+                "local": {
+                  "year": 2017,
+                  "monthNum": 10,
+                  "date": 8,
+                  "hour": 23,
+                  "minute": 0
+                },
+                "timeOnly": "11:00 PM",
+                "onAt": "at 11:00 PM"
+              }
+            }
+          ]
+        }
+      },
+      "action": {
+        "responseType": "SKILL_ACTION",
+        "final": true,
+        "action": {
+          "config": {
+            "jcp": {
+              "children": [
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "<anim cat='happy'>Sure Jane. Here it is.</anim>",
+                      "meta": {
+                        "mim_id": "PersonalReportKickOff",
+                        "mim_type": "announcement",
+                        "prompt_id": "PersonalReportKickOff_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "display": {
+                      "keepDisplay": false,
+                      "layer": 0,
+                      "name": "PEGASUS_VIEW",
+                      "onCancel": [
+                        {
+                          "name": "HIDE_MIM_VIEW",
+                          "type": "HIDE_DISPLAY"
+                        }
+                      ],
+                      "type": "DISPLAY",
+                      "view": {
+                        "context": {
+                          "data": {
+                            "componentConfigs": [
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventCard",
+                                    "src": "assets/personal-report-skill/calendar/cards/eventNight_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "cardClip",
+                                "position": {
+                                  "x": 140,
+                                  "y": 110
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventIcon",
+                                    "src": "assets/personal-report-skill/calendar/icons/calendar_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "iconClip",
+                                "position": {
+                                  "x": 534,
+                                  "y": 0
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "id": "timeLabel",
+                                "position": {
+                                  "x": 618,
+                                  "y": 684
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "160",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 1,
+                                  "y": 1
+                                },
+                                "text": "11",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "ampmLabel",
+                                "position": {
+                                  "x": 620,
+                                  "y": 670
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "90",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 0,
+                                  "y": 1
+                                },
+                                "text": "PM",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "eventSummary",
+                                "position": {
+                                  "x": 640,
+                                  "y": 330
+                                },
+                                "style": {
+                                  "align": "center",
+                                  "breakWords": true,
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Light",
+                                  "fontSize": "90",
+                                  "leading": -10,
+                                  "letterSpacing": 0,
+                                  "wordWrap": true,
+                                  "wordWrapWidth": 800
+                                },
+                                "targetAnchor": {
+                                  "x": 0.5,
+                                  "y": 0.5
+                                },
+                                "text": "San Francisco event",
+                                "type": "Label"
+                              }
+                            ],
+                            "defaultSelect": {
+                              "leaveEmpty": false,
+                              "removeAll": true,
+                              "transitionClose": "trans_out"
+                            },
+                            "open": {
+                              "removeAll": true,
+                              "transitionOpen": "trans_in"
+                            },
+                            "viewConfig": {
+                              "category": "gui",
+                              "id": "eventView",
+                              "type": "View"
+                            }
+                          },
+                          "pause": true,
+                          "type": "Javascript"
+                        },
+                        "name": "MIM_VIEW",
+                        "type": "SKILL"
+                      },
+                      "visible": true
+                    },
+                    "play": {
+                      "autoRuleConfig": {
+                        "beat": true,
+                        "hotWords": false,
+                        "punctuation": true,
+                        "voice": true
+                      },
+                      "esml": "On your calendar today, I see one thing, it's called San Francisco event. <break size='0.3'/>It starts at 11:00 PM.",
+                      "meta": {
+                        "mim_id": "CalendarEventToday",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarEventToday_AN_07",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "That's a bit earlier than you usually start work.",
+                      "meta": {
+                        "mim_id": "CalendarEarlyEvent",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarEarlyEvent_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "And <pitch mult='1.2'>that's</pitch> your report! Have a <pitch mult='1.1'>great</pitch> day.",
+                      "meta": {
+                        "mim_id": "PersonalReportOutroConfigured",
+                        "mim_type": "announcement",
+                        "prompt_id": "PersonalReportOutroConfigured_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                }
+              ],
+              "type": "SEQUENCE"
+            },
+            "version": "2.0"
+          },
+          "type": "JCP"
+        },
+        "analytics": {
+          "report-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "domain": "",
+                "initial_intent": "n/a",
+                "last_skill": "n/a",
+                "user_initiated": true,
+                "was_hey_jibo_launch": true
+              }
+            },
+            {
+              "event": "Personal Report Results",
+              "properties": {
+                "config_state": "not configured",
+                "details": "calendar",
+                "service_details": "calendar=up"
+              }
+            }
+          ]
+        },
+        "transitions": [
+          "Reactive",
+          "True",
+          "GetData",
+          "GotData",
+          "Done",
+          "Off",
+          "On",
+          "Done",
+          "Done",
+          "Off",
+          "Off",
+          null
+        ]
+      }
+    },
+    {
+      "id": "timezone-source-plus-five",
+      "semantic": {
+        "sourceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+        "endDate": "2017-11-10T23:59:59+05:00",
+        "requests": [
+          {
+            "service": "google",
+            "calendar": "personalCalendar",
+            "endDate": "2017-11-10T23:59:59+05:00"
+          }
+        ],
+        "parsed": {
+          "numEventsToday": 1,
+          "numEventsTomorrow": 0,
+          "workArrivalDT": {
+            "utc": 1510200000000,
+            "local": {
+              "year": 2017,
+              "monthNum": 10,
+              "date": 9,
+              "hour": 9,
+              "minute": 0
+            },
+            "timeOnly": "9:00 AM",
+            "onAt": "at 9:00 AM"
+          },
+          "events": [
+            {
+              "summary": "San Francisco event",
+              "fullDay": false,
+              "isEarly": false,
+              "dateTime": {
+                "utc": 1510210800000,
+                "local": {
+                  "year": 2017,
+                  "monthNum": 10,
+                  "date": 8,
+                  "hour": 23,
+                  "minute": 0
+                },
+                "timeOnly": "11:00 PM",
+                "onAt": "at 11:00 PM"
+              }
+            }
+          ]
+        }
+      },
+      "action": {
+        "responseType": "SKILL_ACTION",
+        "final": true,
+        "action": {
+          "config": {
+            "jcp": {
+              "children": [
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "<anim cat='happy'>Sure Jane. Here it is.</anim>",
+                      "meta": {
+                        "mim_id": "PersonalReportKickOff",
+                        "mim_type": "announcement",
+                        "prompt_id": "PersonalReportKickOff_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "display": {
+                      "keepDisplay": false,
+                      "layer": 0,
+                      "name": "PEGASUS_VIEW",
+                      "onCancel": [
+                        {
+                          "name": "HIDE_MIM_VIEW",
+                          "type": "HIDE_DISPLAY"
+                        }
+                      ],
+                      "type": "DISPLAY",
+                      "view": {
+                        "context": {
+                          "data": {
+                            "componentConfigs": [
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventCard",
+                                    "src": "assets/personal-report-skill/calendar/cards/eventNight_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "cardClip",
+                                "position": {
+                                  "x": 140,
+                                  "y": 110
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "assets": [
+                                  {
+                                    "id": "eventIcon",
+                                    "src": "assets/personal-report-skill/calendar/icons/calendar_v01.crn",
+                                    "type": "texture"
+                                  }
+                                ],
+                                "id": "iconClip",
+                                "position": {
+                                  "x": 534,
+                                  "y": 0
+                                },
+                                "type": "Clip"
+                              },
+                              {
+                                "id": "timeLabel",
+                                "position": {
+                                  "x": 618,
+                                  "y": 684
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "160",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 1,
+                                  "y": 1
+                                },
+                                "text": "11",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "ampmLabel",
+                                "position": {
+                                  "x": 620,
+                                  "y": 670
+                                },
+                                "style": {
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Soft",
+                                  "fontSize": "90",
+                                  "fontWeight": "bold"
+                                },
+                                "targetAnchor": {
+                                  "x": 0,
+                                  "y": 1
+                                },
+                                "text": "PM",
+                                "type": "Label"
+                              },
+                              {
+                                "id": "eventSummary",
+                                "position": {
+                                  "x": 640,
+                                  "y": 330
+                                },
+                                "style": {
+                                  "align": "center",
+                                  "breakWords": true,
+                                  "fill": "#FFFFFF",
+                                  "fontFamily": "Proxima Nova Light",
+                                  "fontSize": "90",
+                                  "leading": -10,
+                                  "letterSpacing": 0,
+                                  "wordWrap": true,
+                                  "wordWrapWidth": 800
+                                },
+                                "targetAnchor": {
+                                  "x": 0.5,
+                                  "y": 0.5
+                                },
+                                "text": "San Francisco event",
+                                "type": "Label"
+                              }
+                            ],
+                            "defaultSelect": {
+                              "leaveEmpty": false,
+                              "removeAll": true,
+                              "transitionClose": "trans_out"
+                            },
+                            "open": {
+                              "removeAll": true,
+                              "transitionOpen": "trans_in"
+                            },
+                            "viewConfig": {
+                              "category": "gui",
+                              "id": "eventView",
+                              "type": "View"
+                            }
+                          },
+                          "pause": true,
+                          "type": "Javascript"
+                        },
+                        "name": "MIM_VIEW",
+                        "type": "SKILL"
+                      },
+                      "visible": true
+                    },
+                    "play": {
+                      "autoRuleConfig": {
+                        "beat": true,
+                        "hotWords": false,
+                        "punctuation": true,
+                        "voice": true
+                      },
+                      "esml": "On your calendar today, I see one thing, it's called San Francisco event. <break size='0.3'/>It starts at 11:00 PM.",
+                      "meta": {
+                        "mim_id": "CalendarEventToday",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarEventToday_AN_07",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                },
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "And <pitch mult='1.2'>that's</pitch> your report! Have a <pitch mult='1.1'>great</pitch> day.",
+                      "meta": {
+                        "mim_id": "PersonalReportOutroConfigured",
+                        "mim_type": "announcement",
+                        "prompt_id": "PersonalReportOutroConfigured_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                }
+              ],
+              "type": "SEQUENCE"
+            },
+            "version": "2.0"
+          },
+          "type": "JCP"
+        },
+        "analytics": {
+          "report-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "domain": "",
+                "initial_intent": "n/a",
+                "last_skill": "n/a",
+                "user_initiated": true,
+                "was_hey_jibo_launch": true
+              }
+            },
+            {
+              "event": "Personal Report Results",
+              "properties": {
+                "config_state": "not configured",
+                "details": "calendar",
+                "service_details": "calendar=up"
+              }
+            }
+          ]
+        },
+        "transitions": [
+          "Reactive",
+          "True",
+          "GetData",
+          "GotData",
+          "Done",
+          "Off",
+          "On",
+          "Done",
+          "Done",
+          "Off",
+          "Off",
+          null
+        ]
+      }
+    },
+    {
+      "id": "google-personal-expired",
+      "semantic": {
+        "sourceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+        "endDate": "2026-06-13T23:59:59-04:00",
+        "requests": [
+          {
+            "service": "google",
+            "calendar": "personalCalendar",
+            "endDate": "2026-06-13T23:59:59-04:00"
+          }
+        ],
+        "parsed": null
       },
       "action": {
         "responseType": "SKILL_ACTION",
@@ -6385,23 +10897,7 @@
             "endDate": "2026-06-13T23:59:59-04:00"
           }
         ],
-        "parsed": {
-          "numEventsToday": 0,
-          "numEventsTomorrow": 0,
-          "workArrivalDT": {
-            "utc": 1781269200000,
-            "local": {
-              "year": 2026,
-              "monthNum": 5,
-              "date": 12,
-              "hour": 9,
-              "minute": 0
-            },
-            "timeOnly": "9:00 AM",
-            "onAt": "at 9:00 AM"
-          },
-          "events": []
-        }
+        "parsed": null
       },
       "action": {
         "responseType": "SKILL_ACTION",

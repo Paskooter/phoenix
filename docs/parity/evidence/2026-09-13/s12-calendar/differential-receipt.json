@@ -1,10 +1,10 @@
 {
   "schema": "s12-calendar-differential-v1",
   "result": "pass",
-  "totalRows": 21,
-  "semanticMatches": 21,
-  "promptMatches": 21,
-  "actionMatches": 21,
+  "totalRows": 37,
+  "semanticMatches": 37,
+  "promptMatches": 37,
+  "actionMatches": 37,
   "coverageErrors": [],
   "semanticDifferences": [],
   "promptDifferences": [],
@@ -120,6 +120,102 @@
     },
     {
       "id": "many-events-daily-cap",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "app-setup",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "asked-tomorrow-none",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "missing-summary-main",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "full-report-event-today",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "full-report-event-tomorrow",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "full-report-event-today-full-day",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "full-report-event-tomorrow-full-day",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "full-report-event-today-early-full-day",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "full-report-event-tomorrow-early-full-day",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "custom-work-time-non-early",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "both-google-slots",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "both-outlook-slots",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "google-over-outlook-precedence-both-slots",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "mixed-provider-failure-all-or-nothing",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "timezone-source-minus-five",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "timezone-source-plus-five",
       "semantic": true,
       "prompt": true,
       "action": true

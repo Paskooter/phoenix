@@ -33,7 +33,36 @@ function rowsFor(receipt, label) {
       seen.add(row.id);
     }
     for (const key of ['semantic', 'action']) {
-      if (!row || !Object.hasOwn(row, key)) coverageErrors.push(`${label}.${row?.id || index} is missing ${key}`);
+      if (!row || !Object.hasOwn(row, key)) {
+        coverageErrors.push(`${label}.${row?.id || index} is missing ${key}`);
+        continue;
+      }
+      const value = row[key];
+      if (!value || typeof value !== 'object' || Array.isArray(value)) {
+        coverageErrors.push(`${label}.${row?.id || index}.${key} must be a non-null object`);
+      }
+    }
+    const semantic = row && row.semantic;
+    if (semantic && typeof semantic === 'object' && !Array.isArray(semantic)) {
+      if (typeof semantic.endDate !== 'string' || semantic.endDate.length === 0) coverageErrors.push(`${label}.${row.id}.semantic.endDate is missing`);
+      if (!Array.isArray(semantic.requests)) coverageErrors.push(`${label}.${row.id}.semantic.requests must be an array`);
+      if (!Object.hasOwn(semantic, 'parsed')) coverageErrors.push(`${label}.${row.id}.semantic.parsed is missing`);
+    }
+    const action = row && row.action;
+    if (action && typeof action === 'object' && !Array.isArray(action)) {
+      for (const key of ['responseType', 'final', 'action', 'analytics', 'transitions']) {
+        if (!Object.hasOwn(action, key)) coverageErrors.push(`${label}.${row.id}.action.${key} is missing`);
+      }
+      if (typeof action.final !== 'boolean') coverageErrors.push(`${label}.${row.id}.action.final must be boolean`);
+      if (!Array.isArray(action.transitions)) coverageErrors.push(`${label}.${row.id}.action.transitions must be an array`);
+      const graphAction = action.action;
+      if (!graphAction || typeof graphAction !== 'object' || Array.isArray(graphAction)) {
+        coverageErrors.push(`${label}.${row.id}.action.action must be a non-null object`);
+      } else {
+        if (!graphAction.config || typeof graphAction.config !== 'object') coverageErrors.push(`${label}.${row.id}.action.action.config is missing`);
+        const jcp = graphAction.config && graphAction.config.jcp;
+        if (!jcp || typeof jcp !== 'object' || !Array.isArray(jcp.children)) coverageErrors.push(`${label}.${row.id}.action.action.config.jcp.children is missing`);
+      }
     }
   }
   return receipt.rows;

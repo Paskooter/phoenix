@@ -220,6 +220,201 @@
       "workEvents": []
     },
     {
+      "id": "app-setup",
+      "intent": "requestCalendar",
+      "nowISO": "2026-06-12T08:00:00-04:00",
+      "locationISO": "2026-06-12T08:00:00-04:00",
+      "credentials": {},
+      "personalEvents": [],
+      "workEvents": []
+    },
+    {
+      "id": "asked-tomorrow-none",
+      "intent": "requestCalendar",
+      "entities": { "date": "tomorrow" },
+      "nowISO": "2026-06-12T08:00:00-04:00",
+      "locationISO": "2026-06-12T08:00:00-04:00",
+      "credentials": { "googlePersonal": true },
+      "personalEvents": [],
+      "workEvents": []
+    },
+    {
+      "id": "missing-summary-main",
+      "intent": "requestCalendar",
+      "nowISO": "2026-06-12T08:00:00-04:00",
+      "locationISO": "2026-06-12T08:00:00-04:00",
+      "credentials": { "googlePersonal": true },
+      "personalEvents": [
+        { "start": { "dateTime": "2026-06-12T10:00:00-04:00" }, "end": { "dateTime": "2026-06-12T10:30:00-04:00" } }
+      ],
+      "workEvents": []
+    },
+    {
+      "id": "full-report-event-today",
+      "intent": "launchPersonalReport",
+      "nowISO": "2026-06-12T13:00:00-04:00",
+      "locationISO": "2026-06-12T13:00:00-04:00",
+      "credentials": { "googlePersonal": true },
+      "personalEvents": [
+        { "summary": "Afternoon today", "start": { "dateTime": "2026-06-12T15:00:00-04:00" }, "end": { "dateTime": "2026-06-12T15:30:00-04:00" } }
+      ],
+      "workEvents": []
+    },
+    {
+      "id": "full-report-event-tomorrow",
+      "intent": "launchPersonalReport",
+      "nowISO": "2026-06-12T13:00:00-04:00",
+      "locationISO": "2026-06-12T13:00:00-04:00",
+      "credentials": { "googlePersonal": true },
+      "personalEvents": [
+        { "summary": "Afternoon tomorrow", "start": { "dateTime": "2026-06-13T15:00:00-04:00" }, "end": { "dateTime": "2026-06-13T15:30:00-04:00" } }
+      ],
+      "workEvents": []
+    },
+    {
+      "id": "full-report-event-today-full-day",
+      "intent": "launchPersonalReport",
+      "nowISO": "2026-06-12T13:00:00-04:00",
+      "locationISO": "2026-06-12T13:00:00-04:00",
+      "credentials": { "googlePersonal": true },
+      "personalEvents": [
+        { "summary": "Full day today", "fullDay": true, "start": { "dateTime": "2026-06-12T00:00:00-04:00" }, "end": { "dateTime": "2026-06-13T00:00:00-04:00" } }
+      ],
+      "workEvents": []
+    },
+    {
+      "id": "full-report-event-tomorrow-full-day",
+      "intent": "launchPersonalReport",
+      "nowISO": "2026-06-12T13:00:00-04:00",
+      "locationISO": "2026-06-12T13:00:00-04:00",
+      "credentials": { "googlePersonal": true },
+      "personalEvents": [
+        { "summary": "Full day tomorrow", "fullDay": true, "start": { "dateTime": "2026-06-13T00:00:00-04:00" }, "end": { "dateTime": "2026-06-14T00:00:00-04:00" } }
+      ],
+      "workEvents": []
+    },
+    {
+      "id": "full-report-event-today-early-full-day",
+      "intent": "launchPersonalReport",
+      "nowISO": "2026-06-12T06:00:00-04:00",
+      "locationISO": "2026-06-12T06:00:00-04:00",
+      "workTime": { "hour": 9, "min": 0 },
+      "credentials": { "googlePersonal": true },
+      "personalEvents": [
+        { "summary": "Full day today with early", "fullDay": true, "start": { "dateTime": "2026-06-12T00:00:00-04:00" }, "end": { "dateTime": "2026-06-13T00:00:00-04:00" } },
+        { "summary": "Early today with full day", "start": { "dateTime": "2026-06-12T07:00:00-04:00" }, "end": { "dateTime": "2026-06-12T07:30:00-04:00" } }
+      ],
+      "workEvents": []
+    },
+    {
+      "id": "full-report-event-tomorrow-early-full-day",
+      "intent": "launchPersonalReport",
+      "nowISO": "2026-06-12T12:00:00-04:00",
+      "locationISO": "2026-06-12T12:00:00-04:00",
+      "workTime": { "hour": 9, "min": 0 },
+      "credentials": { "googlePersonal": true },
+      "personalEvents": [
+        { "summary": "Full day tomorrow with early", "fullDay": true, "start": { "dateTime": "2026-06-13T00:00:00-04:00" }, "end": { "dateTime": "2026-06-14T00:00:00-04:00" } },
+        { "summary": "Early tomorrow with full day", "start": { "dateTime": "2026-06-13T07:00:00-04:00" }, "end": { "dateTime": "2026-06-13T07:30:00-04:00" } }
+      ],
+      "workEvents": []
+    },
+    {
+      "id": "custom-work-time-non-early",
+      "intent": "launchPersonalReport",
+      "nowISO": "2026-06-12T13:00:00-04:00",
+      "locationISO": "2026-06-12T13:00:00-04:00",
+      "workTime": { "hour": 12, "min": 0 },
+      "credentials": { "googlePersonal": true },
+      "personalEvents": [
+        { "summary": "After custom work time", "start": { "dateTime": "2026-06-12T13:30:00-04:00" }, "end": { "dateTime": "2026-06-12T14:00:00-04:00" } }
+      ],
+      "workEvents": []
+    },
+    {
+      "id": "both-google-slots",
+      "intent": "requestCalendar",
+      "nowISO": "2026-06-12T08:00:00-04:00",
+      "locationISO": "2026-06-12T08:00:00-04:00",
+      "credentials": { "googlePersonal": true, "googleWork": true },
+      "personalEvents": [
+        { "summary": "Google personal slot", "start": { "dateTime": "2026-06-12T10:00:00-04:00" }, "end": { "dateTime": "2026-06-12T10:30:00-04:00" } }
+      ],
+      "workEvents": [
+        { "summary": "Google work slot", "start": { "dateTime": "2026-06-12T11:00:00-04:00" }, "end": { "dateTime": "2026-06-12T11:30:00-04:00" } }
+      ]
+    },
+    {
+      "id": "both-outlook-slots",
+      "intent": "requestCalendar",
+      "nowISO": "2026-06-12T08:00:00-04:00",
+      "locationISO": "2026-06-12T08:00:00-04:00",
+      "credentials": { "outlookPersonal": true, "outlookWork": true },
+      "personalEvents": [
+        { "summary": "Outlook personal slot", "start": { "dateTime": "2026-06-12T10:00:00-04:00" }, "end": { "dateTime": "2026-06-12T10:30:00-04:00" } }
+      ],
+      "workEvents": [
+        { "summary": "Outlook work slot", "start": { "dateTime": "2026-06-12T11:00:00-04:00" }, "end": { "dateTime": "2026-06-12T11:30:00-04:00" } }
+      ]
+    },
+    {
+      "id": "google-over-outlook-precedence-both-slots",
+      "intent": "requestCalendar",
+      "nowISO": "2026-06-12T08:00:00-04:00",
+      "locationISO": "2026-06-12T08:00:00-04:00",
+      "credentials": { "googlePersonal": true, "googleWork": true, "outlookPersonal": true, "outlookWork": true },
+      "personalEvents": [],
+      "workEvents": [],
+      "googlePersonalEvents": [
+        { "summary": "Google wins personal", "start": { "dateTime": "2026-06-12T10:00:00-04:00" }, "end": { "dateTime": "2026-06-12T10:30:00-04:00" } }
+      ],
+      "outlookPersonalEvents": [
+        { "summary": "Outlook loses personal", "start": { "dateTime": "2026-06-12T09:00:00-04:00" }, "end": { "dateTime": "2026-06-12T09:30:00-04:00" } }
+      ],
+      "googleWorkEvents": [
+        { "summary": "Google wins work", "start": { "dateTime": "2026-06-12T11:00:00-04:00" }, "end": { "dateTime": "2026-06-12T11:30:00-04:00" } }
+      ],
+      "outlookWorkEvents": [
+        { "summary": "Outlook loses work", "start": { "dateTime": "2026-06-12T12:00:00-04:00" }, "end": { "dateTime": "2026-06-12T12:30:00-04:00" } }
+      ]
+    },
+    {
+      "id": "mixed-provider-failure-all-or-nothing",
+      "intent": "requestCalendar",
+      "nowISO": "2026-06-12T08:00:00-04:00",
+      "locationISO": "2026-06-12T08:00:00-04:00",
+      "credentials": { "googlePersonal": true, "outlookWork": true },
+      "failureService": "google",
+      "personalEvents": [
+        { "summary": "Failed personal", "start": { "dateTime": "2026-06-12T10:00:00-04:00" }, "end": { "dateTime": "2026-06-12T10:30:00-04:00" } }
+      ],
+      "workEvents": [
+        { "summary": "Successful work", "start": { "dateTime": "2026-06-12T11:00:00-04:00" }, "end": { "dateTime": "2026-06-12T11:30:00-04:00" } }
+      ]
+    },
+    {
+      "id": "timezone-source-minus-five",
+      "intent": "launchPersonalReport",
+      "nowISO": "2017-11-09T01:00:00.000-05:00",
+      "locationISO": "2017-11-09T01:00:00.000-05:00",
+      "credentials": { "googlePersonal": true },
+      "personalEvents": [
+        { "summary": "San Francisco event", "start": { "dateTime": "2017-11-08T23:00:00.000-08:00" }, "end": { "dateTime": "2017-11-08T23:30:00.000-08:00" } }
+      ],
+      "workEvents": []
+    },
+    {
+      "id": "timezone-source-plus-five",
+      "intent": "launchPersonalReport",
+      "nowISO": "2017-11-09T01:00:00.000+05:00",
+      "locationISO": "2017-11-09T01:00:00.000+05:00",
+      "credentials": { "googlePersonal": true },
+      "personalEvents": [
+        { "summary": "San Francisco event", "start": { "dateTime": "2017-11-08T23:00:00.000-08:00" }, "end": { "dateTime": "2017-11-08T23:30:00.000-08:00" } }
+      ],
+      "workEvents": []
+    },
+    {
       "id": "google-personal-expired",
       "intent": "requestCalendar",
       "nowISO": "2026-06-12T08:00:00-04:00",
