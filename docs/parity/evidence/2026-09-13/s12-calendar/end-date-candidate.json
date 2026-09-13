@@ -1,0 +1,122 @@
+{
+  "schema": "s12-calendar-end-date-receipt-v1",
+  "candidateRevision": "phoenix-w21/s12-calendar",
+  "runtime": "phoenix-node-22.22.0",
+  "rows": [
+    {
+      "id": "offset-colon",
+      "iso": "2026-06-12T12:00:00.000-04:00",
+      "endDate": "2026-06-13T23:59:59-04:00"
+    },
+    {
+      "id": "offset-basic",
+      "iso": "2026-06-12T12:00:00-0400",
+      "endDate": "2026-06-13T23:59:59-04:00"
+    },
+    {
+      "id": "offset-hour",
+      "iso": "2026-06-12T12:00:00-04",
+      "endDate": "2026-06-13T23:59:59-04:00"
+    },
+    {
+      "id": "offset-hour-bound-24",
+      "iso": "2026-06-12T12:00:00+24:00",
+      "endDate": "2026-06-13T23:59:59+24:00"
+    },
+    {
+      "id": "offset-hour-bound-99",
+      "iso": "2026-06-12T12:00:00+99:00",
+      "endDate": "2026-06-13T23:59:59+99:00"
+    },
+    {
+      "id": "offset-positive",
+      "iso": "2026-12-31T23:59:59.123+05:45",
+      "endDate": "2027-01-01T23:59:59+05:45"
+    },
+    {
+      "id": "offset-positive-basic",
+      "iso": "2026-06-12T12:00:00+0545",
+      "endDate": "2026-06-13T23:59:59+05:45"
+    },
+    {
+      "id": "utc-z",
+      "iso": "2026-06-12T12:00:00Z",
+      "endDate": "2026-06-13T23:59:59Z"
+    },
+    {
+      "id": "utc-zero-colon",
+      "iso": "2026-06-12T12:00:00+00:00",
+      "endDate": "2026-06-13T23:59:59Z"
+    },
+    {
+      "id": "utc-zero-basic",
+      "iso": "2026-06-12T12:00:00+0000",
+      "endDate": "2026-06-13T23:59:59Z"
+    },
+    {
+      "id": "bare-timestamp",
+      "iso": "2026-06-12T12:00:00",
+      "endDate": "2026-06-13T23:59:59Z"
+    },
+    {
+      "id": "date-only",
+      "iso": "2026-06-12",
+      "endDate": "2026-06-13T23:59:59Z"
+    },
+    {
+      "id": "month-only",
+      "iso": "2026-06",
+      "endDate": "2026-06-02T23:59:59Z"
+    },
+    {
+      "id": "year-only",
+      "iso": "2026",
+      "endDate": "2026-01-02T23:59:59Z"
+    },
+    {
+      "id": "leap-year",
+      "iso": "2024-02-28T12:00:00+00:00",
+      "endDate": "2024-02-29T23:59:59Z"
+    },
+    {
+      "id": "non-leap-invalid",
+      "iso": "2026-02-29T12:00:00+00:00",
+      "endDate": "Invalid date"
+    },
+    {
+      "id": "month-rollover",
+      "iso": "2026-04-30T12:00:00+00:00",
+      "endDate": "2026-05-01T23:59:59Z"
+    },
+    {
+      "id": "year-rollover",
+      "iso": "2026-12-31T12:00:00+00:00",
+      "endDate": "2027-01-01T23:59:59Z"
+    },
+    {
+      "id": "hour-24",
+      "iso": "2026-06-12T24:00:00Z",
+      "endDate": "2026-06-14T23:59:59Z"
+    },
+    {
+      "id": "invalid-text",
+      "iso": "not-a-date",
+      "endDate": "Invalid date"
+    },
+    {
+      "id": "invalid-month",
+      "iso": "2026-13-01T12:00:00+00:00",
+      "endDate": "Invalid date"
+    },
+    {
+      "id": "invalid-day",
+      "iso": "2026-06-31T12:00:00+00:00",
+      "endDate": "Invalid date"
+    },
+    {
+      "id": "invalid-trailing-space",
+      "iso": "2026-06-12T12:00:00-04:00 ",
+      "endDate": "Invalid date"
+    }
+  ]
+}

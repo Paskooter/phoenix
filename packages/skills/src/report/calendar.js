@@ -24,12 +24,82 @@ export const MimPath = Object.freeze({
 
 // --- CalendarData ---------------------------------------------------------------
 
-/** End of tomorrow in the location's timezone, ISO. */
-function endOfTomorrowISO(iso) {
-  const dt = new DateTime(iso);
-  dt.utc += 24 * 3600 * 1000;
-  dt.setTime(23, 59, 59, 999);
-  return new Date(dt.utc).toISOString();
+/**
+ * End of tomorrow in the location's timezone, using the pinned source's
+ * `moment.parseZone(iso).add(1, 'day').endOf('day').format()` contract.
+ *
+ * `parseZone` keeps the offset written in the runtime ISO instead of
+ * converting the instant to UTC. Moment's `format()` also emits second
+ * precision, without milliseconds.
+ */
+export function endOfTomorrowISO(iso) {
+  // Moment's parseZone accepts the ISO calendar forms used by the runtime:
+  // YYYY, YYYY-MM, YYYY-MM-DD, and an optional time plus Z/±HH[:MM]. Keep
+  // this parser local so the report does not acquire the source's 60 KiB
+  // moment dependency merely to format one request boundary.
+  // The report runtime always supplies location.iso. Keep absent input
+  // fail-closed; the source's undefined-input fallback is a live-clock value
+  // and is outside this request boundary's contract.
+  if (typeof iso !== 'string') return 'Invalid date';
+
+  const match = /^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?(?:(?:T|t| )(\d{2})(?::?(\d{2}))?(?::?(\d{2})(?:[.,](\d+))?)?(Z|z|[+-]\d{2}(?::?\d{2})?)?)?$/.exec(iso);
+  const dateWithZone = /^(\d{4})-(\d{2})-(\d{2})(Z|z)$/.exec(iso);
+  if (!match && !dateWithZone) return 'Invalid date';
+
+  const dateMatch = match || dateWithZone;
+  const year = Number(dateMatch[1]);
+  const month = Number(dateMatch[2] || 1);
+  const day = Number(dateMatch[3] || 1);
+  if (month < 1 || month > 12 || day < 1 || day > daysInMonth(year, month)) return 'Invalid date';
+
+  const hour = match ? Number(match[4] || 0) : 0;
+  const minute = match ? Number(match[5] || 0) : 0;
+  const second = match ? Number(match[6] || 0) : 0;
+  if (hour > 24 || minute > 59 || second > 59 || (hour === 24 && (minute || second))) return 'Invalid date';
+
+  const zone = match ? match[8] : dateMatch[4];
+  const offset = normalizeOffset(zone);
+  if (offset === null) return 'Invalid date';
+
+  let nextYear = year;
+  let nextMonth = month;
+  let nextDay = day;
+  // Moment normalizes 24:00 to the following midnight before adding one
+  // calendar day, so it advances twice before endOf('day').
+  const daysToAdvance = hour === 24 ? 2 : 1;
+  for (let i = 0; i < daysToAdvance; i += 1) {
+    if (nextDay < daysInMonth(nextYear, nextMonth)) nextDay += 1;
+    else if (nextMonth < 12) { nextMonth += 1; nextDay = 1; }
+    else { nextYear += 1; nextMonth = 1; nextDay = 1; }
+  }
+  return formatEndDate(nextYear, nextMonth, nextDay, offset);
+}
+
+function daysInMonth(year, month) {
+  if (month === 2) {
+    const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+    return leap ? 29 : 28;
+  }
+  return [4, 6, 9, 11].includes(month) ? 30 : 31;
+}
+
+function normalizeOffset(zone) {
+  if (!zone || zone.toUpperCase() === 'Z') return 'Z';
+  const match = /^([+-])(\d{2})(?::?(\d{2}))?$/.exec(zone);
+  if (!match) return null;
+  const hours = Number(match[2]);
+  const minutes = Number(match[3] || 0);
+  if (minutes > 59) return null;
+  const total = hours * 60 + minutes;
+  if (total === 0) return 'Z';
+  const sign = match[1];
+  return `${sign}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+}
+
+function formatEndDate(year, month, day, offset) {
+  const pad = (value) => String(value).padStart(2, '0');
+  const yearText = String(year).padStart(4, '0');
+  return `${yearText}-${pad(month)}-${pad(day)}T23:59:59${offset}`;
 }
 
 export async function getData(userPrefs, data) {

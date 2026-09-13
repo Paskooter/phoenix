@@ -19,7 +19,7 @@ process.env.NET_data = 'unset';
 const { clearReportEnvCache } = await import('../src/report/env.js');
 const { createDataService } = await import('../../data/src/index.js');
 const { LassoClient } = await import('../src/report/lassoClient.js');
-const { getData, calendarParse } = await import('../src/report/calendar.js');
+const { getData, calendarParse, endOfTomorrowISO } = await import('../src/report/calendar.js');
 const { Names } = await import('../src/report/utils.js');
 
 const PORT = 7805;
@@ -34,7 +34,7 @@ const eventAt = (summary, dayOffset, hour) => ({
 const TOMORROW = '2026-06-13';
 const DAY_AFTER = '2026-06-14';
 // End of tomorrow in the location's timezone, in the form the report actually sends.
-const END_OF_TOMORROW = '2026-06-14T03:59:59.999Z';
+const END_OF_TOMORROW = '2026-06-13T23:59:59-04:00';
 const WORK_EVENT = eventAt('Work standup', TOMORROW, '09');
 const PERSONAL_EVENT_LATE = eventAt('Dinner with Sam', TOMORROW, '18');
 const PERSONAL_EVENT_DAY_AFTER = eventAt('Dentist', DAY_AFTER, '09');
@@ -104,7 +104,7 @@ test('D-04/i1 a provider returning events reaches the report through the real en
   const sent = providerRequests.filter((r) => r.calendar === 'personalCalendar');
   assert.equal(sent.length, 1);
   assert.equal(sent[0].endDate, END_OF_TOMORROW);
-  assert.equal(new Date(sent[0].endDate).toISOString(), '2026-06-14T03:59:59.999Z');
+  assert.equal(new Date(sent[0].endDate).toISOString(), '2026-06-14T03:59:59.000Z');
 
   // and the report's own parse accepts them: two events tomorrow, none today
   const parsed = calendarParse(events, data);
@@ -125,21 +125,32 @@ test('D-04/i2 LassoClient.fetchCalendarEvents returns the relayData envelope con
   assert.equal(body.lassoDataFromRedis, true, 'the second read came from the 60s cache');
 });
 
-test('D-04/i3 DIVERGENCE (report side, out of D-04 scope): the report sends a UTC endDate so an all-day Outlook event is not shifted', async () => {
+test('S-12/i3 source-compatible endDate preserves the location offset for Outlook all-day events', async () => {
   const data = reportData();
   const [name, events] = await getData({ calendar: { outlookPersonalCreds: true } }, data);
   assert.equal(name, Names.calendar);
   const request = providerRequests.filter((r) => r.service === 'outlook').at(-1);
   assert.equal(request.endDate, END_OF_TOMORROW);
-  // The pinned source builds endDate with
-  // moment.parseZone(iso).add(1,'day').endOf('day').format()
-  // (report-skill/src/subskills/calendar/CalendarData.ts:22), which keeps the location
-  // offset ('2026-06-13T23:59:59-04:00'). The Phoenix report sends the same instant as
-  // UTC, so the data service sees tzOffset 0 and presents an all-day Outlook event at
-  // +00:00 instead of the location offset. Data-service side is correct (see
-  // packages/data/test/calendar-relay.test.js D-04/11); the report's rendering is the gap.
-  assert.equal(request.endDate.endsWith('Z'), true, 'no offset designator survives');
+  assert.equal(request.endDate.endsWith('-04:00'), true, 'the location offset survives');
   assert.equal(events[0].fullDay, true);
-  assert.equal(events[0].start.dateTime, '2026-06-13T00:00:00+00:00');
-  assert.equal(events[0].start.dateTime.endsWith('-04:00'), false);
+  assert.equal(events[0].start.dateTime, '2026-06-13T00:00:00-04:00');
+  assert.equal(events[0].start.dateTime.endsWith('-04:00'), true);
+});
+
+test('S-12/i4 source endDate formatting preserves wall date, offset, and second precision', () => {
+  assert.equal(endOfTomorrowISO('2026-06-12T12:00:00.000-04:00'), '2026-06-13T23:59:59-04:00');
+  assert.equal(endOfTomorrowISO('2026-06-12T12:00:00-0400'), '2026-06-13T23:59:59-04:00');
+  assert.equal(endOfTomorrowISO('2026-06-12T12:00:00-04'), '2026-06-13T23:59:59-04:00');
+  assert.equal(endOfTomorrowISO('2026-06-12T12:00:00+24:00'), '2026-06-13T23:59:59+24:00');
+  assert.equal(endOfTomorrowISO('2026-06-12T12:00:00+99:00'), '2026-06-13T23:59:59+99:00');
+  assert.equal(endOfTomorrowISO('2026-03-07T12:00:00-05:00'), '2026-03-08T23:59:59-05:00');
+  assert.equal(endOfTomorrowISO('2026-12-31T23:59:59.123+05:45'), '2027-01-01T23:59:59+05:45');
+  assert.equal(endOfTomorrowISO('2026-06-12T12:00:00Z'), '2026-06-13T23:59:59Z');
+  assert.equal(endOfTomorrowISO('2026-06-12T12:00:00+00:00'), '2026-06-13T23:59:59Z');
+  assert.equal(endOfTomorrowISO('2026-06-12T12:00:00'), '2026-06-13T23:59:59Z');
+  assert.equal(endOfTomorrowISO('2026-06-12'), '2026-06-13T23:59:59Z');
+  assert.equal(endOfTomorrowISO('2024-02-28T12:00:00+00:00'), '2024-02-29T23:59:59Z');
+  assert.equal(endOfTomorrowISO('2026-12-31T12:00:00+00:00'), '2027-01-01T23:59:59Z');
+  assert.equal(endOfTomorrowISO('2026-02-29T12:00:00+00:00'), 'Invalid date');
+  assert.equal(endOfTomorrowISO('not-a-date'), 'Invalid date');
 });

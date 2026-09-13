@@ -1,0 +1,140 @@
+{
+  "schema": "s12-calendar-differential-v1",
+  "result": "pass",
+  "totalRows": 21,
+  "semanticMatches": 21,
+  "promptMatches": 21,
+  "actionMatches": 21,
+  "coverageErrors": [],
+  "semanticDifferences": [],
+  "promptDifferences": [],
+  "actionDifferences": [],
+  "rowResults": [
+    {
+      "id": "google-personal-today",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "google-work-tomorrow",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "outlook-personal-today",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "outlook-work-tomorrow",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "merge-google-personal-outlook-work",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "no-events",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "merge-concurrent-parallel",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "today-and-tomorrow",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "asked-tomorrow",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "all-day-today",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "overnight-today",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "early-today-work-hours",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "early-tomorrow-work-hours",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "before-noon-no-events",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "after-noon-no-events",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "dst-spring-boundary",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "dst-fall-boundary",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "location-west-offset",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "many-events-daily-cap",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "google-personal-expired",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    },
+    {
+      "id": "outlook-work-expired",
+      "semantic": true,
+      "prompt": true,
+      "action": true
+    }
+  ]
+}

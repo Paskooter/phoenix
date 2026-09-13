@@ -1,0 +1,242 @@
+{
+  "schema": "s12-calendar-oauth-lifecycle-receipt-v1",
+  "sourceRevision": "jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c",
+  "candidateRevision": "phoenix-w21/s12-calendar-real-http-oauth",
+  "actionIdPaths": [
+    "config.jcp.id",
+    "config.jcp.children[*].id",
+    "config.jcp.children[*].config.play.id",
+    "config.jcp.children[*].config.display.id"
+  ],
+  "result": "pass",
+  "rows": [
+    {
+      "id": "google-refresh-failure",
+      "sourceID": "google-personal-expired",
+      "status": 502,
+      "routeBody": "Error getting GoogleCalendar data: Error: No credentials for personalCalendar",
+      "action": {
+        "responseType": "SKILL_ACTION",
+        "final": true,
+        "action": {
+          "config": {
+            "jcp": {
+              "children": [
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "Looks like I can't access calendars right now. Sorry.",
+                      "meta": {
+                        "mim_id": "CalendarServiceDown",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarServiceDown_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                }
+              ],
+              "type": "SEQUENCE"
+            },
+            "version": "2.0"
+          },
+          "type": "JCP"
+        },
+        "analytics": {
+          "report-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "domain": "",
+                "initial_intent": "n/a",
+                "last_skill": "n/a",
+                "user_initiated": true,
+                "was_hey_jibo_launch": true
+              }
+            },
+            {
+              "event": "Personal Report Results",
+              "properties": {
+                "config_state": "not configured",
+                "details": "calendar",
+                "service_details": "calendar=down"
+              }
+            }
+          ]
+        },
+        "transitions": [
+          "Reactive",
+          "True",
+          "GetData",
+          "GotData",
+          "Done",
+          "Off",
+          "On",
+          "Done",
+          "Done",
+          "Off",
+          "Off",
+          null
+        ]
+      },
+      "mims": [
+        "CalendarServiceDown"
+      ],
+      "credential": {
+        "isActive": false,
+        "error": "REFRESH_FAILED"
+      },
+      "actionMatch": true,
+      "operations": {
+        "beforeReport": {
+          "tokenPaths": [],
+          "googleProviderCalls": 0,
+          "outlookProviderCalls": 0
+        },
+        "afterReport": {
+          "tokenPaths": [
+            "/google-token"
+          ],
+          "googleProviderCalls": 0,
+          "outlookProviderCalls": 0
+        },
+        "afterProbe": {
+          "tokenPaths": [
+            "/google-token"
+          ],
+          "googleProviderCalls": 0,
+          "outlookProviderCalls": 0
+        },
+        "reportDelta": {
+          "tokenPaths": [
+            "/google-token"
+          ],
+          "googleProviderCalls": 0,
+          "outlookProviderCalls": 0
+        },
+        "probeDelta": {
+          "tokenPaths": [],
+          "googleProviderCalls": 0,
+          "outlookProviderCalls": 0
+        }
+      }
+    },
+    {
+      "id": "outlook-invalid-token",
+      "sourceID": "outlook-work-expired",
+      "status": 502,
+      "routeBody": "Error getting OutlookCalendar data: Error: No credentials for workCalendar",
+      "action": {
+        "responseType": "SKILL_ACTION",
+        "final": true,
+        "action": {
+          "config": {
+            "jcp": {
+              "children": [
+                {
+                  "config": {
+                    "play": {
+                      "autoRuleConfig": true,
+                      "esml": "Looks like I can't access calendars right now. Sorry.",
+                      "meta": {
+                        "mim_id": "CalendarServiceDown",
+                        "mim_type": "announcement",
+                        "prompt_id": "CalendarServiceDown_AN_01",
+                        "prompt_sub_category": "AN"
+                      },
+                      "type": "PLAY"
+                    }
+                  },
+                  "type": "SLIM"
+                }
+              ],
+              "type": "SEQUENCE"
+            },
+            "version": "2.0"
+          },
+          "type": "JCP"
+        },
+        "analytics": {
+          "report-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "domain": "",
+                "initial_intent": "n/a",
+                "last_skill": "n/a",
+                "user_initiated": true,
+                "was_hey_jibo_launch": true
+              }
+            },
+            {
+              "event": "Personal Report Results",
+              "properties": {
+                "config_state": "not configured",
+                "details": "calendar",
+                "service_details": "calendar=down"
+              }
+            }
+          ]
+        },
+        "transitions": [
+          "Reactive",
+          "True",
+          "GetData",
+          "GotData",
+          "Done",
+          "Off",
+          "On",
+          "Done",
+          "Done",
+          "Off",
+          "Off",
+          null
+        ]
+      },
+      "mims": [
+        "CalendarServiceDown"
+      ],
+      "credential": {
+        "isActive": false,
+        "error": "INVALID_TOKEN"
+      },
+      "actionMatch": true,
+      "operations": {
+        "beforeReport": {
+          "tokenPaths": [
+            "/google-token"
+          ],
+          "googleProviderCalls": 0,
+          "outlookProviderCalls": 0
+        },
+        "afterReport": {
+          "tokenPaths": [
+            "/google-token"
+          ],
+          "googleProviderCalls": 0,
+          "outlookProviderCalls": 1
+        },
+        "afterProbe": {
+          "tokenPaths": [
+            "/google-token"
+          ],
+          "googleProviderCalls": 0,
+          "outlookProviderCalls": 1
+        },
+        "reportDelta": {
+          "tokenPaths": [],
+          "googleProviderCalls": 0,
+          "outlookProviderCalls": 1
+        },
+        "probeDelta": {
+          "tokenPaths": [],
+          "googleProviderCalls": 0,
+          "outlookProviderCalls": 0
+        }
+      }
+    }
+  ]
+}

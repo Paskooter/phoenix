@@ -1,0 +1,243 @@
+{
+  "schema": "s12-calendar-matrix-v1",
+  "cases": [
+    {
+      "id": "google-personal-today",
+      "intent": "requestCalendar",
+      "nowISO": "2026-06-12T08:00:00-04:00",
+      "locationISO": "2026-06-12T08:00:00-04:00",
+      "credentials": { "googlePersonal": true },
+      "personalEvents": [
+        { "summary": "Personal breakfast", "start": { "dateTime": "2026-06-12T10:00:00-04:00" }, "end": { "dateTime": "2026-06-12T10:30:00-04:00" } }
+      ],
+      "workEvents": []
+    },
+    {
+      "id": "google-work-tomorrow",
+      "intent": "requestCalendar",
+      "nowISO": "2026-06-12T08:00:00-04:00",
+      "locationISO": "2026-06-12T08:00:00-04:00",
+      "credentials": { "googleWork": true },
+      "personalEvents": [],
+      "workEvents": [
+        { "summary": "Work standup", "start": { "dateTime": "2026-06-13T09:00:00-04:00" }, "end": { "dateTime": "2026-06-13T09:30:00-04:00" } }
+      ]
+    },
+    {
+      "id": "outlook-personal-today",
+      "intent": "requestCalendar",
+      "nowISO": "2026-06-12T08:00:00-04:00",
+      "locationISO": "2026-06-12T08:00:00-04:00",
+      "credentials": { "outlookPersonal": true },
+      "personalEvents": [
+        { "summary": "Outlook lunch", "start": { "dateTime": "2026-06-12T12:00:00-04:00" }, "end": { "dateTime": "2026-06-12T13:00:00-04:00" } }
+      ],
+      "workEvents": []
+    },
+    {
+      "id": "outlook-work-tomorrow",
+      "intent": "requestCalendar",
+      "nowISO": "2026-06-12T08:00:00-04:00",
+      "locationISO": "2026-06-12T08:00:00-04:00",
+      "credentials": { "outlookWork": true },
+      "personalEvents": [],
+      "workEvents": [
+        { "summary": "Outlook planning", "start": { "dateTime": "2026-06-13T14:00:00-04:00" }, "end": { "dateTime": "2026-06-13T15:00:00-04:00" } }
+      ]
+    },
+    {
+      "id": "merge-google-personal-outlook-work",
+      "intent": "requestCalendar",
+      "nowISO": "2026-06-12T08:00:00-04:00",
+      "locationISO": "2026-06-12T08:00:00-04:00",
+      "credentials": { "googlePersonal": true, "outlookWork": true },
+      "personalEvents": [
+        { "summary": "Personal first", "start": { "dateTime": "2026-06-12T09:00:00-04:00" }, "end": { "dateTime": "2026-06-12T09:30:00-04:00" } },
+        { "summary": "Personal second", "start": { "dateTime": "2026-06-12T11:00:00-04:00" }, "end": { "dateTime": "2026-06-12T11:30:00-04:00" } }
+      ],
+      "workEvents": [
+        { "summary": "Work first", "start": { "dateTime": "2026-06-12T10:00:00-04:00" }, "end": { "dateTime": "2026-06-12T10:30:00-04:00" } },
+        { "summary": "Work second", "start": { "dateTime": "2026-06-12T13:00:00-04:00" }, "end": { "dateTime": "2026-06-12T13:30:00-04:00" } }
+      ]
+    },
+    {
+      "id": "no-events",
+      "intent": "requestCalendar",
+      "nowISO": "2026-06-12T12:00:00-04:00",
+      "locationISO": "2026-06-12T12:00:00-04:00",
+      "credentials": { "googlePersonal": true },
+      "personalEvents": [],
+      "workEvents": []
+    },
+    {
+      "id": "merge-concurrent-parallel",
+      "intent": "requestCalendar",
+      "nowISO": "2026-06-12T08:00:00-04:00",
+      "locationISO": "2026-06-12T08:00:00-04:00",
+      "credentials": { "googlePersonal": true, "outlookWork": true },
+      "personalEvents": [
+        { "summary": "Personal concurrent", "start": { "dateTime": "2026-06-12T10:00:00-04:00" }, "end": { "dateTime": "2026-06-12T10:30:00-04:00" } }
+      ],
+      "workEvents": [
+        { "summary": "Work concurrent", "start": { "dateTime": "2026-06-12T10:00:00-04:00" }, "end": { "dateTime": "2026-06-12T10:30:00-04:00" } }
+      ]
+    },
+    {
+      "id": "today-and-tomorrow",
+      "intent": "requestCalendar",
+      "nowISO": "2026-06-12T08:00:00-04:00",
+      "locationISO": "2026-06-12T08:00:00-04:00",
+      "credentials": { "googlePersonal": true },
+      "personalEvents": [
+        { "summary": "Today event", "start": { "dateTime": "2026-06-12T10:00:00-04:00" }, "end": { "dateTime": "2026-06-12T10:30:00-04:00" } },
+        { "summary": "Tomorrow event", "start": { "dateTime": "2026-06-13T11:00:00-04:00" }, "end": { "dateTime": "2026-06-13T11:30:00-04:00" } }
+      ],
+      "workEvents": []
+    },
+    {
+      "id": "asked-tomorrow",
+      "intent": "requestCalendar",
+      "entities": { "date": "tomorrow" },
+      "nowISO": "2026-06-12T08:00:00-04:00",
+      "locationISO": "2026-06-12T08:00:00-04:00",
+      "credentials": { "googlePersonal": true },
+      "personalEvents": [
+        { "summary": "Tomorrow only", "start": { "dateTime": "2026-06-13T11:00:00-04:00" }, "end": { "dateTime": "2026-06-13T11:30:00-04:00" } }
+      ],
+      "workEvents": []
+    },
+    {
+      "id": "all-day-today",
+      "intent": "requestCalendar",
+      "nowISO": "2026-06-12T08:00:00-04:00",
+      "locationISO": "2026-06-12T08:00:00-04:00",
+      "credentials": { "outlookPersonal": true },
+      "personalEvents": [
+        { "summary": "Company holiday", "fullDay": true, "start": { "dateTime": "2026-06-12T00:00:00-04:00" }, "end": { "dateTime": "2026-06-13T00:00:00-04:00" } }
+      ],
+      "workEvents": []
+    },
+    {
+      "id": "overnight-today",
+      "intent": "requestCalendar",
+      "nowISO": "2026-06-12T20:00:00-04:00",
+      "locationISO": "2026-06-12T20:00:00-04:00",
+      "credentials": { "googlePersonal": true },
+      "personalEvents": [
+        { "summary": "Overnight shift", "start": { "dateTime": "2026-06-12T23:30:00-04:00" }, "end": { "dateTime": "2026-06-13T01:30:00-04:00" } }
+      ],
+      "workEvents": []
+    },
+    {
+      "id": "early-today-work-hours",
+      "intent": "launchPersonalReport",
+      "nowISO": "2026-06-12T06:00:00-04:00",
+      "locationISO": "2026-06-12T06:00:00-04:00",
+      "workTime": { "hour": 9, "min": 0 },
+      "credentials": { "googlePersonal": true },
+      "personalEvents": [
+        { "summary": "Early appointment", "start": { "dateTime": "2026-06-12T07:00:00-04:00" }, "end": { "dateTime": "2026-06-12T07:30:00-04:00" } }
+      ],
+      "workEvents": []
+    },
+    {
+      "id": "early-tomorrow-work-hours",
+      "intent": "launchPersonalReport",
+      "nowISO": "2026-06-12T12:00:00-04:00",
+      "locationISO": "2026-06-12T12:00:00-04:00",
+      "workTime": { "hour": 9, "min": 0 },
+      "credentials": { "googlePersonal": true },
+      "personalEvents": [
+        { "summary": "Early tomorrow appointment", "start": { "dateTime": "2026-06-13T07:00:00-04:00" }, "end": { "dateTime": "2026-06-13T07:30:00-04:00" } }
+      ],
+      "workEvents": []
+    },
+    {
+      "id": "before-noon-no-events",
+      "intent": "launchPersonalReport",
+      "nowISO": "2026-06-12T11:00:00-04:00",
+      "locationISO": "2026-06-12T11:00:00-04:00",
+      "credentials": { "googlePersonal": true },
+      "personalEvents": [],
+      "workEvents": []
+    },
+    {
+      "id": "after-noon-no-events",
+      "intent": "launchPersonalReport",
+      "nowISO": "2026-06-12T13:00:00-04:00",
+      "locationISO": "2026-06-12T13:00:00-04:00",
+      "credentials": { "googlePersonal": true },
+      "personalEvents": [],
+      "workEvents": []
+    },
+    {
+      "id": "dst-spring-boundary",
+      "intent": "requestCalendar",
+      "nowISO": "2026-03-07T08:00:00-05:00",
+      "locationISO": "2026-03-07T08:00:00-05:00",
+      "credentials": { "googlePersonal": true },
+      "personalEvents": [
+        { "summary": "Spring boundary", "start": { "dateTime": "2026-03-08T10:00:00-04:00" }, "end": { "dateTime": "2026-03-08T10:30:00-04:00" } }
+      ],
+      "workEvents": []
+    },
+    {
+      "id": "dst-fall-boundary",
+      "intent": "requestCalendar",
+      "nowISO": "2026-10-31T08:00:00-04:00",
+      "locationISO": "2026-10-31T08:00:00-04:00",
+      "credentials": { "outlookPersonal": true },
+      "personalEvents": [
+        { "summary": "Fall boundary", "start": { "dateTime": "2026-11-01T11:00:00-04:00" }, "end": { "dateTime": "2026-11-01T11:30:00-04:00" } }
+      ],
+      "workEvents": []
+    },
+    {
+      "id": "location-west-offset",
+      "intent": "requestCalendar",
+      "nowISO": "2026-06-12T08:00:00-07:00",
+      "locationISO": "2026-06-12T08:00:00-07:00",
+      "credentials": { "googlePersonal": true },
+      "personalEvents": [
+        { "summary": "Pacific meeting", "start": { "dateTime": "2026-06-12T10:00:00-07:00" }, "end": { "dateTime": "2026-06-12T10:30:00-07:00" } }
+      ],
+      "workEvents": []
+    },
+    {
+      "id": "many-events-daily-cap",
+      "intent": "requestCalendar",
+      "nowISO": "2026-06-12T06:00:00-04:00",
+      "locationISO": "2026-06-12T06:00:00-04:00",
+      "credentials": { "googlePersonal": true },
+      "personalEvents": [
+        { "summary": "Event 1", "start": { "dateTime": "2026-06-12T07:00:00-04:00" } },
+        { "summary": "Event 2", "start": { "dateTime": "2026-06-12T08:00:00-04:00" } },
+        { "summary": "Event 3", "start": { "dateTime": "2026-06-12T09:00:00-04:00" } },
+        { "summary": "Event 4", "start": { "dateTime": "2026-06-12T10:00:00-04:00" } },
+        { "summary": "Event 5", "start": { "dateTime": "2026-06-12T11:00:00-04:00" } },
+        { "summary": "Event 6", "start": { "dateTime": "2026-06-12T12:00:00-04:00" } }
+      ],
+      "workEvents": []
+    },
+    {
+      "id": "google-personal-expired",
+      "intent": "requestCalendar",
+      "nowISO": "2026-06-12T08:00:00-04:00",
+      "locationISO": "2026-06-12T08:00:00-04:00",
+      "credentials": { "googlePersonal": true },
+      "failureService": "google",
+      "personalEvents": [],
+      "workEvents": []
+    },
+    {
+      "id": "outlook-work-expired",
+      "intent": "requestCalendar",
+      "nowISO": "2026-06-12T08:00:00-04:00",
+      "locationISO": "2026-06-12T08:00:00-04:00",
+      "credentials": { "outlookWork": true },
+      "failureService": "outlook",
+      "personalEvents": [],
+      "workEvents": []
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "schema": "s12-calendar-end-date-differential-v1",
+  "result": "pass",
+  "totalRows": 23,
+  "matches": 23,
+  "coverageErrors": [],
+  "differences": [],
+  "rows": [
+    {
+      "id": "offset-colon",
+      "match": true
+    },
+    {
+      "id": "offset-basic",
+      "match": true
+    },
+    {
+      "id": "offset-hour",
+      "match": true
+    },
+    {
+      "id": "offset-hour-bound-24",
+      "match": true
+    },
+    {
+      "id": "offset-hour-bound-99",
+      "match": true
+    },
+    {
+      "id": "offset-positive",
+      "match": true
+    },
+    {
+      "id": "offset-positive-basic",
+      "match": true
+    },
+    {
+      "id": "utc-z",
+      "match": true
+    },
+    {
+      "id": "utc-zero-colon",
+      "match": true
+    },
+    {
+      "id": "utc-zero-basic",
+      "match": true
+    },
+    {
+      "id": "bare-timestamp",
+      "match": true
+    },
+    {
+      "id": "date-only",
+      "match": true
+    },
+    {
+      "id": "month-only",
+      "match": true
+    },
+    {
+      "id": "year-only",
+      "match": true
+    },
+    {
+      "id": "leap-year",
+      "match": true
+    },
+    {
+      "id": "non-leap-invalid",
+      "match": true
+    },
+    {
+      "id": "month-rollover",
+      "match": true
+    },
+    {
+      "id": "year-rollover",
+      "match": true
+    },
+    {
+      "id": "hour-24",
+      "match": true
+    },
+    {
+      "id": "invalid-text",
+      "match": true
+    },
+    {
+      "id": "invalid-month",
+      "match": true
+    },
+    {
+      "id": "invalid-day",
+      "match": true
+    },
+    {
+      "id": "invalid-trailing-space",
+      "match": true
+    }
+  ]
+}
