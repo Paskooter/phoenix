@@ -601,11 +601,11 @@ Evidence: [docs/parity/evidence/2026-09-10/n02-grammar-factory/review.md](../../
 
 ### N-03 — Verify clock, alarm, timer and settings/menu follow-up rules
 
-- [ ] **todo** · P0 · pegasus · implementation: missing
+- [ ] **todo** · P0 · pegasus · implementation: partial
 
 Owner: Codex. Dependencies: N-02.
 
-The clock/settings/menu graphs are now present in the 98-graph compiled inventory. Root verified Moth clock display/TTS, a five-minute timer create/cancel sequence and short timer expiry through the real client with injected text. Every named rule, value/confirmation/volume/menu boundary and acoustic local-turn path still needs task-specific acceptance.
+The clock/settings/menu graphs are present in the compiled inventory, and source time-factory semantic actions now execute in the AST profile. All 20 public named rules pass 134 source/native-backed positive, boundary and negative rows through direct and HTTP paths; a 5,955-input matrix matches both public time FSTs exactly, and representative local-turn WS rows cover every required category. Exhaustive local-turn variants and the three internal launch components remain unverified, so N-03 stays open.
 
 Done when:
 
@@ -617,6 +617,14 @@ Source: [Original Pegasus packages/parser/robust-parser/rules_src/clock](https:/
 Phoenix: [packages/nlu/resources/grammar](../../packages/nlu/resources/grammar); [packages/harness](../../packages/harness).
 
 Evidence: pending.
+
+- [x] Candidate implementation — **accepted**; Luna Max / w18_n03_rules; Codex root.
+
+Candidate scope: Bounded N-03 recovery: activate the pinned time factory, execute all 2,780 supported semantic-action bodies, match 5,955 native inputs against both public time FSTs, replay 134 rows across all 20 public named rules, and cover each requested local-turn category. Root disabled action execution and observed five named failures, then restored six passes. The integrated suite passes 1,969 tests and strict43, but exhaustive local-turn breadth and internal launch-component interpretation remain open.
+
+Candidate report: [docs/parity/evidence/2026-09-13/n03-time-factory/review.md](../../docs/parity/evidence/2026-09-13/n03-time-factory/review.md).
+
+Lead review: Codex root; [docs/parity/evidence/2026-09-13/n03-time-factory/review.md](../../docs/parity/evidence/2026-09-13/n03-time-factory/review.md). Complete task acceptance is still governed by the main checkbox above.
 
 ### N-04 — Verify identity, introduction and greeting follow-up rules
 
@@ -1425,7 +1433,7 @@ Lead review: Hermes root (pasketti); [docs/parity/evidence/2026-09-10/a04-loop-o
 
 Owner: Codex. Dependencies: A-03, A-04.
 
-Published isolated candidate6b600f9 includes setup/reconnect, suspended replacement, unbound relocation, token persistence/expiry, verified OOBE authentication, administrator service-token issuance and UTF-8 QR framing. Root accepted leading-zero Base58 repair after1,030 original encoder matches; combined producta5d04b5 passes924 tests with7 skips and43 strict smoke cases. Installed robot SDK passed28 synthetic checks, including orderly server restart. Public parser candidate7cf0cba awaits root review; combined acceptance, safe deployment, native consumer coverage and A-03/A-04 dependencies remain open.
+The accepted Account implementation covers setup/reconnect, suspended replacement, unbound relocation, token persistence/expiry, OOBE authentication, administrator service-token issuance and UTF-8 QR framing. The integrated public parser now matches the pinned Hapi media/entity boundary, defaults a truly absent Content-Type to JSON, bounds declared/chunked/compressed entities, and preserves the pinned source-simple reconnect behavior. Root falsification and the combined 1,969-test/strict43 run pass. Complete installed-client, restart, A-03/A-04 and fresh hardware evidence remain open.
 
 Done when:
 
@@ -1439,13 +1447,13 @@ Phoenix: [packages/account/src/robotFace.js](../../packages/account/src/robotFac
 
 Evidence: pending.
 
-- [x] Candidate implementation — **awaiting_review**; Luna Max / capture_writer_repair; Codex root.
+- [x] Candidate implementation — **accepted**; Luna Max / w18_a05_review; Codex root.
 
-Candidate scope: Published combined candidate6b600f9 passes924/7skip andstrict43;28 installed-client synthetic checks passed. Token encoding accepted within bounded scope. Public parser candidate7cf0cba requires root review before combined acceptance/deployment.
+Candidate scope: Bounded public OOBE parser/reconnect integration. Pinned source rejects later membership checks; raw node:http proves the missing Content-Type boundary; declared, chunked and compressed expansion paths are bounded. Root falsified the default parser behavior and restored it. Combined 1,969 tests and strict43 pass. Whole A-05 consumer/restart/hardware acceptance remains open.
 
-Candidate report: [packages/account/src/robotFace.js](../../packages/account/src/robotFace.js).
+Candidate report: [docs/parity/evidence/2026-09-13/a05-oobe-parser/review.md](../../docs/parity/evidence/2026-09-13/a05-oobe-parser/review.md).
 
-Lead verification: pending. This candidate does not certify task parity.
+Lead review: Codex root; [docs/parity/evidence/2026-09-13/a05-oobe-parser/review.md](../../docs/parity/evidence/2026-09-13/a05-oobe-parser/review.md). Complete task acceptance is still governed by the main checkbox above.
 
 ### A-07 — Complete Robot records, provisioning and calibration/history behavior
 
