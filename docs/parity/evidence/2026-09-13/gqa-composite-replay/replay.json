@@ -27,11 +27,24 @@
   },
   "command": "node --test packages/skills/test/q01GqaCompositeReplay.test.js",
   "result": {
-    "tests": 5,
-    "passed": 5,
+    "tests": 7,
+    "passed": 7,
     "failed": 0,
     "cancelled": 0,
-    "durationMs": 554
+    "durationMs": 644
+  },
+  "falsifier": {
+    "command": "./docs/parity/evidence/2026-09-13/gqa-composite-replay/falsify-source-provider-plan.mjs",
+    "mutation": "Reverse the first SOURCE_PROVIDER_PLAN group to Wikipedia before Bing, leaving Wolfram as the fallback group.",
+    "reversedRun": {
+      "status": 1,
+      "namedCaseFailed": true
+    },
+    "restoredByteIdentical": true,
+    "restoredFocusedRun": {
+      "status": 0,
+      "passed": true
+    }
   },
   "controls": [
     {
@@ -40,7 +53,11 @@
     },
     {
       "name": "provider priority and fallback",
-      "observed": "Bing wins against simultaneous Wikipedia; Wikipedia wins after Bing empty; Wolfram starts only after both first-group peers return empty"
+      "observed": "When both first-group peers are useful, Wikipedia resolves first and Bing resolves later within the group deadline; Bing is selected and Wolfram is not started. Wikipedia wins after Bing empty; Wolfram starts only after both first-group responses complete empty"
+    },
+    {
+      "name": "selected route aliases",
+      "observed": "The same selected multi-provider profile answers over /answer_skill and /v1/main with source-shaped 200 text/html responses"
     },
     {
       "name": "late priority",
@@ -52,7 +69,7 @@
     },
     {
       "name": "account and attribution",
-      "observed": "Account HTTP lookup precedes provider calls; Bing and Wolfram records preserve normalized answer, URL, image/null, loop ID and timestamp; retrieveAtt and wipeID operate over HTTP"
+      "observed": "The Account HTTP request arrives before the first Bing/Wikipedia provider requests; Bing and Wolfram records preserve normalized answer, URL, image/null, loop ID and timestamp; retrieveAtt and wipeID operate over HTTP"
     },
     {
       "name": "status/media and route boundaries",
@@ -64,7 +81,7 @@
     }
   ],
   "falsifiers": [
-    "Letting Wikipedia answer before a ready Bing answer fails the priority assertion.",
+    "The executable falsifier reverses the first SOURCE_PROVIDER_PLAN group; the both-useful Wikipedia-first named case fails, then the source file is restored byte-identically and the focused case passes again.",
     "Starting Wolfram while Bing or Wikipedia has a useful first-group answer fails request-count assertions.",
     "Settling before the late Bing response fails the late-priority answer assertion.",
     "Replacing source no-answer MIM/display with a generic placeholder fails prompt, display, analytics and error-leak assertions.",

@@ -16,6 +16,7 @@ import {
 const FIXED_NOW = 1_700_000_000_000;
 const FIRST_GROUP_TIMEOUT = 25;
 const WOLFRAM_GROUP_TIMEOUT = 160;
+const BOTH_USEFUL_GROUP_TIMEOUT = 80;
 
 const REQUEST = {
   type: 'LISTEN_LAUNCH',
@@ -94,10 +95,27 @@ function emptyWolfram() {
   return { queryresult: { success: false } };
 }
 
+function recordEvent(state, kind, phase) {
+  const event = {
+    kind,
+    phase,
+    sequence: ++state.sequence,
+    at: performance.now(),
+  };
+  state.events.push(event);
+  return event;
+}
+
 function expectedProviderBody(kind, mode) {
   if (mode === 'errors') return ['error', { error: 'fixture upstream failure' }];
-  if (kind === 'Bing') return ['bing', ['success', 'bing-success', 'late-bing'].includes(mode) ? bingAnswer() : emptyBing()];
-  if (kind === 'Wikipedia') return ['wiki', mode === 'wiki-success' ? wikiAnswer() : emptyWiki()];
+  if (kind === 'Bing') {
+    return ['bing', ['success', 'bing-success', 'late-bing', 'both-useful-wiki-first'].includes(mode)
+      ? bingAnswer() : emptyBing()];
+  }
+  if (kind === 'Wikipedia') {
+    return ['wiki', ['wiki-success', 'both-useful-wiki-first'].includes(mode)
+      ? wikiAnswer() : emptyWiki()];
+  }
   return ['wolfram', ['wolfram-success', 'late-bing'].includes(mode) ? wolframAnswer() : emptyWolfram()];
 }
 
@@ -106,15 +124,16 @@ async function makeProviderPeer(kind, state) {
   const server = createServer(async (request, response) => {
     const parsed = new URL(request.url, 'http://fixture.invalid');
     const receivedAt = performance.now();
+    const requestEvent = recordEvent(state, kind, 'request');
     requests.push({
       method: request.method,
       path: parsed.pathname,
       query: Object.fromEntries(parsed.searchParams),
       headers: { ...request.headers },
       receivedAt,
+      sequence: requestEvent.sequence,
       mode: state.mode,
     });
-    state.events.push({ kind, receivedAt });
 
     const delay = state.delays[kind] || 0;
     if (delay > 0) await wait(delay);
@@ -125,14 +144,14 @@ async function makeProviderPeer(kind, state) {
         'content-type': 'application/json',
         ...(kind === 'Bing' ? { 'BingAPIs-Market': 'en-us' } : {}),
       });
-      response.end(JSON.stringify(body));
+      response.end(JSON.stringify(body), () => recordEvent(state, kind, 'response'));
       return;
     }
     response.writeHead(200, {
       'content-type': 'application/json',
       ...(kind === 'Bing' ? { 'BingAPIs-Market': 'en-us' } : {}),
     });
-    response.end(JSON.stringify(body));
+    response.end(JSON.stringify(body), () => recordEvent(state, kind, 'response'));
   });
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   return {
@@ -142,9 +161,10 @@ async function makeProviderPeer(kind, state) {
   };
 }
 
-async function makeAccountPeer() {
+async function makeAccountPeer(state) {
   const requests = [];
   const server = createServer(async (request, response) => {
+    const requestEvent = recordEvent(state, 'Account', 'request');
     let body = '';
     for await (const chunk of request) body += chunk;
     requests.push({
@@ -153,10 +173,11 @@ async function makeAccountPeer() {
       headers: { ...request.headers },
       body,
       receivedAt: performance.now(),
+      sequence: requestEvent.sequence,
     });
     const payload = JSON.stringify({ 'fixture-account': ['fixture-loop'] });
     response.writeHead(200, { 'content-type': 'application/json' });
-    response.end(payload);
+    response.end(payload, () => recordEvent(state, 'Account', 'response'));
   });
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   return {
@@ -166,13 +187,17 @@ async function makeAccountPeer() {
   };
 }
 
-async function withFixture(callback, { mode = 'bing-success', delays = {} } = {}) {
-  const state = { mode, delays, events: [] };
+async function withFixture(callback, {
+  mode = 'bing-success',
+  delays = {},
+  timeouts = [FIRST_GROUP_TIMEOUT, WOLFRAM_GROUP_TIMEOUT],
+} = {}) {
+  const state = { mode, delays, events: [], sequence: 0 };
   const [bing, wikipedia, wolfram, account] = await Promise.all([
     makeProviderPeer('Bing', state),
     makeProviderPeer('Wikipedia', state),
     makeProviderPeer('Wolfram Alpha', state),
-    makeAccountPeer(),
+    makeAccountPeer(state),
   ]);
   const attribution = createGqaMemoryAttributionStore({ clock: () => FIXED_NOW });
   const env = {
@@ -189,7 +214,7 @@ async function withFixture(callback, { mode = 'bing-success', delays = {} } = {}
     gqaConfig: {
       attribution,
       random: () => 0,
-      timeouts: [FIRST_GROUP_TIMEOUT, WOLFRAM_GROUP_TIMEOUT],
+      timeouts,
     },
   });
   try {
@@ -339,9 +364,9 @@ test('Q-01 composite success replays selected HTTP profile, account lookup, attr
     assert.equal(peers.account.requests[0].headers['content-type'], 'application/json');
     assert.deepEqual(JSON.parse(peers.account.requests[0].body), { accountsIds: ['fixture-account'] });
     assert.ok(
-      peers.account.requests[0].receivedAt
-        < Math.min(peers.bing.requests[0].receivedAt, peers.wikipedia.requests[0].receivedAt),
-      'source account lookup must complete before provider dispatch',
+      peers.account.requests[0].sequence
+        < Math.min(peers.bing.requests[0].sequence, peers.wikipedia.requests[0].sequence),
+      'source account lookup request must arrive before provider dispatch',
     );
     assert.deepEqual(attribution.snapshot(), [{
       service: 'Bing',
@@ -392,6 +417,22 @@ test('Q-01 composite success replays selected HTTP profile, account lookup, attr
   });
 });
 
+test('Q-01 composite selected service exposes the /answer_skill and /v1/main aliases', async () => {
+  await withFixture(async ({ baseUrl, peers }) => {
+    for (const path of ['/answer_skill', '/v1/main']) {
+      const result = await post(baseUrl, path, REQUEST);
+      assert.equal(result.response.status, 200);
+      assertSourceAnswer(result.body, {
+        source: 'Bing',
+        text: 'The Bing source answer.',
+        category: 'facts',
+        sourceTiming: 'bing',
+      });
+    }
+    assertProviderRequests(peers, { bing: 2, wikipedia: 2, wolfram: 0 });
+  });
+});
+
 test('Q-01 composite provider replay enforces Bing priority, Wikipedia fallback, Wolfram fallback and late priority', async () => {
   await withFixture(async ({ baseUrl, peers, state }) => {
     let result = await post(baseUrl, '/answer_skill/v1/main', REQUEST);
@@ -409,6 +450,7 @@ test('Q-01 composite provider replay enforces Bing priority, Wikipedia fallback,
     });
     assertProviderRequests(peers, { bing: 2, wikipedia: 2, wolfram: 0 });
 
+    const wolframAttemptStart = state.sequence;
     state.mode = 'wolfram-success';
     result = await post(baseUrl, '/answer_skill/v1/main', REQUEST);
     assert.equal(result.response.status, 200);
@@ -416,9 +458,16 @@ test('Q-01 composite provider replay enforces Bing priority, Wikipedia fallback,
       source: 'Wolfram Alpha', text: 'The Wolfram source answer.', sourceTiming: 'wolfram',
     });
     assertProviderRequests(peers, { bing: 3, wikipedia: 3, wolfram: 1 });
-    const wolframEvent = state.events.findIndex(({ kind }) => kind === 'Wolfram Alpha');
-    assert.ok(wolframEvent > state.events.findIndex(({ kind }, index) => kind === 'Bing' && index < wolframEvent));
-    assert.ok(wolframEvent > state.events.findIndex(({ kind }, index) => kind === 'Wikipedia' && index < wolframEvent));
+    const wolframRequest = peers.wolfram.requests[0].sequence;
+    for (const kind of ['Bing', 'Wikipedia']) {
+      assert.ok(
+        state.events.some((event) => event.kind === kind
+          && event.phase === 'response'
+          && event.sequence > wolframAttemptStart
+          && event.sequence < wolframRequest),
+        `${kind} response must complete before Wolfram starts`,
+      );
+    }
 
     state.mode = 'late-bing';
     state.delays.Bing = 55;
@@ -431,6 +480,46 @@ test('Q-01 composite provider replay enforces Bing priority, Wikipedia fallback,
     assertProviderRequests(peers, { bing: 4, wikipedia: 4, wolfram: 2 });
     assert.ok(result.body.timings.total >= FIRST_GROUP_TIMEOUT, 'late answer must cross the first group deadline');
   }, { mode: 'bing-success' });
+});
+
+test('Q-01 composite both-useful first-group replay keeps Bing priority after Wikipedia resolves first', async () => {
+  await withFixture(async ({ baseUrl, peers, state }) => {
+    const result = await post(baseUrl, '/answer_skill/v1/main', REQUEST);
+    assert.equal(result.response.status, 200);
+    assertSourceAnswer(result.body, {
+      source: 'Bing',
+      text: 'The Bing source answer.',
+      category: 'facts',
+      sourceTiming: 'bing',
+    });
+    assertProviderRequests(peers, { bing: 1, wikipedia: 1, wolfram: 0 });
+    const wikipediaResponse = state.events.find((event) => (
+      event.kind === 'Wikipedia' && event.phase === 'response'
+    ));
+    const bingResponse = state.events.find((event) => (
+      event.kind === 'Bing' && event.phase === 'response'
+    ));
+    assert.ok(wikipediaResponse, 'Wikipedia must return a useful response');
+    assert.ok(bingResponse, 'Bing must return a useful response');
+    assert.ok(wikipediaResponse.at < bingResponse.at, 'Wikipedia must resolve first');
+    assert.ok(
+      wikipediaResponse.sequence < bingResponse.sequence,
+      'Wikipedia response must be observed before the later Bing response',
+    );
+    const firstGroupStart = Math.min(
+      peers.bing.requests[0].receivedAt,
+      peers.wikipedia.requests[0].receivedAt,
+    );
+    assert.ok(
+      bingResponse.at - firstGroupStart < BOTH_USEFUL_GROUP_TIMEOUT,
+      'the later Bing response must still arrive within the first-group deadline',
+    );
+    assert.equal(peers.wolfram.requests.length, 0, 'both useful first-group answers must avoid Wolfram fallback');
+  }, {
+    mode: 'both-useful-wiki-first',
+    delays: { Wikipedia: 5, Bing: 20 },
+    timeouts: [BOTH_USEFUL_GROUP_TIMEOUT, WOLFRAM_GROUP_TIMEOUT],
+  });
 });
 
 test('Q-01 composite empty and error replays emit source no-answer MIM/display with no provider answer leak', async () => {
@@ -458,12 +547,30 @@ test('Q-01 composite Wolfram attribution is source-backed and retrieve/wipe rema
     });
     assert.equal(peers.bing.requests[0].query.q, 'what is fixture fact');
 
+    state.mode = 'wiki-success';
+    const wikipediaResult = await post(baseUrl, '/answer_skill/v1/main', REQUEST);
+    assertSourceAnswer(wikipediaResult.body, {
+      source: 'Wikipedia',
+      text: 'Fixture fact is the Wikipedia source answer.',
+      sourceTiming: 'wiki',
+    });
+    assertProviderRequests(peers, { bing: 2, wikipedia: 2, wolfram: 0 });
+    assert.deepEqual(attribution.snapshot().map(({ service, query, url, image_url, loop_id }) => (
+      { service, query, url, image_url, loop_id }
+    )), [{
+      service: 'Bing',
+      query: 'The Bing source answer.',
+      url: 'https://fixture.invalid/bing-result',
+      image_url: 'https://fixture.invalid/bing-image',
+      loop_id: 'fixture-loop',
+    }], 'Wikipedia answers are source-backed but not attributed');
+
     state.mode = 'wolfram-success';
     const wolframResult = await post(baseUrl, '/answer_skill/v1/main', REQUEST);
     assertSourceAnswer(wolframResult.body, {
       source: 'Wolfram Alpha', text: 'The Wolfram source answer.', sourceTiming: 'wolfram',
     });
-    assertProviderRequests(peers, { bing: 2, wikipedia: 2, wolfram: 1 });
+    assertProviderRequests(peers, { bing: 3, wikipedia: 3, wolfram: 1 });
     assert.equal(attribution.snapshot().length, 2);
     assert.deepEqual(attribution.snapshot().map(({ service, query, url, image_url, loop_id }) => (
       { service, query, url, image_url, loop_id }
