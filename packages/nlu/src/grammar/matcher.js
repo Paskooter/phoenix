@@ -155,24 +155,80 @@ function freshEnts(prev) { return Object.assign({}, prev); }
 // arcs (and optional apostrophes are written explicitly in character rules).
 export function tokenize(text) {
   if (!text) return [];
-  return text
-    .toLowerCase()
-    .split(/\s+/)
+  const tokens = [];
+  const tokenGroups = [];
+  const sourceWords = text.toLowerCase().split(/\s+/).filter(Boolean);
+  for (let group = 0; group < sourceWords.length; group += 1) {
+    const token = sourceWords[group];
     // The native FST keeps a literal colon as a character arc, while the
     // source grammar emits `:` as its own word between numeric fields (for
     // example the `?: $minutes_number` time form). Expose that boundary to the
     // word-level AST matcher for numeric clock spellings such as `5:30`.
-    .flatMap(token => {
-      const clock = /^(\d{1,2})(?::(\d{2}))(?::(\d{2}))?$/.exec(token);
-      if (!clock) return [token];
-      const fields = [clock[1]];
-      for (let index = 2; index < clock.length; index += 1) {
-        if (!clock[index]) continue;
-        fields.push(':', ...clock[index].split(''));
-      }
-      return fields;
-    })
-    .filter(Boolean);
+    const pieces = /^(?:\d|:)+$/.test(token) ? [...token] : [token];
+    for (const piece of pieces) {
+      tokens.push(piece);
+      tokenGroups.push(group);
+    }
+  }
+  Object.defineProperty(tokens, 'tokenGroups', { value: tokenGroups });
+  Object.defineProperty(tokens, 'sourceWords', { value: sourceWords });
+  return tokens;
+}
+
+function tokenSpanText(tokens, start, end) {
+  if (start >= end) return '';
+  const groups = tokens.tokenGroups;
+  if (!Array.isArray(groups)) return tokens.slice(start, end).join(' ');
+  const pieces = [];
+  let previousGroup = null;
+  for (let index = start; index < end; index += 1) {
+    const group = groups[index];
+    if (previousGroup !== null && group !== previousGroup) pieces.push(' ');
+    pieces.push(tokens[index]);
+    previousGroup = group;
+  }
+  return pieces.join('');
+}
+
+function literalEnd(tokens, start, word) {
+  if (start >= tokens.length) return null;
+  if (tokens[start] === word) return start + 1;
+  // Numeric source words are emitted as character arcs by the native compiler.
+  // Require one source whitespace group for the whole spelling so this does not
+  // turn two ordinary words such as `1 2` into the numeric word `12`.
+  if (!/^[\d:]+$/.test(word)) return null;
+  const end = start + word.length;
+  if (end > tokens.length) return null;
+  const groups = tokens.tokenGroups;
+  const group = groups?.[start];
+  for (let index = start; index < end; index += 1) {
+    if (tokens[index] !== word[index - start]) return null;
+    if (groups && groups[index] !== group) return null;
+  }
+  return end;
+}
+
+function sourceTokenBoundary(tokens, position) {
+  if (position <= 0 || position >= tokens.length) return true;
+  const groups = tokens.tokenGroups;
+  return !groups || groups[position - 1] !== groups[position];
+}
+
+function sameSourceWord(tokens, start, end) {
+  if (end <= start + 1) return true;
+  const groups = tokens.tokenGroups;
+  return !groups || groups[start] === groups[end - 1];
+}
+
+function isOptionalColonMinutes(node) {
+  return node?.type === 'seq'
+    && node.items?.[0]?.type === 'opt'
+    && node.items[0].item?.type === 'lit'
+    && node.items[0].item.word === ':';
+}
+
+function hasColon(tokens, start, end) {
+  return tokens.slice(start, end).includes(':');
 }
 // The public parser lowercases input but otherwise preserves each
 // whitespace-delimited token. The native FST compiler likewise emits every
@@ -279,17 +335,21 @@ function* match(node, start, ctx, depth, charHeuristic = 0) {
     case 'lit': {
       // Lowercased source-token equality (see tokenize/_norm); apostrophes
       // remain part of the token and therefore require an explicit grammar arc.
-      // Keep literal specificity at one grammar-word unit. Wildcard arc costs
-      // below use the source's byte heuristic in this bounded repair.
-      if (start < tokens.length && (tokens[start] === _norm(node.word) || eqEquals(ctx.eq, tokens[start], _norm(node.word)))) {
+      // Numeric source words are also allowed to consume the character tokens
+      // emitted by tokenize, preserving native digit-arc behavior.
+      const word = _norm(node.word);
+      const end = literalEnd(tokens, start, word);
+      const equivalent = start < tokens.length && eqEquals(ctx.eq, tokens[start], word);
+      const matchedEnd = equivalent && end === null ? start + 1 : end;
+      if (matchedEnd !== null && (tokens[start] === word || matchedEnd > start + 1 || equivalent)) {
         const ent = freshEnts(EMPTY); const sub = freshEnts(EMPTY);
-        const tagged = applyTags(node.tags, ent, sub, { /* no sub */ }, tokens[start]);
+        const tagged = applyTags(node.tags, ent, sub, { /* no sub */ }, tokenSpanText(tokens, start, matchedEnd));
         yield {
-          end: start + 1,
+          end: matchedEnd,
           entities: tagged.entities,
           subFields: tagged.subFields,
           specificity: 1,
-          cost: (node.cost || 0) + sourceWordCost(tokens[start], effectiveHeuristic),
+          cost: (node.cost || 0) + sourceWordCost(tokenSpanText(tokens, start, matchedEnd), effectiveHeuristic),
           charHeuristic: effectiveExit ?? charHeuristic,
         };
       }
@@ -306,14 +366,16 @@ function* match(node, start, ctx, depth, charHeuristic = 0) {
         // expands only that parenthesized atom; matching each resulting
         // spelling exactly keeps a bare class such as `[georgia]` from
         // accepting the unrelated-length `george` equivalent.
-        if (start < tokens.length && tokens[start] === _norm(v)) {
-          const tagged = applyTags(node.tags, EMPTY, EMPTY, {}, tokens[start]);
+        const word = _norm(v);
+        const end = literalEnd(tokens, start, word);
+        if (end !== null && (tokens[start] === word || end > start + 1)) {
+          const tagged = applyTags(node.tags, EMPTY, EMPTY, {}, tokenSpanText(tokens, start, end));
           yield {
-            end: start + 1,
+            end,
             entities: tagged.entities,
             subFields: tagged.subFields,
             specificity: 1,
-            cost: (node.cost || 0) + sourceWordCost(tokens[start], effectiveHeuristic),
+            cost: (node.cost || 0) + sourceWordCost(tokenSpanText(tokens, start, end), effectiveHeuristic),
             charHeuristic: effectiveExit ?? charHeuristic,
           };
         }
@@ -337,7 +399,12 @@ function* match(node, start, ctx, depth, charHeuristic = 0) {
       const maxN = (typeof node.max === 'number') ? node.max : (tokens.length - start);
       for (let n = 0; n <= maxN; n += 1) {
         if (start + n > tokens.length) break;
-        const tagged = applyTags(node.tags, EMPTY, EMPTY, {}, tokens.slice(start, start + n).join(' '));
+        // `$*` consumes native whitespace-delimited words. Numeric tokenization
+        // exposes character arcs to grammar digit rules, but a wildcard cannot
+        // stop inside the original word (`5:3` must not become wildcard `5:` +
+        // factory hour `3`).
+        if (n > 0 && !sourceTokenBoundary(tokens, start + n)) continue;
+        const tagged = applyTags(node.tags, EMPTY, EMPTY, {}, tokenSpanText(tokens, start, start + n));
         yield {
           end: start + n,
           entities: tagged.entities,
@@ -368,7 +435,14 @@ function* match(node, start, ctx, depth, charHeuristic = 0) {
         charHeuristic: effectiveExit ?? charHeuristic,
       };
       for (const m of match(node.item, start, ctx, depth + 1, effectiveHeuristic)) {
-        const tagged = applyTags(node.tags, m.entities, m.subFields, m.subFields, tokens.slice(start, m.end).join(' '));
+        // `?: $minutes_number` is the source's character-level optional colon
+        // operator. Without the colon the minute digits must remain contiguous
+        // with the hour in the same original token (`530`), whereas a space
+        // makes the native graph choose the hour-only path (`5 30`).
+        if (isOptionalColonMinutes(node.item)
+          && !hasColon(tokens, start, m.end)
+          && !sameSourceWord(tokens, Math.max(0, start - 1), m.end)) continue;
+        const tagged = applyTags(node.tags, m.entities, m.subFields, m.subFields, tokenSpanText(tokens, start, m.end));
         yield {
           end: m.end,
           entities: tagged.entities,
@@ -388,7 +462,7 @@ function* match(node, start, ctx, depth, charHeuristic = 0) {
       // source-valid case cannot create a zero-progress loop.
       function* repeat(pos, ents, subs, specSoFar, costSoFar, currentHeuristic, count) {
         if (count > 0) {
-          const tagged = applyTags(node.tags, ents, subs, subs, tokens.slice(start, pos).join(' '));
+          const tagged = applyTags(node.tags, ents, subs, subs, tokenSpanText(tokens, start, pos));
           yield {
             end: pos,
             entities: tagged.entities,
@@ -412,7 +486,7 @@ function* match(node, start, ctx, depth, charHeuristic = 0) {
             if (count !== 0) continue;
             const nextEnts = mergeObj(ents, m.entities);
             const nextSubs = mergeObj(subs, m.subFields);
-            const tagged = applyTags(node.tags, nextEnts, nextSubs, nextSubs, tokens.slice(start, pos).join(' '));
+            const tagged = applyTags(node.tags, nextEnts, nextSubs, nextSubs, tokenSpanText(tokens, start, pos));
             yield {
               end: pos,
               entities: tagged.entities,
@@ -447,11 +521,10 @@ function* match(node, start, ctx, depth, charHeuristic = 0) {
       // match first, then require progress on each further repetition so a
       // nullable operand cannot loop forever.
       function* repeat(pos, ents, subs, specSoFar, costSoFar, currentHeuristic, count) {
-        const tagged = applyTags(node.tags, ents, subs, subs, tokens.slice(start, pos).join(' '));
         yield {
           end: pos,
-          entities: tagged.entities,
-          subFields: tagged.subFields,
+          entities: ents,
+          subFields: subs,
           specificity: specSoFar,
           cost: costSoFar + (node.cost || 0),
           charHeuristic: effectiveExit ?? currentHeuristic,
@@ -459,10 +532,22 @@ function* match(node, start, ctx, depth, charHeuristic = 0) {
         if (count > 0 && pos >= tokens.length) return;
         for (const m of match(node.item, pos, ctx, depth + 1, currentHeuristic)) {
           if (m.end <= pos) continue;   // KLEENE repetition must make progress
+          // A postfix tag on a native KLEENE is evaluated for each repeated
+          // item. Preserve the accumulated destination field while exposing
+          // the current item's namespaced private fields to the tag, so
+          // `{_nl+=digit._nl}` composes `30` instead of retaining only `0`.
+          const rawSubs = mergeObj(subs, m.subFields);
+          const tagged = applyTags(
+            node.tags,
+            mergeObj(ents, m.entities),
+            rawSubs,
+            m.subFields,
+            tokenSpanText(tokens, start, m.end),
+          );
           yield* repeat(
             m.end,
-            mergeObj(ents, m.entities),
-            mergeObj(subs, m.subFields),
+            tagged.entities,
+            tagged.subFields,
             specSoFar + (m.specificity || 0),
             costSoFar + (m.cost || 0),
             m.charHeuristic,
@@ -470,7 +555,8 @@ function* match(node, start, ctx, depth, charHeuristic = 0) {
           );
         }
       }
-      yield* repeat(start, EMPTY, EMPTY, 0, 0, effectiveHeuristic, 0);
+      const zeroTagged = applyTags(node.tags, EMPTY, EMPTY, EMPTY, '');
+      yield* repeat(start, zeroTagged.entities, zeroTagged.subFields, 0, 0, effectiveHeuristic, 0);
       return;
     }
     case 'seq': {
@@ -480,7 +566,7 @@ function* match(node, start, ctx, depth, charHeuristic = 0) {
       // into all accumulated subFields — that's how `{intent=Sub._field}`
       // group tags work in the cloud's compiler.
       for (const m of matchSeq(node.items, 0, start, EMPTY, EMPTY, 0, ctx, depth, effectiveHeuristic)) {
-        const tagged = applyTags(node.tags, m.entities, m.subFields, m.subFields, tokens.slice(start, m.end).join(' '));
+        const tagged = applyTags(node.tags, m.entities, m.subFields, m.subFields, tokenSpanText(tokens, start, m.end));
         yield {
           end: m.end,
           entities: tagged.entities,
@@ -496,7 +582,7 @@ function* match(node, start, ctx, depth, charHeuristic = 0) {
       // Try each alternative in order; yield matches from each.
       for (const a of node.alts) {
         for (const m of match(a, start, ctx, depth + 1, effectiveHeuristic)) {
-          const tagged = applyTags(node.tags, m.entities, m.subFields, m.subFields, tokens.slice(start, m.end).join(' '));
+          const tagged = applyTags(node.tags, m.entities, m.subFields, m.subFields, tokenSpanText(tokens, start, m.end));
           yield {
             end: m.end,
             entities: tagged.entities,
@@ -534,7 +620,7 @@ function* match(node, start, ctx, depth, charHeuristic = 0) {
           let okPhrase = true;
           for (let k = 0; k < phrase.length; k += 1) if (tokens[start + k] !== phrase[k]) { okPhrase = false; break; }
           if (!okPhrase) continue;
-          const text = tokens.slice(start, start + phrase.length).join(' ');
+          const text = tokenSpanText(tokens, start, start + phrase.length);
           // The word-list projection carries only spellings. The version-matched
           // factory source declares which private field the factory publishes
           // and — when its arms hold literal values — the exact value per entry
@@ -579,7 +665,8 @@ function* match(node, start, ctx, depth, charHeuristic = 0) {
         const explicitWordWildcard = node.name === 'w' && effectiveExplicit;
         for (let n = 1; n <= maxN; n += 1) {
           if (start + n > tokens.length) break;
-          const tagged = applyTags(node.tags, EMPTY, EMPTY, { [node.name]: { /* no fields */ } }, tokens.slice(start, start + n).join(' '));
+          if (!sourceTokenBoundary(tokens, start + n)) continue;
+          const tagged = applyTags(node.tags, EMPTY, EMPTY, { [node.name]: { /* no fields */ } }, tokenSpanText(tokens, start, start + n));
           yield {
             end: start + n,
             entities: tagged.entities,
@@ -621,12 +708,18 @@ function* match(node, start, ctx, depth, charHeuristic = 0) {
       // child's direct fields for the bounded factory adapter, whose historical
       // source grammar publishes them from a bare `$TIMER` top rule.
       for (const m of match(target, start, ctx, depth + 1, effectiveHeuristic)) {
+        // A factory FST is a complete graph. When embedded in a surrounding
+        // wildcard rule it may end before later words, but never in the middle
+        // of one source word (including a compact numeric run such as `5:30`).
+        // This prevents malformed values like `5:60` from degrading to the
+        // valid prefix `5` while preserving wrappers such as `set alarm for 5`.
+        if (node.prefix === 'factory' && !sourceTokenBoundary(tokens, m.end)) continue;
         const exposed = { [node.name]: m.subFields };
         // A reference opens a new rule scope. Child fields are available under
         // the named namespace; copying them directly into the parent makes a
         // trailing `{_nl+=digit._nl}` append to the child's own `_nl` (yielding
         // `00` for a `30` minutes value) instead of the accumulated field.
-        const tagged = applyTags(node.tags, m.entities, EMPTY, exposed, tokens.slice(start, m.end).join(' '));
+        const tagged = applyTags(node.tags, m.entities, EMPTY, exposed, tokenSpanText(tokens, start, m.end));
         const subsForParent = Object.assign({}, tagged.subFields, exposed);
         if (tagged.deletedKeys?.has(node.name)) delete subsForParent[node.name];
         yield {
@@ -662,21 +755,42 @@ function* matchSeq(items, idx, pos, ents, subs, specSoFar, ctx, depth, charHeuri
     return;
   }
   for (const m of match(items[idx], pos, ctx, depth + 1, charHeuristic)) {
-    const nextEnts = mergeObj(ents, m.entities);
-    const nextSubs = mergeObj(subs, m.subFields);
+    const carried = carryAppendScope(items[idx], m, ents, subs);
+    const nextEnts = mergeObj(ents, carried.entities);
+    const nextSubs = mergeObj(subs, carried.subFields);
     yield* matchSeq(
       items,
       idx + 1,
-      m.end,
+      carried.end,
       nextEnts,
       nextSubs,
-      specSoFar + (m.specificity || 0),
+      specSoFar + (carried.specificity || 0),
       ctx,
       depth + 1,
-      m.charHeuristic,
-      costSoFar + (m.cost || 0),
+      carried.charHeuristic,
+      costSoFar + (carried.cost || 0),
     );
   }
+}
+
+// A source action attached to a sequence item runs in that rule's accumulated
+// scope. `match()` intentionally evaluates each item in isolation for safe
+// backtracking, so carry the destination value across the sequence boundary
+// when the item uses `+=` (the time factory's digit accumulator is the key
+// case: the first digit is a sibling of `*$digit`).
+function carryAppendScope(item, matchResult, previousEntities, previousSubFields) {
+  if (!item?.tags?.some(tag => tag.op === 'append')) return matchResult;
+  const entities = freshEnts(matchResult.entities);
+  const subFields = freshEnts(matchResult.subFields);
+  for (const tag of item.tags) {
+    if (tag.op !== 'append') continue;
+    const previous = tag.key.startsWith('_') ? previousSubFields?.[tag.key] : previousEntities?.[tag.key];
+    const current = tag.key.startsWith('_') ? subFields[tag.key] : entities[tag.key];
+    if (previous === undefined || current === undefined) continue;
+    const target = tag.key.startsWith('_') ? subFields : entities;
+    target[tag.key] = String(previous) + String(current);
+  }
+  return Object.assign({}, matchResult, { entities, subFields });
 }
 function mergeObj(a, b) {
   if (!a || !Object.keys(a).length) return b;

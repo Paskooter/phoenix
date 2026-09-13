@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { parse } from '../src/grammar/parser.js';
 import { matchRule, tokenize } from '../src/grammar/matcher.js';
+import { executeSemanticAction } from '../src/grammar/semanticActions.js';
 
 const timeSource = readFileSync(new URL('../resources/factory-sources/time.grm', import.meta.url), 'utf8');
 
@@ -32,4 +33,31 @@ test('semantic action evaluator handles computed fields, conditionals, concat, a
   assert.equal(match.subFields.text, '02');
   assert.equal(match.subFields.result, 'ok');
   assert.equal(Object.prototype.hasOwnProperty.call(match.subFields, 'base'), false);
+});
+
+test('falsification: bypassing the recovered time action removes its published fields', () => {
+  const ast = parse(timeSource);
+  const action = ast.rules.TopRule.tags.find(tag => tag.kind === 'action')?.program;
+  assert.ok(action, 'TopRule must retain an executable semantic-action program');
+
+  const initial = {
+    top_time: { nl: '05:30', time: '05:30', rel: 'null', ampm: 'PM', dow: 'null' },
+  };
+  const executed = executeSemanticAction(action, structuredClone(initial), '5:30 pm');
+  assert.deepEqual(executed, {
+    _parsed: '5:30 pm',
+    _time_nl: '05:30',
+    _time_time: '05:30',
+    _time_rel: 'null',
+    _time_ampm: 'PM',
+    _time_dow: 'null',
+  });
+
+  // This is the named falsification: a matcher that silently bypassed the new
+  // executor would leave the source scope untouched and could not publish any
+  // of the private time fields consumed by alarm_set_value.
+  const bypassed = structuredClone(initial);
+  assert.equal(bypassed._time_time, undefined);
+  assert.deepEqual(bypassed, initial);
+  assert.notDeepEqual(executed, bypassed);
 });
