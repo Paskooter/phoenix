@@ -16,6 +16,7 @@ import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promis
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Readable } from 'node:stream';
+import http from 'node:http';
 import { createClassicEntrypoint } from '../src/index.js';
 import { MediaStore } from '../src/media.js';
 
@@ -85,7 +86,8 @@ before(async () => {
   store = new MediaStore({ directory: join(dir, 'objects'), file: join(dir, 'media.json') });
   // No accountResolver: the default derives the caller from the SigV4 accessKeyId, exactly as the
   // other Classic services do, so `Credential=<ACCOUNT>/...` is the account seen by membership.
-  server = await createClassicEntrypoint({ media: { store, loops } }).listen(0);
+  const publicPort = await freePort();
+  server = await createClassicEntrypoint({ media: { store, loops }, publicUrl: `http://localhost:${publicPort}` }).listen(publicPort);
   port = server.address().port;
 });
 after(async () => { server.close(); await rm(dir, { recursive: true, force: true }); });
@@ -421,7 +423,8 @@ test('an uploaded photo survives an entrypoint restart and is re-read over HTTP'
 
   await new Promise((resolve) => server.close(resolve)); // tear the running entrypoint down
   const restartedStore = new MediaStore({ directory: join(dir, 'objects'), file: join(dir, 'media.json') });
-  server = await createClassicEntrypoint({ media: { store: restartedStore, loops } }).listen(0);
+  const restartedPort = await freePort();
+  server = await createClassicEntrypoint({ media: { store: restartedStore, loops }, publicUrl: `http://localhost:${restartedPort}` }).listen(restartedPort);
   port = server.address().port;
 
   const listed = await list({ loopIds: [LOOP] });
@@ -482,3 +485,11 @@ test('MediaStore confines account and media path components, including encoded t
     await rm(root, { recursive: true, force: true });
   }
 });
+
+async function freePort() {
+  const probe = http.createServer();
+  await new Promise((resolve) => probe.listen(0, resolve));
+  const p = probe.address().port;
+  await new Promise((resolve) => probe.close(resolve));
+  return p;
+}

@@ -30,7 +30,8 @@ before(async () => {
   process.env.NET_account = `localhost:${mock.address().port}`;
   process.env.NET_ota = `localhost:${mock.address().port}`;
 
-  server = await createClassicEntrypoint().listen(0);
+  const publicPort = await freePort();
+  server = await createClassicEntrypoint({ publicUrl: `http://localhost:${publicPort}` }).listen(publicPort);
   base = server.address().port;
 });
 after(() => { server.close(); upstreams.mock.close(); delete process.env.NET_account; delete process.env.NET_ota; });
@@ -210,3 +211,11 @@ test('a JSON Update operation still proxies as JSON after the raw CreateUpdate p
   const upd = await amz('Update_20160301.ListUpdates', { subsystem: 'os' }, base);
   assert.equal(upd.body.proxied, 'Update_20160301.ListUpdates');
 });
+
+async function freePort() {
+  const probe = http.createServer();
+  await new Promise((resolve) => probe.listen(0, resolve));
+  const port = probe.address().port;
+  await new Promise((resolve) => probe.close(resolve));
+  return port;
+}

@@ -30,8 +30,8 @@
 //     controller returns numbers (S3 Size, epoch ms) — reproduced faithfully.
 //
 // The original handed back S3 presigned URLs. Phoenix has no S3, so — exactly like the OTA
-// "self-hosted packages" divergence — the URLs point back at THIS entrypoint (derived from the
-// request Host, or ETCO_classic_publicUrl), and the blob is stored locally. Each URL is signed
+// "self-hosted packages" divergence — the URLs point back at the explicitly configured public
+// origin (ETCO_classic_publicUrl/publicUrl), and the blob is stored locally. Each URL is signed
 // with a server-held HMAC and carries an epoch-ms expiry. The query names loopId/key remain the
 // robot's URL contract; the additional bearer fields replace S3's signature/expiry enforcement.
 // The secret is never placed in a URL or a request log. Configure ETCO_classic_backupBearerSecret
@@ -47,15 +47,17 @@
 // self-hosted URL preserves that possession model with a method- and loop-bound HMAC that is
 // checked on both GET and PUT before touching the object store.
 
-import { createReadStream, openSync, readSync, closeSync, readdirSync, statSync } from 'node:fs';
-import { mkdir } from 'node:fs/promises';
+import { createReadStream, openSync, readSync, closeSync, readdirSync, statSync, lstatSync, realpathSync, constants } from 'node:fs';
+import { mkdir, lstat, realpath } from 'node:fs/promises';
 import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import { isIP } from 'node:net';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, dirname, relative, resolve, sep } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { DefaultPort } from '@phoenix/contracts';
 import { sendAmz } from './awsJson.js';
+import { verifiedCallerFromRequest } from './caller.js';
+import { canonicalPublicOrigin } from './publicOrigin.js';
 import {
   UploadTooLargeError,
   configuredMaxBytes,
@@ -134,6 +136,86 @@ function isLoopbackRequest(req) {
   return false;
 }
 
+function assertContainedPath(root, target) {
+  const rootPath = resolve(root);
+  const targetPath = resolve(target);
+  const rel = relative(rootPath, targetPath);
+  if (rel === '..' || rel.startsWith(`..${sep}`) || rel.startsWith(sep)) {
+    throw new Error('backup path escapes configured directory');
+  }
+}
+
+function safeComponent(value, name) {
+  if (typeof value !== 'string' || !SAFE.test(value)) throw new Error(`invalid backup ${name}`);
+  return value;
+}
+
+/** Resolve the configured root once per operation; a missing root is a normal empty store on read. */
+function rootRealpathSync(dir) {
+  try {
+    const root = realpathSync(resolve(dir));
+    if (!lstatSync(root).isDirectory()) return null;
+    return root;
+  } catch {
+    return null;
+  }
+}
+
+/** Reject a loop directory symlink before readdir/stat can follow it. */
+function loopDirectorySync(root, loopId) {
+  const lexical = resolve(root, safeComponent(loopId, 'loopId'));
+  assertContainedPath(root, lexical);
+  let info;
+  try { info = lstatSync(lexical); } catch { return null; }
+  if (info.isSymbolicLink() || !info.isDirectory()) return null;
+  const canonical = realpathSync(lexical);
+  assertContainedPath(root, canonical);
+  const canonicalInfo = lstatSync(canonical);
+  return canonicalInfo.isDirectory() ? canonical : null;
+}
+
+/** Validate a returned object path after lstat and realpath, with no symlink traversal. */
+function objectFileSync(root, loopDir, key) {
+  const lexical = resolve(loopDir, safeComponent(key, 'key'));
+  assertContainedPath(root, lexical);
+  let info;
+  try { info = lstatSync(lexical); } catch { return null; }
+  if (info.isSymbolicLink() || !info.isFile()) return null;
+  const canonical = realpathSync(lexical);
+  assertContainedPath(root, canonical);
+  const canonicalInfo = lstatSync(canonical);
+  if (canonicalInfo.isSymbolicLink() || !canonicalInfo.isFile()) return null;
+  return { file: canonical, stat: canonicalInfo };
+}
+
+/** Async equivalent used immediately before publishing an upload. */
+async function safeUploadPaths(dir, loopId, key) {
+  const root = await realpath(resolve(dir));
+  const rootInfo = await lstat(root);
+  if (!rootInfo.isDirectory()) throw new Error('backup root is not a directory');
+  const loopLexical = resolve(root, safeComponent(loopId, 'loopId'));
+  assertContainedPath(root, loopLexical);
+  const loopInfo = await lstat(loopLexical);
+  if (loopInfo.isSymbolicLink() || !loopInfo.isDirectory()) throw new Error('backup loop path contains symlink');
+  const loopDir = await realpath(loopLexical);
+  assertContainedPath(root, loopDir);
+  const loopCanonicalInfo = await lstat(loopDir);
+  if (!loopCanonicalInfo.isDirectory()) throw new Error('backup loop path is not a directory');
+  const file = resolve(loopDir, safeComponent(key, 'key'));
+  assertContainedPath(root, file);
+  try {
+    const fileInfo = await lstat(file);
+    if (fileInfo.isSymbolicLink()) throw new Error('backup object path contains symlink');
+    const canonical = await realpath(file);
+    assertContainedPath(root, canonical);
+    const canonicalInfo = await lstat(canonical);
+    if (canonicalInfo.isSymbolicLink()) throw new Error('backup object path contains symlink');
+  } catch (error) {
+    if (error?.code !== 'ENOENT') throw error;
+  }
+  return { root, loopDir, file };
+}
+
 export class BackupStore {
   constructor(dir = process.env.ETCO_classic_backupDir || join(tmpdir(), 'phx-backups'), options = {}) {
     if (dir && typeof dir === 'object') {
@@ -159,11 +241,12 @@ export class BackupStore {
   }
 
   signedBlobUrl(base, method, loopId, key) {
+    const origin = canonicalPublicOrigin(String(base));
     const expires = this.now() + this.urlExpirationMs;
     const signature = signBearer(this.bearerSecret, method, loopId, key, expires);
     return {
       expires,
-      url: `${base}/backup/blob?loopId=${encodeURIComponent(loopId)}&key=${encodeURIComponent(key)}&expires=${expires}&signature=${signature}`,
+      url: `${origin}/backup/blob?loopId=${encodeURIComponent(loopId)}&key=${encodeURIComponent(key)}&expires=${expires}&signature=${signature}`,
     };
   }
 
@@ -182,16 +265,19 @@ export class BackupStore {
   recover(loopId) {
     const arr = [];
     if (SAFE.test(loopId)) {
+      const root = rootRealpathSync(this.dir);
+      let loopDir = null;
+      try { loopDir = root ? loopDirectorySync(root, loopId) : null; } catch { loopDir = null; }
       let names = [];
-      try { names = readdirSync(join(this.dir, loopId)); } catch { names = []; }
+      try { names = loopDir ? readdirSync(loopDir) : []; } catch { names = []; }
       for (const name of names) {
         if (!SAFE.test(name)) continue;
         try {
-          const file = join(this.dir, loopId, name);
-          const stat = statSync(file);
-          if (!stat.isFile()) continue;
+          const object = objectFileSync(root, loopDir, name);
+          if (!object) continue;
+          const { file, stat } = object;
           arr.push({ key: name, etag: `"${md5FileSync(file)}"`, modified: stat.mtimeMs, size: stat.size, file });
-        } catch { /* skip an unreadable object rather than failing the whole loop */ }
+        } catch { /* skip an unreadable or symlinked object rather than failing the whole loop */ }
       }
     }
     this.index.set(loopId, arr);
@@ -205,14 +291,22 @@ export class BackupStore {
 
   /** Stream an upload to a same-directory temporary file, hashing as it goes; publish only at EOF. */
   async put(loopId, key, reqStream) {
-    await mkdir(join(this.dir, loopId), { recursive: true });
-    const file = join(this.dir, loopId, key);
+    safeComponent(loopId, 'loopId');
+    safeComponent(key, 'key');
+    await mkdir(resolve(this.dir), { recursive: true, mode: 0o700 });
+    await mkdir(resolve(this.dir, loopId), { recursive: true, mode: 0o700 });
+    const initial = await safeUploadPaths(this.dir, loopId, key);
     const hash = createHash('md5');
-    const result = await writeAtomicUpload(reqStream, file, {
+    const result = await writeAtomicUpload(reqStream, initial.file, {
       maxBytes: this.maxBytes,
       onChunk: (chunk) => hash.update(chunk),
     });
-    const entry = { key, etag: `"${hash.digest('hex')}"`, modified: this.now(), size: result.size, file };
+    // Re-resolve after rename. The index must never retain a path that crossed the root while the
+    // request was in flight, and a replaced loop/object symlink is treated as a failed publication.
+    const published = await safeUploadPaths(this.dir, loopId, key);
+    const entry = {
+      key, etag: `"${hash.digest('hex')}"`, modified: this.now(), size: result.size, file: published.file,
+    };
     const arr = this._entries(loopId).filter((e) => e.key !== key);
     arr.push(entry);
     this.index.set(loopId, arr);
@@ -226,14 +320,31 @@ export class BackupStore {
   }
 
   find(loopId, key) {
+    if (!SAFE.test(String(loopId)) || !SAFE.test(String(key))) return null;
     return this._entries(loopId).find((e) => e.key === key) || null;
+  }
+
+  /** Open a stored object only after re-checking every path component and its canonical target. */
+  openObject(loopId, key) {
+    const root = rootRealpathSync(this.dir);
+    if (!root) return null;
+    const loopDir = loopDirectorySync(root, loopId);
+    if (!loopDir) return null;
+    const object = objectFileSync(root, loopDir, key);
+    if (!object) return null;
+    const noFollow = constants.O_NOFOLLOW || 0;
+    return {
+      file: object.file,
+      size: object.stat.size,
+      stream: createReadStream(object.file, { flags: constants.O_RDONLY | noFollow }),
+    };
   }
 }
 
 /** Chunked md5 so re-indexing an object never buffers a whole blob in memory. */
 function md5FileSync(file) {
   const hash = createHash('md5');
-  const fd = openSync(file, 'r');
+  const fd = openSync(file, constants.O_RDONLY | (constants.O_NOFOLLOW || 0));
   const buf = Buffer.allocUnsafe(64 * 1024);
   try {
     let n;
@@ -359,14 +470,18 @@ export async function accountLoopRobot(loopId) {
 /**
  * @param {{accountId?: (req) => string|null, loopRobotId?: (loopId) => Promise<string|null|undefined>, allowLoopbackWithoutIdentity?: boolean}} [ownership]
  */
-export function makeBackupHandler(store, baseFor, { ownership } = {}) {
-  const accountIdOf = ownership?.accountId || credentialsAccountId;
+export function makeBackupHandler(store, baseFor, { ownership, callerBoundary } = {}) {
+  const configuredAccountId = ownership?.accountId;
+  const accountIdOf = configuredAccountId || credentialsAccountId;
   const loopRobotIdOf = ownership?.loopRobotId || accountLoopRobot;
 
   async function ownershipRefusal(req, loopId, log) {
+    const verified = verifiedCallerFromRequest(req);
     let caller;
     try {
-      caller = accountIdOf(req);
+      // A verified request-local identity always wins. When the boundary is configured, a
+      // forwarded x-amz-credentials header or a custom resolver is never an authorization source.
+      caller = verified ? verified.accountId : callerBoundary ? null : accountIdOf(req);
     } catch {
       return ACCOUNT_SERVICE_UNAVAILABLE;
     }
@@ -479,11 +594,11 @@ export function backupBlobRoutes(store) {
     if (!id) { res.writeHead(400, { 'content-type': 'text/plain; charset=utf-8' }); return void res.end('bad loopId/key'); }
     const authorized = bearerIds(url, 'GET', store.bearerSecret, store.now());
     if (!authorized || authorized.loopId !== id.loopId || authorized.key !== id.key) return void denyBearer(res);
-    const entry = store.find(id.loopId, id.key);
-    if (!entry) { res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' }); return void res.end('no such backup'); }
-    res.writeHead(200, { 'content-type': 'application/octet-stream', 'content-length': entry.size });
+    const object = store.openObject(id.loopId, id.key);
+    if (!object) { res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' }); return void res.end('no such backup'); }
+    res.writeHead(200, { 'content-type': 'application/octet-stream', 'content-length': object.size });
     try {
-      await pipeline(createReadStream(entry.file), res);
+      await pipeline(object.stream, res);
     } catch (err) {
       log.warn?.('backup blob stream interrupted', { error: err.message });
     }

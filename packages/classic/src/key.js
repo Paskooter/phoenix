@@ -51,6 +51,12 @@ import { pipeline } from 'node:stream/promises';
 import { DefaultPort } from '@phoenix/contracts';
 import { sendAmz, sendAmzError, accessKeyIdFromAuth } from './awsJson.js';
 import { credentialsAccountId } from './backup.js';
+import {
+  cleanupVerifiedClassicRequest,
+  sendVerifiedCallerError,
+  verifiedCallerFromRequest,
+} from './caller.js';
+import { canonicalPublicOrigin } from './publicOrigin.js';
 
 /** Source: srv-key-ws src/errors/key.ts — exact codes and status codes. */
 export const KEY_ERRORS = Object.freeze({
@@ -332,7 +338,10 @@ export class KeyStore {
  * missed it because their fixture used the account id AS the access key. Media already resolves
  * the access key this way (`accessKeyAccountResolver`); key now does too.
  */
-export function keyCallerAccountId(req, resolveAccount) {
+export function keyCallerAccountId(req, resolveAccount, { requireVerified = false } = {}) {
+  const verified = verifiedCallerFromRequest(req);
+  if (verified) return verified.accountId;
+  if (requireVerified) return null;
   const forwarded = credentialsAccountId(req);
   if (forwarded) return forwarded;
   const accessKeyId = accessKeyIdFromAuth(req);
@@ -460,9 +469,12 @@ async function readBody(req) {
  */
 export function makeKeyHandler(store = new KeyStore(), {
   membership = accountMembership(), baseFor, binaryDir = process.env.ETCO_classic_keyBinaryDir || DEFAULT_BINARY_DIR,
-  keyShareTimeoutMs = KEY_SHARE_TIMEOUT_MS, accountResolver, notifyKeyNeeded,
+  keyShareTimeoutMs = KEY_SHARE_TIMEOUT_MS, accountResolver, notifyKeyNeeded, callerBoundary,
 } = {}) {
-  const urlBase = baseFor || ((req) => `http://${(req?.headers && req.headers.host) || 'localhost'}`);
+  const urlBase = (req) => canonicalPublicOrigin(
+    typeof baseFor === 'function' ? baseFor(req) : baseFor || process.env.ETCO_classic_publicUrl,
+    { name: 'publicUrl' },
+  );
   const binaryDirOf = binaryDir;
 
   /**
@@ -496,7 +508,7 @@ export function makeKeyHandler(store = new KeyStore(), {
   }
 
   return async function keyHandler({ req, res, body, op, log }) {
-    const caller = keyCallerAccountId(req, accountResolver);
+    const caller = keyCallerAccountId(req, accountResolver, { requireVerified: !!callerBoundary });
     const accountId = caller || 'anon';
     const b = body || {};
     switch (String(op || '').toLowerCase()) {
@@ -642,7 +654,7 @@ export function makeKeyHandler(store = new KeyStore(), {
         const path = binaryPath(caller || binary.accountId, binary.id, binary.encryptedUrl);
         try {
           await mkdir(binaryFile(dirname(path)), { recursive: true });
-          const bytes = await readBody(req);
+          const bytes = await readBody(req._phoenixBodyStream || req);
           if (bytes.length) await writeFileAtomic(binaryFile(path), bytes);
         } catch (error) {
           log?.error?.('key binary store failed', { error: error.message });
@@ -692,23 +704,55 @@ async function writeFileAtomic(file, bytes) {
  * these two routes in the live deployment is UNKNOWN (the mobile app is dead) — they are built to
  * the pinned route contract.
  */
-export function keyRoutes(store, { membership = accountMembership(), baseFor, binaryDir = process.env.ETCO_classic_keyBinaryDir || DEFAULT_BINARY_DIR } = {}) {
-  const urlBase = baseFor || ((req) => `http://${(req?.headers && req.headers.host) || 'localhost'}`);
+export function keyRoutes(store, {
+  membership = accountMembership(),
+  baseFor,
+  binaryDir = process.env.ETCO_classic_keyBinaryDir || DEFAULT_BINARY_DIR,
+  callerBoundary,
+} = {}) {
+  const urlBase = (req) => canonicalPublicOrigin(
+    typeof baseFor === 'function' ? baseFor(req) : baseFor || process.env.ETCO_classic_publicUrl,
+    { name: 'publicUrl' },
+  );
+
+  /** Direct Key routes are exposed beside POST /, so they need the same verified identity seam. */
+  const guarded = (handler) => async (context) => {
+    if (!callerBoundary) return handler(context);
+    const { req, res, body, target, op, log } = context;
+    try {
+      const wireBody = req.rawBody !== undefined
+        ? req.rawBody
+        : body === undefined || body === null ? '' : body;
+      const caller = await callerBoundary({ req, res, body: wireBody, target, op, log });
+      if (!caller) throw new Error('verified caller boundary returned no identity');
+      return await handler(context);
+    } catch (error) {
+      await cleanupVerifiedClassicRequest(req);
+      if (!res.writableEnded) sendVerifiedCallerError(res, error);
+      return undefined;
+    } finally {
+      await cleanupVerifiedClassicRequest(req);
+    }
+  };
 
   const createBinaryRequest = async ({ req, res, body, log }) => {
     const b = body || {};
-    const invalid = requiredString(b, 'loopId') || requiredString(b, 'accountId') || requiredString(b, 'encryptedUrl');
+    const verified = verifiedCallerFromRequest(req);
+    const invalid = requiredString(b, 'loopId')
+      || (!verified && requiredString(b, 'accountId'))
+      || requiredString(b, 'encryptedUrl');
     if (invalid) return void sendBadData(res, invalid);
+    const accountId = verified?.accountId || b.accountId;
     let ids;
     try {
       ids = await membership.memberIds(b.loopId);
-      if (ids && !ids.map(String).includes(String(b.accountId))) {
+      if (ids && !ids.map(String).includes(String(accountId))) {
         return void sendHapiError(res, KEY_ERRORS.KEY_NOT_PART_OF_LOOP);
       }
     } catch (error) {
       return void sendHapiError(res, { code: error.code || 'INTERNAL_ERROR', statusCode: error.statusCode || 500, message: error.message });
     }
-    const binary = store.createBinary({ accountId: b.accountId, loopId: b.loopId, encryptedUrl: b.encryptedUrl });
+    const binary = store.createBinary({ accountId, loopId: b.loopId, encryptedUrl: b.encryptedUrl });
     log?.info?.('key binary request created', { id: binary.id, loopId: binary.loopId });
     return void sendExpress(res, 200, binaryView(binary));
   };
@@ -728,8 +772,10 @@ export function keyRoutes(store, { membership = accountMembership(), baseFor, bi
     return void sendExpress(res, 200, { result: 'Command accepted' });
   };
 
-  const getBinary = async ({ res, url, log }) => {
-    const accountId = url.searchParams.get('accountId');
+  const getBinary = async ({ req, res, url, log }) => {
+    const verified = verifiedCallerFromRequest(req);
+    const requestedAccountId = url.searchParams.get('accountId');
+    const accountId = verified?.accountId || requestedAccountId;
     const id = url.searchParams.get('id');
     if (!accountId || !id || !SAFE.test(accountId) || !SAFE.test(id)) {
       res.writeHead(400, { 'content-type': 'text/plain; charset=utf-8' });
@@ -753,7 +799,11 @@ export function keyRoutes(store, { membership = accountMembership(), baseFor, bi
   };
   getBinary.rawBody = true;
 
-  return { 'POST /binaryRequest': createBinaryRequest, 'POST /deleteBinaries': deleteBinaries, 'GET /key/binary': getBinary };
+  return {
+    'POST /binaryRequest': guarded(createBinaryRequest),
+    'POST /deleteBinaries': guarded(deleteBinaries),
+    'GET /key/binary': guarded(getBinary),
+  };
 }
 
 function binaryPathOf(binary, isImage, accountId = binary.accountId) {

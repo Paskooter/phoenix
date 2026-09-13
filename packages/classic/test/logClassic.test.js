@@ -12,6 +12,7 @@ import { mkdtempSync } from 'node:fs';
 import { readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import http from 'node:http';
 import { createClassicEntrypoint } from '../src/index.js';
 
 let server; let port; let logStore; let logDir;
@@ -33,7 +34,9 @@ const clientCode = (r) => r.body?.__type || r.body?.code || r.body?.error || r.e
 before(async () => {
   logDir = mkdtempSync(join(tmpdir(), 'phx-log-test-'));
   process.env.ETCO_classic_logDir = logDir;
-  const entry = await createClassicEntrypoint().listen(0);
+  const publicPort = await freePort();
+  const entry = createClassicEntrypoint({ publicUrl: `http://localhost:${publicPort}` });
+  await entry.listen(publicPort);
   server = entry.server || entry;
   port = server.address().port;
   logDir = entry.logStore?.dir || logDir;
@@ -143,7 +146,7 @@ test('PutEventsAsync / PutBinary throttle: probability=0 -> 429 REQUEST_THROTTLE
   const dir = mkdtempSync(join(tmpdir(), 'phx-log-throttle-'));
   process.env.ETCO_classic_logDir = dir;
   process.env.ETCO_log_probability = '0';
-  const throttled = await createClassicEntrypoint().listen(0);
+  const throttled = await listenWithPublicUrl();
   const p = throttled.address().port;
   try {
     const amzThrottled = async (target, body) => {
@@ -422,9 +425,10 @@ test('defect 3: GET /log/blob survives a process restart (index rebuilt from the
   const bytes = Buffer.from('survives-a-restart-\x00\x01\xff', 'binary');
   let first; let firstSvc;
   try {
-    firstSvc = createClassicEntrypoint();
-    first = await firstSvc.listen(0);
-    const p = first.address().port;
+    const firstPort = await freePort();
+    firstSvc = createClassicEntrypoint({ publicUrl: `http://localhost:${firstPort}` });
+    first = await firstSvc.listen(firstPort);
+    const p = firstPort;
     const put = await fetch(`http://localhost:${p}/log/upload?key=${encodeURIComponent(key)}`, { method: 'PUT', body: bytes });
     assert.equal(put.status, 200);
     const before = await fetch(`http://localhost:${p}/log/blob?key=${encodeURIComponent(key)}`);
@@ -436,10 +440,11 @@ test('defect 3: GET /log/blob survives a process restart (index rebuilt from the
   let second; let secondSvc;
   try {
     // A restart: brand-new process, brand-new LogStore, same on-disk directory.
-    secondSvc = createClassicEntrypoint();
-    second = await secondSvc.listen(0);
+    const secondPort = await freePort();
+    secondSvc = createClassicEntrypoint({ publicUrl: `http://localhost:${secondPort}` });
+    second = await secondSvc.listen(secondPort);
     assert.equal(secondSvc.logStore.index.size, 0, 'a restarted process starts with an empty in-memory index');
-    const p = second.address().port;
+    const p = secondPort;
     const after = await fetch(`http://localhost:${p}/log/blob?key=${encodeURIComponent(key)}`);
     assert.equal(after.status, 200, 'the object file is still on disk, so the index is rebuilt from it');
     assert.deepEqual(Buffer.from(await after.arrayBuffer()), bytes, 'bytes survive the restart');
@@ -461,9 +466,10 @@ test('binary/ASR upload path is durable: handshake -> PUT -> restart -> GET', as
   let key; let uploadUrl;
   let first; let firstSvc;
   try {
-    firstSvc = createClassicEntrypoint();
-    first = await firstSvc.listen(0);
-    const p = first.address().port;
+    const firstPort = await freePort();
+    firstSvc = createClassicEntrypoint({ publicUrl: `http://localhost:${firstPort}` });
+    first = await firstSvc.listen(firstPort);
+    const p = firstPort;
     const hs = await fetch(`http://localhost:${p}/`, {
       method: 'POST',
       headers: { 'content-type': 'application/x-amz-json-1.1', 'x-amz-target': 'Log_20150309.PutAsrBinary' },
@@ -481,8 +487,9 @@ test('binary/ASR upload path is durable: handshake -> PUT -> restart -> GET', as
   }
   let second; let secondSvc;
   try {
-    secondSvc = createClassicEntrypoint();
-    second = await secondSvc.listen(0);
+    const secondPort = await freePort();
+    secondSvc = createClassicEntrypoint({ publicUrl: `http://localhost:${secondPort}` });
+    second = await secondSvc.listen(secondPort);
     assert.equal(secondSvc.logStore.index.size, 0, 'restarted process has an empty in-memory index');
     const got = await fetch(`http://localhost:${second.address().port}/log/blob?key=${encodeURIComponent(key)}`);
     assert.equal(got.status, 200, 'the ASR object is retrievable after a restart');
@@ -496,3 +503,16 @@ test('binary/ASR upload path is durable: handshake -> PUT -> restart -> GET', as
 
 // ---- aliases to keep the file compact --------------------------------------
 function api(target, body, opts) { return amz(target, body, opts); }
+
+async function freePort() {
+  const probe = http.createServer();
+  await new Promise((resolve) => probe.listen(0, resolve));
+  const p = probe.address().port;
+  await new Promise((resolve) => probe.close(resolve));
+  return p;
+}
+
+async function listenWithPublicUrl(options = {}) {
+  const p = await freePort();
+  return createClassicEntrypoint({ ...options, publicUrl: `http://localhost:${p}` }).listen(p);
+}

@@ -50,6 +50,7 @@ import { tmpdir } from 'node:os';
 import { randomUUID, createHash } from 'node:crypto';
 import { sendAmz, sendAmzError, accessKeyIdFromAuth, ValidationException } from './awsJson.js';
 import { PERSON_QUESTIONS, HOLIDAYS } from './personCatalog.js';
+import { verifiedCallerFromRequest } from './caller.js';
 
 // srv-person-ws src/errors/person.js — verbatim codes, messages and status codes.
 export const PERSON_ERRORS = {
@@ -446,7 +447,10 @@ function accountFailure(error) {
 /** The account identity the source read from `request.auth.credentials.id`. The gateway verifies
  *  the signature; on the trusted internal hop the id comes from the SigV4 `Credential=<id>/…`
  *  accessKeyId, or from Account Settings' `x-amz-credentials: {"id":…}` header when present. */
-export function accountIdFromRequest(req) {
+export function accountIdFromRequest(req, { requireVerified = false } = {}) {
+  const verified = verifiedCallerFromRequest(req);
+  if (verified) return verified.accountId;
+  if (requireVerified) return null;
   const raw = req?.headers?.['x-amz-credentials'];
   if (raw) {
     try {
@@ -480,7 +484,7 @@ const VALIDATORS = {
  * ({ isLoopMember, isAccountOwnerOrRobot, listBirthdays }); it may be omitted (LAN trust).
  */
 export function makePersonHandler({
-  store, account, questions = PERSON_QUESTIONS, holidays = HOLIDAYS, now = Date.now,
+  store, account, questions = PERSON_QUESTIONS, holidays = HOLIDAYS, now = Date.now, callerBoundary,
 } = {}) {
   if (!store) throw new TypeError('person handler requires a PersonStore');
   const controller = new PersonController(account, questions, holidays, store, now);
@@ -503,7 +507,7 @@ export function makePersonHandler({
     const name = String(op).toLowerCase();
     const handler = handlers[name];
     if (!handler) return void sendAmzError(res, ValidationException, `unknown person operation: ${op}`);
-    const accountId = accountIdFromRequest(req);
+    const accountId = accountIdFromRequest(req, { requireVerified: !!callerBoundary });
     if (!accountId) return void sendAmzError(res, MISSING_AUTH_HEADER);
     const payload = body || {};
     const invalid = VALIDATORS[name](payload);

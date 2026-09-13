@@ -46,6 +46,8 @@ import {
   normalizeMaxBytes,
   writeAtomicUpload,
 } from './rawUpload.js';
+import { verifiedCallerFromRequest } from './caller.js';
+import { canonicalPublicOrigin } from './publicOrigin.js';
 
 const NPM_LEVELS = ['error', 'warn', 'info', 'verbose', 'debug', 'silly'];
 const KINDS = ['HEALTH', 'LOG'];
@@ -110,7 +112,15 @@ const stringMemberError = (name, v, required = false) => {
   return clause ? boomBadData(`child "${name}" fails because ["${name}" ${clause}]`) : null;
 };
 
-function credentialsFrom(req) {
+function credentialsFrom(req, requireVerified = false) {
+  const verified = verifiedCallerFromRequest(req);
+  if (verified) return {
+    id: verified.accountId,
+    _id: verified.accountId,
+    friendlyId: verified.friendlyId,
+    isAdmin: verified.isAdmin,
+  };
+  if (requireVerified) return {};
   try {
     const parsed = JSON.parse(req?.headers?.['x-amz-credentials'] || '');
     return parsed && typeof parsed === 'object' ? parsed : {};
@@ -227,8 +237,12 @@ function safeKey(key) {
  * @param {LogStore} store
  * @param {(req) => string} [baseFn] public URL of this entrypoint (like Backup's baseFor)
  */
-export function makeLogHandler(store, baseFn) {
-  const baseFor = (req) => (baseFn ? baseFn(req) : fallbackBase(req));
+export function makeLogHandler(store, baseFn, { callerBoundary } = {}) {
+  const baseFor = (req) => {
+    const candidate = baseFn ? baseFn(req) : process.env.ETCO_classic_publicUrl;
+    if (!candidate) throw new Error('publicUrl is required to emit a log object URL');
+    return canonicalPublicOrigin(String(candidate));
+  };
   const putUrl = (req, key) => `${baseFor(req)}/log/upload?key=${encodeURIComponent(key)}`;
   const blobUrl = (req, key) => `${baseFor(req)}/log/blob?key=${encodeURIComponent(key)}`;
 
@@ -247,17 +261,21 @@ export function makeLogHandler(store, baseFn) {
         if (badDevice) return void sendLogError(res, badDevice);
         const badTracking = stringMemberError('trackingId', b.trackingId);
         if (badTracking) return void sendLogError(res, badTracking);
-        const { id: accountId, friendlyId: robotId } = credentialsFrom(req);
-        for (const event of b.events) {
+        const { id: accountId, friendlyId: robotId } = credentialsFrom(req, !!callerBoundary);
+        for (const input of b.events) {
+          const event = { ...(input || {}) };
           if (b.deviceId) event.deviceId = b.deviceId;
           if (robotId) event.robotId = robotId;
           if (b.trackingId) event.trackingId = b.trackingId;
-          if (accountId) event.accountId = accountId;
           if (!event.level || !NPM_LEVELS.includes(event.level)) {
             // srv-log-ws: a message mentioning "error" -> error, otherwise info
             event.level = event.message && event.message.includes('error') ? 'error' : 'info';
           }
-          store.logEvent({ level: event.level, message: event.message, ...event });
+          const stored = { level: event.level, message: event.message, ...event };
+          // Caller identity is authoritative even when the payload contains forged attribution.
+          if (accountId) stored.accountId = accountId;
+          if (robotId) stored.robotId = robotId;
+          store.logEvent(stored);
         }
         return void sendAmz(res, 200, { result: 'Successfully added events' });
       }
@@ -269,7 +287,7 @@ export function makeLogHandler(store, baseFn) {
         const badSerial = stringMemberError('serial', b.serial, true);
         if (badSerial) return void sendLogError(res, badSerial);
         if (!selected()) return void sendAmzError(res, REQUEST_THROTTLED);
-        const { id: accountId, friendlyId: robotId } = credentialsFrom(req);
+        const { id: accountId, friendlyId: robotId } = credentialsFrom(req, !!callerBoundary);
         const date = new Date();
         const day = `year=${date.getFullYear()}/month=${date.getMonth()}/day=${date.getDate()}`;
         const robot = `robot=${robotId || ''}/serial=${b.serial}`;
@@ -278,7 +296,7 @@ export function makeLogHandler(store, baseFn) {
       }
 
       case 'newkinesiscredentials': {
-        const { friendlyId } = credentialsFrom(req);
+        const { friendlyId } = credentialsFrom(req, !!callerBoundary);
         if (!friendlyId) return void sendAmzError(res, ROBOT_ONLY);
         // Kinesis is dead and Phoenix has no AWS STS. Hand back the documented shape
         // with an already-expired timestamp so the robot's telemetry degrades cleanly
@@ -303,14 +321,14 @@ export function makeLogHandler(store, baseFn) {
         if (badHeader) return void sendLogError(res, badHeader);
         const trackingId = req?.headers?.['x-tracking-id'] || '';
         if (!selected()) return sendAmzError(res, REQUEST_THROTTLED);
-        const { id: accountId } = credentialsFrom(req);
+        const { id: accountId } = credentialsFrom(req, !!callerBoundary);
         const binaryPath = `${accountId || ''}/${trackingId}/${randomUUID()}`;
         const contentLength = declaredContentLength(req);
         if (contentLength !== null && contentLength > store.maxBytes) {
           req.resume?.();
           return void sendAmzError(res, payloadTooLarge(store.maxBytes));
         }
-        return store.put(`${BUCKET_PATH}/${binaryPath}`, req)
+        return store.put(`${BUCKET_PATH}/${binaryPath}`, req._phoenixBodyStream || req)
           .then((entry) => sendAmz(res, 200, { path: `/${VIRTUAL_BUCKET}/${entry.key}`, url: blobUrl(req, entry.key) }))
           .catch((err) => {
             log?.warn?.('log binary store failed', { error: err.message });
@@ -328,7 +346,7 @@ export function makeLogHandler(store, baseFn) {
         const badTrackingId = stringMemberError('trackingId', b.trackingId);
         if (badTrackingId) return void sendLogError(res, badTrackingId);
         if (!selected()) return void sendAmzError(res, REQUEST_THROTTLED);
-        const { id: accountId } = credentialsFrom(req);
+        const { id: accountId } = credentialsFrom(req, !!callerBoundary);
         const trackingIdPart = b.trackingId ? `${b.trackingId}/` : '';
         const key = `${BUCKET_PATH}/${accountId || ''}/${trackingIdPart}${randomUUID()}`;
         return void sendAmz(res, 200, { path: `/${VIRTUAL_BUCKET}/${key}`, url: blobUrl(req, key), uploadUrl: putUrl(req, key) });
@@ -341,7 +359,7 @@ export function makeLogHandler(store, baseFn) {
           return void sendLogError(res, boomBadData('child "metadata" fails because ["metadata" must be an object]'));
         }
         if (!selectForAsr(b.trackingId)) return void sendAmzError(res, REQUEST_THROTTLED);
-        const { id: accountId } = credentialsFrom(req);
+        const { id: accountId } = credentialsFrom(req, !!callerBoundary);
         const date = new Date();
         const day = `year=${date.getFullYear()}/month=${date.getMonth()}/day=${date.getDate()}`;
         const key = `${ASR_BUCKET_PATH}/${day}/accountId=${accountId || ''}/trackingId=${b.trackingId}/${date.getTime()}.bin`;
@@ -354,7 +372,7 @@ export function makeLogHandler(store, baseFn) {
       }
 
       case 'setlevel': {
-        const { isAdmin } = credentialsFrom(req);
+        const { isAdmin } = credentialsFrom(req, !!callerBoundary);
         if (!isAdmin) return void sendAmzError(res, AUTHORIZED_UNDER_ADMIN);
         if (!Array.isArray(b.friendlyIds)) return void sendLogError(res, boomBadData('child "friendlyIds" fails because ["friendlyIds" is required]'));
         if (!Array.isArray(b.namespaces)) return void sendLogError(res, boomBadData('child "namespaces" fails because ["namespaces" is required]'));
@@ -443,11 +461,6 @@ function keyFromUrl(url, name) {
   } catch {
     return '';
   }
-}
-
-function fallbackBase(req) {
-  return process.env.ETCO_classic_publicUrl
-    || `${req?.socket?.encrypted ? 'https' : 'http'}://${(req?.headers && req.headers.host) || 'localhost'}`;
 }
 
 function clampProbability(value) {

@@ -37,6 +37,8 @@ import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { pipeline } from 'node:stream/promises';
 import { sendAmz, sendAmzError, accessKeyIdFromAuth, ValidationException } from './awsJson.js';
+import { verifiedCallerFromRequest } from './caller.js';
+import { canonicalPublicOrigin } from './publicOrigin.js';
 import {
   configuredMaxBytes,
   declaredContentLength,
@@ -308,23 +310,13 @@ export class MediaStore {
   }
 }
 
-/**
- * `url` for an object key, pointed back at whatever host the caller reached us on (no S3).
- *
- * Order matters: the object URL is fetched by the DEVICE that made the request (Glide on the
- * phone, the robot's own downloader), so the host it addressed us with is the only one known to
- * work for it. `ETCO_classic_mediaBaseUrl` is the explicit override for the case where that host
- * is not resolvable by the other devices in the loop — e.g. a robot that reaches Phoenix as
- * `api.jibo.com` while the phone reaches it by LAN address. Classic's static public URL is a last
- * resort, not the default, because the deployed profile pins it to https://localhost.
- */
+/** Build an object URL from an explicit public origin, never from request Host. */
 function objectBaseUrl(baseFor, req) {
   const explicit = process.env.ETCO_classic_mediaBaseUrl;
-  if (explicit) return String(explicit).replace(/\/$/, '');
-  const host = req?.headers?.host;
-  if (host) return `${req?.socket?.encrypted ? 'https' : 'http'}://${host}`;
-  const base = typeof baseFor === 'function' ? baseFor(req) : null;
-  return String(base || 'http://localhost').replace(/\/$/, '');
+  if (explicit) return canonicalPublicOrigin(String(explicit), { name: 'ETCO_classic_mediaBaseUrl' });
+  const base = typeof baseFor === 'function' ? baseFor(req) : baseFor;
+  if (!base) throw new Error('publicUrl is required to emit a media object URL');
+  return canonicalPublicOrigin(String(base));
 }
 
 const mediaUrl = (base, path) => `${base}/media/blob/${path}`;
@@ -354,12 +346,29 @@ function credentialsFromHeader(req) {
  * the same documented divergence as Backup's dropped loop-ownership check — rather than being
  * silently replaced by a fake pass.
  */
-export function makeMediaHandler({ store, baseFor, accountResolver, loops, credentials } = {}) {
+export function makeMediaHandler({ store, baseFor, accountResolver, loops, credentials, callerBoundary } = {}) {
   if (!store) throw new TypeError('media handler requires a MediaStore');
-  const credentialsOf = typeof credentials === 'function' ? credentials : credentialsFromHeader;
-  const accountIdOf = (req, body) => (typeof accountResolver === 'function'
-    ? accountResolver(req, body)
-    : accessKeyIdFromAuth(req)) || 'anon';
+  const credentialsOf = (req) => {
+    const verified = verifiedCallerFromRequest(req);
+    if (verified) return {
+      id: verified.accountId,
+      _id: verified.accountId,
+      email: verified.email,
+      friendlyId: verified.friendlyId,
+      isAdmin: verified.isAdmin,
+    };
+    // A configured boundary is fail-closed if a handler is called outside the router. Never fall
+    // back to a forwarded identity after the application has opted into verified callers.
+    if (callerBoundary) return {};
+    if (typeof credentials === 'function') return credentials(req);
+    return credentialsFromHeader(req);
+  };
+  const accountIdOf = (req, body) => {
+    const verified = verifiedCallerFromRequest(req);
+    if (verified) return verified.accountId;
+    if (callerBoundary) return null;
+    return (typeof accountResolver === 'function' ? accountResolver(req, body) : accessKeyIdFromAuth(req)) || 'anon';
+  };
   const loopMemberIds = async (loopId) => (loops && typeof loops.members === 'function'
     ? (await loops.members(loopId)) || [] : null);
   const accountLoopIds = async (accountId) => (loops && typeof loops.accountLoops === 'function'
@@ -431,7 +440,7 @@ export function makeMediaHandler({ store, baseFor, accountResolver, loops, crede
         const parent = store.find(reference);
         if (!parent) fail('REFERENCE_NOT_FOUND');
         const thumb = { path, type, url: mediaUrl(base, path), isEncrypted };
-        await store.writeBlob({ ...thumb, accountId: parent.accountId }, req);
+        await store.writeBlob({ ...thumb, accountId: parent.accountId }, req._phoenixBodyStream || req);
         // The source pushes the thumb onto the referenced document, saves it, and answers the
         // parent's JSON with the thumb's path/type/url plus the reference — not the thumb record.
         parent.thumbs = [...(parent.thumbs || []), thumb];
@@ -443,7 +452,7 @@ export function makeMediaHandler({ store, baseFor, accountResolver, loops, crede
         path, type, accountId, loopId, url: mediaUrl(base, path), created: store.created(),
         meta: metaFromHeaders(req), isEncrypted, isDeleted: false, thumbs: [],
       };
-      await store.putObject(record, req);
+      await store.putObject(record, req._phoenixBodyStream || req);
       return void sendAmz(res, 200, toJSON(record));
     } catch (error) {
       if (typeof req?.resume === 'function' && !req.readableEnded) req.resume();
@@ -598,7 +607,7 @@ export function accessKeyAccountResolver(accountByAccessKeyId) {
     const accessKeyId = accessKeyIdFromAuth(req);
     if (!accessKeyId) return null;
     const account = typeof accountByAccessKeyId === 'function' ? accountByAccessKeyId(accessKeyId) : null;
-    if (!account) return accessKeyId;
+    if (!account) return null;
     return String(account.id ?? account._id ?? accessKeyId);
   };
 }

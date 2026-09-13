@@ -29,6 +29,8 @@ import {
 } from './voiceTraining.js';
 import { stubRegistrations } from './stubs.js';
 import { proxyMemberPhoto } from './photoProxy.js';
+import { PublicOriginError, configuredPublicOrigin } from './publicOrigin.js';
+import { cleanupVerifiedClassicRequest, sendVerifiedCallerError } from './caller.js';
 
 export { createClassicRouter } from './router.js';
 export * as awsJson from './awsJson.js';
@@ -40,6 +42,15 @@ export { KeyStore, keyRoutes, KEY_ERRORS } from './key.js';
 export { DeviceRegistry } from './push.js';
 export { BackupStore, credentialsAccountId, accountLoopRobot, BACKUP_MAX_BYTES, BACKUP_URL_EXPIRATION_MS } from './backup.js';
 export { MediaStore, makeMediaHandler, mediaBlobRoutes, expandMedia, accessKeyAccountResolver, MEDIA_ERRORS, MEDIA_TYPES, MEDIA_MAX_BYTES, AUTHORIZED_UNDER_ADMIN } from './media.js';
+export {
+  VERIFIED_CALLER,
+  createVerifiedClassicCaller,
+  verifiedCallerFromRequest,
+  cleanupVerifiedClassicRequest,
+  sendVerifiedCallerError,
+  DEFAULT_AUTH_BODY_MAX_BYTES,
+} from './caller.js';
+export { PublicOriginError, configuredPublicOrigin, canonicalPublicOrigin, requirePublicOrigin } from './publicOrigin.js';
 export {
   RomController, RomError, CertificateStore, ROM_ERRORS,
   makeRomHandler, makeAccountClient, makeRobotClient, generateCertificatePair,
@@ -70,6 +81,27 @@ const netUrl = (name, defPort) => {
   return /^https?:\/\//.test(v) ? v : `http://${v}`;
 };
 
+/** Apply the SigV4 caller boundary to a non-X-Amz-Target route. */
+function verifiedDirectRoute(handler, callerBoundary) {
+  return async (context) => {
+    if (!callerBoundary) return handler(context);
+    const { req, res, body, target, op, log } = context;
+    try {
+      const wireBody = req.rawBody !== undefined
+        ? req.rawBody
+        : body === undefined || body === null ? '' : body;
+      const caller = await callerBoundary({ req, res, body: wireBody, target, op, log });
+      if (!caller) throw new Error('verified caller boundary returned no identity');
+      return await handler({ ...context, caller });
+    } catch (error) {
+      if (!res.writableEnded) sendVerifiedCallerError(res, error);
+      return undefined;
+    } finally {
+      await cleanupVerifiedClassicRequest(req);
+    }
+  };
+};
+
 function isNotificationTarget(req) {
   return /^notification[^.]*\./i.test(String(req?.headers?.['x-amz-target'] || ''));
 }
@@ -87,7 +119,7 @@ function isAccountTarget(req) {
 }
 
 /** Build the entrypoint's route table. `extra` registrations are prepended (later iterations). */
-export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor, media, keyStore, keyMembership, keyBinaryDir, rom, robotStore, key, ifttt, nlp, person, collision, jot, voiceTraining } = {}) {
+export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor, callerBoundary, media, keyStore, keyMembership, keyBinaryDir, rom, robotStore, key, ifttt, nlp, person, collision, jot, voiceTraining } = {}) {
   const mediaStore = media?.store || new MediaStore();
   const personStore = person?.store || new PersonStore();
   const jotStore = jot?.store || new JotStore();
@@ -101,12 +133,13 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
   const keyMembershipSeam = keyMembership || accountMembership();
   const router = createClassicRouter([
     ...extra,
-    { match: /^log/i, handler: makeLogHandler(logStore || new LogStore(), baseFor) },
-    { match: /^robot/i, handler: makeRobotHandler({ store: robotStore || new RobotStore() }) },
-    { match: /^notification/i, handler: makeNotificationHandler(hub, { accountResolver: notificationAccountResolver }), preserveBody: true, bodyDefault: null },
+    { match: /^log/i, handler: makeLogHandler(logStore || new LogStore(), baseFor, { callerBoundary }) },
+    { match: /^robot/i, handler: makeRobotHandler({ store: robotStore || new RobotStore(), callerBoundary }) },
+    { match: /^notification/i, handler: makeNotificationHandler(hub, { accountResolver: notificationAccountResolver, callerBoundary }), preserveBody: true, bodyDefault: null },
     { match: /^key/i, handler: makeKeyHandler(keys, {
       membership: keyMembershipSeam, baseFor, binaryDir: keyBinaryDir,
       accountResolver: key?.accountResolver,
+      callerBoundary,
       // The robot's immediate wake-up on CreateRequest (source: SNS KeyNeeded to the siblings).
       notifyKeyNeeded: makeKeyNeededNotifier(hub, keyMembershipSeam),
     }) },
@@ -119,8 +152,9 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
       accountResolver: media?.accountResolver,
       loops: media?.loops,
       credentials: media?.credentials,
+      callerBoundary,
     }) },
-    { match: /^rom/i, handler: makeRomHandler(rom) }, // ROM_20171011 cert exchange (A-16)
+    { match: /^rom/i, handler: makeRomHandler({ ...(rom || {}), callerBoundary }) }, // ROM_20171011 cert exchange (A-16)
     // IFTTT_20170207 and NLP_20161031 are real handlers now (source-faithful contracts with
     // explicit dead-provider seams), registered before the tier-3 stubs so they win.
     { match: /^ifttt/i, handler: makeIftttHandler(ifttt || {}) },
@@ -129,7 +163,7 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
     // username collision) own real handlers now (A-15), registered ahead of the tier-3 stubs.
     { match: /^person/i, handler: makePersonHandler({
       store: personStore, account: person?.account, questions: person?.questions,
-      holidays: person?.holidays, now: person?.now,
+      holidays: person?.holidays, now: person?.now, callerBoundary,
     }) },
     { match: /^collision/i, handler: makeCollisionHandler(collision || {}) },
     // Jot (the loop-scoped family messaging surface) owns a real handler now — the five loop-era
@@ -150,6 +184,7 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
       store: voiceTrainingStore,
       backup: voiceTraining?.backup,
       baseFor,
+      callerBoundary,
       maxBytes: voiceTraining?.maxBytes,
     }) },
     ...stubRegistrations(), // build-to-spec tier-3 stubs (none remain: person/collision/jot/voiceTraining graduated)
@@ -158,7 +193,7 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
     { match: /^loop/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^settings/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^update/i, proxyTo: () => netUrl('ota', DefaultPort.ota) },
-  ]);
+  ], { callerBoundary });
   return router;
 }
 
@@ -210,7 +245,17 @@ export function makeKeyNeededNotifier(hub, membership) {
  * socket (the wss push door) is attached to the same HTTP server — the robot reaches the REST
  * face and the socket on one host (path /socket/<token>).
  */
-export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership, backup, log, media, key, keyStore, keyMembership, keyBinaryDir, rom, robotStore, ifttt, nlp, person, collision, jot, voiceTraining } = {}) {
+export function createClassicEntrypoint({ extra = [], tls, publicUrl, publicOrigin, requirePublicUrl, callerBoundary, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership, backup, log, media, key, keyStore, keyMembership, keyBinaryDir, rom, robotStore, ifttt, nlp, person, collision, jot, voiceTraining } = {}) {
+  const configuredOrigin = configuredPublicOrigin({ publicUrl, publicOrigin });
+  if ((requirePublicUrl === true || (requirePublicUrl === undefined && !!callerBoundary)) && !configuredOrigin) {
+    throw new PublicOriginError('publicUrl is required for an authenticated Classic entrypoint');
+  }
+  // Never consult request Host for a bearer destination. A missing origin is retained as a
+  // fail-closed error until an operation actually needs to emit an object URL in standalone tests.
+  const baseFor = () => {
+    if (!configuredOrigin) throw new PublicOriginError('publicUrl is required to emit an object URL');
+    return configuredOrigin;
+  };
   const hub = new NotificationHub({
     file: notificationFile,
     store: notificationStore,
@@ -233,9 +278,6 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
     : undefined;
   const keys = keyStore || new KeyStore();
   const robots = robotStore || new RobotStore();
-  // The Backup URLs (and OTA-style self-hosting) point back at whatever host the robot reached
-  // us on, so the blob upload/download land here too. ETCO_classic_publicUrl overrides.
-  const baseFor = (req) => process.env.ETCO_classic_publicUrl || `${req.socket?.encrypted ? 'https' : 'http'}://${(req.headers && req.headers.host) || 'localhost'}`;
   const logStore = log?.store || new LogStore(log?.dir, { maxBytes: log?.maxBytes });
   const mediaStore = media?.store || new MediaStore(media || {});
   const iftttStore = ifttt?.store || new IftttStore({
@@ -258,8 +300,9 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
     // intact to reject them before token mutation. Other routes stay strict.
     jsonStrict: (req) => !isCreateHubTokenTarget(req) && !isNotificationTarget(req) && !isLoopTarget(req) && !isAccountTarget(req),
     routes: {
-      ...classicRoutes(hub, [...extra, { match: /^backup/i, handler: makeBackupHandler(backups, baseFor, { ownership: effectiveBackupOwnership }) }], {
+      ...classicRoutes(hub, [...extra, { match: /^backup/i, handler: makeBackupHandler(backups, baseFor, { ownership: effectiveBackupOwnership, callerBoundary }) }], {
         notificationAccountResolver,
+        callerBoundary,
         logStore,
         baseFor,
         media: { ...media, store: mediaStore },
@@ -291,22 +334,23 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
         log,
       }),
       ...backupBlobRoutes(backups), // PUT/GET /backup/blob — the self-hosted store the URLs point at
-      ...keyRoutes(keys, { membership: keyMembership, baseFor, binaryDir: keyBinaryDir }), // POST /binaryRequest, /deleteBinaries, GET /key/binary
+      ...keyRoutes(keys, { membership: keyMembership, baseFor, binaryDir: keyBinaryDir, callerBoundary }), // POST /binaryRequest, /deleteBinaries, GET /key/binary
       ...logHttpRoutes(logStore),  // PUT/GET /log/upload|blob — the log/ASR/binary sink the URLs point at
       ...mediaBlobRoutes(mediaStore), // GET /media/blob/:path — the object bytes behind a Media url
       // Internal enqueue: push a notification to a robot's account (portal/system/tests use this).
-      'POST /notify': ({ res, body }) => {
-        if (!body || !body.accountId) return sendJson(res, 400, { error: 'accountId required' });
-        const notification = Object.prototype.hasOwnProperty.call(body, 'notification')
+      'POST /notify': verifiedDirectRoute(({ res, body, caller }) => {
+        const accountId = caller?.accountId || body?.accountId;
+        if (!accountId) return sendJson(res, 400, { error: 'accountId required' });
+        const notification = Object.prototype.hasOwnProperty.call(body || {}, 'notification')
           ? body.notification
-          : Object.prototype.hasOwnProperty.call(body, 'payload') ? body.payload : {};
+          : Object.prototype.hasOwnProperty.call(body || {}, 'payload') ? body.payload : {};
         const n = hub.enqueueNotification({
-          accountId: body.accountId,
+          accountId,
           skillId: body.skillId === undefined ? '-1' : body.skillId,
           notification,
         });
         return { queued: n._id };
-      },
+      }, callerBoundary),
     },
   });
   const wss = attachNotificationSocket(service.server, hub);

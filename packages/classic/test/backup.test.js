@@ -54,10 +54,12 @@ before(async () => {
   backupDir = mkdtempSync(join(tmpdir(), 'phx-backup-shared-'));
   prevBackupDir = process.env.ETCO_classic_backupDir;
   process.env.ETCO_classic_backupDir = backupDir;
+  const listenPort = await freePort();
   server = await createClassicEntrypoint({
+    publicUrl: `http://localhost:${listenPort}`,
     backup: { dir: backupDir, bearerSecret: 'classic-backup-test-secret' },
     backupOwnership: { allowLoopbackWithoutIdentity: true },
-  }).listen(0);
+  }).listen(listenPort);
   port = server.address().port;
 });
 after(() => {
@@ -315,7 +317,8 @@ test('ownership: end-to-end through a real Account service (getLoop 200 and 404)
     accountServer = await accountService.listen(0);
     process.env.NET_account = `127.0.0.1:${accountServer.address().port}`;
 
-    classic = await createClassicEntrypoint().listen(0);
+    const classicPort = await freePort();
+    classic = await createClassicEntrypoint({ publicUrl: `http://localhost:${classicPort}` }).listen(classicPort);
     const cb = `http://localhost:${classic.address().port}`;
     const post = async (creds, body) => {
       const res = await fetch(`${cb}/`, {
@@ -365,10 +368,12 @@ test('backup blob bearer rejects forgery, wrong loop, expiry changes, and method
   let now = Date.now();
   let svc;
   try {
+    const listenPort = await freePort();
     svc = await createClassicEntrypoint({
+      publicUrl: `http://localhost:${listenPort}`,
       backup: { dir, bearerSecret: secret, clock: () => now, urlExpirationMs: 1000 },
       backupOwnership: { allowLoopbackWithoutIdentity: true },
-    }).listen(0);
+    }).listen(listenPort);
     const p = svc.address().port;
     const post = async (target, body) => {
       const response = await fetch(`http://localhost:${p}/`, {
@@ -445,7 +450,8 @@ test('backup blob endpoints reject path-traversal in loopId/key', async () => {
 // ---- helpers ----------------------------------------------------------------
 
 async function withOwnership(ownership, fn) {
-  const svc = await createClassicEntrypoint({ backupOwnership: ownership }).listen(0);
+  const listenPort = await freePort();
+  const svc = await createClassicEntrypoint({ publicUrl: `http://localhost:${listenPort}`, backupOwnership: ownership }).listen(listenPort);
   const p = svc.address().port;
   try {
     return await fn({
@@ -486,6 +492,7 @@ async function startChild({ backupDir, avoidPorts = [] }) {
         ...process.env,
         PORT: String(port),
         ETCO_classic_backupDir: backupDir,
+        ETCO_classic_publicUrl: `http://localhost:${port}`,
         ETCO_classic_backupTrustedLoopback: 'true',
         ETCO_classic_backupBearerSecret: 'classic-backup-child-secret',
       },

@@ -71,6 +71,8 @@ import { randomBytes } from 'node:crypto';
 import { sendAmz, sendAmzError, accessKeyIdFromAuth } from './awsJson.js';
 import { normalizeMaxBytes } from './rawUpload.js';
 import { MISSING_AUTH_HEADER } from './person.js';
+import { verifiedCallerFromRequest } from './caller.js';
+import { canonicalPublicOrigin } from './publicOrigin.js';
 
 /** The ONLY operations the pinned dispatcher resolves (lib/handlers/index.js exports). */
 export const VOICE_TRAINING_OPERATIONS = ['uploadvoicetraining', 'listvoicetrainings'];
@@ -163,14 +165,28 @@ export function parseCredentials(req) {
  * only a SigV4 Authorization is present (no header) the resolved accountId stands in for it, which
  * is the one thing the dead gateway did that Phoenix must not lose.
  */
-export function backupCredentials(req, accountId) {
+export function backupCredentials(req, accountId, { requireVerified = false } = {}) {
+  const verified = verifiedCallerFromRequest(req);
+  if (verified) {
+    return {
+      _id: verified.accountId,
+      id: verified.accountId,
+      email: verified.email,
+      friendlyId: verified.friendlyId,
+      isAdmin: verified.isAdmin,
+    };
+  }
+  if (requireVerified) return {};
   const parsed = parseCredentials(req);
-  const id = parsed._id ?? parsed.id ?? accountId;
+  const id = accountId ?? parsed._id ?? parsed.id;
   return { ...parsed, _id: id, id };
 }
 
-/** The caller identity the gateway verified: the x-amz-credentials id, else the SigV4 accessKeyId. */
-export function voiceTrainingAccountId(req) {
+/** The caller identity the verifier established, falling back to legacy standalone behavior. */
+export function voiceTrainingAccountId(req, { requireVerified = false } = {}) {
+  const verified = verifiedCallerFromRequest(req);
+  if (verified) return verified.accountId;
+  if (requireVerified) return null;
   const parsed = parseCredentials(req);
   if (parsed.id !== undefined && parsed.id !== null && String(parsed.id).length > 0) return String(parsed.id);
   if (parsed._id !== undefined && parsed._id !== null && String(parsed._id).length > 0) return String(parsed._id);
@@ -364,9 +380,9 @@ export function voiceTrainingBackup(store) {
 // ---- the X-Amz-Target handler ----------------------------------------------------------------
 
 function baseUrlFor(baseFor, req) {
-  if (typeof baseFor === 'function') return baseFor(req);
-  if (typeof baseFor === 'string') return baseFor;
-  return undefined;
+  const value = typeof baseFor === 'function' ? baseFor(req) : baseFor;
+  if (!value) throw new Error('publicUrl is required to emit a voice training object URL');
+  return canonicalPublicOrigin(String(value), { name: 'publicUrl' });
 }
 
 /**
@@ -383,6 +399,7 @@ export function makeVoiceTrainingHandler({
   baseFor,
   maxBytes = VOICE_TRAINING_MAX_BYTES,
   logger,
+  callerBoundary,
 } = {}) {
   const limit = normalizeMaxBytes(maxBytes, VOICE_TRAINING_MAX_BYTES);
   const client = backup || voiceTrainingBackup(store);
@@ -394,7 +411,7 @@ export function makeVoiceTrainingHandler({
     // The gateway (srv-security-gw auth.ctrl.ts) is OUTERMOST: the VoiceTraining target is absent
     // from its unsigned allow-list, so an unsigned call is rejected before the Hapi handler runs —
     // even for an operation the handler does not export.
-    const accountId = voiceTrainingAccountId(req);
+    const accountId = voiceTrainingAccountId(req, { requireVerified: !!callerBoundary });
     if (!accountId) return void sendAmzError(res, MISSING_AUTH_HEADER);
     // server.js: `handlers[method] || handlers[method + 'Handler']` — only two exports resolve.
     if (!VOICE_TRAINING_OPERATIONS.includes(lower)) {
@@ -409,7 +426,7 @@ export function makeVoiceTrainingHandler({
     const invalid = VOICE_TRAINING_VALIDATORS[lower] ? VOICE_TRAINING_VALIDATORS[lower](payload) : null;
     if (invalid) return void sendBoom(res, 400, invalid);
 
-    const credentials = backupCredentials(req, accountId);
+    const credentials = backupCredentials(req, accountId, { requireVerified: !!callerBoundary });
     const base = baseUrlFor(baseFor, req);
     try {
       if (lower === 'uploadvoicetraining') {

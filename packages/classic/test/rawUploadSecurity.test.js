@@ -61,6 +61,7 @@ function requestChunks(port, method, path, headers, chunks) {
 test('HTTP chunked oversize Backup, Log, and Media uploads return 413 without publishing', async () => {
   const root = await mkdtemp(join(tmpdir(), 'phoenix-http-raw-limit-'));
   const entrypoint = createClassicEntrypoint({
+    publicUrl: 'http://127.0.0.1:1',
     backup: { dir: join(root, 'backup'), maxBytes: 5, bearerSecret: 'raw-upload-test-secret' },
     log: { dir: join(root, 'log'), maxBytes: 5 },
     media: { directory: join(root, 'media-objects'), file: join(root, 'media.json'), maxBytes: 5 },

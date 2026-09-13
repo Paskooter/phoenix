@@ -451,7 +451,7 @@ function sendNotificationValidationError(res, message) {
 }
 
 /** AWS-JSON handler for Notification_20150505. */
-export function makeNotificationHandler(hub, { accountResolver } = {}) {
+export function makeNotificationHandler(hub, { accountResolver, callerBoundary } = {}) {
   return async function notificationHandler({ req, res, body, op, target }) {
     let accountId;
     if (accountResolver === undefined) {
@@ -478,7 +478,7 @@ export function makeNotificationHandler(hub, { accountResolver } = {}) {
         return void sendAmz(res, 200, { token: token.tokenKey });
       }
       case 'getstatus':
-        return void sendAmz(res, 200, { connected: hub.isConnected((body && body.accountId) || accountId) });
+        return void sendAmz(res, 200, { connected: hub.isConnected(callerBoundary ? accountId : (body && body.accountId) || accountId) });
       default:
         return void sendAmzError(res, ValidationException, `unknown Notification operation: ${op}`);
     }

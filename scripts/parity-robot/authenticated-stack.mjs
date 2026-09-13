@@ -4,6 +4,7 @@ import { readFileSync, statSync, mkdirSync, writeFileSync, renameSync } from 'no
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
+import { canonicalPublicOrigin } from '../../packages/classic/src/publicOrigin.js';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 function port(value, name) {
@@ -56,10 +57,11 @@ import { ensureTlsCertificates } from '../ensure-tls-certs.mjs';
 export async function startAuthenticatedRobotStack({
   runDir, secretFile, storeFile, keyFile, certFile, snapshotManifest,
   basePort = DEFAULT_HUB_PORT, entrypointPort = 443, entrypointHost = '0.0.0.0',
-  publicUrl = 'https://localhost', parakeetUrl = 'http://192.168.1.252:6972',
+  publicUrl, parakeetUrl = 'http://192.168.1.252:6972',
 } = {}) {
   if (process.env.PHOENIX_ENV_FILE !== '/dev/null') throw new Error('PHOENIX_ENV_FILE=/dev/null is required');
   if (!runDir) throw new Error('runDir is required');
+  const canonicalPublicUrl = canonicalPublicOrigin(publicUrl, { name: 'publicUrl' });
 
   // The server owns its robot-facing certificate. Generating it here means a
   // first start is self-sufficient and the repoint script can simply read what
@@ -121,7 +123,7 @@ export async function startAuthenticatedRobotStack({
     ETCO_account_dataFile: accountPath,
     ETCO_classic_backupDir: resolve(directory, 'backups'),
     ETCO_classic_notificationFile: resolve(directory, 'notifications.json'),
-    ETCO_classic_publicUrl: publicUrl,
+    ETCO_classic_publicUrl: canonicalPublicUrl,
     HUB_TOKEN_SECRET: secret, ETCO_server_hubTokenSecret: secret,
     ETCO_hub_disableAuth: 'false', ETCO_hub_accountUrl: '',
     ETCO_server_parakeetUrl: parakeetUrl,
@@ -155,7 +157,12 @@ export async function startAuthenticatedRobotStack({
     endpoints.account = account.server.address().port;
     process.env.NET_account = `127.0.0.1:${endpoints.account}`;
 
-    const { createClassicEntrypoint, MediaStore, accessKeyAccountResolver, createVerifiedNotificationAccountResolver } = await import('../../packages/classic/src/index.js');
+    const { createClassicEntrypoint, MediaStore, accessKeyAccountResolver, createVerifiedClassicCaller, createVerifiedNotificationAccountResolver } = await import('../../packages/classic/src/index.js');
+    const callerBoundary = createVerifiedClassicCaller({
+      resolveCredentials: (accessKeyId) => accountStore.accountByAccessKeyId(accessKeyId),
+      // Preserve the native Jibo payload-hash exception already supported by Account's verifier.
+      allowNativeClientPayloadHash: true,
+    });
     const notificationAccountResolver = createVerifiedNotificationAccountResolver({
       resolveCredentials: (accessKeyId) => accountStore.accountByAccessKeyId(accessKeyId),
     });
@@ -174,6 +181,9 @@ export async function startAuthenticatedRobotStack({
     };
     classic = createClassicEntrypoint({
       tls: tlsOptions,
+      publicUrl: canonicalPublicUrl,
+      requirePublicUrl: true,
+      callerBoundary,
       notificationFile: resolve(directory, 'notifications.json'),
       notificationAccountResolver,
       // The app authenticates with SigV4 only (no gateway `x-amz-credentials` header), so the key
@@ -268,7 +278,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       basePort: process.env.PHOENIX_ROBOT_PORT ?? DEFAULT_HUB_PORT,
       entrypointPort: process.env.PHOENIX_ROBOT_ENTRYPOINT_PORT ?? 443,
       entrypointHost: process.env.PHOENIX_ROBOT_ENTRYPOINT_HOST || '0.0.0.0',
-      publicUrl: process.env.PHOENIX_ROBOT_PUBLIC_URL || 'https://localhost',
+      publicUrl: process.env.PHOENIX_ROBOT_PUBLIC_URL,
       parakeetUrl: process.env.ETCO_server_parakeetUrl || 'http://192.168.1.252:6972',
     });
     console.log(JSON.stringify({ ready: true, ...stack.receipt }));

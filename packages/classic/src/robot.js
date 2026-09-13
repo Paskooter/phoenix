@@ -36,6 +36,7 @@ import { join } from 'node:path';
 import { DefaultPort } from '@phoenix/contracts';
 import { sendAmz, sendAmzError, ValidationException } from './awsJson.js';
 import { generateFriendlyId } from './serialNames.js';
+import { verifiedCallerFromRequest } from './caller.js';
 
 // ---------------------------------------------------------------------------
 // Source constants
@@ -194,7 +195,15 @@ export class RobotStore {
  * the same seam log.js/backup.js read is used here. `null` means "no identity was
  * forwarded" — the LAN-trusted path (the robot's SigV4 request is not verified).
  */
-export function credentialsFrom(req) {
+export function credentialsFrom(req, requireVerified = false) {
+  const verified = verifiedCallerFromRequest(req);
+  if (verified) return {
+    id: verified.accountId,
+    email: verified.email,
+    isAdmin: verified.isAdmin,
+    friendlyId: verified.friendlyId,
+  };
+  if (requireVerified) return null;
   try {
     const parsed = JSON.parse(req?.headers?.['x-amz-credentials'] || '');
     if (!parsed || typeof parsed !== 'object') return null;
@@ -254,7 +263,9 @@ const validation = (res, message) => sendAmzError(res, ValidationException, mess
  */
 export function makeRobotHandler(opts = {}) {
   const store = opts.store || new RobotStore();
-  const identity = opts.identity || credentialsFrom;
+  const identity = opts.identity
+    ? (req) => (opts.callerBoundary ? verifiedCallerFromRequest(req) && opts.identity(req) : opts.identity(req))
+    : (req) => credentialsFrom(req, !!opts.callerBoundary);
   const ownedRobots = opts.ownedRobots || accountOwnedRobots;
   const newFriendlyId = opts.newFriendlyId || generateFriendlyId;
   const clock = opts.clock || Date.now;
@@ -262,7 +273,7 @@ export function makeRobotHandler(opts = {}) {
   const now = () => Number(clock());
 
   return async function robotHandler({ req, res, op, body, log }) {
-    const credentials = identity({ headers: req?.headers });
+    const credentials = identity(req);
     const isManufacturing = !!credentials && credentials.email === MANUFACTURING_EMAIL;
     const isAdmin = !!credentials && credentials.isAdmin;
     const isManufacturingOrAdmin = isManufacturing || isAdmin;

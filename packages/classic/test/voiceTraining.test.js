@@ -57,8 +57,8 @@ async function fresh({ file = nextFile(), backup, maxBytes, account = A } = {}) 
   const opts = { voiceTraining: { store } };
   if (backup !== undefined) opts.voiceTraining.backup = backup;
   if (maxBytes !== undefined) opts.voiceTraining.maxBytes = maxBytes;
-  const server = await createClassicEntrypoint(opts).listen(0);
-  const port = server.address().port;
+  const port = await freePort();
+  const server = await createClassicEntrypoint({ ...opts, publicUrl: `http://localhost:${port}` }).listen(port);
   return { server, port, store, amz: (t, b, ak = account) => amzOn(port, t, b, ak) };
 }
 
@@ -352,15 +352,15 @@ async function freePort() {
 /** Start the real classic entrypoint as a child process over `voiceFile` (its own fresh store). */
 async function startChild(voiceFile) {
   const port = await freePort();
+  const base = `http://localhost:${port}`;
   const child = spawn(process.execPath, [ENTRY], {
     cwd: ROOT,
-    env: { ...process.env, PORT: String(port), ETCO_classic_voiceTrainingFile: voiceFile },
+    env: { ...process.env, PORT: String(port), ETCO_classic_voiceTrainingFile: voiceFile, ETCO_classic_publicUrl: base },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   let stderr = '';
   child.stdout.resume();
   child.stderr.on('data', (chunk) => { stderr += chunk; });
-  const base = `http://localhost:${port}`;
   for (let attempt = 0; attempt < 150; attempt += 1) {
     try {
       const res = await fetch(`${base}/`, {

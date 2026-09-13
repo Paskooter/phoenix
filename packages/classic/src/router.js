@@ -14,6 +14,7 @@ import https from 'node:https';
 import { sendJson } from '@phoenix/common';
 import { DefaultPort } from '@phoenix/contracts';
 import { parseTarget, sendAmzError, UnknownOperation, AMZ_JSON } from './awsJson.js';
+import { cleanupVerifiedClassicRequest, sendVerifiedCallerError } from './caller.js';
 
 // The OAuth-client admin and LPS services own no in-process store; they proxy to the
 // account service, the process that owns identity and persistent state (A-18). These
@@ -38,7 +39,7 @@ function alreadyRegistered(registrations, prefix) {
   ).test(prefix));
 }
 
-export function createClassicRouter(registrations) {
+export function createClassicRouter(registrations, { callerBoundary } = {}) {
   const defaults = DEFAULT_ADMIN_PROXIES
     .filter((d) => !alreadyRegistered(registrations, d.match.source.slice(1, -1)));
   const regs = [...registrations, ...defaults].map((r) => ({
@@ -48,16 +49,38 @@ export function createClassicRouter(registrations) {
 
   const dispatch = async ({ req, res, body, log }) => {
     const { target, prefix, op } = parseTarget(req);
-    const reg = regs.find((r) => r.re.test(prefix));
-    // Log every inbound classic call (handlers are otherwise silent on success) so a robot's
-    // wipe/backup traffic is visible: what target it sent and whether we route it.
-    log.info('classic request', { target: target || '(none)', op, matched: reg ? (reg.handler ? 'in-process' : 'proxy') : 'NONE' });
-    if (!reg) {
-      log.warn('classic: no service for target', { target: target || '(none)' });
-      return void sendAmzError(res, UnknownOperation, `no classic service for target ${target || '(none)'}`);
+    let caller;
+    if (callerBoundary) {
+      try {
+        // JSON routes carry the exact body-parser capture. A raw route is staged by the boundary,
+        // which supplies a digest and a replay stream instead of hashing a reconstructed object.
+        const wireBody = req.rawBody !== undefined
+          ? req.rawBody
+          : req._phoenixBodyDigest !== undefined
+            ? undefined
+            : requestHasEntity(req) ? body : '';
+        caller = await callerBoundary({ req, res, body: wireBody, target, prefix, op, log });
+        if (!caller) throw new Error('verified caller boundary returned no identity');
+      } catch (error) {
+        await cleanupVerifiedClassicRequest(req);
+        sendVerifiedCallerError(res, error);
+        return;
+      }
     }
-    if (reg.handler) return reg.handler({ req, res, body: reg.preserveBody ? body : (body || {}), target, op, log });
-    return proxy(reg.proxyTo(), req, res, body, log);
+    try {
+      const reg = regs.find((r) => r.re.test(prefix));
+      // Log every inbound classic call (handlers are otherwise silent on success) so a robot's
+      // wipe/backup traffic is visible: what target it sent and whether we route it.
+      log.info('classic request', { target: target || '(none)', op, matched: reg ? (reg.handler ? 'in-process' : 'proxy') : 'NONE', authenticated: !!caller });
+      if (!reg) {
+        log.warn('classic: no service for target', { target: target || '(none)' });
+        return void sendAmzError(res, UnknownOperation, `no classic service for target ${target || '(none)'}`);
+      }
+      if (reg.handler) return await reg.handler({ req, res, body: reg.preserveBody ? body : (body || {}), target, op, log, caller });
+      return await proxy(reg.proxyTo(), req, res, body, log);
+    } finally {
+      if (callerBoundary) await cleanupVerifiedClassicRequest(req);
+    }
   };
   // The Hapi-backed Account CreateHubToken route validates an omitted payload
   // as null; preserve the historical object default for other Classic routes.
@@ -99,7 +122,7 @@ async function proxy(baseUrl, req, res, body, log) {
         statusCode: 415,
       });
     }
-    const requestBody = isClassicStreamedUpload(req) ? req : req.rawBody === undefined
+    const requestBody = isClassicStreamedUpload(req) ? (req._phoenixBodyStream || req) : req.rawBody === undefined
       ? (body === null || body === undefined ? '' : JSON.stringify(body))
       : req.rawBody;
     // Native http.request is used here because undici/fetch deliberately
@@ -245,6 +268,16 @@ function isClassicStreamedUpload(req) {
 function isClassicRawBodyTarget(req) {
   if (isClassicStreamedUpload(req)) return true;
   return /^Key[^.]*\.ShareBinary$/i.test(String(req?.headers?.['x-amz-target'] || ''));
+}
+
+function requestHasEntity(req) {
+  const raw = req?.headers?.['content-length'];
+  if (raw !== undefined && raw !== null) {
+    const value = Array.isArray(raw) ? raw[0] : raw;
+    const length = Number(value);
+    if (Number.isSafeInteger(length) && length >= 0) return length > 0;
+  }
+  return req?.headers?.['transfer-encoding'] !== undefined;
 }
 
 function unsupportedContentEncoding(headers = {}) {

@@ -71,8 +71,8 @@ before(async () => {
   process.env.ETCO_classic_keyFile = join(dir, 'keys.json');
   process.env.ETCO_classic_keyBinaryDir = join(dir, 'binaries');
   store = new KeyStore(process.env.ETCO_classic_keyFile);
-  server = await createClassicEntrypoint({ keyStore: store }).listen(0);
-  port = server.address().port;
+  port = await freePort();
+  server = await createClassicEntrypoint({ keyStore: store, publicUrl: `http://localhost:${port}` }).listen(port);
 });
 after(() => {
   server.close();
@@ -581,8 +581,8 @@ test('KeyStore reloads every collection from the same file', () => {
 // ---- helpers ---------------------------------------------------------------
 
 async function withMembership(membership, fn) {
-  const svc = await createClassicEntrypoint({ keyMembership: membership }).listen(0);
-  const p = svc.address().port;
+  const p = await freePort();
+  const svc = await createClassicEntrypoint({ keyMembership: membership, publicUrl: `http://localhost:${p}` }).listen(p);
   try {
     return await fn({
       port: p,
@@ -626,6 +626,7 @@ async function startChild({ port, keyFile, binDir }) {
       PORT: String(port),
       ETCO_classic_keyFile: keyFile,
       ETCO_classic_keyBinaryDir: binDir,
+      ETCO_classic_publicUrl: `http://localhost:${port}`,
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
