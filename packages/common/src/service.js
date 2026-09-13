@@ -51,7 +51,7 @@ export function createService({ name, routes = {}, onUpgrade, jsonStrict = true,
   // upload handlers are an explicit Phoenix extension and must retain the
   // request stream for their own consumer, so they bypass both parsers.
   app.use((req, res, next) => {
-    if (findRoute(routes, req, { rawOnly: true })) return next();
+    if (bypassBodyParsing(routes, req)) return next();
     return urlencoded(req, res, next);
   });
 
@@ -62,7 +62,7 @@ export function createService({ name, routes = {}, onUpgrade, jsonStrict = true,
 
   // This is intentionally after healthcheck and before application handlers.
   app.use((req, res, next) => {
-    if (findRoute(routes, req, { rawOnly: true })) return next();
+    if (bypassBodyParsing(routes, req)) return next();
     const route = findRoute(routes, req);
     // A source-compatible adapter may opt into body-parser's loose JSON
     // decoding for its own endpoint.  This is deliberately route-scoped: all
@@ -161,7 +161,8 @@ function routeMiddleware(name, handler) {
     const emptyEntity = Buffer.isBuffer(req.rawBody)
       ? req.rawBody.length === 0
       : req.rawBody === undefined && !requestHasEntity(req);
-    const body = usesRawBody(handler, req) ? null : (emptyEntity || req.body === undefined ? bodyDefault : req.body);
+    const body = (usesRawBody(handler, req) || usesRawRequest(handler, req))
+      ? null : (emptyEntity || req.body === undefined ? bodyDefault : req.body);
     Promise.resolve()
       .then(() => handler({ req, res, url, body, trace, log: reqLog }))
       .then((result) => {
@@ -173,6 +174,20 @@ function routeMiddleware(name, handler) {
 
 function usesRawBody(handler, req) {
   return typeof handler?.rawBody === 'function' ? handler.rawBody(req) : !!handler?.rawBody;
+}
+
+// A source gateway authenticates some JSON entities before its downstream
+// Hapi parser runs. Such routes need the original bytes in their own handler,
+// while the ordinary service parser must remain unchanged for every other
+// route. This is deliberately separate from rawBody, whose handlers consume
+// binary upload streams rather than parse request entities.
+function usesRawRequest(handler, req) {
+  return typeof handler?.rawRequest === 'function' ? handler.rawRequest(req) : !!handler?.rawRequest;
+}
+
+function bypassBodyParsing(routes, req) {
+  return findRoute(routes, req, { rawOnly: true })
+    || findRoute(routes, req, { rawRequestOnly: true });
 }
 
 function requestHasEntity(req) {
@@ -187,7 +202,7 @@ function requestHasEntity(req) {
  * routes in Phoenix are exact upload endpoints; HEAD falls back to GET just as
  * Express does.
  */
-function findRoute(routes, req, { rawOnly = false } = {}) {
+function findRoute(routes, req, { rawOnly = false, rawRequestOnly = false } = {}) {
   const path = requestPath(req);
   const method = String(req.method || '').toUpperCase();
   for (const [key, handler] of Object.entries(routes)) {
@@ -196,6 +211,7 @@ function findRoute(routes, req, { rawOnly = false } = {}) {
     if (separator < 1) continue;
     const routeMethod = key.slice(0, separator).trim().toUpperCase();
     if (routeMethod !== method && !(method === 'HEAD' && routeMethod === 'GET')) continue;
+    if (rawRequestOnly && !usesRawRequest(handler, req)) continue;
     if (sameExpressPath(path, key.slice(separator + 1).trim())) return handler;
   }
   return undefined;

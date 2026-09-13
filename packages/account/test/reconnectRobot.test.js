@@ -3,16 +3,11 @@
 // Handler decorators pin to srv-account-ws@6cea434 (the A-04 source snapshot):
 //   src/handlers/oobe.handler.ts — @parseCredentials({}) then
 //   @validatePayload({ id: Joi.string(), token: Joi.string().required() }).
-// The controller BODY asserted here (token -> loop exists -> not suspended -> the token's
-// account is an ACCEPTED member -> delete the token -> COMMAND_RESULT, with robotAccountId
-// taken from the parsed credentials) is the srv-account-ws master/default-branch
-// src/controllers/oobe.ctrl.ts. The pinned 6cea434 snapshot has the earlier trivial body
-// (`reconnectRobot({ token }) { deleteToken; return COMMAND_RESULT }`), which would accept a
-// reconnect with no loop, a suspended loop, or a non-member token; phoenix follows master.
-// Check order: credentials -> token (TOKEN_NOT_FOUND / TOKEN_EXPIRED) -> the
-// robot's loop (LOOP_NOT_FOUND) -> not suspended (LOOP_SUSPENDED) -> the
-// token's account is an ACCEPTED member (MEMBER_CAN_REQUEST) -> delete the
-// token (one-time) -> { result: 'Command accepted' }.
+// The pinned 6cea434 snapshot's controller body is intentionally simple:
+// `reconnectRobot({ token }) { await deleteToken(token); return COMMAND_RESULT; }`.
+// The compatibility face still resolves an Authorization Credential before entering
+// the controller, then validates and consumes the setup token without loop,
+// suspension, or membership checks.
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -96,21 +91,20 @@ test('ReconnectRobot: expired token is 401 TOKEN_EXPIRED and is not deleted', as
   assert.ok(store.tokens.has(token._id), 'expired token is reported, not deleted');
 });
 
-test('ReconnectRobot: robot with no loop is 404 LOOP_NOT_FOUND', async () => {
+test('ReconnectRobot: robot with no loop still consumes the token', async () => {
   const store = getStore();
   const owner = createOwnerAccount(store, { email: 'reconn-noloop@jetson.test', password: 'orbit-city-4ever', firstName: 'NoLoop' });
   const robot = findOrCreateRobotAccount(store, 'roger-sunset-tango-vole');
   const token = mintSetupToken(store, owner._id);
 
   const r = await amz('OOBE_20161026.ReconnectRobot', { token: token._id }, { authorization: sig(robot.accessKeyId) });
-  assert.equal(r.status, 404);
-  assert.equal(r.body.__type, 'LOOP_NOT_FOUND');
-  assert.equal(r.body.message, 'Loop does not exist');
-  assert.equal(r.errType, 'LOOP_NOT_FOUND');
-  assert.ok(store.tokens.has(token._id), 'token survives a refused reconnect');
+  assert.equal(r.status, 200);
+  assert.deepEqual(r.body, { result: 'Command accepted' });
+  assert.equal(r.errType, null);
+  assert.ok(!store.tokens.has(token._id), 'source-simple reconnect consumes the token');
 });
 
-test('ReconnectRobot: suspended loop is 403 LOOP_SUSPENDED', async () => {
+test('ReconnectRobot: suspended loop still consumes the token', async () => {
   const store = getStore();
   const owner = createOwnerAccount(store, { email: 'reconn-susp@jetson.test', password: 'orbit-city-4ever', firstName: 'Susp' });
   const { loop, robot } = createLoop(store, { owner, robotId: 'ulna-violin-wisp-yawn' });
@@ -118,14 +112,13 @@ test('ReconnectRobot: suspended loop is 403 LOOP_SUSPENDED', async () => {
   const token = mintSetupToken(store, owner._id, loop._id);
 
   const r = await amz('OOBE_20161026.ReconnectRobot', { token: token._id }, { authorization: sig(robot.accessKeyId) });
-  assert.equal(r.status, 403);
-  assert.equal(r.body.__type, 'LOOP_SUSPENDED');
-  assert.equal(r.body.message, 'Loop is suspended and cannot be modified');
-  assert.equal(r.errType, 'LOOP_SUSPENDED');
-  assert.ok(store.tokens.has(token._id), 'token survives a refused reconnect');
+  assert.equal(r.status, 200);
+  assert.deepEqual(r.body, { result: 'Command accepted' });
+  assert.equal(r.errType, null);
+  assert.ok(!store.tokens.has(token._id), 'source-simple reconnect consumes the token');
 });
 
-test('ReconnectRobot: token account that is not an ACCEPTED member is 401 MEMBER_CAN_REQUEST', async () => {
+test('ReconnectRobot: token account need not be a loop member', async () => {
   const store = getStore();
   const owner = createOwnerAccount(store, { email: 'reconn-alien@jetson.test', password: 'orbit-city-4ever', firstName: 'Alien' });
   const { loop, robot } = createLoop(store, { owner, robotId: 'zenith-amber-copper-dune' });
@@ -133,14 +126,13 @@ test('ReconnectRobot: token account that is not an ACCEPTED member is 401 MEMBER
   const token = mintSetupToken(store, stranger._id, loop._id);
 
   const r = await amz('OOBE_20161026.ReconnectRobot', { token: token._id }, { authorization: sig(robot.accessKeyId) });
-  assert.equal(r.status, 401);
-  assert.equal(r.body.__type, 'MEMBER_CAN_REQUEST');
-  assert.equal(r.body.message, 'You can only request members that are in your loops');
-  assert.equal(r.errType, 'MEMBER_CAN_REQUEST');
-  assert.ok(store.tokens.has(token._id), 'token survives a refused reconnect');
+  assert.equal(r.status, 200);
+  assert.deepEqual(r.body, { result: 'Command accepted' });
+  assert.equal(r.errType, null);
+  assert.ok(!store.tokens.has(token._id), 'source-simple reconnect consumes the token');
 });
 
-test('ReconnectRobot: a pending/invited member does NOT satisfy the membership check', async () => {
+test('ReconnectRobot: an invited member status does not block token consumption', async () => {
   const store = getStore();
   const owner = createOwnerAccount(store, { email: 'reconn-invitee@jetson.test', password: 'orbit-city-4ever', firstName: 'Invited' });
   const { loop, robot } = createLoop(store, { owner, robotId: 'fable-geode-hyper-iris' });
@@ -150,12 +142,12 @@ test('ReconnectRobot: a pending/invited member does NOT satisfy the membership c
 
   const token = mintSetupToken(store, pending._id, loop._id);
   const r = await amz('OOBE_20161026.ReconnectRobot', { token: token._id }, { authorization: sig(robot.accessKeyId) });
-  assert.equal(r.status, 401);
-  assert.equal(r.body.__type, 'MEMBER_CAN_REQUEST');
-  assert.ok(store.tokens.has(token._id), 'token survives a refused reconnect');
+  assert.equal(r.status, 200);
+  assert.deepEqual(r.body, { result: 'Command accepted' });
+  assert.ok(!store.tokens.has(token._id), 'source-simple reconnect consumes the token');
 });
 
-test('ReconnectRobot: a member record with a pending status in any case must not satisfy ACCEPTED', async () => {
+test('ReconnectRobot: member status casing does not affect token consumption', async () => {
   const store = getStore();
   const owner = createOwnerAccount(store, { email: 'reconn-case@jetson.test', password: 'orbit-city-4ever', firstName: 'Casey' });
   const { loop, robot } = createLoop(store, { owner, robotId: 'jiggle-karma-lunar-marble' });
@@ -164,8 +156,9 @@ test('ReconnectRobot: a member record with a pending status in any case must not
 
   const token = mintSetupToken(store, oops._id, loop._id);
   const r = await amz('OOBE_20161026.ReconnectRobot', { token: token._id }, { authorization: sig(robot.accessKeyId) });
-  assert.equal(r.status, 401);
-  assert.equal(r.body.__type, 'MEMBER_CAN_REQUEST');
+  assert.equal(r.status, 200);
+  assert.deepEqual(r.body, { result: 'Command accepted' });
+  assert.ok(!store.tokens.has(token._id), 'source-simple reconnect consumes the token');
 });
 
 test('ReconnectRobot: missing credentials is 401 CREDENTIALS_REQUIRED', async () => {

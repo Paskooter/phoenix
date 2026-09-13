@@ -24,10 +24,12 @@
 
 import { randomUUID } from 'node:crypto';
 import { sendJson, SIGV4_ERRORS, SigV4Error, verifySigV4 } from '@phoenix/common';
+import { parse as parseQueryString } from 'node:querystring';
+import { gunzipSync, inflateSync } from 'node:zlib';
 import {
   ACCESS_TOKEN_LIFETIME_MS, MEMBER_STATUS, createAuthenticatedHubToken, createLoop, createOwnerAccount,
   findOrCreateRobotAccount, mintSetupToken, findToken, deleteToken, newId,
-  populateLoop, ensureLoopMemberIds, isAcceptedStatus,
+  populateLoop, ensureLoopMemberIds,
 } from './model.js';
 import { settingsAwsDispatch } from './settingsFace.js';
 import { LoopUpdatedOutbox } from './loopUpdatedOutbox.js';
@@ -51,6 +53,7 @@ export { AMZ_JSON, accessKeyIdFromAuth, sendAmz, sendAmzError };
 // serviceMode credential flag by prefix test. A shorter prefix here would flag
 // unrelated 'service-mode-*' addresses as service mode.
 const SERVICE_MODE_EMAIL_PREFIX = 'service-mode-owner-';
+const OOBE_MAX_PAYLOAD_BYTES = 1024 * 1024;
 
 // errors/{token,account,loop}.ts — exact {code, statusCode} pairs.
 const Errors = Object.freeze({
@@ -97,6 +100,97 @@ export function parseTarget(req) {
   return { prefix: dot >= 0 ? t.slice(0, dot) : '', op: (dot >= 0 ? t.slice(dot + 1) : t) };
 }
 
+function isOobeRequest(req) {
+  return /^oobe[^.]*\./i.test(String(req?.headers?.['x-amz-target'] || ''));
+}
+
+async function readRequestBody(req) {
+  if (Buffer.isBuffer(req.rawBody)) return req.rawBody;
+  const chunks = [];
+  for await (const chunk of req) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  return Buffer.concat(chunks);
+}
+
+function parseOobePublicBody(req, rawBody) {
+  let entity = Buffer.from(rawBody || '');
+  const contentLength = Number.parseInt(String(req?.headers?.['content-length'] || ''), 10);
+  if (Number.isInteger(contentLength) && contentLength > OOBE_MAX_PAYLOAD_BYTES) {
+    return {
+      body: null,
+      error: {
+        statusCode: 400,
+        error: 'Bad Request',
+        message: `Payload content length greater than maximum allowed: ${OOBE_MAX_PAYLOAD_BYTES}`,
+      },
+    };
+  }
+  const contentEncoding = String(req?.headers?.['content-encoding'] || '');
+  if (contentEncoding === 'gzip' || contentEncoding === 'deflate') {
+    try {
+      entity = contentEncoding === 'gzip' ? gunzipSync(entity) : inflateSync(entity);
+    } catch (error) {
+      return { body: null, error: { statusCode: 400, error: 'Bad Request', message: 'Invalid compressed payload' } };
+    }
+  }
+  if (entity.length > OOBE_MAX_PAYLOAD_BYTES) {
+    return {
+      body: null,
+      error: {
+        statusCode: 400,
+        error: 'Bad Request',
+        message: `Payload content length greater than maximum allowed: ${OOBE_MAX_PAYLOAD_BYTES}`,
+      },
+    };
+  }
+  const raw = entity.toString('utf8');
+  const contentTypeHeader = String(req?.headers?.['content-type'] || '');
+  const contentTypeMatch = contentTypeHeader.trim() === ''
+    ? null
+    : /^([^/\s]+\/[^\s;]+)(.*)?$/.exec(contentTypeHeader);
+  if (contentTypeHeader.trim() !== '' && !contentTypeMatch) {
+    return { body: null, error: { statusCode: 400, error: 'Bad Request', message: 'Invalid content-type header' } };
+  }
+  const contentType = contentTypeMatch ? contentTypeMatch[1].toLowerCase() : 'application/json';
+  const isJson = contentTypeHeader === AMZ_JSON
+    || /^application\/(?:.+\+)?json$/.test(contentType);
+  const isText = /^text\/.+$/.test(contentType);
+  const isForm = contentType === 'application/x-www-form-urlencoded';
+  const isBinary = contentType === 'application/octet-stream';
+  if (!isJson && !isText && !isForm && !isBinary) {
+    return { body: null, error: { statusCode: 415, error: 'Unsupported Media Type', message: 'Unsupported Media Type' } };
+  }
+  if (isBinary) return { body: entity.length ? entity : null };
+  if (isForm) return { body: entity.length ? parseQueryString(raw) : {} };
+  if (raw.trim() === '') return { body: null };
+  try {
+    return { body: JSON.parse(raw) };
+  } catch (error) {
+    // Hapi's text/* path leaves a malformed entity as a string, which is then
+    // rejected by the OOBE Joi object validator with status 422. JSON and
+    // vendor+json use Hapi's parser and therefore produce status 400.
+    if (isText) return { body: raw };
+    return { body: null, error: { statusCode: 400, error: 'Bad Request', message: 'Invalid request payload JSON format' } };
+  }
+}
+
+function sendOobeParserError(res, error) {
+  const payload = JSON.stringify({
+    statusCode: error.statusCode,
+    error: error.error,
+    message: error.message,
+  });
+  res.removeHeader('x-powered-by');
+  res.removeHeader('keep-alive');
+  res.writeHead(error.statusCode, {
+    connection: res.shouldKeepAlive ? 'keep-alive' : 'close',
+    'content-type': 'application/json; charset=utf-8',
+    'content-length': Buffer.byteLength(payload),
+    'cache-control': 'no-cache',
+    vary: 'accept-encoding',
+  });
+  res.end(payload);
+}
+
 function otaBase() {
   const net = process.env.NET_ota || 'localhost:7015';
   return /^https?:\/\//.test(net) ? net : `http://${net}`;
@@ -117,8 +211,19 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     createhubtoken: issueHubToken,
   };
 
-  const dispatch = async ({ req, res, body, log }) => {
+  const dispatch = async ({ req, res, body: initialBody, log }) => {
     const { prefix, op } = parseTarget(req);
+    let body = initialBody;
+    let parserFailure = null;
+    // The public OOBE boundary owns the request entity before the downstream
+    // Hapi parser. Keep those original bytes available to the source-compatible
+    // parser, including when no Content-Type header was sent.
+    if (isOobeRequest(req)) {
+      req.rawBody = await readRequestBody(req);
+      const parsed = parseOobePublicBody(req, req.rawBody);
+      body = parsed.body;
+      parserFailure = parsed.error;
+    }
     // Hapi's binary stream route checks the declared length before dispatch.
     // Its stream output does not impose a cumulative limit on chunked bodies.
     // Account UpdatePhoto uses the same POST /binary maxBytes: 1000000000.
@@ -229,6 +334,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
       return lpsDispatch(store, { req, res, body, op, caller, log, stsProvider });
     }
 
+    if (parserFailure) return void sendOobeParserError(res, parserFailure);
     const handler = ops[op.toLowerCase()];
     if (!handler) {
       log.warn('unknown classic target', { target: `${prefix}.${op}` || '(none)' });
@@ -241,18 +347,22 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     if (prefix && !/^oobe/i.test(prefix) && !/^account/i.test(prefix)) {
       log.info('classic target with unexpected prefix (serving anyway)', { prefix, op });
     }
-    // AccountHandler's Joi payload decorator sees the original value for
-    // CreateHubToken: null, arrays, and primitive JSON values are validation
-    // errors, while the other legacy robot handlers use an object default.
-    const handlerBody = op.toLowerCase() === 'createhubtoken' ? body : (body || {});
+    // Source Joi decorators validate the original JSON value, including null,
+    // arrays and primitives, before the controller executes. GetServiceToken
+    // carries no payload schema and retains the historical object default.
+    const sourceValidated = ['createhubtoken', 'setuprobot', 'getstatus', 'preparerobot', 'reconnectrobot']
+      .includes(op.toLowerCase());
+    const handlerBody = sourceValidated ? body : (body || {});
     return handler({ req, res, body: handlerBody, log });
   };
-  // Hapi presents an omitted request payload to CreateHubToken as null. Other
-  // legacy robot handlers retain the service's historical object default.
+  // Hapi presents an omitted request payload as null to source-validated
+  // handlers. Other legacy robot handlers retain the service's object default.
   dispatch.rawBody = (req) => isMemberPhotoUpload(req) || isAccountPhotoUpload(req);
+  dispatch.rawRequest = isOobeRequest;
   dispatch.bodyDefault = (req) => {
     const target = parseTarget(req);
     if (target.op.toLowerCase() === 'createhubtoken') return null;
+    if (['setuprobot', 'getstatus', 'preparerobot', 'reconnectrobot'].includes(target.op.toLowerCase())) return null;
     if (/^account/i.test(target.prefix)) return null;
     if (/^settings/i.test(target.prefix)) return null;
     return {};
@@ -445,14 +555,13 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
   }
 
   /**
-   * oobe.ctrl.ts reconnectRobot — the factory-reset robot reclaims its loop with
-   * a live portal token. The source handler declares `id` optional and takes the
-   * robot identity from the parsed credentials, so only the token comes in the
-   * payload; the robot is the caller resolved from its access key.
+   * oobe.ctrl.ts reconnectRobot — the factory-reset robot consumes a live
+   * portal token. The pinned source controller takes only `token`; it does not
+   * inspect loop membership, suspension, or robot identity.
    *
-   * Source decorator order: @parseCredentials({}) runs before @validatePayload,
-   * then the controller checks token → loop exists → not suspended → the token's
-   * account is an ACCEPTED member → delete token (one-time) → COMMAND_RESULT.
+   * The surrounding compatibility face still requires an Authorization
+   * Credential, matching the current gateway-facing boundary, then applies the
+   * source controller's token validation and one-time deletion.
    */
   function reconnectRobot({ req, res, body, log }) {
     const caller = accountForClassicRequest(req);
@@ -465,19 +574,8 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     const { token, error } = findToken(store, body.token);
     if (error) return void sendAmzError(res, Errors[error]);
 
-    // loop.ctrl.ts findByRobotAccountId (Loop.findOne): the robot's one loop.
-    const robotLoop = activeLoopForRobot(caller._id);
-    if (!robotLoop) return void sendAmzError(res, Errors.LOOP_NOT_FOUND);
-    if (robotLoop.isSuspended) return void sendAmzError(res, Errors.LOOP_SUSPENDED);
-
-    // MemberStatus.ACCEPTED, compared by accountId string, guarding members that
-    // carry no accountId yet (invites still keyed by email).
-    const isMember = (robotLoop.members || []).some((m) =>
-      m.accountId && m.accountId === token.accountId && isAcceptedStatus(m.status));
-    if (!isMember) return void sendAmzError(res, Errors.MEMBER_CAN_REQUEST);
-
     deleteToken(store, token._id); // ONE-TIME
-    log.info('reconnectRobot complete', { robot: caller._id, loop: robotLoop._id });
+    log.info('reconnectRobot complete', { robot: caller._id });
     return void sendAmz(res, 200, { result: 'Command accepted' });
   }
 
