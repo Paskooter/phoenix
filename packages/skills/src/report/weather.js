@@ -4,6 +4,7 @@
 // ±10 °F temperature swings against hot/cold thresholds, wet-now-dry-later, day/night icon fixes.
 
 import { Graph } from '../graph/graph.js';
+import { DateTime } from './dateTime.js';
 import { DefaultNode, DefaultTransition } from '../graph/nodes.js';
 import { Names, fToCelsius, onlyActiveSubskill, randFromArray, getJSON, addMimPathsToLocalData, tempThresholds, askedForTomorrow } from './utils.js';
 import { LassoClient } from './lassoClient.js';
@@ -118,8 +119,7 @@ export class WeatherMimLogic extends DefaultNode {
     const { yest, current, tomorrow } = weatherData;
     const today = weatherData.today;
 
-    const iso = (data.runtime.location && data.runtime.location.iso) || undefined;
-    const hour = new Date(iso || Date.now()).getHours();
+    const hour = new DateTime(data.runtime.location.iso).getLocalTime().hour;
     const isDaytime = (hour > 2 && hour < 18);
 
     if (today) today.icon = matchIconToTime(today, isDaytime);
