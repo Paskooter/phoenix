@@ -447,7 +447,7 @@
       "sourceFile": "tests/unit/test_general.py",
       "test": "test_no_input",
       "status": "covered",
-      "target": "packages/skills/test/q01StructQa.test.js :: Q-01 /structQA source route inventories GQA, News, Scripted, and unknown intent branches",
+      "target": "packages/skills/test/q01StructQa.test.js :: Q-01 /structQA HTTP route preserves archived no-input and absent-intent envelopes",
       "closure": null
     },
     {
@@ -463,7 +463,7 @@
       "sourceFile": "tests/unit/test_general.py",
       "test": "test_no_skill_intent",
       "status": "covered",
-      "target": "packages/skills/test/q01StructQa.test.js :: Q-01 /structQA source route inventories GQA, News, Scripted, and unknown intent branches",
+      "target": "packages/skills/test/q01StructQa.test.js :: Q-01 /structQA HTTP route preserves archived no-input and absent-intent envelopes",
       "closure": null
     },
     {
