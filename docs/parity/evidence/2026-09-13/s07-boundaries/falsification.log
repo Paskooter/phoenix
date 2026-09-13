@@ -1,0 +1,4 @@
+{"label":"prompt-id mutation","rejected":true,"status":1}
+{"label":"paired row omission","rejected":true,"status":1}
+{"label":"semantic value mutation","rejected":true,"status":1}
+{"result":"pass","cases":3}

@@ -1,0 +1,2375 @@
+{
+  "schemaVersion": 1,
+  "mode": "candidate",
+  "candidateRevision": "b88b1d2306684291322b04550088e38f7f62de9a",
+  "runtime": "v22.22.0",
+  "runnerSha256": "f0247407b5c05d0035deeace4103e9549fcdc3a366852bb55ecc0d16a9af83de",
+  "rows": [
+    {
+      "id": "malformed-result-omitted",
+      "class": "malformed",
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "Chitchat launched without required memo!"
+      },
+      "wire": {
+        "type": "ERROR",
+        "message": "Chitchat launched without required memo!",
+        "skill": "chitchat-skill"
+      },
+      "randomCalls": 0,
+      "randomState": 1346717505
+    },
+    {
+      "id": "malformed-result-null",
+      "class": "malformed",
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "Chitchat launched without required memo!"
+      },
+      "wire": {
+        "type": "ERROR",
+        "message": "Chitchat launched without required memo!",
+        "skill": "chitchat-skill"
+      },
+      "randomCalls": 0,
+      "randomState": 1346717505
+    },
+    {
+      "id": "malformed-result-empty",
+      "class": "malformed",
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "Chitchat launched without required memo!"
+      },
+      "wire": {
+        "type": "ERROR",
+        "message": "Chitchat launched without required memo!",
+        "skill": "chitchat-skill"
+      },
+      "randomCalls": 0,
+      "randomState": 1346717505
+    },
+    {
+      "id": "malformed-memo-omitted",
+      "class": "malformed",
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "Chitchat launched without required memo!"
+      },
+      "wire": {
+        "type": "ERROR",
+        "message": "Chitchat launched without required memo!",
+        "skill": "chitchat-skill"
+      },
+      "randomCalls": 0,
+      "randomState": 1346717505
+    },
+    {
+      "id": "malformed-memo-null",
+      "class": "malformed",
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "message": "Chitchat launched without required memo!"
+      },
+      "wire": {
+        "type": "ERROR",
+        "message": "Chitchat launched without required memo!",
+        "skill": "chitchat-skill"
+      },
+      "randomCalls": 0,
+      "randomState": 1346717505
+    },
+    {
+      "id": "malformed-memo-empty-object",
+      "class": "malformed",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "CC_Fallback",
+            "prompt_id": "CC_GQA_Failure_scripted_AN_12",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "I think an answer to that is just out of my reach for now.",
+            "autoRuleConfig": null
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ErrorResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 1,
+      "randomState": 3752884140
+    },
+    {
+      "id": "malformed-memo-number",
+      "class": "malformed",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "CC_Fallback",
+            "prompt_id": "CC_GQA_Failure_scripted_AN_12",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "I think an answer to that is just out of my reach for now.",
+            "autoRuleConfig": null
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ErrorResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 1,
+      "randomState": 3752884140
+    },
+    {
+      "id": "malformed-memo-string",
+      "class": "malformed",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "CC_Fallback",
+            "prompt_id": "CC_GQA_Failure_scripted_AN_12",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "I think an answer to that is just out of my reach for now.",
+            "autoRuleConfig": null
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ErrorResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 1,
+      "randomState": 3752884140
+    },
+    {
+      "id": "malformed-nlu-omitted",
+      "class": "malformed",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "RA_JBO_FlipCoin",
+            "prompt_id": "RA_JBO_FlipCoin_AN_05",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "<anim cat='jiboji' filter='coin-flip-heads'/>. <break size='0.7'/> We got heads.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": true,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ScriptedResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 4,
+      "randomState": 2621134341
+    },
+    {
+      "id": "malformed-nlu-null",
+      "class": "malformed",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "RA_JBO_FlipCoin",
+            "prompt_id": "RA_JBO_FlipCoin_AN_05",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "<anim cat='jiboji' filter='coin-flip-heads'/>. <break size='0.7'/> We got heads.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": true,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ScriptedResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 4,
+      "randomState": 2621134341
+    },
+    {
+      "id": "malformed-nlu-empty",
+      "class": "malformed",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "RA_JBO_FlipCoin",
+            "prompt_id": "RA_JBO_FlipCoin_AN_05",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "<anim cat='jiboji' filter='coin-flip-heads'/>. <break size='0.7'/> We got heads.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": true,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ScriptedResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 4,
+      "randomState": 2621134341
+    },
+    {
+      "id": "malformed-semi-entities-omitted",
+      "class": "malformed",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "CC_Fallback",
+            "prompt_id": "CC_GQA_Failure_scripted_AN_12",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "I think an answer to that is just out of my reach for now.",
+            "autoRuleConfig": null
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ErrorResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 1,
+      "randomState": 3752884140
+    },
+    {
+      "id": "malformed-semi-entities-null",
+      "class": "malformed",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "CC_Fallback",
+            "prompt_id": "CC_GQA_Failure_scripted_AN_12",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "I think an answer to that is just out of my reach for now.",
+            "autoRuleConfig": null
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ErrorResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 1,
+      "randomState": 3752884140
+    },
+    {
+      "id": "valid-non-semi-entities-omitted",
+      "class": "valid",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "RA_JBO_FlipCoin",
+            "prompt_id": "RA_JBO_FlipCoin_AN_07",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "<anim cat='jiboji' filter='coin-flip-heads'/>. <break size='0.7'/> Heads this time.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": true,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ScriptedResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 4,
+      "randomState": 3027450565
+    },
+    {
+      "id": "valid-semi-cheese",
+      "class": "valid",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "RI_JBO_Likes_SS_Cheese",
+            "prompt_id": "RI_JBO_Likes_SS_Cheese_AN_01",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "Is that the smelly kind? I like the smelly kind, because I can't smell.",
+            "autoRuleConfig": null
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "SemiSpecificResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 5,
+      "randomState": 217083232
+    },
+    {
+      "id": "valid-semi-crab-multi-category",
+      "class": "valid",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "RI_JBO_Likes_SS_Seafood",
+            "prompt_id": "RI_JBO_Likes_SS_Seafood_AN_01",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "I've actually never had it, because I don't eat. <break size='0.5'/> Or swim.",
+            "autoRuleConfig": null
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "SemiSpecificResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 5,
+      "randomState": 217083232
+    },
+    {
+      "id": "fallback-semi-unresolved",
+      "class": "fallback",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "CC_Fallback",
+            "prompt_id": "CC_GQA_Failure_scripted_AN_04",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "I don't <phoneme ph=\"th iy ng k ai\">thinki</phoneme> know enough about that to answer.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ErrorResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 1,
+      "randomState": 1015568748
+    },
+    {
+      "id": "fallback-unknown-scripted-mim",
+      "class": "fallback",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "CC_Fallback",
+            "prompt_id": "CC_GQA_Failure_scripted_AN_04",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "I don't <phoneme ph=\"th iy ng k ai\">thinki</phoneme> know enough about that to answer.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": false,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ErrorResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 1,
+      "randomState": 1015568748
+    },
+    {
+      "id": "fallback-unknown-emotion-mim",
+      "class": "fallback",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "CC_Fallback",
+            "prompt_id": "CC_GQA_Failure_scripted_AN_04",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "I don't <phoneme ph=\"th iy ng k ai\">thinki</phoneme> know enough about that to answer.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": false,
+                "type": "emotion_query"
+              }
+            },
+            {
+              "event": "Chitchat Emotion",
+              "properties": {
+                "emotion_query_type": "emotion_query",
+                "emotional_state": "NEUTRAL"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ErrorResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 1,
+      "randomState": 1015568748
+    },
+    {
+      "id": "fallback-scripted-as-emotion-query",
+      "class": "fallback",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "CC_Fallback",
+            "prompt_id": "CC_GQA_Failure_scripted_AN_04",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "I don't <phoneme ph=\"th iy ng k ai\">thinki</phoneme> know enough about that to answer.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": false,
+                "type": "emotion_query"
+              }
+            },
+            {
+              "event": "Chitchat Emotion",
+              "properties": {
+                "emotion_query_type": "emotion_query",
+                "emotional_state": "NEUTRAL"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ErrorResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 1,
+      "randomState": 1015568748
+    },
+    {
+      "id": "fallback-scripted-as-specific-query",
+      "class": "fallback",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "CC_Fallback",
+            "prompt_id": "CC_GQA_Failure_scripted_AN_04",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "I don't <phoneme ph=\"th iy ng k ai\">thinki</phoneme> know enough about that to answer.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": false,
+                "type": "emotion_query"
+              }
+            },
+            {
+              "event": "Chitchat Emotion",
+              "properties": {
+                "emotion_query_type": "specific_emotion_query",
+                "emotional_state": "NEUTRAL"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ErrorResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 1,
+      "randomState": 1015568748
+    },
+    {
+      "id": "fallback-emotion-as-semi-specific",
+      "class": "fallback",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "CC_Fallback",
+            "prompt_id": "CC_GQA_Failure_scripted_AN_04",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "I don't <phoneme ph=\"th iy ng k ai\">thinki</phoneme> know enough about that to answer.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ErrorResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 1,
+      "randomState": 1015568748
+    },
+    {
+      "id": "valid-emotion-scripted-reclassified",
+      "class": "valid",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": true,
+        "prompts": [],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": true,
+                "type": "emotion_query"
+              }
+            },
+            {
+              "event": "Chitchat Emotion",
+              "properties": {
+                "emotion_query_type": "emotion_command",
+                "emotional_state": "NEUTRAL"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "EmotionCommand",
+          "Success",
+          "Done"
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 3,
+      "randomState": 2165703038
+    },
+    {
+      "id": "fallback-known-mim-unknown-type",
+      "class": "fallback",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "CC_Fallback",
+            "prompt_id": "CC_GQA_Failure_scripted_AN_04",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "I don't <phoneme ph=\"th iy ng k ai\">thinki</phoneme> know enough about that to answer.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ErrorResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 1,
+      "randomState": 1015568748
+    },
+    {
+      "id": "fallback-known-core-mim",
+      "class": "fallback",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "CC_Fallback",
+            "prompt_id": "CC_GQA_Failure_scripted_AN_04",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "I don't <phoneme ph=\"th iy ng k ai\">thinki</phoneme> know enough about that to answer.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": false,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ErrorResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 1,
+      "randomState": 1015568748
+    },
+    {
+      "id": "ra-flipcoin-heads",
+      "class": "dice",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "RA_JBO_FlipCoin",
+            "prompt_id": "RA_JBO_FlipCoin_AN_07",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "<anim cat='jiboji' filter='coin-flip-heads'/>. <break size='0.7'/> Heads this time.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": true,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ScriptedResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 4,
+      "randomState": 3027450565
+    },
+    {
+      "id": "ra-flipcoin-tails",
+      "class": "dice",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "RA_JBO_FlipCoin",
+            "prompt_id": "RA_JBO_FlipCoin_AN_18",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "<anim cat='jiboji' filter='coin-flip-tails'/>. <break size='0.7'/><pitch mult='1.1'>Tails</pitch> takes it.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": true,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ScriptedResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 4,
+      "randomState": 3186434646
+    },
+    {
+      "id": "ra-roll-one-die-generic",
+      "class": "dice",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "RA_JBO_RollOneDie",
+            "prompt_id": "RA_JBO_RollOneDie_AN_03",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "<anim cat='jiboji' filter='roll-die-2'/> <break size='0.3'/> It's 2.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": true,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ScriptedResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 4,
+      "randomState": 3027450565
+    },
+    {
+      "id": "ra-roll-one-die-one",
+      "class": "dice",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "RA_JBO_RollOneDie",
+            "prompt_id": "RA_JBO_RollOneDie_AN_02",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "<anim cat='jiboji' filter='roll-die-1'/> <break size='0.5'/> One. One of my favorite numbers.",
+            "autoRuleConfig": null
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": true,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ScriptedResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 4,
+      "randomState": 3011445689
+    },
+    {
+      "id": "ra-roll-one-die-five",
+      "class": "dice",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "RA_JBO_RollOneDie",
+            "prompt_id": "RA_JBO_RollOneDie_AN_04",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "<anim cat='jiboji' filter='roll-die-5'/> <break size='0.3'/> Five's alive.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": true,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ScriptedResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 4,
+      "randomState": 3883073582
+    },
+    {
+      "id": "ra-roll-two-dice-generic",
+      "class": "dice",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "RA_JBO_RollTwoDice",
+            "prompt_id": "RA_JBO_RollTwoDice_AN_09",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "<anim cat='jiboji' filter='roll-dice-2-3'/> <break size='0.3'/> 5.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": true,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ScriptedResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 4,
+      "randomState": 3027450565
+    },
+    {
+      "id": "ra-roll-two-dice-snake-eyes",
+      "class": "dice",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "RA_JBO_RollTwoDice",
+            "prompt_id": "RA_JBO_RollTwoDice_AN_02",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "<anim cat='jiboji' filter='roll-dice-1-1'/> <break size='0.5'/> Snake eyes. My favorite roll.",
+            "autoRuleConfig": null
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": true,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ScriptedResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 4,
+      "randomState": 2852461608
+    },
+    {
+      "id": "ra-roll-two-dice-seven",
+      "class": "dice",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "RA_JBO_RollTwoDice",
+            "prompt_id": "RA_JBO_RollTwoDice_AN_03",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "<anim cat='jiboji' filter='roll-dice-2-5'/> <break size='0.5'/> Lucky number seven.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": true,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ScriptedResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 4,
+      "randomState": 1892988017
+    },
+    {
+      "id": "ra-roll-two-dice-doubles",
+      "class": "dice",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "RA_JBO_RollTwoDice",
+            "prompt_id": "RA_JBO_RollTwoDice_AN_04",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "<anim cat='jiboji' filter='roll-dice-2-2'/> <break size='0.3'/> <pitch mult='1.2'>Doubles.</pitch> <break size='0.3'/> I like rolling doubles.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": true,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ScriptedResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 4,
+      "randomState": 2071148970
+    },
+    {
+      "id": "ra-roll-two-dice-six-doubles",
+      "class": "dice",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "RA_JBO_RollTwoDice",
+            "prompt_id": "RA_JBO_RollTwoDice_AN_05",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "<anim cat='jiboji' filter='roll-dice-6-6'/> <break size='0.3'/> Two sixes. That's a great roll.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": true,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ScriptedResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 4,
+      "randomState": 2247687701
+    },
+    {
+      "id": "ra-roll-two-dice-five-doubles",
+      "class": "dice",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "RA_JBO_RollTwoDice",
+            "prompt_id": "RA_JBO_RollTwoDice_AN_06",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "<anim cat='jiboji' filter='roll-dice-5-5'/> <break size='0.3'/> <pitch mult='1.2'>Fives</pitch> alive.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": true,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ScriptedResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 4,
+      "randomState": 2286041445
+    },
+    {
+      "id": "ra-roll-two-dice-nine-special",
+      "class": "dice",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "RA_JBO_RollTwoDice",
+            "prompt_id": "RA_JBO_RollTwoDice_AN_07",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "<anim cat='jiboji' filter='roll-dice-4-5'/> <break size='0.3'/> Nine. <break size='0.3'/> I'll <pitch mult='1.1'>take </pitch> it.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": true,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ScriptedResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 4,
+      "randomState": 1999235700
+    },
+    {
+      "id": "ra-roll-two-dice-two-three-special",
+      "class": "dice",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "RA_JBO_RollTwoDice",
+            "prompt_id": "RA_JBO_RollTwoDice_AN_08",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "<anim cat='jiboji' filter='roll-dice-2-3'/> <break size='0.3'/> It's always nice to see a two and a three get together.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": true,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ScriptedResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 4,
+      "randomState": 1900179344
+    },
+    {
+      "id": "ra-roll-two-dice-unequal-a",
+      "class": "dice",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "RA_JBO_RollTwoDice",
+            "prompt_id": "RA_JBO_RollTwoDice_AN_10",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "<anim cat='jiboji' filter='roll-dice-2-6'/> <break size='0.3'/> It's 2 and 6.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": true,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ScriptedResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 4,
+      "randomState": 3981355051
+    },
+    {
+      "id": "ra-roll-two-dice-unequal-b",
+      "class": "dice",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "RA_JBO_RollTwoDice",
+            "prompt_id": "RA_JBO_RollTwoDice_AN_11",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "<anim cat='jiboji' filter='roll-dice-2-1'/> <break size='0.3'/> 2 and 1.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": true,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ScriptedResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 4,
+      "randomState": 4140339132
+    },
+    {
+      "id": "ri-rolling-dice-generic",
+      "class": "dice",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "RI_JBO_LikesRollingDice",
+            "prompt_id": "RI_JBO_LikesRollingDice_AN_01",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "Oh yes indeed. Just like this. <anim cat='jiboji' filter='roll-dice-2-3'/>",
+            "autoRuleConfig": null
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": true,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ScriptedResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 4,
+      "randomState": 3027450565
+    },
+    {
+      "id": "ri-rolling-dice-snake-eyes",
+      "class": "dice",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "RI_JBO_LikesRollingDiceSnakeEyes",
+            "prompt_id": "RI_JBO_LikesRollingDiceSnakeEyes_AN_01",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "Yes, it's my favorite roll. I like the roundness of the eyes. ",
+            "autoRuleConfig": null
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": true,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ScriptedResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 4,
+      "randomState": 2852461608
+    },
+    {
+      "id": "ri-rolling-dice-doubles",
+      "class": "dice",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "RI_JBO_LikesRollingDiceDoubles",
+            "prompt_id": "RI_JBO_LikesRollingDiceDoubles_AN_01",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "I do. It's very symmetrical.",
+            "autoRuleConfig": null
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": true,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ScriptedResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 4,
+      "randomState": 2868466484
+    },
+    {
+      "id": "fallback-weighted-seed-one",
+      "class": "fallback",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "CC_Fallback",
+            "prompt_id": "CC_GQA_Failure_scripted_AN_04",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "I don't <phoneme ph=\"th iy ng k ai\">thinki</phoneme> know enough about that to answer.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": false,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ErrorResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 1,
+      "randomState": 1015568748
+    },
+    {
+      "id": "fallback-weighted-seed-pegasus",
+      "class": "fallback",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "CC_Fallback",
+            "prompt_id": "CC_GQA_Failure_scripted_AN_01",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "I don't <phoneme ph=\"th iy ng k ai\">thinki</phoneme> know about that.",
+            "autoRuleConfig": true
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": false,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ErrorResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 1,
+      "randomState": 180832172
+    },
+    {
+      "id": "fallback-weighted-seed-high",
+      "class": "fallback",
+      "ok": true,
+      "value": {
+        "type": "SKILL_ACTION",
+        "final": true,
+        "fireAndForget": false,
+        "prompts": [
+          {
+            "type": "SLIM",
+            "mim_id": "CC_Fallback",
+            "prompt_id": "CC_GQA_Failure_scripted_AN_11",
+            "prompt_sub_category": "AN",
+            "mim_type": "announcement",
+            "esml": "I can't quite respond to that.",
+            "autoRuleConfig": null
+          }
+        ],
+        "analytics": {
+          "chitchat-skill": [
+            {
+              "event": "Skill Entry",
+              "properties": {
+                "initial_intent": "n/a",
+                "domain": "",
+                "was_hey_jibo_launch": true,
+                "user_initiated": true,
+                "last_skill": "n/a"
+              }
+            },
+            {
+              "event": "Chitchat Query",
+              "properties": {
+                "success": false,
+                "type": "scripted_response"
+              }
+            }
+          ]
+        },
+        "trace": [
+          "Reactive",
+          "ErrorResponse",
+          null
+        ],
+        "sessionData": {
+          "_mim": {
+            "noMatch": 0,
+            "noInput": 0,
+            "noMatchMax": false,
+            "noInputMax": false
+          }
+        }
+      },
+      "randomCalls": 1,
+      "randomState": 3159723346
+    }
+  ]
+}

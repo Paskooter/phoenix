@@ -1,0 +1,333 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "candidateRevision": "b88b1d2306684291322b04550088e38f7f62de9a",
+  "rows": 46,
+  "semanticMatches": 39,
+  "promptMatches": 39,
+  "coverageErrors": [],
+  "semanticDifferences": [
+    {
+      "id": "malformed-result-omitted",
+      "class": "malformed",
+      "expectedDifference": "source-malformed-precedence",
+      "sourcePresent": true,
+      "candidatePresent": true,
+      "semanticEqual": false,
+      "promptEqual": false,
+      "sourcePromptIds": [],
+      "candidatePromptIds": [],
+      "sourceError": {
+        "name": "TypeError",
+        "message": "Cannot read property 'nlu' of undefined"
+      },
+      "candidateError": {
+        "name": "Error",
+        "message": "Chitchat launched without required memo!"
+      }
+    },
+    {
+      "id": "malformed-result-null",
+      "class": "malformed",
+      "expectedDifference": "source-malformed-precedence",
+      "sourcePresent": true,
+      "candidatePresent": true,
+      "semanticEqual": false,
+      "promptEqual": false,
+      "sourcePromptIds": [],
+      "candidatePromptIds": [],
+      "sourceError": {
+        "name": "TypeError",
+        "message": "Cannot read property 'nlu' of null"
+      },
+      "candidateError": {
+        "name": "Error",
+        "message": "Chitchat launched without required memo!"
+      }
+    },
+    {
+      "id": "malformed-result-empty",
+      "class": "malformed",
+      "expectedDifference": "source-malformed-precedence",
+      "sourcePresent": true,
+      "candidatePresent": true,
+      "semanticEqual": false,
+      "promptEqual": false,
+      "sourcePromptIds": [],
+      "candidatePromptIds": [],
+      "sourceError": {
+        "name": "TypeError",
+        "message": "Cannot read property 'intent' of undefined"
+      },
+      "candidateError": {
+        "name": "Error",
+        "message": "Chitchat launched without required memo!"
+      }
+    },
+    {
+      "id": "malformed-nlu-omitted",
+      "class": "malformed",
+      "expectedDifference": "source-malformed-precedence",
+      "sourcePresent": true,
+      "candidatePresent": true,
+      "semanticEqual": false,
+      "promptEqual": false,
+      "sourcePromptIds": [],
+      "candidatePromptIds": [
+        "RA_JBO_FlipCoin_AN_05"
+      ],
+      "sourceError": {
+        "name": "TypeError",
+        "message": "Cannot read property 'intent' of undefined"
+      },
+      "candidateError": null
+    },
+    {
+      "id": "malformed-nlu-null",
+      "class": "malformed",
+      "expectedDifference": "source-malformed-precedence",
+      "sourcePresent": true,
+      "candidatePresent": true,
+      "semanticEqual": false,
+      "promptEqual": false,
+      "sourcePromptIds": [],
+      "candidatePromptIds": [
+        "RA_JBO_FlipCoin_AN_05"
+      ],
+      "sourceError": {
+        "name": "TypeError",
+        "message": "Cannot read property 'intent' of null"
+      },
+      "candidateError": null
+    },
+    {
+      "id": "malformed-semi-entities-omitted",
+      "class": "malformed",
+      "expectedDifference": "source-malformed-precedence",
+      "sourcePresent": true,
+      "candidatePresent": true,
+      "semanticEqual": false,
+      "promptEqual": false,
+      "sourcePromptIds": [],
+      "candidatePromptIds": [
+        "CC_GQA_Failure_scripted_AN_12"
+      ],
+      "sourceError": {
+        "name": "TypeError",
+        "message": "Cannot convert undefined or null to object"
+      },
+      "candidateError": null
+    },
+    {
+      "id": "malformed-semi-entities-null",
+      "class": "malformed",
+      "expectedDifference": "source-malformed-precedence",
+      "sourcePresent": true,
+      "candidatePresent": true,
+      "semanticEqual": false,
+      "promptEqual": false,
+      "sourcePromptIds": [],
+      "candidatePromptIds": [
+        "CC_GQA_Failure_scripted_AN_12"
+      ],
+      "sourceError": {
+        "name": "TypeError",
+        "message": "Cannot convert undefined or null to object"
+      },
+      "candidateError": null
+    }
+  ],
+  "expectedSemanticDifferences": [
+    {
+      "id": "malformed-result-omitted",
+      "class": "malformed",
+      "expectedDifference": "source-malformed-precedence",
+      "sourcePresent": true,
+      "candidatePresent": true,
+      "semanticEqual": false,
+      "promptEqual": false,
+      "sourcePromptIds": [],
+      "candidatePromptIds": [],
+      "sourceError": {
+        "name": "TypeError",
+        "message": "Cannot read property 'nlu' of undefined"
+      },
+      "candidateError": {
+        "name": "Error",
+        "message": "Chitchat launched without required memo!"
+      }
+    },
+    {
+      "id": "malformed-result-null",
+      "class": "malformed",
+      "expectedDifference": "source-malformed-precedence",
+      "sourcePresent": true,
+      "candidatePresent": true,
+      "semanticEqual": false,
+      "promptEqual": false,
+      "sourcePromptIds": [],
+      "candidatePromptIds": [],
+      "sourceError": {
+        "name": "TypeError",
+        "message": "Cannot read property 'nlu' of null"
+      },
+      "candidateError": {
+        "name": "Error",
+        "message": "Chitchat launched without required memo!"
+      }
+    },
+    {
+      "id": "malformed-result-empty",
+      "class": "malformed",
+      "expectedDifference": "source-malformed-precedence",
+      "sourcePresent": true,
+      "candidatePresent": true,
+      "semanticEqual": false,
+      "promptEqual": false,
+      "sourcePromptIds": [],
+      "candidatePromptIds": [],
+      "sourceError": {
+        "name": "TypeError",
+        "message": "Cannot read property 'intent' of undefined"
+      },
+      "candidateError": {
+        "name": "Error",
+        "message": "Chitchat launched without required memo!"
+      }
+    },
+    {
+      "id": "malformed-nlu-omitted",
+      "class": "malformed",
+      "expectedDifference": "source-malformed-precedence",
+      "sourcePresent": true,
+      "candidatePresent": true,
+      "semanticEqual": false,
+      "promptEqual": false,
+      "sourcePromptIds": [],
+      "candidatePromptIds": [
+        "RA_JBO_FlipCoin_AN_05"
+      ],
+      "sourceError": {
+        "name": "TypeError",
+        "message": "Cannot read property 'intent' of undefined"
+      },
+      "candidateError": null
+    },
+    {
+      "id": "malformed-nlu-null",
+      "class": "malformed",
+      "expectedDifference": "source-malformed-precedence",
+      "sourcePresent": true,
+      "candidatePresent": true,
+      "semanticEqual": false,
+      "promptEqual": false,
+      "sourcePromptIds": [],
+      "candidatePromptIds": [
+        "RA_JBO_FlipCoin_AN_05"
+      ],
+      "sourceError": {
+        "name": "TypeError",
+        "message": "Cannot read property 'intent' of null"
+      },
+      "candidateError": null
+    },
+    {
+      "id": "malformed-semi-entities-omitted",
+      "class": "malformed",
+      "expectedDifference": "source-malformed-precedence",
+      "sourcePresent": true,
+      "candidatePresent": true,
+      "semanticEqual": false,
+      "promptEqual": false,
+      "sourcePromptIds": [],
+      "candidatePromptIds": [
+        "CC_GQA_Failure_scripted_AN_12"
+      ],
+      "sourceError": {
+        "name": "TypeError",
+        "message": "Cannot convert undefined or null to object"
+      },
+      "candidateError": null
+    },
+    {
+      "id": "malformed-semi-entities-null",
+      "class": "malformed",
+      "expectedDifference": "source-malformed-precedence",
+      "sourcePresent": true,
+      "candidatePresent": true,
+      "semanticEqual": false,
+      "promptEqual": false,
+      "sourcePromptIds": [],
+      "candidatePromptIds": [
+        "CC_GQA_Failure_scripted_AN_12"
+      ],
+      "sourceError": {
+        "name": "TypeError",
+        "message": "Cannot convert undefined or null to object"
+      },
+      "candidateError": null
+    }
+  ],
+  "unexpectedSemanticDifferences": [],
+  "promptDifferences": [
+    {
+      "id": "malformed-result-omitted",
+      "class": "malformed",
+      "expectedDifference": "source-malformed-precedence",
+      "sourcePromptIds": [],
+      "candidatePromptIds": []
+    },
+    {
+      "id": "malformed-result-null",
+      "class": "malformed",
+      "expectedDifference": "source-malformed-precedence",
+      "sourcePromptIds": [],
+      "candidatePromptIds": []
+    },
+    {
+      "id": "malformed-result-empty",
+      "class": "malformed",
+      "expectedDifference": "source-malformed-precedence",
+      "sourcePromptIds": [],
+      "candidatePromptIds": []
+    },
+    {
+      "id": "malformed-nlu-omitted",
+      "class": "malformed",
+      "expectedDifference": "source-malformed-precedence",
+      "sourcePromptIds": [],
+      "candidatePromptIds": [
+        "RA_JBO_FlipCoin_AN_05"
+      ]
+    },
+    {
+      "id": "malformed-nlu-null",
+      "class": "malformed",
+      "expectedDifference": "source-malformed-precedence",
+      "sourcePromptIds": [],
+      "candidatePromptIds": [
+        "RA_JBO_FlipCoin_AN_05"
+      ]
+    },
+    {
+      "id": "malformed-semi-entities-omitted",
+      "class": "malformed",
+      "expectedDifference": "source-malformed-precedence",
+      "sourcePromptIds": [],
+      "candidatePromptIds": [
+        "CC_GQA_Failure_scripted_AN_12"
+      ]
+    },
+    {
+      "id": "malformed-semi-entities-null",
+      "class": "malformed",
+      "expectedDifference": "source-malformed-precedence",
+      "sourcePromptIds": [],
+      "candidatePromptIds": [
+        "CC_GQA_Failure_scripted_AN_12"
+      ]
+    }
+  ],
+  "unexpectedPromptDifferences": [],
+  "result": "pass"
+}

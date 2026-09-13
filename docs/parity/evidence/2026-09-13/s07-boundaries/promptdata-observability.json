@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-13",
+  "patternSemantics": "client-visible MIM prompt/condition references",
+  "sides": {
+    "candidate": {
+      "mimFiles": 4424,
+      "treeSha256": "d5c1412e88d43e491388462f277c56592931b0d1041189d61e9a25ec38208de6",
+      "refs": {
+        "entities": [],
+        "intent": [],
+        "dice": [
+          "scripted-responses/RA_JBO_RollOneDie.mim",
+          "scripted-responses/RA_JBO_RollTwoDice.mim",
+          "scripted-responses/RI_JBO_LikesRollingDice.mim"
+        ],
+        "coin": ["scripted-responses/RA_JBO_FlipCoin.mim"]
+      }
+    },
+    "source": {
+      "mimFiles": 4424,
+      "treeSha256": "d5c1412e88d43e491388462f277c56592931b0d1041189d61e9a25ec38208de6",
+      "refs": {
+        "entities": [],
+        "intent": [],
+        "dice": [
+          "scripted-responses/RA_JBO_RollOneDie.mim",
+          "scripted-responses/RA_JBO_RollTwoDice.mim",
+          "scripted-responses/RI_JBO_LikesRollingDice.mim"
+        ],
+        "coin": ["scripted-responses/RA_JBO_FlipCoin.mim"]
+      }
+    }
+  }
+}

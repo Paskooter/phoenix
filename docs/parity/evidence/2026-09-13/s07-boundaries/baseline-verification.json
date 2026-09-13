@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "candidateBase": "4993508ca610a11faeb491d8ebbbce1b07700e58",
+  "candidateCommit": "b88b1d2306684291322b04550088e38f7f62de9a",
+  "productionDiffFromBase": [],
+  "matrixRows": 46,
+  "semanticMatches": 39,
+  "promptMatches": 39,
+  "expectedSemanticDifferences": [
+    "malformed-result-omitted",
+    "malformed-result-null",
+    "malformed-result-empty",
+    "malformed-nlu-omitted",
+    "malformed-nlu-null",
+    "malformed-semi-entities-omitted",
+    "malformed-semi-entities-null"
+  ],
+  "unexpectedSemanticDifferences": 0,
+  "unexpectedPromptDifferences": 0,
+  "result": "pass",
+  "command": "node scripts/parity-s07-boundaries/run-candidate.mjs ... && node scripts/parity-s07-boundaries/compare.mjs scripts/parity-s07-boundaries",
+  "interpretation": "The source differential has no unexpected observable difference against the unmodified 4993508 production behavior; the candidate commit adds evidence runners and comparator only."
+}
