@@ -65,7 +65,7 @@ test('Q-01 Classic Question and ListAttribution use one integrated structQA/acco
       Country: 'usa',
     });
     assert.equal(question.status, 200);
-    assert.match(question.contentType, /^application\/json(?:; charset=utf-8)?$/u);
+    assert.equal(question.contentType, 'application/json; charset=utf-8');
     assert.deepEqual(question.body, {
       timestamps: { receive_request: NOW, return_response: NOW },
       input: 'what is the fixture',
@@ -82,7 +82,7 @@ test('Q-01 Classic Question and ListAttribution use one integrated structQA/acco
       Service: 'Bing',
     });
     assert.equal(listed.status, 200);
-    assert.match(listed.contentType, /^application\/json(?:; charset=utf-8)?$/u);
+    assert.equal(listed.contentType, 'application/json; charset=utf-8');
     assert.deepEqual(listed.body, {
       data: [{
         service: 'Bing',
