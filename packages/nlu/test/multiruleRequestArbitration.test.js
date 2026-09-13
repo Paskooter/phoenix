@@ -38,15 +38,15 @@ test.after(() => {
   if (selectedRuntime !== undefined) process.env.PHOENIX_NLU_RUNTIME = selectedRuntime;
 });
 
-test('imports every named rule and refuses an unsupported dependency loudly', () => {
+test('imports every named rule and answers the supported public profile', () => {
   assert.deepEqual(ruleInventory(), {
     referenceRevision: '5c0a7390539663ba749d360de348a428c088505c',
     sourceRuleCount: 117,
     publicRuleCount: 98,
-    factoryCount: 2,
-    boundedFactoryCount: 2,
-    unsupportedFactoryCount: 6,
-    unsupportedRuleCount: 4,
+    factoryCount: 3,
+    boundedFactoryCount: 3,
+    unsupportedFactoryCount: 5,
+    unsupportedRuleCount: 2,
     factoryWordCount: 6,
   });
 
@@ -62,16 +62,12 @@ test('imports every named rule and refuses an unsupported dependency loudly', ()
     }
   }
   assert.equal(namedRules.length, 98);
-  assert.equal(honored.length, 96, `every rule must answer: ${honored.length}/98`);
-  // The only refusals are the two rules whose source grammar needs the `time`
-  // factory. time.grm uses the native literal-colon form `?(?: $minutes_number)`
-  // while the AST matcher compares whole whitespace-delimited tokens
-  // (matcher.js:222), so the colon cannot be consumed inside `5:30`. Refusing is
-  // the honest boundary; silently matching would fabricate a result.
-  assert.deepEqual(refused, [
-    ['clock/alarm_set_value', "Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time"],
-    ['clock/alarm_timer_ampm', "Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time"],
-  ]);
+  assert.equal(honored.length, 98, `every rule must answer: ${honored.length}/98`);
+  // The recovered source time factory removes the previous colon/action
+  // boundary for the alarm rules. The two source-only unsupported launch
+  // entries remain outside this closed 98-rule public profile and therefore
+  // are treated as unknown requests, matching the request parser contract.
+  assert.deepEqual(refused, []);
 });
 
 test('selects the native winner for all 42 original multi-rule parser requests', () => {

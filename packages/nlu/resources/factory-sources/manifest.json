@@ -137,7 +137,7 @@
       "complete": true,
       "sha256": "bc64171c7ebc8e1fabddf78822a600dbdee3cc12cf946a48a213a9feaf71f00e",
       "vendored": true,
-      "astStatus": "does not parse: the AST lexer models `:` as a token; the source uses `?:` literal-colon forms"
+      "astStatus": "applied: compiler-compatible colon word lexing plus semantic-action execution publishes time, relative-time and AM/PM fields"
     },
     {
       "name": "timer",
@@ -149,7 +149,7 @@
       "complete": true,
       "sha256": "2123cca73a1bac15169bf4c44ba6716accc5b6ac6256758c6d36afa0a4333dcb",
       "vendored": true,
-      "astStatus": "does not parse: same `:` / fraction forms as time.grm"
+      "astStatus": "parses after compiler-compatible colon word lexing; bounded timer source remains the active implementation"
     },
     {
       "name": "world_city_country",

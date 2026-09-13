@@ -67,14 +67,13 @@ test('N-05 every device/content and global fixture matches at runtime through pa
   assert.deepEqual(failures, []);
 });
 
-test('N-05 the two rules with an unsupported factory refuse loudly, never silently no-match', () => {
+test('N-05 migrated time factory rules answer directly and are no longer refusals', () => {
   const refusals = fixture.namedRules.filter(row => row.positive.unsupported);
-  assert.deepEqual(refusals.map(row => row.rule).sort(), ['clock/alarm_set_value', 'clock/alarm_timer_ampm']);
-  for (const row of refusals) {
-    assert.throws(
-      () => parseRequest({ text: row.positive.text || 'five minutes', rules: [row.rule] }),
-      (error) => error.message === row.positive.error && error.message.includes(row.positive.unsupported),
-    );
+  assert.deepEqual(refusals, []);
+  for (const rule of ['clock/alarm_set_value', 'clock/alarm_timer_ampm']) {
+    const row = fixture.namedRules.find(candidate => candidate.rule === rule);
+    assert.ok(row?.positive?.expect, `${rule}: recovered time factory result missing`);
+    assert.deepEqual(norm(parseRequest({ text: row.positive.text, rules: [rule] })), row.positive.expect);
   }
 });
 

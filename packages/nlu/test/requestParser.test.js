@@ -26,10 +26,10 @@ test('loads the complete source inventory and the timer named rule', () => {
     referenceRevision: '5c0a7390539663ba749d360de348a428c088505c',
     sourceRuleCount: 117,
     publicRuleCount: 98,
-    factoryCount: 2,
-    boundedFactoryCount: 2,
-    unsupportedFactoryCount: 6,
-    unsupportedRuleCount: 4,
+    factoryCount: 3,
+    boundedFactoryCount: 3,
+    unsupportedFactoryCount: 5,
+    unsupportedRuleCount: 2,
     factoryWordCount: 6,
   });
   assert.deepEqual(parseRequest({
@@ -61,10 +61,9 @@ test('evaluates only requested rules and keeps local turns out of launch', () =>
     intent: 'requestTellJiboContent',
     entities: { JiboContent: 'Joke', union_original_fst_name: 'handle:chitchat/launch' },
   });
-  assert.throws(
-    () => parseRequest({ text: 'blah blah', rules: ['clock/alarm_set_value'] }),
-    /Unsupported NLU factory dependencies for public rule 'clock\/alarm_set_value': time/,
-  );
+  assert.deepEqual(parseRequest({ text: 'blah blah', rules: ['clock/alarm_set_value'] }), {
+    rules: [], intent: null, entities: null,
+  });
   assert.deepEqual(parseRequest({ text: 'open weather', rules: ['main-menu/execute_personal_report'] }), {
     rules: ['main-menu/execute_personal_report'],
     intent: 'loadMenu',
@@ -350,8 +349,8 @@ test('HTTP parser accepts the complete request data and preserves empty shape', 
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ type: 'NLU', data: { text: 'blah blah', rules: ['clock/alarm_set_value'] } }),
   });
-  assert.equal(unsupported.status, 500);
-  assert.match((await unsupported.json()).data.message, /Unsupported NLU factory dependencies/);
+  assert.equal(unsupported.status, 200);
+  assert.deepEqual((await unsupported.json()).data, { rules: [], intent: null, entities: null });
 });
 
 test('HTTP parser still rejects malformed text before rule loading', async () => {

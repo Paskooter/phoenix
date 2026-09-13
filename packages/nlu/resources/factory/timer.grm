@@ -1,7 +1,11 @@
 # Bounded source grammar for the reference factory:timer contract.
 # Numeric words and digits map to the private _value field consumed by the
 # clock/timer_set_value rule; the rule itself supplies public intent/domain tags.
-TopRule = $TIMER;
+TopRule = $TIMER
+          {_hours=TIMER._hours}
+          {_minutes=TIMER._minutes}
+          {_seconds=TIMER._seconds}
+;
 
 TIMER =
     ($NUMBER {_hours=NUMBER._value} [hour?s])

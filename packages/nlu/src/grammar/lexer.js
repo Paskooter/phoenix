@@ -15,7 +15,6 @@
 //   EQ            — `=` (rule definition or entity assignment)
 //   SEMI          — `;`
 //   DOT           — `.` (sub-rule field access in entity tag values)
-//   COLON         — `:` (factory/handle prefix separator)
 //   DIRECTIVE     — `!ident = value;` (e.g. `!use_equivalent_words = true;`)
 //   CHARCLASS     — `[chars?s]` (character-level pattern; rare)
 //   EOF
@@ -57,12 +56,16 @@ export function lex(source) {
   // version-matched factory grammars lex: `?(&)` in factory_rules/timer.grm
   // and the accented place name `québec` in factory_rules/canada_province.grm.
   function isNonAscii(ch) { return ch !== undefined && ch.charCodeAt(0) > 0x7f; }
-  // Literal-word start: alphas, digits (for "4th", "1980"), backslash
+  // Literal-word start: alphas, digits (for "4th", "1980"), colon, backslash
   // (for escaped `\@`), `&` (a standalone word in the native lexer), or any
   // non-ASCII character.
-  function isWordStart(ch) { return /[A-Za-z0-9_\\&]/.test(ch) || isNonAscii(ch); }
-  // `&` lets `r&b` tokenize as one literal (e.g. radio-station rules).
-  function isWordChar(ch) { return /[A-Za-z0-9_'\\@/.&-]/.test(ch) || isNonAscii(ch); }
+  function isWordStart(ch) { return /[A-Za-z0-9_\\&:]/.test(ch) || isNonAscii(ch); }
+  // `&` lets `r&b` tokenize as one literal (e.g. radio-station rules). The
+  // native compiler's `nospecialchars` class also keeps ':' in ordinary words;
+  // this is needed for literal time forms such as `5:30` and the `?:` optional
+  // colon in the version-matched time/timer factories. Rule-reference colons
+  // are consumed explicitly in the `$factory:name` branch above.
+  function isWordChar(ch) { return /[A-Za-z0-9_'\\@/.&:-]/.test(ch) || isNonAscii(ch); }
 
   while (i < N) {
     const ch = source[i];
@@ -174,7 +177,6 @@ export function lex(source) {
     // literal words (so `u.s.a.` matches literally). The parser handles
     // splitting on `.` when reading a tag value identifier.
     if (ch === ',') { advance(); push('COMMA', ','); continue; }
-    if (ch === ':') { advance(); push('COLON', ':'); continue; }
 
     // Weight annotation: `~N` (FST cost on the preceding alternative/group).
     // Emitted as a TILDE token; the parser adds it to that item's cost. Higher

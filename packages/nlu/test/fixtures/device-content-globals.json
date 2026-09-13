@@ -296,20 +296,53 @@
   {
    "rule": "clock/alarm_set_value",
    "positive": {
-    "unsupported": "time",
-    "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_set_value': time"
+    "text": "set an alarm for five pm",
+    "expect": {
+     "entities": {
+      "time": "5:00",
+      "ampm": "PM",
+      "domain": "alarm"
+     },
+     "intent": "alarmValue",
+     "rules": [
+      "clock/alarm_set_value"
+     ]
+    }
    },
-   "negative": null,
-   "negativeUnavailable": "rule declares an unsupported factory dependency (time)"
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
   },
   {
    "rule": "clock/alarm_timer_ampm",
    "positive": {
-    "unsupported": "time",
-    "error": "Unsupported NLU factory dependencies for public rule 'clock/alarm_timer_ampm': time"
+    "text": "set an alarm for five pm",
+    "expect": {
+     "entities": {
+      "domain": "alarm",
+      "ampm": "PM"
+     },
+     "intent": "set",
+     "rules": [
+      "clock/alarm_timer_ampm"
+     ]
+    }
    },
-   "negative": null,
-   "negativeUnavailable": "rule declares an unsupported factory dependency (time)"
+   "negative": {
+    "text": "qzx florp",
+    "expect": {
+     "entities": null,
+     "intent": null,
+     "rules": []
+    }
+   },
+   "negativeUnavailable": null
   },
   {
    "rule": "clock/alarm_timer_change",

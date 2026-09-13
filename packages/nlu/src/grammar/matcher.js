@@ -24,6 +24,7 @@
 //                  compares (the `!use_equivalent_words = true` grammar directive)
 
 import { eqEquals } from './eqWords.js';
+import { executeSemanticAction } from './semanticActions.js';
 
 const EMPTY = Object.freeze({});
 const COMPILED_WEIGHT_CACHE = new WeakMap();
@@ -157,6 +158,20 @@ export function tokenize(text) {
   return text
     .toLowerCase()
     .split(/\s+/)
+    // The native FST keeps a literal colon as a character arc, while the
+    // source grammar emits `:` as its own word between numeric fields (for
+    // example the `?: $minutes_number` time form). Expose that boundary to the
+    // word-level AST matcher for numeric clock spellings such as `5:30`.
+    .flatMap(token => {
+      const clock = /^(\d{1,2})(?::(\d{2}))(?::(\d{2}))?$/.exec(token);
+      if (!clock) return [token];
+      const fields = [clock[1]];
+      for (let index = 2; index < clock.length; index += 1) {
+        if (!clock[index]) continue;
+        fields.push(':', ...clock[index].split(''));
+      }
+      return fields;
+    })
     .filter(Boolean);
 }
 // The public parser lowercases input but otherwise preserves each
@@ -179,7 +194,34 @@ function applyTags(tags, prevEntities, prevSubFields, subFields, parsedText) {
   if (!tags || tags.length === 0) return { entities: prevEntities, subFields: prevSubFields };
   const ent = freshEnts(prevEntities);
   const sub = freshEnts(prevSubFields);
+  const deleted = new Set();
   for (const tag of tags) {
+    if (tag.kind === 'action') {
+      // Native V8 actions run at rule exit with all child private fields
+      // visible as `this.<subrule>._field`. Execute against a copied scope so
+      // backtracking siblings cannot observe the action's mutations, then
+      // synchronize both assignments and deletes into the private fields.
+      try {
+        const actionScope = executeSemanticAction(
+          tag.program,
+          Object.assign({}, sub, subFields),
+          parsedText,
+        );
+        const beforeKeys = new Set([...Object.keys(sub), ...Object.keys(subFields)]);
+        for (const key of beforeKeys) {
+          if (!Object.prototype.hasOwnProperty.call(actionScope, key)) {
+            delete sub[key];
+            deleted.add(key);
+          }
+        }
+        for (const [key, value] of Object.entries(actionScope)) sub[key] = value;
+      } catch {
+        // Keep the historical tolerant boundary for an action outside the
+        // supported source subset: matching the words remains useful and the
+        // action contributes no fields.
+      }
+      continue;
+    }
     // Conditional semantic action (`{% if (this.k == 'a') {this.k = 'b'} %}`):
     // applied after the plain assignments of the same tag list, mirroring the
     // native interpreter running the action block at rule exit.
@@ -203,7 +245,7 @@ function applyTags(tags, prevEntities, prevSubFields, subFields, parsedText) {
       target[tag.key] = val;
     }
   }
-  return { entities: ent, subFields: sub };
+  return { entities: ent, subFields: sub, deletedKeys: deleted };
 }
 
 // Generator: yield {end, entities, subFields} for each successful match
@@ -575,11 +617,18 @@ function* match(node, start, ctx, depth, charHeuristic = 0) {
       // under the sub-rule's name (so `{key=SubRule._field}` works on this
       // ref's own tags). Also merge that namespace INTO the returned subFields
       // so an enclosing seq's group-level tag can later read `SubRule._field`
-      // — the matchSeq accumulator will carry the namespaced map up.
+      // — the matchSeq accumulator will carry the namespaced map up. Keep the
+      // child's direct fields for the bounded factory adapter, whose historical
+      // source grammar publishes them from a bare `$TIMER` top rule.
       for (const m of match(target, start, ctx, depth + 1, effectiveHeuristic)) {
         const exposed = { [node.name]: m.subFields };
-        const tagged = applyTags(node.tags, m.entities, m.subFields, exposed, tokens.slice(start, m.end).join(' '));
+        // A reference opens a new rule scope. Child fields are available under
+        // the named namespace; copying them directly into the parent makes a
+        // trailing `{_nl+=digit._nl}` append to the child's own `_nl` (yielding
+        // `00` for a `30` minutes value) instead of the accumulated field.
+        const tagged = applyTags(node.tags, m.entities, EMPTY, exposed, tokens.slice(start, m.end).join(' '));
         const subsForParent = Object.assign({}, tagged.subFields, exposed);
+        if (tagged.deletedKeys?.has(node.name)) delete subsForParent[node.name];
         yield {
           end: m.end,
           entities: tagged.entities,

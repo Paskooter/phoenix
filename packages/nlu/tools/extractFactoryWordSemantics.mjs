@@ -25,7 +25,13 @@ const WORD_LIST_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'resou
 // Walk every tag spec reachable in the AST.
 function* tags(node) {
   if (!node || typeof node !== 'object') return;
-  for (const t of node.tags || []) yield t;
+  // Executable V8 actions carry `{kind: 'action', program}` rather than a
+  // public field key. They are relevant to the runtime factory but do not
+  // describe a word-list projection, so omit them from this finite semantics
+  // derivation.
+  for (const t of node.tags || []) {
+    if (t && typeof t.key === 'string') yield t;
+  }
   if (node.item) yield* tags(node.item);
   for (const k of ['items', 'alts']) for (const c of node[k] || []) yield* tags(c);
 }

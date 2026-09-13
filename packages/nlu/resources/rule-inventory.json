@@ -1,15 +1,19 @@
 {
   "factories": {
+    "time": {
+      "path": "factory-sources/time.grm",
+      "sha256": "bc64171c7ebc8e1fabddf78822a600dbdee3cc12cf946a48a213a9feaf71f00e"
+    },
     "timer": {
       "path": "factory/timer.grm",
-      "sha256": "a2190154582ac2d003d131345e2e8d9b6a07c08fbcfab4dc580caadde03915e6"
+      "sha256": "8f8b327e264447e24a3a3d544e9cad8a79b18ea1297a3ca383ce7204a4d38e98"
     },
     "yes_no": {
       "path": "factory/yes_no.grm",
       "sha256": "d3020d043f3a9b34af8ce74df5622d4031249569f548f4b871a566ff469ff5e4"
     }
   },
-  "factoryCount": 2,
+  "factoryCount": 3,
   "factoryDependencies": {
     "canada_city_province": {
       "note": "Reference FST is inventory-pinned but no source matcher is bundled in this candidate.",
@@ -65,10 +69,11 @@
       "status": "word-list"
     },
     "time": {
-      "note": "Reference FST is inventory-pinned but no source matcher is bundled in this candidate.",
+      "implementation": "factory-sources/time.grm",
+      "note": "Recovered source grammar; AST execution covers the native action subset used to publish time, relative-time and AM/PM fields.",
       "referencePath": "build/data/en-us/factory_rules/time.fst",
       "referenceSha256": "ccc50d3c0fb06e43e75433fa828d370c787429a443bfa407c6e91be73cd9d86b",
-      "status": "unsupported"
+      "status": "bounded-compatibility"
     },
     "timer": {
       "implementation": "factory/timer.grm",
@@ -870,24 +875,24 @@
       "unsupported": []
     },
     "clock/alarm_set_value": {
-      "bounded": [],
+      "bounded": [
+        "time"
+      ],
       "factories": [
         "time"
       ],
-      "status": "unsupported-dependencies",
-      "unsupported": [
-        "time"
-      ]
+      "status": "bounded-compatibility",
+      "unsupported": []
     },
     "clock/alarm_timer_ampm": {
-      "bounded": [],
+      "bounded": [
+        "time"
+      ],
       "factories": [
         "time"
       ],
-      "status": "unsupported-dependencies",
-      "unsupported": [
-        "time"
-      ]
+      "status": "bounded-compatibility",
+      "unsupported": []
     },
     "clock/alarm_timer_change": {
       "bounded": [
@@ -955,6 +960,7 @@
     },
     "clock/launch": {
       "bounded": [
+        "time",
         "timer"
       ],
       "factories": [
@@ -973,7 +979,6 @@
       "unsupported": [
         "canada_city_province",
         "city_state",
-        "time",
         "world_city_country"
       ]
     },

@@ -18,6 +18,7 @@
 // that immediately follow an item/group.
 
 import { lex } from './lexer.js';
+import { parseSemanticAction } from './semanticActions.js';
 
 // `[...]` is the native bracket group (compiler.ypp
 // `brackets_and_charrulecontent`). A body made purely of character-class atoms
@@ -111,7 +112,12 @@ export function parse(source) {
     // Tags on non-last items stay local (e.g. `$X {a=b} $Y`).
     const seq = { type: 'seq', items };
     const last = items[items.length - 1];
-    if (last.tags && last.tags.length) {
+    // Tags attached to a prefix repetition belong to each consumed copy. If
+    // they are hoisted to the surrounding sequence, the zero-match path also
+    // runs them and a one-item numeric rule appends its digit twice. Ordinary
+    // trailing tags still hoist to the sequence exit where they can read all
+    // preceding sub-rule fields.
+    if (last.tags && last.tags.length && last.type !== 'kleene' && last.type !== 'plus') {
       seq.tags = last.tags;
       delete last.tags;
     }
@@ -236,8 +242,25 @@ export function parse(source) {
   // FST tags. Unparseable statements are skipped rather than throwing — a single
   // exotic action shouldn't break a whole grammar.
   function parseActionBlock(body) {
+    // The recovered factory grammars use the native V8 action scope for
+    // assignments such as `this.hour = this.hour_number._nl`, conditionals,
+    // arithmetic and `delete this.top_time`. Preserve those bodies as one
+    // executable action. Simple public tags remain on the historical path so
+    // existing launch grammars keep their exact entity behavior.
+    const actionSource = String(body).trim();
+    if (/\b(?:delete\s+)?this\s*\./.test(actionSource)
+      && !/^\s*[A-Za-z_][\w]*\s*=\s*this\._?parsed\s*;?\s*$/.test(actionSource)) {
+      try {
+        return [{ kind: 'action', program: parseSemanticAction(actionSource) }];
+      } catch {
+        // An unsupported action must not make an otherwise usable source rule
+        // disappear. This is the same boundary as the old simple-action
+        // adapter, which skipped unparseable statements.
+        return [];
+      }
+    }
     const tags = [];
-    for (const raw of String(body).split(';')) {
+    for (const raw of actionSource.split(';')) {
       const stmt = raw.trim();
       if (!stmt) continue;
       // `{% if (this.k == 'a') {this.k = 'b'} else if (this.k == 'c') {this.k = 'd'} %}`
