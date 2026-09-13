@@ -54,8 +54,18 @@ export async function commuteParse(mapsData, localISO, localData) {
   const trip = mapsFirstLeg;
   const modeIsDriving = userPrefs.commute.mode === 'driving';
 
-  const calArrival = earlyEventToday(firstEarlyEvent) ? firstEarlyEvent.dateTime : null;
-  const arriveDT = calArrival || getWorkArrivalDT(null, localISO, userPrefs.commute.workTime);
+  // CommuteParse.ts catches arrival-time failures (for example a malformed
+  // workTime object) and treats the route as unavailable.
+  let arriveDT;
+  try {
+    const calArrival = earlyEventToday(firstEarlyEvent) ? firstEarlyEvent.dateTime : null;
+    // CommuteParse.ts evaluates the normal work arrival before selecting an
+    // early event, so malformed workTime still fails even with calArrival.
+    const workArrival = getWorkArrivalDT(null, localISO, userPrefs.commute.workTime);
+    arriveDT = calArrival || workArrival;
+  } catch {
+    return undefined;
+  }
   if (!arriveDT) return undefined;
 
   const secondsBaseline = (trip.duration && trip.duration.value) || 0;
