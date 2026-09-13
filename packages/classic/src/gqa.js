@@ -91,7 +91,7 @@ export function gqaCredentials(req, { required = false } = {}) {
   const raw = header(req, 'x-amz-credentials');
   if (raw === undefined) {
     const accessKeyId = accessKeyIdFromAuth(req);
-    if (accessKeyId) return { id: accessKeyId };
+    if (accessKeyId) return { id: accessKeyId, accessKeyId };
     if (required) throw new Error("Missing 'x-amz-credentials' header");
     return null;
   }
@@ -103,8 +103,9 @@ export function gqaCredentials(req, { required = false } = {}) {
     // SigV4 access key when the security gateway's injected header is absent or unusable.
     const accessKeyId = accessKeyIdFromAuth(req);
     if (accessKeyId) {
-      if (req?.headers) req.headers['x-amz-credentials'] = JSON.stringify({ id: accessKeyId });
-      return { id: accessKeyId };
+      const credentials = { id: accessKeyId, accessKeyId };
+      if (req?.headers) req.headers['x-amz-credentials'] = JSON.stringify(credentials);
+      return credentials;
     }
     throw error;
   }

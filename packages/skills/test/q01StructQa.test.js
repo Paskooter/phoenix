@@ -82,6 +82,31 @@ test('Q-01 /structQA account identity is resolved before body routing and defaul
   assert.equal(calls, 1);
 });
 
+test('Q-01 /structQA forwards full credential context to Account lookup', async () => {
+  let observed;
+  const handler = createStructQaHandler({
+    clock: () => NOW,
+    accountLookup: async (accountId, context) => {
+      observed = { accountId, context };
+      return 'loop-1';
+    },
+  });
+  const req = sourceRequest({}, {
+    headers: credentials('short-key', { accessKeyId: 'short-key' }),
+  });
+
+  const result = await handler({ Intent: 'GQA', Input: 'fixture' }, { req });
+
+  assert.equal(result.success, false);
+  assert.equal(result.source, undefined);
+  assert.equal(observed.accountId, 'short-key');
+  assert.deepEqual(observed.context.credentials, {
+    id: 'short-key',
+    accessKeyId: 'short-key',
+  });
+  assert.equal(observed.context.req.headers, req.headers);
+});
+
 test('Q-01 /structQA preserves PII-before-cleaning and IP forwarding boundaries', async () => {
   let calls = 0;
   const handler = createStructQaHandler({

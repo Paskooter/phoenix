@@ -155,8 +155,14 @@ test('Question synthesizes source credentials from a SigV4 access key on the dir
   assert.equal(result.status, 200);
   assert.deepEqual(result.body, { success: true, loopId: 'loop-from-access-key' });
   assert.equal(accountId, 'robot-access-key');
-  assert.deepEqual(observed.credentials, { id: 'robot-access-key' });
-  assert.equal(observed.headerCredentials, JSON.stringify({ id: 'robot-access-key' }));
+  assert.deepEqual(observed.credentials, {
+    id: 'robot-access-key',
+    accessKeyId: 'robot-access-key',
+  });
+  assert.equal(observed.headerCredentials, JSON.stringify({
+    id: 'robot-access-key',
+    accessKeyId: 'robot-access-key',
+  }));
 });
 
 test('ListAttribution preserves source header, account, then body error precedence', async () => {

@@ -148,25 +148,14 @@ function valueOrNull(value) {
   return value === null || value === '' ? null : String(value);
 }
 
-function looksLikeAccessKey(value) {
-  // Phoenix/Mongoose account IDs are ObjectId-shaped (24 hex characters),
-  // while Account access keys are 20 alphanumeric characters. Keep fixture
-  // IDs such as "account-1" on the direct account-id path; callers with an
-  // ambiguous key can pass { accessKeyId } or { kind: 'accessKeyId' }.
-  return typeof value === 'string'
-    && /^[A-Za-z0-9]{20}$/.test(value)
-    && !/^[a-f0-9]{24}$/i.test(value);
-}
-
 /**
  * Normalize the two identities that reach the source account lookup:
  * an Account `_id`, or a Classic request's direct SigV4 accessKeyId.
  *
  * The object forms are intentionally explicit. The string form remains the
- * historical account-id API, with the source-shaped 20-character access key
- * heuristic for direct Classic callers. A caller may pass a second context
- * object with `accessKeyId`, `kind: 'accessKeyId'`, or `directSigV4: true` to
- * disambiguate a nonstandard fixture key.
+ * historical account-id API. Classic tags direct SigV4 identities with
+ * `credentials.accessKeyId`, avoiding assumptions about credential length or
+ * Account ID shape. Other callers may use the explicit context flags.
  */
 export function normalizePhoenixGqaIdentity(identity, context = {}) {
   const source = identity && typeof identity === 'object' && !Array.isArray(identity)
@@ -195,8 +184,7 @@ export function normalizePhoenixGqaIdentity(identity, context = {}) {
   const id = valueOrNull(identity);
   if (context?.kind === 'accessKeyId'
     || context?.identityType === 'accessKeyId'
-    || context?.directSigV4 === true
-    || looksLikeAccessKey(id)) {
+    || context?.directSigV4 === true) {
     return { accessKeyId: id, accountId: id };
   }
   return { accountId: id };

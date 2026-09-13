@@ -141,3 +141,31 @@ test('Phoenix GQA resolver falls back to the raw access-key candidate after veri
   assert.deepEqual(calls.map((call) => call.method), ['GET', 'POST']);
   assert.equal(calls[1].body, '{"accountsIds": ["raw-access-key"]}');
 });
+
+test('StructQA identity context verifies a nonstandard direct SigV4 access key', async () => {
+  const calls = [];
+  const lookup = createPhoenixGqaAccountLookup({
+    baseUrl: 'http://account.test',
+    fetchImpl: async (url, options) => {
+      calls.push({ url: String(url), method: options?.method || 'GET', body: options?.body });
+      if (options?.method === 'GET') return { json: async () => ({ valid: true, id: 'account-from-key' }) };
+      return { json: async () => ({ 'account-from-key': ['loop-verified'] }) };
+    },
+  });
+
+  assert.equal(await lookup('short-key', {
+    credentials: { id: 'short-key', accessKeyId: 'short-key' },
+  }), 'loop-verified');
+  assert.deepEqual(calls, [
+    {
+      url: 'http://account.test/api/verify?accessKeyId=short-key',
+      method: 'GET',
+      body: undefined,
+    },
+    {
+      url: 'http://account.test/listAssociatedLoops',
+      method: 'POST',
+      body: '{"accountsIds": ["account-from-key"]}',
+    },
+  ]);
+});

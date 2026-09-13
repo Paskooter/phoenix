@@ -458,7 +458,11 @@ export function createStructQaHandler({
     let accountId;
     if (credentials && Object.prototype.hasOwnProperty.call(credentials, 'id')) {
       accountId = credentials.id;
-      loopId = await lookup(accountId);
+      // The combined Classic face synthesizes `accessKeyId` when it extracts
+      // a direct SigV4 credential. Forward the full gateway identity context
+      // so Phoenix can verify nonstandard access-key shapes before resolving
+      // the owning Account and its first accepted loop.
+      loopId = await lookup(accountId, { credentials, req: request });
     }
     if (!sourceTruthy(loopId)) {
       output.message = 'Missing robot_id!';
