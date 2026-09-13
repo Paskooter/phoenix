@@ -127,6 +127,7 @@ export {
   createGqaRetrieveAttributionRoute,
   createGqaWipeAttributionRoute,
   createGqaAttributionAuthorizer,
+  createGqaSigV4CallerVerifier,
   readGqaAttributionAuthConfig,
   safeGqaErrorDetail,
   sourceJsonDumps,

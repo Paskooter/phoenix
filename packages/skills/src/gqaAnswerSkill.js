@@ -15,7 +15,11 @@ import { fileURLToPath } from 'node:url';
 import { newJcpId } from './jcpId.js';
 import { gqaBannedWordPresent } from './gqaBannedWords.js';
 import { validateCoordinate } from './gqaCoordinates.js';
-import { GQA_INTERNAL_ERROR_MESSAGE, safeGqaErrorDetail } from './gqaAccountAttribution.js';
+import {
+  GQA_INTERNAL_ERROR_MESSAGE,
+  safeGqaErrorCause,
+  safeGqaErrorDetail,
+} from './gqaAccountAttribution.js';
 
 export const GQA_SOURCE_REVISION = 'ebe1a7d38f511570060c1fbf61bec89d58419b26';
 export const GQA_VERSION = '5.2.15';
@@ -902,7 +906,8 @@ export function createGqaHttpRoute({ skillId = 'answer', handler = gqaAnswerSkil
       return result;
     } catch (error) {
       const fields = { error: safeGqaErrorDetail(error) };
-      if (error?.cause !== undefined) fields.cause = safeGqaErrorDetail(error.cause);
+      const cause = safeGqaErrorCause(error);
+      if (cause !== undefined) fields.cause = cause;
       context.log?.error?.('GQA handler failed', fields);
       return respondGqaSourceError(context, 500, error);
     }
