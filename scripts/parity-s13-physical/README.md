@@ -14,7 +14,7 @@ after running the validator and falsifier.
 The matrix is pinned to Phoenix base revision
 `0902410c597f8dc424af60ee98fc4d32f19a1bb0` and archived source revision
 `5c0a7390539663ba749d360de348a428c088505c`. Its canonical matrix digest is
-`abfaa887de44b6d17712ce11d825ea4565d9e8750a9b57d51d5eeeb64e1a072d`; its
+`dcf5f2b1d02884341e446be433ec2a1981d41b7dee8e81210495e0427341b0c0`; its
 ordered case inventory digest is
 `b2410705ee0b7b2f8096fd974a06fdf8b7e983d63c544394a96019ac11671d53`.
 The validator duplicates both pins, so rewriting `matrix.json` integrity

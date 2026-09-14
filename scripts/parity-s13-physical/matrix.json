@@ -681,8 +681,8 @@
               "summary": "Personal standup"
             },
             "fields": {
-              "timePositionX": 743,
-              "ampmPositionX": 745,
+              "timePositionX": 618,
+              "ampmPositionX": 620,
               "fullDay": false,
               "leaveEmpty": true
             }
@@ -699,8 +699,8 @@
               "summary": "Work review"
             },
             "fields": {
-              "timePositionX": 743,
-              "ampmPositionX": 745,
+              "timePositionX": 618,
+              "ampmPositionX": 620,
               "fullDay": false,
               "leaveEmpty": false
             }
@@ -1021,7 +1021,7 @@
     "canonicalExcludes": [
       "integrity"
     ],
-    "matrixSha256": "abfaa887de44b6d17712ce11d825ea4565d9e8750a9b57d51d5eeeb64e1a072d",
+    "matrixSha256": "dcf5f2b1d02884341e446be433ec2a1981d41b7dee8e81210495e0427341b0c0",
     "caseInventorySha256": "b2410705ee0b7b2f8096fd974a06fdf8b7e983d63c544394a96019ac11671d53"
   },
   "fixtureBoundary": {

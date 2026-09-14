@@ -25,7 +25,7 @@ export const REVISION_RE = /^[0-9a-f]{40}$/;
 // These values are deliberately duplicated in code.  Updating matrix.json and
 // its self-reported digest cannot silently redefine the acceptance contract.
 export const IMMUTABLE = Object.freeze({
-  matrixSha256: 'abfaa887de44b6d17712ce11d825ea4565d9e8750a9b57d51d5eeeb64e1a072d',
+  matrixSha256: 'dcf5f2b1d02884341e446be433ec2a1981d41b7dee8e81210495e0427341b0c0',
   caseInventorySha256: 'b2410705ee0b7b2f8096fd974a06fdf8b7e983d63c544394a96019ac11671d53',
   baseRevision: '0902410c597f8dc424af60ee98fc4d32f19a1bb0',
   caseIds: Object.freeze([

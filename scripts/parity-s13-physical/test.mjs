@@ -46,7 +46,19 @@ test('S-13 matrix is pinned, ordered, and internally hashed', () => {
   assert.deepEqual(matrix.cases.find((item) => item.id === 'commute-normal-combined').expected.mimIds, ['CommuteConfirmSpeaker', 'CommuteDriveNormal', 'CommuteDepartTimeNormal']);
   assert.equal(matrix.cases.find((item) => item.id === 'calendar-four-card-field-matrix').reference.caseId, 'full-report-event-tomorrow');
   assert.equal(matrix.cases.find((item) => item.id === 'calendar-four-card-field-matrix').expected.mimIds[0], 'CalendarEventCountTomorrow');
-  assert.deepEqual(matrix.cases.find((item) => item.id === 'calendar-concurrent-parallel').expected.viewIds, ['eventView', 'eventView']);
+  const parallel = matrix.cases.find((item) => item.id === 'calendar-concurrent-parallel');
+  assert.deepEqual(parallel.expected.viewIds, ['eventView', 'eventView']);
+  // Pegasus shifts the labels only when a minute component is visible.  Both
+  // parallel fixture events are on the hour, so their cards retain the base
+  // template positions (618/620), as the original CalendarViews test asserts.
+  assert.deepEqual(parallel.expected.viewContracts.map((view) => ({
+    time: view.labels.time,
+    timePositionX: view.fields.timePositionX,
+    ampmPositionX: view.fields.ampmPositionX
+  })), [
+    { time: '11', timePositionX: 618, ampmPositionX: 620 },
+    { time: '11', timePositionX: 618, ampmPositionX: 620 }
+  ]);
   assert.equal(matrix.cases.find((item) => item.id === 'calendar-tree-park-nature').blocked.reason, 'missing-source-asset:tree');
 });
 
