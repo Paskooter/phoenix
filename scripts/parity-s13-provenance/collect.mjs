@@ -249,6 +249,14 @@ function validateRemotePayload(remote, slot) {
   validatePackageInfo(client?.package, 'remote.payload.jetstreamClient.package', '@jibo/jetstream-client');
   validateArtifact(client.main, 'remote.payload.jetstreamClient.main');
 
+  const native = requireObject(payload.native, 'remote.payload.native');
+  const node = requireObject(native.node, 'remote.payload.native.node');
+  requireString(node.version, 'remote.payload.native.node.version');
+  if (!/^v?\d+\.\d+\.\d+/.test(node.version)) fail('remote.payload.native.node.version is invalid');
+  const jetstream = requireObject(native.jetstream, 'remote.payload.native.jetstream');
+  validateArtifact(jetstream.binary, 'remote.payload.native.jetstream.binary');
+  validateArtifact(jetstream.config, 'remote.payload.native.jetstream.config');
+
   const nimbus = requireObject(payload.nimbus, 'remote.payload.nimbus');
   validatePackageInfo(nimbus.package, 'remote.payload.nimbus.package', '@be/nimbus');
   validateArtifact(nimbus.index, 'remote.payload.nimbus.index');
@@ -317,6 +325,8 @@ var PROTOCOL = 'phoenix-s13-provenance-remote-v1';
 var SLOT = process.env.S13_SLOT;
 var SLOT_ROOT = '/opt/jibo/Jibo/Skills/' + SLOT;
 var SSM_ROOT = '/usr/local/bin/jibo-ssm';
+var JETSTREAM_SERVICE_BINARY = '/usr/local/bin/jibo-jetstream-service';
+var JETSTREAM_SERVICE_CONFIG = '/usr/local/etc/jibo-jetstream-service.json';
 var MAX_FILE_BYTES = 64 * 1024 * 1024;
 var MAX_MANIFEST_FILES = 8192;
 var MAX_SOURCE_FILES = 4096;
@@ -741,6 +751,10 @@ function main() {
   if (ssmPackage.version !== '16.0.0') die('SSM version is ' + ssmPackage.version + ', expected 16.0.0');
   var ssmSkillPath = ssmSkillMain(ssmPackage.parsed);
   var ssmSkillRow = addFile(ssmSkillPath, 'ssm.skill-main', { component: 'ssm.skill-main' });
+  var nativeNodeVersion = trim(run('native-node-version', 'node', ['--version']).text);
+  if (!/^v?[0-9]+\.[0-9]+\.[0-9]+/.test(nativeNodeVersion)) die('native Node version is invalid: ' + nativeNodeVersion);
+  var jetstreamBinary = addFile(JETSTREAM_SERVICE_BINARY, 'native.jetstream-binary', { component: 'native.jetstream-binary' });
+  var jetstreamConfig = addFile(JETSTREAM_SERVICE_CONFIG, 'native.jetstream-config', { component: 'native.jetstream-config' });
   var identity = identityInfo();
   var firmware = firmwareInfo();
   var utcEnded = trim(run('timestamp-utc-end', 'date', ['-u', '+%Y-%m-%dT%H:%M:%S%z']).text);
@@ -769,6 +783,10 @@ function main() {
     jetstreamClient: {
       package: { path: jetstreamPackage.path, name: jetstreamPackage.name, version: jetstreamPackage.version, sha256: jetstreamPackage.sha256, bytes: jetstreamPackage.bytes },
       main: jetstreamPackage.mainArtifact,
+    },
+    native: {
+      node: { version: nativeNodeVersion },
+      jetstream: { binary: jetstreamBinary, config: jetstreamConfig },
     },
     nimbus: {
       package: { path: nimbusPackage.path, name: nimbusPackage.name, version: nimbusPackage.version, sha256: nimbusPackage.sha256, bytes: nimbusPackage.bytes },
@@ -859,6 +877,8 @@ function artifactRows(snapshot) {
   add('be.index', snapshot.be?.index);
   add('jetstreamClient.package', snapshot.jetstreamClient?.package || snapshot.client?.package);
   add('jetstreamClient.main', snapshot.jetstreamClient?.main || snapshot.client?.main);
+  add('native.jetstream-binary', snapshot.native?.jetstream?.binary);
+  add('native.jetstream-config', snapshot.native?.jetstream?.config);
   add('nimbus.package', snapshot.nimbus?.package);
   add('nimbus.index', snapshot.nimbus?.index);
   add('ssm.package', snapshot.ssm?.package);
@@ -888,6 +908,13 @@ function validateSnapshotImmutableFields(snapshot, label) {
   const client = snapshot.jetstreamClient || snapshot.client;
   validatePackageInfo(client?.package, `${label}.jetstreamClient.package`, '@jibo/jetstream-client');
   validateArtifact(client?.main, `${label}.jetstreamClient.main`);
+  const native = requireObject(snapshot.native, `${label}.native`);
+  const node = requireObject(native.node, `${label}.native.node`);
+  requireString(node.version, `${label}.native.node.version`);
+  if (!/^v?\d+\.\d+\.\d+/.test(node.version)) fail(`${label}.native.node.version is invalid`);
+  const jetstream = requireObject(native.jetstream, `${label}.native.jetstream`);
+  validateArtifact(jetstream.binary, `${label}.native.jetstream.binary`);
+  validateArtifact(jetstream.config, `${label}.native.jetstream.config`);
   const nimbus = requireObject(snapshot.nimbus, `${label}.nimbus`);
   validatePackageInfo(nimbus.package, `${label}.nimbus.package`, '@be/nimbus');
   validateArtifact(nimbus.index, `${label}.nimbus.index`);
@@ -1024,6 +1051,7 @@ function makeSnapshot(remote, sshResult, host, slot) {
     electron: payload.electron,
     be: payload.be,
     jetstreamClient: payload.jetstreamClient || payload.client,
+    native: payload.native,
     nimbus: payload.nimbus,
     ssm: payload.ssm,
     firmware: payload.firmware,

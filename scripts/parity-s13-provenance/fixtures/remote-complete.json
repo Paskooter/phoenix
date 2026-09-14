@@ -94,6 +94,23 @@
         "sha256": "649e0592df28882275c15dc1775bf01c83bff42a66e31e6a41ca6c7b8cc7b271"
       }
     },
+    "native": {
+      "node": {
+        "version": "v6.17.1"
+      },
+      "jetstream": {
+        "binary": {
+          "path": "/usr/local/bin/jibo-jetstream-service",
+          "bytes": 123456,
+          "sha256": "e93ab960196071563841136148a7a2d58dd7ac73e6c4aeeeb2364e0162dc2bc1"
+        },
+        "config": {
+          "path": "/usr/local/etc/jibo-jetstream-service.json",
+          "bytes": 1234,
+          "sha256": "849a49e4d513fae682dba23272e450b8780b40ff2d3e2c8bc095ebcf025668b7"
+        }
+      }
+    },
     "nimbus": {
       "package": {
         "path": "/opt/jibo/Jibo/Skills/fixture-slot/node_modules/@be/nimbus/package.json",

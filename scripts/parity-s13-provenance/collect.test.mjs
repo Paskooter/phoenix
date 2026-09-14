@@ -62,6 +62,9 @@ test('collects a complete fixture through one fake root SSH command and writes m
   assert.equal(snapshot.electron.process.candidateCount, 1);
   assert.equal(snapshot.be.package.name, '@be/fixture-parity');
   assert.equal(snapshot.jetstreamClient.package.name, '@jibo/jetstream-client');
+  assert.equal(snapshot.native.node.version, 'v6.17.1');
+  assert.equal(snapshot.native.jetstream.binary.path, '/usr/local/bin/jibo-jetstream-service');
+  assert.equal(snapshot.native.jetstream.config.path, '/usr/local/etc/jibo-jetstream-service.json');
   assert.equal(snapshot.nimbus.package.name, '@be/nimbus');
   assert.equal(snapshot.ssm.package.version, '16.0.0');
   assert.equal(snapshot.firmware.release, '3.3.0 InDev');
@@ -93,6 +96,12 @@ test('compares before/after snapshots using derived immutable file hashes', asyn
   const changed = compareSnapshotFiles(beforePath, afterPath);
   assert.equal(changed.matched, false);
   assert.ok(changed.differences.some((row) => row.key.includes('be.index')));
+
+  after.native.jetstream.config.sha256 = 'e'.repeat(64);
+  writeAtomicJson(afterPath, after);
+  const nativeChanged = compareSnapshotFiles(beforePath, afterPath);
+  assert.equal(nativeChanged.matched, false);
+  assert.ok(nativeChanged.differences.some((row) => row.key.includes('native.jetstream-config')));
 });
 
 test('fails closed for an ambiguous active Electron process and leaves no output', async () => {
