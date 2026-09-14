@@ -1,4 +1,4 @@
-# S-13 robot display recapture — pending review
+# S-13 robot display recapture — superseded by the 2026-09-14 acceptance audit
 
 Date: 2026-09-14
 Reference: `jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c`
@@ -7,7 +7,17 @@ Final Moth recapture: `/home/shell/.local/share/phoenix/moth/run/s13-recapture-6
 
 ## Review status
 
-**PENDING REVIEW — NOT VERIFIED.** The source-backed weather, news, commute,
+**SUPERSEDED.** This file records the earlier `s13-recapture-6afe114` run and
+its pending status. S-13 was subsequently accepted on a later capture
+(`s13-fresh-nimbus-fcfe0fe`) at Phoenix revision
+`fcfe0fe9e37c85411d5e32dd134e3328a695eac9`; see
+[`acceptance-audit.md`](./acceptance-audit.md) for the current
+requirement-by-requirement verdict, the terminal receipt digest, the
+independent visual review and anchors, and the 29-control falsification
+result. The text below is retained unchanged as the historical record of the
+earlier run and must not be read as the current status.
+
+**PENDING REVIEW — NOT VERIFIED (historical, for the earlier run).** The source-backed weather, news, commute,
 and calendar builders retain their 61/61 differential evidence. A fresh Moth
 recapture conditionally observed five fixture-backed commute/calendar cases on
 the supported BE 11.0.1 client and visually inspected twelve unique target PNGs.

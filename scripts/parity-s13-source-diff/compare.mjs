@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const worktree = path.resolve(here, '../..');
-const CONTRACT_SHA256 = 'f9861db9d0ae5dc6c32fd36cf1a5a140cce42f21410b734fe71633992eb9e44d';
+const CONTRACT_SHA256 = '243c31360328c453069f064e7ded88b80454c865f81d2831e7936f28080c92c3';
 const EXPECTED = {
   schema: 'phoenix.parity.s13.report-view-matrix.v1',
   contractSchema: 'phoenix.parity.s13.report-view-contract.v1',

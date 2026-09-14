@@ -2920,8 +2920,8 @@
       "track": "pegasus",
       "phase": 3,
       "priority": "P0",
-      "status": "todo",
-      "implementation": "partial",
+      "status": "verified",
+      "implementation": "complete",
       "owner": "Codex",
       "dependsOn": [
         "S-09",
@@ -2942,31 +2942,34 @@
         "packages/skills/src/report/commute.js",
         "packages/skills/src/report/calendar.js"
       ],
-      "finding": "Six source-backed report view configs and builders are integrated, and the source differential matches all 61 view rows while rejecting all 16 mutations. The 2026-09-14 Moth five-case set conditionally observed fixture-backed commute/calendar cases and visually inspected twelve unique target PNGs. The replacement Terrible bundle is commute-terrible-combined-v2 on Phoenix 5a67215, with fixture work time 22:30, a target turn recording exactly three MIM IDs (CommuteConfirmSpeaker, CommuteDriveTerrible, CommuteDepartTimeNotNormal), and Depart 10:05 PM. Each case used strict idle preflight, explicitly excluded one whoIsThisMenu prelude from the target sequence, returned to strict idle, and reported no capture errors; the replacement prelude includes captureKey excluded-prelude:whoIsThisMenu#1 and viewGeneration 2, and production was restored afterward. The capture uses clientASR text injection with microphoneAcceptance false and private deterministic Data fixtures, so it does not certify live providers, Settings/OAuth, microphone, hotword, blue-ring, or account behavior. The final aggregate receipt validator and falsifier are still pending; S-13 remains open. The original tree_v01 calendar icon is absent from both audited Nimbus archives as a separate bounded source-package exception; no replacement asset is supplied.",
+      "finding": "Six source-backed report view configs and builders are integrated. The 61-row report-view source differential is exact (61/61 rows, 0 differences: weather 20, traffic 7, depart 4, news 5, calendar 25) and rejects all 16 adversarial controls. Five fixture-backed commute/calendar lanes were captured on the authorized Moth robot against the supported @be/phoenix-parity-11-0-1 client at Phoenix fcfe0fe, and bound into one terminal receipt (3fc18a7c0030f037bb76b36a2f023fe7f23c6f7bd1c2c654f4bb6c1e66c1d031, decision verified_bounded, 17 rows checked) that passes independent strict validation with zero errors. Every lane reports phoenixMatchesMatrix, noBypass and claimed true with ordered display/screenshot correlation and a native final idle. Three lanes ran the unidentified-speaker two-stage WhoIsThis flow and two ran the recognized-speaker one-stage flow; UserIDFactory.checkSpeakerID makes that shape a function of data.runtime.perception.speaker rather than an operator choice, both edges converge on the same UserID Done transition, and the receipt shape is derived from the raw CONTEXT line and rejected if it disagrees. Same-session provenance is matched with zero differences over 164 immutable rows. A separately authored visual review passed 12 of 12 screenshots and discriminates the three traffic severities and three distinct departure times; independent anchors were attested by a separate witness. The real 29-control receipt-bound falsifier passes 29/29, and root falsified the terminal receipt directly on five further controls. The capture uses clientASR text injection with microphoneAcceptance false and private deterministic provider fixtures, so it does not certify live providers, Settings/OAuth, microphone, hotword, blue-ring or account behavior. The original tree_v01 calendar icon is absent from both audited Nimbus archives and remains a bounded source-package exception with no substitute supplied; the conditional PM departure row stays skipped because S-11 owns AM/PM coverage.",
       "acceptance": [
         "Generate every original view config, dynamic field, image path, geometry, unit label and display threshold.",
         "Compare payloads with source fixtures and render them on a compatible robot/client; lack of simulator rendering is not a completion exemption."
       ],
-      "verification": [],
+      "verification": [
+        "docs/parity/evidence/2026-09-14/s13-robot-views/acceptance-audit.md"
+      ],
       "implementationReview": {
         "state": "accepted",
         "assignee": "Luna Max / capture_writer_repair",
         "scope": "Six original report view resources and four dynamic builders; root source/runtime/hardware review.",
         "worktree": ".parity/worktrees/report-views",
         "branch": "codex/candidate-report-views-20260905",
-        "candidateRevision": "7e4f20347857c69e522ea9b8d82217ffd9b90bfb",
+        "candidateRevision": "fcfe0fe9e37c85411d5e32dd134e3328a695eac9",
         "evidence": [
           "docs/parity/evidence/2026-09-05/production/report-view-builders/source.json",
           "docs/parity/evidence/2026-09-05/hardware/s13-weather-reviewed.json",
           "docs/parity/evidence/2026-09-05/hardware/s13-news-reviewed.json",
-          "docs/parity/evidence/2026-09-14/s13-robot-views/review.md"
+          "docs/parity/evidence/2026-09-14/s13-robot-views/review.md",
+          "docs/parity/evidence/2026-09-14/s13-robot-views/acceptance-audit.md"
         ],
         "artifact": "docs/parity/candidates/S-13.md",
-        "reviewedBy": "Codex root",
-        "reviewEvidence": "docs/parity/evidence/2026-09-14/s13-robot-views/review.md",
-        "reviewFinding": "Exact 61-case source view comparison and source error-path correction reviewed. The fresh five-case Moth set is retained as pending conditional physical evidence: twelve unique target PNGs passed direct visual inspection, strict idle and production restoration were observed, and one whoIsThisMenu prelude was explicitly excluded per case. The replacement Terrible bundle is commute-terrible-combined-v2 on Phoenix 5a67215 with work time 22:30, exactly three target-turn MIM IDs (CommuteConfirmSpeaker, CommuteDriveTerrible, CommuteDepartTimeNotNormal), Depart 10:05 PM, and excluded-prelude captureKey/viewGeneration metadata. Final aggregate receipt validation and falsification remain pending; the missing original calendar tree assets remain a separate bounded source-package exception."
+        "reviewedBy": "Claude root",
+        "reviewEvidence": "docs/parity/evidence/2026-09-14/s13-robot-views/acceptance-audit.md",
+        "reviewFinding": "Accepted. Both written criteria have current source-backed, falsified evidence: an exact 61-row view differential with 16 rejected controls, and a five-lane physical capture on the real robot bound into a terminal receipt that passes strict validation with zero errors and 29/29 receipt-bound falsification controls. The one-stage/two-stage question was resolved from the original UserIDFactory source rather than by weakening the validator: the producer had been fabricating a degenerate second stage for recognized-speaker lanes, and the contract now derives the shape from the raw speaker state and rejects any disagreement in either direction. Running the real falsifier for the first time exposed and repaired two broken controls and one unenforced local-turn body contract. The missing tree_v01 asset and the conditional PM row remain explicit bounded exclusions."
       },
-      "blocker": "S-13 remains open pending a complete aggregate physical-capture receipt and passing final validator/falsifier results for the replacement-aware five-case set. The current evidence covers only the five fixture-backed physical cases; linked no-view assertions, weather/news revalidation, and the missing-source tree row remain outside this recapture. Live providers, Settings/OAuth, account state, microphone, hotword, and blue-ring behavior are outside scope."
+      "blocker": ""
     },
     {
       "id": "S-14",

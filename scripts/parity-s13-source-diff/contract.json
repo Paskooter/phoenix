@@ -1,9 +1,9 @@
 {
   "schema": "phoenix.parity.s13.report-view-contract.v1",
   "task": "S-13",
-  "matrixSha256": "b3ba054555952efa64f334be5b3bf31d43a53f2ff933a2f6c6f691b1080fbf59",
+  "matrixSha256": "eea30fd8f7ac19064fec4882fb75ae446f3021ad26e2374120a539f4ce527640",
   "matrix": {
-    "sha256": "b3ba054555952efa64f334be5b3bf31d43a53f2ff933a2f6c6f691b1080fbf59",
+    "sha256": "eea30fd8f7ac19064fec4882fb75ae446f3021ad26e2374120a539f4ce527640",
     "counts": {
       "namedCases": 61,
       "expandedRuns": 61,
@@ -919,9 +919,20 @@
       "packages/skills/resources/views/calendarIconWords.json": "f7a1c6df0612807112487da7351bc6075b5fa98d2c701c7a4e196db4a0300b78"
     },
     "dependencies": {
-      "package.json": "efc3628eec21d481c6961a6e706503f52093a6550f900f79969a1f226b3a5c78",
+      "package.json": "6f7e0d39e4f5e974133f4785d85ff5a1d1ca3586737bb7b44bb07bcb47ee255f",
       "package-lock.json": "38841632b2ab0e8e9d9e01c77aa6ddea5e0cbdc7f8bf9f4a97dee0b8304e34d1",
       "packages/skills/package.json": "7fc2dc35ba679e5ed51bebb755919522613f6e2876ecd002fc6a506cbedbcf01"
+    },
+    "dependencyPinNotes": {
+      "package.json": {
+        "previousSha256": "efc3628eec21d481c6961a6e706503f52093a6550f900f79969a1f226b3a5c78",
+        "previousRevision": "22aed0a1f924c3a28f2f43a0975edad6f2a15793",
+        "currentSha256": "6f7e0d39e4f5e974133f4785d85ff5a1d1ca3586737bb7b44bb07bcb47ee255f",
+        "currentRevision": "658d2f7f76f59e3696f0eb2b518281214772d237",
+        "delta": "three added npm script entries (parity:s13:provenance, parity:s13:finalize, parity:s13:falsify) for the S-13 capture harness",
+        "dependencyFieldsUnchanged": true,
+        "evidence": "dependencies, devDependencies, optionalDependencies, peerDependencies, overrides and resolutions are identical between the two revisions; package-lock.json and packages/skills/package.json still match their original pins exactly, so the installed dependency graph is unchanged. The pin is over whole-file bytes, so an additive script edit moves it without any dependency moving."
+      }
     }
   },
   "harness": {

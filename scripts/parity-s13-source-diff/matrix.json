@@ -93,7 +93,7 @@
       "packages/skills/resources/views/calendarIconWords.json": "f7a1c6df0612807112487da7351bc6075b5fa98d2c701c7a4e196db4a0300b78"
     },
     "dependencies": {
-      "package.json": "efc3628eec21d481c6961a6e706503f52093a6550f900f79969a1f226b3a5c78",
+      "package.json": "6f7e0d39e4f5e974133f4785d85ff5a1d1ca3586737bb7b44bb07bcb47ee255f",
       "package-lock.json": "38841632b2ab0e8e9d9e01c77aa6ddea5e0cbdc7f8bf9f4a97dee0b8304e34d1",
       "packages/skills/package.json": "7fc2dc35ba679e5ed51bebb755919522613f6e2876ecd002fc6a506cbedbcf01"
     }
