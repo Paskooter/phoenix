@@ -211,26 +211,41 @@ Phoenix package files against the unchanged private testing snapshot.
 
 The fresh private recapture is
 `/home/shell/.local/share/phoenix/moth/run/s13-recapture-6afe114-20260914T000704Z`.
-The five case stack receipts record Phoenix revision
-`a7d7db7cdd214fc82e3a1ef8ed92fa3390425252`, Node `v22.22.0`, authenticated Hub
-transport, and the supported `phoenix-be-11-0-1-parity` slot. The bundle
-manifest SHA-256 is
-`fe27ac61a340a28630238bce7834014924541c2ba27126625660cd93ab369e70`.
+The retained Normal, Bad, and calendar case stacks record Phoenix revision
+`a7d7db7cdd214fc82e3a1ef8ed92fa3390425252`; the replacement Terrible stack
+`commute-terrible-combined-v2` records Phoenix revision
+`5a67215a6b64f7587a9b59376c7a6dd79f799065`. All use Node `v22.22.0`,
+authenticated Hub transport, and the supported `phoenix-be-11-0-1-parity`
+slot. The replacement-aware bundle manifest is `bundle-manifest-v2.json`,
+SHA-256
+`78ddde29da0aed1c2552488c0e06d2366f33d283c619049970c4c2c6d410288d`.
 
-The run exercised five fixture-backed cases: Normal, Bad, and Terrible
-commute with departure views; a four-card calendar sequence; and a separate
-same-time two-card calendar sequence. It produced twelve target display
+The run exercised five fixture-backed cases: Normal, Bad, and replacement
+Terrible commute with departure views; a four-card calendar sequence; and a
+separate same-time two-card calendar sequence. It produced twelve target display
 captures. Each case also recorded one `whoIsThisMenu` action as an
 `excluded-prelude`; that prelude and the five `eyeView` screenshots are not
 part of the target count. The two calendar runs preserve four and two
 distinct `eventView` occurrences respectively, including the repeated view ID.
 
-Root's direct visual review marked all twelve unique target PNGs passed. The
-files have valid PNG signatures and 1281x721 dimensions. Every case required
-idle preflight and returned to `@be/idle`/`eyeView`/`Idle` with speech stopped;
-all case capture-error lists are empty. Production was restored after the
-capture, and the subsequent passive observation remained at strict idle with
-no events, screenshots, or capture errors.
+The replacement Terrible fixture uses work time `22:30` and its target turn
+contains exactly three MIM IDs in order: `CommuteConfirmSpeaker`,
+`CommuteDriveTerrible`, and `CommuteDepartTimeNotNormal`. Its departure card
+renders `Depart 10:05 PM`. The excluded prelude is recorded with
+`captureStatus: excluded-prelude`, `captureKey:
+excluded-prelude:whoIsThisMenu#1`, and `viewGeneration: 2`.
+
+Root's replacement-aware visual review metadata is `visual-review-v2.json`,
+SHA-256
+`1fcc4c68c96bc00f8ae2e70e89d918e53039d1368793da0d430ca2bcab19af8d`; it
+marked all twelve unique target PNGs passed. The files have valid PNG
+signatures and 1281x721 dimensions. Every case required idle preflight and
+returned to `@be/idle`/`eyeView`/`Idle` with speech stopped; all case
+capture-error lists are empty. Production was restored after the replacement
+capture, and the subsequent passive observation
+`post-v2-restore-observe.json` remained at strict idle with no events,
+screenshots, or capture errors (SHA-256
+`859ac4b5b8745d61b5da044220027fa33c537f603087d7bb254d6df2285041b8`).
 
 This is pending S-13 receipt review. The five per-case turn records and wire
 traces are private evidence, not an aggregate physical receipt. The final

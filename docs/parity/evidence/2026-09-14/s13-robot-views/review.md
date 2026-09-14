@@ -2,7 +2,7 @@
 
 Date: 2026-09-14
 Reference: `jiboV2/pegasus@5c0a7390539663ba749d360de348a428c088505c`
-Phoenix revision: `a7d7db7cdd214fc82e3a1ef8ed92fa3390425252`
+Phoenix revision for the replacement Terrible turn: `5a67215a6b64f7587a9b59376c7a6dd79f799065`
 Final Moth recapture: `/home/shell/.local/share/phoenix/moth/run/s13-recapture-6afe114-20260914T000704Z`
 
 ## Review status
@@ -16,6 +16,13 @@ production was restored and the post-restore observation was idle. This is
 useful physical evidence, but S-13 remains open until the final aggregate
 receipt passes `validate.mjs` and the complete falsifier run passes. No S-13
 verification entry is recorded here.
+
+The replacement Terrible turn is the
+`commute-terrible-combined-v2` bundle, captured on Phoenix revision `5a67215`
+with fixture work time `22:30` (10:30 PM). Its target sequence has
+exactly these three MIM IDs, in order: `CommuteConfirmSpeaker`,
+`CommuteDriveTerrible`, and `CommuteDepartTimeNotNormal`; the departure card
+renders `Depart 10:05 PM`.
 
 The original `tree_v01` calendar icon remains unavailable in both audited
 Nimbus archives. That is a separate bounded source-package exception; Phoenix
@@ -58,29 +65,37 @@ revision to descend from the implementation pin.
 
 ## Fresh five-case Moth recapture
 
-The five case stacks record Phoenix revision `a7d7db7cdd214fc82e3a1ef8ed92fa3390425252`,
-Node `v22.22.0`, authenticated Hub transport, and the supported
-`phoenix-be-11-0-1-parity` client slot. The case bundle manifest is
-`bundle-manifest.json`, SHA-256
-`fe27ac61a340a28630238bce7834014924541c2ba27126625660cd93ab369e70`.
-The common fixture cases digest is
-`77b6481bc791f6987e2c6fdbe4bf8739d0b45477776fac2bfa812c98e74b99e1`.
+The retained Normal, Bad, and calendar case stacks record Phoenix revision
+`a7d7db7cdd214fc82e3a1ef8ed92fa3390425252`; the replacement Terrible stack
+records `5a67215a6b64f7587a9b59376c7a6dd79f799065`. All use Node `v22.22.0`,
+authenticated Hub transport, and the supported `phoenix-be-11-0-1-parity`
+client slot. The replacement-aware case bundle manifest is
+`bundle-manifest-v2.json`, SHA-256
+`78ddde29da0aed1c2552488c0e06d2366f33d283c619049970c4c2c6d410288d`.
+The retained four fixture cases share cases digest
+`77b6481bc791f6987e2c6fdbe4bf8739d0b45477776fac2bfa812c98e74b99e1`;
+the replacement Terrible fixture records cases digest
+`eea6abdfac20c74d9473e46adb1634af6c20b778ee43eefa95dade97bd05e8e5`.
 Each case has an immutable `fixture-captured.json` copy and reports
 `verifiedUnchanged:true`; the exact per-case fixture hashes are listed below.
-The fixture context is `America/New_York`, local date 2026-09-13, work time
-9:25 PM, and calendar date 2026-09-14.
+The fixture context is `America/New_York`, local date 2026-09-13, and calendar
+date 2026-09-14. The retained four fixtures use work time 9:25 PM; the
+replacement Terrible fixture uses work time 10:30 PM.
 
 | case bundle | case id | fixture SHA-256 | target captures | observed target sequence |
 | --- | --- | --- | ---: | --- |
 | `commute-normal-combined` | `Normal` | `8297f25ac304eebb8730538517066bb2297965f4906bfb7ed9a6761409521ad5` | 2 | `trafficView` / `trafficNormal_v01.crn`; `departTimeView` at 9:15 PM |
 | `commute-bad-combined` | `Bad` | `bad549f46d7c63265163b0cc8bd06fc49f80b38e4518483d8f882f13cd9fb8c5` | 2 | `trafficView` / `trafficBad_v01.crn`; `departTimeView` at 9:10 PM |
-| `commute-terrible-combined` | `Terrible` | `97e69b68b079fc91664f9f01f0e71e5e06150d31e737552aa3162ca3911bb576` | 2 | `trafficView` / `trafficTerrible_v01.crn`; `departTimeView` at 9:00 PM |
+| `commute-terrible-combined-v2` | `Terrible` | `ddb4f9001da5c00fc9f57188b576e1a19aee9ee8cffb720828c3af5260bd9f44` | 2 | `trafficView` / `trafficTerrible_v01.crn`; `departTimeView` at 10:05 PM |
 | `calendar-four-card-field-matrix` | `calendar-four-card-field-matrix` | `8433b115e8e4a79b9f1d954b79cca0d82c556777f38567fb2afaf098a2ae6597` | 4 | full-day empty-time card; truncated `:25` card; 2 PM card; 8:25 PM card |
 | `calendar-concurrent-parallel` | `calendar-parallel` | `943276df5482579160e50a891d84a86f332a21b69fd0b572bedb5bee5fa4b4b2` | 2 | two distinct same-ID `eventView` occurrences at 11 AM |
 
 Each turn records one allow-listed `whoIsThisMenu` action as an
 `excluded-prelude`. It is explicitly excluded from the S-13 target sequence
-and has no target screenshot. The five `eyeView` prelude PNGs are likewise
+and has no target screenshot. The hardened replacement Terrible prelude
+records `captureKey: excluded-prelude:whoIsThisMenu#1` and
+`viewGeneration: 2`, in addition to `captureStatus: excluded-prelude` and the
+allow-list exclusion reason. The five `eyeView` prelude PNGs are likewise
 outside the twelve target PNGs. The calendar four-card run preserves four
 sequential `eventView` occurrences; the parallel run preserves two separate
 same-ID occurrences rather than deduplicating by view ID.
@@ -91,16 +106,17 @@ The per-case turn and wire records are retained as private-run identifiers:
 | --- | --- | --- | --- |
 | `commute-normal-combined` | `e327d1c63dcf0b7a51853b4252a61ea4534398a60ff9e5cf1004018e563012d7` | `wire-1789345988046.jsonl` | `1e98a5d10c1f25fc353a0ff013b5e140fe3e903701fdbaa9b649ad670557b6e2` |
 | `commute-bad-combined` | `31943dde528dfd958120bafbe3fa72e79605ad4e58ff860230abc2d6cd1984a7` | `wire-1789346038063.jsonl` | `94b4500a2ae93fd1dd412ad4d725708cc080747bb00f103f9281004dd2406f98` |
-| `commute-terrible-combined` | `9491a9868bb7e99974ed37ac636fdb25ece64dd9a2cac5bd67ab81f0e60efd15` | `wire-1789346081799.jsonl` | `ba91322df3d957a94f778d9f7e4f19f49a5a409f4de9e0c4d598201c1eb676c7` |
+| `commute-terrible-combined-v2` | `8f66d2b3a725b3109136c454b7796fb428a1d27bfcd51029049219e631a9d056` | `wire-1789347865719.jsonl` | `ce670e824b5d969ded1275b2f5549c07bc996b1c6d81c642626088b1b3be28c2` |
 | `calendar-four-card-field-matrix` | `1054217e747c7d6a3157487ff515f9e1a84100a0893ca5fd6c35212223bfc77d` | `wire-1789346125766.jsonl` | `8db98f90d8cd6d5675e5334e052bb8cbf1c5c11f2f850886e892cb6eb1bf6024` |
 | `calendar-concurrent-parallel` | `72292e04e6ad7a258fa415c43ad3384a3b891cb23a188b0c8113a3eac187f97d` | `wire-1789345914399.jsonl` | `6b5e4900feca40a04b42006440304082c42fa8e9c8a51a2daa875947d70305b9` |
 
 ## Visual review and idle restoration
 
-The direct visual review metadata is `visual-review.json`, SHA-256
-`4ca629c5f8c4232d8eafefb919b1bb94f2128f9f0f73e7fc4576eaef5734b936`.
+The replacement-aware direct visual review metadata is `visual-review-v2.json`,
+SHA-256
+`1fcc4c68c96bc00f8ae2e70e89d918e53039d1368793da0d430ca2bcab19af8d`.
 It records `targetCount:12`, `allPassed:true`, and reviewer
-`root-agent-direct-visual-inspection` at 2026-09-14T00:39:15Z. The twelve
+`root-agent-direct-visual-inspection` at 2026-09-14T01:06:23Z. The twelve
 unique target PNGs all have a valid PNG signature and 1281x721 IHDR dimensions.
 The contact sheet is `visual-review-contact-sheet.jpg`, SHA-256
 `77f1e766c747fae9901a61094f8870cff7b98c14a220be620bd3f2732d62b09a`.
@@ -109,9 +125,9 @@ All five case turns required idle preflight and report
 `preflight.idle:true` with `@be/idle`, `eyeView`, `Idle`, and
 `talking:false`. Their final observed states likewise returned to
 `@be/idle`, `eyeView`, `Idle`, with `talking:false`; every case has an empty
-`captureErrors` list. Production was restored after the run. The subsequent
-private `post-restore-observe.json` has SHA-256
-`94ce3098d4395d87df43803dc5c266e176ffdb66c73512ad22afa61a3eb9404b` and
+`captureErrors` list. Production was restored after the replacement run. The
+subsequent private `post-v2-restore-observe.json` has SHA-256
+`859ac4b5b8745d61b5da044220027fa33c537f603087d7bb254d6df2285041b8` and
 reported `@be/idle`, `eyeView`, `Idle`, `talking:false`, with no events,
 screenshots, or capture errors.
 

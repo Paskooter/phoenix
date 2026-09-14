@@ -9,9 +9,13 @@ Audit date: 2026-09-05
 
 The 2026-09-14 [S-13 robot display recapture](../evidence/2026-09-14/s13-robot-views/review.md)
 conditionally observed the available commute and calendar assets in five
-fixture-backed cases and visually inspected twelve target PNGs. The recapture
-is pending aggregate receipt validation and falsification; it does not alter
-this archive audit or claim a `tree` render.
+fixture-backed cases and visually inspected twelve target PNGs. The replacement
+Terrible bundle is `commute-terrible-combined-v2` on Phoenix revision
+`5a67215`, with fixture work time `22:30`, exactly three target-turn MIM IDs, and
+`Depart 10:05 PM`; its allow-listed `whoIsThisMenu` prelude carries the
+hardened `captureKey` and `viewGeneration` metadata. The recapture is pending
+aggregate receipt validation and falsification; it does not alter this archive
+audit or claim a `tree` render.
 
 This audit used only the local BE 11.0.1 and BE 12.0.0 release archives. It
 did not start an original runtime, access a robot, use SSH, or change product
