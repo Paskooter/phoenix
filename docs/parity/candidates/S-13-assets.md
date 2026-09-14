@@ -7,6 +7,12 @@ Candidate: `bfd4ac5`
 Reference revision: `5c0a7390539663ba749d360de348a428c088505c`
 Audit date: 2026-09-05
 
+The 2026-09-14 [S-13 robot display recapture](../evidence/2026-09-14/s13-robot-views/review.md)
+conditionally observed the available commute and calendar assets in five
+fixture-backed cases and visually inspected twelve target PNGs. The recapture
+is pending aggregate receipt validation and falsification; it does not alter
+this archive audit or claim a `tree` render.
+
 This audit used only the local BE 11.0.1 and BE 12.0.0 release archives. It
 did not start an original runtime, access a robot, use SSH, or change product
 code, assets, goldens, or the comparator.

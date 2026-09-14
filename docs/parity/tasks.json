@@ -2942,7 +2942,7 @@
         "packages/skills/src/report/commute.js",
         "packages/skills/src/report/calendar.js"
       ],
-      "finding": "Six source-backed report view configs and builders are integrated.61/61 full view JSON comparisons match; weather and three live news images visibly render through original Nimbus on Moth. Calendar/commute hardware and full view matrix acceptance remain open.",
+      "finding": "Six source-backed report view configs and builders are integrated, and the source differential matches all 61 view rows while rejecting all 16 mutations. The 2026-09-14 Moth recapture conditionally observed five fixture-backed commute/calendar cases on Phoenix a7d7db7 and visually inspected twelve unique target PNGs. Each case used strict idle preflight, explicitly excluded one whoIsThisMenu prelude from the target sequence, returned to strict idle, and reported no capture errors; production was restored afterward. The capture uses clientASR text injection with microphoneAcceptance false and private deterministic Data fixtures, so it does not certify live providers, Settings/OAuth, microphone, hotword, blue-ring, or account behavior. The final aggregate receipt validator and falsifier are still pending; S-13 remains open. The original tree_v01 calendar icon is absent from both audited Nimbus archives as a separate bounded source-package exception; no replacement asset is supplied.",
       "acceptance": [
         "Generate every original view config, dynamic field, image path, geometry, unit label and display threshold.",
         "Compare payloads with source fixtures and render them on a compatible robot/client; lack of simulator rendering is not a completion exemption."
@@ -2958,13 +2958,15 @@
         "evidence": [
           "docs/parity/evidence/2026-09-05/production/report-view-builders/source.json",
           "docs/parity/evidence/2026-09-05/hardware/s13-weather-reviewed.json",
-          "docs/parity/evidence/2026-09-05/hardware/s13-news-reviewed.json"
+          "docs/parity/evidence/2026-09-05/hardware/s13-news-reviewed.json",
+          "docs/parity/evidence/2026-09-14/s13-robot-views/review.md"
         ],
         "artifact": "docs/parity/candidates/S-13.md",
         "reviewedBy": "Codex root",
-        "reviewEvidence": "docs/parity/evidence/2026-09-05/production/report-view-builders/source.json",
-        "reviewFinding": "Exact61-case source view comparison plus source error-path correction reviewed. Weather/news render on real Moth; missing original calendar tree assets are documented. CompleteS-13 remains open."
-      }
+        "reviewEvidence": "docs/parity/evidence/2026-09-14/s13-robot-views/review.md",
+        "reviewFinding": "Exact 61-case source view comparison and source error-path correction reviewed. The fresh five-case Moth recapture is retained as pending conditional physical evidence: twelve unique target PNGs passed direct visual inspection, strict idle and production restoration were observed, and one whoIsThisMenu prelude was explicitly excluded per case. Final aggregate receipt validation and falsification remain pending; the missing original calendar tree assets remain a separate bounded source-package exception."
+      },
+      "blocker": "S-13 remains open pending a complete aggregate physical-capture receipt and passing final validator/falsifier results for the fresh five-case recapture. The current evidence covers only the five fixture-backed physical cases; linked no-view assertions, weather/news revalidation, and the missing-source tree row remain outside this recapture. Live providers, Settings/OAuth, account state, microphone, hotword, and blue-ring behavior are outside scope."
     },
     {
       "id": "S-14",

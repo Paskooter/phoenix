@@ -1264,7 +1264,7 @@ Evidence: [docs/parity/evidence/2026-09-13/s12-calendar/review.md](../../docs/pa
 
 Owner: Codex. Dependencies: S-09, S-10, S-11, S-12.
 
-Six source-backed report view configs and builders are integrated.61/61 full view JSON comparisons match; weather and three live news images visibly render through original Nimbus on Moth. Calendar/commute hardware and full view matrix acceptance remain open.
+Six source-backed report view configs and builders are integrated, and the source differential matches all 61 view rows while rejecting all 16 mutations. The 2026-09-14 Moth recapture conditionally observed five fixture-backed commute/calendar cases on Phoenix a7d7db7 and visually inspected twelve unique target PNGs. Each case used strict idle preflight, explicitly excluded one whoIsThisMenu prelude from the target sequence, returned to strict idle, and reported no capture errors; production was restored afterward. The capture uses clientASR text injection with microphoneAcceptance false and private deterministic Data fixtures, so it does not certify live providers, Settings/OAuth, microphone, hotword, blue-ring, or account behavior. The final aggregate receipt validator and falsifier are still pending; S-13 remains open. The original tree_v01 calendar icon is absent from both audited Nimbus archives as a separate bounded source-package exception; no replacement asset is supplied.
 
 Done when:
 
@@ -1283,7 +1283,9 @@ Candidate scope: Six original report view resources and four dynamic builders; r
 
 Candidate report: [docs/parity/candidates/S-13.md](../../docs/parity/candidates/S-13.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-05/production/report-view-builders/source.json](../../docs/parity/evidence/2026-09-05/production/report-view-builders/source.json). Complete task acceptance is still governed by the main checkbox above.
+Lead review: Codex root; [docs/parity/evidence/2026-09-14/s13-robot-views/review.md](../../docs/parity/evidence/2026-09-14/s13-robot-views/review.md). Complete task acceptance is still governed by the main checkbox above.
+
+Blocker: S-13 remains open pending a complete aggregate physical-capture receipt and passing final validator/falsifier results for the fresh five-case recapture. The current evidence covers only the five fixture-backed physical cases; linked no-view assertions, weather/news revalidation, and the missing-source tree row remain outside this recapture. Live providers, Settings/OAuth, account state, microphone, hotword, and blue-ring behavior are outside scope.
 
 ### S-14 — Verify example/template skills and skill-host compatibility
 

@@ -207,6 +207,40 @@ inspection; a view identifier alone cannot establish that its content rendered.
 records the four probes, screenshot hashes and the byte comparison of all 4,845
 Phoenix package files against the unchanged private testing snapshot.
 
+## S-13 display recapture — 2026-09-14
+
+The fresh private recapture is
+`/home/shell/.local/share/phoenix/moth/run/s13-recapture-6afe114-20260914T000704Z`.
+The five case stack receipts record Phoenix revision
+`a7d7db7cdd214fc82e3a1ef8ed92fa3390425252`, Node `v22.22.0`, authenticated Hub
+transport, and the supported `phoenix-be-11-0-1-parity` slot. The bundle
+manifest SHA-256 is
+`fe27ac61a340a28630238bce7834014924541c2ba27126625660cd93ab369e70`.
+
+The run exercised five fixture-backed cases: Normal, Bad, and Terrible
+commute with departure views; a four-card calendar sequence; and a separate
+same-time two-card calendar sequence. It produced twelve target display
+captures. Each case also recorded one `whoIsThisMenu` action as an
+`excluded-prelude`; that prelude and the five `eyeView` screenshots are not
+part of the target count. The two calendar runs preserve four and two
+distinct `eventView` occurrences respectively, including the repeated view ID.
+
+Root's direct visual review marked all twelve unique target PNGs passed. The
+files have valid PNG signatures and 1281x721 dimensions. Every case required
+idle preflight and returned to `@be/idle`/`eyeView`/`Idle` with speech stopped;
+all case capture-error lists are empty. Production was restored after the
+capture, and the subsequent passive observation remained at strict idle with
+no events, screenshots, or capture errors.
+
+This is pending S-13 receipt review. The five per-case turn records and wire
+traces are private evidence, not an aggregate physical receipt. The final
+receipt validator and falsifier must pass before S-13 is marked verified. The
+run uses `clientASR` text injection with `microphoneAcceptance:false` and
+private deterministic Data fixtures. It does not certify live providers,
+Settings, OAuth, account state, microphone recognition, hotword behavior, or
+the physical blue ring. The missing `tree_v01` CRN/PNG source assets remain a
+separate bounded archive exception; no replacement was installed.
+
 ## Isolation and rollback
 
 Implementation agents work in `.parity/worktrees/{http-contract,audio-encoding,
