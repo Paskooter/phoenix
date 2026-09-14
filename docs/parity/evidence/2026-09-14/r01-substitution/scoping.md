@@ -163,6 +163,30 @@ Any real extension of the prepare profile must widen that predicate (or pin
 this entry explicitly) and re-record the relocation count, which is currently
 1,443.
 
+With that one entry relocated, `yarn install --frozen-lockfile` completes
+against the original lock in a `node:8.9.4-slim` container: 1,068 packages,
+`mocha`, `ts-node`, `mockgoose`, `nock`, `sinon`, `chai` and `fakeredis` all
+present, and `@jibo/hub`, `@jibo/parser`, `@jibo/test-utils` and
+`@jibo/example-skill` linked as workspaces.
+
+## Lifecycle scripts are load-bearing for this suite
+
+The production profile records "no lifecycle scripts", and installing the test
+workspaces the same way (`--ignore-scripts`) produces a suite that cannot load:
+
+```
+Cannot find module '/pegasus/node_modules/grpc/src/node/extension_binary/node-v57-linux-x64-glibc/grpc_node.node'
+  at .../packages/hub/lib/asr/google/GoogleASRProvider.js:7:14
+```
+
+`grpc@1.7.3` needs its native extension, which `node-pre-gyp` fetches from
+`storage.googleapis.com/grpc-precompiled-binaries`. That host is reachable and
+the prebuilt `node-v57-linux-x64-glibc` binary installs cleanly, so this is
+surmountable — but it means the extended profile is **not** simply the
+production profile plus dev dependencies. It needs at least this one native
+build step, and that step must be recorded as an adaptation rather than left
+implicit.
+
 ## Proposed shape (not yet built)
 
 1. Extend the reference prepare to install dev dependencies for
