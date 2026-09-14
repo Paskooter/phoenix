@@ -1,0 +1,175 @@
+{
+  "protocol": "phoenix-s13-provenance-remote-v1",
+  "ok": true,
+  "payload": {
+    "root": {
+      "slot": "fixture-slot",
+      "path": "/opt/jibo/Jibo/Skills/fixture-slot"
+    },
+    "timestamps": {
+      "utcStarted": "2026-09-14T12:00:00+0000",
+      "utcEnded": "2026-09-14T12:00:01+0000",
+      "localStarted": "2026-09-14T08:00:00-0400",
+      "localEnded": "2026-09-14T08:00:01-0400",
+      "timezone": {
+        "name": "EDT",
+        "source": "/usr/share/zoneinfo/America/New_York",
+        "sourceSha256": "1c2872b80f84241446754faccca2e9242824f3744afb4df1fa84484749e8ff1b",
+        "sourceBytes": 10
+      }
+    },
+    "electron": {
+      "process": {
+        "pid": 4242,
+        "argv": [
+          "/usr/bin/electron/electron",
+          "--type=renderer",
+          "/opt/jibo/Jibo/Skills/fixture-slot/skill-main.js"
+        ],
+        "argvSha256": "ec3826444f7c419688ebfd7f7fa4ce35f5c2857d22d1483fc4f9d9770ca4ddf5",
+        "cwd": "/opt/jibo/Jibo/Skills/fixture-slot",
+        "candidateCount": 1
+      },
+      "page": {
+        "url": "file:///opt/jibo/Jibo/Skills/fixture-slot/index.html",
+        "slot": "fixture-slot",
+        "type": "page",
+        "jsonSha256": "5ea9ba5e8f960de3521ddf2cdc27f8cbaee7b8fb756bdd2e690b561ec2e45602",
+        "pageCount": 1
+      }
+    },
+    "be": {
+      "package": {
+        "path": "/opt/jibo/Jibo/Skills/fixture-slot/package.json",
+        "name": "@be/fixture-parity",
+        "version": "11.0.1",
+        "sha256": "b9b72a37ba9dadc3a82b6e638f0cd09b19041d1412bebb51aebab5b74ab1a7b0",
+        "bytes": 100
+      },
+      "index": {
+        "path": "/opt/jibo/Jibo/Skills/fixture-slot/index.js",
+        "bytes": 8,
+        "sha256": "c717910fe09470752d68b760818707c32aac235cb133abbba54186817c7c7e5d"
+      },
+      "manifest": {
+        "files": [
+          {
+            "path": "index.js",
+            "bytes": 9,
+            "sha256": "022838ec247c37a4786c1378a9a7acb391fe7bfe238f7e29d93b7657aea3f466"
+          },
+          {
+            "path": "lib/main.js",
+            "bytes": 8,
+            "sha256": "7b975a1f7244e9ddf37c0284f2ed95ae9e665b49b56d3780301f5b34e8d147ec"
+          },
+          {
+            "path": "package.json",
+            "bytes": 11,
+            "sha256": "78b207fd1af28b59b044c6c4ea0876162742549c73a4dd3df6eeabceb56419a8"
+          },
+          {
+            "path": "src/main.js",
+            "bytes": 10,
+            "sha256": "e45606508c33e1f7d702eeaf988f1c198528f451580cf0a1de5faf865f57c47a"
+          }
+        ],
+        "sha256": "addbf7d963a0eb653725ecba01621bbadee73e9a292ec57fa0bb2c7185cc259f",
+        "count": 4,
+        "bytes": 38,
+        "ordering": "relative UTF-8 path ascending; byte count and SHA-256 per file"
+      }
+    },
+    "jetstreamClient": {
+      "package": {
+        "path": "/opt/jibo/Jibo/Skills/fixture-slot/node_modules/@jibo/jetstream-client/package.json",
+        "name": "@jibo/jetstream-client",
+        "version": "2.2.0",
+        "sha256": "cd27466f05d72835ab445c9014876cfd38ab6bcffda5aa3fcc42ba12412e9600",
+        "bytes": 100
+      },
+      "main": {
+        "path": "/opt/jibo/Jibo/Skills/fixture-slot/node_modules/@jibo/jetstream-client/lib/jetstream-client.js",
+        "bytes": 14,
+        "sha256": "649e0592df28882275c15dc1775bf01c83bff42a66e31e6a41ca6c7b8cc7b271"
+      }
+    },
+    "nimbus": {
+      "package": {
+        "path": "/opt/jibo/Jibo/Skills/fixture-slot/node_modules/@be/nimbus/package.json",
+        "name": "@be/nimbus",
+        "version": "3.0.4",
+        "sha256": "5b965d95f12c1b23a4044dec140f292cea7095e8ef1065db902a02c1e96614e9",
+        "bytes": 100
+      },
+      "index": {
+        "path": "/opt/jibo/Jibo/Skills/fixture-slot/node_modules/@be/nimbus/index.js",
+        "bytes": 12,
+        "sha256": "c362e4349e2039ad01df92a24f1fc3ac02c2447b194cbb90924de2a207c7b753"
+      },
+      "assets": {
+        "files": [
+          {
+            "path": "assets/personal-report-skill/calendar/icons/apple_v01.crn",
+            "bytes": 12,
+            "sha256": "19217a92ee8afb3f10b373ccaf7027322df6ad351c23d11093a144847fc8b255"
+          }
+        ],
+        "sha256": "d9931ab4317b43875d7d5a3881887d27e2a76ac81a4bb6151cfa8c4fdb9e4159",
+        "count": 1,
+        "bytes": 12,
+        "ordering": "relative UTF-8 path ascending; byte count and SHA-256 per file"
+      }
+    },
+    "ssm": {
+      "package": {
+        "path": "/usr/local/bin/jibo-ssm/package.json",
+        "name": "@jibo/ssm",
+        "version": "16.0.0",
+        "sha256": "50ba7d624b4191ba530f68df24a330ddec7283e37c6eb624d103c056e5a2b45b",
+        "bytes": 100
+      },
+      "main": {
+        "path": "/usr/local/bin/jibo-ssm/index.js",
+        "bytes": 8,
+        "sha256": "7803bcc6391716f5f0882dec83168a7da88b6c93b91c49a79f88b71199f1f1d9"
+      },
+      "skillMain": {
+        "path": "/usr/local/bin/jibo-ssm/skill-main.js",
+        "bytes": 14,
+        "sha256": "507f5e83cf7186d549b22b530e35c1c19866007137bbde4564eaa82eadde8ae6"
+      }
+    },
+    "firmware": {
+      "release": "3.3.0 InDev",
+      "source": "/tmp/messages",
+      "rawOutputSha256": "b0062a8c0b1f3b147e10de5138fb5f9b7d596072ae0384667c0542599e763bda"
+    },
+    "identity": {
+      "hostnameSha256": "ee8816680c398b4af2dc6af6f200fe3b698e4406aa5afc95055a9360e24d20fa",
+      "robotIdSha256": "b94cf56198adcece2e0d78c894da50006e029753e0eb84a2993d1fefcff7847e",
+      "robotIdSource": "/var/jibo/credentials.json#robotID"
+    },
+    "raw": {
+      "commands": [
+        {
+          "id": "fixture-probe",
+          "argv": [
+            "fixture-probe"
+          ],
+          "stdoutSha256": "cd4cec8c730e9de632d079ee472eb5e9363b8fc1909682595a99a1cd3c3c7598",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "combinedSha256": "51730ab050fa82b0a5de4384fd48f04f223383b8f9ee5d3afb47d87d60ca7c14",
+          "rawOutputSha256": "cd4cec8c730e9de632d079ee472eb5e9363b8fc1909682595a99a1cd3c3c7598",
+          "stdoutBytes": 14,
+          "stderrBytes": 0,
+          "exitCode": 0
+        }
+      ],
+      "files": [],
+      "ssh": {
+        "remoteSession": true
+      }
+    }
+  }
+}
