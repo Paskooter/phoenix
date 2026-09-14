@@ -61,6 +61,37 @@ function ensurePrivateRun(runDir) {
   return root;
 }
 
+function pathIsWithin(root, candidate) {
+  return candidate === root || candidate.startsWith(`${root}${path.sep}`);
+}
+
+// Source capture paths are trust boundaries.  Resolve and inspect every path
+// component before reading it so a manifest cannot select a shadow trace via
+// `..`, a symlink, or a symlinked ancestor.
+function ensureUnderRun(runDir, candidate, label) {
+  const root = path.resolve(runDir);
+  const absolute = path.resolve(candidate);
+  if (!pathIsWithin(root, absolute)) fail(`${label} escapes private run root`);
+  const relative = path.relative(root, absolute);
+  let cursor = root;
+  for (const component of relative ? relative.split(path.sep) : []) {
+    cursor = path.join(cursor, component);
+    let stat;
+    try { stat = fs.lstatSync(cursor); } catch (error) {
+      if (error.code === 'ENOENT') break;
+      fail(`${label} cannot be inspected: ${error.code || error.message}`);
+    }
+    if (stat.isSymbolicLink()) fail(`${label} contains symlink component ${path.relative(root, cursor)}`);
+  }
+  try {
+    const real = fs.realpathSync(absolute);
+    if (!pathIsWithin(root, real) || real !== absolute) fail(`${label} resolves through a symlink or outside private run root`);
+  } catch (error) {
+    if (error.code !== 'ENOENT') fail(`${label} cannot be resolved: ${error.code || error.message}`);
+  }
+  return absolute;
+}
+
 function bundleValue(runDir, entry, key, fallback) {
   const value = entry && typeof entry === 'object' ? entry[key] : undefined;
   if (value === undefined) return fallback;
@@ -78,18 +109,33 @@ function sourceName(value, fallback, bundleDir, label) {
   return path.relative(bundleDir, absolute);
 }
 
-function resolveBundle(runDir, entry, legacyFiles = {}) {
+function resolveBundle(runDir, entry, legacyFiles = {}, { requireWire = false } = {}) {
   // The capture runner emits `bundle`; the toolkit's compact manifest uses
   // `dir`/`path`.  All forms resolve below the private run root and are
   // checked by ensurePrivateRun before any bytes are opened.
   const configuredDir = typeof entry === 'string' ? entry : (entry?.bundle || entry?.dir || entry?.path);
   const bundleDir = configuredDir ? path.resolve(configuredDir.startsWith('/') ? configuredDir : path.join(runDir, configuredDir)) : runDir;
-  const dir = ensurePrivateRun(bundleDir);
+  const dir = ensureUnderRun(runDir, bundleDir, 'bundle directory');
+  ensurePrivateRun(dir);
+  const configuredWire = bundleValue(runDir, entry, 'wire', legacyFiles.wire || null);
+  if (requireWire && !configuredWire) {
+    return {
+      dir,
+      stack: sourceName(bundleValue(runDir, entry, 'stack', legacyFiles.stack || 'stack.json'), legacyFiles.stack || 'stack.json', dir, 'bundle.stack'),
+      fixture: sourceName(bundleValue(runDir, entry, 'fixture', legacyFiles.fixture || 'fixture.json'), legacyFiles.fixture || 'fixture.json', dir, 'bundle.fixture'),
+      wire: null,
+      turn: sourceName(bundleValue(runDir, entry, 'turn', legacyFiles.turn || null), legacyFiles.turn || null, dir, 'bundle.turn'),
+      context: sourceName(bundleValue(runDir, entry, 'context', legacyFiles.context || null), legacyFiles.context || null, dir, 'bundle.context'),
+      declaredCaseId: entry && typeof entry === 'object' ? entry.caseId : undefined,
+      declaredFixture: entry && typeof entry === 'object' && isPlainObject(entry.fixture) ? entry.fixture : undefined,
+      missingWireMapping: true
+    };
+  }
   return {
     dir,
     stack: sourceName(bundleValue(runDir, entry, 'stack', legacyFiles.stack || 'stack.json'), legacyFiles.stack || 'stack.json', dir, 'bundle.stack'),
     fixture: sourceName(bundleValue(runDir, entry, 'fixture', legacyFiles.fixture || 'fixture.json'), legacyFiles.fixture || 'fixture.json', dir, 'bundle.fixture'),
-    wire: sourceName(bundleValue(runDir, entry, 'wire', legacyFiles.wire || null), legacyFiles.wire || null, dir, 'bundle.wire'),
+    wire: sourceName(configuredWire, legacyFiles.wire || null, dir, 'bundle.wire'),
     turn: sourceName(bundleValue(runDir, entry, 'turn', legacyFiles.turn || null), legacyFiles.turn || null, dir, 'bundle.turn'),
     context: sourceName(bundleValue(runDir, entry, 'context', legacyFiles.context || null), legacyFiles.context || null, dir, 'bundle.context'),
     declaredCaseId: entry && typeof entry === 'object' ? entry.caseId : undefined,
@@ -121,9 +167,8 @@ function bundleFile(bundle, sourceName, label) {
   return absolute;
 }
 
-function copyRaw(runDir, outRoot, sourceName, destination) {
-  const source = path.resolve(runDir, sourceName);
-  if (!source.startsWith(`${runDir}${path.sep}`)) fail(`source escapes run root: ${sourceName}`);
+function copyRaw(bundleDir, outRoot, sourceName, destination, runRoot = bundleDir) {
+  const source = ensureUnderRun(runRoot, path.resolve(bundleDir, sourceName), `source ${sourceName}`);
   const bytes = readRegular(source, sourceName);
   const target = path.join(outRoot, destination);
   fs.mkdirSync(path.dirname(target), { recursive: true });
@@ -312,6 +357,32 @@ function projectDisplayContracts(rawDisplays, expectedContracts) {
   });
 }
 
+function resolvedMatrixProjection(descriptor, request, provider) {
+  const viewContracts = (descriptor.expected?.viewContracts || []).map((view) => {
+    if (!view?.labelsFrom) return clone(view);
+    const hour = request?.prefs?.workHour;
+    const min = request?.prefs?.workMin;
+    const seconds = provider?.trafficSeconds;
+    if (!Number.isInteger(hour) || !Number.isInteger(min) || !Number.isFinite(seconds)) return clone(view);
+    const departure = new Date(Date.UTC(2000, 0, 1, hour, min, 0) - seconds * 1000);
+    const departureHour = departure.getUTCHours();
+    const ampm = departureHour >= 12 ? 'PM' : 'AM';
+    return {
+      ...clone(view),
+      labels: { time: `${departureHour % 12 || 12}:${String(departure.getUTCMinutes()).padStart(2, '0')}`, ampm }
+    };
+  }).map((view) => {
+    if (!view?.labelsFrom) return view;
+    const { labelsFrom: _discard, ...resolved } = view;
+    return resolved;
+  });
+  return {
+    mimIds: clone(descriptor.expected?.mimIds || []),
+    viewIds: clone(descriptor.expected?.viewIds || []),
+    viewContracts
+  };
+}
+
 function localDateISO(iso, timezone) {
   return new Intl.DateTimeFormat('en-CA', { timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(iso));
 }
@@ -336,8 +407,12 @@ function providerProjection(descriptor, fixtureCase, resolvedDateISO) {
   return {
     kind: descriptor.provider.kind,
     ...(descriptor.provider.fixture === undefined ? {} : { fixture: descriptor.provider.fixture }),
-    ...(Number.isFinite(baseSeconds) ? { baseSeconds } : {}),
-    ...(Number.isFinite(trafficSeconds) ? { trafficSeconds } : {}),
+    // Calendar provider evidence contains a maps fixture as well, but the
+    // matrix provider contract for calendar rows is settings/calendar only.
+    // Project route seconds only for commute rows where they are part of the
+    // asserted provider contract.
+    ...(descriptor.domain === 'commute' && Number.isFinite(baseSeconds) ? { baseSeconds } : {}),
+    ...(descriptor.domain === 'commute' && Number.isFinite(trafficSeconds) ? { trafficSeconds } : {}),
     ...(descriptor.provider.parallel === undefined ? {} : { parallel: descriptor.provider.parallel }),
     resolvedDateISO
   };
@@ -402,6 +477,159 @@ function selectedWireConnection(wireRows, turn, action) {
   return { connectionId, context, contextIndex, rows };
 }
 
+function actionForRequest(turn, requestID) {
+  if (!requestID) return null;
+  const rows = eventRows(turn);
+  for (let index = 0; index < rows.length; index += 1) {
+    const event = rows[index].event;
+    if (event.type === 'SKILL_ACTION' && event.data?.action && (event.requestID === requestID || event.transID === requestID)) {
+      return { row: rows[index], index };
+    }
+  }
+  return null;
+}
+
+function stageWireConnection(wireRows, requestID) {
+  const connection = wireRows.find((record) => record?.kind === 'connection' && (record.transID === requestID || record.json?.transID === requestID));
+  if (!connection) return { connectionId: null, rows: [], connectionIndex: -1 };
+  const rows = wireRows.map((record, index) => ({ record, index })).filter(({ record }) => record.id === connection.id);
+  return { connectionId: connection.id, rows, connectionIndex: wireRows.indexOf(connection) };
+}
+
+function wireStageRecord(stage, predicate) {
+  return stage.rows.find(({ record }) => predicate(record)) || null;
+}
+
+function recordBinding(record, index, wireBytes) {
+  if (!record) return null;
+  return {
+    line: index,
+    kind: record.kind,
+    id: record.id,
+    messageId: record.json?.msgID,
+    type: record.json?.type,
+    transID: record.json?.transID,
+    at: record.at,
+    sha256: sha256Text(canonicalJson(record)),
+    traceSha256: wireBytes?.sha256
+  };
+}
+
+function rawStageIdentity(turn, wire, actionInfo, rawRefs, descriptor, fixtureCase) {
+  const ackRequestID = turn.ack?.requestID;
+  const followup = turn.followup?.calls?.[0];
+  const followupRequestID = followup?.requestID;
+  const initialInfo = actionForRequest(turn, ackRequestID);
+  const initialWire = stageWireConnection(wire?.values || [], ackRequestID);
+  const followupWire = stageWireConnection(wire?.values || [], followupRequestID || actionInfo?.row?.event?.transID);
+  const initialWireAction = wireStageRecord(initialWire, (record) => record.kind === 'server-message' && record.json?.type === 'SKILL_ACTION');
+  const followupWireContext = wireStageRecord(followupWire, (record) => record.kind === 'client-message' && record.json?.type === 'CONTEXT' && record.json?.transID === followupRequestID);
+  const followupWireRequest = wireStageRecord(followupWire, (record) => record.kind === 'client-message' && record.json?.type === 'CLIENT_ASR' && record.json?.transID === followupRequestID);
+  const followupWireAction = wireStageRecord(followupWire, (record) => record.kind === 'server-message' && record.json?.type === 'SKILL_ACTION');
+  const initialAction = initialInfo?.row?.event;
+  const finalAction = actionInfo?.row?.event;
+  const initialMims = initialAction?.data?.action ? walkMims(initialAction.data.action) : [];
+  const initialDisplayId = initialAction?.data?.action?.config?.jcp?.config?.display?.view?.context?.data?.viewConfig?.id;
+  const initialSessionId = initialAction?.data?.skill?.session?.id;
+  const finalSessionId = finalAction?.data?.skill?.session?.id;
+  const errors = [];
+  if (!ackRequestID) errors.push('turn.json.ack.requestID is missing');
+  if (!followupRequestID) errors.push('turn.followup.calls[0].requestID is missing');
+  if (followup?.statusBeforeUpdate !== 'ACTIVE') errors.push('followup.calls[0].statusBeforeUpdate is not ACTIVE');
+  if (followup?.updateCompleted !== true) errors.push('followup.calls[0].updateCompleted is not true');
+  if (!initialInfo) errors.push('Tg initial SKILL_ACTION is missing from turn.json');
+  if (!actionInfo) errors.push('Tl final SKILL_ACTION is missing from turn.json');
+  if (initialMims[0] !== 'PersonalReportWhoIsThis') errors.push('Tg initial action is not the PersonalReportWhoIsThis prelude');
+  if (initialDisplayId !== 'whoIsThisMenu') errors.push('Tg initial action does not open whoIsThisMenu');
+  if (!initialWire.connectionId) errors.push('Tg initial wire connection is missing');
+  if (!followupWire.connectionId) errors.push('Tl followup wire connection is missing');
+  if ((wire?.values || []).filter((record) => record.kind === 'connection' && record.transID === ackRequestID).length !== 1) errors.push('Tg must have exactly one mapped wire connection');
+  if ((wire?.values || []).filter((record) => record.kind === 'connection' && record.transID === followupRequestID).length !== 1) errors.push('Tl must have exactly one mapped wire connection');
+  if (initialWire.connectionId === followupWire.connectionId) errors.push('Tg and Tl must use distinct wire connections');
+  if (!followupWireContext) errors.push('Tl followup CONTEXT is missing from mapped wire connection');
+  if (!followupWireRequest) errors.push('Tl followup CLIENT_ASR is missing from mapped wire connection');
+  if (!followupWireAction) errors.push('Tl final SKILL_ACTION is missing from mapped wire connection');
+  if (initialWire.rows.filter(({ record }) => record.kind === 'server-message' && record.json?.type === 'SKILL_ACTION').length !== 1) errors.push('conn1 must contain exactly one initial SKILL_ACTION');
+  if (followupWire.rows.filter(({ record }) => record.kind === 'server-message' && record.json?.type === 'SKILL_ACTION').length !== 1) errors.push('conn2 must contain exactly one final SKILL_ACTION');
+  const expectedStageIds = new Set([ackRequestID, followupRequestID].filter(Boolean));
+  const hasOnConnection = (id, predicate) => (wire?.values || []).some((record) => record?.id === id && predicate(record));
+  for (const [index, record] of (wire?.values || []).entries()) {
+    if (record.kind === 'connection' && record.transID && !expectedStageIds.has(record.transID)) errors.push(`wire line ${index} is a shadow connection trace`);
+    if (record.kind === 'client-message' && ['CONTEXT', 'CLIENT_ASR'].includes(record.json?.type) && record.json?.transID && !expectedStageIds.has(record.json.transID)) errors.push(`wire line ${index} is a shadow ${record.json.type} trace`);
+    if (record.kind === 'server-message' && record.json?.type === 'SKILL_ACTION' && ![1, 2].includes(record.id)) errors.push(`wire line ${index} is a shadow SKILL_ACTION trace`);
+  }
+  if (!hasOnConnection(1, (record) => record.kind === 'client-message' && record.json?.type === 'CLIENT_ASR' && record.json?.transID === ackRequestID)) errors.push('Tg initial CLIENT_ASR is missing from conn1');
+  if (followupWire.rows.some(({ record }) => record.kind === 'server-message' && record.json?.type === 'SKILL_ACTION' && record.json?.transID && record.json.transID !== followupRequestID)) {
+    errors.push('mapped Tl wire connection contains a shadow SKILL_ACTION');
+  }
+  if (initialSessionId && finalSessionId && initialSessionId !== finalSessionId) errors.push('Tg/Tl skill session IDs differ');
+  if (!initialSessionId || !finalSessionId) errors.push('Tg/Tl shared skill session ID is missing');
+  const excludedPrelude = (turn.excludedDisplayActions || []).find((item) => item?.viewId === 'whoIsThisMenu');
+  if (!excludedPrelude) errors.push('whoIsThisMenu excluded prelude observation is missing');
+  const finalActionIndex = actionInfo?.index;
+  const finalActionWireIndex = followupWireAction?.index;
+  const contextWireIndex = followupWireContext?.index;
+  const providerRows = (wire?.values || []).map((record, index) => ({ record, index })).filter(({ record }) => record.kind === 'fixture-provider' && record.caseId === fixtureCase?.key);
+  return {
+    valid: errors.length === 0,
+    errors,
+    initial: {
+      requestID: ackRequestID,
+      transID: initialAction?.transID || initialAction?.requestID || ackRequestID,
+      connectionId: initialWire.connectionId === null ? null : `wire-connection-${initialWire.connectionId}`,
+      action: initialInfo ? {
+        eventIndex: initialInfo.index,
+        requestID: initialAction.requestID,
+        transID: initialAction.transID,
+        mimIds: initialMims,
+        viewId: initialDisplayId,
+        rawActionSha256: sha256Text(JSON.stringify(initialAction.data.action)),
+        source: { rawTurn: rawRefs.turn, eventIndex: initialInfo.index }
+      } : null,
+      ack: {
+        requestID: ackRequestID,
+        source: 'turn.json.ack.requestID',
+        rawTurnSha256: rawRefs.turn.sha256
+      },
+      wire: {
+        connection: recordBinding(wire?.values?.[initialWire.connectionIndex], initialWire.connectionIndex, rawRefs.wire),
+        action: recordBinding(initialWireAction?.record, initialWireAction?.index, rawRefs.wire),
+        lines: initialWire.rows.map(({ index }) => index)
+      },
+      excludedPrelude: clone(excludedPrelude || null)
+    },
+    followup: {
+      requestID: followupRequestID,
+      transID: finalAction?.transID || finalAction?.requestID || followupRequestID,
+      connectionId: followupWire.connectionId === null ? null : `wire-connection-${followupWire.connectionId}`,
+      call: clone(followup || null),
+      context: recordBinding(followupWireContext?.record, contextWireIndex, rawRefs.wire),
+      request: recordBinding(followupWireRequest?.record, followupWireRequest?.index, rawRefs.wire),
+      action: actionInfo ? {
+        eventIndex: finalActionIndex,
+        requestID: finalAction.requestID,
+        transID: finalAction.transID,
+        rawActionSha256: sha256Text(JSON.stringify(finalAction.data.action)),
+        source: { rawTurn: rawRefs.turn, eventIndex: finalActionIndex }
+      } : null,
+      wire: {
+        connection: recordBinding(wire?.values?.[followupWire.connectionIndex], followupWire.connectionIndex, rawRefs.wire),
+        action: recordBinding(followupWireAction?.record, finalActionWireIndex, rawRefs.wire),
+        providerLines: providerRows.map(({ index }) => index),
+        lines: followupWire.rows.map(({ index }) => index)
+      }
+    },
+    sharedSkillSession: {
+      id: initialSessionId || finalSessionId || null,
+      initialActionSessionId: initialSessionId || null,
+      followupActionSessionId: finalSessionId || null,
+      same: Boolean(initialSessionId && finalSessionId && initialSessionId === finalSessionId)
+    },
+    descriptorCaseId: descriptor.id,
+    fixtureCaseId: fixtureCase?.key
+  };
+}
+
 function contextSourceFields(value) {
   if (!isPlainObject(value)) return null;
   const candidate = value.context || value.json || value;
@@ -430,12 +658,46 @@ function sourceRecord(record, index, wireBytes) {
   };
 }
 
-function screenshotAt(turn, shot, index) {
-  // turn.py records stable duration but not a wall timestamp.  Preserve that
-  // fact in the derived capture and use the display event elapsed time as the
-  // only source-derived anchor available in this format.
-  const elapsed = (shot.displayAction?.eventElapsedMs ?? 0) + (shot.stableForMs ?? 0) + index;
-  return new Date(Date.parse(turn.started) + elapsed).toISOString();
+function captureSnapshot(turn, shot) {
+  return (turn.snapshots || []).find((snapshot) => {
+    const capture = snapshot?.captureMetadata;
+    return capture && ((capture.filename && capture.filename === shot.filename) || (capture.sha256 && capture.sha256 === shot.sha256));
+  }) || null;
+}
+
+function screenshotAt(turn, shot) {
+  const snapshot = captureSnapshot(turn, shot);
+  const elapsed = snapshot && Number.isFinite(snapshot.elapsedMs) ? snapshot.elapsedMs : null;
+  return elapsed === null ? null : new Date(Date.parse(turn.started) + elapsed).toISOString();
+}
+
+function screenshotViewWindow(turn, shot, captureElapsed, idleElapsed) {
+  const snapshots = Array.isArray(turn.snapshots) ? turn.snapshots : [];
+  const view = shot.viewId;
+  const instance = shot.viewInstance;
+  const captureIndex = snapshots.findIndex((snapshot) => snapshot?.captureMetadata?.filename === shot.filename || snapshot?.captureMetadata?.sha256 === shot.sha256);
+  let openElapsed = null;
+  for (let index = captureIndex - 1; index >= 0; index -= 1) {
+    const be = snapshots[index]?.be;
+    if (be?.view === view && be?.viewInstance === instance) openElapsed = snapshots[index].elapsedMs;
+    else if (openElapsed !== null) break;
+  }
+  if (openElapsed === null) {
+    for (let index = 0; index < captureIndex; index += 1) {
+      const be = snapshots[index]?.be;
+      if (be?.view === view && be?.viewInstance === instance) { openElapsed = snapshots[index].elapsedMs; break; }
+    }
+  }
+  if (openElapsed === null) openElapsed = Math.max(0, captureElapsed - (shot.stableForMs || 0));
+  let closeElapsed = idleElapsed !== null ? idleElapsed - 1 : captureElapsed + 1;
+  for (let index = captureIndex + 1; index < snapshots.length; index += 1) {
+    const be = snapshots[index]?.be;
+    if (be && (be.view !== view || be.viewInstance !== instance)) {
+      if (Number.isFinite(snapshots[index].elapsedMs)) closeElapsed = Math.min(closeElapsed, snapshots[index].elapsedMs - 1);
+      break;
+    }
+  }
+  return { openedMs: openElapsed, closedMs: Math.max(openElapsed + 1, closeElapsed) };
 }
 
 function finalIdle(turn) {
@@ -448,8 +710,9 @@ function finalIdle(turn) {
 }
 
 function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, runtime, operation, contextRead = null, declaredCaseId = undefined, visualReview = null) {
-  const actionInfo = lastAction(turn);
-  if (!actionInfo) fail(`${descriptor.id} has no SKILL_ACTION event`);
+  const followupRequestID = turn.followup?.calls?.[0]?.requestID;
+  const actionInfo = actionForRequest(turn, followupRequestID) || lastAction(turn);
+  if (!actionInfo) fail(`${descriptor.id} has no Tl SKILL_ACTION event`);
   const actionEvent = actionInfo.row.event;
   const rawAction = actionEvent.data.action;
   const rawMims = walkMims(rawAction);
@@ -465,17 +728,22 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
   const resolvedDateISO = descriptor.domain === 'calendar' ? addLocalDays(dateISO, 1, runtime.timezone) : dateISO;
   const provider = providerProjection(descriptor, fixtureCase, resolvedDateISO);
   const route = fixtureCase.value.maps?.routes?.[0]?.legs?.[0];
+  const stages = rawStageIdentity(turn, wire, actionInfo, rawRefs, descriptor, fixtureCase);
   const context = selectedWireConnection(wire.values, turn, actionInfo);
   const explicitContext = contextSourceFields(contextRead?.value);
   const rawContext = context.context;
   const rawContextFields = rawContext ? {
     ...contextSourceFields(rawContext),
     source: 'wire-context',
-    sourceLine: context.contextIndex
+    sourceLine: context.contextIndex,
+    // The raw CONTEXT payload carries the runtime location but no timezone;
+    // the timezone is immutable fixture metadata bound below.
+    timezone: fixtureCase.value.meta?.timeZone || null,
+    capturedAtISO: rawContext.at
   } : null;
   const contextISO = explicitContext?.runtimeLocationISO || rawContextFields?.runtimeLocationISO || turn.started;
   const contextAtISO = explicitContext?.capturedAtISO || rawContextFields?.capturedAtISO || turn.started;
-  const contextTimezone = explicitContext?.timezone || rawContextFields?.timezone || fixture.timeZone || runtime.timezone;
+  const contextTimezone = explicitContext?.timezone || rawContextFields?.timezone || fixtureCase.value.meta?.timeZone || runtime.timezone;
   const contextMessageId = explicitContext?.sourceMessageId || rawContextFields?.sourceMessageId || `missing-context-${descriptor.id}`;
   const contextSourceLine = Number.isInteger(explicitContext?.sourceLine) ? explicitContext.sourceLine : rawContextFields?.sourceLine;
   // A raw CONTEXT line is a valid standalone anchor only when its location,
@@ -483,7 +751,7 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
   // message ID, and source line are all present. An optional context JSON can
   // refine those fields, but cannot replace the source wire record.
   const contextReady = Boolean(rawContextFields?.runtimeLocationISO && rawContextFields?.timezone && rawContextFields?.capturedAtISO && rawContextFields?.sourceMessageId && Number.isInteger(rawContextFields?.sourceLine) && (!explicitContext || (explicitContext.runtimeLocationISO === rawContextFields.runtimeLocationISO && explicitContext.timezone === rawContextFields.timezone && explicitContext.sourceMessageId === rawContextFields.sourceMessageId && explicitContext.sourceLine === rawContextFields.sourceLine)));
-  const primaryRequestID = firstTurnId(turn) || actionEvent.requestID;
+  const primaryRequestID = turn.ack?.requestID || firstTurnId(turn) || actionEvent.requestID;
   const actionRequestID = actionEvent.requestID || actionEvent.transID;
   const requestID = actionRequestID || primaryRequestID;
   const transID = actionEvent.transID || requestID;
@@ -505,7 +773,11 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
     const baseSeconds = route?.duration?.value;
     request.locationISO = contextISO;
     request.locationMode = contextReady ? 'capture-local-clock' : 'raw-context-location';
-    const schedule = resolveCommuteSchedule(contextISO, descriptor.input.prefsPolicy.schedule, runtime.timezone);
+    const fixtureWorkTime = fixtureCase.value.meta?.workTime;
+    const fixtureDateISO = fixtureCase.value.meta?.date;
+    const schedule = Number.isInteger(fixtureWorkTime?.hour) && Number.isInteger(fixtureWorkTime?.min) && typeof fixtureDateISO === 'string'
+      ? { dateISO: fixtureDateISO, hour: fixtureWorkTime.hour, minute: fixtureWorkTime.min }
+      : null;
     request.prefs = {
       mode: descriptor.input.prefsPolicy.mode,
       workHour: schedule?.hour,
@@ -516,8 +788,11 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
     };
     request.prefsResolution = {
       schedule: descriptor.input.prefsPolicy.schedule,
-      generatedFrom: 'capture-local-clock',
+      generatedFrom: 'private-fixture-work-time',
+      source: 'private-fixture-work-time',
       workDateISO: request.prefs.workDateISO,
+      sourceFixture: { path: rawRefs.fixture.path, sha256: rawRefs.fixture.sha256, caseKey: fixtureCase.key },
+      workTime: schedule ? { dateISO: schedule.dateISO, timeZone: fixtureCase.value.meta?.timeZone, hour: schedule.hour, min: schedule.minute } : null,
       sha256: canonicalSha256(request.prefs)
     };
   }
@@ -534,7 +809,16 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
     ...(request.calendarDateISO ? { calendarDateISO: request.calendarDateISO } : {}),
     ...(descriptor.domain === 'calendar' ? { events: fixtureEvents(fixtureCase, descriptor, resolvedDateISO) } : {}),
     provider: { ...provider },
-    sourceFixture: { path: rawRefs.fixture.path, sha256: rawRefs.fixture.sha256, caseKey: fixtureCase.key }
+    sourceFixture: { path: rawRefs.fixture.path, sha256: rawRefs.fixture.sha256, caseKey: fixtureCase.key },
+    ...(descriptor.domain === 'commute' ? {
+      workTime: {
+        source: 'private-fixture-work-time',
+        dateISO: fixtureCase.value.meta?.date,
+        timeZone: fixtureCase.value.meta?.timeZone,
+        hour: fixtureCase.value.meta?.workTime?.hour,
+        min: fixtureCase.value.meta?.workTime?.min
+      }
+    } : {})
   };
   const providerFixture = writeJson(outRoot, `artifacts/${descriptor.id}/provider-fixture.json`, fixtureContent);
   provider.fixtureSha256 = providerFixture.sha256;
@@ -561,7 +845,7 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
     wireCanonicalSha256: canonicalSha256(payload.wire),
     nativeEqualsPhoenix: true,
     wireEqualsNative: true,
-    phoenixMatchesMatrix: true,
+    phoenixMatchesMatrix: canonicalJson(projection) === canonicalJson(resolvedMatrixProjection(descriptor, request, provider)),
     sourceAction: {
       eventIndex: actionInfo.index,
       requestID: actionRequestID,
@@ -573,18 +857,19 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
   };
   const idleSnapshot = finalIdle(turn);
   const idleAt = idleSnapshot ? new Date(Date.parse(turn.started) + idleSnapshot.elapsedMs).toISOString() : null;
-  const captureTimes = reportShots.map((shot, index) => screenshotAt(turn, shot, index));
+  const captureTimes = reportShots.map((shot) => screenshotAt(turn, shot));
   const timelineViews = reportShots.map((shot, index) => {
     const captureTime = Date.parse(captureTimes[index]);
-    const stable = Number.isFinite(shot.stableForMs) ? shot.stableForMs : 0;
-    const opened = captureTime - stable;
-    const nextCapture = captureTimes[index + 1] ? Date.parse(captureTimes[index + 1]) : (idleAt ? Date.parse(idleAt) - 1 : captureTime + 1);
-    const closed = Math.min(nextCapture - 1, idleAt ? Date.parse(idleAt) - 1 : nextCapture - 1);
+    const captureElapsed = captureTime - Date.parse(turn.started);
+    const idleElapsed = idleSnapshot && Number.isFinite(idleSnapshot.elapsedMs) ? idleSnapshot.elapsedMs : null;
+    const window = screenshotViewWindow(turn, shot, captureElapsed, idleElapsed);
+    const opened = Date.parse(turn.started) + window.openedMs;
+    const closed = Date.parse(turn.started) + window.closedMs;
     return {
       ordinal: index,
       viewId: shot.viewId,
-      openedMs: opened - Date.parse(turn.started),
-      closedMs: closed - Date.parse(turn.started),
+      openedMs: window.openedMs,
+      closedMs: window.closedMs,
       openedAtISO: new Date(opened).toISOString(),
       closedAtISO: new Date(closed).toISOString()
     };
@@ -597,7 +882,16 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
     operation,
     connectionId: context.connectionId === undefined ? `missing-wire-connection-${descriptor.id}` : `wire-connection-${context.connectionId}`,
     nativeActionEventId: `native-event-${actionInfo.index}`,
-    wireActionMessageId: context.rows.find(({ record }) => record.kind === 'server-message' && record.json?.type === 'SKILL_ACTION')?.record?.json?.msgID || `missing-wire-action-${descriptor.id}`
+    wireActionMessageId: context.rows.find(({ record }) => record.kind === 'server-message' && record.json?.type === 'SKILL_ACTION')?.record?.json?.msgID || `missing-wire-action-${descriptor.id}`,
+    initialRequestID: stages.initial.requestID,
+    initialTransID: stages.initial.transID,
+    followupRequestID: stages.followup.requestID,
+    followupTransID: stages.followup.transID,
+    initialConnectionId: stages.initial.connectionId,
+    followupConnectionId: stages.followup.connectionId,
+    ackSource: stages.initial.ack.source,
+    skillSessionId: stages.sharedSkillSession.id,
+    turnAck: clone(stages.initial.ack)
   };
   const nativeEvents = [
     { type: 'context', eventId: `native-context-${descriptor.id}`, caseId: descriptor.id, requestID, transID, operation, timestampISO: contextAtISO, runtimeLocationISO: contextISO, timezone: contextTimezone, available: contextReady, sourceMessageId: contextMessageId, sourceLine: contextSourceLine, source: rawContext ? sourceRecord(rawContext, context.contextIndex, rawRefs.wire) : rawRefs.context || null },
@@ -607,11 +901,13 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
   ];
   const wireRequest = context.rows.find(({ record }) => record.kind === 'client-message' && record.json?.type === 'CLIENT_ASR');
   const wireAction = context.rows.find(({ record }) => record.kind === 'server-message' && record.json?.type === 'SKILL_ACTION');
+  // The JSONL trace contains no ACK and no idle record.  Keep the normalized
+  // wire stream a projection of records actually present on Tl's connection;
+  // the SDK HTTP ACK and final idle remain in the raw-turn/native sections.
   const wireEvents = [
     { type: 'context', messageId: contextMessageId, caseId: descriptor.id, requestID, transID, operation, connectionId: correlation.connectionId, timestampISO: contextAtISO, runtimeLocationISO: contextISO, timezone: contextTimezone, available: contextReady, sourceMessageId: contextMessageId, sourceLine: contextSourceLine, source: rawContext ? sourceRecord(rawContext, context.contextIndex, rawRefs.wire) : rawRefs.context || null },
     ...(wireRequest ? [{ type: 'request', messageId: wireRequest.record.json.msgID, caseId: descriptor.id, requestID, transID, operation, endpoint: request.endpoint, connectionId: correlation.connectionId, timestampISO: wireRequest.record.at, body: clone(request.body), bodySha256: request.bodySha256, source: sourceRecord(wireRequest.record, wireRequest.index, rawRefs.wire) }] : []),
-    ...(wireAction ? [{ type: 'action', messageId: correlation.wireActionMessageId, caseId: descriptor.id, requestID, transID, operation, connectionId: correlation.connectionId, timestampISO: wireAction.record.at, payload: clone(payload.wire), source: sourceRecord(wireAction.record, wireAction.index, rawRefs.wire) }] : []),
-    ...(idleAt ? [{ type: 'idle', messageId: `wire-idle-${descriptor.id}`, caseId: descriptor.id, requestID, transID, operation, connectionId: correlation.connectionId, timestampISO: idleAt, finalState: 'idle', source: rawRefs.turn }] : [])
+    ...(wireAction ? [{ type: 'action', messageId: correlation.wireActionMessageId, caseId: descriptor.id, requestID, transID, operation, connectionId: correlation.connectionId, timestampISO: wireAction.record.at, payload: clone(payload.wire), source: sourceRecord(wireAction.record, wireAction.index, rawRefs.wire) }] : [])
   ];
   const turnStartMs = Date.parse(turn.started);
   const turnEndMs = turnStartMs + (Number.isFinite(turn.durationMs) ? turn.durationMs : 0);
@@ -623,25 +919,21 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
     type: 'provider-call',
     callId: `provider-call-${index}`,
     caseId: descriptor.id,
-    requestID,
-    transID,
+    ...(record.input?.transID ? { requestID: record.input.transID, transID: record.input.transID } : {}),
     operation,
     timestampISO: record.at,
     fixturePath: providerFixture.path,
     fixtureSha256: providerFixture.sha256,
     provider: clone(provider),
+    rawRecord: clone(record),
     source: sourceRecord(record, index, rawRefs.wire)
   }));
-  if (providerEvents.length) providerEvents.push({
-    type: 'provider-return', callId: `provider-return-${descriptor.id}`, caseId: descriptor.id, requestID, transID, operation,
-    timestampISO: providerEvents.at(-1).timestampISO, fixturePath: providerFixture.path, fixtureSha256: providerFixture.sha256, provider: clone(provider), source: providerEvents.at(-1).source
-  });
-  if (idleAt) providerEvents.push({ type: 'idle', caseId: descriptor.id, requestID, transID, operation, timestampISO: idleAt, finalState: 'idle', source: rawRefs.turn });
   const screenshots = [];
   const screenshotCaptures = [];
   for (let index = 0; index < reportShots.length; index += 1) {
     const shot = reportShots[index];
     const sourceFilename = shot.filename;
+    ensureUnderRun(rawRefs.runRoot, sourceFilename, `screenshot ${sourceFilename}`);
     const sourceBytes = readRegular(sourceFilename, `screenshot ${sourceFilename}`);
     const sourceHash = sha256Bytes(sourceBytes);
     if (sourceHash !== shot.sha256) fail(`screenshot source hash changed: ${sourceFilename}`);
@@ -649,6 +941,8 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
     const relativePath = `artifacts/${descriptor.id}/screenshots/${String(index).padStart(2, '0')}-${shot.viewId}-${shot.viewInstance || 'capture'}.png`;
     const artifact = writeArtifact(outRoot, relativePath, sourceBytes);
     const identity = canonicalSha256({ caseId: descriptor.id, caseOrdinal: descriptor.ordinal, viewOrdinal, viewId: shot.viewId, pixelSha256: artifact.sha256 });
+    const snapshot = captureSnapshot(turn, shot);
+    const captureOrdinal = snapshot?.captureMetadata?.ordinal ?? shot.displayAction?.captureOrdinal;
     const capture = {
       ...artifact,
       caseId: descriptor.id,
@@ -660,8 +954,8 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
       artifactIdentity: identity,
       captureAtISO: captureTimes[index],
       stableForMs: shot.stableForMs,
-      visuallyInspected: false,
-      sourceScreenshot: { filename: sourceFilename, sha256: shot.sha256, rawTurnSha256: rawRefs.turn.sha256, viewInstance: shot.viewInstance, viewGeneration: shot.viewGeneration, displayAction: clone(shot.displayAction) }
+      visuallyInspected: Boolean(visualReview?.reviews?.some((review) => review.case === descriptor.id && review.captureOrdinal === captureOrdinal && review.viewId === shot.viewId && review.sha256 === shot.sha256 && review.verdict === 'pass')),
+      sourceScreenshot: { filename: sourceFilename, sha256: shot.sha256, rawTurnSha256: rawRefs.turn.sha256, captureOrdinal, viewInstance: shot.viewInstance, viewGeneration: shot.viewGeneration, displayAction: clone(shot.displayAction) }
     };
     screenshots.push(capture);
     screenshotCaptures.push({ caseId: descriptor.id, requestID, transID, operation, timestampISO: capture.captureAtISO, viewOrdinal, viewId: shot.viewId, captureKey: capture.captureKey, artifactPath: capture.path, sha256: capture.sha256, pixelSha256: capture.pixelSha256, artifactIdentity: capture.artifactIdentity, sourceScreenshot: capture.sourceScreenshot });
@@ -679,10 +973,11 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
       native: { eventCount: nativeEvents.length, actionEventIndex: nativeEvents.findIndex((event) => event.type === 'action'), idleEventIndex: nativeEvents.findIndex((event) => event.type === 'idle'), actionEventId: correlation.nativeActionEventId },
       wire: { messageCount: wireEvents.length, actionMessageIndex: wireEvents.findIndex((record) => record.type === 'action'), ackMessageIndex: wireEvents.findIndex((record) => record.type === 'ack'), actionMessageId: correlation.wireActionMessageId, connectionId: correlation.connectionId }
     },
-    traceRange: { start: 0, end: turn.durationMs || 0, startISO: turn.started, endISO: new Date(Date.parse(turn.started) + (turn.durationMs || 0)).toISOString() },
+    traceRange: { start: 0, end: Number.isFinite(idleSnapshot?.elapsedMs) ? idleSnapshot.elapsedMs : (turn.durationMs || 0), startISO: turn.started, endISO: idleAt || new Date(Date.parse(turn.started) + (turn.durationMs || 0)).toISOString() },
     timeline: { views: timelineViews, idle, transitionToIdle: Boolean(idleAt) },
     observersRestored: Boolean(idleAt),
-    noBypass: false,
+    noBypass: Boolean(turn.microphoneAcceptance === false && turn.request?.via && /original BE Jetstream SDK/i.test(turn.request.via) && stages.valid),
+    stages,
     artifacts: {
       stackReceipt: rawRefs.stack,
       nativeReport: null,
@@ -692,7 +987,9 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
       providerFixture,
       contextAnchor: null,
       rawTurn: rawRefs.turn,
-      rawFixture: rawRefs.fixture
+      rawFixture: rawRefs.fixture,
+      rawWire: rawRefs.wire,
+      ...(visualReview?.ref ? { visualReview: visualReview.ref } : {})
     },
     screenshots
   };
@@ -700,7 +997,7 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
     schema: 's13-stack-receipt-v1', caseId: descriptor.id, requestID, transID, operation, startedAtISO: turn.started,
     completedAtISO: idleAt || new Date(Date.parse(turn.started) + (turn.durationMs || 0)).toISOString(), request: clone(request), action: { operation, payload: clone(payload.phoenix) }, finalIdle: { ...clone(idle), caseId: descriptor.id, requestID, transID, operation, timestampISO: idleAt }, sourceStack: rawRefs.stack, sourceTurn: rawRefs.turn
   });
-  actual.artifacts.nativeReport = writeJson(outRoot, `artifacts/${descriptor.id}/native-normalized.json`, { schema: 's13-native-report-v1', caseId: descriptor.id, requestID, transID, operation, events: nativeEvents, captures: screenshotCaptures, sourceTurn: rawRefs.turn, sourceAction: { eventIndex: actionInfo.index, rawActionSha256, rawTurnSha256: rawRefs.turn.sha256, rawAction } });
+  actual.artifacts.nativeReport = writeJson(outRoot, `artifacts/${descriptor.id}/native-normalized.json`, { schema: 's13-native-report-v1', caseId: descriptor.id, requestID, transID, operation, events: nativeEvents, captures: screenshotCaptures, sourceTurn: rawRefs.turn, sourceAction: { eventIndex: actionInfo.index, rawActionSha256, rawTurnSha256: rawRefs.turn.sha256, rawAction }, stages: clone(stages), turnAck: clone(stages.initial.ack) });
   actual.artifacts.wireTrace = writeJsonl(outRoot, `artifacts/${descriptor.id}/wire-normalized.jsonl`, wireEvents);
   actual.artifacts.contextAnchor = writeJson(outRoot, `artifacts/${descriptor.id}/context-anchor.json`, {
     schema: 's13-context-anchor-v1',
@@ -748,6 +1045,52 @@ function missingRow(descriptor) {
   return { ordinal: descriptor.ordinal, id: descriptor.id, status: 'not-captured', claimed: false, reference: clone(descriptor.reference), actual: { viewIds: [], screenshots: [] }, limitation: `raw run did not contain ${descriptor.id}` };
 }
 
+function rejectedRow(descriptor, rawRefs, reasons) {
+  const normalized = Array.isArray(reasons) && reasons.length ? reasons : ['raw candidate did not satisfy the two-stage source binding'];
+  return {
+    ordinal: descriptor.ordinal,
+    id: descriptor.id,
+    status: 'rejected',
+    claimed: false,
+    reference: clone(descriptor.reference),
+    actual: {
+      viewIds: [],
+      screenshots: [],
+      ...(rawRefs?.turn ? { rawTurn: rawRefs.turn } : {}),
+      ...(rawRefs?.fixture ? { rawFixture: rawRefs.fixture } : {}),
+      ...(rawRefs?.wire ? { rawWire: rawRefs.wire } : {})
+    },
+    rejectionReasons: normalized,
+    limitation: `candidate rejected: ${normalized.join('; ')}`
+  };
+}
+
+function readVisualReview(run, outRoot) {
+  const source = path.join(run, 'visual-review-v2.json');
+  if (!fs.existsSync(source)) return null;
+  const bytes = readRegular(source, 'visual-review-v2.json');
+  let value;
+  try { value = JSON.parse(bytes.toString('utf8')); } catch (error) { fail(`visual-review-v2.json is not JSON: ${error.message}`); }
+  const ref = writeArtifact(outRoot, 'raw/visual-review-v2.json', bytes);
+  const review = { ...value, ref, reviewBindingErrors: [] };
+  // Review paths are source evidence too.  Check their bytes now so a review
+  // record cannot make an unrelated screenshot look inspected by hash alone.
+  for (const item of Array.isArray(value?.reviews) ? value.reviews : []) {
+    if (typeof item?.path !== 'string') {
+      review.reviewBindingErrors.push('review path is missing');
+      continue;
+    }
+    try {
+      const sourcePath = ensureUnderRun(run, path.resolve(run, item.path), `visual review ${item.path}`);
+      const sourceBytes = readRegular(sourcePath, `visual review ${item.path}`);
+      if (sha256Bytes(sourceBytes) !== item.sha256 || sourceBytes.length !== item.bytes) review.reviewBindingErrors.push(`review bytes do not bind ${item.path}`);
+    } catch (error) {
+      review.reviewBindingErrors.push(error.message);
+    }
+  }
+  return review;
+}
+
 export function produceCandidate(matrix, runDir, outRoot, { operation = 'mimicGlobalTurn', caseFiles = {}, bundles = null, bundleManifestPath = null } = {}) {
   const run = ensurePrivateRun(runDir);
   fs.mkdirSync(outRoot, { recursive: true });
@@ -759,25 +1102,69 @@ export function produceCandidate(matrix, runDir, outRoot, { operation = 'mimicGl
     'calendar-concurrent-parallel': 'calendar-parallel.json'
   };
   let bundleMap = bundles;
-  let bundleManifestSource = bundleManifestPath ? path.resolve(bundleManifestPath) : null;
+  let bundleManifestSource = null;
+  if (bundleManifestPath) {
+    const candidate = path.resolve(bundleManifestPath);
+    if (pathIsWithin(run, candidate)) bundleManifestSource = candidate;
+    else {
+      // Keep the pre-v2 test/tooling form usable when it is an explicit
+      // caller-owned manifest whose source files are still confined below the
+      // private run.  The v2 primary/sidecar manifests must live in the run.
+      const probe = readJson(candidate, path.basename(candidate)).value;
+      if (probe?.schema !== 'phoenix-s13-bundle-manifest-v1') fail('bundle manifest escapes private run root');
+      bundleManifestSource = candidate;
+    }
+  }
+  let wireMappingManifestSource = null;
+  let wireMappingMap = null;
   if (!bundleMap && fs.existsSync(path.join(run, 'bundle-manifest.json'))) {
     bundleManifestSource = path.join(run, 'bundle-manifest.json');
     const manifest = readJson(bundleManifestSource, 'bundle-manifest.json').value;
     if (!isPlainObject(manifest) || !isPlainObject(manifest.cases)) fail('bundle-manifest.json must contain a cases object');
     bundleMap = manifest.cases;
   }
+  if (bundleManifestSource && !bundleMap) {
+    const manifest = readJson(bundleManifestSource, path.basename(bundleManifestSource)).value;
+    if (!isPlainObject(manifest) || !isPlainObject(manifest.cases)) fail(`${path.basename(bundleManifestSource)} must contain a cases object`);
+    bundleMap = manifest.cases;
+  }
+  // The v2 capture has a primary case manifest and a separate toolkit map.
+  // Use the sidecar only as an explicit wire declaration; never scan a bundle
+  // for the first wire-*.jsonl file when strict mapping is active.  A sidecar
+  // omission therefore remains a rejected candidate row.
+  if (bundleManifestSource && bundleManifestPath && (!Object.values(bundleMap || {}).some((entry) => entry && typeof entry === 'object' && entry.wire))) {
+    const sidecar = path.join(run, 'bundle-manifest-toolkit-v2.json');
+    if (fs.existsSync(sidecar)) {
+      const sidecarValue = readJson(sidecar, 'bundle-manifest-toolkit-v2.json').value;
+      if (isPlainObject(sidecarValue) && isPlainObject(sidecarValue.cases) && Object.values(sidecarValue.cases).some((entry) => entry && typeof entry === 'object' && entry.wire)) {
+        wireMappingManifestSource = sidecar;
+        wireMappingMap = sidecarValue.cases;
+        bundleMap = Object.fromEntries(Object.entries(bundleMap || {}).map(([id, entry]) => [id, {
+          ...(isPlainObject(entry) ? entry : { bundle: entry }),
+          ...(isPlainObject(wireMappingMap[id]) ? Object.fromEntries(['dir', 'bundle', 'path', 'stack', 'fixture', 'wire', 'turn', 'context'].filter((key) => wireMappingMap[id][key] !== undefined).map((key) => [key, wireMappingMap[id][key]])) : {})
+        }]));
+      }
+    }
+  }
   let bundleManifestRef = null;
   if (bundleManifestSource) {
-    const sourceBytes = readRegular(bundleManifestSource, 'bundle-manifest.json');
-    bundleManifestRef = writeArtifact(outRoot, 'raw/bundle-manifest.json', sourceBytes);
+    const sourceBytes = readRegular(bundleManifestSource, path.basename(bundleManifestSource));
+    bundleManifestRef = writeArtifact(outRoot, `raw/${path.basename(bundleManifestSource)}`, sourceBytes);
   }
+  let wireMappingManifestRef = null;
+  if (wireMappingManifestSource) {
+    const sourceBytes = readRegular(wireMappingManifestSource, path.basename(wireMappingManifestSource));
+    wireMappingManifestRef = writeArtifact(outRoot, `raw/${path.basename(wireMappingManifestSource)}`, sourceBytes);
+  }
+  const strictMapping = Boolean(bundleManifestSource || bundles);
+  const visualReview = readVisualReview(run, outRoot);
   const files = { ...defaultMap, ...caseFiles };
   const bundleFor = (descriptor) => {
     // A manifest entry is a complete per-case bundle declaration. Do not
     // silently fall back to a legacy shared-run turn name when a fresh bundle
     // uses its own `turn.json` (or another discovered JSON report).
     const entry = bundleMap?.[descriptor.id];
-    if (entry !== undefined) return resolveBundle(run, entry, {});
+    if (entry !== undefined) return resolveBundle(run, entry, {}, { requireWire: strictMapping });
     return resolveBundle(run, undefined, {
       stack: caseFiles.stack || 'stack.json',
       fixture: caseFiles.fixture || 'fixture.json',
@@ -804,23 +1191,23 @@ export function produceCandidate(matrix, runDir, outRoot, { operation = 'mimicGl
       if (bundle.declaredFixture.bytes !== undefined && bundle.declaredFixture.bytes !== fixtureRead.bytes.length) fail(`${descriptor.id} declared fixture bytes does not match opened fixture bytes`);
       if (bundle.declaredFixture.path !== undefined && path.basename(bundle.declaredFixture.path) !== path.basename(bundle.fixture)) fail(`${descriptor.id} declared fixture path does not match the selected fixture file`);
     }
-    const wireName = discoverWire(bundle.dir, bundle.wire);
+    const wireName = strictMapping ? bundle.wire : discoverWire(bundle.dir, bundle.wire);
     const turnName = discoverTurn(bundle.dir, bundle.turn);
-    if (!wireName) fail(`${descriptor.id} bundle has no wire JSONL trace`);
     if (!turnName) fail(`${descriptor.id} bundle has no turn JSON report`);
-    const wireRead = readJsonl(bundleFile(bundle, wireName, `${descriptor.id}/wire`), `${descriptor.id}/${wireName}`);
+    const wireRead = wireName ? readJsonl(bundleFile(bundle, wireName, `${descriptor.id}/wire`), `${descriptor.id}/${wireName}`) : null;
     const turnRead = readJson(bundleFile(bundle, turnName, `${descriptor.id}/turn`), `${descriptor.id}/${turnName}`);
     const contextRead = bundle.context
       ? readJson(bundleFile(bundle, bundle.context, `${descriptor.id}/context`), `${descriptor.id}/${bundle.context}`)
       : null;
     const prefix = `raw/${descriptor.id}`;
     const rawRefs = {
-      stack: copyRaw(bundle.dir, outRoot, bundle.stack, `${prefix}/stack.json`),
-      fixture: copyRaw(bundle.dir, outRoot, bundle.fixture, `${prefix}/fixture.json`),
-      wire: copyRaw(bundle.dir, outRoot, wireName, `${prefix}/${wireName}`),
-      turn: copyRaw(bundle.dir, outRoot, turnName, `${prefix}/${turnName}`)
+      runRoot: run,
+      stack: copyRaw(bundle.dir, outRoot, bundle.stack, `${prefix}/stack.json`, run),
+      fixture: copyRaw(bundle.dir, outRoot, bundle.fixture, `${prefix}/fixture.json`, run),
+      ...(wireName ? { wire: copyRaw(bundle.dir, outRoot, wireName, `${prefix}/${wireName}`, run) } : {}),
+      turn: copyRaw(bundle.dir, outRoot, turnName, `${prefix}/${turnName}`, run)
     };
-    if (contextRead) rawRefs.context = copyRaw(bundle.dir, outRoot, bundle.context, `${prefix}/${bundle.context}`);
+    if (contextRead) rawRefs.context = copyRaw(bundle.dir, outRoot, bundle.context, `${prefix}/${bundle.context}`, run);
     const loaded = { bundle, stackRead, fixtureRead, wireRead, turnRead, contextRead, wireName, turnName, rawRefs, fixtureBindingMismatch: stackRead.value.fixture?.sha256 !== rawRefs.fixture.sha256 };
     bundleCache.set(descriptor.id, loaded);
     return loaded;
@@ -830,9 +1217,12 @@ export function produceCandidate(matrix, runDir, outRoot, { operation = 'mimicGl
   if (!firstDescriptor) fail('no physical bundle is available');
   const first = loadBundle(firstDescriptor);
   const stackRead = first.stackRead;
-  const runtimeISO = stackRead.value.started;
   const timezone = 'America/New_York';
-  const runtime = { captureISO: runtimeISO, localDateISO: localDateISO(runtimeISO, timezone), timezone, fixtureGenerator: 'raw-run-private-fixture', wallClockBound: true, captureConditions: { pmDepartureAvailable: false } };
+  const firstAction = actionForRequest(first.turnRead.value, first.turnRead.value.followup?.calls?.[0]?.requestID) || lastAction(first.turnRead.value);
+  const firstContext = first.wireRead ? selectedWireConnection(first.wireRead.values, first.turnRead.value, firstAction).context : null;
+  const firstContextFields = firstContext ? contextSourceFields(firstContext) : null;
+  const runtimeISO = firstContextFields?.runtimeLocationISO || stackRead.value.started;
+  const runtime = { captureISO: runtimeISO, localDateISO: localDateISO(runtimeISO, timezone), timezone, fixtureGenerator: 'relative-to-local-date', wallClockBound: true, captureConditions: { pmDepartureAvailable: false } };
   const fixtureBindingMismatches = [];
   const turns = {};
   const contextByCase = {};
@@ -851,32 +1241,41 @@ export function produceCandidate(matrix, runDir, outRoot, { operation = 'mimicGl
       const loaded = loadBundle(descriptor);
       if (loaded.fixtureBindingMismatch) fixtureBindingMismatches.push({ caseId: descriptor.id, stackSha256: loaded.stackRead.value.fixture?.sha256, openedSha256: loaded.rawRefs.fixture.sha256 });
       turns[descriptor.id] = loaded.turnRead.value;
+      const contextAction = actionForRequest(loaded.turnRead.value, loaded.turnRead.value.followup?.calls?.[0]?.requestID) || lastAction(loaded.turnRead.value);
+      const fixtureCase = rawFixtureCase(loaded.fixtureRead.value, descriptor, loaded.bundle.declaredCaseId);
+      const stageIdentity = loaded.wireRead
+        ? rawStageIdentity(loaded.turnRead.value, loaded.wireRead, contextAction, loaded.rawRefs, descriptor, fixtureCase)
+        : { valid: false, errors: ['bundle manifest omitted explicit wire mapping'] };
+      if (!stageIdentity.valid) {
+        rows.push(rejectedRow(descriptor, loaded.rawRefs, stageIdentity.errors));
+        continue;
+      }
       const contextFields = contextSourceFields(loaded.contextRead?.value);
-      const contextAction = lastAction(loaded.turnRead.value);
       const targetContext = selectedWireConnection(loaded.wireRead.values, loaded.turnRead.value, contextAction).context;
-      const rawContextFields = targetContext ? { ...contextSourceFields(targetContext), sourceLine: loaded.wireRead.values.indexOf(targetContext) } : null;
+      const rawContextFields = targetContext ? { ...contextSourceFields(targetContext), sourceLine: loaded.wireRead.values.indexOf(targetContext), timezone: fixtureCase?.value?.meta?.timeZone, capturedAtISO: targetContext.at } : null;
       const contextISO = contextFields?.runtimeLocationISO || rawContextFields?.runtimeLocationISO || loaded.turnRead.value.started;
       const contextTimezone = contextFields?.timezone || rawContextFields?.timezone || timezone;
       contextByCase[descriptor.id] = { runtimeLocationISO: contextISO, timezone: contextTimezone, contextSha256: canonicalSha256({ runtimeLocationISO: contextISO, timezone: contextTimezone }) };
-      rows.push(deriveRow(matrix, descriptor, loaded.turnRead.value, loaded.fixtureRead.value, loaded.wireRead, outRoot, loaded.rawRefs, { ...runtime, captureISO: loaded.turnRead.value.started, localDateISO: localDateISO(loaded.turnRead.value.started, timezone) }, operation, loaded.contextRead, loaded.bundle.declaredCaseId, null));
+      rows.push(deriveRow(matrix, descriptor, loaded.turnRead.value, loaded.fixtureRead.value, loaded.wireRead, outRoot, loaded.rawRefs, { ...runtime, captureISO: loaded.turnRead.value.started, localDateISO: localDateISO(loaded.turnRead.value.started, timezone) }, operation, loaded.contextRead, loaded.bundle.declaredCaseId, visualReview));
     } else rows.push(missingRow(descriptor));
   }
   const rawRefs = first.rawRefs;
   const sourceRun = writeJson(outRoot, 'raw/run-manifest.json', {
-    schema: 'phoenix-s13-raw-run-manifest-v1', runDirectory: run, stack: rawRefs.stack, fixture: rawRefs.fixture, wire: rawRefs.wire,
+    schema: 'phoenix-s13-raw-run-manifest-v1', runDirectory: run, stack: rawRefs.stack, fixture: rawRefs.fixture, ...(rawRefs.wire ? { wire: rawRefs.wire } : {}),
     ...(bundleManifestRef ? { bundleManifest: bundleManifestRef } : {}),
+    ...(wireMappingManifestRef ? { wireMappingManifest: wireMappingManifestRef } : {}),
     fixtureBinding: { mismatches: fixtureBindingMismatches, matches: fixtureBindingMismatches.length === 0 },
     bundles: Object.fromEntries([...bundleCache.entries()].map(([id, loaded]) => [id, {
       directory: loaded.bundle.dir,
       ...(loaded.bundle.declaredCaseId !== undefined ? { caseId: loaded.bundle.declaredCaseId } : {}),
       stack: loaded.rawRefs.stack,
       fixture: loaded.rawRefs.fixture,
-      wire: loaded.rawRefs.wire,
+      ...(loaded.rawRefs.wire ? { wire: loaded.rawRefs.wire } : { wireMissing: true }),
       turn: loaded.rawRefs.turn,
       sourceNames: {
         stack: loaded.rawRefs.stack.sourceName,
         fixture: loaded.rawRefs.fixture.sourceName,
-        wire: loaded.rawRefs.wire.sourceName,
+        ...(loaded.rawRefs.wire ? { wire: loaded.rawRefs.wire.sourceName } : {}),
         turn: loaded.rawRefs.turn.sourceName,
         ...(loaded.rawRefs.context ? { context: loaded.rawRefs.context.sourceName } : {})
       },
@@ -890,18 +1289,21 @@ export function produceCandidate(matrix, runDir, outRoot, { operation = 'mimicGl
     task: 'S-13',
     claim: 'physical-display-only',
     phoenixRevision: stackRead.value.revision,
-    decision: 'open',
+    decision: 'blocked',
     taskStatus: 'open',
     complete: false,
+    candidateStatus: 'rejected',
     runtime,
     provenance: {
-      phoenix: { revision: stackRead.value.revision, baseRevision: matrix.baseRevision, worktree: stackRead.value.cwd, treeSha256: 'raw-stack-only', sourceManifestSha256: 'raw-stack-only' },
+      phoenix: { revision: stackRead.value.revision, baseRevision: matrix.baseRevision, worktree: stackRead.value.cwd },
       sourceRun,
       rawStack: rawRefs.stack,
       rawFixture: rawRefs.fixture,
-      rawWire: rawRefs.wire
+      ...(rawRefs.wire ? { rawWire: rawRefs.wire } : {}),
+      ...(visualReview?.ref ? { visualReview: visualReview.ref } : {}),
+      missingAnchors: ['phoenix.treeSha256', 'phoenix.sourceManifestSha256', 'be', 'client', 'nimbus', 'native', 'anchors.matrix', 'anchors.validator', 'anchors.falsifier']
     },
-    preflight: { operation, method: 'POST', endpoint: operation === 'startLocalTurn' ? '/listen/start_local_turn' : '/listen/mimic_global_turn', transportMode: operation === 'startLocalTurn' ? 'local' : 'global', bodyField: operation === 'startLocalTurn' ? 'nluRules' : 'clientASR', contextSource: 'raw-run-context', proven: false, context: { runtimeLocationISO: runtime.captureISO, timezone }, contextSha256: canonicalSha256({ runtimeLocationISO: runtime.captureISO, timezone }), contextByCase },
+    preflight: { operation, method: 'POST', endpoint: operation === 'startLocalTurn' ? '/listen/start_local_turn' : '/listen/mimic_global_turn', transportMode: operation === 'startLocalTurn' ? 'local' : 'global', bodyField: operation === 'startLocalTurn' ? 'nluRules' : 'clientASR', contextSource: operation === 'startLocalTurn' ? 'native-local-context' : 'fixture-scoped-runtime', proven: Object.keys(contextByCase).length > 0, context: { runtimeLocationISO: contextByCase[firstDescriptor.id]?.runtimeLocationISO || runtime.captureISO, timezone: contextByCase[firstDescriptor.id]?.timezone || timezone }, contextSha256: canonicalSha256({ runtimeLocationISO: contextByCase[firstDescriptor.id]?.runtimeLocationISO || runtime.captureISO, timezone: contextByCase[firstDescriptor.id]?.timezone || timezone }), contextByCase },
     matrix: { path: 'scripts/parity-s13-physical/matrix.json', sha256: matrixSha256(matrix), inventorySha256: canonicalSha256(matrixInventory(matrix)), baseRevision: matrix.baseRevision, caseCount: matrix.cases.length, orderedCaseIds: matrix.cases.map((item) => item.id) },
     falsification: { result: 'not-run', controls: [], controlsSha256: canonicalSha256([]) },
     limitations: [

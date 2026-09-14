@@ -182,6 +182,10 @@ function isObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
+function isRawTwoStage(actual) {
+  return isObject(actual?.stages) || Boolean(actual?.artifacts?.rawTurn && actual?.artifacts?.rawWire);
+}
+
 function isNonEmptyString(value) {
   return typeof value === 'string' && value.length > 0;
 }
@@ -558,6 +562,34 @@ function validateProviderFixture(descriptor, actual, refs, root, errors, label) 
     add(errors, same(fixture.events, descriptor.input?.events), `${label}.providerFixture.events do not match the ordered calendar fixture`);
     add(errors, fixture.calendarDateISO === actual.request?.calendarDateISO, `${label}.providerFixture.calendarDateISO does not bind request date`);
   }
+  if (descriptor.domain === 'commute' && actual.request?.prefsResolution?.generatedFrom === 'private-fixture-work-time') {
+    if (requireObject(errors, fixture.workTime, `${label}.providerFixture.workTime`)) {
+      add(errors, fixture.workTime.source === 'private-fixture-work-time', `${label}.providerFixture.workTime.source must bind immutable fixture bytes`);
+      const rawFixture = refs?.rawFixture ? parseJsonBytes(refs.rawFixture, errors, `${label}.artifacts.rawFixture`) : null;
+      const sourceKey = fixture.sourceFixture?.caseKey;
+      const sourceCase = rawFixture?.cases?.[sourceKey];
+      add(errors, Boolean(sourceCase), `${label}.providerFixture.workTime source fixture case is missing`);
+      if (sourceCase) {
+        add(errors, fixture.workTime.dateISO === sourceCase.meta?.date, `${label}.providerFixture.workTime.dateISO does not bind fixture date`);
+        add(errors, fixture.workTime.timeZone === sourceCase.meta?.timeZone, `${label}.providerFixture.workTime.timeZone does not bind fixture timezone`);
+        add(errors, fixture.workTime.hour === sourceCase.meta?.workTime?.hour, `${label}.providerFixture.workTime.hour does not bind fixture work time`);
+        add(errors, fixture.workTime.min === sourceCase.meta?.workTime?.min, `${label}.providerFixture.workTime.min does not bind fixture work time`);
+        add(errors, actual.request?.prefs?.workDateISO === sourceCase.meta?.date, `${label}.request.prefs.workDateISO does not bind fixture date`);
+        add(errors, actual.request?.prefs?.workHour === sourceCase.meta?.workTime?.hour, `${label}.request.prefs.workHour does not bind fixture work time`);
+        add(errors, actual.request?.prefs?.workMin === sourceCase.meta?.workTime?.min, `${label}.request.prefs.workMin does not bind fixture work time`);
+      }
+    }
+    if (requireObject(errors, actual.request?.prefsResolution, `${label}.request.prefsResolution`)) {
+      add(errors, actual.request.prefsResolution.sourceFixture?.sha256 === actual.artifacts?.rawFixture?.sha256, `${label}.request.prefsResolution source fixture hash does not bind raw fixture`);
+      add(errors, actual.request.prefsResolution.sourceFixture?.path === actual.artifacts?.rawFixture?.path, `${label}.request.prefsResolution source fixture path does not bind raw fixture`);
+      add(errors, same(actual.request.prefsResolution.workTime, {
+        dateISO: fixture.workTime?.dateISO,
+        timeZone: fixture.workTime?.timeZone,
+        hour: fixture.workTime?.hour,
+        min: fixture.workTime?.min
+      }), `${label}.request.prefsResolution.workTime does not bind provider fixture work time`);
+    }
+  }
   if (fixture.sourceFixture !== undefined) {
     if (requireObject(errors, fixture.sourceFixture, `${label}.providerFixture.sourceFixture`)) {
       add(errors, fixture.sourceFixture.path === actual.artifacts?.rawFixture?.path, `${label}.providerFixture.sourceFixture.path does not bind raw fixture artifact`);
@@ -667,6 +699,27 @@ function validateProvenance(receipt, matrix, root, errors) {
                   add(errors, sourceNames.context === configuredName, `receipt raw run bundle manifest ${caseId}.context does not bind source file`);
                 }
               }
+            }
+          }
+        }
+        if (sourceRun.wireMappingManifest !== undefined) {
+          const mappingRef = validateArtifactRef(sourceRun.wireMappingManifest, root, errors, 'receipt raw run wireMappingManifest');
+          const mapping = mappingRef ? parseJsonBytes(mappingRef, errors, 'receipt raw run wireMappingManifest') : null;
+          add(errors, mapping?.schema === 'phoenix-s13-bundle-manifest-v1', 'receipt raw run wire mapping manifest schema is invalid');
+          if (mapping && requireObject(errors, mapping.cases, 'receipt raw run wire mapping manifest cases')) {
+            for (const [caseId, entry] of Object.entries(mapping.cases)) {
+              const sourceBundle = sourceRun.bundles?.[caseId];
+              if (!sourceBundle) {
+                errors.push(`receipt raw run wire mapping manifest ${caseId} has no source bundle`);
+                continue;
+              }
+              const configuredDir = typeof entry === 'string' ? entry : entry?.dir || entry?.bundle || entry?.path;
+              if (configuredDir) add(errors, path.resolve(sourceRun.runDirectory, configuredDir) === sourceBundle.directory, `receipt raw run wire mapping manifest ${caseId} directory does not bind source bundle`);
+              const configuredWire = typeof entry === 'object' ? entry.wire : undefined;
+              const configured = typeof configuredWire === 'string' ? configuredWire : configuredWire?.path;
+              const bundleDirectory = path.resolve(sourceBundle.directory);
+              const configuredName = typeof configured === 'string' ? path.relative(bundleDirectory, path.resolve(bundleDirectory, configured)) : null;
+              add(errors, configuredName === sourceBundle.sourceNames?.wire, `receipt raw run wire mapping manifest ${caseId}.wire does not bind source file`);
             }
           }
         }
@@ -794,22 +847,29 @@ function validateRequest(descriptor, actual, errors, label, allowedRequest, pref
     requireString(errors, actual.locationISO, `${label}.locationISO`);
     add(errors, !Number.isNaN(Date.parse(actual.locationISO)), `${label}.locationISO must be an ISO timestamp`);
     add(errors, actual.locationISO === preflight?.context?.runtimeLocationISO, `${label}.locationISO must equal the preflight runtime context`);
-    add(errors, actual.locationMode === 'capture-local-clock', `${label}.locationMode must be capture-local-clock`);
+    const fixtureWorkTime = actual.prefsResolution?.generatedFrom === 'private-fixture-work-time';
+    add(errors, fixtureWorkTime || actual.locationMode === 'capture-local-clock', `${label}.locationMode must be capture-local-clock or private-fixture-work-time`);
     add(errors, isObject(actual.prefs) && actual.prefs.mode === descriptor.input?.prefsPolicy?.mode, `${label}.prefs.mode does not match the matrix policy`);
     add(errors, actual.prefs?.baseSeconds === descriptor.input?.prefsPolicy?.baseSeconds, `${label}.prefs.baseSeconds does not match the matrix policy`);
     add(errors, actual.prefs?.trafficSeconds === descriptor.input?.prefsPolicy?.trafficSeconds, `${label}.prefs.trafficSeconds does not match the matrix policy`);
     add(errors, Number.isInteger(actual.prefs?.workHour) && Number.isInteger(actual.prefs?.workMin), `${label}.prefs must contain resolved wall-clock workHour/workMin`);
     requireString(errors, actual.prefs?.workDateISO, `${label}.prefs.workDateISO`);
     add(errors, /^\d{4}-\d{2}-\d{2}$/.test(actual.prefs?.workDateISO || ''), `${label}.prefs.workDateISO must be YYYY-MM-DD`);
-    const resolvedSchedule = resolveCommuteSchedule(actual.locationISO, descriptor.input?.prefsPolicy?.schedule, 'America/New_York');
+    const resolvedSchedule = fixtureWorkTime ? null : resolveCommuteSchedule(actual.locationISO, descriptor.input?.prefsPolicy?.schedule, 'America/New_York');
     if (resolvedSchedule) {
       add(errors, actual.prefs.workHour === resolvedSchedule.hour, `${label}.prefs.workHour is not derived from capture-local-clock`);
       add(errors, actual.prefs.workMin === resolvedSchedule.minute, `${label}.prefs.workMin is not derived from capture-local-clock`);
       add(errors, actual.prefs.workDateISO === resolvedSchedule.dateISO, `${label}.prefs.workDateISO is not derived from capture-local-clock`);
-    } else errors.push(`${label}.prefs policy cannot be resolved`);
+    } else if (!fixtureWorkTime) errors.push(`${label}.prefs policy cannot be resolved`);
     if (requireObject(errors, actual.prefsResolution, `${label}.prefsResolution`)) {
       add(errors, actual.prefsResolution.schedule === descriptor.input?.prefsPolicy?.schedule, `${label}.prefsResolution.schedule does not match the matrix policy`);
-      add(errors, actual.prefsResolution.generatedFrom === 'capture-local-clock', `${label}.prefsResolution.generatedFrom must be capture-local-clock`);
+      add(errors, ['capture-local-clock', 'private-fixture-work-time'].includes(actual.prefsResolution.generatedFrom), `${label}.prefsResolution.generatedFrom is unsupported`);
+      if (fixtureWorkTime) {
+        add(errors, actual.prefsResolution.generatedFrom === 'private-fixture-work-time', `${label}.prefsResolution.generatedFrom must bind private fixture work time`);
+        add(errors, actual.prefsResolution.source === 'private-fixture-work-time', `${label}.prefsResolution.source must bind private fixture work time`);
+        add(errors, isObject(actual.prefsResolution.sourceFixture), `${label}.prefsResolution.sourceFixture must identify raw fixture bytes`);
+        add(errors, isObject(actual.prefsResolution.workTime), `${label}.prefsResolution.workTime must identify fixture work time`);
+      }
       add(errors, actual.prefsResolution.workDateISO === actual.prefs.workDateISO, `${label}.prefsResolution.workDateISO does not bind resolved prefs`);
       requireDigest(errors, actual.prefsResolution.sha256, `${label}.prefsResolution.sha256`);
       add(errors, actual.prefsResolution.sha256 === canonicalSha256(actual.prefs), `${label}.prefsResolution.sha256 does not match resolved prefs`);
@@ -932,16 +992,41 @@ function validateAction(descriptor, actual, errors, label, context = actual, sel
 function validateLogsAndCorrelation(descriptor, actual, errors, label, selectedOperation) {
   if (!requireObject(errors, actual.correlation, `${label}.correlation`)) return;
   const correlation = actual.correlation;
+  const rawTwoStage = isRawTwoStage(actual);
   requireString(errors, correlation.requestID, `${label}.correlation.requestID`);
   requireString(errors, correlation.ackRequestID, `${label}.correlation.ackRequestID`);
   requireString(errors, correlation.transID, `${label}.correlation.transID`);
   add(errors, correlation.requestID === correlation.transID, `${label}.correlation requestID/transID mismatch`);
-  add(errors, correlation.ackRequestID === correlation.transID, `${label}.correlation ackRequestID/transID mismatch`);
+  add(errors, rawTwoStage ? correlation.ackRequestID === correlation.initialRequestID : correlation.ackRequestID === correlation.transID, rawTwoStage ? `${label}.correlation ACK must bind Tg initial request` : `${label}.correlation ackRequestID/transID mismatch`);
   add(errors, correlation.caseId === descriptor.id, `${label}.correlation.caseId does not bind matrix case`);
   add(errors, correlation.operation === selectedOperation, `${label}.correlation.operation does not bind selected operation`);
   requireString(errors, correlation.connectionId, `${label}.correlation.connectionId`);
   requireString(errors, correlation.nativeActionEventId, `${label}.correlation.nativeActionEventId`);
   requireString(errors, correlation.wireActionMessageId, `${label}.correlation.wireActionMessageId`);
+  if (rawTwoStage) {
+    if (requireObject(errors, actual.stages, `${label}.stages`)) {
+      const initial = actual.stages.initial;
+      const followup = actual.stages.followup;
+      const shared = actual.stages.sharedSkillSession;
+      requireString(errors, initial?.requestID, `${label}.stages.initial.requestID`);
+      requireString(errors, followup?.requestID, `${label}.stages.followup.requestID`);
+      add(errors, initial?.requestID === correlation.ackRequestID, `${label}.stages.initial.requestID does not bind turn ACK`);
+      add(errors, followup?.requestID === correlation.requestID, `${label}.stages.followup.requestID does not bind final correlation`);
+      add(errors, followup?.transID === correlation.transID, `${label}.stages.followup.transID does not bind final correlation`);
+      add(errors, initial?.connectionId === 'wire-connection-1', `${label}.stages.initial must bind conn1`);
+      add(errors, followup?.connectionId === 'wire-connection-2', `${label}.stages.followup must bind conn2`);
+      add(errors, followup?.call?.statusBeforeUpdate === 'ACTIVE', `${label}.stages.followup.call must bind ACTIVE status before update`);
+      add(errors, followup?.call?.updateCompleted === true, `${label}.stages.followup.call must bind updateCompleted:true`);
+      add(errors, shared?.same === true, `${label}.stages.sharedSkillSession must bind one skill session`);
+      add(errors, shared?.id === correlation.skillSessionId, `${label}.stages.sharedSkillSession.id does not bind correlation`);
+      add(errors, initial?.ack?.source === 'turn.json.ack.requestID', `${label}.stages.initial ACK source must be turn.json`);
+      add(errors, initial?.ack?.requestID === initial?.requestID, `${label}.stages.initial ACK requestID does not bind Tg`);
+      add(errors, initial?.action?.viewId === 'whoIsThisMenu', `${label}.stages.initial action must bind whoIsThisMenu`);
+      add(errors, Array.isArray(initial?.action?.mimIds) && initial.action.mimIds.includes('PersonalReportWhoIsThis'), `${label}.stages.initial action must bind PersonalReportWhoIsThis`);
+      requireDigest(errors, initial?.action?.rawActionSha256, `${label}.stages.initial.action.rawActionSha256`);
+      requireDigest(errors, followup?.action?.rawActionSha256, `${label}.stages.followup.action.rawActionSha256`);
+    }
+  }
   if (!requireObject(errors, actual.logs, `${label}.logs`)) return;
   const { native, wire } = actual.logs;
   if (requireObject(errors, native, `${label}.logs.native`)) {
@@ -953,7 +1038,7 @@ function validateLogsAndCorrelation(descriptor, actual, errors, label, selectedO
   if (requireObject(errors, wire, `${label}.logs.wire`)) {
     add(errors, Number.isInteger(wire.messageCount) && wire.messageCount > 0, `${label}.logs.wire.messageCount must be positive`);
     add(errors, Number.isInteger(wire.actionMessageIndex) && wire.actionMessageIndex >= 0 && wire.actionMessageIndex < wire.messageCount, `${label}.logs.wire.actionMessageIndex is out of range`);
-    add(errors, Number.isInteger(wire.ackMessageIndex) && wire.ackMessageIndex >= 0 && wire.ackMessageIndex < wire.messageCount, `${label}.logs.wire.ackMessageIndex is out of range`);
+    add(errors, rawTwoStage ? wire.ackMessageIndex === -1 : (Number.isInteger(wire.ackMessageIndex) && wire.ackMessageIndex >= 0 && wire.ackMessageIndex < wire.messageCount), rawTwoStage ? `${label}.logs.wire.ackMessageIndex must be -1 when raw wire has no ACK` : `${label}.logs.wire.ackMessageIndex is out of range`);
     add(errors, wire.actionMessageId === correlation.wireActionMessageId, `${label}.logs.wire.actionMessageId does not correlate`);
     requireString(errors, wire.connectionId, `${label}.logs.wire.connectionId`);
     add(errors, wire.connectionId === correlation.connectionId, `${label}.logs.wire.connectionId does not correlate`);
@@ -1061,7 +1146,7 @@ function validateArtifacts(actual, root, errors, label) {
   for (const name of ['stackReceipt', 'nativeReport', 'wireTrace', 'providerTrace', 'actionPayload', 'providerFixture', 'contextAnchor', 'visualReview']) {
     refs[name] = validateArtifactRef(actual.artifacts[name], root, errors, `${label}.artifacts.${name}`);
   }
-  for (const name of ['rawTurn', 'rawFixture']) {
+  for (const name of ['rawTurn', 'rawFixture', 'rawWire']) {
     if (actual.artifacts[name] !== undefined) refs[name] = validateArtifactRef(actual.artifacts[name], root, errors, `${label}.artifacts.${name}`);
   }
   return refs;
@@ -1072,6 +1157,34 @@ function validateVisualReview(descriptor, actual, refs, errors, label) {
   if (!ref) return;
   const review = parseJsonBytes(ref, errors, `${label}.artifacts.visualReview`);
   if (!review) return;
+  if (review.schema === 'phoenix-s13-visual-review-v2') {
+    requireString(errors, review.reviewer, `${label}.visualReview.reviewer`);
+    add(errors, timestampMs(review.reviewedAt) !== null, `${label}.visualReview.reviewedAt must be an ISO timestamp`);
+    add(errors, review.allPassed === true, `${label}.visualReview.allPassed must be true`);
+    const records = Array.isArray(review.reviews) ? review.reviews : null;
+    if (!records) {
+      errors.push(`${label}.visualReview.reviews must be an array`);
+      return;
+    }
+    const expected = Array.isArray(actual.screenshots) ? actual.screenshots : [];
+    const matches = expected.map((shot, index) => {
+      const sourcePath = shot?.sourceScreenshot?.filename;
+      const relative = typeof review.captureRoot === 'string' && typeof sourcePath === 'string'
+        ? path.relative(path.resolve(review.captureRoot), path.resolve(sourcePath)).split(path.sep).join('/')
+        : null;
+      const captureOrdinal = shot?.sourceScreenshot?.captureOrdinal;
+      const record = records.find((item) => item?.case === descriptor.id && item?.captureOrdinal === captureOrdinal && item?.viewId === shot?.viewId && item?.sha256 === shot?.sha256);
+      add(errors, Boolean(record), `${label}.visualReview.reviews does not bind screenshot ${index}`);
+      if (record) {
+        add(errors, record.path === relative, `${label}.visualReview review path does not bind screenshot ${index}`);
+        add(errors, record.bytes === shot.bytes, `${label}.visualReview review byte count does not bind screenshot ${index}`);
+        add(errors, record.verdict === 'pass', `${label}.visualReview review verdict must be pass for screenshot ${index}`);
+      }
+      return record;
+    });
+    add(errors, matches.every(Boolean), `${label}.visualReview does not cover every captured screenshot`);
+    return;
+  }
   add(errors, review.schema === 's13-visual-review-v1', `${label}.visualReview.schema is unsupported`);
   requireString(errors, review.reviewer, `${label}.visualReview.reviewer`);
   add(errors, timestampMs(review.reviewedAt) !== null, `${label}.visualReview.reviewedAt must be an ISO timestamp`);
@@ -1134,8 +1247,63 @@ function validateContextAnchor(descriptor, actual, refs, preflight, errors, labe
   return anchor;
 }
 
+function validateRawTwoStageEvidence(descriptor, actual, refs, errors, label) {
+  add(errors, Boolean(refs?.rawTurn), `${label}.artifacts.rawTurn is required for raw two-stage identity`);
+  add(errors, Boolean(refs?.rawWire), `${label}.artifacts.rawWire is required for raw two-stage identity`);
+  add(errors, Boolean(refs?.rawFixture), `${label}.artifacts.rawFixture is required for raw two-stage identity`);
+  const rawTurn = parseJsonBytes(refs?.rawTurn, errors, `${label}.artifacts.rawTurn`);
+  const rawWire = parseJsonlBytes(refs?.rawWire, errors, `${label}.artifacts.rawWire`);
+  if (!rawTurn || !Array.isArray(rawWire) || !requireObject(errors, actual.stages, `${label}.stages`)) return;
+  const initialID = rawTurn.ack?.requestID;
+  const followup = rawTurn.followup?.calls?.[0];
+  const followupID = followup?.requestID;
+  const eventRows = Array.isArray(rawTurn.events) ? rawTurn.events : [];
+  const actionFor = (id) => eventRows.find((row) => row?.event?.type === 'SKILL_ACTION' && (row.event.requestID === id || row.event.transID === id));
+  const initialAction = actionFor(initialID);
+  const finalAction = actionFor(followupID);
+  const connectionFor = (id) => rawWire.find((row) => row?.kind === 'connection' && row.transID === id)?.id;
+  const initialConnection = connectionFor(initialID);
+  const followupConnection = connectionFor(followupID);
+  const hasOnConnection = (id, predicate) => rawWire.some((row) => row?.id === id && predicate(row));
+  add(errors, typeof initialID === 'string' && initialID.length > 0, `${label}.rawTurn ACK requestID (Tg) is missing`);
+  add(errors, typeof followupID === 'string' && followupID.length > 0, `${label}.rawTurn followup requestID (Tl) is missing`);
+  add(errors, Boolean(initialAction), `${label}.rawTurn Tg action is missing`);
+  add(errors, Boolean(finalAction), `${label}.rawTurn Tl action is missing`);
+  add(errors, initialConnection === 1, `${label}.rawWire Tg action must bind conn1`);
+  add(errors, followupConnection === 2, `${label}.rawWire Tl stages must bind conn2`);
+  add(errors, rawWire.filter((row) => row?.kind === 'connection' && row.transID === initialID).length === 1, `${label}.rawWire must contain exactly one Tg connection`);
+  add(errors, rawWire.filter((row) => row?.kind === 'connection' && row.transID === followupID).length === 1, `${label}.rawWire must contain exactly one Tl connection`);
+  add(errors, hasOnConnection(1, (row) => row.kind === 'server-message' && row.json?.type === 'SKILL_ACTION'), `${label}.rawWire conn1 initial action is missing`);
+  add(errors, hasOnConnection(2, (row) => row.kind === 'client-message' && row.json?.type === 'CONTEXT' && row.json?.transID === followupID), `${label}.rawWire conn2 Tl context is missing`);
+  add(errors, hasOnConnection(2, (row) => row.kind === 'server-message' && row.json?.type === 'SKILL_ACTION'), `${label}.rawWire conn2 final action is missing`);
+  add(errors, rawWire.filter((row) => row?.id === 1 && row.kind === 'server-message' && row.json?.type === 'SKILL_ACTION').length === 1, `${label}.rawWire conn1 must contain exactly one action`);
+  add(errors, rawWire.filter((row) => row?.id === 2 && row.kind === 'server-message' && row.json?.type === 'SKILL_ACTION').length === 1, `${label}.rawWire conn2 must contain exactly one action`);
+  const stageIDs = new Set([initialID, followupID].filter(Boolean));
+  rawWire.forEach((row, index) => {
+    if (row?.kind === 'connection' && row.transID && !stageIDs.has(row.transID)) errors.push(`${label}.rawWire line ${index} is a shadow connection`);
+    if (row?.kind === 'client-message' && ['CONTEXT', 'CLIENT_ASR'].includes(row.json?.type) && row.json?.transID && !stageIDs.has(row.json.transID)) errors.push(`${label}.rawWire line ${index} is a shadow ${row.json.type}`);
+  });
+  add(errors, !rawWire.some((row) => row?.type === 'ack'), `${label}.rawWire must not contain a synthetic ACK`);
+  add(errors, !rawWire.some((row) => row?.type === 'idle'), `${label}.rawWire must not contain synthetic idle`);
+  const stages = actual.stages;
+  add(errors, stages.initial?.requestID === initialID, `${label}.stages.initial.requestID does not bind raw turn ACK`);
+  add(errors, stages.followup?.requestID === followupID, `${label}.stages.followup.requestID does not bind raw turn followup`);
+  add(errors, same(stages.followup?.call, followup), `${label}.stages.followup.call does not bind raw turn followup`);
+  add(errors, stages.initial?.ack?.rawTurnSha256 === refs.rawTurn?.sha256, `${label}.stages.initial ACK does not bind raw turn bytes`);
+  add(errors, stages.sharedSkillSession?.same === true, `${label}.stages.sharedSkillSession is not shared`);
+  add(errors, stages.sharedSkillSession?.id === initialAction?.event?.data?.skill?.session?.id, `${label}.stages.sharedSkillSession does not bind Tg session`);
+  add(errors, stages.sharedSkillSession?.id === finalAction?.event?.data?.skill?.session?.id, `${label}.stages.sharedSkillSession does not bind Tl session`);
+  if (initialAction?.event?.data?.action) {
+    add(errors, stages.initial?.action?.rawActionSha256 === sha256Text(JSON.stringify(initialAction.event.data.action)), `${label}.stages.initial action hash does not bind raw turn bytes`);
+    add(errors, stages.initial?.action?.viewId === 'whoIsThisMenu', `${label}.stages.initial action does not bind whoIsThisMenu`);
+  }
+  if (finalAction?.event?.data?.action) add(errors, stages.followup?.action?.rawActionSha256 === sha256Text(JSON.stringify(finalAction.event.data.action)), `${label}.stages.followup action hash does not bind raw turn bytes`);
+}
+
 function validateTraceArtifacts(descriptor, actual, refs, runtime, root, errors, label, selectedOperation) {
   if (!refs) return;
+  const rawTwoStage = isRawTwoStage(actual);
+  if (rawTwoStage) validateRawTwoStageEvidence(descriptor, actual, refs, errors, label);
   const stack = parseJsonBytes(refs.stackReceipt, errors, `${label}.artifacts.stackReceipt`);
   const native = parseJsonBytes(refs.nativeReport, errors, `${label}.artifacts.nativeReport`);
   const wire = parseJsonlBytes(refs.wireTrace, errors, `${label}.artifacts.wireTrace`);
@@ -1294,7 +1462,7 @@ function validateTraceArtifacts(descriptor, actual, refs, runtime, root, errors,
     add(errors, actionIndex >= 0 && same(wire[actionIndex]?.payload, actual.action?.payload?.wire), `${label}.wireTrace action payload does not bind wire action`);
     add(errors, actionIndex >= 0 && wire[actionIndex]?.messageId === actual.correlation?.wireActionMessageId, `${label}.wireTrace action message ID does not bind correlation`);
     add(errors, wire.every((record) => record?.connectionId === actual.correlation?.connectionId), `${label}.wireTrace connection IDs do not bind correlation`);
-    add(errors, idleIndex === wire.length - 1, `${label}.wireTrace final record must be idle`);
+    add(errors, rawTwoStage ? idleIndex === -1 : idleIndex === wire.length - 1, rawTwoStage ? `${label}.wireTrace must preserve raw wire without synthetic idle` : `${label}.wireTrace final record must be idle`);
     if (idleIndex >= 0) {
       add(errors, wire[idleIndex]?.finalState === 'idle', `${label}.wireTrace final idle state is not idle`);
       add(errors, wire[idleIndex]?.timestampISO === actual.timeline?.idle?.observedAtISO, `${label}.wireTrace idle timestamp does not bind timeline idle`);
@@ -1319,11 +1487,37 @@ function validateTraceArtifacts(descriptor, actual, refs, runtime, root, errors,
       add(errors, ack.payloadSha256 === actual.action?.wireCanonicalSha256, `${label}.wireTrace ack.payloadSha256 does not bind wire payload hash`);
       add(errors, ack.actionPayloadSha256 === actual.action?.payloadSha256, `${label}.wireTrace ack.actionPayloadSha256 does not bind action payload hash`);
       add(errors, actual.logs?.wire?.ackPayloadSha256 === ack.payloadSha256, `${label}.logs.wire.ackPayloadSha256 does not bind ACK payload hash`);
-    } else errors.push(`${label}.wireTrace must contain an ACK record`);
+    } else if (!rawTwoStage) errors.push(`${label}.wireTrace must contain an ACK record`);
   }
 
   if (provider.length) {
-    provider.forEach((record, index) => identity(record, `${label}.providerTrace[${index}]`));
+    provider.forEach((record, index) => {
+      const recordLabel = `${label}.providerTrace[${index}]`;
+      // Provider fixture calls are preserved byte-for-byte from the raw
+      // capture.  The SDK only stamped transID on the settings call; maps,
+      // Google Calendar, and Outlook records intentionally have no request
+      // identity.  Validate their local binding and source bytes without
+      // inventing an identity the wire did not provide.
+      if (rawTwoStage && record?.type === 'provider-call' && !record.requestID && !record.transID) {
+        if (!requireObject(errors, record, recordLabel)) return;
+        add(errors, record.caseId === descriptor.id, `${recordLabel}.caseId does not bind matrix case`);
+        add(errors, record.operation === selectedOperation, `${recordLabel}.operation does not bind selected preflight`);
+        const time = requireTimestamp(errors, record.timestampISO, `${recordLabel}.timestampISO`);
+        requireObject(errors, record.rawRecord, `${recordLabel}.rawRecord`);
+        requireObject(errors, record.source, `${recordLabel}.source`);
+        if (record.rawRecord && record.source) {
+          add(errors, record.source.sha256 === canonicalSha256(record.rawRecord), `${recordLabel}.source.sha256 does not bind raw provider bytes`);
+          add(errors, record.rawRecord.kind === 'fixture-provider', `${recordLabel}.rawRecord.kind must be fixture-provider`);
+          add(errors, record.rawRecord.at === record.timestampISO, `${recordLabel}.rawRecord timestamp does not bind normalized call`);
+        }
+        if (time !== null) {
+          records.push({ record, time, label: recordLabel });
+          times.push(time);
+        }
+        return;
+      }
+      identity(record, recordLabel);
+    });
     const calls = provider.filter((record) => record?.type === 'provider-call');
     add(errors, calls.length > 0, `${label}.providerTrace must contain a provider-call record`);
     calls.forEach((record, index) => {
@@ -1332,10 +1526,10 @@ function validateTraceArtifacts(descriptor, actual, refs, runtime, root, errors,
       add(errors, record.fixtureSha256 === actual.provider?.fixtureSha256, `${label}.providerTrace fixtureSha256 does not bind provider fixture artifact`);
     });
     const returns = provider.filter((record) => record?.type === 'provider-return');
-    add(errors, returns.length > 0, `${label}.providerTrace must contain a provider-return record`);
+    add(errors, rawTwoStage || returns.length > 0, rawTwoStage ? `${label}.providerTrace preserves raw provider call records without synthetic return` : `${label}.providerTrace must contain a provider-return record`);
     returns.forEach((record, index) => add(errors, same(record.provider, actual.provider), `${label}.providerTrace return ${index} does not bind actual provider projection`));
     const providerIdleIndex = provider.findIndex((record) => record?.type === 'idle');
-    add(errors, providerIdleIndex === provider.length - 1, `${label}.providerTrace final record must be idle`);
+    add(errors, rawTwoStage ? providerIdleIndex === -1 : providerIdleIndex === provider.length - 1, rawTwoStage ? `${label}.providerTrace must not synthesize idle` : `${label}.providerTrace final record must be idle`);
     if (providerIdleIndex >= 0) {
       add(errors, provider[providerIdleIndex]?.finalState === 'idle', `${label}.providerTrace final idle state is not idle`);
       add(errors, provider[providerIdleIndex]?.timestampISO === actual.timeline?.idle?.observedAtISO, `${label}.providerTrace idle timestamp does not bind timeline idle`);
@@ -1355,12 +1549,15 @@ function validateTraceArtifacts(descriptor, actual, refs, runtime, root, errors,
   const wireIdleTime = wireRecords.find((record) => record?.type === 'idle') ? timestampMs(wireRecords.find((record) => record?.type === 'idle').timestampISO) : null;
   add(errors, nativeActionTime !== null, `${label} native action timestamp is missing`);
   add(errors, wireActionTime !== null, `${label} wire action timestamp is missing`);
-  add(errors, nativeActionTime !== null && wireActionTime !== null && nativeActionTime === wireActionTime, `${label} native and wire action timestamps diverge`);
+  add(errors, rawTwoStage
+    ? (nativeActionTime !== null && wireActionTime !== null && Math.abs(nativeActionTime - wireActionTime) <= 1000)
+    : (nativeActionTime !== null && wireActionTime !== null && nativeActionTime === wireActionTime),
+  rawTwoStage ? `${label} native and wire action timestamps differ by more than raw capture skew` : `${label} native and wire action timestamps diverge`);
   add(errors, nativeRequestTime !== null && nativeActionTime !== null && nativeRequestTime <= nativeActionTime, `${label} native request occurs after native action`);
   add(errors, wireRequestTime !== null && wireActionTime !== null && wireRequestTime <= wireActionTime, `${label} wire request occurs after wire action`);
-  add(errors, wireAckTime !== null && wireActionTime !== null && wireAckTime >= wireActionTime, `${label} wire ACK occurs before wire action`);
+  add(errors, rawTwoStage || (wireAckTime !== null && wireActionTime !== null && wireAckTime >= wireActionTime), `${label} wire ACK occurs before wire action`);
   add(errors, nativeIdleTime !== null && nativeActionTime !== null && nativeIdleTime > nativeActionTime, `${label} native idle occurs before native action`);
-  add(errors, wireIdleTime !== null && wireAckTime !== null && wireIdleTime > wireAckTime, `${label} wire idle occurs before wire ACK`);
+  add(errors, rawTwoStage || (wireIdleTime !== null && wireAckTime !== null && wireIdleTime > wireAckTime), `${label} wire idle occurs before wire ACK`);
   const firstViewOpen = Array.isArray(actual.timeline?.views) && actual.timeline.views.length ? timestampMs(actual.timeline.views[0].openedAtISO) : null;
   const idleTime = timestampMs(actual.timeline?.idle?.observedAtISO);
   add(errors, firstViewOpen !== null && nativeActionTime !== null && nativeActionTime <= firstViewOpen, `${label} first view opens before the native action`);
@@ -1376,7 +1573,7 @@ function validateTraceArtifacts(descriptor, actual, refs, runtime, root, errors,
     });
   }
   add(errors, nativeIdleTime !== null && idleTime !== null && nativeIdleTime === idleTime, `${label} native idle does not bind timeline idle`);
-  add(errors, wireIdleTime !== null && idleTime !== null && wireIdleTime === idleTime, `${label} wire idle does not bind timeline idle`);
+  add(errors, rawTwoStage || (wireIdleTime !== null && idleTime !== null && wireIdleTime === idleTime), `${label} wire idle does not bind timeline idle`);
 
   const declaredStart = timestampMs(actual.traceRange?.startISO);
   const declaredEnd = timestampMs(actual.traceRange?.endISO);

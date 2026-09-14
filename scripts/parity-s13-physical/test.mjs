@@ -272,3 +272,41 @@ test('raw-run producer accepts an explicit per-case bundle manifest and binds it
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
+
+const privateV2Run = '/home/shell/.local/share/phoenix/moth/run/s13-recapture-6afe114-20260914T000704Z';
+test('v2 raw producer preserves two-stage identity and raw wire absence of ACK/idle', { skip: !fs.existsSync(privateV2Run) }, () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'phoenix-s13-v2-producer-'));
+  try {
+    const produced = produceCandidate(matrix, privateV2Run, root, {
+      bundleManifestPath: path.join(privateV2Run, 'bundle-manifest-v2.json')
+    });
+    const normal = produced.manifest.cases.find((item) => item.id === 'commute-normal-combined');
+    assert.equal(normal.status, 'pass');
+    assert.notEqual(normal.actual.correlation.ackRequestID, normal.actual.correlation.transID);
+    assert.equal(normal.actual.stages.initial.requestID, normal.actual.correlation.ackRequestID);
+    assert.equal(normal.actual.stages.followup.requestID, normal.actual.correlation.transID);
+    assert.equal(normal.actual.stages.initial.connectionId, 'wire-connection-1');
+    assert.equal(normal.actual.stages.followup.connectionId, 'wire-connection-2');
+    assert.equal(normal.actual.stages.sharedSkillSession.same, true);
+    const wire = fs.readFileSync(path.join(root, normal.actual.artifacts.wireTrace.path), 'utf8').trim().split(/\n/).map(JSON.parse);
+    assert.deepEqual(wire.map((item) => item.type), ['context', 'request', 'action']);
+    const provider = fs.readFileSync(path.join(root, normal.actual.artifacts.providerTrace.path), 'utf8').trim().split(/\n/).map(JSON.parse);
+    assert.ok(provider.length > 0);
+    assert.ok(provider.every((item) => item.type === 'provider-call'));
+    assert.equal(normal.actual.request.prefsResolution.generatedFrom, 'private-fixture-work-time');
+    assert.equal(normal.actual.request.prefs.workHour, 21);
+    assert.equal(normal.actual.request.prefs.workMin, 25);
+    const reviewSource = fs.readFileSync(path.join(privateV2Run, 'visual-review-v2.json'));
+    const reviewRef = normal.actual.artifacts.visualReview;
+    assert.equal(reviewRef.sha256, sha256Bytes(reviewSource));
+    assert.equal(fs.readFileSync(path.join(root, reviewRef.path)).equals(reviewSource), true);
+    const terrible = produced.manifest.cases.find((item) => item.id === 'commute-terrible-combined');
+    assert.equal(terrible.status, 'rejected');
+    assert.ok(terrible.rejectionReasons.some((reason) => /explicit wire mapping/.test(reason)));
+    assert.equal(produced.manifest.candidateStatus, 'rejected');
+    assert.equal(produced.manifest.provenance.phoenix.treeSha256, undefined);
+    assert.equal(produced.manifest.falsification.result, 'not-run');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
