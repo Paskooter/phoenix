@@ -91,6 +91,53 @@ One known divergence to carry into any side-effect comparison: Phoenix has no
 redis/mongo and keeps its stores in memory by design (see `DIVERGENCES.md`),
 while the original `history` requires mongo and `lasso` uses redis.
 
+## The prepared tree cannot run the original suites as it stands
+
+`parity-prepared.json` is explicit:
+
+```json
+"excludedWorkspaces": ["hub-client-cli", "integration-tests-ext", "integration-tests-int"],
+"installProfile": "Production dependencies for 15 server/client/library workspaces; no lifecycle scripts or development dependencies"
+```
+
+Root confirmed the consequence directly: `mocha`, `ts-node` and `mockgoose` are
+all absent from the vendored root `node_modules`. The prepared tree can run the
+services — which is why the hub booted and why the S-13 source differential
+works — but it cannot run the original test suites.
+
+Extending the prepare pass looks feasible. `scripts/parity-reference/prepare.py`
+routes Jibo-scoped packages to `https://pvindex.org/npm` and everything else to
+`https://registry.npmjs.org`, and both are reachable from here
+(`registry.npmjs.org/mocha` → 200, `pvindex.org/npm/` → 200). The suite's Jibo
+dependencies are not a registry problem either: `@jibo/test-utils` and
+`@jibo/hub` 404 on the archive because they are **workspace** packages present
+in the tree (`packages/test-utils/` ships built `lib/`), so yarn links them
+locally.
+
+So the path is to add the three excluded workspaces and their development
+dependencies to the prepare profile, keeping the existing relocation and
+fixture-only registry adaptations, and to re-record the prepared manifest. That
+is a change to a pinned, hashed reference artifact and must be done
+deliberately, with the new install profile recorded alongside the old one.
+
+## Proposed shape (not yet built)
+
+1. Extend the reference prepare to install dev dependencies for
+   `integration-tests-int` (and `-ext`, `hub-client-cli`), re-recording
+   `parity-prepared.json`.
+2. Establish an all-original baseline: run the 25 `integration-tests-int` cases
+   unmodified against the in-process original stack with its own
+   mockgoose/nock/fakeredis stubs, and record per-case results plus the
+   HTTP/WS/JCP/history/data side effects.
+3. Substitute one service at a time by pointing the corresponding `baseURL`
+   (`parser`, `history`, and the skill URL) at a Phoenix service, leaving the
+   original hub and the original cases untouched, and re-run the same 25 cases.
+4. Run the all-Phoenix stack over the same scenarios.
+5. Compare per case and publish exact counts, failures, missing cases and
+   evidence revisions, with adversarial controls over the comparison itself.
+
+Steps 2-5 are the real work and none of it has been done.
+
 ## Open questions for the harness design
 
 1. Which services can be substituted with a *live* original counterpart on the
