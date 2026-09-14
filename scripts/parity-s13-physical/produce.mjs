@@ -369,8 +369,10 @@ function providerProjection(descriptor, fixtureCase, resolvedDateISO) {
   return {
     kind: descriptor.provider.kind,
     ...(descriptor.provider.fixture === undefined ? {} : { fixture: descriptor.provider.fixture }),
-    ...(Number.isFinite(baseSeconds) ? { baseSeconds } : {}),
-    ...(Number.isFinite(trafficSeconds) ? { trafficSeconds } : {}),
+    // Calendar fixtures retain a maps object for capture setup, but those
+    // route durations are not part of the calendar provider projection.
+    ...(descriptor.domain === 'commute' && Number.isFinite(baseSeconds) ? { baseSeconds } : {}),
+    ...(descriptor.domain === 'commute' && Number.isFinite(trafficSeconds) ? { trafficSeconds } : {}),
     ...(descriptor.provider.parallel === undefined ? {} : { parallel: descriptor.provider.parallel }),
     resolvedDateISO
   };

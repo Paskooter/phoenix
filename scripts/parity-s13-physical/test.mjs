@@ -363,6 +363,14 @@ test('v2 recapture keeps fixture work time, two-stage identity, raw wire gaps, a
       }
     }
     const parallel = receipt.cases.find((item) => item.id === 'calendar-concurrent-parallel');
+    for (const id of ['calendar-four-card-field-matrix', 'calendar-concurrent-parallel']) {
+      const row = receipt.cases.find((item) => item.id === id);
+      const providerFixture = JSON.parse(fs.readFileSync(path.join(root, row.actual.artifacts.providerFixture.path), 'utf8'));
+      assert.equal(Object.hasOwn(row.actual.provider, 'baseSeconds'), false);
+      assert.equal(Object.hasOwn(row.actual.provider, 'trafficSeconds'), false);
+      assert.equal(Object.hasOwn(providerFixture.provider, 'baseSeconds'), false);
+      assert.equal(Object.hasOwn(providerFixture.provider, 'trafficSeconds'), false);
+    }
     if (parallel.actual.action.phoenixMatchesMatrix) {
       assert.equal(parallel.status, 'pass');
       assert.equal(parallel.claimed, true);
