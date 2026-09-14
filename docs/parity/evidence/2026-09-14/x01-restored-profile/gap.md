@@ -31,9 +31,13 @@ But a Wikipedia-first lane does exist alongside it —
 so the finding's implication that Phoenix has no Wikipedia-first answer path is
 no longer true.
 
-## Criterion 2 looks structurally satisfied
+## Criterion 2 is only partly realized — corrected
 
-Separation is enforced by construction rather than by convention:
+An earlier draft of this file called criterion 2 "structurally satisfied". That
+overstated it, and the correction matters.
+
+Separation machinery does exist, and it is enforced by construction and by
+test:
 
 - `packages/skills/src/index.js:246-263` — `createBuiltinSkills({ answerHandler
   = answerSkill })`. The **default** answer handler is the original-Pegasus
@@ -44,16 +48,46 @@ Separation is enforced by construction rather than by convention:
   Boolean(process.env.ETCO_parser_llmUrl)`. It is off unless deliberately
   configured.
 
-Nothing in the original profile is implicitly remapped, which is what criterion
-2 asks for. This is a structural observation, not a verification run.
+- `packages/skills/src/gqaAnswerSkill.js:684-686` — "the shared Phoenix
+  answer-skill alias remains unchanged until its deployment selects this profile
+  deliberately."
+- `packages/nlu/src/index.js:42,67` — the only intent-remap mechanism,
+  `applyGqaContinuity`, runs only when `options.gqaContinuity === true`, which
+  defaults to `false`.
+- `packages/skills/test/q01GqaProfile.test.js:411` already asserts "Q-01 default
+  skill registry does not select the Wikipedia profile implicitly."
 
-## The NLU extension is already pinned to the restored branch
+So no implicit remap reaches the original profile. **But the thing being kept
+separate is the Q-01/GQA lane, not a retained restored-branch answer profile.**
+
+X-01's own source links name `pegasus-restored:packages/answer-skill/server.js`,
+and no Phoenix source pins or reimplements it. The restored-2026 answer skill is
+not implemented anywhere in this repo. Criterion 2 asks that *the restored
+profile's* corpus, configuration and counts be kept separate; there is no
+restored answer profile to keep separate, so the criterion is half-met by
+machinery and half-vacant for want of the subject.
+
+## Two different restored-branch pins — do not conflate them
+
+The answer path and the NLU path point at different things, and an earlier draft
+of this file ran them together:
+
+- **Answer path** — X-01's reference is the restored branch head
+  `d682547a…`, `packages/answer-skill/server.js`. **Not implemented.**
+- **NLU path** — the LLM fallback commit `715e0dd0…` within that branch.
+  **Implemented and pinned in-source.**
+
+## The NLU extension is pinned to the restored branch
 
 `packages/nlu/src/llmFallback.js:4` cites
 `jiboV2/pegasus@715e0dd0719ecca5164959d713862a1402430623` ("Add LLM fallback")
-as its source. So the restored branch is identified and implemented, not
-guessed at. The same revision is the one `externalAgents.js` weighs against
+as its source, including its 15-entry `INTENT_TOOLS` catalog, `tool_choice:
+'auto'` and 8,000 ms timeout. `fallbackArbitration.js:1-6` pins the same
+revision's `ParseRequestHandler.ts`, and `externalAgents.js` weighs it against
 `5c0a739` for the external-agent block.
+
+So the NLU half of X-01 is implemented and source-pinned. The answer half is
+not implemented at all.
 
 ## What criterion 1 is missing
 
