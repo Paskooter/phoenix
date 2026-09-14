@@ -133,6 +133,7 @@
           }
         ],
         "sha256": "d9931ab4317b43875d7d5a3881887d27e2a76ac81a4bb6151cfa8c4fdb9e4159",
+        "auditSha256": "24289254460d31852752da635805d64788d4e345fd7155d5b44ca6c1a6721ee2",
         "count": 1,
         "bytes": 12,
         "ordering": "relative UTF-8 path ascending; byte count and SHA-256 per file"

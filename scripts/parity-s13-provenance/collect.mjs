@@ -171,6 +171,21 @@ function validateManifest(manifest, label, maxFiles) {
   return manifest;
 }
 
+function auditedReportAssetSha256(files) {
+  if (!Array.isArray(files)) return null;
+  const lines = files.map((row) => `${row.path}\t${row.bytes}\t${row.sha256}`);
+  return sha256(Buffer.from(`${lines.join('\n')}\n`));
+}
+
+function validateReportAssetManifest(manifest, label) {
+  validateManifest(manifest, label, MAX_MANIFEST_FILES);
+  requireHash(manifest.auditSha256, `${label}.auditSha256`);
+  if (manifest.auditSha256 !== auditedReportAssetSha256(manifest.files)) {
+    fail(`${label}.auditSha256 does not bind sorted report-asset rows`);
+  }
+  return manifest;
+}
+
 function validatePackageInfo(packageInfo, label, expectedName, expectedVersion) {
   requireObject(packageInfo, label);
   if (expectedName && packageInfo.name !== expectedName) fail(`${label}.name is ${JSON.stringify(packageInfo.name)}, expected ${expectedName}`);
@@ -260,7 +275,7 @@ function validateRemotePayload(remote, slot) {
   const nimbus = requireObject(payload.nimbus, 'remote.payload.nimbus');
   validatePackageInfo(nimbus.package, 'remote.payload.nimbus.package', '@be/nimbus');
   validateArtifact(nimbus.index, 'remote.payload.nimbus.index');
-  validateManifest(nimbus.assets, 'remote.payload.nimbus.assets', MAX_MANIFEST_FILES);
+  validateReportAssetManifest(nimbus.assets, 'remote.payload.nimbus.assets');
 
   const ssm = requireObject(payload.ssm, 'remote.payload.ssm');
   validatePackageInfo(ssm.package, 'remote.payload.ssm.package', undefined, '16.0.0');
@@ -746,7 +761,13 @@ function main() {
   var nimbusRoot = SLOT_ROOT + '/node_modules/@be/nimbus';
   var nimbusPackage = packageInfo(nimbusRoot, '@be/nimbus', 'nimbus');
   var nimbusIndex = rootIndex(nimbusRoot, 'nimbus');
-  var nimbusAssets = manifest(nimbusRoot, ['assets'], [], MAX_MANIFEST_FILES, 'nimbus.runtimeAssetManifest');
+  // S-13's audited asset contract covers the report-skill display tree.  The
+  // package-level countries/names JSON data files are not renderable Nimbus
+  // assets and were intentionally excluded from the pinned 150-file audit.
+  var nimbusAssets = manifest(nimbusRoot, ['assets/personal-report-skill'], [], MAX_MANIFEST_FILES, 'nimbus.reportAssetManifest');
+  nimbusAssets.auditSha256 = digest(Buffer.from(nimbusAssets.files.map(function (row) {
+    return row.path + '\t' + row.bytes + '\t' + row.sha256;
+  }).join('\n') + '\n'));
   var ssmPackage = packageInfo(SSM_ROOT, null, 'ssm');
   if (ssmPackage.version !== '16.0.0') die('SSM version is ' + ssmPackage.version + ', expected 16.0.0');
   var ssmSkillPath = ssmSkillMain(ssmPackage.parsed);
@@ -918,7 +939,7 @@ function validateSnapshotImmutableFields(snapshot, label) {
   const nimbus = requireObject(snapshot.nimbus, `${label}.nimbus`);
   validatePackageInfo(nimbus.package, `${label}.nimbus.package`, '@be/nimbus');
   validateArtifact(nimbus.index, `${label}.nimbus.index`);
-  validateManifest(nimbus.assets, `${label}.nimbus.assets`, MAX_MANIFEST_FILES);
+  validateReportAssetManifest(nimbus.assets, `${label}.nimbus.assets`);
   const ssm = requireObject(snapshot.ssm, `${label}.ssm`);
   validatePackageInfo(ssm.package, `${label}.ssm.package`, undefined, '16.0.0');
   validateArtifact(ssm.main, `${label}.ssm.main`);

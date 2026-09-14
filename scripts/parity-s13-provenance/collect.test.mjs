@@ -66,6 +66,7 @@ test('collects a complete fixture through one fake root SSH command and writes m
   assert.equal(snapshot.native.jetstream.binary.path, '/usr/local/bin/jibo-jetstream-service');
   assert.equal(snapshot.native.jetstream.config.path, '/usr/local/etc/jibo-jetstream-service.json');
   assert.equal(snapshot.nimbus.package.name, '@be/nimbus');
+  assert.equal(snapshot.nimbus.assets.auditSha256, '24289254460d31852752da635805d64788d4e345fd7155d5b44ca6c1a6721ee2');
   assert.equal(snapshot.ssm.package.version, '16.0.0');
   assert.equal(snapshot.firmware.release, '3.3.0 InDev');
   assert.equal(snapshot.identity.hostname, undefined);
@@ -130,6 +131,19 @@ test('fails closed for a missing immutable artifact and preserves an existing re
     /ssm\.skillMain\.path is missing/
   );
   assert.deepEqual(fs.readFileSync(output), original);
+});
+
+test('fails closed when the report-asset audit digest does not bind its rows', async () => {
+  const directory = privateDirectory();
+  const bad = cloneFixture();
+  bad.payload.nimbus.assets.auditSha256 = '0'.repeat(64);
+  const ssh = fakeSsh(directory, bad);
+  const output = path.join(directory, 'receipt.json');
+  await assert.rejects(
+    collect({ host: 'fixture-host', slot: 'fixture-slot', out: output, sshBin: ssh.scriptPath }),
+    /auditSha256 does not bind sorted report-asset rows/
+  );
+  assert.equal(fs.existsSync(output), false);
 });
 
 test('fixture test never invokes the real ssh binary', async () => {

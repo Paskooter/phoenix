@@ -54,8 +54,9 @@ node --test scripts/parity-s13-provenance/collect.test.mjs
 
 The receipt schema is `phoenix-s13-provenance-v1`. Its immutable comparison
 set is `immutable.files` plus `immutable.sha256`, derived from the BE package,
-BE index and bounded source/package manifest, Jetstream package/main, Nimbus
-package/index/runtime assets, and SSM package/main/skill-main. The `raw` block
+BE index and bounded source/package manifest, Jetstream package/main, the
+audited Nimbus `assets/personal-report-skill` display tree, Jetstream service
+binary/configuration, and SSM package/main/skill-main. The `raw` block
 contains SHA-256 records for the complete SSH stdout/stderr streams and each
 remote command/file read; it does not contain command output or credential
 contents. Identity is retained as hashes only.
