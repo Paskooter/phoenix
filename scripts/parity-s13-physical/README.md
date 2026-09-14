@@ -1,94 +1,105 @@
 # S-13 physical capture toolkit
 
 This directory defines the bounded physical display acceptance boundary for
-Phoenix. `matrix.json` is the ordered, immutable contract. `validate.mjs` is a
-pure validator: it reads the matrix, receipt, and referenced bytes, computes
-SHA-256 values, and exits non-zero on any missing, stale, reordered, or
-inconsistent field. It never starts a service, calls a provider, opens a
-native socket, or talks to Moth.
+Phoenix. [`matrix.json`](./matrix.json) is the ordered immutable contract;
+[`validate.mjs`](./validate.mjs) is a pure fail-closed validator; and
+[`assemble.mjs`](./assemble.mjs) orders a capture manifest into one receipt
+without letting a producer omit or reorder matrix rows. The toolkit reads
+bytes only. It does not start Phoenix, invoke a provider, open a native
+socket, talk to Moth, deploy, or push.
+
+Reviewers can use the step-by-step [review checklist](./review-checklist.md)
+after running the validator and falsifier.
 
 The matrix is pinned to Phoenix base revision
-`0902410c597f8dc424af60ee98fc4d32f19a1bb0` and the archived source revision
+`0902410c597f8dc424af60ee98fc4d32f19a1bb0` and archived source revision
 `5c0a7390539663ba749d360de348a428c088505c`. Its canonical matrix digest is
-`ea64253c1ce045370d115c61b0075663abc2a8f8452b42e466646d4444ce93ea`; the
+`abfaa887de44b6d17712ce11d825ea4565d9e8750a9b57d51d5eeeb64e1a072d`; its
 ordered case inventory digest is
-`b2410705ee0b7b2f8096fd974a06fdf8b7e983d63c544394a96019ac11671d53`. Both
-values are duplicated in the validator, so changing `matrix.json` and merely
-rewriting its self-report does not redefine S-13.
+`b2410705ee0b7b2f8096fd974a06fdf8b7e983d63c544394a96019ac11671d53`.
+The validator duplicates both pins, so rewriting `matrix.json` integrity
+fields cannot redefine the acceptance contract.
 
-The 17 matrix rows are ordered as follows:
+The 17 rows are ordered as follows:
 
-1. `commute-normal-combined`, `commute-bad-combined`,
-   `commute-terrible-combined`, and `commute-pm-departure-combined` exercise
-   traffic and departure views in one report action. Traffic assets are the
-   exact Normal/Bad/Terrible Nimbus paths; departure labels are resolved from
-   the captured work time minus fixture traffic duration.
+1. `commute-normal-combined`, `commute-bad-combined`, and
+   `commute-terrible-combined` capture traffic and departure views in one
+   action. `commute-pm-departure-combined` is conditional because the S-11
+   61-row source lane owns AM/PM coverage; it is captured only when a separate
+   PM fixture can run without a static clock injection, otherwise it is
+   explicitly `skipped`.
 2. `calendar-four-card-field-matrix` is one ordered tomorrow turn containing
-   full-day, a `:25` birthday summary that truncates, an on-hour fallback that
-   renders `2 PM` with the base label positions, and a night dog card. The
-   four cards prove `shift()` order and single-skill `leaveEmpty` behavior.
+   full-day, a `:25` birthday summary that truncates, the on-hour fallback
+   rendered as `2`/`PM` at the base x positions, and a night dog card. The
+   sequence proves `shift()` order and the single-skill `leaveEmpty` behavior.
 3. `calendar-concurrent-parallel` is a separate same-time two-card turn. Both
-   cards intentionally have `eventView` as their ID; ordinal 0 and ordinal 1
-   are distinct captures, and the action includes `CalendarParallelEvent`.
-4. `calendar-tree-park-nature` is explicitly blocked for the missing
-   `tree_v01.crn` and PNG source assets. The matrix cannot be closed while
-   this row is claimed.
-5. Five S-11 no-view assertions and three S-12 no-view assertions bind the
-   reviewed source receipts by path and digest and require an empty view and
-   screenshot list.
-6. `weather-revalidation` and `news-revalidation` are current-run
-   revalidation slots anchored to the prior public S-13 receipts. The old
-   screenshots are references, not a substitute for a new run. Their MIM
-   sequence is capture-derived because the old public receipts did not retain
-   MIM IDs; the new action payload must record the non-empty sequence and bind
-   it to the selected operation.
+   cards intentionally use `eventView`; their ordinals remain distinct and the
+   action includes `CalendarParallelEvent`.
+4. `calendar-tree-park-nature` stays unclaimed and blocked for the missing
+   `tree_v01.crn` and PNG source assets.
+5. Five S-11 and three S-12 no-view assertions open staged copies of their
+   linked source JSON, verify their raw digest, parse the source row, and
+   require no view/screenshot claim.
+6. `weather-revalidation` and `news-revalidation` may reference the prior
+   accepted public hardware receipts by exact bytes. A new capture can use
+   the same matrix slots with full artifacts, but an old receipt is not
+   silently relabeled as a current-date capture.
+
+The runtime clock is resolved when the receipt is produced. Commute work
+times use the captured local clock plus 60 minutes, with the conditional PM
+policy resolving the next local 17:05. Calendar events use the next local
+civil date in `America/New_York`, including DST boundaries. No hard-coded June
+date is allowed to masquerade as a current physical capture.
 
 ## Receipt contract
 
-A physical or revalidation row must record all of the following:
+Every physical/revalidation row binds:
 
-- `provenance.phoenix`, `provenance.be`, `provenance.client`,
-  `provenance.nimbus`, and `provenance.native`, including versions, loaded
-  paths, source/package/binary/config hashes, Phoenix revision, and the
-  audited Nimbus asset-manifest hash.
-- `preflight`, which identifies the proven original SDK operation, endpoint,
-  transport mode, body field, explicit runtime context source, and the
-  runtime location/timezone context hash. The matrix allow-lists both
-  `mimicGlobalTurn` and `startLocalTurn`; a receipt must select one after
-  preflight and use that operation consistently. The validator does not infer
-  that a simulator-specific shortcut is equivalent to a native local turn.
-- `actual.request`, including operation, endpoint, transport mode, exact
-  phrase/body, body hash, microphone-acceptance state, and the resolved
-  capture-local commute/calendar inputs. Commute schedules are generated from
-  the current local clock (`capture-plus-60-minutes` or the next local 17:05)
-  and calendar fixtures use the next local calendar date, so the matrix does
-  not depend on the frozen June examples in the source graph.
-- `actual.action`, including raw and canonical payload hashes plus Phoenix,
-  native, and wire payloads. Each payload carries the exact MIM sequence,
-  ordered view IDs, and full view contracts. Native/Phoenix and
-  wire/native equality flags are required and are checked against the matrix.
-- `actual.artifacts.stackReceipt`, `nativeReport`, `wireTrace`,
-  `providerTrace`, and `actionPayload`, each as a relative path whose bytes
-  match its recorded digest. `actual.logs` and `actual.correlation` bind
-  native action/idle events, wire action/ack messages, connection ID,
-  request ID/transID, and trace range.
-- `actual.screenshots`, in action order, with ordinal, view ID, stable duration,
-  visual-review flag, path, byte count, and SHA-256. The identity is
-  `(case ordinal, view ordinal, view ID)`. A same-ID pair must have two files;
-  deduplicating `eventView` by ID is a receipt failure.
-- `actual.timeline`, with every view open/close pair, `@be/idle`/`eyeView`/
-  `Idle` observation, `ttsTalking:false`, restored observers, and every view
-  closed before final idle. `noBypass:true` is required for physical rows.
+- Phoenix revision plus BE, client, Nimbus, native firmware/SSM provenance,
+  package and binary hashes, loaded paths, and the audited Nimbus asset
+  manifest;
+- the preflight-selected original SDK operation, endpoint, transport mode,
+  body field, explicit runtime context source, and context hash;
+- exact phrase/body, request hash, microphone-acceptance state, resolved
+  commute preferences, tomorrow calendar date, provider fixture projection,
+  and the SHA-256 of a private fixture artifact;
+- Phoenix, native, and wire action payloads with recomputed raw/canonical
+  hashes, ordered MIM IDs, ordered view IDs/contracts, and equality checks;
+- stack receipt JSON, native report JSON, wire/provider JSONL, action JSON,
+  private provider fixture JSON, request/trans/case/operation identity, action
+  payload, provider calls, timestamps, a standalone context/timezone anchor,
+  and final idle records;
+- ordered screenshots keyed by `(case ordinal, view ordinal, view ID)`, with
+  stable duration, visual-review flag, byte count, SHA-256, real PNG signature,
+  complete chunk framing/length/CRC, valid IHDR dimensions, IDAT, and final
+  IEND. Duplicate `eventView` IDs are separate files; `turn.py` retains their
+  occurrence/capture keys and the receipt must preserve those identities;
+- every view open/close interval, `@be/idle`/`eyeView`/`Idle`,
+  `ttsTalking:false`, restored observers, and a final transition to idle.
 
-No-view rows are assertions over the linked S-11/S-12 receipt. They contain no
-physical screenshot or action artifact and cannot be converted to a pass by
-adding a synthetic empty view. The tree row must remain `status:"blocked"`,
-`claimed:false`, and `blockedReason:"missing-source-asset:tree"`.
+The validator uses `lstat` and `realpath` for the root, every path component,
+and every artifact. Absolute paths, lexical escapes, final symlinks, and
+symlinked ancestors are rejected. It opens and hashes every linked no-view
+receipt, then parses S-11 graph rows or S-12 differential rows. Receipt
+booleans and hashes cannot replace these byte-level and semantic checks.
+`runtime.captureISO` must lie inside the earliest/latest timestamp range
+recomputed from the stack/native/wire/provider artifacts; final native, wire,
+and stack idle records must agree with the timeline. The context anchor must
+bind a source wire trace line, source message ID, runtime location timestamp,
+timezone, case, operation, and correlation IDs; a receipt-only preflight field
+cannot replace it.
 
-A receipt with a blocked row must use `decision:"blocked"`,
-`taskStatus:"open"`, and `complete:false`. If the blocked row is resolved in a
-future Nimbus bundle, the matrix and validator must be changed in a reviewed
-commit; a receipt cannot override this decision.
+A source-asset block limits the claim for that row but does not invalidate
+otherwise complete evidence. The expected terminal state is
+`decision:"verified_bounded"`, `taskStatus:"closed"`, `complete:true`, with
+`limitations` naming `calendar-tree-park-nature` and `claimed:false`. The
+matrix/validator must be reviewed again when the tree assets exist.
+
+The fixture boundary is explicit: provider responses and already-converted
+commute preferences are injected inputs for this S-13 physical receipt. S-11
+owns Settings/OAuth/maps preference completeness and S-12 owns calendar
+provider authorization/source differential proof. This toolkit does not claim
+either setup path.
 
 ## Commands
 
@@ -101,7 +112,59 @@ node scripts/parity-s13-physical/validate.mjs \
   /private/s13-capture/receipt.json
 ```
 
-Run focused validator tests and the isolated mutation suite:
+The raw-run producer consumes a private `stack.json`, fixture JSON, wire JSONL,
+turn reports, optional per-case context-anchor JSON, and screenshot bytes. It
+copies and hashes those inputs into a candidate receipt; it does not invent
+missing ACKs, provenance, context anchors, or views. The candidate is expected
+to fail closed when the run is incomplete or mismatches the matrix:
+
+```bash
+node scripts/parity-s13-physical/produce.mjs \
+  --run /private/s13-final-run \
+  --out /private/s13-capture-candidate
+node scripts/parity-s13-physical/validate.mjs \
+  --root /private/s13-capture-candidate \
+  --out /private/s13-capture-candidate/validation.json \
+  /private/s13-capture-candidate/receipt.json
+```
+
+For a capture split into immutable per-case bundles, pass a root manifest. The
+manifest must use the matrix IDs as keys and may point each key at a separate
+directory. Each entry supplies `stack`, `fixture`, `wire`, `turn`, and, for a
+verified context, `context` relative to that directory:
+
+```json
+{
+  "schema": "phoenix-s13-bundle-manifest-v1",
+  "cases": {
+    "commute-normal-combined": {
+      "dir": "normal",
+      "stack": "stack.json",
+      "fixture": "fixture.json",
+      "wire": "wire.jsonl",
+      "turn": "turn.json",
+      "context": "context.json"
+    }
+  }
+}
+```
+
+Run the adapter with `--bundle-manifest /private/bundles.json`. The manifest
+bytes and every referenced stack/fixture/wire/turn/context file are copied
+into the private candidate and checked against the resulting receipt. A
+manifest with missing case entries leaves those rows uncaptured and the
+candidate rejected.
+
+For a complete run, the capture adapter should write a manifest with one row
+per matrix ID, then assemble it in matrix order:
+
+```bash
+node scripts/parity-s13-physical/assemble.mjs \
+  --out /private/s13-capture/receipt.json \
+  /private/s13-capture/capture-manifest.json
+```
+
+Run the focused tests and isolated falsifier:
 
 ```bash
 node --test scripts/parity-s13-physical/test.mjs
@@ -109,33 +172,26 @@ S13_FALSIFICATION_OUT=/private/s13-falsification.json \
   node scripts/parity-s13-physical/falsify.mjs
 ```
 
-The falsifier mutates temporary copies only. It covers matrix omission and
-reorder, attempted matrix rehash, stale Phoenix revision, omitted package
-version, preflight substitution, request/action/view mutations, correlation
-and wire hash mismatch, same-ID screenshot reorder, idle omission, no-view
-screenshot injection, tree-asset claim, and falsification-control omission.
+The falsifier mutates temporary artifact bytes and trace contents, rehashes
+where an attacker could, changes PNG signatures/chunks, swaps screenshot
+identities, substitutes final and ancestor symlinks, tampers with linked
+receipts and provenance anchors, removes native/wire requests, changes ACKs
+and timeline order, moves capture time outside trace range, and verifies that
+all mutations are rejected.
 
-## Reusable capture pieces and minimal adapter
+## Reusable capture pieces
 
-Existing code already supplies the runtime pieces. Use
-[`scripts/parity-robot/turn.py`](../parity-robot/turn.py) for the original
-Jetstream SDK `mimicGlobalTurn`/`startLocalTurn` probes and native event
-observation; use [`scripts/parity-robot/stack.mjs`](../parity-robot/stack.mjs)
-for the isolated Phoenix stack and wire JSONL; use
-[`scripts/parity-s11-http-graph/maps-fixtures.cjs`](../parity-s11-http-graph/maps-fixtures.cjs)
-and the calendar fixture seam in
-[`packages/data/src/index.js`](../../packages/data/src/index.js) for provider
-inputs; and use the exact source-backed view builders in
+Use [`scripts/parity-robot/turn.py`](../parity-robot/turn.py) for original
+Jetstream SDK `mimicGlobalTurn`/`startLocalTurn` probes and native observation;
+[`scripts/parity-robot/stack.mjs`](../parity-robot/stack.mjs) for the isolated
+Phoenix stack and wire JSONL; the S-11 maps fixtures and calendar fixture seam
+in [`packages/data/src/index.js`](../../packages/data/src/index.js) for
+provider inputs; and the source-backed view builders in
 [`packages/skills/src/report/commuteViews.js`](../../packages/skills/src/report/commuteViews.js)
 and [`packages/skills/src/report/calendarViews.js`](../../packages/skills/src/report/calendarViews.js).
-The S-11 and S-12 matrices/reviews named in `matrix.json` remain the semantic
-oracles for action order and no-view behavior.
 
-The smallest new runtime adapter is a receipt writer around those pieces. It
-should run the operation preflight, generate the relative-date fixtures,
-execute the 17 rows in matrix order, retain a focused action JSON beside the
-raw native/wire/stack reports, and name screenshots with the case and view
-ordinals. It must capture every `eventView` occurrence instead of using the
-current `turn.py` view-ID set as the screenshot key. Hashing, order checks,
-version/provenance checks, idle closure, and all falsification controls belong
-in this validator; no product code or simulator shortcut is needed.
+The smallest runtime adapter around these pieces runs operation preflight,
+generates current relative fixtures, executes rows in matrix order, records
+the structured artifacts beside raw reports, and names screenshots with case
+and view ordinals. The validator and falsifier then supply the reviewable
+receipt evidence without product changes.

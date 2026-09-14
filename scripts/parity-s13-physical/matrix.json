@@ -10,7 +10,7 @@
     "timezone": "America/New_York",
     "captureTimestamp": "receipt.runtime.captureISO",
     "commuteDeparture": "workHour/workMin minus provider.trafficSeconds; preserve local AM/PM",
-    "calendarDate": "receipt.runtime.localDateISO; fixture event dates must use that local date",
+    "calendarDate": "receipt.runtime.localDateISO plus one local civil day; fixture event dates must use that resolved local date",
     "revalidationDate": "receipt.runtime.localDateISO; weather/news providers must record the resolved date"
   },
   "referenceContract": {
@@ -59,7 +59,10 @@
       "wire-trace",
       "provider-trace",
       "action-payload",
-      "screenshot"
+      "screenshot",
+      "provider-fixture",
+      "context-anchor",
+      "visual-review"
     ],
     "idleContract": {
       "viewCloseBeforeIdle": true,
@@ -90,7 +93,15 @@
         "endpoint": "/listen/start_local_turn",
         "transportMode": "local",
         "bodyField": "nluRules",
-        "contextSource": "native-local-context"
+        "contextSource": "native-local-context",
+        "bodyContract": {
+          "exact": true,
+          "nluRules": [
+            "launch"
+          ],
+          "sosTimeout": 5,
+          "maxSpeechTimeout": 12
+        }
       }
     ],
     "preflight": {
@@ -120,7 +131,19 @@
     "idle-closure-omission",
     "no-view-screenshot-injection",
     "blocked-tree-claim",
-    "falsification-control-omission"
+    "falsification-control-omission",
+    "screenshot-identity-swap",
+    "png-chunk-corruption",
+    "local-turn-body-contract-mutation",
+    "pm-availability-contradiction",
+    "revalidation-date-mutation",
+    "native-request-omission",
+    "wire-request-omission",
+    "ack-payload-mutation",
+    "timeline-order-mutation",
+    "falsification-execution-metadata-mutation",
+    "provenance-anchor-mutation",
+    "context-anchor-omission"
   ],
   "counts": {
     "total": 17,
@@ -137,7 +160,7 @@
       "domain": "commute",
       "reference": {
         "lane": "s11-http-graph",
-        "caseId": "full-driving-normal-offset",
+        "caseId": "single-driving-confirm-and-normal",
         "path": "scripts/parity-s11-http-graph/commute-graph-matrix.json",
         "sha256": "4f354865507a96284509fafb514ff52d408b3849bc1c47a2b676e9b219d4a1ce"
       },
@@ -160,10 +183,9 @@
       },
       "expected": {
         "mimIds": [
-          "PersonalReportKickOff",
+          "CommuteConfirmSpeaker",
           "CommuteDriveNormal",
-          "CommuteDepartTimeNormal",
-          "PersonalReportOutroConfigured"
+          "CommuteDepartTimeNormal"
         ],
         "viewIds": [
           "trafficView",
@@ -446,6 +468,11 @@
             }
           }
         ]
+      },
+      "captureCondition": {
+        "key": "pmDepartureAvailable",
+        "source": "S-11 61-row source lane owns AM/PM coverage",
+        "when": "capture harness can execute a separate PM departure fixture without static wall-clock injection"
       }
     },
     {
@@ -455,7 +482,7 @@
       "domain": "calendar",
       "reference": {
         "lane": "s12-calendar-builder",
-        "caseId": "full-report-event-today",
+        "caseId": "full-report-event-tomorrow",
         "path": "scripts/parity-s12/matrix.json",
         "sha256": "38a79b79aafef0402af04304b8a7d5adeb55c81e5f113f8b2290c8791d220ca5"
       },
@@ -473,9 +500,9 @@
           },
           {
             "summary": "Birthday party and board meeting ..............................",
-            "hour": 11,
+            "hour": 10,
             "minute": 25,
-            "time": "11:25 AM",
+            "time": "10:25 AM",
             "fullDay": false
           },
           {
@@ -486,7 +513,7 @@
             "fullDay": false
           },
           {
-            "summary": "Walk the dog",
+            "summary": "Dog walk",
             "hour": 20,
             "minute": 25,
             "time": "8:25 PM",
@@ -541,7 +568,7 @@
             "asset": "assets/personal-report-skill/calendar/cards/eventMorning_v01.crn",
             "icon": "assets/personal-report-skill/calendar/icons/birthdaycake_v01.crn",
             "labels": {
-              "time": "11:25",
+              "time": "10:25",
               "ampm": "AM",
               "summary": "Birthday party and board meeting ................."
             },
@@ -579,7 +606,7 @@
             "labels": {
               "time": "8:25",
               "ampm": "PM",
-              "summary": "Walk the dog"
+              "summary": "Dog walk"
             },
             "fields": {
               "timePositionX": 743,
@@ -609,16 +636,16 @@
         "events": [
           {
             "summary": "Personal concurrent",
-            "hour": 10,
+            "hour": 11,
             "minute": 0,
-            "time": "10:00 AM",
+            "time": "11:00 AM",
             "fullDay": false
           },
           {
             "summary": "Work concurrent",
-            "hour": 10,
+            "hour": 11,
             "minute": 0,
-            "time": "10:00 AM",
+            "time": "11:00 AM",
             "fullDay": false
           }
         ],
@@ -649,9 +676,9 @@
             "asset": "assets/personal-report-skill/calendar/cards/eventMorning_v01.crn",
             "icon": "assets/personal-report-skill/calendar/icons/calendar_v01.crn",
             "labels": {
-              "time": "10:00",
+              "time": "11",
               "ampm": "AM",
-              "summary": "Personal concurrent"
+              "summary": "Personal standup"
             },
             "fields": {
               "timePositionX": 743,
@@ -667,9 +694,9 @@
             "asset": "assets/personal-report-skill/calendar/cards/eventMorning_v01.crn",
             "icon": "assets/personal-report-skill/calendar/icons/calendar_v01.crn",
             "labels": {
-              "time": "10:00",
+              "time": "11",
               "ampm": "AM",
-              "summary": "Work concurrent"
+              "summary": "Work review"
             },
             "fields": {
               "timePositionX": 743,
@@ -739,8 +766,8 @@
       "reference": {
         "lane": "s11-http-graph",
         "caseId": "driving-now-over-two-hours",
-        "path": "docs/parity/evidence/2026-09-13/s11-commute/review.md",
-        "sha256": "fc0e81d28f30fa6be3776fd3086e3c0e9f495a36efe885b77d3ae65fed8706f0"
+        "path": "scripts/parity-s11-http-graph/commute-graph-matrix.json",
+        "sha256": "4f354865507a96284509fafb514ff52d408b3849bc1c47a2b676e9b219d4a1ce"
       },
       "assertion": "source/candidate S-11 action has no commute view for the over-two-hour now branch",
       "expected": {
@@ -760,8 +787,8 @@
       "reference": {
         "lane": "s11-http-graph",
         "caseId": "driving-hurry-minus-nine",
-        "path": "docs/parity/evidence/2026-09-13/s11-commute/review.md",
-        "sha256": "fc0e81d28f30fa6be3776fd3086e3c0e9f495a36efe885b77d3ae65fed8706f0"
+        "path": "scripts/parity-s11-http-graph/commute-graph-matrix.json",
+        "sha256": "4f354865507a96284509fafb514ff52d408b3849bc1c47a2b676e9b219d4a1ce"
       },
       "assertion": "source/candidate S-11 hurry branch has no commute view",
       "expected": {
@@ -781,8 +808,8 @@
       "reference": {
         "lane": "s11-http-graph",
         "caseId": "driving-late-minus-ten",
-        "path": "docs/parity/evidence/2026-09-13/s11-commute/review.md",
-        "sha256": "fc0e81d28f30fa6be3776fd3086e3c0e9f495a36efe885b77d3ae65fed8706f0"
+        "path": "scripts/parity-s11-http-graph/commute-graph-matrix.json",
+        "sha256": "4f354865507a96284509fafb514ff52d408b3849bc1c47a2b676e9b219d4a1ce"
       },
       "assertion": "source/candidate S-11 late branch has no commute view",
       "expected": {
@@ -802,8 +829,8 @@
       "reference": {
         "lane": "s11-http-graph",
         "caseId": "incomplete-prefs-no-maps",
-        "path": "docs/parity/evidence/2026-09-13/s11-commute/review.md",
-        "sha256": "fc0e81d28f30fa6be3776fd3086e3c0e9f495a36efe885b77d3ae65fed8706f0"
+        "path": "scripts/parity-s11-http-graph/commute-graph-matrix.json",
+        "sha256": "4f354865507a96284509fafb514ff52d408b3849bc1c47a2b676e9b219d4a1ce"
       },
       "assertion": "source/candidate S-11 incomplete preferences branch has no commute view",
       "expected": {
@@ -822,8 +849,8 @@
       "reference": {
         "lane": "s11-http-graph",
         "caseId": "maps-service-failure",
-        "path": "docs/parity/evidence/2026-09-13/s11-commute/review.md",
-        "sha256": "fc0e81d28f30fa6be3776fd3086e3c0e9f495a36efe885b77d3ae65fed8706f0"
+        "path": "scripts/parity-s11-http-graph/commute-graph-matrix.json",
+        "sha256": "4f354865507a96284509fafb514ff52d408b3849bc1c47a2b676e9b219d4a1ce"
       },
       "assertion": "source/candidate S-11 service-failure branch has no commute view",
       "expected": {
@@ -994,7 +1021,16 @@
     "canonicalExcludes": [
       "integrity"
     ],
-    "matrixSha256": "ea64253c1ce045370d115c61b0075663abc2a8f8452b42e466646d4444ce93ea",
+    "matrixSha256": "abfaa887de44b6d17712ce11d825ea4565d9e8750a9b57d51d5eeeb64e1a072d",
     "caseInventorySha256": "b2410705ee0b7b2f8096fd974a06fdf8b7e983d63c544394a96019ac11671d53"
+  },
+  "fixtureBoundary": {
+    "name": "already-converted-prefs-and-provider-injection",
+    "scope": "S-13 receipt binds the runtime inputs already converted for the selected Report operation and the private provider fixture bytes for each captured row.",
+    "separatedProof": [
+      "S-11 Settings/OAuth/maps preference completeness and source graph proof",
+      "S-12 calendar provider authorization and source differential proof"
+    ],
+    "implication": "This boundary proves physical display and provenance of the supplied inputs; it does not claim Settings/OAuth setup or provider authorization."
   }
 }
