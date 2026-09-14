@@ -147,7 +147,17 @@ function realControls(root, receiptPath, receipt, window) {
     ['falsification-control-omission', (r) => { r.falsification.controls.shift(); }],
     ['screenshot-identity-swap', (r) => { const rows = r.cases.filter((row) => row.actual?.screenshots?.length); const first = rows[0].actual.screenshots[0]; rows[1].actual.screenshots[0] = { ...first, path: rows[1].actual.screenshots[0].path }; }],
     ['png-chunk-corruption', (r, trial) => { const shot = realFirstPhysical(r).actual.screenshots[0]; const file = realArtifactPath(trial, shot, 'screenshot'); const bytes = fs.readFileSync(file); bytes.writeUInt32BE(0xffffffff, 8); fs.writeFileSync(file, bytes); }],
-    ['local-turn-body-contract-mutation', (r) => { const row = realFirstPhysical(r); const handle = row.actual.correlation?.stages?.Tl?.handle; if (!handle) realFail('Tl local followup is absent'); handle.nluRules = ['forged']; }],
+    ['local-turn-body-contract-mutation', (r) => {
+      const row = realFirstPhysical(r);
+      // The physical producer records the two transactions in wireFlow.  The
+      // older fixture shape put the local handle under correlation.stages;
+      // support it only so archived candidates still receive a meaningful
+      // negative control.
+      const handle = row.actual.wireFlow?.stages?.find((stage) => stage?.stage === 'Tl')?.handle
+        ?? row.actual.correlation?.stages?.Tl?.handle;
+      if (!handle) realFail('Tl local followup is absent');
+      handle.nluRules = ['forged'];
+    }],
     ['pm-availability-contradiction', (r) => { r.runtime.captureConditions.pmDepartureAvailable = false; const row = r.cases.find((item) => item.id === 'commute-pm-departure-combined'); row.status = 'pass'; delete row.skipReason; }],
     ['revalidation-date-mutation', (r, trial) => { const row = r.cases.find((item) => item.id === 'weather-revalidation'); const linked = realArtifactJson(trial, row.actual.sourceReceipt, 'weather source receipt'); linked.value.date = '2000-01-01'; realWriteJson(linked.target, linked.value); }],
     ['native-request-omission', (r) => { delete realFirstPhysical(r).actual.artifacts.rawTurn; }],
