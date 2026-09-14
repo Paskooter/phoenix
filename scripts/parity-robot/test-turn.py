@@ -245,6 +245,35 @@ class DisplayCapturePlannerTests(unittest.TestCase):
             planner.finish([], 0.2)
         self.assertIn('lacked a correlated DISPLAY action', planner.errors[0]['message'])
 
+    def test_batched_prelude_and_target_actions_still_bind_the_prelude_view(self):
+        rows = [display_event(['whoIsThisMenu']), display_event(['eventView'])]
+        planner = turn.DisplayCapturePlanner(
+            0.1,
+            expected_view_ids=['eventView'],
+            allowed_prelude_view_ids=['whoIsThisMenu'],
+        )
+        planner.update({'view': 'whoIsThisMenu', 'viewInstance': 'identity-1'}, 0.0, rows)
+        self.assertEqual(planner.public_excluded_actions()[0]['viewGeneration'], 1)
+        planner.update({'view': 'eventView', 'viewInstance': 'event-1'}, 0.1, rows)
+        _, request = planner.update({'view': 'eventView', 'viewInstance': 'event-1'}, 0.3, rows)
+        planner.captured(request, 0.3)
+        planner.finish(rows, 0.4)
+
+    def test_allow_listed_view_without_prior_action_fails_after_target_starts(self):
+        rows = [display_event(['eventView'])]
+        planner = turn.DisplayCapturePlanner(
+            0.1,
+            expected_view_ids=['eventView'],
+            allowed_prelude_view_ids=['whoIsThisMenu'],
+        )
+        planner.update({'view': 'eventView', 'viewInstance': 'event-1'}, 0.0, rows)
+        _, request = planner.update({'view': 'eventView', 'viewInstance': 'event-1'}, 0.2, rows)
+        planner.captured(request, 0.2)
+        planner.update({'view': 'eyeView', 'viewInstance': 'eye-1'}, 0.3, rows)
+        with self.assertRaises(turn.CaptureError):
+            planner.update({'view': 'whoIsThisMenu', 'viewInstance': 'identity-1'}, 0.4, rows)
+        self.assertIn('appeared after', planner.errors[0]['message'])
+
     def test_unique_ids_keep_one_capture_each(self):
         planner = turn.DisplayCapturePlanner(0.5)
         planner.update({'view': 'eyeView'}, 0.0, [])

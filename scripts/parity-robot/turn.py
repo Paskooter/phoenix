@@ -533,19 +533,27 @@ class DisplayCapturePlanner:
         self._have_observation = True
         self._view_since = now
         self._view_generation += 1
-        if view in self.allowed_prelude_view_ids and not self.actions:
+        if view in self.allowed_prelude_view_ids:
+            unmatched_action = next((action for action in self.excluded_actions
+                                     if action.get('viewId') == view
+                                     and action.get('_viewGeneration') is None), None)
+            if self.actions and unmatched_action is None:
+                self._fail(
+                    'allow-listed prelude view appeared after the expected display sequence started',
+                    viewId=view,
+                    viewInstance=instance,
+                    viewGeneration=self._view_generation,
+                )
             observed = {
                 'viewId': view,
                 'viewInstance': instance,
                 'viewGeneration': self._view_generation,
                 'matched': False,
             }
-            for action in self.excluded_actions:
-                if action.get('viewId') == view and action.get('_viewGeneration') is None:
-                    observed['matched'] = True
-                    action['_viewGeneration'] = self._view_generation
-                    action['viewGeneration'] = self._view_generation
-                    break
+            if unmatched_action is not None:
+                observed['matched'] = True
+                unmatched_action['_viewGeneration'] = self._view_generation
+                unmatched_action['viewGeneration'] = self._view_generation
             self._observed_preludes.append(observed)
         for action in self._pending:
             self._arm(action, now)
