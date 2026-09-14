@@ -363,6 +363,16 @@ function buildReceipt({ candidate, candidateReceiptRef, source, collector, befor
     visualReview: reviewRef,
   };
   receipt.visualReview = reviewRef;
+  // The rows arrive pointing at the candidate's staged copy of the review.
+  // The terminal receipt stages the session-bound review at its own path, and
+  // the validator requires every row to bind that one shared artifact, so the
+  // row refs are re-pointed at it here rather than left dangling at the
+  // candidate path.
+  for (const row of receipt.cases || []) {
+    if (isObject(row?.actual?.artifacts) && row.actual.artifacts.visualReview !== undefined) {
+      row.actual.artifacts.visualReview = reviewRef;
+    }
+  }
   const controls = anchors.falsification.controls;
   const execution = {
     schema: 's13-falsification-execution-v1',

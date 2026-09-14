@@ -1346,6 +1346,9 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
       actionPayload: null,
       providerFixture,
       contextAnchor: null,
+      // Every row points at the one review document covering the whole
+      // capture. finalize.mjs re-points these at the session-bound copy it
+      // stages, so the terminal receipt keeps a single shared review artifact.
       ...(visualReview?.ref ? { visualReview: visualReview.ref } : { visualReview: null }),
       rawTurn: rawRefs.turn,
       rawFixture: rawRefs.fixture,

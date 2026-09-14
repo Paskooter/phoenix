@@ -390,3 +390,29 @@ test('a one-stage lane that smuggles in an excluded prelude loses its noBypass c
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
+
+// The Tl stage copies the SDK update record verbatim. Until this binding
+// existed the local-turn body contract was unfalsifiable: the receipt could
+// restate the local turn's rules or its answer text, or bolt on an extra
+// field, and the validator never compared it to the raw follow-up call.
+test('a two-stage lane is rejected when its Tl handle drifts from the raw follow-up call', { skip: !hasRun }, () => {
+  const { root, produced } = produceInto(freshRun);
+  try {
+    for (const mutate of [
+      (handle) => { handle.rules = ['forged']; },
+      (handle) => { handle.text = `${handle.text}-forged`; },
+      (handle) => { handle.nluRules = ['forged']; }
+    ]) {
+      const receipt = clone(produced.manifest);
+      const row = rowOf(receipt, 'commute-normal-combined');
+      const tl = row.actual.wireFlow.stages.find((stage) => stage.stage === 'Tl');
+      assert.ok(tl?.handle, 'the two-stage lane must record a Tl handle');
+      mutate(tl.handle);
+      const errors = errorsForCase(receipt, root, 'commute-normal-combined');
+      assert.ok(errors.some((message) => /wireFlow Tl handle does not bind the raw follow-up call/.test(message)),
+        errors.slice(0, 5).join('; '));
+    }
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});

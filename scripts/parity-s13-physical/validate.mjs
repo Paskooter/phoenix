@@ -2806,6 +2806,13 @@ function v2ValidateRawTurn(descriptor, actual, refs, flow, errors, label) {
     if (calls.length === 1) {
       add(errors, calls[0].requestID === tl?.requestID || calls[0].transID === tl?.transID, `${label}.rawTurn.followup call must bind Tl`);
       add(errors, calls[0].updateCompleted === true, `${label}.rawTurn.followup updateCompleted must be true`);
+      // The Tl stage copies the SDK update record verbatim. Binding the whole
+      // handle to the raw call is what makes the local-turn body contract
+      // falsifiable: without it a receipt could restate the local turn's rules
+      // or answer text, or bolt on an extra field, and nothing would notice.
+      if (tl?.handle !== undefined) {
+        add(errors, same(tl.handle, calls[0]), `${label}.wireFlow Tl handle does not bind the raw follow-up call`);
+      }
     }
   }
   add(errors, followup?.restored === true || rawTurn.postRestore?.restored === true, `${label}.rawTurn must record post-restore completion`);

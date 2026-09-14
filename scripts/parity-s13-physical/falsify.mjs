@@ -117,7 +117,10 @@ function realRunControl({ id, mutate, root, receiptPath, receipt, window }) {
     fs.cpSync(root, trial, { recursive: true, dereference: false, errorOnExist: true });
     const cloned = realClone(receipt);
     const matrix = realClone(baselineMatrix);
-    mutate(cloned, trial, matrix);
+    // A control that throws is an operator-facing defect in the control, not a
+    // rejected receipt. Name it rather than surfacing a bare TypeError.
+    try { mutate(cloned, trial, matrix); }
+    catch (error) { throw new Error(`falsification control ${id} could not be applied: ${error.message}`); }
     if (cloned.falsification) cloned.falsification.receiptSha256 = falsificationAnchorSha256(cloned.falsification);
     realWriteJson(path.join(trial, path.relative(root, receiptPath)), cloned);
     const report = validateReceipt(cloned, matrix, { root: trial, externalAnchors: realAnchor(cloned, window) });
@@ -125,8 +128,18 @@ function realRunControl({ id, mutate, root, receiptPath, receipt, window }) {
   } finally { fs.rmSync(trial, { recursive: true, force: true }); }
 }
 function realControls(root, receiptPath, receipt, window) {
-  const noView = () => receipt.cases.find((row) => row.id === 'calendar-no-view-empty');
-  const blocked = () => receipt.cases.find((row) => row.id === 'calendar-tree-park-nature');
+  // These must resolve against the receipt being mutated, not the shared
+  // baseline. Closing over `receipt` made the mutation land on the original
+  // object while the clone under validation stayed clean, so the control
+  // reported "accepted" without ever testing anything - and every later
+  // control then cloned the polluted baseline.
+  const namedRow = (r, id) => {
+    const row = r.cases.find((item) => item.id === id);
+    if (!row) realFail(`receipt has no ${id} row for this control`);
+    return row;
+  };
+  const noView = (r) => namedRow(r, 'calendar-no-view-empty');
+  const blocked = (r) => namedRow(r, 'calendar-tree-park-nature');
   const specifications = [
     ['matrix-case-omission', (_r, _trial, matrix) => matrix.cases.pop()],
     ['matrix-case-reorder', (_r, _trial, matrix) => [matrix.cases[0], matrix.cases[1]] = [matrix.cases[1], matrix.cases[0]]],
@@ -135,15 +148,18 @@ function realControls(root, receiptPath, receipt, window) {
     ['stale-phoenix-revision', (r) => { r.phoenixRevision = '0'.repeat(40); }],
     ['provenance-version-omission', (r) => { delete r.provenance.client.version; }],
     ['input-payload-mutation', (r) => { const row = realFirstPhysical(r); row.actual.request.phrase = 'forged input'; }],
-    ['action-payload-mutation', (r) => { const row = realFirstPhysical(r); row.actual.action.mimIds[0] = 'ForgedMim'; }],
-    ['view-contract-mutation', (r) => { const row = realFirstPhysical(r); row.actual.action.viewIds[0] = 'forgedView'; }],
+    // The v2 physical receipt carries the resolved MIM/view lists under
+    // action.projection; the older fixture shape held them directly on action.
+    // Both are supported so an archived candidate still gets a real control.
+    ['action-payload-mutation', (r) => { const action = realFirstPhysical(r).actual.action; (action.projection ?? action).mimIds[0] = 'ForgedMim'; }],
+    ['view-contract-mutation', (r) => { const action = realFirstPhysical(r).actual.action; (action.projection ?? action).viewIds[0] = 'forgedView'; }],
     ['correlation-mismatch', (r) => { const row = realFirstPhysical(r); row.actual.correlation.transID = 'forged'; }],
     ['wire-trace-hash-mismatch', (r, trial) => { const row = realFirstPhysical(r); fs.appendFileSync(realArtifactPath(trial, row.actual.artifacts.rawWire || row.actual.artifacts.wireTrace, 'wire'), 'forged\n'); }],
     ['screenshot-order-mutation', (r) => { const row = r.cases.find((item) => item.actual?.screenshots?.length > 1); [row.actual.screenshots[0], row.actual.screenshots[1]] = [row.actual.screenshots[1], row.actual.screenshots[0]]; }],
     ['screenshot-bytes-mutation', (r, trial) => { const shot = realFirstPhysical(r).actual.screenshots[0]; const file = realArtifactPath(trial, shot, 'screenshot'); const bytes = fs.readFileSync(file); bytes[0] ^= 0xff; fs.writeFileSync(file, bytes); }],
     ['idle-closure-omission', (r) => { delete realFirstPhysical(r).actual.timeline.idle; }],
-    ['no-view-screenshot-injection', (r) => { const row = noView(); row.actual.screenshots.push({ ordinal: 0, viewId: 'eventView' }); }],
-    ['blocked-tree-claim', (r) => { const row = blocked(); row.status = 'pass'; row.claimed = true; }],
+    ['no-view-screenshot-injection', (r) => { noView(r).actual.screenshots.push({ ordinal: 0, viewId: 'eventView' }); }],
+    ['blocked-tree-claim', (r) => { const row = blocked(r); row.status = 'pass'; row.claimed = true; }],
     ['falsification-control-omission', (r) => { r.falsification.controls.shift(); }],
     ['screenshot-identity-swap', (r) => { const rows = r.cases.filter((row) => row.actual?.screenshots?.length); const first = rows[0].actual.screenshots[0]; rows[1].actual.screenshots[0] = { ...first, path: rows[1].actual.screenshots[0].path }; }],
     ['png-chunk-corruption', (r, trial) => { const shot = realFirstPhysical(r).actual.screenshots[0]; const file = realArtifactPath(trial, shot, 'screenshot'); const bytes = fs.readFileSync(file); bytes.writeUInt32BE(0xffffffff, 8); fs.writeFileSync(file, bytes); }],
