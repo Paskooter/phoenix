@@ -55,7 +55,41 @@ rather than diverging from it silently.
 Criterion 2 asks to compare authentication against original source/runtime.
 Closing it means exercising the real `@jibo/jibo-server-client` over TLS against
 the classic face — the same installed-original-SDK approach A-05 already uses
-successfully under Node 8.9.4, which is the natural vehicle.
+successfully under Node 8.9.4.
+
+### The client A-05 uses cannot do it, and the one that can is identified
+
+**`@jibo/jibo-server-client@3.0.110`, the client A-05 drives, ships 28 API
+models and none of them is Jot.** The last shipped robot client had dropped the
+Jot face entirely, so A-19's real-SDK item is not simply "reuse the A-05
+harness".
+
+A Jot-bearing client is recoverable from the archive, and the boundary is
+exact. Probing the 263 published versions and then bisecting:
+
+| version | ships `apis/jot*` |
+| --- | --- |
+| 3.0.43 and later (incl. 3.0.110) | no |
+| **3.0.42** | **yes — `apis/jot-2016-05-12.min.json`** |
+| 3.0.17, 2.10.37, 2.9.36, 2.8.18, 2.0.0, 1.0.5, 1.0.1 | yes |
+
+`3.0.42` is the newest version that still carries Jot, and it carries exactly
+the model the repo names as the last one. Its metadata reads
+`targetPrefix: Jot_20160126`, `protocol: json`, `apiVersion: 2016-05-12`,
+`signatureVersion: v4`, and its operations are precisely
+
+```
+CreateMessage, ListMessages, MarkLoopRead, MarkRead, NumberOfUnreadMessagesInLoops
+```
+
+— the same five `packages/classic/src/jot.js` implements. So the real-SDK
+SigV4/TLS run has a named, downloadable artifact and a matching operation set;
+it needs the 3.0.42 client rather than the 3.0.110 one already on disk.
+
+Older versions ship `apis/jot-2016-01-26.normal.json` instead, which is the
+10-pair model at the same target prefix — useful if the earlier pairs ever need
+exercising, and further evidence that the party-era `Jot_20160310` prefix was
+never carried by this client family.
 
 ## Gap 3 — Kafka fan-out: event produced, no consumer
 
@@ -80,14 +114,16 @@ so messages created before a restart are still listed after it.
 | criterion | state |
 | --- | --- |
 | 1 — map required pairs + bulk route | mapping present; party-era needs an explicit out-of-scope ratification |
-| 2 — auth/membership/impersonation/validation/error precedence | covered except SigV4/TLS, which needs a real-SDK run |
+| 2 — auth/membership/impersonation/validation/error precedence | covered except SigV4/TLS; the run needs `@jibo/jibo-server-client@3.0.42`, not the 3.0.110 on disk |
 | 3 — create/list/update/read, pagination, media, event side effects | covered except Kafka fan-out, which has no surviving consumer |
 | 4 — durability, retry, cross-loop isolation, client journeys | durability designed in; original-client journeys need the real SDK |
 
 Two of the three open items (party-era controllers, Kafka fan-out) are dead-
 archive facts that should be **bounded and ratified**, not built. The one item
 that is genuinely actionable is a real-SDK SigV4/TLS run against the classic
-Jot face, which would also supply criterion 4's original-client journeys.
+Jot face, which would also supply criterion 4's original-client journeys — and
+it is now unblocked, because the client that can drive it is identified exactly
+as `3.0.42` and is fetchable from the archive.
 
 `packages/classic/test/jot.test.js` currently holds 28 cases.
 
