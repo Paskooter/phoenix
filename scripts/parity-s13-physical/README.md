@@ -45,11 +45,12 @@ The 17 rows are ordered as follows:
    the same matrix slots with full artifacts, but an old receipt is not
    silently relabeled as a current-date capture.
 
-The runtime clock is resolved when the receipt is produced. Commute work
-times use the captured local clock plus 60 minutes, with the conditional PM
-policy resolving the next local 17:05. Calendar events use the next local
-civil date in `America/New_York`, including DST boundaries. No hard-coded June
-date is allowed to masquerade as a current physical capture.
+The runtime clock is resolved when the fixture is generated for the capture.
+Commute work times are explicit immutable fixture inputs bound to that local
+date; the producer records their source, date, timezone, hour, and minute.
+Calendar events use the next local civil date in `America/New_York`, including
+DST boundaries. No hard-coded June date is allowed to masquerade as a current
+physical capture.
 
 ## Receipt contract
 
