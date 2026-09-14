@@ -476,25 +476,67 @@ function wireActionRecord(rows, connectionId) {
   return wireActionRecords(rows, connectionId).at(-1) || null;
 }
 
-function twoStageIdentity(turn, wireRows) {
+// The original report graph decides the identity flow in
+// packages/report-skill/src/subgraphs/userid/UserIDFactory.ts.  Its
+// `checkSpeakerID` reads `data.runtime.perception.speaker`; commute and
+// calendar single-skill reports always need a speaker, so a truthy speaker
+// takes the True edge straight to UserID Done and the WhoIsThis question node
+// (and therefore the whoIsThisMenu prelude and the local follow-up turn) is
+// never reached.  A falsy speaker takes the False edge and produces the
+// two-stage flow.  The capture shape is not a matter of taste: it is dictated
+// by the raw CONTEXT the robot actually sent, so it is derived from that line
+// and then required to agree with the observed turn.
+function rawSpeakerIdentified(contextRecord) {
+  const speaker = contextRecord?.json?.data?.runtime?.perception?.speaker;
+  return Boolean(speaker);
+}
+
+function speakerStateFor(contextEntry, shape) {
+  // Only the boolean and the raw locator are copied.  The looper identifier is
+  // household data and never enters the receipt.
+  return {
+    schema: 'phoenix.s13.speaker-state.v1',
+    identified: rawSpeakerIdentified(contextEntry?.record),
+    field: 'data.runtime.perception.speaker',
+    sourceLine: contextEntry?.index,
+    sourceMessageId: contextEntry?.record?.json?.msgID ?? null,
+    derivedShape: shape,
+    sourceRule: 'pegasus:packages/report-skill/src/subgraphs/userid/UserIDFactory.ts#checkSpeakerID'
+  };
+}
+
+function turnIdentity(turn, wireRows) {
   const rows = eventRows(turn);
   const starts = rows
     .map((row, index) => ({ row, index }))
     .filter(({ row }) => row.event.type === 'TURN_STARTED' && (row.event.transID || row.event.requestID));
   if (starts.length < 2) {
     const start = starts[0];
-    const action = rows.map((row, index) => ({ row, index })).find(({ row }) => row.event.type === 'SKILL_ACTION' && row.event.data?.action);
+    const actions = rows.map((row, index) => ({ row, index })).filter(({ row }) => row.event.type === 'SKILL_ACTION' && row.event.data?.action);
+    const action = actions[0];
+    if (starts.length !== 1) fail(`turn contains ${starts.length} TURN_STARTED records; a one-stage capture requires exactly one`);
+    if (actions.length !== 1) fail(`turn contains ${actions.length} SKILL_ACTION records; a one-stage capture requires exactly one`);
     const transactionID = start?.row.event.transID || start?.row.event.requestID || action?.row.event.transID || action?.row.event.requestID;
     const connectionID = wireRows.find((record) => record?.kind === 'client-message' && record?.json?.transID === transactionID)?.id;
     const stageRows = wireRows.map((record, index) => ({ record, index })).filter(({ record }) => record.id === connectionID);
     const context = stageRows.find(({ record }) => record.kind === 'client-message' && record.json?.type === 'CONTEXT' && record.json?.transID === transactionID);
     const wireAction = wireActionRecord(stageRows, connectionID);
-    if (!start || !action || !transactionID || connectionID === undefined || !context || !wireAction) fail('turn does not contain the initial and followup TURN_STARTED records');
+    if (!start || !action || !transactionID || connectionID === undefined || !context || !wireAction) fail('turn does not contain a complete single-stage global record set');
+    // A one-stage capture may not carry any residue of the two-stage path.
+    const excluded = Array.isArray(turn.excludedDisplayActions) ? turn.excludedDisplayActions : [];
+    if (excluded.length) fail(`one-stage capture carries ${excluded.length} excluded prelude display actions; the WhoIsThis question never ran`);
+    const oneStageCalls = Array.isArray(turn.followup?.calls) ? turn.followup.calls : [];
+    if (turn.followup?.used === true || oneStageCalls.length) fail('one-stage capture records a local follow-up turn; the WhoIsThis question never ran');
+    if (!rawSpeakerIdentified(context.record)) {
+      fail('one-stage capture has no recognized speaker in its raw CONTEXT; UserIDFactory requires the two-stage WhoIsThis flow');
+    }
     const sessionId = action.row.event.data?.skill?.session?.id || null;
+    const stage = { requestID: transactionID, transID: transactionID, turnStartedEventIndex: start.index, actionEventIndex: action.index, connectionId: connectionID, contextLine: context.index, contextMessageId: context.record.json?.msgID, wireActionLine: wireAction.index, wireActionMessageId: wireAction.record.json?.msgID };
     return {
-      legacy: true,
-      initial: { requestID: transactionID, transID: transactionID, turnStartedEventIndex: start.index, actionEventIndex: action.index, connectionId: connectionID, contextLine: context.index, contextMessageId: context.record.json?.msgID, wireActionLine: wireAction.index, wireActionMessageId: wireAction.record.json?.msgID, sdkAckRequestID: turn.ack?.requestID || null, sdkAckSource: 'turn.json.ack.requestID', prelude: { kind: 'SKILL_ACTION', idsInRawWire: false, line: wireAction.index, messageId: wireAction.record.json?.msgID } },
-      followup: { requestID: transactionID, transID: transactionID, turnStartedEventIndex: start.index, actionEventIndex: action.index, connectionId: connectionID, contextLine: context.index, contextMessageId: context.record.json?.msgID, wireActionLine: wireAction.index, wireActionMessageId: wireAction.record.json?.msgID, handle: null, handleSource: null },
+      shape: 'one-stage',
+      speakerState: speakerStateFor(context, 'one-stage'),
+      initial: { ...stage, sdkAckRequestID: turn.ack?.requestID || null, sdkAckSource: 'turn.json.ack.requestID', prelude: null },
+      followup: { ...stage, handle: null, handleSource: null },
       sharedSkillSessionId: sessionId,
       wireAckCount: 0,
       postTurnConnections: []
@@ -508,8 +550,13 @@ function twoStageIdentity(turn, wireRows) {
   if (!initialID || !followupID || initialID === followupID) fail('initial and followup transaction IDs are not distinct');
   const followupCalls = Array.isArray(turn.followup?.calls) ? turn.followup.calls : [];
   const followupCall = followupCalls.length === 1 ? followupCalls[0] : null;
-  if (!followupCall || followupCall.requestID !== followupID || followupCall.text !== 'George' || followupCall.updateCompleted !== true) {
-    fail('followup handle is not an exact George SDK update record');
+  // The answer to WhoIsThis is a household member name.  It is never pinned as
+  // a literal here; the SDK update record is instead bound to the raw
+  // CLIENT_ASR line the robot actually sent on the follow-up connection, which
+  // is a stricter check and keeps private identity out of the repository.
+  if (!followupCall || followupCall.requestID !== followupID || followupCall.updateCompleted !== true
+    || typeof followupCall.text !== 'string' || !followupCall.text.trim()) {
+    fail('followup handle is not a completed SDK update record bound to the followup transaction');
   }
   const actions = rows
     .map((row, index) => ({ row, index, event: row.event }))
@@ -559,6 +606,11 @@ function twoStageIdentity(turn, wireRows) {
   }
   const initialWireAction = initialWireActions[0];
   const targetWireAction = targetWireActions[0];
+  const targetAsrRecords = targetRows.filter(({ record }) => record.kind === 'client-message' && record.json?.type === 'CLIENT_ASR' && record.json?.transID === followupID);
+  if (targetAsrRecords.length !== 1) fail('wire does not contain exactly one followup CLIENT_ASR record');
+  if (targetAsrRecords[0].record.json?.data?.text !== followupCall.text) {
+    fail('followup SDK update text does not bind the raw followup CLIENT_ASR line');
+  }
   if ([initialWireAction, targetWireAction].some(({ record }) => record.json?.requestID != null || record.json?.transID != null)) {
     fail('raw wire SKILL_ACTION records unexpectedly carry transaction/request IDs');
   }
@@ -584,7 +636,12 @@ function twoStageIdentity(turn, wireRows) {
   if (initialAckRequestID !== initialID) fail('SDK ACK does not bind the initial transaction');
   const wireAckRecords = wireRows.filter((record) => ['ack', 'ACK', 'TURN_ACK'].includes(record?.kind) || ['ack', 'ACK', 'TURN_ACK'].includes(record?.type) || ['ACK', 'TURN_ACK'].includes(record?.json?.type));
   if (wireAckRecords.length) fail('wire contains an ACK record; raw S13 wire must have no independent followup ACK');
+  if (rawSpeakerIdentified(initialContext.record)) {
+    fail('two-stage capture already had a recognized speaker in its raw CONTEXT; UserIDFactory sends that turn straight to Done with no WhoIsThis question');
+  }
   return {
+    shape: 'two-stage',
+    speakerState: speakerStateFor(initialContext, 'two-stage'),
     initial: {
       requestID: initialID,
       transID: initialID,
@@ -745,7 +802,8 @@ function sameValue(left, right) {
 }
 
 function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, runtime, operation, contextRead = null, declaredCaseId = undefined, visualReview = null, runRoot = runtime.runRoot) {
-  const identity = twoStageIdentity(turn, wire.values);
+  const identity = turnIdentity(turn, wire.values);
+  const oneStage = identity.shape === 'one-stage';
   const actionInfo = { row: eventRows(turn)[identity.followup.actionEventIndex], index: identity.followup.actionEventIndex };
   const actionEvent = actionInfo.row.event;
   const rawAction = actionEvent.data.action;
@@ -811,14 +869,14 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
     bodySha256: canonicalSha256(requestBody),
     runtimeLocalDateISO: runtime.localDateISO,
     identity: {
-      stage: 'initial-global',
+      stage: oneStage ? 'global-direct' : 'initial-global',
       requestID: identity.initial.requestID,
       transID: identity.initial.transID,
       connectionId: `wire-connection-${identity.initial.connectionId}`,
       source: rawRefs.turn,
       sdkAck: { requestID: identity.initial.sdkAckRequestID, source: identity.initial.sdkAckSource }
     },
-    followup: {
+    followup: oneStage ? null : {
       stage: 'followup-local',
       requestID: identity.followup.requestID,
       transID: identity.followup.transID,
@@ -904,9 +962,11 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
   const initialRawWireAction = initialWireAction?.record?.json?.data?.action;
   const initialRawWireActionSha256 = initialRawWireAction === undefined ? null : sha256Text(JSON.stringify(initialRawWireAction));
   const wireFlow = {
-    schema: 'phoenix.s13.two-stage-wire-flow.v1',
+    schema: oneStage ? 'phoenix.s13.one-stage-wire-flow.v1' : 'phoenix.s13.two-stage-wire-flow.v1',
+    shape: identity.shape,
+    speakerState: clone(identity.speakerState),
     sessionId: identity.sharedSkillSessionId,
-    excludedPrelude: {
+    excludedPrelude: oneStage ? { count: 0 } : {
       count: identity.initial.prelude?.excludedDisplayActions?.length || 0,
       eventIndex: identity.initial.prelude?.excludedDisplayActions?.[0]?.eventIndex,
       viewId: identity.initial.prelude?.excludedDisplayActions?.[0]?.viewId,
@@ -916,16 +976,18 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
     stages: [
       {
         stage: 'Tg',
-        kind: 'global-prelude',
+        kind: oneStage ? 'global-direct' : 'global-prelude',
         requestID: identity.initial.requestID,
         transID: identity.initial.transID,
         connectionId: `wire-connection-${identity.initial.connectionId}`,
         rawConnectionId: identity.initial.connectionId,
         operation,
-        requestType: 'LISTEN',
+        // On the one-stage path the single global stage carries the case
+        // phrase itself, so its request record is the raw CLIENT_ASR line.
+        requestType: oneStage ? 'CLIENT_ASR' : 'LISTEN',
         endpoint: request.endpoint,
-        body: clone(request.body),
-        bodySha256: canonicalSha256(request.body),
+        body: oneStage ? clone(followupBody) : clone(request.body),
+        bodySha256: oneStage ? followupBodySha256 : canonicalSha256(request.body),
         contextMessageId: identity.initial.contextMessageId,
         actionMessageId: identity.initial.wireActionMessageId,
         // This is the raw server SKILL_ACTION on the Tg socket.  Keep the
@@ -956,6 +1018,10 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
       }
     ]
   };
+  // A recognized speaker never opens a local turn, so a one-stage receipt
+  // declares exactly the global stage.  Emitting a second stage that repeats
+  // the global IDs would misrepresent one transaction as two.
+  if (oneStage) wireFlow.stages = [wireFlow.stages[0]];
   const payload = {
     // These are normalized action payloads.  Their rawActionSha256 binds the
     // final Tl SKILL_ACTION in the turn, while rawWireActionSha256 retains
@@ -989,7 +1055,12 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
       rawTurnSha256: rawRefs.turn.sha256,
       displayContracts: rawDisplays.map((display) => ({ ordinal: display.ordinal, id: display.id, rawDisplaySha256: display.rawDisplaySha256 })),
       targetDisplayActions: reportShots.map((shot) => clone(shot.displayAction)),
-      initial: {
+      shape: identity.shape,
+      // `initial` describes the discarded WhoIsThis prelude transaction, which
+      // only exists on the two-stage path.  A one-stage capture has a single
+      // transaction and reports no separate prelude rather than repeating the
+      // target IDs under a second name.
+      initial: oneStage ? null : {
         actionEventIndex: identity.initial.actionEventIndex,
         requestID: identity.initial.requestID,
         transID: identity.initial.transID,
@@ -998,7 +1069,7 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
         rawWireActionLine: identity.initial.wireActionLine,
         excludedDisplayActions: clone(identity.initial.prelude?.excludedDisplayActions || [])
       },
-      followup: {
+      followup: oneStage ? null : {
         actionEventIndex: identity.followup.actionEventIndex,
         requestID: identity.followup.requestID,
         transID: identity.followup.transID,
@@ -1072,8 +1143,23 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
     connectionId: context.connectionId === undefined ? `missing-wire-connection-${descriptor.id}` : `wire-connection-${context.connectionId}`,
     nativeActionEventId: `native-event-${actionInfo.index}`,
     wireActionMessageId: targetWireAction?.record?.json?.msgID || `missing-wire-action-${descriptor.id}`,
+    shape: identity.shape,
+    speakerState: clone(identity.speakerState),
     stages: {
-      initial: {
+      // On the one-stage path the single global transaction is the target, so
+      // it is reported once under `global`; `initial`/`followup` describe the
+      // discarded prelude and the local follow-up, which do not exist there.
+      global: oneStage ? {
+        requestID: identity.initial.requestID,
+        transID: identity.initial.transID,
+        connectionId: `wire-connection-${identity.initial.connectionId}`,
+        sdkAck: { requestID: identity.initial.sdkAckRequestID, source: identity.initial.sdkAckSource },
+        context: { sourceLine: identity.initial.contextLine, sourceMessageId: identity.initial.contextMessageId },
+        action: { sourceLine: identity.initial.wireActionLine, sourceMessageId: identity.initial.wireActionMessageId, rawWireHasRequestID: false, rawWireHasTransID: false },
+        targetDisplayActions: reportShots.map((shot) => clone(shot.displayAction)),
+        providerConnectionBound: true
+      } : null,
+      initial: oneStage ? null : {
         requestID: identity.initial.requestID,
         transID: identity.initial.transID,
         connectionId: `wire-connection-${identity.initial.connectionId}`,
@@ -1087,7 +1173,7 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
           excludedDisplayActions: clone(identity.initial.prelude?.excludedDisplayActions || [])
         }
       },
-      followup: {
+      followup: oneStage ? null : {
         requestID: identity.followup.requestID,
         transID: identity.followup.transID,
         connectionId: `wire-connection-${identity.followup.connectionId}`,
@@ -1105,7 +1191,7 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
   const followupStartedAtISO = new Date(eventRows(turn)[identity.followup.turnStartedEventIndex].event.ts).toISOString();
   const wireRequest = targetWireRequest;
   const wireAction = targetWireAction;
-  const nativeEvents = [
+  let nativeEvents = [
     { type: 'request', stage: 'Tg', sessionId: identity.sharedSkillSessionId, eventId: `native-global-request-${descriptor.id}`, caseId: descriptor.id, requestID: identity.initial.requestID, transID: identity.initial.transID, operation, endpoint: request.endpoint, timestampISO: turn.started, body: clone(request.body), bodySha256: request.bodySha256, source: rawRefs.turn },
     { type: 'action', stage: 'Tg', sessionId: identity.sharedSkillSessionId, eventId: `native-prelude-${descriptor.id}`, caseId: descriptor.id, requestID: identity.initial.requestID, transID: identity.initial.transID, operation, timestampISO: new Date(initialActionEvent.ts).toISOString(), payload: { operation, caseId: descriptor.id, stage: 'Tg', rawActionSha256: sha256Text(JSON.stringify(initialRawAction)) }, source: { rawTurn: rawRefs.turn, eventIndex: identity.initial.actionEventIndex, rawActionSha256: sha256Text(JSON.stringify(initialRawAction)), rawRequestID: initialActionEvent.requestID ?? null, rawTransID: initialActionEvent.transID ?? null } },
     { type: 'context', stage: 'Tl', sessionId: identity.sharedSkillSessionId, eventId: `native-context-${descriptor.id}`, caseId: descriptor.id, requestID, transID, operation, timestampISO: contextAtISO, runtimeLocationISO: contextISO, timezone: contextTimezone, available: contextReady, sourceMessageId: contextMessageId, sourceLine: contextSourceLine, source: rawContext ? sourceRecord(rawContext, context.contextIndex, wire) : rawRefs.context || null },
@@ -1113,7 +1199,7 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
     { type: 'action', stage: 'Tl', sessionId: identity.sharedSkillSessionId, eventId: correlation.nativeActionEventId, caseId: descriptor.id, requestID, transID, operation, timestampISO: new Date(actionEvent.ts).toISOString(), payload: clone(payload.native), sharedSkillSessionId: identity.sharedSkillSessionId, source: { rawTurn: rawRefs.turn, eventIndex: actionInfo.index, rawActionSha256, rawRequestID: actionEvent.requestID ?? null, rawTransID: actionEvent.transID ?? null } },
     ...(idleAt ? [{ type: 'idle', stage: 'Tl', sessionId: identity.sharedSkillSessionId, eventId: `native-idle-${descriptor.id}`, caseId: descriptor.id, requestID, transID, operation, timestampISO: idleAt, skill: '@be/idle', view: 'eyeView', listener: 'Idle', ttsTalking: false, finalState: 'idle', sourceSnapshot: { snapshotIndex: finalIdleSnapshotIndex, rawTurnSha256: rawRefs.turn.sha256 }, source: rawRefs.turn }] : [])
   ];
-  const wireEvents = [
+  let wireEvents = [
     ...(initialWireRequest ? [{ type: 'request', stage: 'Tg', sessionId: identity.sharedSkillSessionId, messageId: initialWireRequest.record.json.msgID, caseId: descriptor.id, requestID: identity.initial.requestID, transID: identity.initial.transID, operation, connectionId: wireFlow.stages[0].connectionId, timestampISO: initialWireRequest.record.at, endpoint: request.endpoint, body: clone(request.body), bodySha256: request.bodySha256, source: sourceRecord(initialWireRequest.record, initialWireRequest.index, wire) }] : []),
     ...(initialContext ? [{ type: 'context', stage: 'Tg', sessionId: identity.sharedSkillSessionId, messageId: initialContext.record.json.msgID, caseId: descriptor.id, requestID: identity.initial.requestID, transID: identity.initial.transID, operation, connectionId: wireFlow.stages[0].connectionId, timestampISO: initialContext.record.at, runtimeLocationISO: initialContext.record.json?.data?.runtime?.location?.iso, timezone: initialContext.record.json?.data?.runtime?.timezone || contextTimezone, source: sourceRecord(initialContext.record, initialContext.index, wire) }] : []),
     ...(initialWireAction ? [{ type: 'action', stage: 'Tg', sessionId: identity.sharedSkillSessionId, messageId: initialWireAction.record.json.msgID, caseId: descriptor.id, requestID: identity.initial.requestID, transID: identity.initial.transID, operation, connectionId: wireFlow.stages[0].connectionId, timestampISO: initialWireAction.record.at, payload: { operation, caseId: descriptor.id, stage: 'Tg', rawActionSha256: initialRawWireActionSha256 }, source: { ...sourceRecord(initialWireAction.record, initialWireAction.index, wire), rawRequestID: initialWireAction.record.json?.requestID ?? null, rawTransID: initialWireAction.record.json?.transID ?? null, rawActionSha256: initialRawWireActionSha256 } }] : []),
@@ -1121,6 +1207,15 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
     ...(wireRequest ? [{ type: 'request', stage: 'Tl', sessionId: identity.sharedSkillSessionId, messageId: wireRequest.record.json.msgID, caseId: descriptor.id, requestID, transID, operation, endpoint: request.endpoint, connectionId: correlation.connectionId, timestampISO: wireRequest.record.at, body: clone(followupBody), bodySha256: followupBodySha256, source: sourceRecord(wireRequest.record, wireRequest.index, wire), handle: clone(identity.followup.handle) }] : []),
     ...(wireAction ? [{ type: 'action', stage: 'Tl', sessionId: identity.sharedSkillSessionId, messageId: correlation.wireActionMessageId, caseId: descriptor.id, requestID, transID, operation, connectionId: correlation.connectionId, timestampISO: wireAction.record.at, payload: clone(payload.wire), source: { ...sourceRecord(wireAction.record, wireAction.index, wire), rawRequestID: wireAction.record.json?.requestID ?? null, rawTransID: wireAction.record.json?.transID ?? null, rawActionSha256: rawWireActionSha256 } }] : [])
   ];
+  // A one-stage capture has one transaction.  Keeping the prelude-labelled
+  // rows would select the same raw source lines twice and misreport a single
+  // global turn as a Tg/Tl pair, so only the target rows survive and they are
+  // named for the stage that actually ran.
+  if (oneStage) {
+    const restage = (events) => events.filter((event) => event.stage === 'Tl').map((event) => ({ ...event, stage: 'Tg' }));
+    nativeEvents = restage(nativeEvents);
+    wireEvents = restage(wireEvents);
+  }
   const targetStartMs = Math.min(...context.rows.map(({ record }) => Date.parse(record.at || '')).filter(Number.isFinite));
   const targetCloseMs = Math.max(...context.rows.filter(({ record }) => record.kind === 'close').map(({ record }) => Date.parse(record.at || '')).filter(Number.isFinite));
   const providerRows = wire.values.map((record, index) => ({ record, index })).filter(({ record }) => {
@@ -1137,7 +1232,7 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
     ...(record.input && Object.hasOwn(record.input, 'transID') ? { transID } : {}),
     operation,
     connectionId: correlation.connectionId,
-    stage: 'Tl',
+    stage: oneStage ? 'Tg' : 'Tl',
     timestampISO: record.at,
     input: clone(record.input || {}),
     fixturePath: providerFixture.path,
@@ -1231,8 +1326,8 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
     wireFlow,
     identity: clone(correlation.stages),
     logs: {
-      native: { eventCount: nativeEvents.length, actionEventIndex: nativeEvents.findIndex((event) => event.type === 'action' && event.stage === 'Tl'), idleEventIndex: nativeEvents.findIndex((event) => event.type === 'idle'), actionEventId: correlation.nativeActionEventId },
-      wire: { messageCount: wireEvents.length, actionMessageIndex: wireEvents.findIndex((record) => record.type === 'action' && record.stage === 'Tl'), ackMessageIndex: -1, ackPresent: false, actionMessageId: correlation.wireActionMessageId, connectionId: correlation.connectionId }
+      native: { eventCount: nativeEvents.length, actionEventIndex: nativeEvents.findIndex((event) => event.type === 'action' && event.stage === (oneStage ? 'Tg' : 'Tl')), idleEventIndex: nativeEvents.findIndex((event) => event.type === 'idle'), actionEventId: correlation.nativeActionEventId },
+      wire: { messageCount: wireEvents.length, actionMessageIndex: wireEvents.findIndex((record) => record.type === 'action' && record.stage === (oneStage ? 'Tg' : 'Tl')), ackMessageIndex: -1, ackPresent: false, actionMessageId: correlation.wireActionMessageId, connectionId: correlation.connectionId }
     },
     traceRange: { start: 0, end: 0, startISO: turn.started, endISO: turn.started },
     timeline: { views: timelineViews, idle, transitionToIdle: Boolean(idleAt) },
@@ -1455,7 +1550,7 @@ export function produceCandidate(matrix, runDir, outRoot, { operation = 'mimicGl
       if (loaded.fixtureBindingMismatch) fixtureBindingMismatches.push({ caseId: descriptor.id, stackSha256: loaded.stackRead.value.fixture?.sha256, openedSha256: loaded.rawRefs.fixture.sha256 });
       turns[descriptor.id] = loaded.turnRead.value;
       const contextFields = contextSourceFields(loaded.contextRead?.value);
-      const contextAction = { row: eventRows(loaded.turnRead.value)[twoStageIdentity(loaded.turnRead.value, loaded.wireRead.values).followup.actionEventIndex] };
+      const contextAction = { row: eventRows(loaded.turnRead.value)[turnIdentity(loaded.turnRead.value, loaded.wireRead.values).followup.actionEventIndex] };
       const targetContext = selectedWireConnection(loaded.wireRead.values, loaded.turnRead.value, contextAction).context;
       const rawContextFields = targetContext ? { ...contextSourceFields(targetContext), sourceLine: loaded.wireRead.values.indexOf(targetContext) } : null;
       const contextISO = rawContextFields?.runtimeLocationISO || contextFields?.runtimeLocationISO || loaded.turnRead.value.started;

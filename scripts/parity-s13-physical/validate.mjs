@@ -27,7 +27,7 @@ export const EXTERNAL_ANCHORS_SCHEMA = 'phoenix.parity.s13.external-validation-a
 // These values are deliberately duplicated in code.  Updating matrix.json and
 // its self-reported digest cannot silently redefine the acceptance contract.
 export const IMMUTABLE = Object.freeze({
-  matrixSha256: 'dcf5f2b1d02884341e446be433ec2a1981d41b7dee8e81210495e0427341b0c0',
+  matrixSha256: 'd7784113ca8cdf5903645c60d8bb04a4704c6af9302a9184e304657ba784e5bc',
   caseInventorySha256: 'b2410705ee0b7b2f8096fd974a06fdf8b7e983d63c544394a96019ac11671d53',
   baseRevision: '0902410c597f8dc424af60ee98fc4d32f19a1bb0',
   caseIds: Object.freeze([
@@ -2413,6 +2413,68 @@ function v2StageNames(actual) {
   return { stages, names };
 }
 
+// A physical report turn has exactly two lawful shapes, and which one occurs
+// is not the capture operator's choice.  The original report graph decides it
+// in packages/report-skill/src/subgraphs/userid/UserIDFactory.ts: its
+// `checkSpeakerID` reads `data.runtime.perception.speaker` and, because a
+// commute or calendar single-skill report always needs a speaker, a truthy
+// speaker takes the True edge straight to UserID Done.  The WhoIsThis question
+// node is then unreachable, so no whoIsThisMenu prelude and no local follow-up
+// turn can exist.  A falsy speaker takes the False edge and must produce both.
+// The shape is therefore derived from the raw CONTEXT line the robot sent and
+// the receipt must agree with it: a receipt cannot invent a second stage, and
+// cannot quietly drop one.
+const V2_SHAPES = Object.freeze({
+  'one-stage': Object.freeze({
+    stages: Object.freeze(['Tg']),
+    target: 'Tg',
+    schema: 'phoenix.s13.one-stage-wire-flow.v1',
+    wireRecords: 3,
+    nativeActions: 1,
+    nativeRequests: 1,
+    turnStarted: 1,
+    skillActions: 1,
+    excludedPrelude: 0,
+    followupUsed: false,
+    followupCalls: 0
+  }),
+  'two-stage': Object.freeze({
+    stages: Object.freeze(['Tg', 'Tl']),
+    target: 'Tl',
+    schema: 'phoenix.s13.two-stage-wire-flow.v1',
+    wireRecords: 6,
+    nativeActions: 2,
+    nativeRequests: 2,
+    turnStarted: 2,
+    skillActions: 2,
+    excludedPrelude: 1,
+    followupUsed: true,
+    followupCalls: 1
+  })
+});
+
+function v2RawSpeakerIdentified(raw) {
+  return Boolean(raw?.json?.data?.runtime?.perception?.speaker);
+}
+
+// The global stage's own raw CONTEXT line is the only admissible witness.
+function v2GlobalContextRow(rawRows, globalStage) {
+  if (!Array.isArray(rawRows) || !globalStage) return null;
+  const matches = rawRows
+    .map((record, index) => ({ record, index }))
+    .filter(({ record }) => record?.kind === 'client-message'
+      && record.json?.type === 'CONTEXT'
+      && v2RawTransId(record) === globalStage.transID
+      && v2SameConnection(globalStage, record));
+  return matches.length === 1 ? matches[0] : null;
+}
+
+function v2DerivedShape(rawRows, globalStage) {
+  const row = v2GlobalContextRow(rawRows, globalStage);
+  if (!row) return null;
+  return v2RawSpeakerIdentified(row.record) ? 'one-stage' : 'two-stage';
+}
+
 function v2ConnectionToken(value) {
   if (value === undefined || value === null) return null;
   const text = String(value);
@@ -2518,13 +2580,43 @@ function v2ValidateRawWire(descriptor, actual, refs, errors, label) {
 
 function v2ValidateFlow(descriptor, actual, refs, rawWire, errors, label) {
   const { stages, names } = v2StageNames(actual);
-  add(errors, actual.wireFlow?.schema === 'phoenix.s13.two-stage-wire-flow.v1', `${label}.wireFlow.schema must identify the two-stage flow`);
-  add(errors, stages.length === 2, `${label}.wireFlow must contain exactly two stages`);
-  add(errors, names.length === 2 && same(names, ['Tg', 'Tl']), `${label}.wireFlow stages must be ordered Tg then Tl`);
+  const declaredShape = actual.wireFlow?.shape;
+  add(errors, Object.hasOwn(V2_SHAPES, declaredShape || ''), `${label}.wireFlow.shape must be one-stage or two-stage`);
   const tg = stages.find((stage) => wireStageName(stage) === 'Tg');
   const tl = stages.find((stage) => wireStageName(stage) === 'Tl');
+  const rawRowsForShape = parseJsonlBytes(refs?.rawWire, errors, `${label}.artifacts.rawWire`);
+  const derivedShape = v2DerivedShape(rawRowsForShape, tg);
+  add(errors, derivedShape !== null, `${label}.wireFlow shape cannot be derived: the Tg stage has no unique raw CONTEXT line`);
+  add(errors, derivedShape === null || declaredShape === derivedShape, `${label}.wireFlow.shape (${declaredShape}) disagrees with the raw CONTEXT speaker state (${derivedShape})`);
+  const spec = V2_SHAPES[derivedShape] || V2_SHAPES[declaredShape] || V2_SHAPES['two-stage'];
+  const expectedStages = spec.stages;
+  const oneStage = spec.target === 'Tg';
+  const target = oneStage ? tg : tl;
+
+  // The speaker state must cite the same raw line the shape was derived from,
+  // and may never copy the looper identifier itself into the receipt.
+  const speakerState = actual.wireFlow?.speakerState;
+  if (requireObject(errors, speakerState, `${label}.wireFlow.speakerState`)) {
+    const contextRow = v2GlobalContextRow(rawRowsForShape, tg);
+    add(errors, speakerState.schema === 'phoenix.s13.speaker-state.v1', `${label}.wireFlow.speakerState.schema is invalid`);
+    add(errors, speakerState.field === 'data.runtime.perception.speaker', `${label}.wireFlow.speakerState.field must name the source predicate input`);
+    add(errors, speakerState.identified === oneStage, `${label}.wireFlow.speakerState.identified does not match the derived ${derivedShape} shape`);
+    add(errors, contextRow !== null && speakerState.sourceLine === contextRow.index, `${label}.wireFlow.speakerState.sourceLine does not bind the raw Tg CONTEXT line`);
+    add(errors, contextRow === null || speakerState.sourceMessageId === (contextRow.record.json?.msgID ?? null), `${label}.wireFlow.speakerState.sourceMessageId does not bind the raw Tg CONTEXT line`);
+    add(errors, speakerState.derivedShape === derivedShape, `${label}.wireFlow.speakerState.derivedShape does not bind the derived shape`);
+    const speakerId = contextRow?.record?.json?.data?.runtime?.perception?.speaker;
+    const serialized = JSON.stringify(speakerState);
+    add(errors, !speakerId || !serialized.includes(String(speakerId)), `${label}.wireFlow.speakerState may not copy the raw speaker identifier`);
+  }
+
+  add(errors, actual.wireFlow?.schema === spec.schema, `${label}.wireFlow.schema must identify the ${derivedShape} flow`);
+  add(errors, stages.length === expectedStages.length, `${label}.wireFlow must contain exactly ${expectedStages.length} stage(s) for a ${derivedShape} capture`);
+  add(errors, same(names, [...expectedStages]), `${label}.wireFlow stages must be exactly ${expectedStages.join(' then ')}`);
+  add(errors, oneStage ? tl === undefined : tl !== undefined, oneStage
+    ? `${label}.wireFlow may not declare a Tl stage: the recognized speaker never opened a local turn`
+    : `${label}.wireFlow must declare a Tl stage`);
   const flowSessionId = actual.wireFlow?.sessionId ?? actual.wireFlow?.sessionID;
-  for (const [name, stage] of [['Tg', tg], ['Tl', tl]]) {
+  for (const [name, stage] of expectedStages.map((stageName) => [stageName, stageName === 'Tg' ? tg : tl])) {
     if (!requireObject(errors, stage, `${label}.wireFlow.${name}`)) continue;
     requireString(errors, stage.requestID, `${label}.wireFlow.${name}.requestID`);
     requireString(errors, stage.transID, `${label}.wireFlow.${name}.transID`);
@@ -2536,23 +2628,25 @@ function v2ValidateFlow(descriptor, actual, refs, rawWire, errors, label) {
       add(errors, stage.bodySha256 === canonicalSha256(stage.body), `${label}.wireFlow.${name}.bodySha256 does not match body`);
     }
   }
-  add(errors, tg?.requestID !== tl?.requestID, `${label}.wireFlow Tg/Tl request IDs must be distinct`);
-  add(errors, tg?.transID !== tl?.transID, `${label}.wireFlow Tg/Tl trans IDs must be distinct`);
-  add(errors, tg?.connectionId !== tl?.connectionId, `${label}.wireFlow Tg/Tl connection IDs must be distinct`);
+  if (!oneStage) {
+    add(errors, tg?.requestID !== tl?.requestID, `${label}.wireFlow Tg/Tl request IDs must be distinct`);
+    add(errors, tg?.transID !== tl?.transID, `${label}.wireFlow Tg/Tl trans IDs must be distinct`);
+    add(errors, tg?.connectionId !== tl?.connectionId, `${label}.wireFlow Tg/Tl connection IDs must be distinct`);
+  }
   requireString(errors, flowSessionId, `${label}.wireFlow.sessionId`);
 
   const raw = parseJsonlBytes(refs?.rawWire, errors, `${label}.artifacts.rawWire`);
   const wire = parseJsonlBytes(refs?.wireTrace, errors, `${label}.artifacts.wireTrace`);
   const sourceLines = new Set();
   const counts = { Tg: { context: 0, request: 0, action: 0 }, Tl: { context: 0, request: 0, action: 0 } };
-  add(errors, wire.length === 6, `${label}.wireTrace must contain exactly six staged records`);
+  add(errors, wire.length === spec.wireRecords, `${label}.wireTrace must contain exactly ${spec.wireRecords} staged records for a ${derivedShape} capture`);
   wire.forEach((record, index) => {
     const recordLabel = `${label}.wireTrace[${index}]`;
     if (!requireObject(errors, record, recordLabel)) return;
     add(errors, V2_WIRE_TYPES.includes(record.type), `${recordLabel}.type must be context/request/action`);
     add(errors, !V2_FORBIDDEN_WIRE_TYPES.has(record.type), `${recordLabel}.type may not be ${record.type}`);
     const stageName = wireStageName(record);
-    add(errors, stageName === 'Tg' || stageName === 'Tl', `${recordLabel} must identify Tg or Tl`);
+    add(errors, expectedStages.includes(stageName), `${recordLabel} must identify ${expectedStages.join(' or ')}`);
     if (stageName && V2_WIRE_TYPES.includes(record.type)) counts[stageName][record.type] += 1;
     requireString(errors, record.caseId, `${recordLabel}.caseId`);
     add(errors, record.caseId === descriptor.id, `${recordLabel}.caseId does not bind matrix case`);
@@ -2592,19 +2686,22 @@ function v2ValidateFlow(descriptor, actual, refs, rawWire, errors, label) {
       const rawAction = raw.json?.data?.action;
       const rawActionSha256 = rawAction ? sha256Text(JSON.stringify(rawAction)) : null;
       add(errors, record.rawActionSha256 === undefined || record.rawActionSha256 === rawActionSha256, `${recordLabel}.rawActionSha256 does not bind raw action bytes`);
-      if (stageName === 'Tg') add(errors, stage?.actionPayloadSha256 === undefined || stage.actionPayloadSha256 === rawActionSha256, `${recordLabel} Tg action hash does not bind flow stage`);
-      if (stageName === 'Tl') add(errors, same(record.payload, actual.action?.payload?.wire), `${recordLabel} Tl action payload does not bind actual wire payload`);
+      add(errors, stage?.actionPayloadSha256 === undefined || stage.actionPayloadSha256 === rawActionSha256, `${recordLabel} ${stageName} action hash does not bind flow stage`);
+      if (stageName === spec.target) add(errors, same(record.payload, actual.action?.payload?.wire), `${recordLabel} ${stageName} target action payload does not bind actual wire payload`);
     }
     add(errors, record.sessionId === flowSessionId || record.sessionID === flowSessionId, `${recordLabel} does not bind shared flow session`);
   });
-  for (const stageName of ['Tg', 'Tl']) for (const type of V2_WIRE_TYPES) {
+  for (const stageName of expectedStages) for (const type of V2_WIRE_TYPES) {
     add(errors, counts[stageName][type] === 1, `${label}.wireTrace ${stageName} must contain exactly one ${type}`);
+  }
+  if (oneStage) for (const type of V2_WIRE_TYPES) {
+    add(errors, counts.Tl[type] === 0, `${label}.wireTrace may not contain a Tl ${type} record`);
   }
   // The normalized six rows are only meaningful when the raw socket really
   // contains the complete stage.  The raw protocol has one CONTEXT, one
   // LISTEN, one CLIENT_ASR, and one server SKILL_ACTION on each connection;
   // server rows intentionally have no transID and are selected by socket.
-  for (const [stageName, stage] of [['Tg', tg], ['Tl', tl]]) {
+  for (const [stageName, stage] of expectedStages.map((name) => [name, name === 'Tg' ? tg : tl])) {
     const stageRaw = raw.filter((record) => v2SameConnection(stage, record));
     const contextRows = stageRaw.filter((record) => record?.kind === 'client-message' && record.json?.type === 'CONTEXT' && v2RawTransId(record) === stage?.transID);
     const listenRows = stageRaw.filter((record) => record?.kind === 'client-message' && record.json?.type === 'LISTEN' && v2RawTransId(record) === stage?.transID);
@@ -2615,18 +2712,25 @@ function v2ValidateFlow(descriptor, actual, refs, rawWire, errors, label) {
     add(errors, asrRows.length === 1, `${label}.rawWire ${stageName} must contain exactly one CLIENT_ASR for its transID`);
     add(errors, actionRows.length === 1, `${label}.rawWire ${stageName} must contain exactly one SKILL_ACTION on its connection`);
   }
-  const targetActionIndex = wire.findIndex((record) => record?.type === 'action' && wireStageName(record) === 'Tl');
-  add(errors, targetActionIndex === actual.logs?.wire?.actionMessageIndex, `${label}.logs.wire.actionMessageIndex must point at final Tl action`);
+  const targetActionIndex = wire.findIndex((record) => record?.type === 'action' && wireStageName(record) === spec.target);
+  add(errors, targetActionIndex === actual.logs?.wire?.actionMessageIndex, `${label}.logs.wire.actionMessageIndex must point at the final ${spec.target} action`);
   add(errors, actual.logs?.wire?.ackMessageIndex === -1 || actual.logs?.wire?.ackMessageIndex === undefined, `${label}.logs.wire.ackMessageIndex must be absent/-1`);
   add(errors, actual.logs?.wire?.idleMessageIndex === -1 || actual.logs?.wire?.idleMessageIndex === undefined, `${label}.logs.wire.idleMessageIndex must be absent/-1`);
   add(errors, actual.logs?.wire?.messageCount === wire.length, `${label}.logs.wire.messageCount does not bind wire rows`);
   add(errors, wire.every((record) => record?.type !== 'ack' && record?.type !== 'idle'), `${label}.wireTrace may not contain ACK/idle rows`);
   const tgActionIndex = wire.findIndex((record) => record?.type === 'action' && wireStageName(record) === 'Tg');
-  const tlContextIndex = wire.findIndex((record) => record?.type === 'context' && wireStageName(record) === 'Tl');
-  const tlRequestIndex = wire.findIndex((record) => record?.type === 'request' && wireStageName(record) === 'Tl');
-  add(errors, tgActionIndex >= 0 && tlContextIndex > tgActionIndex && tlRequestIndex > tgActionIndex, `${label}.wireTrace Tl must follow Tg action`);
-  add(errors, tlContextIndex >= 0 && tlRequestIndex >= 0 && targetActionIndex > tlContextIndex && targetActionIndex > tlRequestIndex, `${label}.wireTrace Tl action must follow context/request`);
-  return { rawWire: raw, rawWireRows: raw.map((record, index) => ({ record, index })), wire, stages: { Tg: tg, Tl: tl }, targetActionIndex, tgActionIndex };
+  if (oneStage) {
+    const tgContextIndex = wire.findIndex((record) => record?.type === 'context' && wireStageName(record) === 'Tg');
+    const tgRequestIndex = wire.findIndex((record) => record?.type === 'request' && wireStageName(record) === 'Tg');
+    add(errors, tgContextIndex >= 0 && tgRequestIndex >= 0 && targetActionIndex > tgContextIndex && targetActionIndex > tgRequestIndex, `${label}.wireTrace Tg action must follow its context and request`);
+    add(errors, targetActionIndex === wire.length - 1, `${label}.wireTrace must end at the Tg action`);
+  } else {
+    const tlContextIndex = wire.findIndex((record) => record?.type === 'context' && wireStageName(record) === 'Tl');
+    const tlRequestIndex = wire.findIndex((record) => record?.type === 'request' && wireStageName(record) === 'Tl');
+    add(errors, tgActionIndex >= 0 && tlContextIndex > tgActionIndex && tlRequestIndex > tgActionIndex, `${label}.wireTrace Tl must follow Tg action`);
+    add(errors, tlContextIndex >= 0 && tlRequestIndex >= 0 && targetActionIndex > tlContextIndex && targetActionIndex > tlRequestIndex, `${label}.wireTrace Tl action must follow context/request`);
+  }
+  return { rawWire: raw, rawWireRows: raw.map((record, index) => ({ record, index })), wire, stages: { Tg: tg, Tl: tl }, target, spec, shape: derivedShape, oneStage, expectedStages, targetActionIndex, tgActionIndex };
 }
 
 function v2TurnEventRow(rawTurn, index) {
@@ -2668,6 +2772,9 @@ function v2ValidateRawTurn(descriptor, actual, refs, flow, errors, label) {
   if (rawTurn.preflight?.snapshot !== undefined) add(errors, v2SnapshotIdle(rawTurn.preflight.snapshot), `${label}.rawTurn.preflight.snapshot must be a native idle snapshot`);
   const tg = flow?.stages?.Tg;
   const tl = flow?.stages?.Tl;
+  const spec = flow?.spec || V2_SHAPES['two-stage'];
+  const oneStage = spec.target === 'Tg';
+  const targetStage = oneStage ? tg : tl;
   requireString(errors, rawTurn.request?.via, `${label}.rawTurn.request.via`);
   add(errors, /original\s+BE\s+Jetstream\s+SDK/i.test(rawTurn.request?.via || ''), `${label}.rawTurn.request.via must identify the original BE Jetstream SDK`);
   if (!requireObject(errors, rawTurn.ack, `${label}.rawTurn.ack`)) return { rawTurn, finalIdleIndex: null, targetEvent: null, preludeEvent: null, targetDisplays: [] };
@@ -2679,16 +2786,27 @@ function v2ValidateRawTurn(descriptor, actual, refs, flow, errors, label) {
   requireString(errors, rawTurn.ack.requestID, `${label}.rawTurn.ack.requestID`);
   add(errors, rawTurn.ack.requestID === tg?.ackRequestID || rawTurn.ack.requestID === tg?.requestID || rawTurn.ack.requestID === tg?.transID, `${label}.rawTurn.ack must bind Tg request`);
   add(errors, actual.correlation?.ackRequestID === rawTurn.ack.requestID, `${label}.correlation.ackRequestID must bind rawTurn.ack`);
-  add(errors, actual.correlation?.ackRequestID !== actual.correlation?.transID, `${label}.correlation must distinguish Tg ACK from Tl transID`);
+  add(errors, oneStage
+    ? actual.correlation?.ackRequestID === actual.correlation?.transID
+    : actual.correlation?.ackRequestID !== actual.correlation?.transID,
+  oneStage
+    ? `${label}.correlation.ackRequestID must bind the single Tg transID`
+    : `${label}.correlation must distinguish Tg ACK from Tl transID`);
   if (rawTurn.request?.endpoint !== undefined && tg?.endpoint !== undefined) add(errors, rawTurn.request.endpoint === tg.endpoint, `${label}.rawTurn.request.endpoint does not bind Tg`);
   if (rawTurn.request?.body !== undefined && tg?.body !== undefined) add(errors, same(rawTurn.request.body, tg.body), `${label}.rawTurn.request.body does not bind Tg`);
   const followup = rawTurn.followup;
-  add(errors, isObject(followup) && followup.used === true, `${label}.rawTurn.followup.used must be true`);
   const calls = Array.isArray(followup?.calls) ? followup.calls : [];
-  add(errors, calls.length === 1, `${label}.rawTurn.followup.calls must contain exactly one call`);
-  if (calls.length === 1) {
-    add(errors, calls[0].requestID === tl?.requestID || calls[0].transID === tl?.transID, `${label}.rawTurn.followup call must bind Tl`);
-    add(errors, calls[0].updateCompleted === true, `${label}.rawTurn.followup updateCompleted must be true`);
+  if (oneStage) {
+    // The WhoIsThis question never ran, so there is no local turn to record.
+    add(errors, followup === undefined || followup === null || followup.used === false, `${label}.rawTurn.followup.used must be false for a one-stage capture`);
+    add(errors, calls.length === 0, `${label}.rawTurn.followup.calls must be empty for a one-stage capture`);
+  } else {
+    add(errors, isObject(followup) && followup.used === true, `${label}.rawTurn.followup.used must be true`);
+    add(errors, calls.length === 1, `${label}.rawTurn.followup.calls must contain exactly one call`);
+    if (calls.length === 1) {
+      add(errors, calls[0].requestID === tl?.requestID || calls[0].transID === tl?.transID, `${label}.rawTurn.followup call must bind Tl`);
+      add(errors, calls[0].updateCompleted === true, `${label}.rawTurn.followup updateCompleted must be true`);
+    }
   }
   add(errors, followup?.restored === true || rawTurn.postRestore?.restored === true, `${label}.rawTurn must record post-restore completion`);
 
@@ -2698,29 +2816,50 @@ function v2ValidateRawTurn(descriptor, actual, refs, flow, errors, label) {
   const started = eventRows.map((item, index) => ({ item, index, event: v2TurnEventRow(rawTurn, index) })).filter(({ event }) => event?.type === 'TURN_STARTED');
   const tgStarts = started.filter(({ event }) => event.requestID === tg?.requestID || event.transID === tg?.transID);
   const tlStarts = started.filter(({ event }) => event.requestID === tl?.requestID || event.transID === tl?.transID);
+  add(errors, started.length === spec.turnStarted, `${label}.rawTurn must contain exactly ${spec.turnStarted} TURN_STARTED event(s) for a ${flow?.shape} capture`);
   add(errors, tgStarts.length === 1, `${label}.rawTurn must contain exactly one Tg TURN_STARTED event`);
-  add(errors, tlStarts.length === 1, `${label}.rawTurn must contain exactly one Tl TURN_STARTED event`);
-  if (tgStarts.length && tlStarts.length) add(errors, tgStarts[0].index < tlStarts[0].index, `${label}.rawTurn Tl must start after Tg`);
+  if (oneStage) {
+    add(errors, tlStarts.length === 0, `${label}.rawTurn may not contain a Tl TURN_STARTED event`);
+  } else {
+    add(errors, tlStarts.length === 1, `${label}.rawTurn must contain exactly one Tl TURN_STARTED event`);
+    if (tgStarts.length && tlStarts.length) add(errors, tgStarts[0].index < tlStarts[0].index, `${label}.rawTurn Tl must start after Tg`);
+  }
   const actions = eventRows.map((item, index) => ({ item, index, event: v2TurnEventRow(rawTurn, index) })).filter(({ event }) => event?.type === 'SKILL_ACTION');
-  const prelude = actions.filter(({ event }) => event.requestID === tg?.requestID || event.transID === tg?.transID);
-  const target = actions.filter(({ event }) => event.requestID === tl?.requestID || event.transID === tl?.transID);
-  add(errors, prelude.length === 1, `${label}.rawTurn must contain exactly one Tg prelude SKILL_ACTION`);
-  add(errors, target.length === 1, `${label}.rawTurn must contain exactly one Tl target SKILL_ACTION`);
-  add(errors, actions.at(-1)?.index === target[0]?.index, `${label}.rawTurn Tl target action must be final SKILL_ACTION`);
-  if (prelude.length && target.length) {
-    const preludeSession = prelude[0].event.data?.skill?.session?.id;
+  const prelude = oneStage ? [] : actions.filter(({ event }) => event.requestID === tg?.requestID || event.transID === tg?.transID);
+  const target = actions.filter(({ event }) => event.requestID === targetStage?.requestID || event.transID === targetStage?.transID);
+  add(errors, actions.length === spec.skillActions, `${label}.rawTurn must contain exactly ${spec.skillActions} SKILL_ACTION event(s) for a ${flow?.shape} capture`);
+  add(errors, prelude.length === spec.excludedPrelude, oneStage
+    ? `${label}.rawTurn may not contain a Tg prelude SKILL_ACTION`
+    : `${label}.rawTurn must contain exactly one Tg prelude SKILL_ACTION`);
+  add(errors, target.length === 1, `${label}.rawTurn must contain exactly one ${spec.target} target SKILL_ACTION`);
+  add(errors, actions.at(-1)?.index === target[0]?.index, `${label}.rawTurn ${spec.target} target action must be final SKILL_ACTION`);
+  if (target.length) {
     const targetSession = target[0].event.data?.skill?.session?.id;
-    requireString(errors, preludeSession, `${label}.rawTurn Tg session id`);
-    requireString(errors, targetSession, `${label}.rawTurn Tl session id`);
-    add(errors, preludeSession === targetSession, `${label}.rawTurn Tg/Tl actions must share one skill session`);
+    requireString(errors, targetSession, `${label}.rawTurn ${spec.target} session id`);
+    if (prelude.length) {
+      const preludeSession = prelude[0].event.data?.skill?.session?.id;
+      requireString(errors, preludeSession, `${label}.rawTurn Tg session id`);
+      add(errors, preludeSession === targetSession, `${label}.rawTurn Tg/Tl actions must share one skill session`);
+    }
     add(errors, (actual.wireFlow?.sessionId ?? actual.wireFlow?.sessionID) === targetSession, `${label}.wireFlow.sessionId does not bind skill session`);
   }
 
   const excludedActions = Array.isArray(rawTurn.excludedDisplayActions) ? rawTurn.excludedDisplayActions : [];
   const excluded = excludedActions.filter((item) => item?.captureStatus === 'excluded-prelude');
-  add(errors, excludedActions.length === 1, `${label}.rawTurn must contain exactly one excluded display action`);
-  add(errors, excluded.length === 1, `${label}.rawTurn must contain exactly one excluded prelude display`);
-  if (excluded.length === 1) {
+  add(errors, excludedActions.length === spec.excludedPrelude, oneStage
+    ? `${label}.rawTurn must contain no excluded display actions: the WhoIsThis question never ran`
+    : `${label}.rawTurn must contain exactly one excluded display action`);
+  add(errors, excluded.length === spec.excludedPrelude, oneStage
+    ? `${label}.rawTurn must contain no excluded prelude display`
+    : `${label}.rawTurn must contain exactly one excluded prelude display`);
+  if (oneStage) {
+    // A recognized speaker never reaches the WhoIsThis question, so the menu
+    // must be absent from the whole turn rather than merely unphotographed.
+    const anyWhoIsThis = [...(Array.isArray(rawTurn.displayActions) ? rawTurn.displayActions : []), ...excludedActions]
+      .filter((item) => item?.viewId === 'whoIsThisMenu');
+    add(errors, anyWhoIsThis.length === 0, `${label}.rawTurn may not contain any whoIsThisMenu display on the one-stage path`);
+  }
+  if (excluded.length === 1 && !oneStage) {
     const item = excluded[0];
     add(errors, item.viewId === 'whoIsThisMenu', `${label}.rawTurn excluded prelude must be whoIsThisMenu`);
     add(errors, item.eventIndex === prelude[0]?.index, `${label}.rawTurn excluded prelude event must be Tg action`);
@@ -2729,8 +2868,8 @@ function v2ValidateRawTurn(descriptor, actual, refs, flow, errors, label) {
   }
   const declaredExcluded = actual.wireFlow?.excludedPrelude ?? actual.flow?.excludedPrelude;
   if (requireObject(errors, declaredExcluded, `${label}.wireFlow.excludedPrelude`)) {
-    add(errors, declaredExcluded.count === 1, `${label}.wireFlow.excludedPrelude.count must be 1`);
-    if (excluded.length === 1) {
+    add(errors, declaredExcluded.count === spec.excludedPrelude, `${label}.wireFlow.excludedPrelude.count must be ${spec.excludedPrelude}`);
+    if (excluded.length === 1 && !oneStage) {
       add(errors, declaredExcluded.eventIndex === excluded[0].eventIndex, `${label}.wireFlow.excludedPrelude.eventIndex does not bind raw turn`);
       add(errors, declaredExcluded.viewId === excluded[0].viewId, `${label}.wireFlow.excludedPrelude.viewId does not bind raw turn`);
     }
@@ -2744,9 +2883,9 @@ function v2ValidateRawTurn(descriptor, actual, refs, flow, errors, label) {
   targetDisplays.forEach((display, index) => {
     const displayLabel = `${label}.rawTurn.displayActions[${index}]`;
     add(errors, display.viewId === expectedIds[index], `${displayLabel}.viewId is out of matrix order`);
-    add(errors, display.eventIndex === target[0]?.index, `${displayLabel}.eventIndex must point at Tl target action`);
+    add(errors, display.eventIndex === target[0]?.index, `${displayLabel}.eventIndex must point at the ${spec.target} target action`);
     add(errors, display.eventType === 'SKILL_ACTION', `${displayLabel}.eventType must be SKILL_ACTION`);
-    add(errors, display.requestID === tl?.requestID && display.transID === tl?.transID, `${displayLabel} must bind Tl IDs`);
+    add(errors, display.requestID === targetStage?.requestID && display.transID === targetStage?.transID, `${displayLabel} must bind ${spec.target} IDs`);
     requireString(errors, display.displayId, `${displayLabel}.displayId`);
     add(errors, Number.isInteger(display.displayIndex) && display.displayIndex === index, `${displayLabel}.displayIndex is out of order`);
     add(errors, Number.isInteger(display.displayOrdinal) && display.displayOrdinal === index + 1, `${displayLabel}.displayOrdinal is out of order`);
@@ -2799,20 +2938,29 @@ function v2ValidateNative(descriptor, actual, refs, turn, flow, errors, label) {
   const actions = events.filter((event) => event?.type === 'action');
   const requests = events.filter((event) => event?.type === 'request');
   const idles = events.filter((event) => event?.type === 'idle');
-  add(errors, actions.length === 2, `${label}.nativeReport must contain Tg prelude and Tl target actions`);
-  add(errors, requests.length === 2, `${label}.nativeReport must contain Tg and Tl requests`);
+  const spec = flow?.spec || V2_SHAPES['two-stage'];
+  const oneStage = spec.target === 'Tg';
+  const expectedStages = spec.stages;
+  add(errors, actions.length === spec.nativeActions, `${label}.nativeReport must contain exactly ${spec.nativeActions} action event(s) for a ${flow?.shape} capture`);
+  add(errors, requests.length === spec.nativeRequests, `${label}.nativeReport must contain exactly ${spec.nativeRequests} request event(s) for a ${flow?.shape} capture`);
   add(errors, idles.length === 1 && events.at(-1)?.type === 'idle', `${label}.nativeReport must contain one final idle event`);
   const tgAction = actions.find((event) => wireStageName(event) === 'Tg');
   const tlAction = actions.find((event) => wireStageName(event) === 'Tl');
   const tgRequest = requests.find((event) => wireStageName(event) === 'Tg');
   const tlRequest = requests.find((event) => wireStageName(event) === 'Tl');
+  const targetAction = oneStage ? tgAction : tlAction;
   requireObject(errors, tgAction, `${label}.nativeReport Tg action`);
-  requireObject(errors, tlAction, `${label}.nativeReport Tl action`);
   requireObject(errors, tgRequest, `${label}.nativeReport Tg request`);
-  requireObject(errors, tlRequest, `${label}.nativeReport Tl request`);
+  if (oneStage) {
+    add(errors, tlAction === undefined, `${label}.nativeReport may not contain a Tl action`);
+    add(errors, tlRequest === undefined, `${label}.nativeReport may not contain a Tl request`);
+  } else {
+    requireObject(errors, tlAction, `${label}.nativeReport Tl action`);
+    requireObject(errors, tlRequest, `${label}.nativeReport Tl request`);
+  }
   if (tgRequest) add(errors, tgRequest.requestID === flow?.stages?.Tg?.requestID && tgRequest.transID === flow?.stages?.Tg?.transID, `${label}.nativeReport Tg request does not bind flow`);
-  if (tlRequest) add(errors, tlRequest.requestID === flow?.stages?.Tl?.requestID && tlRequest.transID === flow?.stages?.Tl?.transID, `${label}.nativeReport Tl request does not bind flow`);
-  for (const [stageName, request] of [['Tg', tgRequest], ['Tl', tlRequest]]) {
+  if (tlRequest && !oneStage) add(errors, tlRequest.requestID === flow?.stages?.Tl?.requestID && tlRequest.transID === flow?.stages?.Tl?.transID, `${label}.nativeReport Tl request does not bind flow`);
+  for (const [stageName, request] of expectedStages.map((name) => [name, name === 'Tg' ? tgRequest : tlRequest])) {
     if (!request) continue;
     const stage = flow?.stages?.[stageName];
     add(errors, request.caseId === descriptor.id, `${label}.nativeReport ${stageName} request case does not bind matrix`);
@@ -2823,7 +2971,7 @@ function v2ValidateNative(descriptor, actual, refs, turn, flow, errors, label) {
     add(errors, request.bodySha256 === canonicalSha256(request.body), `${label}.nativeReport ${stageName} bodySha256 is invalid`);
     add(errors, stage?.body === undefined || same(request.body, stage.body), `${label}.nativeReport ${stageName} body does not bind stage body`);
   }
-  for (const [stageName, action] of [['Tg', tgAction], ['Tl', tlAction]]) {
+  for (const [stageName, action] of expectedStages.map((name) => [name, name === 'Tg' ? tgAction : tlAction])) {
     if (!action) continue;
     const stage = flow?.stages?.[stageName];
     add(errors, action.caseId === descriptor.id, `${label}.nativeReport ${stageName} action case does not bind matrix`);
@@ -2842,11 +2990,11 @@ function v2ValidateNative(descriptor, actual, refs, turn, flow, errors, label) {
       }
     }
   }
-  if (tgAction) add(errors, tgAction.source?.eventIndex === turn?.preludeEvent?.index, `${label}.nativeReport Tg action source does not bind excluded prelude event`);
-  if (tlAction) {
-    add(errors, same(tlAction.payload, actual.action?.payload?.native), `${label}.nativeReport Tl action payload does not bind native payload`);
-    add(errors, tlAction.eventId === actual.correlation?.nativeActionEventId, `${label}.nativeReport Tl action event ID does not bind correlation`);
-    if (turn?.targetEvent) add(errors, tlAction.source?.eventIndex === turn.targetEvent.index, `${label}.nativeReport Tl action source event does not bind raw turn`);
+  if (tgAction && !oneStage) add(errors, tgAction.source?.eventIndex === turn?.preludeEvent?.index, `${label}.nativeReport Tg action source does not bind excluded prelude event`);
+  if (targetAction) {
+    add(errors, same(targetAction.payload, actual.action?.payload?.native), `${label}.nativeReport ${spec.target} action payload does not bind native payload`);
+    add(errors, targetAction.eventId === actual.correlation?.nativeActionEventId, `${label}.nativeReport ${spec.target} action event ID does not bind correlation`);
+    if (turn?.targetEvent) add(errors, targetAction.source?.eventIndex === turn.targetEvent.index, `${label}.nativeReport ${spec.target} action source event does not bind raw turn`);
   }
   const idle = idles[0];
   if (idle) {
@@ -2855,9 +3003,9 @@ function v2ValidateNative(descriptor, actual, refs, turn, flow, errors, label) {
     add(errors, idle.timestampISO === actual.timeline?.idle?.observedAtISO, `${label}.nativeReport idle timestamp does not bind timeline`);
   }
   add(errors, native.sourceTurn?.sha256 === refs.rawTurn?.sha256, `${label}.nativeReport.sourceTurn does not bind rawTurn`);
-  add(errors, native.sourceAction?.eventIndex === turn?.targetEvent?.index, `${label}.nativeReport.sourceAction does not bind Tl target event`);
+  add(errors, native.sourceAction?.eventIndex === turn?.targetEvent?.index, `${label}.nativeReport.sourceAction does not bind the ${spec.target} target event`);
   add(errors, native.sourceAction?.rawTurnSha256 === refs.rawTurn?.sha256, `${label}.nativeReport.sourceAction does not bind rawTurn`);
-  add(errors, actual.logs?.native?.actionEventIndex === events.indexOf(tlAction), `${label}.logs.native.actionEventIndex does not bind Tl action`);
+  add(errors, actual.logs?.native?.actionEventIndex === events.indexOf(targetAction), `${label}.logs.native.actionEventIndex does not bind the ${spec.target} action`);
   add(errors, actual.logs?.native?.idleEventIndex === events.indexOf(idle), `${label}.logs.native.idleEventIndex does not bind final idle`);
   add(errors, actual.logs?.native?.eventCount === events.length, `${label}.logs.native.eventCount does not bind native events`);
 }
@@ -2877,7 +3025,10 @@ function v2ValidateProviders(descriptor, actual, refs, flow, rawWireRows, errors
   add(errors, Boolean(fixture && isObject(fixture.cases) && Object.hasOwn(fixture.cases, expectedCaseKey)), `${label}.rawFixture must contain providerFixture.sourceFixture.caseKey`);
   add(errors, rawProviderRows.length === expectedServices.length, `${label}.rawWire provider cardinality does not match the case contract`);
   add(errors, same(rawProviderRows.map(({ record }) => record.service), expectedServices), `${label}.rawWire provider services/order do not match the case contract`);
-  const tl = flow?.stages?.Tl;
+  // Provider calls belong to the transaction that actually ran the report,
+  // which is Tl on the two-stage path and the single Tg on the one-stage path.
+  const spec = flow?.spec || V2_SHAPES['two-stage'];
+  const tl = flow?.target ?? flow?.stages?.[spec.target];
   const tlRequestAt = rawWireRows
     .filter(({ record }) => v2SameConnection(tl, record) && record?.kind === 'client-message' && ['LISTEN', 'CLIENT_ASR'].includes(record.json?.type) && v2RawTransId(record) === tl?.transID)
     .map(({ record }) => timestampMs(v2RawAt(record)))
@@ -2911,11 +3062,11 @@ function v2ValidateProviders(descriptor, actual, refs, flow, rawWireRows, errors
     add(errors, call.fixturePath === actual.artifacts?.providerFixture?.path, `${callLabel}.fixturePath does not bind fixture artifact`);
     add(errors, call.fixtureSha256 === actual.provider?.fixtureSha256, `${callLabel}.fixtureSha256 does not bind fixture artifact`);
     const providerAt = timestampMs(raw.at);
-    if (tlRequestAt !== undefined && tlRequestAt !== null) add(errors, providerAt !== null && providerAt >= tlRequestAt, `${callLabel}.timestampISO must follow the Tl request`);
-    if (tlActionAt !== undefined && tlActionAt !== null) add(errors, providerAt !== null && providerAt <= tlActionAt, `${callLabel}.timestampISO must precede the Tl action`);
+    if (tlRequestAt !== undefined && tlRequestAt !== null) add(errors, providerAt !== null && providerAt >= tlRequestAt, `${callLabel}.timestampISO must follow the ${spec.target} request`);
+    if (tlActionAt !== undefined && tlActionAt !== null) add(errors, providerAt !== null && providerAt <= tlActionAt, `${callLabel}.timestampISO must precede the ${spec.target} action`);
     if (Object.hasOwn(raw.input || {}, 'transID')) {
       add(errors, call.transID === raw.input.transID, `${callLabel}.transID does not bind raw input transID`);
-      add(errors, raw.input.transID === tl?.transID, `${callLabel}.raw input transID must bind Tl`);
+      add(errors, raw.input.transID === tl?.transID, `${callLabel}.raw input transID must bind ${spec.target}`);
     } else {
       add(errors, !Object.hasOwn(call, 'transID') || call.transID === undefined, `${callLabel} invents transID absent from raw provider input`);
     }
@@ -2993,9 +3144,13 @@ function v2ValidateContextAnchor(descriptor, actual, refs, preflight, flow, erro
   if (!anchor) return;
   const raw = parseJsonlLineAt(refs.rawWire, anchor.sourceLine, errors, `${label}.contextAnchor`);
   if (raw) {
-    add(errors, raw.value.kind === 'client-message' && raw.value.json?.type === 'CONTEXT', `${label}.contextAnchor source must be Tl CONTEXT`);
-    add(errors, v2RawTransId(raw.value) === flow?.stages?.Tl?.transID, `${label}.contextAnchor source must bind Tl transID`);
-    add(errors, raw.value.id === Number(String(flow?.stages?.Tl?.connectionId).replace(/^wire-connection-/, '')) || v2SameConnection(flow?.stages?.Tl, raw.value), `${label}.contextAnchor source connection must bind Tl`);
+    // The anchor belongs to the transaction that ran the report: Tl when the
+    // WhoIsThis question intervened, otherwise the single global stage.
+    const spec = flow?.spec || V2_SHAPES['two-stage'];
+    const stage = flow?.target ?? flow?.stages?.[spec.target];
+    add(errors, raw.value.kind === 'client-message' && raw.value.json?.type === 'CONTEXT', `${label}.contextAnchor source must be a ${spec.target} CONTEXT`);
+    add(errors, v2RawTransId(raw.value) === stage?.transID, `${label}.contextAnchor source must bind ${spec.target} transID`);
+    add(errors, raw.value.id === Number(String(stage?.connectionId).replace(/^wire-connection-/, '')) || v2SameConnection(stage, raw.value), `${label}.contextAnchor source connection must bind ${spec.target}`);
   }
 }
 

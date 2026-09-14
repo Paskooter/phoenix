@@ -14,7 +14,7 @@ after running the validator and falsifier.
 The matrix is pinned to Phoenix base revision
 `0902410c597f8dc424af60ee98fc4d32f19a1bb0` and archived source revision
 `5c0a7390539663ba749d360de348a428c088505c`. Its canonical matrix digest is
-`dcf5f2b1d02884341e446be433ec2a1981d41b7dee8e81210495e0427341b0c0`; its
+`d7784113ca8cdf5903645c60d8bb04a4704c6af9302a9184e304657ba784e5bc`; its
 ordered case inventory digest is
 `b2410705ee0b7b2f8096fd974a06fdf8b7e983d63c544394a96019ac11671d53`.
 The validator duplicates both pins, so rewriting `matrix.json` integrity
@@ -51,6 +51,48 @@ date; the producer records their source, date, timezone, hour, and minute.
 Calendar events use the next local civil date in `America/New_York`, including
 DST boundaries. No hard-coded June date is allowed to masquerade as a current
 physical capture.
+
+## Capture flow shapes
+
+A physical report turn has two lawful shapes, and the original source decides
+which one occurs. `packages/report-skill/src/subgraphs/userid/UserIDFactory.ts`
+gates the identity subgraph on
+
+```ts
+const haveSpeaker = !!data.runtime.perception.speaker;
+const needSpeaker = (singleSkill !== Names.weather) && (singleSkill !== Names.news);
+return haveSpeaker || !needSpeaker;
+```
+
+Commute and calendar single-skill reports always set `needSpeaker`, so the
+transition is decided solely by `data.runtime.perception.speaker`:
+
+- **speaker present** takes the `True` edge straight to UserID `Done`.
+  `PrefetchWeatherNode`, the WhoIsThis question mim and `SetLooperIDNode` are
+  unreachable, so the turn has no `whoIsThisMenu` prelude and no local
+  follow-up turn. This is the **one-stage** shape: a single global stage `Tg`,
+  three staged wire records, one native request and action, no excluded
+  prelude.
+- **speaker absent** takes the `False` edge, runs the WhoIsThis question, and
+  opens one local turn. This is the **two-stage** shape: `Tg` then `Tl`, six
+  staged wire records, two native requests and actions, and exactly one
+  excluded `whoIsThisMenu` prelude display.
+
+Both edges converge on the same `Done` transition, so every downstream report
+node, MIM path and display view payload is produced by identical code. The
+shape therefore constrains the capture's transport evidence, not the display
+claim.
+
+Because the shape is dictated by the robot rather than chosen by the operator,
+the receipt does not get to declare it freely. `matrix.json`'s
+`physicalProtocol.flowShapes` records the source rule and the per-shape
+cardinalities; the producer derives the shape from the raw client `CONTEXT`
+line of the global stage and refuses raw evidence that contradicts it; and the
+validator re-derives the shape from the same raw line and rejects a receipt
+whose declared `wireFlow.shape` disagrees. A receipt can therefore neither
+invent a second stage nor quietly drop one. `wireFlow.speakerState` records
+only the boolean and the raw source locator — the looper identifier itself is
+household data and never enters a receipt.
 
 ## Receipt contract
 

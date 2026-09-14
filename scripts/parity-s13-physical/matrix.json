@@ -112,6 +112,73 @@
         "runtime.timezone"
       ],
       "contextSourceMustBeExplicit": true
+    },
+    "flowShapes": {
+      "sourceRule": {
+        "reference": "pegasus:packages/report-skill/src/subgraphs/userid/UserIDFactory.ts",
+        "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+        "predicate": "checkSpeakerID: haveSpeaker = !!data.runtime.perception.speaker; needSpeaker = singleSkill is neither weather nor news; the node transitions True when (haveSpeaker || !needSpeaker).",
+        "appliesTo": "Commute and calendar single-skill personal reports always set needSpeaker, so the transition is decided solely by data.runtime.perception.speaker.",
+        "trueEdge": "Transition.True goes straight to UserID Done. PrefetchWeatherNode, the WhoIsThis QN mim and SetLooperIDNode are unreachable, so no whoIsThisMenu prelude and no local listen turn exist.",
+        "falseEdge": "Transition.False reaches the WhoIsThis QN mim, which emits the whoIsThisMenu prelude display and opens one local listen turn before the report continues.",
+        "convergence": "Both edges reach the same UserID Done transition, so every downstream report node, MIM path and display view payload is produced by identical code."
+      },
+      "derivation": {
+        "from": "raw wire client CONTEXT line of the global stage, field data.runtime.perception.speaker",
+        "identified": "one-stage",
+        "unidentified": "two-stage",
+        "binding": "the receipt must declare wireFlow.shape and wireFlow.speakerState, the declared shape must equal the shape derived from the raw CONTEXT line, and speakerState must cite that raw line. A receipt whose declared shape disagrees with its raw evidence is rejected.",
+        "privacy": "speakerState records only the boolean identified flag and the raw source locator. The looper identifier itself is never copied into the receipt."
+      },
+      "shapes": {
+        "two-stage": {
+          "stages": [
+            "Tg",
+            "Tl"
+          ],
+          "wireFlowSchema": "phoenix.s13.two-stage-wire-flow.v1",
+          "stagedWireRecords": 6,
+          "nativeActions": 2,
+          "nativeRequests": 2,
+          "turnStarted": 2,
+          "skillActions": 2,
+          "excludedPreludeCount": 1,
+          "excludedPreludeViewId": "whoIsThisMenu",
+          "followupUsed": true,
+          "followupCalls": 1,
+          "distinctStageIds": [
+            "requestID",
+            "transID",
+            "connectionId"
+          ],
+          "targetStage": "Tl"
+        },
+        "one-stage": {
+          "stages": [
+            "Tg"
+          ],
+          "wireFlowSchema": "phoenix.s13.one-stage-wire-flow.v1",
+          "stagedWireRecords": 3,
+          "nativeActions": 1,
+          "nativeRequests": 1,
+          "turnStarted": 1,
+          "skillActions": 1,
+          "excludedPreludeCount": 0,
+          "excludedPreludeViewId": null,
+          "followupUsed": false,
+          "followupCalls": 0,
+          "distinctStageIds": [],
+          "targetStage": "Tg"
+        }
+      },
+      "invariantsAcrossShapes": [
+        "every normalized wire record resolves to exactly one distinct raw source line",
+        "every staged record binds caseId, requestID, transID, connectionId, messageId and timestampISO to its raw line",
+        "the captured display actions, ordinals, captureKeys and screenshots bind the target stage action",
+        "no ACK, idle, provider-return or provider-idle record may appear in the raw staged wire",
+        "the turn ends at a native final idle snapshot",
+        "no whoIsThisMenu display is ever screenshotted or counted as a captured display"
+      ]
     }
   },
   "falsificationControls": [
@@ -1021,7 +1088,7 @@
     "canonicalExcludes": [
       "integrity"
     ],
-    "matrixSha256": "dcf5f2b1d02884341e446be433ec2a1981d41b7dee8e81210495e0427341b0c0",
+    "matrixSha256": "d7784113ca8cdf5903645c60d8bb04a4704c6af9302a9184e304657ba784e5bc",
     "caseInventorySha256": "b2410705ee0b7b2f8096fd974a06fdf8b7e983d63c544394a96019ac11671d53"
   },
   "fixtureBoundary": {
