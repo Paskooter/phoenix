@@ -9,7 +9,9 @@ import asyncio
 import datetime
 import hashlib
 import json
+import os
 from pathlib import Path
+import stat
 import time
 import urllib.request
 import websockets
@@ -100,6 +102,190 @@ class CaptureError(RuntimeError):
     """Raised when a requested display capture cannot be correlated safely."""
 
 
+FIXTURE_MAX_BYTES = 16 * 1024 * 1024
+
+
+def _normalise_digest(value, label):
+    if (not isinstance(value, str) or len(value) != 64
+            or any(character not in '0123456789abcdefABCDEF' for character in value)):
+        raise CaptureError('%s must be a SHA-256 digest' % label)
+    return value.lower()
+
+
+def _fixture_stat_signature(info):
+    return (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns,
+            stat.S_IMODE(info.st_mode))
+
+
+def _read_private_fixture(path):
+    """Read one private fixture without accepting a symlink or a torn write."""
+    requested = Path(path).expanduser()
+    if requested.is_symlink():
+        raise CaptureError('fixture path must be a private regular file, not a symlink: %s' % requested)
+    absolute = requested.absolute()
+    for _ in range(2):
+        try:
+            before = absolute.lstat()
+        except OSError as error:
+            raise CaptureError('cannot stat fixture file %s: %s' % (absolute, error)) from error
+        if not stat.S_ISREG(before.st_mode):
+            raise CaptureError('fixture path must be a private regular file: %s' % absolute)
+        if stat.S_IMODE(before.st_mode) != 0o600:
+            raise CaptureError('fixture file must have mode 0600: %s' % absolute)
+        if before.st_size > FIXTURE_MAX_BYTES:
+            raise CaptureError('fixture file exceeds %d bytes: %s' % (FIXTURE_MAX_BYTES, absolute))
+        try:
+            data = absolute.read_bytes()
+            after = absolute.lstat()
+        except OSError as error:
+            raise CaptureError('cannot read fixture file %s: %s' % (absolute, error)) from error
+        if _fixture_stat_signature(before) == _fixture_stat_signature(after):
+            return absolute, data, after
+    raise CaptureError('fixture changed while it was being read; use an atomic replacement: %s' % absolute)
+
+
+def _fixture_document_metadata(data, path):
+    try:
+        document = json.loads(data.decode('utf-8'))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise CaptureError('fixture is not valid UTF-8 JSON: %s' % path) from error
+    if not isinstance(document, dict):
+        raise CaptureError('fixture JSON root must be an object: %s' % path)
+    case_id = document.get('caseId')
+    if not isinstance(case_id, str) or not case_id:
+        raise CaptureError('fixture must contain a non-empty caseId: %s' % path)
+    integrity = document.get('integrity')
+    cases_sha256 = integrity.get('casesSha256') if isinstance(integrity, dict) else None
+    if cases_sha256 is not None and (
+            not isinstance(cases_sha256, str)
+            or len(cases_sha256) != 64
+            or any(character not in '0123456789abcdefABCDEF' for character in cases_sha256)):
+        raise CaptureError('fixture integrity.casesSha256 must be a SHA-256 digest: %s' % path)
+    return {'caseId': case_id, 'casesSha256': cases_sha256}
+
+
+def _write_immutable_fixture_copy(data, target, source):
+    """Create a private evidence copy and refuse every overwrite."""
+    destination = Path(target).expanduser().absolute()
+    if destination == source:
+        raise CaptureError('fixture copy path must differ from the source path')
+    if destination.is_symlink():
+        raise CaptureError('fixture copy path must not be a symlink: %s' % destination)
+    try:
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except OSError as error:
+        raise CaptureError('cannot create fixture copy directory %s: %s' % (
+            destination.parent, error)) from error
+    descriptor = None
+    try:
+        descriptor = os.open(str(destination), os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(descriptor, 'wb') as output:
+            descriptor = None
+            output.write(data)
+            output.flush()
+            os.fsync(output.fileno())
+    except OSError as error:
+        if descriptor is not None:
+            os.close(descriptor)
+        raise CaptureError('cannot create immutable fixture copy %s: %s' % (destination, error)) from error
+    try:
+        copied_info = destination.lstat()
+        if (not stat.S_ISREG(copied_info.st_mode)
+                or stat.S_IMODE(copied_info.st_mode) != 0o600
+                or destination.read_bytes() != data):
+            raise CaptureError('immutable fixture copy verification failed: %s' % destination)
+    except OSError as error:
+        raise CaptureError('cannot verify immutable fixture copy %s: %s' % (destination, error)) from error
+    return destination
+
+
+class ImmutableFixtureSnapshot:
+    """Pin one private S-13 fixture file for a complete capture run.
+
+    The copy is created with ``O_EXCL`` and mode 0600.  The source digest is
+    checked again while observing so an atomic case switch cannot be silently
+    mixed into a turn's native events or screenshots.
+    """
+
+    def __init__(self, source, data, metadata, copy_path=None):
+        self.source = source
+        self._data = data
+        self._digest = metadata['sha256']
+        self._metadata = dict(metadata)
+        self.copy_path = copy_path
+        self.verified_unchanged = False
+
+    @classmethod
+    def capture(cls, source, copy_path=None, expected_sha256=None, expected_cases_sha256=None):
+        absolute, data, _ = _read_private_fixture(source)
+        document_metadata = _fixture_document_metadata(data, absolute)
+        digest = hashlib.sha256(data).hexdigest()
+        if expected_sha256 is not None:
+            expected_sha256 = _normalise_digest(expected_sha256, 'expected fixture SHA-256')
+            if expected_sha256 != digest:
+                raise CaptureError('fixture SHA-256 mismatch (expected %s, got %s)' % (expected_sha256, digest))
+        if (expected_cases_sha256 is not None
+                and _normalise_digest(expected_cases_sha256, 'expected fixture cases SHA-256')
+                != (document_metadata['casesSha256'] or '').lower()):
+            raise CaptureError('fixture cases SHA-256 mismatch (expected %s, got %s)' % (
+                expected_cases_sha256, document_metadata['casesSha256']))
+        copy = _write_immutable_fixture_copy(data, copy_path, absolute) if copy_path else None
+        metadata = {
+            'path': str(absolute),
+            'sha256': digest,
+            'bytes': len(data),
+            'caseId': document_metadata['caseId'],
+            'casesSha256': document_metadata['casesSha256'],
+            'immutable': copy is not None,
+        }
+        if copy is not None:
+            metadata.update({'copyPath': str(copy), 'copySha256': digest, 'copyBytes': len(data)})
+        return cls(absolute, data, metadata, copy)
+
+    def metadata(self):
+        result = dict(self._metadata)
+        result['verifiedUnchanged'] = self.verified_unchanged
+        return result
+
+    def verify_unchanged(self):
+        absolute, data, _ = _read_private_fixture(self.source)
+        digest = hashlib.sha256(data).hexdigest()
+        if absolute != self.source or digest != self._digest or data != self._data:
+            raise CaptureError(
+                'fixture changed during capture (case %s, expected %s, got %s)' % (
+                    self._metadata['caseId'], self._digest, digest))
+        self.verified_unchanged = True
+        return True
+
+
+def capture_fixture_snapshot(source, copy_path=None, expected_sha256=None, expected_cases_sha256=None):
+    """Create the reusable immutable fixture guard used by capture adapters."""
+    return ImmutableFixtureSnapshot.capture(
+        source,
+        copy_path=copy_path,
+        expected_sha256=expected_sha256,
+        expected_cases_sha256=expected_cases_sha256,
+    )
+
+
+def _skill_name(snapshot):
+    skill = snapshot.get('skill') if isinstance(snapshot, dict) else None
+    if isinstance(skill, str):
+        return skill
+    if isinstance(skill, dict):
+        return skill.get('name')
+    return None
+
+
+def _is_idle_snapshot(snapshot):
+    """Return whether a CDP snapshot proves the robot is idle before a turn."""
+    return (isinstance(snapshot, dict)
+            and _skill_name(snapshot) == '@be/idle'
+            and snapshot.get('view') == 'eyeView'
+            and snapshot.get('listen') == 'Idle'
+            and snapshot.get('talking') is False)
+
+
 def _walk_json(value, path=()):
     """Yield JSON nodes in source order with their paths."""
     if isinstance(value, dict):
@@ -173,6 +359,16 @@ def _public_display_action(action):
     return {key: value for key, value in action.items() if not key.startswith('_')}
 
 
+def _action_correlation(action):
+    """Return the stable source receipt fields for one DISPLAY capture."""
+    if not isinstance(action, dict):
+        return None
+    fields = ('eventIndex', 'eventElapsedMs', 'eventTs', 'eventType', 'requestID',
+              'transID', 'jcpId', 'displayId', 'displayIndex', 'actionPath',
+              'viewId', 'viewOccurrence', 'displayOrdinal', 'captureKey')
+    return {field: action.get(field) for field in fields}
+
+
 class DisplayCapturePlanner:
     """Plan ordered screenshots from view observations and native DISPLAY actions.
 
@@ -182,9 +378,11 @@ class DisplayCapturePlanner:
     instead of silently treating a duplicate ID as already captured.
     """
 
-    def __init__(self, screenshot_delay, strict=True):
+    def __init__(self, screenshot_delay, strict=True, expected_view_ids=None):
         self.screenshot_delay = screenshot_delay
         self.strict = strict
+        self.expected_view_ids = (list(expected_view_ids)
+                                  if expected_view_ids is not None else None)
         self.events_seen = 0
         self.actions = []
         self._occurrences = {}
@@ -227,6 +425,26 @@ class DisplayCapturePlanner:
                 view_id = action.get('viewId')
                 if not view_id and self.strict:
                     self._fail('DISPLAY action cannot be captured without a view ID', eventIndex=index)
+                if self.expected_view_ids is not None:
+                    expected_index = len(self.actions)
+                    if expected_index >= len(self.expected_view_ids):
+                        self._fail(
+                            'unrecorded extra DISPLAY action encountered',
+                            eventIndex=index,
+                            displayOrdinal=expected_index + 1,
+                            viewId=view_id,
+                            expectedDisplayViewIds=list(self.expected_view_ids),
+                        )
+                    expected_view_id = self.expected_view_ids[expected_index]
+                    if view_id != expected_view_id:
+                        self._fail(
+                            'DISPLAY action differs from the expected source view order',
+                            eventIndex=index,
+                            displayOrdinal=expected_index + 1,
+                            viewId=view_id,
+                            expectedViewId=expected_view_id,
+                            expectedDisplayViewIds=list(self.expected_view_ids),
+                        )
                 occurrence = self._occurrences.get(view_id, 0) + 1
                 self._occurrences[view_id] = occurrence
                 action['viewOccurrence'] = occurrence
@@ -353,6 +571,14 @@ class DisplayCapturePlanner:
     def finish(self, event_rows, now):
         """Validate that every observed DISPLAY action received a screenshot."""
         self._ingest(event_rows, now)
+        if (self.expected_view_ids is not None
+                and len(self.actions) != len(self.expected_view_ids)):
+            self._fail(
+                'expected DISPLAY action was not observed',
+                expectedDisplayViewIds=list(self.expected_view_ids),
+                expectedCount=len(self.expected_view_ids),
+                observedCount=len(self.actions),
+            )
         if self._pending:
             first = self._pending[0]
             self._fail(
@@ -367,6 +593,17 @@ def _sha256_file(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _file_digest_and_size(path):
+    """Return a screenshot's digest and byte count from the same read."""
+    try:
+        data = path.read_bytes()
+    except OSError as error:
+        raise CaptureError('cannot read screenshot %s: %s' % (path, error)) from error
+    if not data:
+        raise CaptureError('screenshot is empty: %s' % path)
+    return hashlib.sha256(data).hexdigest(), len(data)
+
+
 def _screenshot_path(base, ordinal):
     """Return the legacy-compatible, ordinal-stable screenshot filename."""
     return base.with_name(base.stem + '-view-%d.png' % ordinal)
@@ -375,12 +612,31 @@ def _screenshot_path(base, ordinal):
 async def run(args):
     events, snapshots = [], []
     start = time.monotonic()
-    planner = DisplayCapturePlanner(args.screenshot_delay) if args.screenshots else None
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    fixture_file = getattr(args, 'fixture_file', None)
+    fixture_copy = getattr(args, 'fixture_copy', None)
+    if fixture_copy and not fixture_file:
+        raise CaptureError('--fixture-copy requires --fixture-file')
+    fixture_snapshot = (capture_fixture_snapshot(
+        fixture_file,
+        copy_path=fixture_copy,
+        expected_sha256=getattr(args, 'fixture_sha256', None),
+        expected_cases_sha256=getattr(args, 'fixture_cases_sha256', None),
+    ) if fixture_file else None)
+    expected_view_ids = getattr(args, 'expected_view_ids', None)
+    planner = (DisplayCapturePlanner(
+        args.screenshot_delay,
+        expected_view_ids=expected_view_ids,
+    ) if args.screenshots else None)
     report = {'started': datetime.datetime.now(datetime.timezone.utc).isoformat(),
               'robot': 'moth-radius-breazeal-felt.jibo', 'mode': args.mode,
               'input': 'passive native microphone observation' if args.observe_only else ('native clientASR text injection' if args.text is not None else 'native microphone capture'),
               'text': args.text, 'microphoneAcceptance': False, 'events': events, 'snapshots': snapshots,
               'displayActions': [], 'screenshots': [], 'captureErrors': []}
+    if fixture_snapshot:
+        report['fixture'] = fixture_snapshot.metadata()
+    if expected_view_ids is not None:
+        report['expectedDisplayViewIds'] = list(expected_view_ids)
     async with websockets.connect('ws://127.0.0.1:%d/events' % args.native_port,
                                   max_size=2 * 1024 * 1024, ping_interval=None) as ws:
         async def receive():
@@ -392,6 +648,13 @@ async def run(args):
         async def observe():
             previous = None
             while True:
+                if fixture_snapshot:
+                    try:
+                        fixture_snapshot.verify_unchanged()
+                    except CaptureError as error:
+                        if planner:
+                            planner._fail(str(error), fixture=fixture_snapshot.metadata())
+                        raise
                 result = await evaluate(args.cdp_port, args.slot, SNAPSHOT)
                 value = result['result'].get('value')
                 if value != previous:
@@ -408,7 +671,12 @@ async def run(args):
                         if not out.is_file():
                             planner._fail('CDP screenshot returned without writing the requested file',
                                           filename=str(out), captureOrdinal=request['captureOrdinal'])
-                        capture_result['sha256'] = _sha256_file(out)
+                        try:
+                            capture_result['sha256'], capture_bytes = _file_digest_and_size(out)
+                        except CaptureError as error:
+                            planner._fail(str(error), filename=str(out),
+                                          captureOrdinal=request['captureOrdinal'])
+                        capture_result['bytes'] = capture_bytes
                         captured_at = time.monotonic()
                         planner.captured(request, captured_at)
                         action = request.get('_action')
@@ -424,6 +692,9 @@ async def run(args):
                             'stableForMs': round(max(0, captured_at - ready_since) * 1000),
                             'filename': str(out),
                             'sha256': capture_result['sha256'],
+                            'bytes': capture_bytes,
+                            'captureKey': action.get('captureKey') if action else None,
+                            'actionCorrelation': _action_correlation(action),
                             'displayAction': _public_display_action(action) if action else None,
                         }
                         snapshots.append({'elapsedMs': round((captured_at-start)*1000),
@@ -438,6 +709,29 @@ async def run(args):
         visual_installed = False
         followup_installed = False
         try:
+            if fixture_snapshot:
+                try:
+                    fixture_snapshot.verify_unchanged()
+                except CaptureError as error:
+                    if planner:
+                        planner._fail(str(error), fixture=fixture_snapshot.metadata())
+                    raise
+            initial = await evaluate(args.cdp_port, args.slot, SNAPSHOT)
+            initial_value = initial['result'].get('value')
+            snapshots.append({'elapsedMs': round((time.monotonic()-start)*1000), 'be': initial_value})
+            idle_required = bool(getattr(args, 'require_idle', False) or args.screenshots)
+            idle_ok = _is_idle_snapshot(initial_value)
+            report['preflight'] = {
+                'idleRequired': idle_required,
+                'idle': idle_ok,
+                'snapshot': initial_value,
+            }
+            if idle_required and not idle_ok:
+                details = {'message': 'strict idle preflight failed', 'snapshot': initial_value}
+                report['captureErrors'].append(details)
+                if planner:
+                    planner._fail(details['message'], snapshot=initial_value)
+                raise CaptureError(details['message'])
             if args.followup_text is not None:
                 expression = FOLLOWUP_START.replace('TARGET_SKILL', json.dumps(args.followup_skill))
                 expression = expression.replace('TARGET_RULE', json.dumps(args.followup_rule))
@@ -447,8 +741,6 @@ async def run(args):
             if args.visuals:
                 await evaluate(args.cdp_port, args.slot, VISUAL_START)
                 visual_installed = True
-            initial = await evaluate(args.cdp_port, args.slot, SNAPSHOT)
-            snapshots.append({'elapsedMs': round((time.monotonic()-start)*1000), 'be': initial['result'].get('value')})
             if not args.observe_only:
                 options = {'clientASR': args.text} if args.text is not None else {
                     'nluRules': ['launch'], 'sosTimeout': 5, 'maxSpeechTimeout': 12}
@@ -482,6 +774,13 @@ async def run(args):
             for reader in readers:
                 if reader.done():
                     reader.result()
+            if fixture_snapshot:
+                try:
+                    fixture_snapshot.verify_unchanged()
+                except CaptureError as error:
+                    if planner:
+                        planner._fail(str(error), fixture=fixture_snapshot.metadata())
+                    raise
             if planner:
                 planner.finish(events, time.monotonic())
         finally:
@@ -505,6 +804,8 @@ async def run(args):
             except Exception as error:
                 report['viewInstanceTrackerCleanupError'] = str(error)
             report['durationMs'] = round((time.monotonic()-start)*1000)
+            if fixture_snapshot:
+                report['fixture'] = fixture_snapshot.metadata()
             if planner:
                 report['displayActions'] = planner.public_actions()
                 report['captureErrors'] = list(planner.errors)
@@ -522,8 +823,21 @@ def main():
     parser.add_argument('--text')
     parser.add_argument('--duration', type=float, default=15)
     parser.add_argument('--out', type=Path, required=True)
-    parser.add_argument('--screenshots', action='store_true')
+    parser.add_argument('--screenshots', action='store_true',
+                        help='Capture stable views; this also requires an idle preflight')
     parser.add_argument('--screenshot-delay', type=float, default=1.8, help='Seconds of stable view before capture')
+    parser.add_argument('--require-idle', action='store_true',
+                        help='Fail before a turn unless CDP proves @be/idle, eyeView, Idle listening, and no TTS')
+    parser.add_argument('--expected-view-id', dest='expected_view_ids', action='append',
+                        help='Expected ordered DISPLAY view ID; repeat for repeated or multiple renders')
+    parser.add_argument('--fixture-file', type=Path,
+                        help='Private S-13 fixture (0600); hash and case ID are recorded and watched')
+    parser.add_argument('--fixture-copy', type=Path,
+                        help='Create a new immutable 0600 evidence copy of --fixture-file')
+    parser.add_argument('--fixture-sha256',
+                        help='Expected complete fixture SHA-256 digest')
+    parser.add_argument('--fixture-cases-sha256',
+                        help='Expected fixture integrity.casesSha256 digest')
     parser.add_argument('--observe-only', action='store_true', help='Observe real user turns without initiating a request')
     parser.add_argument('--followup-text', help='Use original LocalTurnRequest.update once for a scoped follow-up')
     parser.add_argument('--followup-skill')
@@ -533,6 +847,10 @@ def main():
     args = parser.parse_args()
     if args.followup_text is not None and not (args.followup_skill and args.followup_rule):
         parser.error('--followup-text requires both --followup-skill and --followup-rule')
+    if args.fixture_copy is not None and args.fixture_file is None:
+        parser.error('--fixture-copy requires --fixture-file')
+    if args.expected_view_ids is not None and not args.screenshots:
+        parser.error('--expected-view-id requires --screenshots')
     if not 0 <= args.screenshot_delay <= 5:
         parser.error('--screenshot-delay must be 0..5 seconds')
     if args.observe_only and args.text is not None:

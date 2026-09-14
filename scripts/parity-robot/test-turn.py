@@ -1,8 +1,15 @@
 #!/usr/bin/env python3
 """Pure tests for the read-only turn observer's display capture planner."""
+import argparse
+import asyncio
+import contextlib
 import importlib.util
+import hashlib
+import io
+import json
 from pathlib import Path
 import sys
+import tempfile
 import unittest
 
 
@@ -69,6 +76,16 @@ class DisplayCapturePlannerTests(unittest.TestCase):
             actions[1]['actionPath'],
             ['data', 'action', 'config', 'jcp', 'children', 1, 'config', 'display'])
 
+    def test_action_correlation_is_present_for_a_source_display(self):
+        action = turn._display_actions_from_event(display_event(['eventView']), 4)[0]
+        action.update({'viewOccurrence': 1, 'displayOrdinal': 1, 'captureKey': 'eventView#1'})
+        correlation = turn._action_correlation(action)
+        self.assertIsNotNone(correlation)
+        self.assertEqual(correlation['requestID'], 'request-1')
+        self.assertEqual(correlation['transID'], 'trans-1')
+        self.assertEqual(correlation['captureKey'], 'eventView#1')
+        self.assertIsNone(turn._action_correlation(None))
+
     def test_duplicate_view_ids_get_distinct_ordered_captures(self):
         rows = [display_event(['eventView', 'eventView'])]
         planner = turn.DisplayCapturePlanner(0.5)
@@ -132,6 +149,21 @@ class DisplayCapturePlannerTests(unittest.TestCase):
             planner.finish(rows, 1.0)
         self.assertEqual(planner.errors[0]['viewId'], 'eventView')
 
+    def test_expected_sequence_rejects_unrecorded_extra_matching_action(self):
+        rows = [display_event(['eventView', 'eventView', 'eventView'])]
+        planner = turn.DisplayCapturePlanner(0.1, expected_view_ids=['eventView', 'eventView'])
+        with self.assertRaises(turn.CaptureError):
+            planner.update({'view': 'eventView', 'viewInstance': 'event-1'}, 0.0, rows)
+        self.assertIn('extra DISPLAY', planner.errors[0]['message'])
+        self.assertEqual(planner.errors[0]['displayOrdinal'], 3)
+
+    def test_expected_sequence_rejects_view_order_mismatch(self):
+        rows = [display_event(['eventView'])]
+        planner = turn.DisplayCapturePlanner(0.1, expected_view_ids=['weatherView'])
+        with self.assertRaises(turn.CaptureError):
+            planner.update({'view': 'eventView', 'viewInstance': 'event-1'}, 0.0, rows)
+        self.assertEqual(planner.errors[0]['expectedViewId'], 'weatherView')
+
     def test_unique_ids_keep_one_capture_each(self):
         planner = turn.DisplayCapturePlanner(0.5)
         planner.update({'view': 'eyeView'}, 0.0, [])
@@ -157,6 +189,139 @@ class DisplayCapturePlannerTests(unittest.TestCase):
         self.assertEqual(
             turn._screenshot_path(Path('/tmp/calendar.json'), 3),
             Path('/tmp/calendar-view-3.png'))
+
+    def test_idle_preflight_requires_full_idle_snapshot(self):
+        idle = {'skill': '@be/idle', 'view': 'eyeView', 'listen': 'Idle', 'talking': False}
+        self.assertTrue(turn._is_idle_snapshot(idle))
+        self.assertTrue(turn._is_idle_snapshot({**idle, 'skill': {'name': '@be/idle'}}))
+        for key, value in [('view', 'eventView'), ('listen', 'Listening'), ('talking', True)]:
+            candidate = dict(idle)
+            candidate[key] = value
+            self.assertFalse(turn._is_idle_snapshot(candidate))
+
+    def test_screenshot_digest_and_size_are_reported_from_same_bytes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'view.png'
+            content = b'\x89PNG\r\nrobot-view'
+            path.write_bytes(content)
+            digest, size = turn._file_digest_and_size(path)
+            self.assertEqual(digest, hashlib.sha256(content).hexdigest())
+            self.assertEqual(size, len(content))
+
+    def test_fixture_copy_is_private_immutable_and_watched(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / 'fixture.json'
+            copy = root / 'evidence' / 'fixture.json'
+            content = json.dumps({
+                'caseId': 'calendar-four-card-field-matrix',
+                'integrity': {'casesSha256': 'a' * 64},
+            }).encode('utf-8')
+            source.write_bytes(content)
+            source.chmod(0o600)
+            snapshot = turn.ImmutableFixtureSnapshot.capture(source, copy_path=copy)
+            metadata = snapshot.metadata()
+            self.assertEqual(metadata['caseId'], 'calendar-four-card-field-matrix')
+            self.assertEqual(metadata['bytes'], len(content))
+            self.assertEqual(metadata['sha256'], hashlib.sha256(content).hexdigest())
+            self.assertEqual(metadata['copySha256'], metadata['sha256'])
+            self.assertEqual(metadata['copyBytes'], len(content))
+            self.assertEqual((copy.stat().st_mode & 0o777), 0o600)
+            snapshot.verify_unchanged()
+            self.assertTrue(snapshot.metadata()['verifiedUnchanged'])
+
+            source.write_text(json.dumps({
+                'caseId': 'calendar-no-view-empty',
+                'integrity': {'casesSha256': 'a' * 64},
+            }))
+            source.chmod(0o600)
+            with self.assertRaises(turn.CaptureError):
+                snapshot.verify_unchanged()
+            with self.assertRaises(turn.CaptureError):
+                turn.ImmutableFixtureSnapshot.capture(source, copy_path=copy)
+
+    def test_run_receipt_has_fixture_copy_bytes_and_display_correlation(self):
+        class FakeWebSocket:
+            def __init__(self, payload):
+                self.payload = payload
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *args):
+                return False
+
+            async def _events(self):
+                yield self.payload
+
+            def __aiter__(self):
+                return self._events()
+
+        async def exercise():
+            with tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                source = root / 'fixture.json'
+                source.write_text(json.dumps({
+                    'caseId': 'calendar-four-card-field-matrix',
+                    'integrity': {'casesSha256': 'b' * 64},
+                }))
+                source.chmod(0o600)
+                output = root / 'capture.json'
+                event = display_event(['eventView'])['event']
+                old_connect = turn.websockets.connect
+                old_evaluate = turn.evaluate
+                old_screenshot = turn.screenshot
+                snapshot_calls = 0
+
+                async def fake_evaluate(port, slot, expression):
+                    nonlocal snapshot_calls
+                    if expression == turn.SNAPSHOT:
+                        snapshot_calls += 1
+                        value = ({
+                            'skill': '@be/idle', 'view': 'eyeView',
+                            'viewInstance': 'eye-1', 'listen': 'Idle', 'talking': False,
+                        } if snapshot_calls == 1 else {
+                            'skill': '@be/calendar', 'view': 'eventView',
+                            'viewInstance': 'event-1', 'listen': 'Idle', 'talking': False,
+                        })
+                        return {'result': {'value': value}}
+                    return {'result': {'value': True}}
+
+                async def fake_screenshot(port, slot, path):
+                    path.write_bytes(b'\x89PNG\r\nS13')
+                    return {'page': slot, 'screenshot': str(path)}
+
+                turn.websockets.connect = lambda *args, **kwargs: FakeWebSocket(json.dumps(event))
+                turn.evaluate = fake_evaluate
+                turn.screenshot = fake_screenshot
+                args = argparse.Namespace(
+                    out=output, fixture_file=source, fixture_copy=root / 'fixture-copy.json',
+                    fixture_sha256=None, fixture_cases_sha256='b' * 64,
+                    screenshot_delay=0.0, screenshots=True,
+                    expected_view_ids=['eventView'], native_port=18090, cdp_port=19223,
+                    slot='test', mode='global', text=None, observe_only=True,
+                    followup_text=None, followup_skill=None, followup_rule=None, visuals=False,
+                    require_idle=False, duration=0.25,
+                )
+                try:
+                    with contextlib.redirect_stdout(io.StringIO()):
+                        await turn.run(args)
+                finally:
+                    turn.websockets.connect = old_connect
+                    turn.evaluate = old_evaluate
+                    turn.screenshot = old_screenshot
+                report = json.loads(output.read_text())
+                self.assertTrue(report['preflight']['idle'])
+                self.assertTrue(report['fixture']['immutable'])
+                self.assertTrue(report['fixture']['verifiedUnchanged'])
+                self.assertEqual(len(report['screenshots']), 1)
+                capture = report['screenshots'][0]
+                self.assertGreater(capture['bytes'], 0)
+                self.assertEqual(capture['bytes'], len(b'\x89PNG\r\nS13'))
+                self.assertEqual(capture['actionCorrelation']['requestID'], 'request-1')
+                self.assertEqual(capture['actionCorrelation']['captureKey'], 'eventView#1')
+
+        asyncio.run(exercise())
 
 
 if __name__ == '__main__':
