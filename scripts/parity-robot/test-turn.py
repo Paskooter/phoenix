@@ -201,6 +201,49 @@ class DisplayCapturePlannerTests(unittest.TestCase):
             planner.update({'view': 'whoIsThisMenu', 'viewInstance': 'identity-1'}, 0.1,
                            [display_event(['eventView']), display_event(['whoIsThisMenu'])])
         self.assertIn('extra DISPLAY', planner.errors[0]['message'])
+        self.assertEqual(planner.errors[0]['actionCorrelation']['requestID'], 'request-1')
+
+    def test_allow_listed_prelude_suppresses_legacy_capture_until_action_arrives(self):
+        rows = [display_event(['whoIsThisMenu']), display_event(['eventView'])]
+        planner = turn.DisplayCapturePlanner(
+            0.1,
+            expected_view_ids=['eventView'],
+            allowed_prelude_view_ids=['whoIsThisMenu'],
+        )
+        planner.update({'view': 'whoIsThisMenu', 'viewInstance': 'identity-1'}, 0.0, [])
+        _, request = planner.update(
+            {'view': 'whoIsThisMenu', 'viewInstance': 'identity-1'}, 0.2, [])
+        self.assertIsNone(request)
+        planner.update(
+            {'view': 'whoIsThisMenu', 'viewInstance': 'identity-1'}, 0.3, rows[:1])
+        excluded = planner.public_excluded_actions()[0]
+        self.assertEqual(excluded['viewGeneration'], 1)
+        self.assertEqual(excluded['captureKey'], 'excluded-prelude:whoIsThisMenu#1')
+        planner.update({'view': 'eventView', 'viewInstance': 'event-1'}, 0.4, rows)
+        _, request = planner.update({'view': 'eventView', 'viewInstance': 'event-1'}, 0.6, rows)
+        planner.captured(request, 0.6)
+        planner.finish(rows, 0.7)
+
+    def test_allow_listed_prelude_requires_target_sequence_and_distinct_ids(self):
+        with self.assertRaisesRegex(ValueError, 'require an expected display sequence'):
+            turn.DisplayCapturePlanner(0.1, allowed_prelude_view_ids=['whoIsThisMenu'])
+        with self.assertRaisesRegex(ValueError, 'cannot also be expected'):
+            turn.DisplayCapturePlanner(
+                0.1,
+                expected_view_ids=['whoIsThisMenu'],
+                allowed_prelude_view_ids=['whoIsThisMenu'],
+            )
+
+    def test_unmatched_allow_listed_prelude_fails_closed(self):
+        planner = turn.DisplayCapturePlanner(
+            0.1,
+            expected_view_ids=['eventView'],
+            allowed_prelude_view_ids=['whoIsThisMenu'],
+        )
+        planner.update({'view': 'whoIsThisMenu', 'viewInstance': 'identity-1'}, 0.0, [])
+        with self.assertRaises(turn.CaptureError):
+            planner.finish([], 0.2)
+        self.assertIn('lacked a correlated DISPLAY action', planner.errors[0]['message'])
 
     def test_unique_ids_keep_one_capture_each(self):
         planner = turn.DisplayCapturePlanner(0.5)

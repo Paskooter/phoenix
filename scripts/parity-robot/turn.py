@@ -385,7 +385,14 @@ class DisplayCapturePlanner:
         self.expected_view_ids = (list(expected_view_ids)
                                   if expected_view_ids is not None else None)
         self.allowed_prelude_view_ids = set(allowed_prelude_view_ids or [])
+        if self.allowed_prelude_view_ids and self.expected_view_ids is None:
+            raise ValueError('allowed DISPLAY preludes require an expected display sequence')
+        overlap = self.allowed_prelude_view_ids.intersection(self.expected_view_ids or [])
+        if overlap:
+            raise ValueError('allowed DISPLAY preludes cannot also be expected display targets: %s'
+                             % ', '.join(sorted(overlap)))
         self.excluded_actions = []
+        self._observed_preludes = []
         self.events_seen = 0
         self.actions = []
         self._occurrences = {}
@@ -435,6 +442,14 @@ class DisplayCapturePlanner:
                     action['captureStatus'] = 'excluded-prelude'
                     action['exclusionReason'] = 'allow-listed prelude before expected display sequence'
                     action['excludedPreludeOrdinal'] = len(self.excluded_actions) + 1
+                    action['captureKey'] = 'excluded-prelude:%s#%d' % (
+                        view_id, action['excludedPreludeOrdinal'])
+                    for observed in self._observed_preludes:
+                        if observed['viewId'] == view_id and not observed['matched']:
+                            observed['matched'] = True
+                            action['_viewGeneration'] = observed['viewGeneration']
+                            action['viewGeneration'] = observed['viewGeneration']
+                            break
                     self.excluded_actions.append(action)
                     continue
                 if self.expected_view_ids is not None:
@@ -445,6 +460,7 @@ class DisplayCapturePlanner:
                             eventIndex=index,
                             displayOrdinal=expected_index + 1,
                             viewId=view_id,
+                            actionCorrelation=_public_display_action(action),
                             expectedDisplayViewIds=list(self.expected_view_ids),
                         )
                     expected_view_id = self.expected_view_ids[expected_index]
@@ -455,6 +471,7 @@ class DisplayCapturePlanner:
                             displayOrdinal=expected_index + 1,
                             viewId=view_id,
                             expectedViewId=expected_view_id,
+                            actionCorrelation=_public_display_action(action),
                             expectedDisplayViewIds=list(self.expected_view_ids),
                         )
                 occurrence = self._occurrences.get(view_id, 0) + 1
@@ -516,6 +533,20 @@ class DisplayCapturePlanner:
         self._have_observation = True
         self._view_since = now
         self._view_generation += 1
+        if view in self.allowed_prelude_view_ids and not self.actions:
+            observed = {
+                'viewId': view,
+                'viewInstance': instance,
+                'viewGeneration': self._view_generation,
+                'matched': False,
+            }
+            for action in self.excluded_actions:
+                if action.get('viewId') == view and action.get('_viewGeneration') is None:
+                    observed['matched'] = True
+                    action['_viewGeneration'] = self._view_generation
+                    action['viewGeneration'] = self._view_generation
+                    break
+            self._observed_preludes.append(observed)
         for action in self._pending:
             self._arm(action, now)
             if action.get('_readySince') is not None:
@@ -542,7 +573,8 @@ class DisplayCapturePlanner:
         # Keep the old observer behavior for views which have no DISPLAY
         # action (notably the initial eyeView): capture each unique ID once.
         known_display_views = ({action.get('viewId') for action in self.actions}
-                               | {action.get('viewId') for action in self.excluded_actions})
+                               | {action.get('viewId') for action in self.excluded_actions}
+                               | self.allowed_prelude_view_ids)
         if (self._current_view and self._current_view not in self._captured_view_ids
                 and self._current_view not in known_display_views
                 and self._view_since is not None
@@ -584,6 +616,22 @@ class DisplayCapturePlanner:
     def finish(self, event_rows, now):
         """Validate that every observed DISPLAY action received a screenshot."""
         self._ingest(event_rows, now)
+        unmatched_observed = [item for item in self._observed_preludes if not item['matched']]
+        if unmatched_observed:
+            self._fail(
+                'allow-listed prelude view lacked a correlated DISPLAY action',
+                viewId=unmatched_observed[0]['viewId'],
+                viewInstance=unmatched_observed[0]['viewInstance'],
+                viewGeneration=unmatched_observed[0]['viewGeneration'],
+            )
+        unmatched_actions = [action for action in self.excluded_actions
+                             if action.get('_viewGeneration') is None]
+        if unmatched_actions:
+            self._fail(
+                'excluded DISPLAY prelude was not observed on the robot',
+                viewId=unmatched_actions[0].get('viewId'),
+                actionCorrelation=_public_display_action(unmatched_actions[0]),
+            )
         if (self.expected_view_ids is not None
                 and len(self.actions) != len(self.expected_view_ids)):
             self._fail(
@@ -872,6 +920,8 @@ def main():
         parser.error('--expected-view-id requires --screenshots')
     if args.allowed_prelude_view_ids is not None and not args.screenshots:
         parser.error('--allow-prelude-view-id requires --screenshots')
+    if args.allowed_prelude_view_ids is not None and args.expected_view_ids is None:
+        parser.error('--allow-prelude-view-id requires at least one --expected-view-id')
     if not 0 <= args.screenshot_delay <= 5:
         parser.error('--screenshot-delay must be 0..5 seconds')
     if args.observe_only and args.text is not None:
