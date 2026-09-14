@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { buildReceipt } from './test-fixture.mjs';
-import { canonicalJson, canonicalSha256, matrixSha256, matrixInventory, sha256Bytes, validateReceipt } from './validate.mjs';
+import { canonicalJson, canonicalSha256, falsificationAnchorSha256, matrixSha256, matrixInventory, provenanceAnchorSha256, sha256Bytes, validateReceipt } from './validate.mjs';
 
 const here = path.dirname(new URL(import.meta.url).pathname);
 const matrixPath = path.join(here, 'matrix.json');
@@ -31,6 +31,165 @@ function recomputeSelfReports(matrix) {
   matrix.integrity.matrixSha256 = matrixSha256(matrix);
   matrix.integrity.caseInventorySha256 = canonicalSha256(matrixInventory(matrix));
 }
+
+function realFail(message) { throw new Error(`S13 real falsifier: ${message}`); }
+function realClone(value) { return JSON.parse(JSON.stringify(value)); }
+function realReadJson(file, label) {
+  let stat;
+  try { stat = fs.lstatSync(file); } catch (error) { realFail(`${label} cannot be opened: ${error.code || error.message}`); }
+  if (!stat.isFile() || stat.isSymbolicLink() || fs.realpathSync(file) !== path.resolve(file)) realFail(`${label} must be a regular non-symlink JSON file`);
+  try { return { value: JSON.parse(fs.readFileSync(file, 'utf8')), bytes: fs.readFileSync(file) }; }
+  catch (error) { realFail(`${label} is not JSON: ${error.message}`); }
+}
+function realArtifactPath(root, ref, label) {
+  if (!ref || typeof ref.path !== 'string') realFail(`${label} reference is absent`);
+  const target = path.resolve(root, ref.path);
+  if (!target.startsWith(`${path.resolve(root)}${path.sep}`)) realFail(`${label} escapes root`);
+  return target;
+}
+function realWriteJson(file, value) { fs.writeFileSync(file, `${JSON.stringify(value, null, 2)}\n`); }
+function realSession(receipt) {
+  const candidate = receipt?.provenance?.candidateReceipt;
+  const sourceRun = receipt?.provenance?.sourceRun;
+  if (!candidate || !/^[a-f0-9]{64}$/.test(candidate.sha256) || !sourceRun || !/^[a-f0-9]{64}$/.test(sourceRun.sha256)) realFail('receipt does not bind the open candidate and raw run');
+  return { candidateReceiptSha256: candidate.sha256, sourceRunSha256: sourceRun.sha256 };
+}
+function realParseArgs(argv) {
+  const args = {};
+  for (let index = 0; index < argv.length; index += 1) {
+    const token = argv[index];
+    if (token === '--plan' || token === '--real-receipt') { args.mode = token.slice(2); continue; }
+    if (token === '--candidate-root' || token === '--root' || token === '--receipt' || token === '--out') args[token.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())] = path.resolve(argv[++index]);
+    else if (token === '--capture-window') { args.captureWindow = { startISO: argv[++index], endISO: argv[++index] }; }
+    else if (token === '--help' || token === '-h') args.help = true;
+    else realFail(`unknown option ${token}`);
+  }
+  return args;
+}
+function realUsage() {
+  return 'Usage: falsify.mjs --plan --candidate-root CANDIDATE --out PROVISIONAL.json\n       falsify.mjs --real-receipt --root RECEIPT_ROOT --receipt RECEIPT.json --capture-window START_ISO END_ISO --out REAL.json';
+}
+function realPlan(args) {
+  if (!args.candidateRoot || !args.out) realFail('--plan needs --candidate-root and --out');
+  const candidatePath = path.join(args.candidateRoot, 'receipt.json');
+  const candidate = realReadJson(candidatePath, 'open candidate').value;
+  if (candidate.decision !== 'open' || candidate.taskStatus !== 'open' || candidate.complete !== false || candidate.falsification?.result !== 'not-run') realFail('plan input must be the open raw producer candidate');
+  const sourceRun = candidate?.provenance?.sourceRun;
+  if (!sourceRun || !/^[a-f0-9]{64}$/.test(sourceRun.sha256)) realFail('open candidate must bind raw/run-manifest.json');
+  const candidateBytes = fs.readFileSync(candidatePath);
+  const controls = baselineMatrix.falsificationControls.map((id) => ({ id, status: 'rejected', exitCode: 1, evidence: `provisional control placeholder for ${id}; replaced by --real-receipt output before acceptance` }));
+  const record = {
+    schema: 'phoenix-s13-real-receipt-falsification-v1', task: 'S-13', result: 'pass', provisional: true,
+    target: { phoenixRevision: candidate.phoenixRevision, candidateReceiptSha256: sha256Bytes(candidateBytes), sourceRunSha256: sourceRun.sha256 },
+    codeRevision: candidate.phoenixRevision, codeSha256: sha256Bytes(fs.readFileSync(path.join(here, 'falsify.mjs'))),
+    startedAtISO: new Date().toISOString(), endedAtISO: new Date().toISOString(), controls
+  };
+  fs.mkdirSync(path.dirname(args.out), { recursive: true, mode: 0o700 });
+  realWriteJson(args.out, record);
+  console.log(JSON.stringify({ result: 'provisional', out: args.out, controls: controls.length }));
+}
+function realAnchor(receipt, window) {
+  const review = receipt.visualReview || receipt.provenance?.visualReview;
+  if (!review || !/^[a-f0-9]{64}$/.test(review.sha256)) realFail('receipt is missing its global visual review');
+  const falsification = receipt.falsification;
+  falsification.receiptSha256 = falsificationAnchorSha256(falsification);
+  return {
+    schema: 'phoenix.parity.s13.external-validation-anchors.v1', visualReviewSha256: review.sha256,
+    provenanceSha256: provenanceAnchorSha256(receipt), captureWindow: window,
+    falsifierReceiptSha256: falsificationAnchorSha256(falsification)
+  };
+}
+function realPhysicalRows(receipt) {
+  return receipt.cases.filter((row) => row.status === 'pass' && row.actual?.screenshots?.length);
+}
+function realFirstPhysical(receipt) {
+  const row = realPhysicalRows(receipt)[0];
+  if (!row) realFail('receipt has no captured physical row');
+  return row;
+}
+function realArtifactJson(root, ref, label) {
+  const target = realArtifactPath(root, ref, label);
+  return { target, value: JSON.parse(fs.readFileSync(target, 'utf8')) };
+}
+function realRunControl({ id, mutate, root, receiptPath, receipt, window }) {
+  const trial = fs.mkdtempSync(path.join(os.tmpdir(), 'phoenix-s13-real-falsify-'));
+  try {
+    fs.cpSync(root, trial, { recursive: true, dereference: false, errorOnExist: true });
+    const cloned = realClone(receipt);
+    const matrix = realClone(baselineMatrix);
+    mutate(cloned, trial, matrix);
+    if (cloned.falsification) cloned.falsification.receiptSha256 = falsificationAnchorSha256(cloned.falsification);
+    realWriteJson(path.join(trial, path.relative(root, receiptPath)), cloned);
+    const report = validateReceipt(cloned, matrix, { root: trial, externalAnchors: realAnchor(cloned, window) });
+    return { id, status: report.result === 'fail' ? 'rejected' : 'accepted', exitCode: report.result === 'fail' ? 1 : 0, evidence: report.errors.slice(0, 3).join('; ') || 'validator accepted mutation' };
+  } finally { fs.rmSync(trial, { recursive: true, force: true }); }
+}
+function realControls(root, receiptPath, receipt, window) {
+  const noView = () => receipt.cases.find((row) => row.id === 'calendar-no-view-empty');
+  const blocked = () => receipt.cases.find((row) => row.id === 'calendar-tree-park-nature');
+  const specifications = [
+    ['matrix-case-omission', (_r, _trial, matrix) => matrix.cases.pop()],
+    ['matrix-case-reorder', (_r, _trial, matrix) => [matrix.cases[0], matrix.cases[1]] = [matrix.cases[1], matrix.cases[0]]],
+    ['receipt-case-omission', (r) => r.cases.pop()],
+    ['receipt-case-reorder', (r) => [r.cases[0], r.cases[1]] = [r.cases[1], r.cases[0]]],
+    ['stale-phoenix-revision', (r) => { r.phoenixRevision = '0'.repeat(40); }],
+    ['provenance-version-omission', (r) => { delete r.provenance.client.version; }],
+    ['input-payload-mutation', (r) => { const row = realFirstPhysical(r); row.actual.request.phrase = 'forged input'; }],
+    ['action-payload-mutation', (r) => { const row = realFirstPhysical(r); row.actual.action.mimIds[0] = 'ForgedMim'; }],
+    ['view-contract-mutation', (r) => { const row = realFirstPhysical(r); row.actual.action.viewIds[0] = 'forgedView'; }],
+    ['correlation-mismatch', (r) => { const row = realFirstPhysical(r); row.actual.correlation.transID = 'forged'; }],
+    ['wire-trace-hash-mismatch', (r, trial) => { const row = realFirstPhysical(r); fs.appendFileSync(realArtifactPath(trial, row.actual.artifacts.rawWire || row.actual.artifacts.wireTrace, 'wire'), 'forged\n'); }],
+    ['screenshot-order-mutation', (r) => { const row = r.cases.find((item) => item.actual?.screenshots?.length > 1); [row.actual.screenshots[0], row.actual.screenshots[1]] = [row.actual.screenshots[1], row.actual.screenshots[0]]; }],
+    ['screenshot-bytes-mutation', (r, trial) => { const shot = realFirstPhysical(r).actual.screenshots[0]; const file = realArtifactPath(trial, shot, 'screenshot'); const bytes = fs.readFileSync(file); bytes[0] ^= 0xff; fs.writeFileSync(file, bytes); }],
+    ['idle-closure-omission', (r) => { delete realFirstPhysical(r).actual.timeline.idle; }],
+    ['no-view-screenshot-injection', (r) => { const row = noView(); row.actual.screenshots.push({ ordinal: 0, viewId: 'eventView' }); }],
+    ['blocked-tree-claim', (r) => { const row = blocked(); row.status = 'pass'; row.claimed = true; }],
+    ['falsification-control-omission', (r) => { r.falsification.controls.shift(); }],
+    ['screenshot-identity-swap', (r) => { const rows = r.cases.filter((row) => row.actual?.screenshots?.length); const first = rows[0].actual.screenshots[0]; rows[1].actual.screenshots[0] = { ...first, path: rows[1].actual.screenshots[0].path }; }],
+    ['png-chunk-corruption', (r, trial) => { const shot = realFirstPhysical(r).actual.screenshots[0]; const file = realArtifactPath(trial, shot, 'screenshot'); const bytes = fs.readFileSync(file); bytes.writeUInt32BE(0xffffffff, 8); fs.writeFileSync(file, bytes); }],
+    ['local-turn-body-contract-mutation', (r) => { const row = realFirstPhysical(r); const handle = row.actual.correlation?.stages?.Tl?.handle; if (!handle) realFail('Tl local followup is absent'); handle.nluRules = ['forged']; }],
+    ['pm-availability-contradiction', (r) => { r.runtime.captureConditions.pmDepartureAvailable = false; const row = r.cases.find((item) => item.id === 'commute-pm-departure-combined'); row.status = 'pass'; delete row.skipReason; }],
+    ['revalidation-date-mutation', (r, trial) => { const row = r.cases.find((item) => item.id === 'weather-revalidation'); const linked = realArtifactJson(trial, row.actual.sourceReceipt, 'weather source receipt'); linked.value.date = '2000-01-01'; realWriteJson(linked.target, linked.value); }],
+    ['native-request-omission', (r) => { delete realFirstPhysical(r).actual.artifacts.rawTurn; }],
+    ['wire-request-omission', (r) => { delete realFirstPhysical(r).actual.artifacts.rawWire; }],
+    ['ack-payload-mutation', (r, trial) => { const row = realFirstPhysical(r); const raw = realArtifactJson(trial, row.actual.artifacts.rawTurn, 'raw turn'); raw.value.ack.requestID = 'forged'; realWriteJson(raw.target, raw.value); }],
+    ['timeline-order-mutation', (r) => { const row = realFirstPhysical(r); row.actual.timeline.views[0].openedAtISO = row.actual.timeline.idle.observedAtISO; }],
+    ['falsification-execution-metadata-mutation', (r) => { r.falsification.execution.command = 'node forged.mjs'; }],
+    ['provenance-anchor-mutation', (r, trial) => { const ref = r.provenance.anchors.validator; fs.appendFileSync(realArtifactPath(trial, ref, 'validator anchor'), 'forged'); }],
+    ['context-anchor-omission', (r) => { delete realFirstPhysical(r).actual.artifacts.contextAnchor; }],
+  ];
+  if (specifications.length !== baselineMatrix.falsificationControls.length || specifications.some(([id], index) => id !== baselineMatrix.falsificationControls[index])) realFail('real falsifier control map diverges from the matrix');
+  return specifications.map(([id, mutate]) => realRunControl({ id, mutate, root, receiptPath, receipt, window }));
+}
+function realReceipt(args) {
+  if (!args.root || !args.receipt || !args.out || !args.captureWindow?.startISO || !args.captureWindow?.endISO) realFail('--real-receipt needs --root --receipt --capture-window START END --out');
+  const root = path.resolve(args.root);
+  const receiptInput = realReadJson(args.receipt, 'terminal receipt');
+  const receipt = receiptInput.value;
+  const session = realSession(receipt);
+  const initialAnchors = realAnchor(receipt, args.captureWindow);
+  const baseline = validateReceipt(receipt, baselineMatrix, { root, externalAnchors: initialAnchors });
+  if (baseline.result !== 'pass') realFail(`terminal baseline is rejected: ${baseline.errors.slice(0, 5).join('; ')}`);
+  const controls = realControls(root, path.resolve(args.receipt), receipt, args.captureWindow);
+  const record = {
+    schema: 'phoenix-s13-real-receipt-falsification-v1', task: 'S-13', result: controls.every((control) => control.status === 'rejected') ? 'pass' : 'fail', provisional: false,
+    target: { phoenixRevision: receipt.phoenixRevision, ...session }, codeRevision: receipt.phoenixRevision,
+    codeSha256: sha256Bytes(fs.readFileSync(path.join(here, 'falsify.mjs'))), startedAtISO: new Date().toISOString(), endedAtISO: new Date().toISOString(), controls
+  };
+  fs.mkdirSync(path.dirname(args.out), { recursive: true, mode: 0o700 });
+  realWriteJson(args.out, record);
+  console.log(JSON.stringify({ result: record.result, out: args.out, controls: controls.map(({ id, status }) => ({ id, status })) }));
+  if (record.result !== 'pass') process.exitCode = 1;
+}
+
+const realArgs = realParseArgs(process.argv.slice(2));
+if (realArgs.help) {
+  console.log(realUsage());
+} else if (realArgs.mode === 'plan') {
+  try { realPlan(realArgs); } catch (error) { console.error(error.message || error); process.exitCode = 1; }
+} else if (realArgs.mode === 'real-receipt') {
+  try { realReceipt(realArgs); } catch (error) { console.error(error.message || error); process.exitCode = 1; }
+} else {
 
 function runReceiptMutation(name, mutate, options = {}) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'phoenix-s13-falsify-'));
@@ -265,3 +424,4 @@ const outPath = process.env.S13_FALSIFICATION_OUT ? path.resolve(process.env.S13
 if (outPath) { fs.mkdirSync(path.dirname(outPath), { recursive: true }); writeJson(outPath, summary); }
 console.log(JSON.stringify({ result: summary.result, checks: checks.map(({ name, actual, rejected }) => ({ name, actual, rejected })), out: outPath }));
 if (summary.result !== 'pass') process.exitCode = 1;
+}

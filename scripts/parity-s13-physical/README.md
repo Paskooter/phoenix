@@ -180,6 +180,49 @@ receipts and provenance anchors, removes native/wire requests, changes ACKs
 and timeline order, moves capture time outside trace range, and verifies that
 all mutations are rejected.
 
+## Terminal finalization
+
+`produce.mjs` always leaves its receipt open. Do not edit that candidate in
+place. After one single-revision capture, collect Moth snapshots immediately
+before and after it, compare them, generate a clean-tree source manifest, and
+obtain an independent v2 screenshot review. The finalizer stages only regular
+input files into a new private output directory and maps observed Moth package
+data into the normalized receipt provenance.
+
+The real-receipt falsifier is deliberately two-step. Its plan creates a
+clearly marked provisional record only to build a pending receipt; the second
+command mutates that pending receipt and replaces the provisional record with
+a candidate-bound result. A provisional record is rejected for a terminal
+receipt.
+
+```bash
+node scripts/parity-s13-physical/falsify.mjs --plan \
+  --candidate-root /private/s13/candidate \
+  --out /private/s13/provisional-falsification.json
+
+node scripts/parity-s13-physical/finalize.mjs --preview \
+  --candidate-root /private/s13/candidate --out /private/s13/pending \
+  --before /private/s13/before.json --after /private/s13/after.json \
+  --comparison /private/s13/comparison.json \
+  --source-manifest /private/s13/phoenix-source-manifest.json \
+  --source-root /home/shell/work/phoenix \
+  --visual-review /private/s13/independent-visual-review.json \
+  --falsification /private/s13/provisional-falsification.json
+
+node scripts/parity-s13-physical/falsify.mjs --real-receipt \
+  --root /private/s13/pending \
+  --receipt /private/s13/pending/receipt.pending-independent-anchor.json \
+  --capture-window START_ISO END_ISO \
+  --out /private/s13/real-falsification.json
+```
+
+An independent reviewer supplies `external-validation-anchors.json` with the
+review hash, terminal provenance hash, exact capture window, real-falsifier
+hash, and candidate/raw-run session hashes. Run `finalize.mjs` again without
+`--preview`, passing that anchor file and the real falsification output. It
+writes `receipt.json` and `validation.json` only after strict validation
+passes, then atomically renames the private output directory into place.
+
 ## Reusable capture pieces
 
 Use [`scripts/parity-robot/turn.py`](../parity-robot/turn.py) for original

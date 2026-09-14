@@ -20,6 +20,8 @@
     "parity:coverage": "python3 scripts/parity-coverage/inventory.py",
     "parity:q01:fixtures": "node scripts/parity-q01-fixtures/replay.mjs",
     "parity:s13:provenance": "node scripts/parity-s13-provenance/collect.mjs",
+    "parity:s13:finalize": "node scripts/parity-s13-physical/finalize.mjs",
+    "parity:s13:falsify": "node scripts/parity-s13-physical/falsify.mjs",
     "parity:production": "python3 scripts/parity-production/run.py",
     "parity:gate": "node scripts/parity-production/gate.mjs",
     "start:gateway": "node packages/gateway/src/index.js",
