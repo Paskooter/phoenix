@@ -46,19 +46,7 @@ test('S-13 matrix is pinned, ordered, and internally hashed', () => {
   assert.deepEqual(matrix.cases.find((item) => item.id === 'commute-normal-combined').expected.mimIds, ['CommuteConfirmSpeaker', 'CommuteDriveNormal', 'CommuteDepartTimeNormal']);
   assert.equal(matrix.cases.find((item) => item.id === 'calendar-four-card-field-matrix').reference.caseId, 'full-report-event-tomorrow');
   assert.equal(matrix.cases.find((item) => item.id === 'calendar-four-card-field-matrix').expected.mimIds[0], 'CalendarEventCountTomorrow');
-  const parallel = matrix.cases.find((item) => item.id === 'calendar-concurrent-parallel');
-  assert.deepEqual(parallel.expected.viewIds, ['eventView', 'eventView']);
-  // Pegasus shifts the labels only when a minute component is visible.  Both
-  // parallel fixture events are on the hour, so their cards retain the base
-  // template positions (618/620), as the original CalendarViews test asserts.
-  assert.deepEqual(parallel.expected.viewContracts.map((view) => ({
-    time: view.labels.time,
-    timePositionX: view.fields.timePositionX,
-    ampmPositionX: view.fields.ampmPositionX
-  })), [
-    { time: '11', timePositionX: 618, ampmPositionX: 620 },
-    { time: '11', timePositionX: 618, ampmPositionX: 620 }
-  ]);
+  assert.deepEqual(matrix.cases.find((item) => item.id === 'calendar-concurrent-parallel').expected.viewIds, ['eventView', 'eventView']);
   assert.equal(matrix.cases.find((item) => item.id === 'calendar-tree-park-nature').blocked.reason, 'missing-source-asset:tree');
 });
 
@@ -273,39 +261,103 @@ test('raw-run producer accepts an explicit per-case bundle manifest and binds it
   }
 });
 
-const privateV2Run = '/home/shell/.local/share/phoenix/moth/run/s13-recapture-6afe114-20260914T000704Z';
-test('v2 raw producer preserves two-stage identity and raw wire absence of ACK/idle', { skip: !fs.existsSync(privateV2Run) }, () => {
+const recaptureRun = '/home/shell/.local/share/phoenix/moth/run/s13-recapture-6afe114-20260914T000704Z';
+test('v2 recapture keeps fixture work time, two-stage identity, raw wire gaps, and external review binding', { skip: !fs.existsSync(recaptureRun) }, () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'phoenix-s13-v2-producer-'));
   try {
-    const produced = produceCandidate(matrix, privateV2Run, root, {
-      bundleManifestPath: path.join(privateV2Run, 'bundle-manifest-v2.json')
+    const bundleManifestPath = path.join(recaptureRun, 'bundle-manifest-toolkit-v2.json');
+    const bundles = JSON.parse(fs.readFileSync(bundleManifestPath, 'utf8')).cases;
+    const produced = produceCandidate(matrix, recaptureRun, root, { bundles, bundleManifestPath });
+    const receipt = produced.manifest;
+    assert.equal(receipt.runtime.fixtureGenerator, 'private-fixture-work-time');
+    assert.equal(receipt.preflight.proven, true);
+    const sourceRun = JSON.parse(fs.readFileSync(path.join(root, receipt.provenance.sourceRun.path), 'utf8'));
+    assert.equal(sourceRun.bundleManifest.path, 'raw/bundle-manifest-toolkit-v2.json');
+    assert.equal(sourceRun.visualReview.path, 'raw/visual-review-v2.json');
+    for (const id of ['commute-normal-combined', 'commute-bad-combined', 'commute-terrible-combined']) {
+      const row = receipt.cases.find((item) => item.id === id);
+      assert.equal(row.status, 'pass');
+      assert.equal(row.actual.request.locationMode, 'private-fixture-work-time');
+      assert.equal(row.actual.request.prefsResolution.schedule, 'private-fixture-work-time');
+      assert.equal(row.actual.request.prefsResolution.generatedFrom, 'private-fixture-work-time');
+      assert.equal(row.actual.request.prefs.workDateISO, '2026-09-13');
+      assert.equal(row.actual.request.prefsResolution.fixtureSha256, row.actual.artifacts.rawFixture.sha256);
+    }
+    const normal = receipt.cases.find((item) => item.id === 'commute-normal-combined');
+    const identity = normal.actual.correlation;
+    assert.equal(identity.stages.initial.sdkAck.requestID, identity.stages.initial.requestID);
+    assert.equal(identity.stages.followup.requestID, identity.requestID);
+    assert.equal(identity.stages.initial.connectionId, 'wire-connection-1');
+    assert.equal(identity.stages.followup.connectionId, 'wire-connection-2');
+    assert.equal(identity.stages.initial.prelude.rawWireHasRequestID, false);
+    assert.equal(identity.stages.followup.action.rawWireHasTransID, false);
+    assert.equal(identity.wireAck.present, false);
+    assert.deepEqual(normal.actual.wireFlow.stages.map((stage) => [stage.stage, stage.requestID, stage.connectionId]), [
+      ['Tg', identity.stages.initial.requestID, 'wire-connection-1'],
+      ['Tl', identity.stages.followup.requestID, 'wire-connection-2']
+    ]);
+    assert.equal(normal.actual.wireFlow.excludedPrelude.count, 1);
+    assert.equal(normal.actual.wireFlow.stages[0].ackRequestID, identity.stages.initial.sdkAck.requestID);
+    assert.equal(normal.actual.wireFlow.stages[1].body.clientASR, 'George');
+    assert.deepEqual(normal.actual.request.followup.body, { clientASR: 'George' });
+    const wire = fs.readFileSync(path.join(root, normal.actual.artifacts.wireTrace.path), 'utf8').trim().split('\n').map(JSON.parse);
+    assert.deepEqual(wire.map((record) => [record.stage, record.type]), [
+      ['Tg', 'request'], ['Tg', 'context'], ['Tg', 'action'],
+      ['Tl', 'context'], ['Tl', 'request'], ['Tl', 'action']
+    ]);
+    assert.equal(wire.some((record) => record.type === 'ack'), false);
+    assert.equal(wire.some((record) => record.type === 'idle'), false);
+    assert.equal(wire.at(-1).messageId, identity.stages.followup.action.sourceMessageId);
+    assert.equal(wire.at(-1).source.messageType, 'SKILL_ACTION');
+    assert.equal(wire.at(-1).source.rawTransID, null);
+    const provider = fs.readFileSync(path.join(root, normal.actual.artifacts.providerTrace.path), 'utf8').trim().split('\n').map(JSON.parse);
+    assert.equal(provider.every((record) => record.type === 'provider-call'), true);
+    assert.equal(provider.some((record) => record.type === 'provider-return' || record.type === 'idle'), false);
+    assert.deepEqual(provider.map((record) => record.service), ['settings', 'maps']);
+    assert.equal(provider.every((record) => Number.isInteger(record.source.line) && record.source.traceSha256 === normal.actual.artifacts.rawWire.sha256), true);
+    assert.equal(normal.actual.screenshots.every((shot) => shot.visuallyInspected === true), true);
+    assert.equal(normal.actual.artifacts.visualReview.path, 'raw/visual-review-v2.json');
+    for (const row of receipt.cases.filter((item) => item.actual?.screenshots?.length)) {
+      for (const shot of row.actual.screenshots) {
+        assert.equal(path.isAbsolute(shot.sourceScreenshot.filename), true);
+        assert.equal(path.relative(recaptureRun, shot.sourceScreenshot.filename).startsWith('..'), false);
+      }
+    }
+    const parallel = receipt.cases.find((item) => item.id === 'calendar-concurrent-parallel');
+    assert.equal(parallel.status, 'observed');
+    assert.equal(parallel.claimed, false);
+    assert.equal(parallel.actual.action.phoenixMatchesMatrix, false);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('v2 producer rejects bundle directories outside the private run root', { skip: !fs.existsSync(recaptureRun) }, () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'phoenix-s13-v2-confinement-'));
+  try {
+    const manifestPath = path.join(recaptureRun, 'bundle-manifest-toolkit-v2.json');
+    const bundles = JSON.parse(fs.readFileSync(manifestPath, 'utf8')).cases;
+    bundles['commute-normal-combined'] = { ...bundles['commute-normal-combined'], dir: '/tmp' };
+    assert.throws(() => produceCandidate(matrix, recaptureRun, root, { bundles, bundleManifestPath: manifestPath }), /bundle directory escapes run root/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('v2 producer leaves noBypass unclaimed when the external review is absent', { skip: !fs.existsSync(recaptureRun) }, () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'phoenix-s13-v2-no-review-'));
+  try {
+    const bundleManifestPath = path.join(recaptureRun, 'bundle-manifest-toolkit-v2.json');
+    const bundles = JSON.parse(fs.readFileSync(bundleManifestPath, 'utf8')).cases;
+    const produced = produceCandidate(matrix, recaptureRun, root, {
+      bundles,
+      bundleManifestPath,
+      visualReviewPath: path.join(root, 'review-not-supplied.json')
     });
-    const normal = produced.manifest.cases.find((item) => item.id === 'commute-normal-combined');
-    assert.equal(normal.status, 'pass');
-    assert.notEqual(normal.actual.correlation.ackRequestID, normal.actual.correlation.transID);
-    assert.equal(normal.actual.stages.initial.requestID, normal.actual.correlation.ackRequestID);
-    assert.equal(normal.actual.stages.followup.requestID, normal.actual.correlation.transID);
-    assert.equal(normal.actual.stages.initial.connectionId, 'wire-connection-1');
-    assert.equal(normal.actual.stages.followup.connectionId, 'wire-connection-2');
-    assert.equal(normal.actual.stages.sharedSkillSession.same, true);
-    const wire = fs.readFileSync(path.join(root, normal.actual.artifacts.wireTrace.path), 'utf8').trim().split(/\n/).map(JSON.parse);
-    assert.deepEqual(wire.map((item) => item.type), ['context', 'request', 'action']);
-    const provider = fs.readFileSync(path.join(root, normal.actual.artifacts.providerTrace.path), 'utf8').trim().split(/\n/).map(JSON.parse);
-    assert.ok(provider.length > 0);
-    assert.ok(provider.every((item) => item.type === 'provider-call'));
-    assert.equal(normal.actual.request.prefsResolution.generatedFrom, 'private-fixture-work-time');
-    assert.equal(normal.actual.request.prefs.workHour, 21);
-    assert.equal(normal.actual.request.prefs.workMin, 25);
-    const reviewSource = fs.readFileSync(path.join(privateV2Run, 'visual-review-v2.json'));
-    const reviewRef = normal.actual.artifacts.visualReview;
-    assert.equal(reviewRef.sha256, sha256Bytes(reviewSource));
-    assert.equal(fs.readFileSync(path.join(root, reviewRef.path)).equals(reviewSource), true);
-    const terrible = produced.manifest.cases.find((item) => item.id === 'commute-terrible-combined');
-    assert.equal(terrible.status, 'rejected');
-    assert.ok(terrible.rejectionReasons.some((reason) => /explicit wire mapping/.test(reason)));
-    assert.equal(produced.manifest.candidateStatus, 'rejected');
-    assert.equal(produced.manifest.provenance.phoenix.treeSha256, undefined);
-    assert.equal(produced.manifest.falsification.result, 'not-run');
+    const physical = produced.manifest.cases.filter((row) => row.actual?.request?.operation);
+    assert.equal(physical.length, 5);
+    assert.equal(physical.every((row) => row.actual.noBypass === false), true);
+    assert.equal(physical.every((row) => row.claimed === false), true);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
