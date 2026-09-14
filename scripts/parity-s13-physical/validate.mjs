@@ -1067,6 +1067,34 @@ function validateArtifacts(actual, root, errors, label) {
   return refs;
 }
 
+function validateVisualReview(descriptor, actual, refs, errors, label) {
+  const ref = refs?.visualReview;
+  if (!ref) return;
+  const review = parseJsonBytes(ref, errors, `${label}.artifacts.visualReview`);
+  if (!review) return;
+  add(errors, review.schema === 's13-visual-review-v1', `${label}.visualReview.schema is unsupported`);
+  requireString(errors, review.reviewer, `${label}.visualReview.reviewer`);
+  add(errors, timestampMs(review.reviewedAt) !== null, `${label}.visualReview.reviewedAt must be an ISO timestamp`);
+  add(errors, review.visuallyInspected === true, `${label}.visualReview must record visuallyInspected:true`);
+  const records = Array.isArray(review.screenshots) ? review.screenshots : null;
+  if (!records) {
+    errors.push(`${label}.visualReview.screenshots must be an array`);
+    return;
+  }
+  const expected = Array.isArray(actual.screenshots) ? actual.screenshots : [];
+  add(errors, records.length === expected.length, `${label}.visualReview screenshot count differs from captured views`);
+  records.forEach((record, index) => {
+    if (!requireObject(errors, record, `${label}.visualReview.screenshots[${index}]`)) return;
+    const shot = expected[index];
+    add(errors, record.caseId === descriptor.id, `${label}.visualReview.screenshots[${index}].caseId does not bind the case`);
+    add(errors, record.viewOrdinal === shot?.viewOrdinal, `${label}.visualReview.screenshots[${index}].viewOrdinal does not bind the capture`);
+    add(errors, record.viewId === shot?.viewId, `${label}.visualReview.screenshots[${index}].viewId does not bind the capture`);
+    add(errors, record.captureKey === shot?.captureKey, `${label}.visualReview.screenshots[${index}].captureKey does not bind the capture`);
+    add(errors, record.sha256 === shot?.sha256, `${label}.visualReview.screenshots[${index}].sha256 does not bind screenshot bytes`);
+    add(errors, record.verdict === 'pass', `${label}.visualReview.screenshots[${index}].verdict must be pass`);
+  });
+}
+
 function validateActionArtifact(actual, refs, errors, label) {
   const bytes = refs?.actionPayload?.bytes;
   if (!bytes) return;
@@ -1487,6 +1515,7 @@ function validatePhysicalRow(descriptor, row, runtime, root, errors, allowedRequ
   validateScreenshots(descriptor, row.actual, root, errors, label, screenshotIdentityState);
   const artifactRefs = validateArtifacts(row.actual, root, errors, label);
   validateActionArtifact(row.actual, artifactRefs, errors, label);
+  validateVisualReview(descriptor, row.actual, artifactRefs, errors, label);
   validateContextAnchor(descriptor, row.actual, artifactRefs, rowPreflight, errors, label);
   validateProviderFixture(descriptor, row.actual, artifactRefs, root, errors, label);
   validateTraceArtifacts(descriptor, row.actual, artifactRefs, rowRuntime, root, errors, label, allowedRequest?.operation);

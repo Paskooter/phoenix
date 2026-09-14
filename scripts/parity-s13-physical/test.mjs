@@ -139,6 +139,13 @@ test('rehashed native/provider traces and private fixtures are still bound to th
     fixture.fixture = 'forged';
     rewriteJsonArtifact(root, fixtureRef, fixture);
   });
+  withReceipt((receipt, root) => {
+    const row = receipt.cases.find((item) => item.id === 'commute-normal-combined');
+    const reviewRef = row.actual.artifacts.visualReview;
+    const review = JSON.parse(fs.readFileSync(path.join(root, reviewRef.path), 'utf8'));
+    review.screenshots[0].sha256 = '0'.repeat(64);
+    rewriteJsonArtifact(root, reviewRef, review);
+  });
 });
 
 test('PNG structure and symlinked artifact paths are fail-closed', () => {

@@ -314,6 +314,8 @@ function makePhysicalRow(descriptor, index, root, runtime, selectedOperation, al
   actual.artifacts.visualReview = writeJson(root, `artifacts/${descriptor.id}/visual-review.json`, {
     schema: 's13-visual-review-v1',
     caseId: descriptor.id,
+    reviewer: 'fixture-reviewer',
+    reviewedAt: isoAt(runtime.captureISO, 2200),
     visuallyInspected: true,
     screenshots: actual.screenshots.map((shot) => ({
       caseId: shot.caseId,
