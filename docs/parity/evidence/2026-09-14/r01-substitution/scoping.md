@@ -29,10 +29,16 @@ in `node:8.9.4-slim` with the reference compose environment:
 | `lasso` | exits 1 — `Required env variable 'ETCO_lasso_darkSkyKey' does not exist` |
 | `parser` | exits 1 — its `robust-parser` subprocess reports "NLU service is ready", then `RobustParserClient` fails its DialogFlow `axios.post` |
 
-The parser's failure is not configuration. It depends on DialogFlow, and
-lasso's providers (DarkSky, Google, AP) are likewise dead third-party
-endpoints. **A live all-original stack is not reachable for the cloud-backed
-services**, and no amount of environment fixes will change that.
+Those failures are about running the services **bare**. They do not carry over
+to the original test suite, which is the correction that matters: the suite
+intercepts every cloud call. `listen-with-agents.test.ts:47-56` nocks
+DialogFlow at `https://api.api.ai:443`, and `lasso.test.ts:130-180` nocks the
+Google and Microsoft calendar APIs. The parser failed for me only because I
+booted it standalone with no interceptor in front of it.
+
+So a **live all-original compose stack** is not reachable for the cloud-backed
+services, but the original in-process suite runs fully offline, which is what
+R-01 actually needs.
 
 ## The original suite already solved this
 
@@ -119,6 +125,43 @@ dependencies to the prepare profile, keeping the existing relocation and
 fixture-only registry adaptations, and to re-record the prepared manifest. That
 is a change to a pinned, hashed reference artifact and must be done
 deliberately, with the new install profile recorded alongside the old one.
+
+## The substitution seam, exactly
+
+`src/utils/integration.ts:65-79` constructs the original `hub.HubService` with
+four configurable peers:
+
+```ts
+parser:   { baseURL: `http://localhost:${parserPort}` }   // in-process original ParserService
+history:  { baseURL: `http://localhost:${historyPort}` }  // port allocated, no service started
+skills:   hubSkills                                       // example skill URL rewritten to its port
+settings: { baseURL: `http://settings.jibo.aws` }         // dead hostname, never reachable
+```
+
+That yields a practical substitution matrix of **parser, hub, and the skill
+service**. `history` and `settings` are not genuinely exercised by these cases —
+no history service is started and the settings host does not resolve — so any
+R-01 claim must say so rather than implying five substitutable services.
+
+## One relocation gap in the prepare profile
+
+The first dev-dependency install attempt failed:
+
+```
+error ... "https://registry.npmjs.org/jsdoc-jibo/-/jsdoc-jibo-1.12.8.tgz: Request failed \"404 Not Found\""
+```
+
+`prepare.py:32` relocates names starting with `jibo-`, `@jibo/`, `@jibo-tools/`,
+`@jiborobot/`, `@converseai/`, `@milashenko/`, `@perez/` and `@types/jibo-`.
+`jsdoc-jibo` matches none of them, so it routed to npmjs.org, where it does not
+exist. It is present on the archive (`pvindex.org/npm/jsdoc-jibo` → 200), and it
+is the **only** lock entry containing "jibo" that resolves to npmjs.org, so the
+gap is exactly one package. The production profile never hit it because it is a
+development dependency.
+
+Any real extension of the prepare profile must widen that predicate (or pin
+this entry explicitly) and re-record the relocation count, which is currently
+1,443.
 
 ## Proposed shape (not yet built)
 
