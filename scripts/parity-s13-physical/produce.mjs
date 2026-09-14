@@ -1313,7 +1313,11 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
     && timelineBound
     && providerTraceBound
     && visualReviewBound
-    && identity.initial.prelude?.excludedDisplayActions?.length === 1
+    // The WhoIsThis prelude exists only when the speaker was unidentified; a
+    // one-stage capture must instead carry no excluded display at all.
+    && (oneStage
+      ? (identity.initial.prelude === null && !(turn.excludedDisplayActions || []).length)
+      : identity.initial.prelude?.excludedDisplayActions?.length === 1)
     && Boolean(targetWireAction);
   const actual = {
     captureISO: turn.started,
@@ -1598,8 +1602,14 @@ export function produceCandidate(matrix, runDir, outRoot, { operation = 'mimicGl
       && row.actual?.request?.body?.clientASR === row.actual?.request?.phrase
       && row.actual?.contextLocationISO === (row.actual?.request?.locationISO || row.actual?.contextLocationISO)
       && row.actual?.artifacts?.contextAnchor
-      && row.actual?.correlation?.stages?.initial?.sdkAck?.requestID
-      && row.actual?.correlation?.stages?.followup?.handle?.requestID === row.actual?.correlation?.transID);
+      // A one-stage capture has a single global transaction: its ACK and its
+      // target transaction are the same stage, so the two-stage prelude/
+      // follow-up pair is checked against `stages.global` instead.
+      && (row.actual?.wireFlow?.shape === 'one-stage'
+        ? (row.actual?.correlation?.stages?.global?.sdkAck?.requestID
+          && row.actual?.correlation?.stages?.global?.transID === row.actual?.correlation?.transID)
+        : (row.actual?.correlation?.stages?.initial?.sdkAck?.requestID
+          && row.actual?.correlation?.stages?.followup?.handle?.requestID === row.actual?.correlation?.transID)));
   const sourceRun = writeJson(outRoot, 'raw/run-manifest.json', {
     schema: 'phoenix-s13-raw-run-manifest-v1', runDirectory: run, stack: rawRefs.stack, fixture: rawRefs.fixture, wire: rawRefs.wire,
     ...(bundleManifestRef ? { bundleManifest: bundleManifestRef } : {}),

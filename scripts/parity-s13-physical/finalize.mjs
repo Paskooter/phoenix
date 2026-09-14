@@ -189,7 +189,14 @@ function collectorStableProjection(snapshot) {
     native: snapshot.native,
     nimbus: snapshot.nimbus,
     ssm: snapshot.ssm,
-    firmware: snapshot.firmware,
+    // Only the firmware identity is stable across a capture.  The collector
+    // also records `rawOutputSha256`, the digest of the robot's rolling
+    // `/tmp/messages` syslog, which the robot appends to while the capture
+    // runs; folding it into the runtime identity would make every genuine
+    // before/after pair differ.  The log is deliberately excluded from the
+    // collector's immutable file rows, and those rows are compared separately
+    // and exactly, so nothing that can be tampered with escapes this check.
+    firmware: { release: snapshot.firmware?.release, source: snapshot.firmware?.source },
   };
 }
 

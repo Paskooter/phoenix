@@ -95,6 +95,16 @@ function copyRun() {
     const text = fs.readFileSync(turnPath, 'utf8');
     fs.writeFileSync(turnPath, text.split(freshRun).join(run));
   }
+  // The visual review names the run it was taken against, so the copy has to
+  // carry the copied root or the producer rejects it before reaching the
+  // behaviour a control is trying to exercise.
+  for (const name of ['visual-review-v2.json', 'visual-review-v2-session-bound.json']) {
+    const reviewPath = path.join(run, name);
+    if (!fs.existsSync(reviewPath)) continue;
+    const review = JSON.parse(fs.readFileSync(reviewPath, 'utf8'));
+    review.captureRoot = run;
+    fs.writeFileSync(reviewPath, JSON.stringify(review));
+  }
   return { run, bundles, bundleManifestPath };
 }
 
@@ -332,6 +342,49 @@ test('the producer binds the WhoIsThis answer to its raw CLIENT_ASR line instead
     fs.writeFileSync(turnPath, JSON.stringify(turn));
     assert.throws(() => produceCandidate(matrix, run, root, { bundles, bundleManifestPath }),
       /followup SDK update text does not bind the raw followup CLIENT_ASR line/);
+  } finally {
+    fs.rmSync(run, { recursive: true, force: true });
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+// These two guards were written for the two-stage flow only and silently
+// disqualified an otherwise complete capture once a one-stage lane existed:
+// `preflightProven` looked for `correlation.stages.initial.sdkAck` and
+// `stages.followup.handle`, and `noBypass` demanded exactly one excluded
+// whoIsThisMenu prelude.  A recognized speaker has neither, so both went false
+// for the whole receipt.  They are shape-derived now.
+test('a mixed-shape capture still proves its preflight and claims every row', { skip: !hasRun }, () => {
+  const { root, produced } = produceInto(freshRun);
+  try {
+    const receipt = produced.manifest;
+    assert.equal(receipt.preflight.proven, true, 'preflight must be proven across both shapes');
+    assert.equal(receipt.preflight.contextSource, 'fixture-scoped-runtime');
+    const shapes = new Set();
+    for (const caseId of Object.keys(EXPECTED_SHAPES)) {
+      const row = rowOf(receipt, caseId);
+      shapes.add(row.actual.wireFlow.shape);
+      assert.equal(row.status, 'pass', `${caseId} status`);
+      assert.equal(row.claimed, true, `${caseId} claimed`);
+      assert.equal(row.actual.noBypass, true, `${caseId} noBypass`);
+    }
+    // The guards are only meaningfully exercised when both shapes are present.
+    assert.deepEqual([...shapes].sort(), ['one-stage', 'two-stage']);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('a one-stage lane that smuggles in an excluded prelude loses its noBypass claim', { skip: !hasRun }, () => {
+  const { run, bundles, bundleManifestPath } = copyRun();
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'phoenix-s13-out-'));
+  try {
+    const turnPath = path.join(run, bundles['commute-bad-combined'].bundle, bundles['commute-bad-combined'].turn);
+    const turn = JSON.parse(fs.readFileSync(turnPath, 'utf8'));
+    turn.excludedDisplayActions = [{ viewId: 'whoIsThisMenu', captureStatus: 'excluded-prelude', eventIndex: 0 }];
+    fs.writeFileSync(turnPath, JSON.stringify(turn));
+    assert.throws(() => produceCandidate(matrix, run, root, { bundles, bundleManifestPath }),
+      /one-stage capture carries 1 excluded prelude display actions/);
   } finally {
     fs.rmSync(run, { recursive: true, force: true });
     fs.rmSync(root, { recursive: true, force: true });
