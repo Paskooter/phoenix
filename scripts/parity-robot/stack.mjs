@@ -1,7 +1,7 @@
 // Dedicated real-robot diagnostic stack. Run with PHOENIX_ENV_FILE=/dev/null.
 // This launcher hosts the production services and observes their wire traffic;
 // it does not replace parser/skill responses with a robot simulator.
-import { mkdirSync, appendFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, appendFileSync, existsSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
@@ -26,6 +26,8 @@ let traceBytes = 0;
 let capturedAudioBytes = 0;
 let fixtureRuntime = null;
 let fixtureMetadata = null;
+let stackReceipt = null;
+const emittedFixtureStackReceipts = new Set();
 const captureAudio = process.env.PHOENIX_ROBOT_CAPTURE_AUDIO === 'true';
 const maxCapturedAudioBytes = 8 * 1024 * 1024;
 const tracePath = resolve(runDir, `wire-${Date.now()}.jsonl`);
@@ -35,6 +37,20 @@ function record(event) {
   traceBytes += Buffer.byteLength(line);
   if (traceBytes > 64 * 1024 * 1024) throw new Error('Robot wire capture exceeded 64 MiB; start a reviewed new run');
   appendFileSync(tracePath, line, { mode: 0o600 });
+}
+function emitFixtureStackReceipt(metadata) {
+  if (!stackReceipt || !metadata?.caseId || !metadata?.sha256) return;
+  // A selected fixture case is captured once per S-13 run. Its own stack
+  // receipt binds the live stack revision to the exact fixture bytes observed
+  // while emitting the action, without restarting the shared diagnostic stack.
+  const caseId = String(metadata.caseId);
+  if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(caseId)) throw new Error('fixture case ID is unsafe for a stack receipt');
+  if (emittedFixtureStackReceipts.has(caseId)) return;
+  const target = resolve(runDir, `stack-${caseId}.json`);
+  if (existsSync(target)) throw new Error(`refusing to overwrite fixture stack receipt: ${target}`);
+  const receipt = { ...stackReceipt, fixture: { ...metadata }, fixtureActionObservedAt: new Date().toISOString() };
+  writeFileSync(target, JSON.stringify(receipt, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
+  emittedFixtureStackReceipts.add(caseId);
 }
 const services = [];
 let restoreFixtureSettings = () => {};
@@ -127,6 +143,7 @@ try {
       let json;
       try { json = JSON.parse(value.toString()); } catch { json = value.toString(); }
       record({ kind: 'server-message', id, json });
+      if (json?.type === 'SKILL_ACTION') emitFixtureStackReceipt(fixtureMetadata);
       return originalSend.call(this, value, ...args);
     };
     ws.on('message', (value, binary) => {
@@ -162,6 +179,7 @@ try {
     audioCapture: { enabled: captureAudio, maxTotalBytes: maxCapturedAudioBytes, maxConnectionBytes: 2 * 1024 * 1024 },
     audioMetrics: process.env.PHOENIX_ROBOT_AUDIO_METRICS === 'true',
   };
+  stackReceipt = receipt;
   writeFileSync(resolve(runDir, 'stack.json'), JSON.stringify(receipt, null, 2) + '\n', { mode: 0o600 });
   console.log(JSON.stringify({ ready: true, ...receipt }));
   for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => {
