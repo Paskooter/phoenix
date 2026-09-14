@@ -806,8 +806,8 @@ function v2ValidateProviderFixture(descriptor, actual, refs, errors, label) {
   const sourceProvider = {
     kind: descriptor.provider?.kind,
     ...(descriptor.provider?.fixture === undefined ? {} : { fixture: descriptor.provider.fixture }),
-    ...(Number.isFinite(maps.duration?.value) ? { baseSeconds: maps.duration.value } : {}),
-    ...(Number.isFinite(maps.duration_in_traffic?.value) ? { trafficSeconds: maps.duration_in_traffic.value } : {}),
+    ...(descriptor.domain === 'commute' && Number.isFinite(maps.duration?.value) ? { baseSeconds: maps.duration.value } : {}),
+    ...(descriptor.domain === 'commute' && Number.isFinite(maps.duration_in_traffic?.value) ? { trafficSeconds: maps.duration_in_traffic.value } : {}),
     ...(descriptor.provider?.parallel === undefined ? {} : { parallel: descriptor.provider.parallel }),
     resolvedDateISO: actual.provider?.resolvedDateISO
   };
@@ -2416,7 +2416,7 @@ function v2StageNames(actual) {
 function v2ConnectionToken(value) {
   if (value === undefined || value === null) return null;
   const text = String(value);
-  const match = text.match(/(?:^|[-_:])(?:connection[-_:])?(.+)$/i);
+  const match = text.match(/(?:^|[-_:])connection[-_:](.+)$/i);
   return match ? match[1] : text;
 }
 
