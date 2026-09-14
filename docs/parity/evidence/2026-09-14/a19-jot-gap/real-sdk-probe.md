@@ -48,6 +48,37 @@ Two details worth recording:
   model's `CreateMessage` input. Phoenix's response echoed `parts: [{path}]`,
   consistent with that model.
 
+## Second pass — membership and impersonation gates, with a seam wired
+
+The first pass ran with no `account` seam, so the two gates were skipped. A
+second pass injected a fixture membership source through the entrypoint's
+existing option (`createClassicEntrypoint({ jot: { account } })`) — the service
+itself was not modified — and re-ran through the same original client.
+
+A first attempt refused **every** request, including the loop's own member. That
+was a fault in the fixture, not in Phoenix: `jot.js` `getImpersonatedAccount`
+reads `loop.members[]`, keeping only entries whose `status` is `accepted` and
+matching the id under `memberId` **or** `accountId`, and the fixture had supplied
+`loop.accounts[]` instead. A gate that refuses everyone is not evidence of
+correct gating, so the shape was corrected before anything was recorded.
+
+With the correct shape, all eight checks behave as the source requires:
+
+| check | result |
+| --- | --- |
+| member creates in own loop | created, `sender` = member |
+| non-member create | `JOT_MUST_BE_LOOP_MEMBER` 403 |
+| non-member list | `JOT_MUST_BE_LOOP_MEMBER` 403 |
+| non-robot impersonation | `JOT_ROBOT_CAN_IMPERSONATE` 403 |
+| robot impersonates a member | created, `sender` = **impersonated member**, not the robot |
+| other account's unread in its own loop | `{"count":0}` — no cross-loop leakage |
+| `MarkLoopRead` | `{"result":"Marked all as read"}` |
+| unread after mark | `{"count":0}` |
+
+The impersonation row is the informative one: the robot is permitted, and the
+substitution actually takes effect in the stored record's `sender`, which is the
+behaviour `message.ctrl.js getImpersonatedAccount` specifies.
+
 ## What this does and does not establish
 
 Advances:
@@ -65,13 +96,15 @@ Does not establish:
 - Any comparison against the original Jot **runtime**. The `jot-ws` service is
   gone, so there is no live counterpart to diff against; the model is the only
   surviving contract.
-- Loop membership or robot impersonation. No `account` seam was wired, so the
-  two membership gates were skipped — the documented LAN-trust divergence at
-  `packages/classic/src/jot.js:93-96`. A real membership comparison needs that
-  seam wired to an Account face.
-- Pagination, media population, `MarkRead`/`MarkLoopRead`, tags, encryption,
-  cross-loop isolation, durability across restart, or TLS. This probe was plain
-  HTTP on a container network.
+- Integration with the **real** Account face. The second pass proves the gates
+  work correctly *given* a membership source, using a fixture seam. It does not
+  prove Phoenix talks to the live Account service, whose client hop
+  (`AccountClient.get(loopId)` -> `GET /loop?loopId=`) is still unrecovered.
+  Without a seam the gates remain skipped, which is the documented LAN-trust
+  divergence at `packages/classic/src/jot.js:93-96`.
+- Pagination, media population, per-id `MarkRead`, tags, encryption, durability
+  across restart, or TLS. This probe was plain HTTP on a container network.
+  `MarkLoopRead` and one cross-loop isolation case are covered above.
 
 ## Reproduction
 
