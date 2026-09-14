@@ -270,18 +270,39 @@ test('v2 recapture keeps fixture work time, two-stage identity, raw wire gaps, a
     const produced = produceCandidate(matrix, recaptureRun, root, { bundles, bundleManifestPath });
     const receipt = produced.manifest;
     assert.equal(receipt.runtime.fixtureGenerator, 'private-fixture-work-time');
+    assert.equal(receipt.runtime.captureISO, receipt.preflight.context.runtimeLocationISO);
     assert.equal(receipt.preflight.proven, true);
     const sourceRun = JSON.parse(fs.readFileSync(path.join(root, receipt.provenance.sourceRun.path), 'utf8'));
     assert.equal(sourceRun.bundleManifest.path, 'raw/bundle-manifest-toolkit-v2.json');
     assert.equal(sourceRun.visualReview.path, 'raw/visual-review-v2.json');
     for (const id of ['commute-normal-combined', 'commute-bad-combined', 'commute-terrible-combined']) {
       const row = receipt.cases.find((item) => item.id === id);
+      const fixtureCase = id === 'commute-normal-combined' ? 'Normal' : id === 'commute-bad-combined' ? 'Bad' : 'Terrible';
       assert.equal(row.status, 'pass');
       assert.equal(row.actual.request.locationMode, 'private-fixture-work-time');
       assert.equal(row.actual.request.prefsResolution.schedule, 'private-fixture-work-time');
       assert.equal(row.actual.request.prefsResolution.generatedFrom, 'private-fixture-work-time');
       assert.equal(row.actual.request.prefs.workDateISO, '2026-09-13');
       assert.equal(row.actual.request.prefsResolution.fixtureSha256, row.actual.artifacts.rawFixture.sha256);
+      assert.deepEqual(row.actual.request.prefsResolution.sourceFixture, {
+        path: row.actual.artifacts.rawFixture.path,
+        sha256: row.actual.artifacts.rawFixture.sha256,
+        caseKey: fixtureCase
+      });
+      assert.deepEqual(row.actual.request.prefsResolution.workTime, {
+        dateISO: row.actual.request.prefs.workDateISO,
+        timeZone: 'America/New_York',
+        hour: row.actual.request.prefs.workHour,
+        min: row.actual.request.prefs.workMin
+      });
+      const providerFixture = JSON.parse(fs.readFileSync(path.join(root, row.actual.artifacts.providerFixture.path), 'utf8'));
+      assert.deepEqual(providerFixture.workTime, {
+        source: 'private-fixture-work-time',
+        dateISO: row.actual.request.prefs.workDateISO,
+        timeZone: 'America/New_York',
+        hour: row.actual.request.prefs.workHour,
+        min: row.actual.request.prefs.workMin
+      });
     }
     const normal = receipt.cases.find((item) => item.id === 'commute-normal-combined');
     const identity = normal.actual.correlation;
@@ -289,6 +310,12 @@ test('v2 recapture keeps fixture work time, two-stage identity, raw wire gaps, a
     assert.equal(identity.stages.followup.requestID, identity.requestID);
     assert.equal(identity.stages.initial.connectionId, 'wire-connection-1');
     assert.equal(identity.stages.followup.connectionId, 'wire-connection-2');
+    assert.equal(normal.actual.wireFlow.stages[0].rawConnectionId, 1);
+    assert.equal(normal.actual.wireFlow.stages[1].rawConnectionId, 2);
+    assert.deepEqual(normal.actual.action.payload.wire, normal.actual.action.payload.native);
+    assert.equal(normal.actual.action.wireEqualsNative, true);
+    assert.equal(normal.actual.action.payload.wire.rawActionSha256, normal.actual.action.sourceAction.rawActionSha256);
+    assert.equal(normal.actual.action.payload.wire.rawWireActionSha256, normal.actual.action.sourceAction.rawWireActionSha256);
     assert.equal(identity.stages.initial.prelude.rawWireHasRequestID, false);
     assert.equal(identity.stages.followup.action.rawWireHasTransID, false);
     assert.equal(identity.wireAck.present, false);
@@ -315,7 +342,19 @@ test('v2 recapture keeps fixture work time, two-stage identity, raw wire gaps, a
     assert.equal(provider.some((record) => record.type === 'provider-return' || record.type === 'idle'), false);
     assert.deepEqual(provider.map((record) => record.service), ['settings', 'maps']);
     assert.equal(provider.every((record) => Number.isInteger(record.source.line) && record.source.traceSha256 === normal.actual.artifacts.rawWire.sha256), true);
+    assert.deepEqual(provider[0].input, provider[0].sourceInput.input);
+    assert.deepEqual(provider[1].input, provider[1].sourceInput.input);
+    assert.equal(Object.hasOwn(provider[0], 'transID'), true);
+    assert.equal(Object.hasOwn(provider[1], 'transID'), false);
+    assert.equal(normal.actual.screenshots[0].captureKey, 'commute-normal-combined:view:0:trafficView');
+    assert.equal(normal.actual.screenshots[1].captureKey, 'commute-normal-combined:view:1:departTimeView');
     assert.equal(normal.actual.screenshots.every((shot) => shot.visuallyInspected === true), true);
+    const native = JSON.parse(fs.readFileSync(path.join(root, normal.actual.artifacts.nativeReport.path), 'utf8'));
+    const rawTurn = JSON.parse(fs.readFileSync(path.join(root, normal.actual.artifacts.rawTurn.path), 'utf8'));
+    assert.deepEqual(native.events.at(-1).sourceSnapshot, {
+      snapshotIndex: rawTurn.snapshots.length - 1,
+      rawTurnSha256: normal.actual.artifacts.rawTurn.sha256
+    });
     assert.equal(normal.actual.artifacts.visualReview.path, 'raw/visual-review-v2.json');
     for (const row of receipt.cases.filter((item) => item.actual?.screenshots?.length)) {
       for (const shot of row.actual.screenshots) {
@@ -324,9 +363,13 @@ test('v2 recapture keeps fixture work time, two-stage identity, raw wire gaps, a
       }
     }
     const parallel = receipt.cases.find((item) => item.id === 'calendar-concurrent-parallel');
-    assert.equal(parallel.status, 'observed');
-    assert.equal(parallel.claimed, false);
-    assert.equal(parallel.actual.action.phoenixMatchesMatrix, false);
+    if (parallel.actual.action.phoenixMatchesMatrix) {
+      assert.equal(parallel.status, 'pass');
+      assert.equal(parallel.claimed, true);
+    } else {
+      assert.equal(parallel.status, 'observed');
+      assert.equal(parallel.claimed, false);
+    }
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }

@@ -369,8 +369,8 @@ function providerProjection(descriptor, fixtureCase, resolvedDateISO) {
   return {
     kind: descriptor.provider.kind,
     ...(descriptor.provider.fixture === undefined ? {} : { fixture: descriptor.provider.fixture }),
-    ...(descriptor.domain === 'commute' && Number.isFinite(baseSeconds) ? { baseSeconds } : {}),
-    ...(descriptor.domain === 'commute' && Number.isFinite(trafficSeconds) ? { trafficSeconds } : {}),
+    ...(Number.isFinite(baseSeconds) ? { baseSeconds } : {}),
+    ...(Number.isFinite(trafficSeconds) ? { trafficSeconds } : {}),
     ...(descriptor.provider.parallel === undefined ? {} : { parallel: descriptor.provider.parallel }),
     resolvedDateISO
   };
@@ -709,7 +709,9 @@ function privateFixtureWorkTime(descriptor, fixtureCase, fixtureSha256) {
     hour: workTime.hour,
     min: workTime.min,
     dateISO,
-    source: 'fixture.userPrefs.commute.workTime',
+    source: 'private-fixture-work-time',
+    sourceDetail: 'fixture.userPrefs.commute.workTime',
+    timeZone: value.meta?.timeZone || 'America/New_York',
     fixtureCase: fixtureCase.key,
     fixtureSha256
   };
@@ -843,6 +845,8 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
       schedule: 'private-fixture-work-time',
       generatedFrom: 'private-fixture-work-time',
       source: workTime.source,
+      sourceFixture: { path: rawRefs.fixture.path, sha256: rawRefs.fixture.sha256, caseKey: workTime.fixtureCase },
+      workTime: { dateISO: workTime.dateISO, timeZone: workTime.timeZone, hour: workTime.hour, min: workTime.min },
       fixtureCase: workTime.fixtureCase,
       fixtureSha256: workTime.fixtureSha256,
       matrixPolicy: descriptor.input.prefsPolicy.schedule,
@@ -861,6 +865,15 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
     fixture: descriptor.provider.fixture,
     resolvedDateISO,
     ...(request.calendarDateISO ? { calendarDateISO: request.calendarDateISO } : {}),
+    ...(descriptor.domain === 'commute' ? {
+      workTime: {
+        source: 'private-fixture-work-time',
+        dateISO: request.prefs.workDateISO,
+        timeZone: fixtureCase.value.meta?.timeZone || runtime.timezone,
+        hour: request.prefs.workHour,
+        min: request.prefs.workMin
+      }
+    } : {}),
     ...(descriptor.domain === 'calendar' ? { events: fixtureEvents(fixtureCase, descriptor, resolvedDateISO) } : {}),
     provider: { ...provider },
     sourceFixture: { path: rawRefs.fixture.path, sha256: rawRefs.fixture.sha256, caseKey: fixtureCase.key }
@@ -886,6 +899,8 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
   const initialWireRequest = initialWireRows.find(({ record }) => record.kind === 'client-message' && record.json?.type === 'LISTEN');
   const initialContext = initialWireRows.find(({ record }) => record.kind === 'client-message' && record.json?.type === 'CONTEXT' && record.json?.transID === identity.initial.transID);
   const initialWireAction = wireActionRecord(initialWireRows, identity.initial.connectionId);
+  const initialRawWireAction = initialWireAction?.record?.json?.data?.action;
+  const initialRawWireActionSha256 = initialRawWireAction === undefined ? null : sha256Text(JSON.stringify(initialRawWireAction));
   const wireFlow = {
     schema: 'phoenix.s13.two-stage-wire-flow.v1',
     sessionId: identity.sharedSkillSessionId,
@@ -903,6 +918,7 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
         requestID: identity.initial.requestID,
         transID: identity.initial.transID,
         connectionId: `wire-connection-${identity.initial.connectionId}`,
+        rawConnectionId: identity.initial.connectionId,
         operation,
         requestType: 'LISTEN',
         endpoint: request.endpoint,
@@ -910,8 +926,12 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
         bodySha256: canonicalSha256(request.body),
         contextMessageId: identity.initial.contextMessageId,
         actionMessageId: identity.initial.wireActionMessageId,
-        actionPayloadSha256: sha256Text(JSON.stringify(initialRawAction)),
-        rawWireActionSha256: sha256Text(JSON.stringify(initialWireAction?.record?.json?.data?.action)),
+        // This is the raw server SKILL_ACTION on the Tg socket.  Keep the
+        // native turn action hash in the native report; the wire stage must
+        // bind its own source bytes because the server action has no IDs.
+        actionPayloadSha256: initialRawWireActionSha256,
+        nativeActionPayloadSha256: sha256Text(JSON.stringify(initialRawAction)),
+        rawWireActionSha256: initialRawWireActionSha256,
         ackRequestID: identity.initial.sdkAckRequestID
       },
       {
@@ -920,6 +940,7 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
         requestID: identity.followup.requestID,
         transID: identity.followup.transID,
         connectionId: `wire-connection-${identity.followup.connectionId}`,
+        rawConnectionId: identity.followup.connectionId,
         operation,
         requestType: 'CLIENT_ASR',
         endpoint: request.endpoint,
@@ -934,9 +955,15 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
     ]
   };
   const payload = {
-    phoenix: { operation, caseId: descriptor.id, projection, rawActionSha256 },
-    native: { operation, caseId: descriptor.id, projection: clone(projection), rawActionSha256 },
-    wire: { operation, caseId: descriptor.id, projection: wireProjection, rawActionSha256: rawWireActionSha256 }
+    // These are normalized action payloads.  Their rawActionSha256 binds the
+    // final Tl SKILL_ACTION in the turn, while rawWireActionSha256 retains
+    // the exact server-wire action bytes (which are a separate source and
+    // carry no independent IDs).  Keeping the normalized streams byte-equal
+    // lets their shared payload contract be checked without discarding that
+    // wire source binding.
+    phoenix: { operation, caseId: descriptor.id, projection, rawActionSha256, rawWireActionSha256 },
+    native: { operation, caseId: descriptor.id, projection: clone(projection), rawActionSha256, rawWireActionSha256 },
+    wire: { operation, caseId: descriptor.id, projection: wireProjection, rawActionSha256, rawWireActionSha256 }
   };
   const expectedProjection = resolvedProjection(descriptor, request, provider);
   const action = {
@@ -989,6 +1016,7 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
   const captureInfos = reportShots.map((shot, index) => screenshotAt(turn, shot, index));
   const captureTimes = captureInfos.map((capture) => capture.captureAtISO);
   const snapshots = Array.isArray(turn.snapshots) ? turn.snapshots : [];
+  const finalIdleSnapshotIndex = idleSnapshot ? snapshots.lastIndexOf(idleSnapshot) : -1;
   const actionElapsedMs = Math.max(0, Number(actionInfo.row.event.ts) - Date.parse(turn.started));
   const timelineViews = reportShots.map((shot, index) => {
     const captureInfo = captureInfos[index];
@@ -1081,12 +1109,12 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
     { type: 'context', stage: 'Tl', sessionId: identity.sharedSkillSessionId, eventId: `native-context-${descriptor.id}`, caseId: descriptor.id, requestID, transID, operation, timestampISO: contextAtISO, runtimeLocationISO: contextISO, timezone: contextTimezone, available: contextReady, sourceMessageId: contextMessageId, sourceLine: contextSourceLine, source: rawContext ? sourceRecord(rawContext, context.contextIndex, wire) : rawRefs.context || null },
     { type: 'request', stage: 'Tl', sessionId: identity.sharedSkillSessionId, eventId: `native-request-${descriptor.id}`, caseId: descriptor.id, requestID, transID, operation, endpoint: request.endpoint, timestampISO: wireRequest?.record?.at || followupStartedAtISO, body: clone(followupBody), bodySha256: followupBodySha256, source: wireRequest ? sourceRecord(wireRequest.record, wireRequest.index, wire) : rawRefs.turn, handle: clone(identity.followup.handle) },
     { type: 'action', stage: 'Tl', sessionId: identity.sharedSkillSessionId, eventId: correlation.nativeActionEventId, caseId: descriptor.id, requestID, transID, operation, timestampISO: new Date(actionEvent.ts).toISOString(), payload: clone(payload.native), sharedSkillSessionId: identity.sharedSkillSessionId, source: { rawTurn: rawRefs.turn, eventIndex: actionInfo.index, rawActionSha256, rawRequestID: actionEvent.requestID ?? null, rawTransID: actionEvent.transID ?? null } },
-    ...(idleAt ? [{ type: 'idle', stage: 'Tl', sessionId: identity.sharedSkillSessionId, eventId: `native-idle-${descriptor.id}`, caseId: descriptor.id, requestID, transID, operation, timestampISO: idleAt, skill: '@be/idle', view: 'eyeView', listener: 'Idle', ttsTalking: false, finalState: 'idle', source: rawRefs.turn }] : [])
+    ...(idleAt ? [{ type: 'idle', stage: 'Tl', sessionId: identity.sharedSkillSessionId, eventId: `native-idle-${descriptor.id}`, caseId: descriptor.id, requestID, transID, operation, timestampISO: idleAt, skill: '@be/idle', view: 'eyeView', listener: 'Idle', ttsTalking: false, finalState: 'idle', sourceSnapshot: { snapshotIndex: finalIdleSnapshotIndex, rawTurnSha256: rawRefs.turn.sha256 }, source: rawRefs.turn }] : [])
   ];
   const wireEvents = [
     ...(initialWireRequest ? [{ type: 'request', stage: 'Tg', sessionId: identity.sharedSkillSessionId, messageId: initialWireRequest.record.json.msgID, caseId: descriptor.id, requestID: identity.initial.requestID, transID: identity.initial.transID, operation, connectionId: wireFlow.stages[0].connectionId, timestampISO: initialWireRequest.record.at, endpoint: request.endpoint, body: clone(request.body), bodySha256: request.bodySha256, source: sourceRecord(initialWireRequest.record, initialWireRequest.index, wire) }] : []),
     ...(initialContext ? [{ type: 'context', stage: 'Tg', sessionId: identity.sharedSkillSessionId, messageId: initialContext.record.json.msgID, caseId: descriptor.id, requestID: identity.initial.requestID, transID: identity.initial.transID, operation, connectionId: wireFlow.stages[0].connectionId, timestampISO: initialContext.record.at, runtimeLocationISO: initialContext.record.json?.data?.runtime?.location?.iso, timezone: initialContext.record.json?.data?.runtime?.timezone || contextTimezone, source: sourceRecord(initialContext.record, initialContext.index, wire) }] : []),
-    ...(initialWireAction ? [{ type: 'action', stage: 'Tg', sessionId: identity.sharedSkillSessionId, messageId: initialWireAction.record.json.msgID, caseId: descriptor.id, requestID: identity.initial.requestID, transID: identity.initial.transID, operation, connectionId: wireFlow.stages[0].connectionId, timestampISO: initialWireAction.record.at, payload: { operation, caseId: descriptor.id, stage: 'Tg', rawActionSha256: sha256Text(JSON.stringify(initialRawAction)) }, source: { ...sourceRecord(initialWireAction.record, initialWireAction.index, wire), rawRequestID: initialWireAction.record.json?.requestID ?? null, rawTransID: initialWireAction.record.json?.transID ?? null, rawActionSha256: sha256Text(JSON.stringify(initialRawAction)) } }] : []),
+    ...(initialWireAction ? [{ type: 'action', stage: 'Tg', sessionId: identity.sharedSkillSessionId, messageId: initialWireAction.record.json.msgID, caseId: descriptor.id, requestID: identity.initial.requestID, transID: identity.initial.transID, operation, connectionId: wireFlow.stages[0].connectionId, timestampISO: initialWireAction.record.at, payload: { operation, caseId: descriptor.id, stage: 'Tg', rawActionSha256: initialRawWireActionSha256 }, source: { ...sourceRecord(initialWireAction.record, initialWireAction.index, wire), rawRequestID: initialWireAction.record.json?.requestID ?? null, rawTransID: initialWireAction.record.json?.transID ?? null, rawActionSha256: initialRawWireActionSha256 } }] : []),
     { type: 'context', stage: 'Tl', sessionId: identity.sharedSkillSessionId, messageId: contextMessageId, caseId: descriptor.id, requestID, transID, operation, connectionId: correlation.connectionId, timestampISO: contextAtISO, runtimeLocationISO: contextISO, timezone: contextTimezone, available: contextReady, sourceMessageId: contextMessageId, sourceLine: contextSourceLine, source: rawContext ? sourceRecord(rawContext, context.contextIndex, wire) : rawRefs.context || null },
     ...(wireRequest ? [{ type: 'request', stage: 'Tl', sessionId: identity.sharedSkillSessionId, messageId: wireRequest.record.json.msgID, caseId: descriptor.id, requestID, transID, operation, endpoint: request.endpoint, connectionId: correlation.connectionId, timestampISO: wireRequest.record.at, body: clone(followupBody), bodySha256: followupBodySha256, source: sourceRecord(wireRequest.record, wireRequest.index, wire), handle: clone(identity.followup.handle) }] : []),
     ...(wireAction ? [{ type: 'action', stage: 'Tl', sessionId: identity.sharedSkillSessionId, messageId: correlation.wireActionMessageId, caseId: descriptor.id, requestID, transID, operation, connectionId: correlation.connectionId, timestampISO: wireAction.record.at, payload: clone(payload.wire), source: { ...sourceRecord(wireAction.record, wireAction.index, wire), rawRequestID: wireAction.record.json?.requestID ?? null, rawTransID: wireAction.record.json?.transID ?? null, rawActionSha256: rawWireActionSha256 } }] : [])
@@ -1104,11 +1132,12 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
     service: record.service,
     rawCaseId: record.caseId,
     requestID,
-    transID,
+    ...(record.input && Object.hasOwn(record.input, 'transID') ? { transID } : {}),
     operation,
     connectionId: correlation.connectionId,
     stage: 'Tl',
     timestampISO: record.at,
+    input: clone(record.input || {}),
     fixturePath: providerFixture.path,
     fixtureSha256: providerFixture.sha256,
     provider: clone(provider),
@@ -1138,13 +1167,14 @@ function deriveRow(matrix, descriptor, turn, fixture, wire, outRoot, rawRefs, ru
     const relativePath = `artifacts/${descriptor.id}/screenshots/${String(index).padStart(2, '0')}-${shot.viewId}-${shot.viewInstance || 'capture'}.png`;
     const artifact = writeArtifact(outRoot, relativePath, sourceBytes);
     const identity = canonicalSha256({ caseId: descriptor.id, caseOrdinal: descriptor.ordinal, viewOrdinal, viewId: shot.viewId, pixelSha256: artifact.sha256 });
+    const producerCaptureKey = `${descriptor.id}:view:${viewOrdinal}:${shot.viewId}`;
     const capture = {
       ...artifact,
       caseId: descriptor.id,
       ordinal: viewOrdinal,
       viewOrdinal,
       viewId: shot.viewId,
-      captureKey: captureInfo.captureKey,
+      captureKey: producerCaptureKey,
       pixelSha256: artifact.sha256,
       artifactIdentity: identity,
       captureAtISO: captureInfo.captureAtISO,
@@ -1398,7 +1428,7 @@ export function produceCandidate(matrix, runDir, outRoot, { operation = 'mimicGl
   const stackRead = first.stackRead;
   const runtimeISO = stackRead.value.started;
   const timezone = 'America/New_York';
-  const runtime = { captureISO: runtimeISO, localDateISO: localDateISO(runtimeISO, timezone), timezone, runRoot: run, fixtureGenerator: 'private-fixture-work-time', wallClockBound: false, captureConditions: { pmDepartureAvailable: false } };
+  let runtime = { captureISO: runtimeISO, localDateISO: localDateISO(runtimeISO, timezone), timezone, runRoot: run, fixtureGenerator: 'private-fixture-work-time', wallClockBound: false, captureConditions: { pmDepartureAvailable: false } };
   const fixtureBindingMismatches = [];
   const rejectedBundles = [];
   const turns = {};
@@ -1457,6 +1487,10 @@ export function produceCandidate(matrix, runDir, outRoot, { operation = 'mimicGl
   const capturedPhysicalRows = rows.filter((row) => row?.actual?.request?.operation);
   const preflightContext = capturedPhysicalRows[0]?.actual?.request?.locationISO || runtime.captureISO;
   const preflightTimezone = capturedPhysicalRows[0]?.actual?.timeline?.idle ? timezone : runtime.timezone;
+  // The receipt runtime anchor is the exact location context used by the
+  // preflight request.  Per-case actual.captureISO remains the immutable turn
+  // start; this top-level field must bind the declared preflight context.
+  runtime = { ...runtime, captureISO: preflightContext, localDateISO: localDateISO(preflightContext, timezone) };
   const preflightProven = capturedPhysicalRows.length > 0
     && fixtureBindingMismatches.length === 0
     && capturedPhysicalRows.every((row) => row.actual?.request?.endpoint === '/listen/mimic_global_turn'
