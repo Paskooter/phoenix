@@ -228,6 +228,10 @@ function validateRemotePayload(remote, slot) {
   }
   requireString(processInfo.cwd, 'active Electron cwd');
   if (processInfo.candidateCount !== 1) fail('active Electron process is missing or ambiguous');
+  if (processInfo.associatedProcessCount !== undefined
+    && (!Number.isInteger(processInfo.associatedProcessCount) || processInfo.associatedProcessCount < processInfo.candidateCount)) {
+    fail('associated Electron process count is invalid');
+  }
   const page = requireObject(electron.page, 'remote.payload.electron.page');
   requireString(page.url, 'loaded Electron page URL');
   if (page.slot !== slot) fail(`loaded Electron page slot does not match ${slot}`);
@@ -298,7 +302,10 @@ function buildRemoteScript(slot) {
 set -eu
 SLOT=__S13_SLOT__
 export S13_SLOT="$SLOT"
-exec node - <<'__S13_NODE__'
+# Node 6 on Moth does not recognize the modern node-dash stdin marker. With
+# no script argument Node reads the here-document from stdin on both Node 6
+# and current supported runtimes.
+exec node <<'__S13_NODE__'
 /* This program intentionally uses Node 6-compatible syntax: the stock robot
  * runtime is old, while the collector itself runs on the review host. */
 var fs = require('fs');
@@ -361,7 +368,10 @@ function run(id, executable, argv) {
 function regular(file, label, allowSymlink) {
   var stat;
   try { stat = fs.lstatSync(file); } catch (error) { die(label + ': ' + error.message); }
-  if (stat.isSymbolicLink() && !allowSymlink) die(label + ' is a symlink');
+  if (stat.isSymbolicLink()) {
+    if (!allowSymlink) die(label + ' is a symlink');
+    try { stat = fs.statSync(file); } catch (error) { die(label + ': cannot resolve symlink: ' + error.message); }
+  }
   if (!stat.isFile()) die(label + ' is not a regular file');
   if (stat.size > MAX_FILE_BYTES) die(label + ' exceeds the bounded file size');
   if (!allowSymlink && fs.realpathSync(file) !== file) die(label + ' has a symlinked ancestor');
@@ -485,6 +495,12 @@ function manifest(root, directories, explicit, maxFiles, label) {
   };
 }
 
+function presentDirectories(root, names, label) {
+  return names.filter(function (name) {
+    return exists(safeChild(root, name, label));
+  });
+}
+
 function parseJson(bytes, label) {
   try { return JSON.parse(text(bytes)); } catch (error) { die(label + ' is not JSON: ' + error.message); }
 }
@@ -524,14 +540,23 @@ function processInfo(slot) {
     var row = { pid: Number(pid), argv: argv, cwd: cwd };
     if ((cwd && cwd === SLOT_ROOT) || joined.indexOf(SLOT_ROOT) !== -1 || joined.indexOf('/' + slot + '/index.html') !== -1) slotElectron.push(row);
   });
-  if (slotElectron.length !== 1) die('expected exactly one active Electron process for ' + slot + ', found ' + slotElectron.length);
-  var selected = slotElectron[0];
+  // One Electron application normally has renderer, GPU, and zygote children
+  // with the same cwd. The loaded page is the unambiguous browser/main process:
+  // it names this slot's index.html and has no Chromium --type role.
+  var pageSuffix = '/' + slot + '/index.html';
+  var primary = slotElectron.filter(function (row) {
+    var joined = row.argv.join(' ');
+    return joined.indexOf(pageSuffix) !== -1 && !/(^|\s)--type=/.test(joined);
+  });
+  if (primary.length !== 1) die('expected exactly one active Electron main process for ' + slot + ', found ' + primary.length);
+  var selected = primary[0];
   return {
     pid: selected.pid,
     argv: selected.argv,
     argvSha256: digest(Buffer.from(json(selected.argv))),
     cwd: selected.cwd || '',
-    candidateCount: slotElectron.length,
+    candidateCount: primary.length,
+    associatedProcessCount: slotElectron.length,
   };
 }
 
@@ -540,7 +565,10 @@ function timezoneInfo(local) {
   var sourceSha256 = null;
   var sourceBytes = null;
   if (exists('/etc/timezone')) {
-    var timezoneFile = fileBytes('/etc/timezone', 'timezone', {});
+    // Embedded Linux images commonly expose this conventional text file as a
+    // symlink. Its resolved bytes are still recorded and hashed as the
+    // timezone source, just as for /etc/localtime below.
+    var timezoneFile = fileBytes('/etc/timezone', 'timezone', { allowSymlink: true });
     source = trim(text(timezoneFile.bytes));
     sourceSha256 = timezoneFile.row.sha256;
     sourceBytes = timezoneFile.bytes.length;
@@ -558,6 +586,15 @@ function timezoneInfo(local) {
   }
   if (!source) die('no timezone source (/etc/timezone or /etc/localtime)');
   return { name: trim(local), source: source, sourceSha256: sourceSha256, sourceBytes: sourceBytes };
+}
+
+function canonicalRegularFile(file) {
+  try {
+    var stat = fs.lstatSync(file);
+    return stat.isFile() && !stat.isSymbolicLink() && fs.realpathSync(file) === file;
+  } catch (error) {
+    return false;
+  }
 }
 
 function firmwareInfo() {
@@ -594,7 +631,10 @@ function firmwareInfo() {
     });
   }
   candidates.forEach(function (file) {
-    if (!exists(file)) return;
+    // Candidate logs can live under a redirected /var/log on appliance
+    // images. Do not follow that topology while collecting a trusted release;
+    // skip it and fail closed below if no canonical release source remains.
+    if (!canonicalRegularFile(file)) return;
     var value = fileBytes(file, 'firmware:' + file, { record: true });
     var raw = text(value.bytes);
     var match;
@@ -686,7 +726,11 @@ function main() {
   var activeProcess = processInfo(SLOT);
   var bePackage = packageInfo(SLOT_ROOT, null, 'be');
   var beIndex = rootIndex(SLOT_ROOT, 'be');
-  var beManifest = manifest(SLOT_ROOT, ['src', 'lib', 'resources'], ['package.json', 'index.js'], MAX_SOURCE_FILES, 'be.sourcePackageManifest');
+  // The deployed package is often a production layout with no source-only
+  // src directory. Hash its invariant entrypoints and each conventional
+  // runtime directory that is actually present instead of weakening the
+  // collection with a missing-development-directory assumption.
+  var beManifest = manifest(SLOT_ROOT, presentDirectories(SLOT_ROOT, ['src', 'lib', 'resources'], 'be.runtimePackageManifest'), ['package.json', 'index.js'], MAX_SOURCE_FILES, 'be.runtimePackageManifest');
   var clientRoot = SLOT_ROOT + '/node_modules/@jibo/jetstream-client';
   var jetstreamPackage = packageInfo(clientRoot, '@jibo/jetstream-client', 'jetstreamClient');
   var nimbusRoot = SLOT_ROOT + '/node_modules/@be/nimbus';

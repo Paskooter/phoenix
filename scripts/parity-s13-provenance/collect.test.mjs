@@ -7,6 +7,7 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import {
   collect,
+  buildRemoteScript,
   compareSnapshotFiles,
   immutableFileHashes,
   writeAtomicJson,
@@ -40,6 +41,13 @@ function fakeSsh(directory, remote) {
 function cloneFixture() {
   return JSON.parse(JSON.stringify(fixture));
 }
+
+test('remote bootstrap remains compatible with Moth Node 6 and selects the Electron main process', () => {
+  const script = buildRemoteScript('fixture-slot');
+  assert.match(script, /exec node <<'__S13_NODE__'/);
+  assert.doesNotMatch(script, /exec node - <<'__S13_NODE__'/);
+  assert.match(script, /active Electron main process/);
+});
 
 test('collects a complete fixture through one fake root SSH command and writes mode 0600', async () => {
   const directory = privateDirectory();
