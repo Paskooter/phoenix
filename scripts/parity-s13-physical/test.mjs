@@ -269,7 +269,8 @@ test('v2 recapture keeps fixture work time, two-stage identity, raw wire gaps, a
     const bundles = JSON.parse(fs.readFileSync(bundleManifestPath, 'utf8')).cases;
     const produced = produceCandidate(matrix, recaptureRun, root, { bundles, bundleManifestPath });
     const receipt = produced.manifest;
-    assert.equal(receipt.runtime.fixtureGenerator, 'private-fixture-work-time');
+    assert.equal(receipt.runtime.fixtureGenerator, 'relative-to-local-date');
+    assert.equal(receipt.runtime.wallClockBound, true);
     assert.equal(receipt.runtime.captureISO, receipt.preflight.context.runtimeLocationISO);
     assert.equal(receipt.preflight.proven, true);
     const sourceRun = JSON.parse(fs.readFileSync(path.join(root, receipt.provenance.sourceRun.path), 'utf8'));

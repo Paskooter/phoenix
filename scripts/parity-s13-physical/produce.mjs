@@ -1430,7 +1430,11 @@ export function produceCandidate(matrix, runDir, outRoot, { operation = 'mimicGl
   const stackRead = first.stackRead;
   const runtimeISO = stackRead.value.started;
   const timezone = 'America/New_York';
-  let runtime = { captureISO: runtimeISO, localDateISO: localDateISO(runtimeISO, timezone), timezone, runRoot: run, fixtureGenerator: 'private-fixture-work-time', wallClockBound: false, captureConditions: { pmDepartureAvailable: false } };
+  // The fixture is a captured, explicit provider input, while its date is
+  // generated for the local capture date.  Keep those two facts separate:
+  // row-level commute preferences retain their private-fixture source, and
+  // the run-level clock contract records the relative-date generator.
+  let runtime = { captureISO: runtimeISO, localDateISO: localDateISO(runtimeISO, timezone), timezone, runRoot: run, fixtureGenerator: 'relative-to-local-date', wallClockBound: true, captureConditions: { pmDepartureAvailable: false } };
   const fixtureBindingMismatches = [];
   const rejectedBundles = [];
   const turns = {};
