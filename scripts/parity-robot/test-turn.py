@@ -164,6 +164,44 @@ class DisplayCapturePlannerTests(unittest.TestCase):
             planner.update({'view': 'eventView', 'viewInstance': 'event-1'}, 0.0, rows)
         self.assertEqual(planner.errors[0]['expectedViewId'], 'weatherView')
 
+    def test_allow_listed_prelude_is_recorded_and_not_captured(self):
+        rows = [display_event(['whoIsThisMenu']), display_event(['eventView', 'eventView'])]
+        planner = turn.DisplayCapturePlanner(
+            0.5,
+            expected_view_ids=['eventView', 'eventView'],
+            allowed_prelude_view_ids=['whoIsThisMenu'],
+        )
+        planner.update({'view': 'whoIsThisMenu', 'viewInstance': 'identity-1'}, 0.0, rows[:1])
+        _, request = planner.update(
+            {'view': 'whoIsThisMenu', 'viewInstance': 'identity-1'}, 1.0, rows[:1])
+        self.assertIsNone(request)
+        self.assertEqual(planner.public_excluded_actions()[0]['captureStatus'], 'excluded-prelude')
+        self.assertEqual(planner.public_excluded_actions()[0]['requestID'], 'request-1')
+
+        planner.update({'view': 'eventView', 'viewInstance': 'event-1'}, 1.1, rows)
+        _, request = planner.update({'view': 'eventView', 'viewInstance': 'event-1'}, 1.6, rows)
+        planner.captured(request, 1.6)
+        planner.update({'view': 'eyeView', 'viewInstance': 'eye-2'}, 1.7, rows)
+        planner.update({'view': 'eventView', 'viewInstance': 'event-2'}, 1.8, rows)
+        _, request = planner.update({'view': 'eventView', 'viewInstance': 'event-2'}, 2.4, rows)
+        planner.captured(request, 2.4)
+        planner.finish(rows, 2.5)
+        self.assertEqual([item['viewId'] for item in planner.public_actions()],
+                         ['eventView', 'eventView'])
+
+    def test_allow_listed_prelude_is_rejected_after_target_sequence_starts(self):
+        planner = turn.DisplayCapturePlanner(
+            0.1,
+            expected_view_ids=['eventView'],
+            allowed_prelude_view_ids=['whoIsThisMenu'],
+        )
+        planner.update({'view': 'eventView', 'viewInstance': 'event-1'}, 0.0,
+                       [display_event(['eventView'])])
+        with self.assertRaises(turn.CaptureError):
+            planner.update({'view': 'whoIsThisMenu', 'viewInstance': 'identity-1'}, 0.1,
+                           [display_event(['eventView']), display_event(['whoIsThisMenu'])])
+        self.assertIn('extra DISPLAY', planner.errors[0]['message'])
+
     def test_unique_ids_keep_one_capture_each(self):
         planner = turn.DisplayCapturePlanner(0.5)
         planner.update({'view': 'eyeView'}, 0.0, [])
@@ -299,6 +337,7 @@ class DisplayCapturePlannerTests(unittest.TestCase):
                     fixture_sha256=None, fixture_cases_sha256='b' * 64,
                     screenshot_delay=0.0, screenshots=True,
                     expected_view_ids=['eventView'], native_port=18090, cdp_port=19223,
+                    allowed_prelude_view_ids=None,
                     slot='test', mode='global', text=None, observe_only=True,
                     followup_text=None, followup_skill=None, followup_rule=None, visuals=False,
                     require_idle=False, duration=0.25,

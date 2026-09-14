@@ -378,11 +378,14 @@ class DisplayCapturePlanner:
     instead of silently treating a duplicate ID as already captured.
     """
 
-    def __init__(self, screenshot_delay, strict=True, expected_view_ids=None):
+    def __init__(self, screenshot_delay, strict=True, expected_view_ids=None,
+                 allowed_prelude_view_ids=None):
         self.screenshot_delay = screenshot_delay
         self.strict = strict
         self.expected_view_ids = (list(expected_view_ids)
                                   if expected_view_ids is not None else None)
+        self.allowed_prelude_view_ids = set(allowed_prelude_view_ids or [])
+        self.excluded_actions = []
         self.events_seen = 0
         self.actions = []
         self._occurrences = {}
@@ -409,6 +412,9 @@ class DisplayCapturePlanner:
     def public_actions(self):
         return [_public_display_action(action) for action in self.actions]
 
+    def public_excluded_actions(self):
+        return [_public_display_action(action) for action in self.excluded_actions]
+
     def _fail(self, message, **details):
         error = {'message': message}
         error.update(details)
@@ -425,6 +431,12 @@ class DisplayCapturePlanner:
                 view_id = action.get('viewId')
                 if not view_id and self.strict:
                     self._fail('DISPLAY action cannot be captured without a view ID', eventIndex=index)
+                if view_id in self.allowed_prelude_view_ids and not self.actions:
+                    action['captureStatus'] = 'excluded-prelude'
+                    action['exclusionReason'] = 'allow-listed prelude before expected display sequence'
+                    action['excludedPreludeOrdinal'] = len(self.excluded_actions) + 1
+                    self.excluded_actions.append(action)
+                    continue
                 if self.expected_view_ids is not None:
                     expected_index = len(self.actions)
                     if expected_index >= len(self.expected_view_ids):
@@ -529,7 +541,8 @@ class DisplayCapturePlanner:
 
         # Keep the old observer behavior for views which have no DISPLAY
         # action (notably the initial eyeView): capture each unique ID once.
-        known_display_views = {action.get('viewId') for action in self.actions}
+        known_display_views = ({action.get('viewId') for action in self.actions}
+                               | {action.get('viewId') for action in self.excluded_actions})
         if (self._current_view and self._current_view not in self._captured_view_ids
                 and self._current_view not in known_display_views
                 and self._view_since is not None
@@ -627,12 +640,14 @@ async def run(args):
     planner = (DisplayCapturePlanner(
         args.screenshot_delay,
         expected_view_ids=expected_view_ids,
+        allowed_prelude_view_ids=getattr(args, 'allowed_prelude_view_ids', None),
     ) if args.screenshots else None)
     report = {'started': datetime.datetime.now(datetime.timezone.utc).isoformat(),
               'robot': 'moth-radius-breazeal-felt.jibo', 'mode': args.mode,
               'input': 'passive native microphone observation' if args.observe_only else ('native clientASR text injection' if args.text is not None else 'native microphone capture'),
               'text': args.text, 'microphoneAcceptance': False, 'events': events, 'snapshots': snapshots,
-              'displayActions': [], 'screenshots': [], 'captureErrors': []}
+              'displayActions': [], 'excludedDisplayActions': [],
+              'screenshots': [], 'captureErrors': []}
     if fixture_snapshot:
         report['fixture'] = fixture_snapshot.metadata()
     if expected_view_ids is not None:
@@ -665,6 +680,7 @@ async def run(args):
                     new_actions, request = planner.update(value, now, events)
                     if new_actions:
                         report['displayActions'] = planner.public_actions()
+                    report['excludedDisplayActions'] = planner.public_excluded_actions()
                     if request:
                         out = _screenshot_path(args.out, request['captureOrdinal'])
                         capture_result = await screenshot(args.cdp_port, args.slot, out)
@@ -808,6 +824,7 @@ async def run(args):
                 report['fixture'] = fixture_snapshot.metadata()
             if planner:
                 report['displayActions'] = planner.public_actions()
+                report['excludedDisplayActions'] = planner.public_excluded_actions()
                 report['captureErrors'] = list(planner.errors)
             args.out.parent.mkdir(parents=True, exist_ok=True)
             args.out.write_text(json.dumps(report, indent=2)+'\n')
@@ -830,6 +847,8 @@ def main():
                         help='Fail before a turn unless CDP proves @be/idle, eyeView, Idle listening, and no TTS')
     parser.add_argument('--expected-view-id', dest='expected_view_ids', action='append',
                         help='Expected ordered DISPLAY view ID; repeat for repeated or multiple renders')
+    parser.add_argument('--allow-prelude-view-id', dest='allowed_prelude_view_ids', action='append',
+                        help='Allow and record this DISPLAY only before the expected sequence; do not screenshot it')
     parser.add_argument('--fixture-file', type=Path,
                         help='Private S-13 fixture (0600); hash and case ID are recorded and watched')
     parser.add_argument('--fixture-copy', type=Path,
@@ -851,6 +870,8 @@ def main():
         parser.error('--fixture-copy requires --fixture-file')
     if args.expected_view_ids is not None and not args.screenshots:
         parser.error('--expected-view-id requires --screenshots')
+    if args.allowed_prelude_view_ids is not None and not args.screenshots:
+        parser.error('--allow-prelude-view-id requires --screenshots')
     if not 0 <= args.screenshot_delay <= 5:
         parser.error('--screenshot-delay must be 0..5 seconds')
     if args.observe_only and args.text is not None:
