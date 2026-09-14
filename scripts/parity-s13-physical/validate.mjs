@@ -826,24 +826,38 @@ function v2ValidateProviderFixture(descriptor, actual, refs, errors, label) {
   } else {
     const sourceDate = sourceCase.meta?.date;
     add(errors, sourceDate === actual.localDateISO, `${label}.rawFixture source date does not bind capture local date`);
-    if (actual.request?.prefsResolution?.generatedFrom === 'private-fixture-work-time') {
-      const workTime = sourceCase.meta?.workTime;
-      const fixtureWorkTime = fixture.workTime;
-      if (!requireObject(errors, workTime, `${label}.rawFixture source workTime`)) return { fixture, rawFixture, sourceCase, sourceCaseKey };
-      if (!requireObject(errors, fixtureWorkTime, `${label}.providerFixture.workTime`)) return { fixture, rawFixture, sourceCase, sourceCaseKey };
-      add(errors, fixtureWorkTime.source === 'private-fixture-work-time', `${label}.providerFixture.workTime.source is invalid`);
-      add(errors, fixtureWorkTime.dateISO === sourceDate, `${label}.providerFixture.workTime.dateISO does not bind raw fixture date`);
-      add(errors, fixtureWorkTime.hour === workTime.hour && fixtureWorkTime.min === workTime.min, `${label}.providerFixture.workTime does not bind raw fixture work time`);
-      add(errors, actual.request?.prefs?.workDateISO === sourceDate, `${label}.request.prefs.workDateISO does not bind raw fixture date`);
-      add(errors, actual.request?.prefs?.workHour === workTime.hour && actual.request?.prefs?.workMin === workTime.min, `${label}.request.prefs does not bind raw fixture work time`);
-      add(errors, actual.request?.prefsResolution?.source === 'private-fixture-work-time', `${label}.request.prefsResolution.source is invalid`);
-      add(errors, actual.request?.prefsResolution?.sourceFixture?.path === refs.rawFixture.path && actual.request?.prefsResolution?.sourceFixture?.sha256 === refs.rawFixture.sha256, `${label}.request.prefsResolution.sourceFixture does not bind raw fixture`);
-      add(errors, same(actual.request?.prefsResolution?.workTime, {
-        dateISO: sourceDate,
-        timeZone: sourceCase.meta?.timeZone,
-        hour: workTime.hour,
-        min: workTime.min
-      }), `${label}.request.prefsResolution.workTime does not bind raw fixture work time`);
+    if (descriptor.domain === 'commute' && actual.request?.prefsResolution?.generatedFrom === 'private-fixture-work-time') {
+      const workTime = sourceCase.userPrefs?.commute?.workTime || sourceCase.meta?.workTime;
+      const requestPrefs = actual.request?.prefs;
+      const resolution = actual.request.prefsResolution;
+      if (!requireObject(errors, workTime, `${label}.rawFixture.cases.${sourceCaseKey}.workTime`)) return { fixture, rawFixture, sourceCase, sourceCaseKey };
+      add(errors, requestPrefs?.workDateISO === sourceCase.meta?.date, `${label}.request.prefs.workDateISO does not bind fixture date`);
+      add(errors, requestPrefs?.workHour === workTime.hour, `${label}.request.prefs.workHour does not bind fixture work time`);
+      add(errors, requestPrefs?.workMin === workTime.min, `${label}.request.prefs.workMin does not bind fixture work time`);
+      const sourceFixture = resolution.sourceFixture;
+      const fixtureSha256 = resolution.fixtureSha256 ?? sourceFixture?.sha256;
+      add(errors, fixtureSha256 === refs.rawFixture.sha256, `${label}.request.prefsResolution fixture hash does not bind raw fixture`);
+      const fixtureCase = resolution.fixtureCase ?? sourceFixture?.caseKey;
+      add(errors, fixtureCase === sourceCaseKey, `${label}.request.prefsResolution fixture case does not bind raw fixture case`);
+      if (sourceFixture !== undefined) {
+        add(errors, sourceFixture.path === refs.rawFixture.path, `${label}.request.prefsResolution source fixture path does not bind raw fixture`);
+        add(errors, sourceFixture.sha256 === refs.rawFixture.sha256, `${label}.request.prefsResolution source fixture hash does not bind raw fixture`);
+      }
+      if (resolution.workTime !== undefined) {
+        add(errors, same(resolution.workTime, {
+          dateISO: sourceCase.meta?.date,
+          timeZone: sourceCase.meta?.timeZone,
+          hour: workTime.hour,
+          min: workTime.min
+        }), `${label}.request.prefsResolution.workTime does not bind raw fixture work time`);
+      }
+      if (fixture.workTime !== undefined) {
+        add(errors, fixture.workTime.source === 'private-fixture-work-time', `${label}.providerFixture.workTime.source must bind private fixture work time`);
+        add(errors, fixture.workTime.dateISO === sourceCase.meta?.date, `${label}.providerFixture.workTime.dateISO does not bind fixture date`);
+        add(errors, fixture.workTime.timeZone === sourceCase.meta?.timeZone, `${label}.providerFixture.workTime.timeZone does not bind fixture timezone`);
+        add(errors, fixture.workTime.hour === workTime.hour, `${label}.providerFixture.workTime.hour does not bind fixture work time`);
+        add(errors, fixture.workTime.min === workTime.min, `${label}.providerFixture.workTime.min does not bind fixture work time`);
+      }
     }
   }
   return { fixture, rawFixture, sourceCase, sourceCaseKey };
@@ -1204,27 +1218,35 @@ function validateRequest(descriptor, actual, errors, label, allowedRequest, pref
     add(errors, !Number.isNaN(Date.parse(actual.locationISO)), `${label}.locationISO must be an ISO timestamp`);
     add(errors, actual.locationISO === preflight?.context?.runtimeLocationISO, `${label}.locationISO must equal the preflight runtime context`);
     const fixtureWorkTime = actual.prefsResolution?.generatedFrom === 'private-fixture-work-time';
-    add(errors, fixtureWorkTime || actual.locationMode === 'capture-local-clock', `${label}.locationMode must be capture-local-clock or private-fixture-work-time`);
+    add(errors, fixtureWorkTime
+      ? ['capture-local-clock', 'private-fixture-work-time'].includes(actual.locationMode)
+      : actual.locationMode === 'capture-local-clock', `${label}.locationMode must be capture-local-clock or private-fixture-work-time`);
     add(errors, isObject(actual.prefs) && actual.prefs.mode === descriptor.input?.prefsPolicy?.mode, `${label}.prefs.mode does not match the matrix policy`);
     add(errors, actual.prefs?.baseSeconds === descriptor.input?.prefsPolicy?.baseSeconds, `${label}.prefs.baseSeconds does not match the matrix policy`);
     add(errors, actual.prefs?.trafficSeconds === descriptor.input?.prefsPolicy?.trafficSeconds, `${label}.prefs.trafficSeconds does not match the matrix policy`);
     add(errors, Number.isInteger(actual.prefs?.workHour) && Number.isInteger(actual.prefs?.workMin), `${label}.prefs must contain resolved wall-clock workHour/workMin`);
     requireString(errors, actual.prefs?.workDateISO, `${label}.prefs.workDateISO`);
     add(errors, /^\d{4}-\d{2}-\d{2}$/.test(actual.prefs?.workDateISO || ''), `${label}.prefs.workDateISO must be YYYY-MM-DD`);
-    const resolvedSchedule = fixtureWorkTime ? null : resolveCommuteSchedule(actual.locationISO, descriptor.input?.prefsPolicy?.schedule, 'America/New_York');
+    const resolvedSchedule = fixtureWorkTime
+      ? null
+      : resolveCommuteSchedule(actual.locationISO, descriptor.input?.prefsPolicy?.schedule, 'America/New_York');
     if (resolvedSchedule) {
       add(errors, actual.prefs.workHour === resolvedSchedule.hour, `${label}.prefs.workHour is not derived from capture-local-clock`);
       add(errors, actual.prefs.workMin === resolvedSchedule.minute, `${label}.prefs.workMin is not derived from capture-local-clock`);
       add(errors, actual.prefs.workDateISO === resolvedSchedule.dateISO, `${label}.prefs.workDateISO is not derived from capture-local-clock`);
     } else if (!fixtureWorkTime) errors.push(`${label}.prefs policy cannot be resolved`);
     if (requireObject(errors, actual.prefsResolution, `${label}.prefsResolution`)) {
-      add(errors, actual.prefsResolution.schedule === descriptor.input?.prefsPolicy?.schedule, `${label}.prefsResolution.schedule does not match the matrix policy`);
-      add(errors, ['capture-local-clock', 'private-fixture-work-time'].includes(actual.prefsResolution.generatedFrom), `${label}.prefsResolution.generatedFrom is unsupported`);
+      add(errors, fixtureWorkTime
+        ? ['private-fixture-work-time', descriptor.input?.prefsPolicy?.schedule].includes(actual.prefsResolution.schedule)
+        : actual.prefsResolution.schedule === descriptor.input?.prefsPolicy?.schedule, `${label}.prefsResolution.schedule does not match the matrix policy or private fixture mode`);
       if (fixtureWorkTime) {
-        add(errors, actual.prefsResolution.source === 'private-fixture-work-time', `${label}.prefsResolution.source must bind private fixture work time`);
-        add(errors, isObject(actual.prefsResolution.sourceFixture), `${label}.prefsResolution.sourceFixture must identify raw fixture bytes`);
-        add(errors, isObject(actual.prefsResolution.workTime), `${label}.prefsResolution.workTime must identify fixture work time`);
-      }
+        add(errors, ['private-fixture-work-time', 'fixture.userPrefs.commute.workTime'].includes(actual.prefsResolution.source), `${label}.prefsResolution.source must identify private fixture work time`);
+        const sourceFixture = actual.prefsResolution.sourceFixture;
+        const fixtureSha256 = actual.prefsResolution.fixtureSha256 ?? sourceFixture?.sha256;
+        requireDigest(errors, fixtureSha256, `${label}.prefsResolution.fixtureSha256`);
+        add(errors, typeof sourceFixture?.caseKey === 'string' || typeof actual.prefsResolution.fixtureCase === 'string', `${label}.prefsResolution must identify the private fixture case`);
+        if (actual.prefsResolution.matrixPolicy !== undefined) add(errors, actual.prefsResolution.matrixPolicy === descriptor.input?.prefsPolicy?.schedule, `${label}.prefsResolution.matrixPolicy does not match the matrix policy`);
+      } else add(errors, actual.prefsResolution.generatedFrom === 'capture-local-clock', `${label}.prefsResolution.generatedFrom must be capture-local-clock`);
       add(errors, actual.prefsResolution.workDateISO === actual.prefs.workDateISO, `${label}.prefsResolution.workDateISO does not bind resolved prefs`);
       requireDigest(errors, actual.prefsResolution.sha256, `${label}.prefsResolution.sha256`);
       add(errors, actual.prefsResolution.sha256 === canonicalSha256(actual.prefs), `${label}.prefsResolution.sha256 does not match resolved prefs`);

@@ -282,3 +282,42 @@ test('raw fixture event mutations fail after rehashing the raw artifact', () => 
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
+
+test('strict rows accept raw-fixture work time but require its source binding', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'phoenix-s13-private-work-time-'));
+  try {
+    const receipt = buildReceipt(matrix, root);
+    const row = receipt.cases.find((item) => item.id === 'commute-normal-combined');
+    rewriteRawRefs(root, row, {
+      'turn.json': '{}',
+      'fixture.json': '{}',
+      'wire.jsonl': '{}\n'
+    });
+    const request = row.actual.request;
+    request.locationMode = 'private-fixture-work-time';
+    request.prefs.workHour = 21;
+    request.prefs.workMin = 25;
+    request.prefsResolution = {
+      schedule: 'private-fixture-work-time',
+      generatedFrom: 'private-fixture-work-time',
+      source: 'fixture.userPrefs.commute.workTime',
+      fixtureCase: 'Normal',
+      fixtureSha256: 'a'.repeat(64),
+      matrixPolicy: 'capture-plus-60-minutes',
+      workDateISO: request.prefs.workDateISO,
+      sha256: canonicalSha256(request.prefs)
+    };
+    receipt.falsification.receiptSha256 = falsificationAnchorSha256(receipt.falsification);
+    const report = validateReceipt(receipt, matrix, { root, externalAnchors: truthfulAnchors(receipt) });
+    assert.equal(report.result, 'fail');
+    assert.ok(report.errors.some((error) => /rawTurn\.preflight/.test(error)), report.errors.join('; '));
+    assert.ok(!report.errors.some((error) => /case commute-normal-combined\.actual\.request\.(locationMode|prefs\.|prefsResolution)/.test(error)), report.errors.join('; '));
+
+    delete request.prefsResolution.fixtureSha256;
+    const missingBinding = validateReceipt(receipt, matrix, { root, externalAnchors: truthfulAnchors(receipt) });
+    assert.equal(missingBinding.result, 'fail');
+    assert.ok(missingBinding.errors.some((error) => /case commute-normal-combined\.actual\.request\.prefsResolution\.fixtureSha256 must be a lowercase SHA-256 digest/i.test(error)), missingBinding.errors.join('; '));
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
