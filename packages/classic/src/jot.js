@@ -472,16 +472,19 @@ export class JotMessageController {
   }
 
   async emit(event) {
+    // The durable ledger is the evidence trail and is ALWAYS written. It used to
+    // be the *fallback* for having no sink, which meant wiring any consumer -
+    // the push fan-out, say - silently stopped recording events. The two jobs
+    // are independent: record what happened, then fan it out.
+    this.store.recordEvent(event.payload);
+    this.logger.info?.('jot event', { eventKey: event?.payload?.eventKey, messageId: event?.payload?.messageId });
     if (typeof this.onEvent === 'function') {
       try {
         await this.onEvent(event);
       } catch (error) {
         this.logger.warn?.('jot: event sink failed', { error: error?.message, eventKey: event?.payload?.eventKey });
       }
-      return;
     }
-    this.store.recordEvent(event.payload);
-    this.logger.info?.('jot event', { eventKey: event?.payload?.eventKey, messageId: event?.payload?.messageId });
   }
 
   async populateParts(accountId, messages) {

@@ -95,7 +95,13 @@ export function createJotMessageCreatedConsumer({
   const log = logger || { info: () => {}, warn: () => {} };
 
   return async function onJotEvent(event) {
-    if (!event || event.name !== 'JotMessageCreated') return { delivered: 0, reason: 'not-a-jot-created-event' };
+    // The producer hands over a JotMessageCreated INSTANCE, whose identity lives
+    // in `payload.eventKey` (message-bus BaseEvent stamps it from the
+    // constructor name). Instances carry no `.name` of their own, so matching on
+    // that silently ignored every real event. `event.name` is still accepted for
+    // plain object literals.
+    const eventKey = event && ((event.payload && event.payload.eventKey) || event.name);
+    if (eventKey !== 'JotMessageCreated') return { delivered: 0, reason: 'not-a-jot-created-event' };
     if (!account || typeof account.get !== 'function') {
       // No membership source: the same LAN-trust posture jot.js documents.
       return { delivered: 0, reason: 'no-account-seam' };

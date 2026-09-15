@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   createJotMessageCreatedConsumer, isSilentForMember, buildJotNotification,
 } from '../src/jotPushConsumer.js';
+import { JotMessageCreated } from '../src/jot.js';
 
 // Behaviour is pinned to server/push-ws/src/event.handlers/jot.message.created.handler.js,
 // read from the Jibo archive. See the module header for the recovered algorithm.
@@ -11,12 +12,13 @@ const SENDER = 'acct-sender';
 const TAGGED = 'acct-tagged';
 const QUIET = 'acct-quiet';
 
-const event = (over = {}) => ({
-  name: 'JotMessageCreated',
-  payload: {
-    messageId: 'msg-1', senderId: SENDER, loopId: 'loop-1',
-    content: 'dinner at 7', tags: [TAGGED], ...over,
-  },
+// Build the event with the REAL producer class. An earlier version of this file
+// used a hand-made { name: 'JotMessageCreated' } literal, which the system never
+// produces: the real event carries its identity in payload.eventKey. Every test
+// here passed against that fiction while the wired service delivered nothing.
+const event = (over = {}) => new JotMessageCreated({
+  messageId: 'msg-1', senderId: SENDER, loopId: 'loop-1',
+  content: 'dinner at 7', tags: [TAGGED], ...over,
 });
 
 const loop = {
@@ -149,9 +151,13 @@ test('an unknown loop delivers nothing', async () => {
   assert.equal(out.reason, 'loop-not-found');
 });
 
-test('an unrelated event is ignored', async () => {
+test('an unrelated event is ignored, and refused for the right reason', async () => {
   const { sent, consume } = harness();
-  const out = await consume({ name: 'LoopCreated', payload: {} });
+  // Assert the REASON, not just the outcome: a consumer that accepted every
+  // event would still deliver nothing here, because the loop id is absent.
+  // Checking only `delivered === 0` let that mutation through.
+  const out = await consume({ payload: { eventKey: 'LoopCreated', loopId: 'loop-1' } });
+  assert.equal(out.reason, 'not-a-jot-created-event');
   assert.equal(out.delivered, 0);
   assert.equal(sent.length, 0);
 });
@@ -164,4 +170,62 @@ test('a failing push provider does not abort the remaining members', async () =>
   const out = await consume(event());
   assert.equal(calls, 3, 'every device is still attempted');
   assert.equal(out.delivered, 2, 'only the failed one is not counted');
+});
+
+// ------------------------------------------- end to end through the real service
+
+test('a real CreateMessage through the classic service pushes to the loop and still records the event', async () => {
+  const { createClassicEntrypoint, JotStore, DeviceRegistry } = await import('../src/index.js');
+  const { mkdtempSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+
+  const dir = mkdtempSync(join(tmpdir(), 'jot-push-e2e-'));
+  const store = new JotStore(join(dir, 'jot.json'));
+  const pushRegistry = new DeviceRegistry(join(dir, 'devices.json'));
+  pushRegistry.createDevice(TAGGED, { name: 'tagged-phone', pushToken: 'tok-a', type: 'ios' });
+  pushRegistry.createDevice(QUIET, { name: 'quiet-phone', pushToken: 'tok-b', type: 'ios' });
+
+  const sent = [];
+  const entry = createClassicEntrypoint({
+    jot: {
+      store,
+      pushRegistry,
+      account: {
+        async get(loopId) { return loopId === 'loop-1' ? loop : null; },
+        async getAccountById() { return { firstName: 'Ada', lastName: 'Lovelace' }; },
+      },
+      push: { async send(row) { sent.push(row); } },
+    },
+  });
+  const server = await entry.listen(0);
+  const port = server.address().port;
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/x-amz-json-1.1',
+        'x-amz-target': 'Jot_20160126.CreateMessage',
+        authorization: `AWS4-HMAC-SHA256 Credential=${SENDER}/20260915/us-east-1/jot/aws4_request`,
+      },
+      body: JSON.stringify({ loopId: 'loop-1', content: 'dinner at 7', tags: [TAGGED], parts: [{ path: 'p/1' }] }),
+    });
+    assert.equal(res.status, 200);
+
+    // The fan-out reached both members that own a device — and only those.
+    assert.equal(sent.length, 2);
+    const byToken = Object.fromEntries(sent.map((row) => [row.device.pushToken, row.notification]));
+    assert.equal(byToken['tok-a'].data.type, 'jot-created-tagged', 'the tagged member gets a loud push');
+    assert.equal(byToken['tok-b'].data.type, 'jot-created-silent', 'an untagged member gets a silent one');
+    assert.equal(byToken['tok-a'].locKey, 'new.message.from.member');
+    assert.deepEqual(byToken['tok-a'].locArgs, ['Ada Lovelace']);
+    assert.equal(byToken['tok-a'].body, 'dinner at 7');
+
+    // Wiring a consumer must not cost the durable evidence ledger.
+    const events = store.events.map((e) => e.eventKey || e.name).filter(Boolean);
+    assert.ok(store.events.length >= 1, 'the JotMessageCreated event is still recorded durably');
+    assert.ok(events.length === 0 || events.every((k) => typeof k === 'string'));
+  } finally {
+    await new Promise((r) => server.close(r));
+  }
 });

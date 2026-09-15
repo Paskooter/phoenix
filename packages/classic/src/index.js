@@ -20,6 +20,7 @@ import { makeRobotHandler, RobotStore } from './robot.js';
 import { NotificationHub, makeNotificationHandler, attachNotificationSocket } from './notification.js';
 import { KeyStore, makeKeyHandler, keyRoutes, accountMembership } from './key.js';
 import { DeviceRegistry, makePushHandler } from './push.js';
+import { createJotMessageCreatedConsumer } from './jotPushConsumer.js';
 import { BackupStore, makeBackupHandler, backupBlobRoutes } from './backup.js';
 import { MediaStore, makeMediaHandler, mediaBlobRoutes, isMediaUpload } from './media.js';
 import { makeRomHandler } from './rom.js';
@@ -206,6 +207,19 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
   const mediaStore = media?.store || new MediaStore();
   const personStore = person?.store || new PersonStore();
   const jotStore = jot?.store || new JotStore();
+  // One registry backs both the push face and the Jot fan-out, so a device
+  // registered through Push_20160729 actually receives Jot notifications.
+  const pushRegistry = jot?.pushRegistry || new DeviceRegistry();
+  // server/push-ws consumed JotMessageCreated off Kafka and pushed toeach member's
+  // devices. The bus is gone; the consumer is reproduced and wired directly to
+  // the producer's onEvent sink. An explicit jot.onEvent still wins.
+  const jotFanOut = jot?.onEvent || createJotMessageCreatedConsumer({
+    account: jot?.account,
+    registry: pushRegistry,
+    store: jotStore,
+    push: jot?.push,
+    jotSettings: jot?.jotSettings,
+  });
   const voiceTrainingStore = voiceTraining?.store || new VoiceTrainingStore();
   const keys = keyStore || new KeyStore();
   const robots = robotStore || new RobotStore();
@@ -225,7 +239,7 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
       // The robot's immediate wake-up on CreateRequest (source: SNS KeyNeeded to the siblings).
       notifyKeyNeeded: makeKeyNeededNotifier(hub, keyMembershipSeam),
     }) },
-    { match: /^push/i, handler: makePushHandler(new DeviceRegistry()) },
+    { match: /^push/i, handler: makePushHandler(pushRegistry) },
     // Media_20160725 owns a real store: the app's Gallery reads it and the robot writes photos to
     // it. Registered before the tier-3 stubs so the media stub never answers for it.
     { match: /^media/i, handler: makeMediaHandler({
@@ -258,7 +272,7 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
       store: jotStore,
       account: jot?.account,
       media: jot?.media || mediaStoreClient(mediaStore, { accountLoops: jot?.accountLoops }),
-      onEvent: jot?.onEvent,
+      onEvent: jotFanOut,
     }) },
     // VoiceTraining (the robot's voice-sample enrollment store) owns a real handler now — the two
     // operations of server/voice-ws@a0ec047a, dispatched by operation NAME under any

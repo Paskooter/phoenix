@@ -239,6 +239,15 @@ arrays rather than an encoded polyline, and CommuteParse reads neither field. `l
 `arrival_time`/`departure_time`, `warnings`, `fare` and `geocoded_waypoints` are still not produced.
 These are provider gaps, not port defects.
 
+## A05f — oobeRestartSIGKILL is flaky (open, pre-existing)
+`packages/account/test/oobeRestartSIGKILL.test.js` "SIGKILL mid-write leaves a complete snapshot
+with the issued robot credentials" fails roughly one run in three. Observed 2026-09-15 on an
+otherwise untouched tree, so it is not caused by the Jot fan-out work landed the same day.
+
+A flaky test in a parity suite is worse than a missing one: it trains readers to re-run until green,
+which is exactly how a real regression gets waved through. It should be made deterministic or
+quarantined with its reason recorded, not left to chance.
+
 ## N03a — conditional semantic actions are silently skipped (open)
 `parser.js parseActionBlock` accepts only `key = value` statements and `continue`s on anything else,
 so `{% if (this._intent == 'yes') {this._intent = 'delete'} %}` in clock/alarm_timer_change.rule and
