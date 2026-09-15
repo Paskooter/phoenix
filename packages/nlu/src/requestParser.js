@@ -16,7 +16,7 @@ import { buildFactoryWords, undeclaredFactoryWordFile } from './grammar/factoryW
 import { getCompiledFstRuntime, matchCompiledRule } from './compiledFstRuntime.js';
 import { selectBestNative } from './arbitration.js';
 import { LoopMemberDetector } from './loopMemberDetector.js';
-import { attachExternalResult, createDisabledExternalAgentProvider } from './externalAgents.js';
+import { attachExternalResult, attachExternalResultAsync, resolveExternalAgentProvider } from './externalAgents.js';
 import { normalizeChitchatEntities } from './chitchatEntityNormalization.js';
 
 const RESOURCE_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'resources');
@@ -28,7 +28,9 @@ const EMPTY_NLU = Object.freeze({ rules: [], intent: null, entities: null });
 // provider (see externalAgents.js). The default provider is the disabled
 // Dialogflow client, whose null result reproduces the original Node 8 boundary
 // for a truthy external request.
-const DEFAULT_EXTERNAL_PROVIDER = createDisabledExternalAgentProvider();
+// Resolved per call, not once at import, so PHOENIX_NLU_EXTERNAL is honoured
+// regardless of when the module was first loaded. Building a provider is cheap;
+// the LLM client behind the `llm` option is memoised separately.
 
 let loaded;
 
@@ -302,6 +304,69 @@ function chooseBest(requested, text, state, compiledRuntime) {
 }
 
 /**
+ * Everything about a parse except the external-agent attachment.
+ *
+ * Selection is synchronous; only the attachment can be async, because a live
+ * replacement for the dead Dialogflow service answers over the network. Both
+ * parseRequest and parseRequestAsync run this one implementation so the two
+ * entries cannot drift apart.
+ *
+ * @returns {{attach:false, value:object} | {attach:true, result:object, text:string, detect:boolean}}
+ */
+function planParse(request, options) {
+  if (!request || typeof request.text !== 'string') throw new TypeError(`Bad NLU request: ${JSON.stringify(request)}`);
+  const text = request.text.trim();
+  if (!text) return { attach: false, value: emptyResult() };
+  if (!Array.isArray(request.rules)) return { attach: true, result: emptyResult(), text, detect: false };
+  const state = load();
+  const compiledRuntime = getCompiledFstRuntime();
+  const requested = requestedEntries(request.rules.filter(name => typeof name === 'string'), state, compiledRuntime);
+  if (!requested.length) return { attach: true, result: emptyResult(), text, detect: false };
+  if (!compiledRuntime) {
+    for (const entry of requested) {
+      const unsupported = unsupportedDependencies(entry.name, state);
+      if (unsupported.length) {
+        // The source performs the external-agent attachment only after result
+        // selection. A truthy external request therefore retains that boundary
+        // error even when this bounded candidate cannot load a requested rule's
+        // factory dependency.
+        if (request.external) return { attach: true, result: emptyResult(), text, detect: false };
+        throw new Error(`Unsupported NLU factory dependencies for public rule '${entry.name}': ${unsupported.join(', ')}`);
+      }
+    }
+  }
+  const winner = chooseBest(requested, text, state, compiledRuntime);
+  // ParseRequestHandler validates only the selected result. A missing intent or SKIP
+  // priority therefore returns the empty NLU result and must not promote another final
+  // from the same rule or a lower-ranked rule.
+  if (!winner || (compiledRuntime && (!winner.intent || winner.priority === 'SKIP'))) {
+    return { attach: true, result: emptyResult(), text, detect: false };
+  }
+  let entities = normalizeChitchatEntities(winner.intent, winner.entities);
+  if (winner.requestedName === 'launch') {
+    const launch = state.publicRules.get('launch');
+    entities = { ...entities, union_original_fst_name: launch.sourceHandles[winner.rule] };
+  }
+  const result = { entities, intent: winner.intent, rules: [winner.requestedName || winner.rule] };
+  void options;
+  return { attach: true, result, text, detect: true };
+}
+
+/**
+ * ParseRequestHandler.handleParseRequest runs LoopMemberDetector on the
+ * selected result (after the external-agent boundary) and ignores its return
+ * value; the detector mutates result.entities. It is passed the trimmed text,
+ * which the source stores back onto request data before detection
+ * (ParseRequestHandler.ts:48 `data.text = data.text.trim()`). The empty
+ * branches return intent:null, so detection there is a provable no-op
+ * (LoopMemberDetector.ts:48).
+ */
+function finishParse(request, plan, attached) {
+  if (!plan.detect) return attached;
+  return LoopMemberDetector.detectLoopMembers({ ...request, text: plan.text }, attached);
+}
+
+/**
  * Parse one complete NLU request. Missing, empty, or unknown rule lists return
  * EMPTY_NLU just as the reference handler does after its parser client rejects;
  * they never fall back to the broad launch parser. Inventory and source parse
@@ -312,52 +377,33 @@ function chooseBest(requested, text, state, compiledRuntime) {
  * `options.externalAttachmentRevision` selects the ratified reading of the
  * external block: 'attach' (default, ParseRequestHandler@5c0a739) or 'omit'
  * (ParseRequestHandler@715e0dd0, whose restored handler has no external block).
+ *
+ * This entry requires a synchronous provider. A provider that answers
+ * asynchronously (the LLM standing in for the dead Dialogflow service) raises
+ * ASYNC_PROVIDER_ERROR rather than silently attaching undefined; use
+ * parseRequestAsync for those.
  */
 export function parseRequest(request, options = {}) {
-  const externalProvider = options.externalProvider || DEFAULT_EXTERNAL_PROVIDER;
-  const externalRevision = options.externalAttachmentRevision;
-  if (!request || typeof request.text !== 'string') throw new TypeError(`Bad NLU request: ${JSON.stringify(request)}`);
-  const text = request.text.trim();
-  if (!text) return emptyResult();
-  if (!Array.isArray(request.rules)) return attachExternalResult(request, emptyResult(), externalProvider, externalRevision);
-  const state = load();
-  const compiledRuntime = getCompiledFstRuntime();
-  const requested = requestedEntries(request.rules.filter(name => typeof name === 'string'), state, compiledRuntime);
-  if (!requested.length) return attachExternalResult(request, emptyResult(), externalProvider, externalRevision);
-  if (!compiledRuntime) {
-    for (const entry of requested) {
-      const unsupported = unsupportedDependencies(entry.name, state);
-      if (unsupported.length) {
-        // The source performs the external-agent attachment only after result
-        // selection. A truthy external request therefore retains that boundary
-        // error even when this bounded candidate cannot load a requested rule's
-        // factory dependency.
-        if (request.external) return attachExternalResult(request, emptyResult(), externalProvider, externalRevision);
-        throw new Error(`Unsupported NLU factory dependencies for public rule '${entry.name}': ${unsupported.join(', ')}`);
-      }
-    }
-  }
-  const winner = chooseBest(requested, text, state, compiledRuntime);
-  // ParseRequestHandler validates only the selected result. A missing intent or SKIP
-  // priority therefore returns the empty NLU result and must not promote another final
-  // from the same rule or a lower-ranked rule.
-  if (!winner || (compiledRuntime && (!winner.intent || winner.priority === 'SKIP'))) {
-    return attachExternalResult(request, emptyResult(), externalProvider, externalRevision);
-  }
-  let entities = normalizeChitchatEntities(winner.intent, winner.entities);
-  if (winner.requestedName === 'launch') {
-    const launch = state.publicRules.get('launch');
-    entities = { ...entities, union_original_fst_name: launch.sourceHandles[winner.rule] };
-  }
-  const result = { entities, intent: winner.intent, rules: [winner.requestedName || winner.rule] };
-  // ParseRequestHandler.handleParseRequest runs LoopMemberDetector on the
-  // selected result (after the external-agent boundary) and ignores its return
-  // value; the detector mutates result.entities. Pass the trimmed text, which
-  // the source stores back onto request data before detection
-  // (ParseRequestHandler.ts:48 `data.text = data.text.trim()`). The empty
-  // branches above return intent:null, so detection there is a provable no-op
-  // (LoopMemberDetector.ts:48).
-  return LoopMemberDetector.detectLoopMembers({ ...request, text }, attachExternalResult(request, result, externalProvider, externalRevision));
+  const provider = options.externalProvider || resolveExternalAgentProvider();
+  const plan = planParse(request, options);
+  if (!plan.attach) return plan.value;
+  return finishParse(request, plan,
+    attachExternalResult(request, plan.result, provider, options.externalAttachmentRevision));
+}
+
+/**
+ * parseRequest for providers that answer asynchronously.
+ *
+ * Identical in every observable respect; it differs only in awaiting the
+ * external-agent attachment. Use it wherever the provider may reach a live
+ * service — the NLU HTTP handler does.
+ */
+export async function parseRequestAsync(request, options = {}) {
+  const provider = options.externalProvider || resolveExternalAgentProvider();
+  const plan = planParse(request, options);
+  if (!plan.attach) return plan.value;
+  return finishParse(request, plan,
+    await attachExternalResultAsync(request, plan.result, provider, options.externalAttachmentRevision));
 }
 
 export function ruleInventory() {

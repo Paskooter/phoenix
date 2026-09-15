@@ -165,6 +165,10 @@ export function createLLMClient(config = {}) {
     temperature: config.temperature,
     apiKey: config.apiKey || '',
     headers: config.headers || {},
+    // Which intent catalog this client offers the model. Carried alongside the
+    // source's five fields like apiKey/headers; `undefined` defers to
+    // PHOENIX_LLM_CATALOG.
+    catalog: config.catalog,
   };
   // LLMClient.ts:55 — the constructor leaves the client NOT_READY.
   let state = LLM_STATE.NOT_READY;
@@ -229,7 +233,7 @@ export function createLLMClient(config = {}) {
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: `Utterance: "${request.text}"` },
         ],
-        tools: buildTools(),
+        tools: buildTools(cfg.catalog ? resolveIntentCatalog(cfg.catalog) : undefined),
         tool_choice: 'auto',
         temperature: cfg.temperature != null ? cfg.temperature : 0,
       });
@@ -249,7 +253,7 @@ export function createLLMClient(config = {}) {
   };
 }
 
-function envConfig() {
+export function envLlmConfig() {
   // Endpoint resolution is shared (see @phoenix/contracts llmProvider): the
   // historical ETCO_parser_llm* names still win, with PHOENIX_LLM_* as the
   // deployment-wide fallback, plus an optional bearer token and extra headers.
@@ -270,7 +274,7 @@ function envConfig() {
 let defaultClient;
 export function getLLMClient() {
   if (!defaultClient) {
-    defaultClient = createLLMClient(envConfig());
+    defaultClient = createLLMClient(envLlmConfig());
     defaultClient.init();
   }
   return defaultClient;

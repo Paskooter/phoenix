@@ -15,7 +15,7 @@ import { launchParse } from './launchRules.js';
 import { fullParse } from './fullGrammar.js';
 import { llmFallback, getLLMClient } from './llmFallback.js';
 import { selectValidResult, isFallbackResultValid, isParserResultValid, resolveHybridNLU } from './fallbackArbitration.js';
-import { parseRequest } from './requestParser.js';
+import { parseRequestAsync } from './requestParser.js';
 import { getCompiledFstRuntime } from './compiledFstRuntime.js';
 
 /**
@@ -150,7 +150,10 @@ export function start(port = Number(process.env.PORT) || DefaultPort.nlu) {
           error.statusCode = 400;
           throw error;
         }
-        const nlu = parseRequest(body.data);
+        // Async because the external-agent provider may be a live service
+        // standing in for the dead Dialogflow (PHOENIX_NLU_EXTERNAL=llm). With
+        // the default disabled provider this is the same parse as before.
+        const nlu = await parseRequestAsync(body.data);
         return message(ResponseType.NLU, nlu); // { type:'NLU', msgID, ts, data: NLUResult }
       },
       // Reference StateRequestHandler: GET /state -> ServiceStateData. Phoenix's

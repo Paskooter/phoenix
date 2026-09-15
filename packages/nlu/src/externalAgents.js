@@ -85,6 +85,16 @@ export const EXTERNAL_STATE = Object.freeze({
 // Node 8.9.4 reference runtime pinned by V-01).
 export const DISABLED_EXTERNAL_ERROR = "Cannot read property 'external' of null";
 
+// Raised when a provider that answers asynchronously is used on the synchronous
+// attachment path. This is a wiring mistake, not a parse outcome, so it must not
+// masquerade as the disabled-client boundary above.
+export const ASYNC_PROVIDER_ERROR =
+  'External-agent provider answered asynchronously; use parseRequestAsync / attachExternalResultAsync';
+
+function isThenable(value) {
+  return Boolean(value) && typeof value.then === 'function';
+}
+
 function resolveAgent(text, name, agent, agents) {
   const resolver = agents[name];
   if (!resolver) {
@@ -181,7 +191,134 @@ export function attachExternalResult(request, result, provider, revision = DEFAU
   if (!request.external) return result;
   let dialogflowResult = null;
   try { dialogflowResult = provider.handleNLU(request); } catch { dialogflowResult = null; }
+  // An async provider resolves to a thenable, which is truthy: without this the
+  // attachment would silently set `external` to undefined and look like a
+  // successful parse. Thrown outside the try so it cannot be swallowed as a
+  // provider failure.
+  if (isThenable(dialogflowResult)) throw new Error(ASYNC_PROVIDER_ERROR);
   if (!dialogflowResult) throw new Error(DISABLED_EXTERNAL_ERROR);
   result.external = dialogflowResult.external;
   return result;
+}
+
+/**
+ * The same attachment for providers that answer asynchronously.
+ *
+ * The source's provider was synchronous only because its Promise was already
+ * settled by the time the handler dereferenced it
+ * (ParseRequestHandler.ts:70-71). A live replacement for the dead Dialogflow
+ * service -- an LLM over HTTP -- cannot be, so the boundary is widened here
+ * rather than faked. Every observable outcome is identical: a null result still
+ * raises the original Node 8 TypeError text, and OMIT still returns untouched.
+ */
+export async function attachExternalResultAsync(request, result, provider, revision = DEFAULT_EXTERNAL_ATTACHMENT_REVISION) {
+  const mode = resolveExternalAttachmentRevision(revision);
+  if (mode === EXTERNAL_ATTACHMENT_REVISION.OMIT) return result;
+  if (!request.external) return result;
+  let dialogflowResult = null;
+  try { dialogflowResult = await provider.handleNLU(request); } catch { dialogflowResult = null; }
+  if (!dialogflowResult) throw new Error(DISABLED_EXTERNAL_ERROR);
+  result.external = dialogflowResult.external;
+  return result;
+}
+
+/**
+ * A live replacement for the dead Dialogflow service.
+ *
+ * Dialogflow was the ML backstop behind the rule parser: the rules answered
+ * first, and anything they could not place went to the agent. `api.api.ai` is
+ * gone, so that lane has been dark. This puts a configurable LLM behind the
+ * same contract, per the owner's decision to replace dead dependencies with
+ * live ones rather than record an exclusion.
+ *
+ * It answers in DialogflowClient's shape -- `{ rules, intent, entities }` per
+ * agent -- and classifies against the intent catalog recovered from Jibo's own
+ * parsers, so the names it returns are names the rest of the system already
+ * routes. A catalog of invented names would make this lane worse than useless:
+ * it would look like a match and reach no handler.
+ *
+ * `handleNLU` is async. The original's was not, because its Promise was already
+ * settled when the handler read it; see attachExternalResultAsync.
+ *
+ * @param {{enabled?:boolean, classify?:Function, catalog?:string}} [config]
+ *   `classify(text)` is injectable so this can be tested without a network.
+ */
+export function createLlmExternalAgentProvider(config = {}) {
+  const enabled = config.enabled !== false;
+  const state = enabled ? EXTERNAL_STATE.READY : EXTERNAL_STATE.DISABLED;
+  const classify = config.classify || defaultLlmClassifier(config);
+
+  return {
+    state,
+    get enabled() { return state === EXTERNAL_STATE.READY; },
+    async handleNLU(request) {
+      // DialogflowClient.ts:76-79 — a client that is not READY answers null,
+      // which the handler turns into the boundary error.
+      if (state !== EXTERNAL_STATE.READY) return null;
+
+      const classified = await classify(request.text);
+      // No confident intent is not an error; it is the decoy the agent itself
+      // returned for unrecognised input.
+      const intent = (classified && classified.intent) || DECOY_INTENT;
+      const entities = (classified && classified.entities) || {};
+
+      const result = { rules: request.rules, intent, entities };
+      if (request.external) {
+        const agentResults = {};
+        for (const name of Object.keys(request.external)) {
+          const agent = request.external[name];
+          // DialogflowClient.ts:68-75 — a per-agent failure is recorded, not
+          // thrown, so one bad agent cannot lose the others.
+          agentResults[name] = (agent && typeof agent === 'object')
+            ? { rules: agent.rules, intent, entities }
+            : { rules: agent && agent.rules, intent: '', entities: {}, error: `Error accessing agent '${name}': not configured` };
+        }
+        result.external = agentResults;
+      }
+      return result;
+    },
+  };
+}
+
+/**
+ * Classify through the configured LLM against the intent catalog recovered from
+ * Jibo's own parsers.
+ *
+ * The catalog is pinned to `source` here rather than inherited from
+ * PHOENIX_LLM_CATALOG. That default is still `restored` for the fallback lane,
+ * whose 15-tool catalog is kept for its pinned-revision contract -- but ten of
+ * those fifteen names are invented, so a client asking this lane "do you like
+ * pizza" would be answered `doYouLike`, which no handler routes. This lane is
+ * new and has no such contract to preserve, so it names real intents
+ * (`doesJiboLikeThing`) from the outset.
+ */
+export const LLM_EXTERNAL_DEFAULT_CATALOG = 'source';
+
+function defaultLlmClassifier(config) {
+  let client = null;
+  return async (text) => {
+    if (!client) {
+      const { createLLMClient, envLlmConfig } = await import('./llmFallback.js');
+      client = createLLMClient({ ...envLlmConfig(), catalog: config.catalog || LLM_EXTERNAL_DEFAULT_CATALOG });
+      client.init();
+    }
+    if (client.state !== 'READY') return null;
+    const out = await client.handleNLU({ text, rules: [] });
+    return out ? { intent: out.intent, entities: out.entities || {} } : null;
+  };
+}
+
+/**
+ * The provider the NLU service uses, selected by PHOENIX_NLU_EXTERNAL:
+ *
+ *   disabled  (default) the dead Dialogflow client, reproducing the original
+ *             boundary error for a truthy `external` request
+ *   llm       a configurable LLM standing in for the dead agent
+ *
+ * Default stays `disabled` so an unconfigured deployment behaves exactly as
+ * before; turning the lane on is an explicit choice.
+ */
+export function resolveExternalAgentProvider(name = process.env.PHOENIX_NLU_EXTERNAL) {
+  if (name === 'llm') return createLlmExternalAgentProvider();
+  return createDisabledExternalAgentProvider();
 }
