@@ -245,6 +245,13 @@ These are provider gaps, not port defects.
 with the issued robot credentials" fails roughly one run in three. Observed 2026-09-15 on an
 otherwise untouched tree, so it is not caused by the Jot fan-out work landed the same day.
 
+Quantified 2026-09-15 while checking whether an unrelated change had caused it: **3 failures in 8
+consecutive runs on a clean HEAD**, the test file run alone. Small samples on either side of a
+change are worthless here — 3-run samples gave 3/3 pass on the clean tree and 1/3 on the changed
+tree, which would have supported exactly the wrong conclusion in both directions. Anyone
+attributing a failure of this test to their own change needs a run count in the dozens, or the
+flake fixed first.
+
 A flaky test in a parity suite is worse than a missing one: it trains readers to re-run until green,
 which is exactly how a real regression gets waved through. It should be made deterministic or
 quarantined with its reason recorded, not left to chance.
