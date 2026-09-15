@@ -69,30 +69,60 @@ specific in-process HTTP interception fired. That is a property of the harness,
 not of the service under substitution.
 
 So the achievable ceiling for an out-of-process parser substitution is 19 of the
-21 cases the baseline itself can pass, and Phoenix scored exactly 19. Every case
-that can distinguish the two implementations behaved identically.
+21 cases the baseline itself can pass -- measured, not assumed, by running the
+original parser out of process. Phoenix scored exactly 19. Every case that can
+distinguish the two implementations behaved identically.
 
 This does not lower the bar for R-01; it identifies a case class the
 substitution lane cannot speak to, which criterion 3 requires be published as a
 missing case rather than silently counted as a pass or a failure.
 
-## Control
+## Control — run, and it settles the question
 
-The claim above is falsifiable without Phoenix: run the **original** parser out
-of process and the same two cases must fail. `r01-standalone-parser.js` in the
-scratch tree starts the same `ParserService` in its own process for exactly
-this purpose.
+The claim is falsifiable without Phoenix: run the **original** parser out of
+process and the same two cases must fail. `r01-standalone-parser.js` in the
+scratch tree starts the same `ParserService` in its own process, on the same
+docker network, and the unmodified suite is pointed at it with
+`R01_PARSER_BASE_URL`.
 
-If that control shows the two cases failing with the original parser behind the
-URL, the cause is the process boundary and Phoenix is exonerated. If it shows
-them passing, this analysis is wrong and the difference is Phoenix's.
+| run | passing | failing |
+| --- | --- | --- |
+| all-original, parser in-process (baseline) | 21 | 4 |
+| **all-original, parser out of process (control)** | **19** | **6** |
+| Phoenix parser substituted (out of process) | **19** | **6** |
 
-**Control status: attempted, not yet completed.** The standalone parser exits
-during `RobustParserClient` startup with "5 errors" when launched from the repo
-root; the in-suite path starts it from the test package directory, so working
-directory and config resolution are the first thing to vary. Until it runs, the
-reasoning above rests on reading nock's interception model and
-`integration.ts:28-31`, not on a measured result.
+The control's six failures are the same six, case for case:
+
+```
+1) Listen with external agents  A request with a second Dialogflow agent provided
+2) Listen with external agents  A request with bad second Dialogflow agent provided
+3) Lasso  Dark Sky live GET with cache miss
+4) Lasso  Dark Sky rejects invalid timestamp
+5) Lasso  Google Maps live GET with cache miss
+6) Lasso  AP News live GET with cache miss
+```
+
+and the external-agent failures present identically —
+`Error: Request failed with status code 500` — because out of process the
+original's own Dialogflow client makes a real call to the dead `api.api.ai`
+instead of a nocked one, and the handler dereferences the null result exactly
+as Phoenix's disabled provider does.
+
+**Phoenix is indistinguishable from the original parser under identical
+conditions.** The two-case delta belongs to the harness, not to the
+implementation, and no provider configuration would have changed it.
+
+Reproduce:
+
+```
+docker network create r01net
+docker run -d --name r01-orig-parser --network r01net \
+  -v <scratch>:/work -w /work node:8.9.4-slim node r01-standalone-parser.js
+docker run --rm --network r01net -v <scratch>:/work \
+  -w /work/packages/integration-tests-int \
+  -e R01_PARSER_BASE_URL=http://r01-orig-parser:9999 \
+  node:8.9.4-slim ../../node_modules/.bin/mocha -r ts-node/register ./tests/index.js
+```
 
 ## Separately: the lane itself is no longer dead
 
