@@ -24,3 +24,7 @@ packages/ota/data/*.work/
 
 # oracle sweep scratch (regenerated per run)
 scripts/parity-nlu-oracle/.*.txt
+
+# R-01 hub-substitution scratch registry (generated from the suite config)
+packages/gateway/resources/skills/skills-r01.json
+packages/gateway/resources/skills/example_manifest.json
