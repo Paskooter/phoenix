@@ -13,7 +13,22 @@ export const WOLFRAM_SOURCE_TOTAL_TIMEOUT = '3';
 export const WOLFRAM_SOURCE_SCAN_TIMEOUT = '1.0';
 export const WOLFRAM_SOURCE_ANSWER_POD_INDEX = '2';
 
-const BAD_SYMBOLS = Object.freeze(['{', '}', '$', '\n', '-', '<', '>', '|']);
+// Source `gqa/wolfram.py` rejected an answer outright if it contained any of
+// these. That is right for markup and layout characters, which indicate the
+// answer is a table or expression rather than a spoken sentence.
+const BAD_SYMBOLS = Object.freeze(['{', '}', '$', '\n', '<', '>', '|']);
+
+// OWNER-APPROVED DIVERGENCE (2026-09-15): the hyphen was in the source's reject
+// list and is removed from it here.
+//
+// A hyphen is ordinary English punctuation, not a markup character. Rejecting it
+// silently discarded correct answers: "what is the capital of France" returns
+// "The capital city of France is Paris, Île-de-France, France", which the source
+// filter threw away entirely, leaving the robot mute. Hyphenated place names,
+// compound adjectives, date ranges and negative numbers were all collateral.
+//
+// The remaining symbols stay rejected; only '-' moved.
+export const SOURCE_BAD_SYMBOLS = Object.freeze(['{', '}', '$', '\n', '-', '<', '>', '|']);
 
 function pythonTruthy(value) {
   // JSON values are the provider boundary.  Python treats empty containers as

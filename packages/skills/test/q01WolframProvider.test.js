@@ -9,6 +9,7 @@ import {
   WOLFRAM_SOURCE_SCAN_TIMEOUT,
   WOLFRAM_SOURCE_TOTAL_TIMEOUT,
   cleanWolframAnswer,
+  SOURCE_BAD_SYMBOLS,
   createWolframProvider,
   extractWolframPodAnswer,
   extractWolframSpokenAnswer,
@@ -132,7 +133,9 @@ test('Q-01 Wolfram pod extraction keeps the source last-Result selection', () =>
 });
 
 test('Q-01 Wolfram clean_answer preserves source rejection and parenthesis rules', () => {
-  for (const value of ['{}', 'a$b', 'line\nbreak', 'a-b', 'a<b', 'a|b', 'This is an empty list']) {
+  // 'a-b' is deliberately absent: the hyphen was removed from the reject list
+  // (owner-approved divergence, see the test below).
+  for (const value of ['{}', 'a$b', 'line\nbreak', 'a<b', 'a|b', 'This is an empty list']) {
     assert.equal(cleanWolframAnswer(value), '', value);
   }
   assert.equal(cleanWolframAnswer('RegularExpression result'), '');
@@ -328,4 +331,24 @@ test('Q-01 Wolfram direct latitude type failure remains before the request outpu
     }),
     /latitude and longitude must be strings/,
   );
+});
+
+test('Q-01 Wolfram clean_answer keeps hyphenated answers (owner-approved divergence)', () => {
+  // The source rejected any answer containing '-'. That silently discarded
+  // correct spoken answers: "what is the capital of France" returns
+  // "The capital city of France is Paris, Île-de-France, France", which the
+  // source filter emptied, leaving the robot mute. Verified live against the
+  // Wolfram Full Results API on 2026-09-15.
+  assert.equal(
+    cleanWolframAnswer('The capital city of France is Paris, Île-de-France, France'),
+    'The capital city of France is Paris, Île-de-France, France',
+  );
+  assert.equal(cleanWolframAnswer('a-b'), 'a-b');
+  assert.equal(cleanWolframAnswer('The temperature is -5 degrees'), 'The temperature is -5 degrees');
+
+  // Only the hyphen moved. Every other source rejection still applies.
+  assert.ok(SOURCE_BAD_SYMBOLS.includes('-'));
+  for (const symbol of SOURCE_BAD_SYMBOLS.filter((value) => value !== '-')) {
+    assert.equal(cleanWolframAnswer(`before${symbol}after`), '', symbol);
+  }
 });
