@@ -124,19 +124,54 @@ docker run --rm --network r01net -v <scratch>:/work \
   node:8.9.4-slim ../../node_modules/.bin/mocha -r ts-node/register ./tests/index.js
 ```
 
-## Separately: the lane itself is no longer dead
+## The live lane answers what the dead one could not
 
 Independent of the harness question, the external-agent lane now has a live
-implementation behind it (`PHOENIX_NLU_EXTERNAL=llm`), so a client that sends
-`data.external` gets a real per-agent result instead of the dead-Dialogflow
-boundary error:
+implementation behind it (`PHOENIX_NLU_EXTERNAL=llm`). Running the same
+unmodified suite a third time, against Phoenix with that lane enabled, changes
+what the two cases fail *on*:
 
-```
-PHOENIX_NLU_EXTERNAL=disabled -> 500 Cannot read property 'external' of null
-PHOENIX_NLU_EXTERNAL=llm      -> 200 {"someAgent":{"rules":["launch"],
-                                      "intent":"doesJiboLikeTasteOfThing",
-                                      "entities":{"Food":"pizza"}}}
+| run | external-agent failure |
+| --- | --- |
+| all-original, out of process | `Error: Request failed with status code 500` |
+| Phoenix, provider disabled | `Error: Request failed with status code 500` |
+| **Phoenix, `PHOENIX_NLU_EXTERNAL=llm`** | `AssertionError: expected false to equal true` |
+
+That assertion is `expect(dialogflowRequest1.isDone()).to.equal(true)`, and it
+runs **after** `checkExpectations(messages, expectations)`. So everything the
+suite checks about the *response* passed, including:
+
+```ts
+expect(listenMsg.data.nlu.external[name].intent).to.equal(agent.intent);
 ```
 
-That closes the capability gap. It does not close these two test cases, for the
-reason above.
+with `agent.intent = test.TestIntents.DOES_LIKE`, which is
+`"doesJiboLikeThing"`.
+
+In other words: asked "do you like being Jibo" through an agent named
+`someAgent`, the LLM standing in for Dialogflow returned the **same intent the
+real Dialogflow returned** — the one the nocked fixture encodes
+(`DIALOGFLOW_RESPONSE.result.metadata.intentName`). The transaction completed,
+the skill responded, and the only thing left failing is the in-process
+interception that no out-of-process parser can satisfy.
+
+Where the original parser out of process cannot answer these requests at all,
+Phoenix with a live provider answers them correctly. That is the dead
+dependency replaced, not excluded.
+
+Count is unchanged at 19 passing / 6 failing, because the unreachable assertion
+still fails. The count is not the finding; the failure *reason* is.
+
+## Status
+
+Parser substitution is now characterised end to end:
+
+* the achievable ceiling out of process is 19, measured by running the original
+  parser out of process rather than assumed;
+* Phoenix matches that ceiling exactly, case for case;
+* with the dead dependency replaced, Phoenix does strictly better than the
+  original under those conditions on the two cases the ceiling excludes.
+
+Still outstanding for R-01: hub and skill substitution, the all-Phoenix run,
+per-case HTTP/WS/JCP and history/data side-effect capture, and adversarial
+controls over the comparison itself. **R-01 remains `todo`.**

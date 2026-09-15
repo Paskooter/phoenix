@@ -1,0 +1,8 @@
+  19 passing (26s)
+  6 failing
+  1) Integration Tests Listen with external agents A request with a second Dialogflow agent provided:
+  2) Integration Tests Listen with external agents A request with bad second Dialogflow agent provided:
+  3) Integration Tests Lasso request handlers integration tests Dark Sky requests Lasso live GET request from Dark Sky with cache miss:
+  4) Integration Tests Lasso request handlers integration tests Dark Sky requests Dark Sky rejects invalid timestamp from Lasso:
+  5) Integration Tests Lasso request handlers integration tests Google Maps requests Lasso live GET request from Google Maps with cache miss:
+  6) Integration Tests Lasso request handlers integration tests AP News requests Lasso live GET request from AP News with cache miss:
