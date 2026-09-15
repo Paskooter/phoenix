@@ -1,0 +1,259 @@
+{
+  "source": "jibo-nlu 2.8.3 `parse` over the pinned rules_fst",
+  "reference": "5c0a7390539663ba749d360de348a428c088505c",
+  "rules": [
+    "launch",
+    "globals/global_commands_launch",
+    "globals/gui_nav",
+    "globals/mim_repeat",
+    "globals/mim_thanks"
+  ],
+  "note": "Captured by scripts/parity-nlu-oracle/capture.mjs --write. Do not hand-edit.",
+  "results": {
+    "turn up the volume": {
+      "intent": "volumeUp",
+      "domain": "global_commands",
+      "score": 19
+    },
+    "turn down the volume": {
+      "intent": "volumeDown",
+      "domain": "global_commands",
+      "score": 21
+    },
+    "set the volume to five": {
+      "intent": "volumeToValue",
+      "domain": "global_commands",
+      "score": 23
+    },
+    "volume up": {
+      "intent": "volumeUp",
+      "domain": "global_commands",
+      "score": 10
+    },
+    "volume down": {
+      "intent": "volumeDown",
+      "domain": "global_commands",
+      "score": 12
+    },
+    "louder": {
+      "intent": "volumeUp",
+      "domain": "global_commands",
+      "score": 7
+    },
+    "quieter": {
+      "intent": "volumeDown",
+      "domain": "global_commands",
+      "score": 8
+    },
+    "too loud": {
+      "intent": "volumeDown",
+      "domain": "global_commands",
+      "score": 9
+    },
+    "too soft": {
+      "intent": "volumeUp",
+      "domain": "global_commands",
+      "score": 9
+    },
+    "stop": {
+      "intent": "stop",
+      "domain": "global_commands",
+      "score": 5
+    },
+    "go to sleep": {
+      "intent": "sleep",
+      "domain": "global_commands",
+      "score": 12
+    },
+    "go back to sleep": {
+      "intent": "left",
+      "domain": "gui_command",
+      "score": 8
+    },
+    "help": {
+      "intent": null,
+      "domain": null,
+      "score": null
+    },
+    "main menu": {
+      "intent": "launchMainMenu",
+      "domain": null,
+      "score": 10
+    },
+    "repeat that": {
+      "intent": "requestRepeat",
+      "domain": null,
+      "score": 12
+    },
+    "say that again": {
+      "intent": "requestRepeat",
+      "domain": null,
+      "score": 10
+    },
+    "thank you": {
+      "intent": "thankJiboForAction",
+      "domain": null,
+      "score": 10
+    },
+    "thanks jibo": {
+      "intent": "thankJiboForAction",
+      "domain": null,
+      "score": 12
+    },
+    "turn around": {
+      "intent": "turnAround",
+      "domain": "global_commands",
+      "score": 2
+    },
+    "look over here": {
+      "intent": "overHere",
+      "domain": "global_commands",
+      "score": 15
+    },
+    "what can you do": {
+      "intent": "whatCanIDo",
+      "domain": "friendly-tips",
+      "score": 16
+    },
+    "go back": {
+      "intent": "left",
+      "domain": "gui_command",
+      "score": 8
+    },
+    "next": {
+      "intent": "right",
+      "domain": "gui_command",
+      "score": 5
+    },
+    "previous": {
+      "intent": "left",
+      "domain": "gui_command",
+      "score": 9
+    },
+    "the first one": {
+      "intent": "selectItem",
+      "domain": "gui_command",
+      "score": 14
+    },
+    "the second one": {
+      "intent": "selectItem",
+      "domain": "gui_command",
+      "score": 15
+    },
+    "close that": {
+      "intent": "close",
+      "domain": "gui_command",
+      "score": 6
+    },
+    "what time is it": {
+      "intent": "askForTime",
+      "domain": "clock",
+      "score": 16
+    },
+    "what is the date": {
+      "intent": "askForDate",
+      "domain": "clock",
+      "score": 13
+    },
+    "set an alarm for seven a m": {
+      "intent": "set",
+      "domain": "alarm",
+      "score": 20
+    },
+    "turn on the lights": {
+      "intent": "lightsOn",
+      "domain": "hue-control",
+      "score": 15
+    },
+    "turn off the lights": {
+      "intent": "lightsOff",
+      "domain": "hue-control",
+      "score": 16
+    },
+    "dim the lights": {
+      "intent": "lightsDown",
+      "domain": "hue-control",
+      "score": 11
+    },
+    "take a picture": {
+      "intent": "createOnePhoto",
+      "domain": "create",
+      "score": 13
+    },
+    "open the gallery": {
+      "intent": "galleryOpen",
+      "domain": "gallery",
+      "score": 13
+    },
+    "who am i": {
+      "intent": "launchWhoAmI",
+      "domain": null,
+      "score": 9
+    },
+    "good morning": {
+      "intent": "goodMorning",
+      "domain": "greetings",
+      "score": 13
+    },
+    "goodbye": {
+      "intent": "goodBye",
+      "domain": "greetings",
+      "score": 8
+    },
+    "how is my commute": {
+      "intent": "requestCommute",
+      "domain": null,
+      "score": 15
+    },
+    "what's in the news": {
+      "intent": "requestNews",
+      "domain": null,
+      "score": 12
+    },
+    "how much battery do you have": {
+      "intent": "battery",
+      "domain": "settings",
+      "score": 8
+    },
+    "what year is it": {
+      "intent": "generalWhatQuestions",
+      "domain": null,
+      "score": 4.90039
+    },
+    "what song is this": {
+      "intent": "generalWhatQuestions",
+      "domain": null,
+      "score": 4.90039
+    },
+    "what stations do you have": {
+      "intent": "generalWhatQuestions",
+      "domain": null,
+      "score": 4.90039
+    },
+    "tell me a joke": {
+      "intent": "requestTellJiboContent",
+      "domain": null,
+      "score": 15
+    },
+    "sing me a song": {
+      "intent": "requestSingSong",
+      "domain": null,
+      "score": 5
+    },
+    "do you like pizza": {
+      "intent": "doesJiboLikeThing",
+      "domain": null,
+      "score": 18
+    },
+    "asdfgh qwerty zxcvb": {
+      "intent": null,
+      "domain": null,
+      "score": null
+    },
+    "turn it down a bit": {
+      "intent": null,
+      "domain": null,
+      "score": null
+    }
+  }
+}
