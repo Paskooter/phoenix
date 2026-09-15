@@ -15,6 +15,41 @@ import { startSession as startASRSession, cleanHintsEOS } from './asr/factory.js
 import { normalizeString } from './stringNormalizer.js';
 import { mediateDecision } from './decisionMediator.js';
 
+// The rules a global turn parses against.
+//
+// `launch` is the union of the twenty domain launch.rule grammars; the
+// global-command grammars are NOT in it -- the parser exposes them as four
+// separate public rules (packages/nlu/resources/rule-inventory.json). This
+// default previously asked for a rule called `global`, which is not a name the
+// parser knows, so it was dropped silently: "turn up the volume" reached the
+// settings skill's volumeQuery instead of volumeUp, and "stop" and "go to
+// sleep" parsed to nothing at all.
+//
+// Provenance of the names. The robot builds its own rule list in
+// be-12.0.0 jibo/src/bt/mim/behaviors/Mim.ts:210-212,1242-1252: it takes the
+// MIM config's ruleNames and appends `globals/gui_nav` always,
+// `globals/mim_repeat` when there is an entry prompt to repeat, and
+// `globals/mim_thanks` unless thanks handling is IGNORE. Those three names are
+// confirmed robot-sent. `globals/global_commands_launch` is a public rule the
+// parser exposes, but no recovered artifact shows the robot requesting it --
+// it would come from a top-level MIM config, and no .mim files survive in the
+// captured firmware. It is included here because a global turn is exactly the
+// no-skill-running case those commands exist for; confirming it against Moth
+// is the outstanding check.
+//
+// Requesting them alongside launch is safe because the source arbitration
+// already makes them lose ties: RobustParserClient's LOW_PRIORITY_RULES
+// (/^launch$|^globals\//) drops both from a tied top score whenever any other
+// rule tied, which is why "thank you" still resolves to chitchat's
+// thankJiboForAction rather than the globals `thanks`.
+export const GLOBAL_TURN_RULES = Object.freeze([
+  'launch',
+  'globals/global_commands_launch',
+  'globals/gui_nav',
+  'globals/mim_repeat',
+  'globals/mim_thanks',
+]);
+
 const State = {
   WAIT_LISTEN: 'WAIT_LISTEN',
   WAIT_CLIENT_ASR: 'WAIT_CLIENT_ASR',
@@ -197,7 +232,7 @@ export class ListenTransaction {
   _beginGlobalTurn(state, rules) {
     this.global = true;
     this.listenMessage = {
-      data: { lang: 'en-US', hotphrase: false, rules: Array.isArray(rules) && rules.length ? rules : ['launch', 'global'] },
+      data: { lang: 'en-US', hotphrase: false, rules: Array.isArray(rules) && rules.length ? rules : GLOBAL_TURN_RULES },
     };
     this.state = state; // make the subsequent NLU/ROUTE transition valid
     this.contextPr.resolve({

@@ -103,9 +103,9 @@ test('S-06: grammar provenance classified — rules-src identical, launch-rule c
 // Runtime: parse through the real NLU HTTP service.
 // ---------------------------------------------------------------------------
 
-function post(port, text) {
+function post(port, text, rules = ['launch']) {
   return new Promise((leave, reject) => {
-    const raw = JSON.stringify({ type: 'NLU', data: { text, rules: ['launch'] } });
+    const raw = JSON.stringify({ type: 'NLU', data: { text, rules } });
     const req = http.request({
       hostname: '127.0.0.1', port, path: '/v1/parse', method: 'POST',
       headers: { 'content-type': 'application/json', 'content-length': Buffer.byteLength(raw) },
@@ -121,10 +121,15 @@ function post(port, text) {
 
 test('S-06 runtime: the NLU service loads every vendored launch grammar and parses from it', async () => {
   // Every grammar/skills/<x>/launch.rule on disk is loaded into the in-process
-  // full-grammar stage.
+  // full-grammar stage, and so is every global-command grammar. The globals
+  // were previously merged as helper sub-rules only, so their own TopRules
+  // never matched and "turn up the volume" reached the settings skill's
+  // volumeQuery instead of volumeUp.
   const onDisk = readdirSync(join(RES, 'grammar', 'skills')).filter((d) => existsSync(join(RES, 'grammar', 'skills', d, 'launch.rule')));
   assert.equal(onDisk.length, 20, 'launch grammars on disk');
-  assert.equal(_loadedSkillCount(), onDisk.length, 'every launch grammar is loaded');
+  const globals = readdirSync(join(RES, 'grammar', 'globals')).filter((f) => f.endsWith('.rule'));
+  assert.equal(globals.length, 4, 'global-command grammars on disk');
+  assert.equal(_loadedSkillCount(), onDisk.length + globals.length, 'every launch and global grammar is loaded');
 
   const server = await start(0);
   const port = server.address().port;
@@ -136,12 +141,22 @@ test('S-06 runtime: the NLU service loads every vendored launch grammar and pars
       { text: 'turn on the lights', intent: 'lightsOn', file: join(RES, 'grammar', 'skills', 'hue-control', 'launch.rule'), skill: '@be/hue-control' },
       // be-skill launches come from the adapted launch-rule copies.
       { text: 'set a timer for five minutes', intent: 'start', file: join(RES, 'rules', '@be', 'clock', 'launch.rule'), skill: '@be/clock' },
+      // A global command is a hub command, not a skill launch: it carries its
+      // domain and must NOT be given a fabricated `@be/<id>` skill entity.
+      // The global-command grammars are their own public rules, not members of
+      // the launch union, so the request has to name them (see
+      // packages/gateway/test/globalTurnRules.test.js).
+      { text: 'turn up the volume', intent: 'volumeUp', file: join(RES, 'grammar', 'globals', 'global_commands_launch.rule'), skill: undefined, rules: ['launch', 'globals/global_commands_launch'] },
+      { text: 'go to sleep', intent: 'sleep', file: join(RES, 'grammar', 'globals', 'global_commands_launch.rule'), skill: undefined, rules: ['launch', 'globals/global_commands_launch'] },
     ];
     for (const c of cases) {
-      const res = await post(port, c.text);
+      const res = await post(port, c.text, c.rules);
       assert.equal(res.status, 200, `${c.text}: status`);
       assert.equal(res.body.data.intent, c.intent, `${c.text}: intent`);
       if (c.skill) assert.equal(res.body.data.entities.skill, c.skill, `${c.text}: skill`);
+      if (c.rules) {
+        assert.equal(res.body.data.entities.skill, undefined, `${c.text}: a global command is not a skill launch`);
+      }
       const source = readFileSync(c.file, 'utf8');
       assert.ok(source.includes(c.intent), `${c.text}: ${c.intent} is defined in ${relative(PKG, c.file)}`);
     }

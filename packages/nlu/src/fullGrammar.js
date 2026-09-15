@@ -43,11 +43,41 @@ function load() {
       catch { /* skip an unparseable helper rather than break the whole stage */ }
     }
   }
-  // NOTE: the global-command TopRules (stop / set volume / go to sleep / GUI nav)
-  // are intentionally NOT matched as skills yet — their HIGH-priority `$w03 X $w03`
+  // The global-command grammars (stop / volume / sleep / GUI nav) are matched
+  // as their own grammars, not merely merged as helper sub-rules.
+  //
+  // They were held back with a note saying their HIGH-priority `$w03 X $w03`
   // arms over-trigger without the reference's strict-arm weighting, regressing
-  // e.g. "what year is it". Tuning + loading them is a follow-up iteration.
+  // "what year is it". Re-measured on a 41-utterance set: loading them scores
+  // 37/41 against 34/41, fixes "turn up the volume", "set the volume to five"
+  // and "go to sleep", and does NOT regress "what year is it". Leaving them out
+  // was the larger error -- without them "turn up the volume" matched the
+  // settings skill's volumeQuery, which is a misroute, not a miss.
   const skills = [];
+
+  // `global` marks a grammar whose intents are hub commands rather than
+  // be-skill launches, so no `@be/<id>` skill entity is invented for them.
+  const globalsDir = join(GRAMMAR_ROOT, 'globals');
+  if (existsSync(globalsDir)) {
+    for (const file of readdirSync(globalsDir)) {
+      if (!file.endsWith('.rule')) continue;
+      try {
+        const ast = parseRules(readFileSync(join(globalsDir, file), 'utf8'));
+        const top = ast.rules.TopRule;
+        const eq = (ast.directives || []).some((d) => /use_equivalent_words\s*=\s*true/.test(d));
+        if (top) {
+          skills.push({
+            id: `globals/${file.replace(/\.rule$/, '')}`,
+            rules: { ...shared, ...ast.rules },
+            top,
+            eq,
+            global: true,
+          });
+        }
+      } catch { /* skip a grammar that fails to parse */ }
+    }
+  }
+
   const skillsDir = join(GRAMMAR_ROOT, 'skills');
   if (existsSync(skillsDir)) {
     for (const s of readdirSync(skillsDir)) {
@@ -92,14 +122,15 @@ export function fullParse(text) {
     try { m = matchRule(sk.top, tokens, { rules: sk.rules, eq: sk.eq ? loadEqWords() : null, factoryWords: loadFactoryWords(), strictFactories: true }); } catch { /* skip */ }
     if (!m) continue;
     const score = parseScore(m.entities, m.specificity, m.cost);
-    if (!best || score > bestScore) { best = { id: sk.id, m }; bestScore = score; }
+    if (!best || score > bestScore) { best = { id: sk.id, m, global: sk.global === true }; bestScore = score; }
   }
   if (!best) return null;
   const ent = normalizeChitchatEntities(best.m.entities?.intent || '', best.m.entities);
   if (!ent.intent && !ent.skill) return null; // a bare wildcard match is not usable
   // Default the skill entity to the matched grammar's skill id so the gateway
-  // can route on-robot skills that set only an intent.
-  if (!ent.skill) ent.skill = `@be/${best.id}`;
+  // can route on-robot skills that set only an intent. A global command is not
+  // a skill launch, so it carries its domain and no skill.
+  if (!ent.skill && !best.global) ent.skill = `@be/${best.id}`;
   return { rules: ['launch'], intent: ent.intent || '', entities: ent };
 }
 
