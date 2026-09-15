@@ -39,7 +39,7 @@ Coverage:
 - cross-loop isolation
 - the push fan-out triggered by a real `CreateMessage`
 - durability across a service restart
-- TLS, using the server's own CA and serving certificate
+- **TLS by default**, with the client verifying against the serving certificate
 
 ## Running it
 
@@ -50,3 +50,13 @@ node scripts/parity-a19-jot-sdk/run.mjs --out .parity/runs/a19-jot-sdk
 Requires Docker (for the `node:8.9.4-slim` client runtime) and network access to
 the pvindex archive on first run, which caches the client under the run
 directory. It never contacts a robot.
+
+## A note on the certificate
+
+The harness generates its own certificate covering the container hostname the
+client dials. That detail is load-bearing: **the node-8 aws-sdk fork hangs rather
+than erroring when the certificate does not cover the host**, producing no output
+at all. An earlier version of this harness used a certificate for `api.jibo.com`
+and `127.0.0.1` while the client dialled the container hostname, and the
+resulting silence was misread as "TLS does not work with this client". It does.
+Run with `--no-tls` to fall back to plain HTTP.

@@ -21,6 +21,13 @@ const LOOP = process.env.A19_LOOP;
 const OTHER_LOOP = process.env.A19_OTHER_LOOP;
 
 const { createClassicEntrypoint, JotStore, DeviceRegistry } = await import('/phoenix/packages/classic/src/index.js');
+const { readFileSync } = await import('node:fs');
+
+// TLS is served when a key/cert pair is mounted. The certificate must cover the
+// name the client dials, so the runner generates one for the container hostname.
+const tls = (process.env.A19_TLS_KEY && process.env.A19_TLS_CERT)
+  ? { key: readFileSync(process.env.A19_TLS_KEY), cert: readFileSync(process.env.A19_TLS_CERT) }
+  : undefined;
 
 // Shape per jot.js getImpersonatedAccount: members[] with an accepted status and
 // the id under memberId or accountId. Supplying accounts[] instead makes every
@@ -37,6 +44,7 @@ registry.createDevice(MEMBER, { name: 'member-phone', pushToken: 'tok-member', t
 
 const pushes = [];
 const entry = createClassicEntrypoint({
+  tls,
   jot: {
     store,
     pushRegistry: registry,
@@ -62,4 +70,4 @@ const entry = createClassicEntrypoint({
 
 const server = await entry.listen(Number(process.env.PORT) || 8080);
 writeFileSync(join(OUT, 'pushes.json'), '[]');
-console.log(JSON.stringify({ ready: true, port: server.address().port }));
+console.log(JSON.stringify({ ready: true, port: server.address().port, tls: Boolean(tls) }));

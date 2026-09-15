@@ -32,10 +32,10 @@ const LOOP = 'loop-a19-main';
 const OTHER_LOOP = 'loop-a19-other';
 
 function parseArgs(argv) {
-  const args = { out: join(repo, '.parity/runs/a19-jot-sdk') };
+  const args = { out: join(repo, '.parity/runs/a19-jot-sdk'), tls: true };
   for (let i = 0; i < argv.length; i += 1) {
     if (argv[i] === '--out') args.out = resolve(argv[++i]);
-    else if (argv[i] === '--tls') args.tls = true;
+    else if (argv[i] === '--no-tls') args.tls = false;
     else if (argv[i] === '--help') return { help: true };
     else throw new Error(`unknown option ${argv[i]}`);
   }
@@ -91,6 +91,30 @@ function loopFixture() {
   };
 }
 
+/**
+ * A serving certificate for the name the client actually dials.
+ *
+ * This matters more than it looks: the node-8 aws-sdk fork HANGS rather than
+ * erroring when the certificate does not cover the host, producing no output at
+ * all. An earlier version of this harness used a certificate for api.jibo.com
+ * and 127.0.0.1 while the client dialled the container hostname, and the
+ * resulting silence was misread as "TLS does not work with this client".
+ */
+function ensureHarnessCert(runDir) {
+  const dir = join(runDir, 'tls');
+  const key = join(dir, 'key.pem');
+  const cert = join(dir, 'cert.pem');
+  if (existsSync(key) && existsSync(cert)) return { dir, key, cert };
+  mkdirSync(dir, { recursive: true });
+  sh('openssl', [
+    'req', '-x509', '-newkey', 'rsa:2048', '-nodes',
+    '-keyout', key, '-out', cert, '-days', '30',
+    '-subj', `/CN=${SERVER_NAME}`,
+    '-addext', `subjectAltName=DNS:${SERVER_NAME},DNS:localhost,IP:127.0.0.1`,
+  ]);
+  return { dir, key, cert };
+}
+
 const NET = 'a19net';
 const SERVER_NAME = 'a19-classic';
 const PHOENIX_IMAGE = process.env.A19_PHOENIX_IMAGE || 'phoenix-runtime:local';
@@ -98,21 +122,24 @@ const PHOENIX_IMAGE = process.env.A19_PHOENIX_IMAGE || 'phoenix-runtime:local';
 /** Start the classic face in its own container on a bridge network.
  *  Host networking was tried first: the node-8 client hung against it with no
  *  output at all. Container-to-container over a bridge is what works. */
-function startServerContainer(runDir) {
+function startServerContainer(runDir, certs) {
   spawnSync('docker', ['network', 'create', NET], { encoding: 'utf8' });
   spawnSync('docker', ['rm', '-f', SERVER_NAME], { encoding: 'utf8' });
   sh('docker', [
     'run', '-d', '--name', SERVER_NAME, '--network', NET, '-e', 'PORT=8080',
     '-e', `A19_MEMBER=${MEMBER}`, '-e', `A19_ROBOT=${ROBOT}`, '-e', `A19_OUTSIDER=${OUTSIDER}`,
     '-e', `A19_LOOP=${LOOP}`, '-e', `A19_OTHER_LOOP=${OTHER_LOOP}`, '-e', 'A19_OUT=/out',
+    ...(certs ? ['-e', 'A19_TLS_KEY=/tls/key.pem', '-e', 'A19_TLS_CERT=/tls/cert.pem', '-v', `${certs.dir}:/tls:ro`] : []),
     '-v', `${repo}:/phoenix:ro`, '-v', `${runDir}:/out`, '-w', '/phoenix',
     PHOENIX_IMAGE, 'node', '/phoenix/scripts/parity-a19-jot-sdk/server.mjs',
   ]);
   for (let attempt = 0; attempt < 30; attempt += 1) {
     const probe = spawnSync('docker', [
-      'run', '--rm', '--network', NET, 'curlimages/curl:latest',
+      'run', '--rm', '--network', NET,
+      ...(certs ? ['-v', `${certs.dir}:/tls:ro`] : []), 'curlimages/curl:latest',
       '-s', '-o', '/dev/null', '-w', '%{http_code}', '--max-time', '3',
-      `http://${SERVER_NAME}:8080/healthcheck`,
+      ...(certs ? ['--cacert', '/tls/cert.pem'] : []),
+      `${certs ? 'https' : 'http'}://${SERVER_NAME}:8080/healthcheck`,
     ], { encoding: 'utf8' });
     if ((probe.stdout || '').trim() === '200') return;
     spawnSync('sleep', ['2']);
@@ -126,7 +153,7 @@ function stopServerContainer() {
   spawnSync('docker', ['network', 'rm', NET], { encoding: 'utf8' });
 }
 
-function runClient({ sdkDir, endpoint, runDir, caFile }) {
+function runClient({ sdkDir, endpoint, runDir, caFile, caDir }) {
   const outFile = join(runDir, 'client-result.json');
   rmSync(outFile, { force: true });
   const args = [
@@ -137,7 +164,7 @@ function runClient({ sdkDir, endpoint, runDir, caFile }) {
     '-e', `A19_MEMBER=${MEMBER}`, '-e', `A19_ROBOT=${ROBOT}`, '-e', `A19_OUTSIDER=${OUTSIDER}`,
     '-e', `A19_LOOP=${LOOP}`, '-e', `A19_OTHER_LOOP=${OTHER_LOOP}`,
   ];
-  if (caFile) args.push('-v', `${caFile}:/ca.pem:ro`, '-e', 'A19_CA_FILE=/ca.pem');
+  if (caDir) args.push('-v', `${caDir}:/tls:ro`, '-e', 'A19_CA_FILE=/tls/cert.pem');
   args.push(NODE8, 'node', '/harness/client.cjs', '/sdk', endpoint, '/out/client-result.json');
   sh('docker', args);
   return JSON.parse(readFileSync(outFile, 'utf8'));
@@ -199,10 +226,17 @@ async function main() {
 
   const sdkDir = await fetchClient(runDir);
 
-  startServerContainer(runDir);
+  const certs = args.tls ? ensureHarnessCert(runDir) : null;
+  startServerContainer(runDir, certs);
   let result;
   try {
-    result = runClient({ sdkDir, endpoint: `http://${SERVER_NAME}:8080`, runDir });
+    result = runClient({
+      sdkDir,
+      endpoint: `${certs ? 'https' : 'http'}://${SERVER_NAME}:8080`,
+      runDir,
+      caFile: certs ? certs.cert : undefined,
+      caDir: certs ? certs.dir : undefined,
+    });
   } finally {
     stopServerContainer();
   }
