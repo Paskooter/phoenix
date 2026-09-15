@@ -5,16 +5,24 @@
 // it asks an OpenAI-compatible chat endpoint (the phoenix design: LM Studio + Gemma); otherwise
 // it returns an honest placeholder so the wire path is exercised without an LLM backend.
 
-import { newMsgId, resolveLlmProvider, llmRequestHeaders, llmCompletionsUrl } from '@phoenix/contracts';
+import { newMsgId, resolveLlmProvider, llmRequestHeaders, llmCompletionsUrl, Timeouts } from '@phoenix/contracts';
 import { buildSkillAction } from './jcp.js';
 
 const MAX_ANSWER_CHARS = 600;
+// The answer must come back inside the gateway's skill budget, with room left
+// to build and deliver the SKILL_ACTION. Waiting longer than the caller cannot
+// produce a late answer -- the gateway has already failed the transaction with
+// TIMEOUT_SKILL, so the graceful "I'm not sure about that one." never runs and
+// the robot gets an ERROR instead of speech. llmFallback makes the same
+// allowance against Timeouts.parser.
+const ANSWER_HEADROOM_MS = 2000;
+export const ANSWER_LLM_TIMEOUT_MS = Timeouts.skill - ANSWER_HEADROOM_MS;
 // Endpoint resolution is shared (see @phoenix/contracts llmProvider): the
 // historical ETCO_answer_llm* names still win, with PHOENIX_LLM_* as the
 // deployment-wide fallback, plus an optional bearer token and extra headers.
 // Resolved per call so a deployment can change it without a restart.
 function llmProvider() {
-  return resolveLlmProvider('answer', { defaultModel: 'gemma-3', defaultTimeoutMs: 12000 });
+  return resolveLlmProvider('answer', { defaultModel: 'gemma-3', defaultTimeoutMs: ANSWER_LLM_TIMEOUT_MS });
 }
 
 export async function answerSkill(request) {
@@ -55,7 +63,9 @@ async function getAnswer(question) {
       temperature: 0.3,
       max_tokens: 300,
       stream: false,
-    }, provider.timeoutMs ?? 12000, llmRequestHeaders(provider));
+    // Clamp, not just default: a deployment that configures a longer timeout
+    // would otherwise reintroduce the same overrun.
+    }, Math.min(provider.timeoutMs ?? ANSWER_LLM_TIMEOUT_MS, ANSWER_LLM_TIMEOUT_MS), llmRequestHeaders(provider));
     const msg = res && res.choices && res.choices[0] && res.choices[0].message;
     const text = msg && typeof msg.content === 'string' ? msg.content.trim() : '';
     return text ? trimToSentences(text, MAX_ANSWER_CHARS) : null;
