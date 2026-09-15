@@ -37,6 +37,7 @@
 // gateway's 10 s parser budget (packages/contracts/src/constants.js Timeouts.parser).
 
 // LLMClient.ts:18
+import { readFileSync } from 'node:fs';
 import { resolveLlmProvider, llmRequestHeaders, llmCompletionsUrl } from '@phoenix/contracts';
 
 export const LLM_DEFAULT_TIMEOUT_MS = 8000;
@@ -67,6 +68,52 @@ export const LLM_INTENT_TOOLS = Object.freeze([
   { name: 'unknown', description: 'Could not confidently classify with any of the available intents.' },
 ]);
 
+/**
+ * The intent catalog generated from Jibo's own parsers: every intent in
+ * robust-parser/rules_src plus the Dialogflow agent's, with the scoping the
+ * runtime used. See scripts/parity-nlu-catalog/build.mjs and
+ * docs/parity/evidence/2026-09-15/nlu-intent-surface/.
+ *
+ * This exists because the restored catalog above is not Jibo's. Ten of its
+ * fifteen names appear nowhere in the reference tree: Jibo had `askForTime`,
+ * not `whatTimeIsIt`; `launchWhoAmI`, not `whoAmI`; three distinct joke intents
+ * rather than one `tellAJoke`. A classifier that returns an invented name has
+ * recognised nothing, because no handler downstream answers to it.
+ */
+export const SOURCE_INTENT_TOOLS = Object.freeze(
+  JSON.parse(readFileSync(new URL('./generatedIntentCatalog.json', import.meta.url), 'utf8')).tools,
+);
+
+/**
+ * What Jibo could hear with no skill running: the union of every domain's
+ * launch.rule -- which the runtime compiled into a single launch.fst -- plus
+ * globals, which has no launch.rule because it is never launched into and is
+ * simply always loaded. An intent outside this set (timerValue, get_track)
+ * exists only once its skill's rule set is loaded, so offering it at idle
+ * invites a match the rest of the system cannot act on.
+ */
+export const SOURCE_IDLE_TOOLS = Object.freeze(
+  SOURCE_INTENT_TOOLS.filter((tool) => tool.launch || tool.scope === 'global'),
+);
+
+export const LLM_CATALOGS = Object.freeze({
+  restored: () => LLM_INTENT_TOOLS,
+  source: () => SOURCE_IDLE_TOOLS,
+  'source-full': () => SOURCE_INTENT_TOOLS,
+});
+
+export const LLM_DEFAULT_CATALOG = 'restored';
+
+/**
+ * Select the catalog by name, falling back to the default rather than throwing:
+ * a typo in deployment configuration must not take the NLU stage down.
+ * @param {string} [name] PHOENIX_LLM_CATALOG
+ */
+export function resolveIntentCatalog(name = process.env.PHOENIX_LLM_CATALOG) {
+  const pick = LLM_CATALOGS[name] || LLM_CATALOGS[LLM_DEFAULT_CATALOG];
+  return pick();
+}
+
 const SYSTEM_PROMPT = [
   'You are an NLU intent classifier for the Jibo social robot.',
   'You will be given a single user utterance.',
@@ -76,22 +123,27 @@ const SYSTEM_PROMPT = [
   'Extract entity arguments verbatim from the utterance when present.',
 ].join(' ');
 
-function buildTools() {
+function buildTools(catalog = resolveIntentCatalog()) {
   // LLMClient.ts:81-97
-  return LLM_INTENT_TOOLS.map(t => ({
-    type: 'function',
-    function: {
-      name: t.name,
-      description: t.description,
-      parameters: {
+  //
+  // Two entity shapes are accepted. The restored catalog writes a name -> type
+  // map ({ thing: 'string' }) and marks every entity required, which is what
+  // the source did. The generated catalog carries a real JSON Schema, with
+  // nothing required, because a rule slot is genuinely optional -- "what time
+  // is it" fills none of askForTime's four.
+  return catalog.map((tool) => {
+    const entities = tool.entities;
+    const schema = entities && entities.type === 'object'
+      ? { type: 'object', properties: entities.properties || {}, required: entities.required || [] }
+      : {
         type: 'object',
-        properties: t.entities
-          ? Object.keys(t.entities).reduce((acc, k) => { acc[k] = { type: t.entities[k] }; return acc; }, {})
+        properties: entities
+          ? Object.keys(entities).reduce((acc, key) => { acc[key] = { type: entities[key] }; return acc; }, {})
           : {},
-        required: t.entities ? Object.keys(t.entities) : [],
-      },
-    },
-  }));
+        required: entities ? Object.keys(entities) : [],
+      };
+    return { type: 'function', function: { name: tool.name, description: tool.description, parameters: schema } };
+  });
 }
 
 /**
