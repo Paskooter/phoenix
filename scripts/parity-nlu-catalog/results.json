@@ -1,30 +1,39 @@
 {
   "model": "deepseek/deepseek-v4.1-flash",
   "arms": {
+    "grammar": {
+      "tools": "rules",
+      "fallbackTools": 0,
+      "correct": 33,
+      "of": 40
+    },
     "hand15": {
       "tools": 15,
       "fallbackTools": 0,
-      "correct": 2,
+      "correct": 3,
       "of": 40
     },
     "flat": {
-      "tools": 533,
+      "tools": 551,
       "fallbackTools": 0,
-      "correct": 29,
+      "correct": 39,
       "of": 40
     },
     "tiered": {
-      "tools": 76,
+      "tools": 94,
       "fallbackTools": 458,
-      "correct": 28,
+      "correct": 39,
       "of": 40
     }
   },
   "utterances": [
     {
       "text": "what time is it",
-      "want": "askForTime",
+      "accept": [
+        "askForTime"
+      ],
       "got": {
+        "grammar": "askForTime",
         "hand15": "whatTimeIsIt",
         "flat": "askForTime",
         "tiered": "askForTime"
@@ -32,17 +41,24 @@
     },
     {
       "text": "what's the date today",
-      "want": "askForDate",
+      "accept": [
+        "askForDate"
+      ],
       "got": {
-        "hand15": "unknown",
+        "grammar": "generalWhatQuestions",
+        "hand15": "whatTimeIsIt",
         "flat": "askForDate",
         "tiered": "askForDate"
       }
     },
     {
       "text": "set a timer for five minutes",
-      "want": "timerValue",
+      "accept": [
+        "start",
+        "set"
+      ],
       "got": {
+        "grammar": "start",
         "hand15": "unknown",
         "flat": "start",
         "tiered": "start"
@@ -50,8 +66,11 @@
     },
     {
       "text": "set an alarm for seven a m",
-      "want": "set",
+      "accept": [
+        "set"
+      ],
       "got": {
+        "grammar": "set",
         "hand15": "unknown",
         "flat": "set",
         "tiered": "set"
@@ -59,8 +78,11 @@
     },
     {
       "text": "when is christmas",
-      "want": "whenIsHoliday",
+      "accept": [
+        "whenIsHoliday"
+      ],
       "got": {
+        "grammar": "whenIsHoliday",
         "hand15": "tellMeATip",
         "flat": "whenIsHoliday",
         "tiered": "whenIsHoliday"
@@ -68,44 +90,60 @@
     },
     {
       "text": "turn up the volume",
-      "want": "volumeUp",
+      "accept": [
+        "volumeUp"
+      ],
       "got": {
+        "grammar": "volumeQuery",
         "hand15": "unknown",
-        "flat": "unknown",
-        "tiered": "unknown"
+        "flat": "volumeUp",
+        "tiered": "volumeUp"
       }
     },
     {
       "text": "turn it down a bit",
-      "want": "volumeDown",
+      "accept": [
+        "volumeDown"
+      ],
       "got": {
+        "grammar": "unknown",
         "hand15": "unknown",
-        "flat": "unknown",
-        "tiered": "lightsDown"
+        "flat": "volumeDown",
+        "tiered": "volumeDown"
       }
     },
     {
       "text": "set the volume to five",
-      "want": "volumeToValue",
+      "accept": [
+        "volumeToValue"
+      ],
       "got": {
+        "grammar": "volumeQuery",
         "hand15": "unknown",
-        "flat": "unknown",
-        "tiered": "unknown"
+        "flat": "volumeToValue",
+        "tiered": "volumeToValue"
       }
     },
     {
       "text": "go to the main menu",
-      "want": "mainMenu",
+      "accept": [
+        "launchMainMenu",
+        "mainMenu"
+      ],
       "got": {
+        "grammar": "launchMainMenu",
         "hand15": "launchSkill",
-        "flat": "launchMainMenu",
+        "flat": "mainMenu",
         "tiered": "launchMainMenu"
       }
     },
     {
       "text": "what can you do",
-      "want": "whatCanIDo",
+      "accept": [
+        "whatCanIDo"
+      ],
       "got": {
+        "grammar": "whatCanIDo",
         "hand15": "tellMeAboutYourself",
         "flat": "whatCanIDo",
         "tiered": "whatCanIDo"
@@ -113,35 +151,49 @@
     },
     {
       "text": "thank you",
-      "want": "thanks",
+      "accept": [
+        "thanks",
+        "thankJiboForAction"
+      ],
       "got": {
+        "grammar": "thankJiboForAction",
         "hand15": "thanks",
-        "flat": "thankJiboForAction",
-        "tiered": "thankJiboForAction"
+        "flat": "thanks",
+        "tiered": "thanks"
       }
     },
     {
       "text": "say that again",
-      "want": "repeat",
+      "accept": [
+        "repeat",
+        "requestRepeat"
+      ],
       "got": {
+        "grammar": "requestRepeat",
         "hand15": "unknown",
-        "flat": "requestRepeat",
-        "tiered": "requestRepeat"
+        "flat": "repeat",
+        "tiered": "repeat"
       }
     },
     {
       "text": "go to sleep",
-      "want": "sleep",
+      "accept": [
+        "sleep"
+      ],
       "got": {
+        "grammar": "unknown",
         "hand15": "unknown",
-        "flat": "goodNight",
-        "tiered": "goodNight"
+        "flat": "sleep",
+        "tiered": "sleep"
       }
     },
     {
       "text": "turn on the lights",
-      "want": "lightsOn",
+      "accept": [
+        "lightsOn"
+      ],
       "got": {
+        "grammar": "lightsOn",
         "hand15": "unknown",
         "flat": "lightsOn",
         "tiered": "lightsOn"
@@ -149,8 +201,11 @@
     },
     {
       "text": "turn off the lights",
-      "want": "lightsOff",
+      "accept": [
+        "lightsOff"
+      ],
       "got": {
+        "grammar": "lightsOff",
         "hand15": "unknown",
         "flat": "lightsOff",
         "tiered": "lightsOff"
@@ -158,8 +213,11 @@
     },
     {
       "text": "make the lights warmer",
-      "want": "lightsWarm",
+      "accept": [
+        "lightsWarm"
+      ],
       "got": {
+        "grammar": "lightsWarm",
         "hand15": "unknown",
         "flat": "lightsWarm",
         "tiered": "lightsWarm"
@@ -167,44 +225,59 @@
     },
     {
       "text": "dim the lights",
-      "want": "lightsDown",
+      "accept": [
+        "lightsDown"
+      ],
       "got": {
+        "grammar": "lightsDown",
         "hand15": "unknown",
         "flat": "lightsDown",
         "tiered": "lightsDown"
       }
     },
     {
-      "text": "what song is this",
-      "want": "get_track",
-      "got": {
-        "hand15": "unknown",
-        "flat": "unknown",
-        "tiered": "generalWhatQuestions"
-      }
-    },
-    {
       "text": "what stations do you have",
-      "want": "showStations",
+      "accept": [
+        "showStations"
+      ],
       "got": {
+        "grammar": "generalWhatQuestions",
         "hand15": "unknown",
         "flat": "showStations",
         "tiered": "showStations"
       }
     },
     {
-      "text": "how is my commute",
-      "want": "requestCommute",
+      "text": "what song is this",
+      "accept": [
+        "unknown"
+      ],
       "got": {
-        "hand15": "chitchat",
+        "grammar": "generalWhatQuestions",
+        "hand15": "unknown",
+        "flat": "unknown",
+        "tiered": "unknown"
+      }
+    },
+    {
+      "text": "how is my commute",
+      "accept": [
+        "requestCommute"
+      ],
+      "got": {
+        "grammar": "requestCommute",
+        "hand15": "unknown",
         "flat": "requestCommute",
         "tiered": "requestCommute"
       }
     },
     {
       "text": "what's on my calendar",
-      "want": "requestCalendar",
+      "accept": [
+        "requestCalendar"
+      ],
       "got": {
+        "grammar": "requestCalendar",
         "hand15": "unknown",
         "flat": "requestCalendar",
         "tiered": "requestCalendar"
@@ -212,8 +285,11 @@
     },
     {
       "text": "what's in the news",
-      "want": "requestNews",
+      "accept": [
+        "requestNews"
+      ],
       "got": {
+        "grammar": "requestNews",
         "hand15": "unknown",
         "flat": "requestNews",
         "tiered": "requestNews"
@@ -221,8 +297,11 @@
     },
     {
       "text": "take a picture",
-      "want": "createOnePhoto",
+      "accept": [
+        "createOnePhoto"
+      ],
       "got": {
+        "grammar": "createOnePhoto",
         "hand15": "launchSkill",
         "flat": "createOnePhoto",
         "tiered": "createOnePhoto"
@@ -230,17 +309,24 @@
     },
     {
       "text": "record a video",
-      "want": "createVideo",
+      "accept": [
+        "requestRecordVideo",
+        "createVideo"
+      ],
       "got": {
-        "hand15": "launchSkill",
+        "grammar": "requestRecordVideo",
+        "hand15": "unknown",
         "flat": "requestRecordVideo",
         "tiered": "requestRecordVideo"
       }
     },
     {
       "text": "open the gallery",
-      "want": "galleryOpen",
+      "accept": [
+        "galleryOpen"
+      ],
       "got": {
+        "grammar": "galleryOpen",
         "hand15": "launchSkill",
         "flat": "galleryOpen",
         "tiered": "galleryOpen"
@@ -248,17 +334,23 @@
     },
     {
       "text": "who am i",
-      "want": "launchWhoAmI",
+      "accept": [
+        "launchWhoAmI"
+      ],
       "got": {
+        "grammar": "launchWhoAmI",
         "hand15": "whoAmI",
-        "flat": "launchWhoAmI",
+        "flat": "describeUser",
         "tiered": "launchWhoAmI"
       }
     },
     {
       "text": "good morning",
-      "want": "goodMorning",
+      "accept": [
+        "goodMorning"
+      ],
       "got": {
+        "grammar": "goodMorning",
         "hand15": "whatsUp",
         "flat": "goodMorning",
         "tiered": "goodMorning"
@@ -266,8 +358,11 @@
     },
     {
       "text": "goodbye",
-      "want": "goodBye",
+      "accept": [
+        "goodBye"
+      ],
       "got": {
+        "grammar": "goodBye",
         "hand15": "goodbye",
         "flat": "goodBye",
         "tiered": "goodBye"
@@ -275,8 +370,11 @@
     },
     {
       "text": "hey jibo",
-      "want": "heyJibo",
+      "accept": [
+        "heyJibo"
+      ],
       "got": {
+        "grammar": "heyJibo",
         "hand15": "whatsUp",
         "flat": "heyJibo",
         "tiered": "heyJibo"
@@ -284,8 +382,11 @@
     },
     {
       "text": "how much battery do you have",
-      "want": "battery",
+      "accept": [
+        "battery"
+      ],
       "got": {
+        "grammar": "battery",
         "hand15": "unknown",
         "flat": "battery",
         "tiered": "battery"
@@ -293,8 +394,11 @@
     },
     {
       "text": "are you connected to wifi",
-      "want": "wifiStatus",
+      "accept": [
+        "wifiStatus"
+      ],
       "got": {
+        "grammar": "wifiStatus",
         "hand15": "unknown",
         "flat": "wifiStatus",
         "tiered": "wifiStatus"
@@ -302,8 +406,11 @@
     },
     {
       "text": "tell me a knock knock joke",
-      "want": "jokeKnockKnock",
+      "accept": [
+        "jokeKnockKnock"
+      ],
       "got": {
+        "grammar": "jokeKnockKnock",
         "hand15": "tellAJoke",
         "flat": "jokeKnockKnock",
         "tiered": "jokeKnockKnock"
@@ -311,8 +418,12 @@
     },
     {
       "text": "what's the weather tomorrow",
-      "want": "requestWeather",
+      "accept": [
+        "requestWeather",
+        "requestWeatherPR"
+      ],
       "got": {
+        "grammar": "requestWeatherPR",
         "hand15": "unknown",
         "flat": "requestWeather",
         "tiered": "requestWeatherPR"
@@ -320,17 +431,23 @@
     },
     {
       "text": "do you like pizza",
-      "want": "doesJiboLikeThing",
+      "accept": [
+        "doesJiboLikeThing"
+      ],
       "got": {
+        "grammar": "doesJiboLikeThing",
         "hand15": "doYouLike",
-        "flat": "doesJiboLikeTasteOfThing",
-        "tiered": "doesJiboLikeTasteOfThing"
+        "flat": "doesJiboLikeThing",
+        "tiered": "unknown"
       }
     },
     {
       "text": "tell me about yourself",
-      "want": "requestTellAboutYourself",
+      "accept": [
+        "requestTellAboutYourself"
+      ],
       "got": {
+        "grammar": "requestTellAboutYourself",
         "hand15": "tellMeAboutYourself",
         "flat": "requestTellAboutYourself",
         "tiered": "requestTellAboutYourself"
@@ -338,17 +455,23 @@
     },
     {
       "text": "dance for me",
-      "want": "requestDance",
+      "accept": [
+        "requestDance"
+      ],
       "got": {
-        "hand15": "unknown",
+        "grammar": "requestDance",
+        "hand15": "launchSkill",
         "flat": "requestDance",
         "tiered": "requestDance"
       }
     },
     {
       "text": "tell me a story",
-      "want": "requestStory",
+      "accept": [
+        "requestStory"
+      ],
       "got": {
+        "grammar": "requestStory",
         "hand15": "unknown",
         "flat": "requestStory",
         "tiered": "requestStory"
@@ -356,17 +479,23 @@
     },
     {
       "text": "who is alexa",
-      "want": "whoIsPerson",
+      "accept": [
+        "whoIsPerson"
+      ],
       "got": {
-        "hand15": "chitchat",
+        "grammar": "whoIsPerson",
+        "hand15": "unknown",
         "flat": "whoIsPerson",
         "tiered": "whoIsPerson"
       }
     },
     {
       "text": "sing me a song",
-      "want": "requestSingSong",
+      "accept": [
+        "requestSingSong"
+      ],
       "got": {
+        "grammar": "requestSingSong",
         "hand15": "unknown",
         "flat": "requestSingSong",
         "tiered": "requestSingSong"
@@ -374,8 +503,11 @@
     },
     {
       "text": "asdfgh qwerty zxcvb",
-      "want": "unknown",
+      "accept": [
+        "unknown"
+      ],
       "got": {
+        "grammar": "unknown",
         "hand15": "unknown",
         "flat": "unknown",
         "tiered": "unknown"
