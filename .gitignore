@@ -21,3 +21,6 @@ packages/harness/captures/
 packages/ota/data/*.tar
 packages/ota/data/*.tar.bz2
 packages/ota/data/*.work/
+
+# oracle sweep scratch (regenerated per run)
+scripts/parity-nlu-oracle/.*.txt

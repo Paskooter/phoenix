@@ -10,14 +10,14 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 |---|---:|---:|---:|---:|
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
-| pegasus | 45 | 46 | 0 | 0 |
+| pegasus | 46 | 46 | 0 | 0 |
 | classic | 18 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
 Current task: none.
 
-Next ready task: **S-13 — Implement the report's robot display views**.
+Next ready task: **A-05 — Complete OOBE reconnect, service tokens and administrative behavior**.
 
 See [PLAN.md](PLAN.md) for execution rules, [COMPATIBILITY.md](COMPATIBILITY.md) for the frozen target and [AUDIT.md](AUDIT.md) for initial findings. Pegasus source links use the original commit; restored-only code and atlas links are labeled separately. API definitions are pinned; other Jibo links are discovery references to be pinned before verification.
 
@@ -1260,11 +1260,11 @@ Evidence: [docs/parity/evidence/2026-09-13/s12-calendar/review.md](../../docs/pa
 
 ### S-13 — Implement the report's robot display views
 
-- [ ] **todo** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: S-09, S-10, S-11, S-12.
 
-Six source-backed report view configs and builders are integrated, and the source differential matches all 61 view rows while rejecting all 16 mutations. The 2026-09-14 Moth five-case set conditionally observed fixture-backed commute/calendar cases and visually inspected twelve unique target PNGs. The replacement Terrible bundle is commute-terrible-combined-v2 on Phoenix 5a67215, with fixture work time 22:30, a target turn recording exactly three MIM IDs (CommuteConfirmSpeaker, CommuteDriveTerrible, CommuteDepartTimeNotNormal), and Depart 10:05 PM. Each case used strict idle preflight, explicitly excluded one whoIsThisMenu prelude from the target sequence, returned to strict idle, and reported no capture errors; the replacement prelude includes captureKey excluded-prelude:whoIsThisMenu#1 and viewGeneration 2, and production was restored afterward. The capture uses clientASR text injection with microphoneAcceptance false and private deterministic Data fixtures, so it does not certify live providers, Settings/OAuth, microphone, hotword, blue-ring, or account behavior. The final aggregate receipt validator and falsifier are still pending; S-13 remains open. The original tree_v01 calendar icon is absent from both audited Nimbus archives as a separate bounded source-package exception; no replacement asset is supplied.
+Six source-backed report view configs and builders are integrated. The 61-row report-view source differential is exact (61/61 rows, 0 differences: weather 20, traffic 7, depart 4, news 5, calendar 25) and rejects all 16 adversarial controls. Five fixture-backed commute/calendar lanes were captured on the authorized Moth robot against the supported @be/phoenix-parity-11-0-1 client at Phoenix fcfe0fe, and bound into one terminal receipt (3fc18a7c0030f037bb76b36a2f023fe7f23c6f7bd1c2c654f4bb6c1e66c1d031, decision verified_bounded, 17 rows checked) that passes independent strict validation with zero errors. Every lane reports phoenixMatchesMatrix, noBypass and claimed true with ordered display/screenshot correlation and a native final idle. Three lanes ran the unidentified-speaker two-stage WhoIsThis flow and two ran the recognized-speaker one-stage flow; UserIDFactory.checkSpeakerID makes that shape a function of data.runtime.perception.speaker rather than an operator choice, both edges converge on the same UserID Done transition, and the receipt shape is derived from the raw CONTEXT line and rejected if it disagrees. Same-session provenance is matched with zero differences over 164 immutable rows. A separately authored visual review passed 12 of 12 screenshots and discriminates the three traffic severities and three distinct departure times; independent anchors were attested by a separate witness. The real 29-control receipt-bound falsifier passes 29/29, and root falsified the terminal receipt directly on five further controls. The capture uses clientASR text injection with microphoneAcceptance false and private deterministic provider fixtures, so it does not certify live providers, Settings/OAuth, microphone, hotword, blue-ring or account behavior. The original tree_v01 calendar icon is absent from both audited Nimbus archives and remains a bounded source-package exception with no substitute supplied; the conditional PM departure row stays skipped because S-11 owns AM/PM coverage.
 
 Done when:
 
@@ -1275,7 +1275,7 @@ Source: [Original Pegasus packages/report-skill/src/subskills/weather/WeatherVie
 
 Phoenix: [packages/skills/src/report/weather.js](../../packages/skills/src/report/weather.js); [packages/skills/src/report/news.js](../../packages/skills/src/report/news.js); [packages/skills/src/report/commute.js](../../packages/skills/src/report/commute.js); [packages/skills/src/report/calendar.js](../../packages/skills/src/report/calendar.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-14/s13-robot-views/acceptance-audit.md](../../docs/parity/evidence/2026-09-14/s13-robot-views/acceptance-audit.md) (2026-09-14; The 61-row report-view source differential is exact (61/61 rows, 0 differences: weather 20, traffic 7, depart 4, news 5, calendar 25) and rejects all 16 adversarial controls. Five fixture-backed commute/calendar lanes captured on the authorized Moth robot against the supported @be/phoenix-parity-11-0-1 client are bound into one terminal receipt (3fc18a7c0030f037bb76b36a2f023fe7f23c6f7bd1c2c654f4bb6c1e66c1d031, decision verified_bounded, 17 rows) that passes independent strict validation with zero errors, with 29/29 receipt-bound falsification controls rejected and five further root controls against the terminal receipt. Same-session provenance is matched with zero differences over 164 immutable rows; a separately authored visual review passed 12/12 screenshots and discriminates the three traffic severities and three distinct departure times; independent validation anchors were attested by a separate witness. Three lanes ran the unidentified-speaker two-stage flow and two the recognized-speaker one-stage flow, a distinction UserIDFactory.checkSpeakerID makes a function of data.runtime.perception.speaker rather than an operator choice. 63 tests pass across the S-13 physical, shape, finalize, fixture, provenance and source-diff suites.).
 
 - [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair.
 
@@ -1283,9 +1283,7 @@ Candidate scope: Six original report view resources and four dynamic builders; r
 
 Candidate report: [docs/parity/candidates/S-13.md](../../docs/parity/candidates/S-13.md).
 
-Lead review: Codex root; [docs/parity/evidence/2026-09-14/s13-robot-views/review.md](../../docs/parity/evidence/2026-09-14/s13-robot-views/review.md). Complete task acceptance is still governed by the main checkbox above.
-
-Blocker: S-13 remains open pending a complete aggregate physical-capture receipt and passing final validator/falsifier results for the replacement-aware five-case set. The current evidence covers only the five fixture-backed physical cases; linked no-view assertions, weather/news revalidation, and the missing-source tree row remain outside this recapture. Live providers, Settings/OAuth, account state, microphone, hotword, and blue-ring behavior are outside scope.
+Lead review: Claude root; [docs/parity/evidence/2026-09-14/s13-robot-views/acceptance-audit.md](../../docs/parity/evidence/2026-09-14/s13-robot-views/acceptance-audit.md). Complete task acceptance is still governed by the main checkbox above.
 
 ### S-14 — Verify example/template skills and skill-host compatibility
 
@@ -1400,7 +1398,7 @@ Evidence: [packages/classic/test/voiceTraining.test.js](../../packages/classic/t
 
 Owner: Codex. Dependencies: Q-01, N-07, PM-03.
 
-The 2026 answer path includes Wikipedia-first and different fallback/text behavior; Phoenix currently uses only an LLM or placeholder.
+The two halves of X-01 are in different states, and the previous finding described only one of them. NLU half: the restored branch's LLM fallback is implemented and pinned in-source to 715e0dd0 (packages/nlu/src/llmFallback.js, including its 15-entry INTENT_TOOLS catalog, tool_choice auto and 8000 ms timeout), with fallbackArbitration.js pinned to the same revision and the external-agent block selectable between 5c0a739 ATTACH and 715e0dd0 OMIT. It is env-gated and off by default. Answer half: X-01's reference is pegasus-restored packages/answer-skill/server.js at the restored branch head d682547a, and no Phoenix source pins or reimplements it. packages/skills/src/answerSkill.js is explicitly a port of the ORIGINAL Pegasus answer-skill (LLM or honest placeholder, 600-char limit, 12 s timeout) and has no Wikipedia path, so the old finding is accurate about that file but says nothing about the separate Wikipedia-first GQA lane that now exists under Q-01. Separation: the machinery criterion 2 asks for exists and is tested - the default answer handler is the original port, the GQA profiles are selected only by PHOENIX_GQA_PROFILE/PHOENIX_GQA_DEFAULT_PROFILE, applyGqaContinuity runs only on an explicit opt-in defaulting to false, and q01GqaProfile.test.js asserts the default registry does not select the Wikipedia profile implicitly. But what is kept separate is the Q-01/GQA lane, not a retained restored-branch answer profile. Gap: there is no X-01 verification lane at all - packages/skills/test holds 17 q01 files and zero X-01 files - so none of criterion 1's six named properties (Wikipedia-first ordering, LLM tool catalog, fallback text, response normalization, timing, output limits) has a differential against the restored branch, and criterion 2 has no separate count to publish. See docs/parity/evidence/2026-09-14/x01-restored-profile/gap.md.
 
 Done when:
 
@@ -1475,7 +1473,7 @@ Lead review: Hermes root (pasketti); [docs/parity/evidence/2026-09-10/a04-loop-o
 
 Owner: Codex. Dependencies: A-03, A-04.
 
-The accepted Account implementation covers setup/reconnect, suspended replacement, unbound relocation, token persistence/expiry, OOBE authentication, administrator service-token issuance and UTF-8 QR framing. The public parser matches the pinned Hapi media/entity boundary and preserves source-simple reconnect behavior. The installed original @jibo/jibo-server-client 3.0.110 under Node 8.9.4 now drives all five normal/admin OOBE operations across both Account and Classic faces: 38 initial and 46 post-restart checks pass, issued ordinary/replacement/service credentials survive a real service-process restart, and all nine Store collections match disk. A-03/A-04 completion, robot restart and fresh hardware/firmware/date evidence remain open.
+The accepted Account implementation covers setup/reconnect, suspended replacement, unbound relocation, token persistence/expiry, OOBE authentication, administrator service-token issuance and UTF-8 QR framing. The public parser matches the pinned Hapi media/entity boundary and preserves source-simple reconnect behavior. The installed original @jibo/jibo-server-client 3.0.110 under Node 8.9.4 now drives all five normal/admin OOBE operations across both Account and Classic faces: 38 initial and 46 post-restart checks pass, issued ordinary/replacement/service credentials survive a real service-process restart, and all nine Store collections match disk. A-03 and A-04 are now verified, so only hardware evidence remains open: a robot restart, fresh robot/firmware/date evidence, native pairing, TLS ingress, and household preservation. docs/parity/evidence/2026-09-14/a05-hardware-gap/README.md separates the read-only and reboot-only items from the ones that need explicit user consent because they would re-pair the robot or change live household state.
 
 Done when:
 
