@@ -438,7 +438,8 @@ export class ParakeetASRSession {
       return;
     }
     const wav = ParakeetASRSession.makeWav(pcm);
-    const transcript = await this._postToParakeet(wav);
+    const posted = await this._postToParakeet(wav);
+    const transcript = posted.text;
     // An empty silence endpoint heard no utterance (typically the wake-phrase
     // tail before the speaker's pause): keep listening for the real request
     // instead of ending the turn with an empty no-match result.
@@ -446,7 +447,15 @@ export class ParakeetASRSession {
       this._resetForRelisten();
       return;
     }
-    const result = { text: transcript || '', confidence: transcript ? 1.0 : 0.0 };
+    // Prefer the server's confidence; fall back to the historical synthetic
+    // value only when the deployment cannot supply one, so an old server keeps
+    // working unchanged.
+    const result = {
+      text: transcript || '',
+      confidence: posted.confidence !== null && posted.confidence !== undefined
+        ? posted.confidence
+        : (transcript ? 1.0 : 0.0),
+    };
     // Post-hoc earlyEOS: annotate the final transcript when it matches the
     // cleaned earlyEOS phrases (the reference's stated batch behavior).
     if (transcript && this.fastEOSRegex && this.fastEOSRegex.test(transcript)) {
@@ -541,9 +550,20 @@ export class ParakeetASRSession {
           try {
             const json = JSON.parse(text);
             let transcript = json.transcript;
-            if (transcript && typeof transcript === 'object') transcript = transcript.text;
+            // The server may report a real decoder confidence. Older
+            // deployments (API 0.1.0) do not, and NeMo leaves every confidence
+            // field null unless the decoding config asks for them, which is why
+            // this client used to invent 1.0 -- a constant that reached the
+            // robot looking like a measurement (DIVERGENCES H07c).
+            let confidence = typeof json.confidence === 'number' ? json.confidence : null;
+            if (transcript && typeof transcript === 'object') {
+              if (confidence === null && typeof transcript.confidence === 'number') {
+                confidence = transcript.confidence;
+              }
+              transcript = transcript.text;
+            }
             if (typeof transcript !== 'string') transcript = '';
-            resolve(transcript);
+            resolve({ text: transcript, confidence });
           } catch (e) {
             reject(new Error('Could not parse Parakeet response: ' + e));
           }
