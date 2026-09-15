@@ -1,7 +1,21 @@
-// Maps/commute relay — Phoenix port of lasso/relay/GoogleMapsHandler.ts (the 2026 ORS shim).
-// Google Directions key is dead; fetch from OpenRouteService and re-shape into the Google Maps
-// `Maps` schema report-skill's commute subskill reads (routes[0].legs[0].duration{,_in_traffic}).
-// ORS needs an API key (ETCO_data_orsKey) in the Authorization header. Cache TTL 15m.
+// Maps/commute relay — TomTom Routing re-shaped into the Google Maps `Maps`
+// schema report-skill's commute subskill reads (routes[0].legs[0].duration{,_in_traffic}).
+//
+// Google Directions is dead (its legacy client IDs were retired; the API answers
+// 403). This relay previously used OpenRouteService, which routes well but has no
+// traffic model at all, so `duration_in_traffic` could only ever mirror `duration`
+// and report-skill's Poor/Terrible commute MIMs were unreachable by construction.
+// TomTom Routing is the replacement: free tier, no card, and real live traffic.
+// ORS has been removed entirely.
+//
+// Requires TOMTOM_API_KEY. Cache TTL 15m.
+//
+// `computeTravelTimeFor=all` is REQUIRED. Without it TomTom silently omits the
+// traffic breakdown and answers with free-flow times only, which is
+// indistinguishable from "no traffic right now".
+//
+//   liveTrafficIncidentsTravelTimeInSeconds -> Google duration_in_traffic
+//   noTrafficTravelTimeInSeconds            -> Google duration
 //
 // Contract (pinned, pegasus@5c0a7390539663ba749d360de348a428c088505c):
 //   * input      — GoogleMapsHandler.ts:35-64. `origin`/`destination` are JSON
@@ -23,22 +37,16 @@
 //                  upstream status with `Error getting GoogleMaps data: <json>`
 //                  (AbstractRelayRequestHandler.ts:153-173).
 //
-// Retained gaps (ORS cannot supply them; see docs/parity/DIVERGENCES.md):
-//   * transit is not real transit — the ORS free tier has no transit profile, so
-//     `mode=transit` is answered with the driving-car route.
-//   * no traffic model — ORS has none, so `duration_in_traffic` mirrors `duration`
-//     and report-skill's `extraMins` traffic MIMs are unreachable.
+// Retained gaps (see docs/parity/DIVERGENCES.md):
+//   * transit is not real transit — TomTom has no transit profile on this tier,
+//     so `mode=transit` is answered with the `bus` travel mode.
 //   * `legs[].steps`, `arrival_time`/`departure_time`, `warnings`, `fare`,
 //     `geocoded_waypoints` and the per-road `summary` are not produced.
+//   * `overview_polyline` and `bounds` are omitted; TomTom returns route geometry
+//     as point arrays rather than an encoded polyline, and report-skill reads
+//     neither field.
 
 export const COMMUTE_MODES = ['driving', 'transit', 'bicycling', 'walking'];
-
-const ORS_PROFILE = {
-  driving: 'driving-car',
-  transit: 'driving-car', // ORS free tier has no transit; closest fallback
-  bicycling: 'cycling-regular',
-  walking: 'foot-walking',
-};
 
 /** LatLon.ts:21 — the only accepted numeric form. */
 const LATLON_STR = /^-?\d+\.?\d*$/;
@@ -84,88 +92,103 @@ export function mapsKey({ origin, destination, mode }) {
   return `google_maps:${origin.lat};${origin.lon};${destination.lat};${destination.lon};${mode}`;
 }
 
-export async function defaultOrsGet({ origin, destination, mode }) {
-  const profile = ORS_PROFILE[mode] || 'driving-car';
-  const res = await fetch(`https://api.openrouteservice.org/v2/directions/${profile}`, {
-    method: 'POST',
-    headers: {
-      Authorization: process.env.ETCO_data_orsKey || '',
-      'Content-Type': 'application/json',
-      Accept: 'application/json, application/geo+json, application/gpx+xml',
-    },
-    body: JSON.stringify({ coordinates: [[origin.lon, origin.lat], [destination.lon, destination.lat]] }),
-  });
+/**
+ * TomTom Routing — the only free, no-card provider found that returns real live
+ * traffic, which is what Google's `duration_in_traffic` carried and what
+ * report-skill's Poor/Terrible commute MIMs branch on.
+ *
+ * `computeTravelTimeFor=all` is REQUIRED. Without it TomTom silently omits the
+ * traffic breakdown and answers with free-flow times only, which is
+ * indistinguishable from "no traffic right now".
+ *
+ *   liveTrafficIncidentsTravelTimeInSeconds -> Google duration_in_traffic
+ *   noTrafficTravelTimeInSeconds            -> Google duration
+ */
+const TOMTOM_TRAVEL_MODE = {
+  driving: 'car',
+  transit: 'bus',      // closest available; still not real transit routing
+  bicycling: 'bicycle',
+  walking: 'pedestrian',
+};
+
+export async function defaultTomTomGet({ origin, destination, mode }, apiKey) {
+  const travelMode = TOMTOM_TRAVEL_MODE[mode] || 'car';
+  const loc = `${origin.lat},${origin.lon}:${destination.lat},${destination.lon}`;
+  const url = new URL(`https://api.tomtom.com/routing/1/calculateRoute/${loc}/json`);
+  url.searchParams.set('key', apiKey);
+  url.searchParams.set('travelMode', travelMode);
+  url.searchParams.set('routeType', 'fastest');
+  url.searchParams.set('traffic', 'true');
+  url.searchParams.set('computeTravelTimeFor', 'all');
+  // Pedestrian and bicycle routing reject departAt; only ask for it where it means something.
+  if (travelMode === 'car' || travelMode === 'bus') url.searchParams.set('departAt', 'now');
+
+  const res = await fetch(url, { headers: { Accept: 'application/json' } });
   if (!res.ok) {
-    // The reference axios call rejects with `err.response` set, so `fetchData`
-    // reproduces the upstream status and JSON-stringifies the upstream body
-    // (AbstractRelayRequestHandler.ts:159-163). Live ORS error bodies observed
-    // (2026-09-11): 401 `{"error":"Authorization field missing"}`,
-    // 403 `{"error":"Access to this API has been disallowed"}`.
     let data = null;
     try { data = await res.json(); } catch { data = null; }
-    const e = new Error(`OpenRouteService ${res.status}`);
+    const e = new Error(`TomTom ${res.status}`);
     e.response = { status: res.status, data };
     throw e;
   }
   const text = await res.text();
-  // Reference `fetchFromExternal` returns `result ? result.data : null`, so an
-  // empty body is a falsy redirect-to-null, not a parse error
-  // (GoogleMapsHandler.ts:90, GoogleMaps.test.ts:98-117).
-  if (!text) return null;
-  return JSON.parse(text);
+  if (!text) return null; // -> relay answers 502 `Empty reply from GoogleMaps`
+  return { provider: 'tomtom', body: JSON.parse(text) };
 }
 
-/** fetchExternal: returns the Google Maps `Maps` object. opts.get(input) overrides the ORS call. */
-export async function fetchMaps(input, { get = defaultOrsGet } = {}) {
-  const ors = await get(input);
-  if (!ors) return null; // -> relay answers 502 `Empty reply from GoogleMaps`
-  return openRouteServiceToGoogleMaps(ors, input.origin, input.destination);
-}
-
-/** Map an ORS /v2/directions body onto the Google Maps subset report-skill reads. */
-export function openRouteServiceToGoogleMaps(ors, origin, destination) {
-  const routes = ors.routes || [];
+/** Map a TomTom calculateRoute body onto the Google Maps subset report-skill reads. */
+export function tomTomToGoogleMaps(body, origin, destination) {
+  const routes = (body && body.routes) || [];
   if (routes.length === 0) return { status: 'ZERO_RESULTS', geocoded_waypoints: [], routes: [] };
 
-  const route = routes[0] || {};
-  const summary = route.summary || {};
-  const durationSeconds = Math.round(summary.duration || 0);
-  const distanceMeters = Math.round(summary.distance || 0);
-  const durationText = `${Math.round(durationSeconds / 60)} mins`;
+  const summary = routes[0].summary || {};
+  const freeFlow = Math.round(summary.noTrafficTravelTimeInSeconds ?? summary.travelTimeInSeconds ?? 0);
+  // Prefer the live-incident time; fall back through historic to the plain
+  // travel time so a response without the breakdown still yields a sane pair.
+  const withTraffic = Math.round(
+    summary.liveTrafficIncidentsTravelTimeInSeconds
+    ?? summary.historicTrafficTravelTimeInSeconds
+    ?? summary.travelTimeInSeconds
+    ?? freeFlow,
+  );
+  const distanceMeters = Math.round(summary.lengthInMeters || 0);
+  const mins = (seconds) => `${Math.round(seconds / 60)} mins`;
 
   const leg = {
     steps: [],
     distance: { text: `${(distanceMeters / 1609.344).toFixed(1)} mi`, value: distanceMeters },
-    duration: { text: durationText, value: durationSeconds },
-    duration_in_traffic: { text: durationText, value: durationSeconds }, // ORS has no traffic
+    duration: { text: mins(freeFlow), value: freeFlow },
+    duration_in_traffic: { text: mins(withTraffic), value: withTraffic },
     start_location: { lat: origin.lat, lng: origin.lon },
     end_location: { lat: destination.lat, lng: destination.lon },
     start_address: '',
     end_address: '',
   };
 
-  const mappedRoute = {
-    summary: 'OpenRouteService',
-    legs: [leg],
-    copyrights: 'OpenRouteService / OpenStreetMap contributors',
+  return {
+    status: 'OK',
+    geocoded_waypoints: [],
+    routes: [{ summary: 'TomTom', legs: [leg], copyrights: 'TomTom' }],
   };
+}
 
-  // ORS returns the route geometry as an encoded polyline by default
-  // (`geometry_format=encodedpolyline`), the same precision-5 algorithm Google
-  // returns in `overview_polyline.points`. docs: giscience.github.io/
-  // openrouteservice/api-reference/endpoints/directions/
-  if (typeof route.geometry === 'string' && route.geometry) {
-    mappedRoute.overview_polyline = { points: route.geometry };
+/** The maps provider. TomTom only; ORS was removed because it has no traffic model. */
+export async function defaultMapsGet(input) {
+  const tomtomKey = process.env.TOMTOM_API_KEY || '';
+  if (!tomtomKey) {
+    const e = new Error('TomTom 401');
+    e.response = { status: 401, data: { error: 'TOMTOM_API_KEY is not configured' } };
+    throw e;
   }
-  // ORS route `bbox` is [minLon, minLat, maxLon, maxLat]; Google's `bounds` is
-  // {northeast:{lat,lng}, southwest:{lat,lng}}.
-  const bbox = route.bbox;
-  if (Array.isArray(bbox) && bbox.length === 4 && bbox.every((n) => Number.isFinite(n))) {
-    mappedRoute.bounds = {
-      northeast: { lat: bbox[3], lng: bbox[2] },
-      southwest: { lat: bbox[1], lng: bbox[0] },
-    };
-  }
+  return defaultTomTomGet(input, tomtomKey);
+}
 
-  return { status: 'OK', geocoded_waypoints: [], routes: [mappedRoute] };
+/** fetchExternal: returns the Google Maps `Maps` object. opts.get(input) overrides the TomTom call. */
+export async function fetchMaps(input, { get = defaultMapsGet } = {}) {
+  const raw = await get(input);
+  if (!raw) return null; // -> relay answers 502 `Empty reply from GoogleMaps`
+  // An injected `get` may return either the tagged provider envelope or a bare
+  // TomTom body, so tests can supply a fixture without wrapping it.
+  const body = raw && raw.provider === 'tomtom' ? raw.body : raw;
+  return tomTomToGoogleMaps(body, input.origin, input.destination);
 }

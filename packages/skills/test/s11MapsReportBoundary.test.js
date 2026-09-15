@@ -11,7 +11,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createDataService } from '../../data/src/index.js';
 import { TTLCache } from '../../data/src/cache.js';
-import { openRouteServiceToGoogleMaps } from '../../data/src/maps.js';
+import { tomTomToGoogleMaps } from '../../data/src/maps.js';
 import { LassoClient } from '../src/report/lassoClient.js';
 import { commuteParse, getData as getCommuteData } from '../src/report/commute.js';
 
@@ -21,13 +21,16 @@ const originJSON = JSON.stringify(ORIGIN);
 const destinationJSON = JSON.stringify(DESTINATION);
 
 // The values are the representative route fields asserted by the original
-// GoogleMaps test fixture (distance 3851m, duration 2855s). The relay's ORS
+// GoogleMaps test fixture (distance 3851m, duration 2855s). The relay's TomTom
 // adapter reshapes these into the Google Maps subset consumed by CommuteParse.
-const ORS_ROUTE = {
+const TOMTOM_ROUTE = {
   routes: [{
-    summary: { distance: 3851, duration: 2855 },
-    bbox: [-73.5849567, 45.4995955, -73.5519883, 45.5101505],
-    geometry: 'source-fixture-route',
+    summary: {
+      lengthInMeters: 3851,
+      travelTimeInSeconds: 2855,
+      noTrafficTravelTimeInSeconds: 2855,
+      liveTrafficIncidentsTravelTimeInSeconds: 2855,
+    },
   }],
 };
 
@@ -64,7 +67,7 @@ function noOpLog() {
 
 test('S-11 Maps GET miss returns the commute route fields in the relay envelope', async () => {
   let calls = 0;
-  await withDataService({ mapsGet: async () => { calls += 1; return ORS_ROUTE; } }, async (port) => {
+  await withDataService({ mapsGet: async () => { calls += 1; return TOMTOM_ROUTE; } }, async (port) => {
     const { status, type, body } = await request(port, query());
     assert.equal(status, 200);
     assert.equal(type, 'application/json; charset=utf-8');
@@ -78,14 +81,17 @@ test('S-11 Maps GET miss returns the commute route fields in the relay envelope'
     assert.equal(leg.duration_in_traffic.value, 2855);
     assert.deepEqual(leg.start_location, { lat: ORIGIN.lat, lng: ORIGIN.lon });
     assert.deepEqual(leg.end_location, { lat: DESTINATION.lat, lng: DESTINATION.lon });
-    assert.deepEqual(payload.relayData.routes[0].overview_polyline, { points: 'source-fixture-route' });
+    // TomTom returns route geometry as point arrays rather than an encoded
+    // polyline, and CommuteParse reads neither overview_polyline nor bounds, so
+    // the relay does not synthesise them. Recorded in DIVERGENCES.md.
+    assert.equal(payload.relayData.routes[0].overview_polyline, undefined);
     assert.equal(calls, 1);
   });
 });
 
 test('S-11 Maps cold HEAD is empty before upstream work, then warms a GET cache hit', async () => {
   let calls = 0;
-  await withDataService({ mapsGet: async () => { calls += 1; return ORS_ROUTE; } }, async (port) => {
+  await withDataService({ mapsGet: async () => { calls += 1; return TOMTOM_ROUTE; } }, async (port) => {
     const head = await request(port, query(), 'HEAD');
     assert.equal(head.status, 200);
     assert.equal(head.type, null);
@@ -127,7 +133,7 @@ test('S-11 Maps empty reply is 502 and never enters the cache', async () => {
 
 test('S-11 Maps missing and invalid inputs are exact 400 text responses with no provider call', async () => {
   let calls = 0;
-  await withDataService({ mapsGet: async () => { calls += 1; return ORS_ROUTE; } }, async (port) => {
+  await withDataService({ mapsGet: async () => { calls += 1; return TOMTOM_ROUTE; } }, async (port) => {
     const cases = [
       ['missing origin', query({ origin: undefined }), 'Origin required'],
       ['missing destination', query({ destination: undefined }), 'Destination required'],
@@ -147,7 +153,7 @@ test('S-11 Maps missing and invalid inputs are exact 400 text responses with no 
 });
 
 test('S-11 Maps route fields pass through CommuteData and CommuteParse', async () => {
-  const mapsData = openRouteServiceToGoogleMaps(ORS_ROUTE, ORIGIN, DESTINATION);
+  const mapsData = tomTomToGoogleMaps(TOMTOM_ROUTE, ORIGIN, DESTINATION);
   const prefs = {
     commute: {
       complete: true,

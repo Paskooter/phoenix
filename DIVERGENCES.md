@@ -216,10 +216,28 @@ concurrent `start()` calls -> 22 fetches), fixed it by memoising the in-flight s
 re-verified: 3 concurrent starts -> 11 fetches, later sequential start still a no-op.
 LESSON: an `if (guard)` set only AFTER an await does not guard anything.
 
-## D07b/D07c — maps feature gaps (open, retained)
-`mode=transit` is answered with a driving-car route (ORS' free tier has no transit profile), and
-there is no traffic model, so `duration_in_traffic` always equals `duration` and the report skill's
-commute quality can never select Poor/Terrible. Both are provider gaps, not port defects.
+## D07b — no traffic model (CLOSED 2026-09-15, OpenRouteService replaced by TomTom)
+OpenRouteService has no traffic model at all, so `duration_in_traffic` always equalled `duration`,
+`extraMins` was always 0, and the report skill's commute quality could never select Poor or
+Terrible. The feature was dead by construction, not by configuration.
+
+ORS has been removed. `packages/data/src/maps.js` now uses TomTom Routing, which returns a real
+live-traffic breakdown on a free, no-card tier:
+
+    liveTrafficIncidentsTravelTimeInSeconds -> Google duration_in_traffic
+    noTrafficTravelTimeInSeconds            -> Google duration
+
+`computeTravelTimeFor=all` is REQUIRED. Without it TomTom silently omits the breakdown and answers
+with free-flow times only, which is indistinguishable from "no traffic right now" — the same silent
+failure mode that let the ORS gap go unnoticed. Verified live: a Boston route returned 913 s
+free-flow against 936 s with traffic, values ORS could not have produced.
+
+## D07c — maps feature gaps (open, retained)
+`mode=transit` is answered with TomTom's `bus` travel mode, which is not real transit routing.
+`overview_polyline` and `bounds` are no longer populated: TomTom returns route geometry as point
+arrays rather than an encoded polyline, and CommuteParse reads neither field. `legs[].steps`,
+`arrival_time`/`departure_time`, `warnings`, `fare` and `geocoded_waypoints` are still not produced.
+These are provider gaps, not port defects.
 
 ## N03a — conditional semantic actions are silently skipped (open)
 `parser.js parseActionBlock` accepts only `key = value` statements and `continue`s on anything else,

@@ -10,7 +10,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  COMMUTE_MODES, makeLatLon, validateMaps, mapsKey, fetchMaps, openRouteServiceToGoogleMaps,
+  COMMUTE_MODES, makeLatLon, validateMaps, mapsKey, fetchMaps, tomTomToGoogleMaps,
 } from '../src/maps.js';
 import { createDataService } from '../src/index.js';
 
@@ -19,17 +19,19 @@ const dest = JSON.stringify({ lat: 42.3727, lon: -71.1229 });
 const qs = (o, d, mode) => new URLSearchParams(
   `origin=${encodeURIComponent(o)}&destination=${encodeURIComponent(d)}` + (mode === undefined ? '' : `&mode=${mode}`));
 
-// ORS /v2/directions body (giscience.github.io/openrouteservice api-reference/
-// endpoints/directions: bbox [minLon,minLat,maxLon,maxLat], geometry encoded
-// polyline, summary {distance,duration}).
-const ORS = {
-  bbox: [-71.1229, 42.36, -71.0589, 42.3727],
+// TomTom calculateRoute body (developer.tomtom.com routing v1: summary carries
+// travelTimeInSeconds plus the traffic breakdown that computeTravelTimeFor=all
+// requests, and lengthInMeters).
+const TOMTOM = {
   routes: [{
-    summary: { distance: 16093.44, duration: 1500 },
-    bbox: [-71.1229, 42.36, -71.0589, 42.3727],
-    geometry: 'mvutG~`c`MFYGO|A{D',
-    segments: [{ distance: 16093.44, duration: 1500, steps: [] }],
-    way_points: [0, 12],
+    summary: {
+      lengthInMeters: 16093.44,
+      travelTimeInSeconds: 1500,
+      noTrafficTravelTimeInSeconds: 1500,
+      historicTrafficTravelTimeInSeconds: 1500,
+      liveTrafficIncidentsTravelTimeInSeconds: 1500,
+      trafficDelayInSeconds: 0,
+    },
   }],
 };
 
@@ -90,31 +92,29 @@ test('D07/key: google_maps:oLat;oLon;dLat;dLon;mode (GoogleMapsHandler.ts:67-70)
 
 // ------------------------------------------------------------------- routes
 
-test('D07/route-geometry: overview_polyline + bounds come from ORS geometry/bbox', () => {
-  const m = openRouteServiceToGoogleMaps(ORS, { lat: 42.3601, lon: -71.0589 }, { lat: 42.3727, lon: -71.1229 });
-  assert.equal(m.status, 'OK');
-  const route = m.routes[0];
-  assert.deepEqual(route.overview_polyline, { points: 'mvutG~`c`MFYGO|A{D' });
-  assert.deepEqual(route.bounds, {
-    northeast: { lat: 42.3727, lng: -71.0589 }, southwest: { lat: 42.36, lng: -71.1229 },
-  });
-  // absent ORS geometry/bbox -> the optional Google fields are simply omitted
-  const bare = openRouteServiceToGoogleMaps({ routes: [{ summary: { distance: 10, duration: 60 } }] }, { lat: 1, lon: 2 }, { lat: 3, lon: 4 });
-  assert.equal('overview_polyline' in bare.routes[0], false);
-  assert.equal('bounds' in bare.routes[0], false);
+test('D07/route-geometry: overview_polyline and bounds are omitted under TomTom', () => {
+  // ORS returned an encoded polyline and a bbox, so the relay used to populate
+  // Google's overview_polyline/bounds. TomTom returns route geometry as point
+  // arrays instead, and report-skill's commute subskill reads neither field, so
+  // they are deliberately not synthesised. Recorded in DIVERGENCES.md.
+  const m = tomTomToGoogleMaps(TOMTOM, { lat: 42.3601, lon: -71.0589 }, { lat: 42.3727, lon: -71.1229 });
+  assert.equal(m.routes[0].overview_polyline, undefined);
+  assert.equal(m.routes[0].bounds, undefined);
+  assert.equal(m.routes[0].summary, 'TomTom');
+  assert.equal(m.routes[0].copyrights, 'TomTom');
 });
 
-test('D07/leg: geometry, units and duration/duration_in_traffic fields', () => {
-  const leg = openRouteServiceToGoogleMaps(ORS, { lat: 42.3601, lon: -71.0589 }, { lat: 42.3727, lon: -71.1229 }).routes[0].legs[0];
+test('D07/leg: units and duration/duration_in_traffic fields', () => {
+  const leg = tomTomToGoogleMaps(TOMTOM, { lat: 42.3601, lon: -71.0589 }, { lat: 42.3727, lon: -71.1229 }).routes[0].legs[0];
   assert.deepEqual(leg.duration, { text: '25 mins', value: 1500 });
   assert.equal(leg.distance.value, 16093);            // Google's distance.value is always metres
-  assert.equal(leg.duration_in_traffic.value, leg.duration.value); // ORS has no traffic model
+  assert.equal(leg.duration_in_traffic.value, leg.duration.value); // free-flowing at this moment
   assert.deepEqual(leg.start_location, { lat: 42.3601, lng: -71.0589 });
   assert.deepEqual(leg.end_location, { lat: 42.3727, lng: -71.1229 });
 });
 
 test('D07/empty-routes: no routes -> ZERO_RESULTS with an empty routes[]', () => {
-  assert.deepEqual(openRouteServiceToGoogleMaps({ routes: [] }, {}, {}),
+  assert.deepEqual(tomTomToGoogleMaps({ routes: [] }, {}, {}),
     { status: 'ZERO_RESULTS', geocoded_waypoints: [], routes: [] });
 });
 
@@ -132,34 +132,45 @@ async function withService(port, opts, fn) {
   try { return await fn(port); } finally { await new Promise((r) => srv.close(r)); }
 }
 
-test('D07/runtime-modes: every CommuteMode reaches ORS on its own profile', async () => {
+test('D07/runtime-modes: every CommuteMode reaches TomTom on its own travel mode', async () => {
   const wire = [];
   globalThis.fetch = async (url, o) => {
-    wire.push({ url, headers: o.headers, body: JSON.parse(o.body) });
-    return new Response(JSON.stringify(ORS), { status: 200, headers: { 'content-type': 'application/json' } });
+    wire.push({ url: String(url), headers: (o && o.headers) || {} });
+    return new Response(JSON.stringify(TOMTOM), { status: 200, headers: { 'content-type': 'application/json' } });
   };
+  const priorKey = process.env.TOMTOM_API_KEY;
+  process.env.TOMTOM_API_KEY = 'test-key';
   try {
     await withService(7811, {}, async (port) => {
-      const want = { driving: 'driving-car', transit: 'driving-car', bicycling: 'cycling-regular', walking: 'foot-walking' };
+      const want = { driving: 'car', transit: 'bus', bicycling: 'bicycle', walking: 'pedestrian' };
       for (const mode of COMMUTE_MODES) {
         wire.length = 0;
         const r = await req(port, `origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(dest)}&mode=${mode}`);
         const body = await r.json();
         assert.equal(r.status, 200, mode);
-        assert.equal(new URL(wire[0].url).pathname, `/v2/directions/${want[mode]}`, mode);
-        assert.deepEqual(wire[0].body.coordinates, [[-71.0589, 42.3601], [-71.1229, 42.3727]], `${mode} lon,lat order`);
-        assert.equal(wire[0].headers['Content-Type'], 'application/json', mode);
-        assert.equal(wire[0].headers.Accept, 'application/json, application/geo+json, application/gpx+xml', mode);
+        const u = new URL(wire[0].url);
+        assert.equal(u.pathname,
+          `/routing/1/calculateRoute/42.3601,-71.0589:42.3727,-71.1229/json`, `${mode} lat,lon order`);
+        assert.equal(u.searchParams.get('travelMode'), want[mode], mode);
+        // Without computeTravelTimeFor=all TomTom silently omits the traffic
+        // breakdown, which is indistinguishable from "no traffic right now".
+        assert.equal(u.searchParams.get('computeTravelTimeFor'), 'all', mode);
+        assert.equal(u.searchParams.get('traffic'), 'true', mode);
+        assert.equal(u.searchParams.get('key'), 'test-key', mode);
         assert.equal(body.relayData.routes[0].legs[0].duration.value, 1500, mode);
         assert.equal(body.lassoDataFromRedis, false, mode);
       }
     });
-  } finally { globalThis.fetch = realFetch; }
+  } finally {
+    globalThis.fetch = realFetch;
+    if (priorKey === undefined) delete process.env.TOMTOM_API_KEY;
+    else process.env.TOMTOM_API_KEY = priorKey;
+  }
 });
 
 test('D07/runtime-reject: out-of-range coords -> 400 text, provider untouched, nothing cached', async () => {
   let calls = 0;
-  await withService(7812, { mapsGet: async () => { calls += 1; return ORS; } }, async (port) => {
+  await withService(7812, { mapsGet: async () => { calls += 1; return TOMTOM; } }, async (port) => {
     const cases = [
       [JSON.stringify({ lat: 800, lon: 58.6 }), dest, 'Invalid latitude 800'],
       [origin, JSON.stringify({ lat: -65, lon: 654 }), 'Invalid longitude 654'],
