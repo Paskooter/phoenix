@@ -7,3 +7,4 @@ export * from './envelope.js';
 export * from './validate.js';
 export { schemas } from './messages.js';
 export * as messages from './messages.js';
+export * from './llmProvider.js';

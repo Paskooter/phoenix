@@ -5,13 +5,17 @@
 // it asks an OpenAI-compatible chat endpoint (the phoenix design: LM Studio + Gemma); otherwise
 // it returns an honest placeholder so the wire path is exercised without an LLM backend.
 
-import { newMsgId } from '@phoenix/contracts';
+import { newMsgId, resolveLlmProvider, llmRequestHeaders, llmCompletionsUrl } from '@phoenix/contracts';
 import { buildSkillAction } from './jcp.js';
 
 const MAX_ANSWER_CHARS = 600;
-const LLM_URL = process.env.ETCO_answer_llmUrl || '';
-const LLM_MODEL = process.env.ETCO_answer_llmModel || 'gemma-3';
-const LLM_TIMEOUT_MS = Number(process.env.ETCO_answer_llmTimeoutMs) || 12000;
+// Endpoint resolution is shared (see @phoenix/contracts llmProvider): the
+// historical ETCO_answer_llm* names still win, with PHOENIX_LLM_* as the
+// deployment-wide fallback, plus an optional bearer token and extra headers.
+// Resolved per call so a deployment can change it without a restart.
+function llmProvider() {
+  return resolveLlmProvider('answer', { defaultModel: 'gemma-3', defaultTimeoutMs: 12000 });
+}
 
 export async function answerSkill(request) {
   const data = request.data || {};
@@ -36,13 +40,14 @@ export async function answerSkill(request) {
 
 async function getAnswer(question) {
   if (!question) return "I didn't catch a question.";
-  if (!LLM_URL) {
+  const provider = llmProvider();
+  if (!provider.url) {
     // No LLM backend wired — honest placeholder; the wire path is still fully exercised.
     return `You asked about ${question}. I don't have an answer source connected yet.`;
   }
   try {
-    const res = await fetchJson(`${LLM_URL.replace(/\/$/, '')}/chat/completions`, {
-      model: LLM_MODEL,
+    const res = await fetchJson(llmCompletionsUrl(provider), {
+      model: provider.model,
       messages: [
         { role: 'system', content: 'You are Jibo, a friendly social robot. Answer in 1-2 short spoken sentences.' },
         { role: 'user', content: question },
@@ -50,7 +55,7 @@ async function getAnswer(question) {
       temperature: 0.3,
       max_tokens: 300,
       stream: false,
-    }, LLM_TIMEOUT_MS);
+    }, provider.timeoutMs ?? 12000, llmRequestHeaders(provider));
     const msg = res && res.choices && res.choices[0] && res.choices[0].message;
     const text = msg && typeof msg.content === 'string' ? msg.content.trim() : '';
     return text ? trimToSentences(text, MAX_ANSWER_CHARS) : null;
@@ -66,11 +71,11 @@ function trimToSentences(text, max) {
   return (lastStop > 0 ? cut.slice(0, lastStop + 1) : cut).trim();
 }
 
-async function fetchJson(url, body, timeoutMs) {
+async function fetchJson(url, body, timeoutMs, headers = { 'content-type': 'application/json' }) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    const res = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), signal: ctrl.signal });
+    const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body), signal: ctrl.signal });
     if (!res.ok) throw new Error(`llm ${res.status}`);
     return await res.json();
   } finally {

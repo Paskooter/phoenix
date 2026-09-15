@@ -2948,7 +2948,15 @@
         "Compare payloads with source fixtures and render them on a compatible robot/client; lack of simulator rendering is not a completion exemption."
       ],
       "verification": [
-        "docs/parity/evidence/2026-09-14/s13-robot-views/acceptance-audit.md"
+        {
+          "date": "2026-09-14",
+          "basis": "The 61-row report-view source differential is exact (61/61 rows, 0 differences: weather 20, traffic 7, depart 4, news 5, calendar 25) and rejects all 16 adversarial controls. Five fixture-backed commute/calendar lanes captured on the authorized Moth robot against the supported @be/phoenix-parity-11-0-1 client are bound into one terminal receipt (3fc18a7c0030f037bb76b36a2f023fe7f23c6f7bd1c2c654f4bb6c1e66c1d031, decision verified_bounded, 17 rows) that passes independent strict validation with zero errors, with 29/29 receipt-bound falsification controls rejected and five further root controls against the terminal receipt. Same-session provenance is matched with zero differences over 164 immutable rows; a separately authored visual review passed 12/12 screenshots and discriminates the three traffic severities and three distinct departure times; independent validation anchors were attested by a separate witness. Three lanes ran the unidentified-speaker two-stage flow and two the recognized-speaker one-stage flow, a distinction UserIDFactory.checkSpeakerID makes a function of data.runtime.perception.speaker rather than an operator choice. 63 tests pass across the S-13 physical, shape, finalize, fixture, provenance and source-diff suites.",
+          "artifact": "docs/parity/evidence/2026-09-14/s13-robot-views/acceptance-audit.md",
+          "result": "pass",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "fcfe0fe",
+          "command": "node scripts/parity-s13-source-diff/run.mjs --out .parity/runs/s13-report-views-audit; node scripts/parity-s13-source-diff/falsify.mjs --run-dir .parity/runs/s13-report-views-audit; node --test scripts/parity-s13-physical/test.mjs scripts/parity-s13-physical/test-v2.mjs scripts/parity-s13-physical/shape.test.mjs scripts/parity-s13-physical/finalize.test.mjs scripts/parity-robot/s13-fixture.test.mjs scripts/parity-s13-provenance/collect.test.mjs; node scripts/parity-s13-physical/validate.mjs --root <RUN>/terminal --external-anchors <RUN>/external-anchors.json <RUN>/terminal/receipt.json"
+        }
       ],
       "implementationReview": {
         "state": "accepted",

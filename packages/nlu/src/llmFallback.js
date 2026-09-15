@@ -29,6 +29,8 @@
 // gateway's 10 s parser budget (packages/contracts/src/constants.js Timeouts.parser).
 
 // LLMClient.ts:18
+import { resolveLlmProvider, llmRequestHeaders, llmCompletionsUrl } from '@phoenix/contracts';
+
 export const LLM_DEFAULT_TIMEOUT_MS = 8000;
 
 // llm/states.ts
@@ -86,7 +88,13 @@ function buildTools() {
 
 /**
  * Create an LLM fallback client matching LLMClient.ts.
- * @param {{enabled?:boolean,url?:string,model?:string,timeoutMs?:number,temperature?:number}} [config]
+ *
+ * `apiKey` and `headers` are Phoenix additions carried alongside the source's
+ * five fields so a hosted OpenAI-compatible provider can be used. They affect
+ * only the request headers; with neither set the request is byte-identical to
+ * the source's.
+ *
+ * @param {{enabled?:boolean,url?:string,model?:string,timeoutMs?:number,temperature?:number,apiKey?:string,headers?:object}} [config]
  */
 export function createLLMClient(config = {}) {
   const cfg = {
@@ -95,6 +103,8 @@ export function createLLMClient(config = {}) {
     model: config.model || '',
     timeoutMs: config.timeoutMs,
     temperature: config.temperature,
+    apiKey: config.apiKey || '',
+    headers: config.headers || {},
   };
   // LLMClient.ts:55 — the constructor leaves the client NOT_READY.
   let state = LLM_STATE.NOT_READY;
@@ -118,9 +128,12 @@ export function createLLMClient(config = {}) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), ms);
     try {
-      const res = await fetch(`${cfg.url.replace(/\/$/, '')}/chat/completions`, {
+      // Headers come from the shared provider layer so any OpenAI-compatible
+      // host works. With no API key configured this is exactly the source's
+      // `{ 'content-type': 'application/json' }`.
+      const res = await fetch(llmCompletionsUrl(cfg) || `${cfg.url.replace(/\/$/, '')}/chat/completions`, {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: llmRequestHeaders(cfg),
         body: JSON.stringify(body),
         signal: ctrl.signal,
       });
@@ -177,14 +190,20 @@ export function createLLMClient(config = {}) {
 }
 
 function envConfig() {
+  // Endpoint resolution is shared (see @phoenix/contracts llmProvider): the
+  // historical ETCO_parser_llm* names still win, with PHOENIX_LLM_* as the
+  // deployment-wide fallback, plus an optional bearer token and extra headers.
+  const resolved = resolveLlmProvider('parser', { defaultModel: 'gemma-3' });
   return {
     // The source has an explicit `enabled` flag; phoenix keeps the historical
     // ETCO_parser_llmUrl switch and honours an explicit enable as well.
-    enabled: process.env.ETCO_parser_llmEnabled === 'true' || Boolean(process.env.ETCO_parser_llmUrl),
-    url: process.env.ETCO_parser_llmUrl || '',
-    model: process.env.ETCO_parser_llmModel || 'gemma-3',
-    timeoutMs: process.env.ETCO_parser_llmTimeoutMs ? Number(process.env.ETCO_parser_llmTimeoutMs) : undefined,
-    temperature: process.env.ETCO_parser_llmTemperature !== undefined ? Number(process.env.ETCO_parser_llmTemperature) : undefined,
+    enabled: process.env.ETCO_parser_llmEnabled === 'true' || Boolean(resolved.url),
+    url: resolved.url,
+    model: resolved.model,
+    apiKey: resolved.apiKey,
+    headers: resolved.headers,
+    timeoutMs: resolved.timeoutMs,
+    temperature: resolved.temperature,
   };
 }
 
