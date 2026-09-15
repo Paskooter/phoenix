@@ -65,3 +65,40 @@ from the NAND backup if anything goes wrong.
 
 Order: the credential-persistence reboot test first (cheap, before-half already
 captured), then full OOBE.
+
+---
+
+## Provenance correction — the 2026 restoration is the owner's own work
+
+**Stated by the owner on 2026-09-15**, and it invalidates an assumption several
+agents (including this one) had been treating as a hard constraint:
+
+> "that quote unquote 2026 work you're talking about was done by me and it is
+> incomplete so it is not a part of the pinned source that you need to validate
+> against. Feel free to improve it."
+
+The revisions `715e0dd0…` ("Add LLM fallback NLU client (LM Studio + Gemma)
+replacing dead Dialogflow") and `d682547a…` are the **owner's** post-shutdown
+restoration, not original Jibo code. Consequences:
+
+- **The 15-intent catalog in `llmFallback.js` is not a source constraint.** It
+  may be expanded to whatever coverage the robot actually needs. Doing so is a
+  product improvement, **not** a divergence from Jibo, and does not need to be
+  ratified as one.
+- **The external-agent ATTACH/OMIT "ratified pin"** in `externalAgents.js` is a
+  choice between real Jibo behaviour (`5c0a739`, ATTACH) and the owner's own
+  restoration (`715e0dd0`, OMIT). Only the first side is authoritative.
+- **D2's bar is lower than assumed.** The LLM NLU replacement does not have to
+  reproduce the owner's restoration; it has to work well.
+- **X-01's "restored profile"** is the owner's branch. Its answer half was never
+  implemented, and there is no obligation to reproduce an unfinished design.
+- The authoritative Jibo original remains
+  `5c0a7390539663ba749d360de348a428c088505c`.
+
+`docs/parity/SOURCES.md` carries this correction at the top; its row 1 still
+labels `d682547a` "Pinned source", which is wrong in exactly this way. The three
+NLU files that most directly constrained design on this basis
+(`llmFallback.js`, `externalAgents.js`, `fallbackArbitration.js`) now carry a
+header note. Other files still use "source-exact" language about these
+revisions; read it as "matches the owner's restoration".
+

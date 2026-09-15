@@ -1,3 +1,11 @@
+// PROVENANCE CORRECTION (2026-09-15): revision 715e0dd0 is the OWNER'S OWN 2026
+// restoration work, not original Jibo code. It is known to be incomplete and is
+// NOT an oracle. "Source-exact" below means "matches that restoration", not
+// "matches Jibo". The authoritative Jibo source is
+// 5c0a7390539663ba749d360de348a428c088505c. Improving on anything attributed to
+// 715e0dd0 is permitted and does NOT count as a divergence from Jibo.
+// See docs/parity/SOURCES.md.
+
 // LLM fallback NLU client — source-exact restoration of the Pegasus LLM stage.
 //
 // Pinned source, read through the Jibo archive MCP this session:

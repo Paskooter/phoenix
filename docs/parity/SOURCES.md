@@ -2,6 +2,31 @@
 
 Retrieved/read on **2026-09-05**. Local source is pinned in [baseline.json](evidence/2026-09-05/baseline.json). The task checklist links individual code areas. This register distinguishes source actually read from material located for follow-up.
 
+> ## Provenance correction — 2026-09-15
+>
+> **Not every revision in the Pegasus repository is original Jibo code, and the
+> distinction is load-bearing.**
+>
+> The owner confirmed that the **2026 restoration work is their own**, written
+> after Jibo shut down — specifically the revisions cited across this repo as
+> `715e0dd0…` ("Add LLM fallback NLU client … replacing dead Dialogflow") and
+> `d682547a…`. **It is known to be incomplete, it is not an oracle, and Phoenix
+> is explicitly free to improve on it.**
+>
+> The authoritative original Jibo source is
+> **`5c0a7390539663ba749d360de348a428c088505c`** — the revision the parity
+> matrices pin as `referenceRevision` and the one the differentials compare
+> against.
+>
+> Several files still describe `715e0dd0`/`d682547a` behaviour as "source-exact",
+> "pinned source" or a "ratified" divergence. Read those as *"matches the owner's
+> 2026 restoration"*, not *"matches Jibo"*. Reproducing a limitation of that
+> restoration is **not** a parity requirement, and diverging from it does not
+> need to be recorded as a divergence from Jibo.
+>
+> Row 1 below predates this correction: it labels `d682547a` "Pinned source",
+> which is wrong in exactly this way.
+
 | Source | Access and audit use | Evidence level |
 |---|---|---|
 | [Pegasus repository](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/d682547a31511cd164db0913b6104eb1786455a2) | Local checkout plus Jibo MCP repository discovery/browse/read; service entrypoints, protocol handlers, parser/routing, history, relays and skill framework/content were inspected | Pinned source; targeted review, not exhaustive function verification |
