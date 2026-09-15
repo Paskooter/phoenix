@@ -140,12 +140,15 @@ function richest(text) {
  * as nothing at all.
  */
 export function renderExample(fragment, resolve = () => null, depth = 2) {
-  let s = fragment;
+  // Tolerate a whole production: `NAME =` is grammar, never speech. Callers
+  // inside this module pass a body that has already had it removed, but the
+  // export is also used directly.
+  let s = fragment.replace(/^\s*!?[\w.:-]+\s*=(?!=)/, ' ');
   s = s.replace(/\{%[\s\S]*?%\}/g, ' ').replace(/\{[^{}]*\}/g, ' '); // semantic actions
   s = s.replace(/<[^<>]*>/g, ' ').replace(/~[\d.]+/g, ' ');          // weights and fuzz
+  s = s.replace(/\[([^\][]*)\]/g, (_, inner) => ` ${bracketWord(inner)} `); // word forms
   s = s.replace(/\?\([^()]*\)/g, ' ');                                // optional groups
   s = s.replace(/\?\$?[\w:.-]+/g, ' ');                               // optional single terms
-  s = s.replace(/\[([^\][]*)\]/g, (_, inner) => ` ${bracketWord(inner)} `); // word forms
 
   // Inline references before discarding them, so the words behind a rule name
   // are still available to this branch.

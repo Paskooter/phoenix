@@ -1,0 +1,385 @@
+{
+  "model": "deepseek/deepseek-v4.1-flash",
+  "arms": {
+    "hand15": {
+      "tools": 15,
+      "fallbackTools": 0,
+      "correct": 2,
+      "of": 40
+    },
+    "flat": {
+      "tools": 533,
+      "fallbackTools": 0,
+      "correct": 29,
+      "of": 40
+    },
+    "tiered": {
+      "tools": 76,
+      "fallbackTools": 458,
+      "correct": 28,
+      "of": 40
+    }
+  },
+  "utterances": [
+    {
+      "text": "what time is it",
+      "want": "askForTime",
+      "got": {
+        "hand15": "whatTimeIsIt",
+        "flat": "askForTime",
+        "tiered": "askForTime"
+      }
+    },
+    {
+      "text": "what's the date today",
+      "want": "askForDate",
+      "got": {
+        "hand15": "unknown",
+        "flat": "askForDate",
+        "tiered": "askForDate"
+      }
+    },
+    {
+      "text": "set a timer for five minutes",
+      "want": "timerValue",
+      "got": {
+        "hand15": "unknown",
+        "flat": "start",
+        "tiered": "start"
+      }
+    },
+    {
+      "text": "set an alarm for seven a m",
+      "want": "set",
+      "got": {
+        "hand15": "unknown",
+        "flat": "set",
+        "tiered": "set"
+      }
+    },
+    {
+      "text": "when is christmas",
+      "want": "whenIsHoliday",
+      "got": {
+        "hand15": "tellMeATip",
+        "flat": "whenIsHoliday",
+        "tiered": "whenIsHoliday"
+      }
+    },
+    {
+      "text": "turn up the volume",
+      "want": "volumeUp",
+      "got": {
+        "hand15": "unknown",
+        "flat": "unknown",
+        "tiered": "unknown"
+      }
+    },
+    {
+      "text": "turn it down a bit",
+      "want": "volumeDown",
+      "got": {
+        "hand15": "unknown",
+        "flat": "unknown",
+        "tiered": "lightsDown"
+      }
+    },
+    {
+      "text": "set the volume to five",
+      "want": "volumeToValue",
+      "got": {
+        "hand15": "unknown",
+        "flat": "unknown",
+        "tiered": "unknown"
+      }
+    },
+    {
+      "text": "go to the main menu",
+      "want": "mainMenu",
+      "got": {
+        "hand15": "launchSkill",
+        "flat": "launchMainMenu",
+        "tiered": "launchMainMenu"
+      }
+    },
+    {
+      "text": "what can you do",
+      "want": "whatCanIDo",
+      "got": {
+        "hand15": "tellMeAboutYourself",
+        "flat": "whatCanIDo",
+        "tiered": "whatCanIDo"
+      }
+    },
+    {
+      "text": "thank you",
+      "want": "thanks",
+      "got": {
+        "hand15": "thanks",
+        "flat": "thankJiboForAction",
+        "tiered": "thankJiboForAction"
+      }
+    },
+    {
+      "text": "say that again",
+      "want": "repeat",
+      "got": {
+        "hand15": "unknown",
+        "flat": "requestRepeat",
+        "tiered": "requestRepeat"
+      }
+    },
+    {
+      "text": "go to sleep",
+      "want": "sleep",
+      "got": {
+        "hand15": "unknown",
+        "flat": "goodNight",
+        "tiered": "goodNight"
+      }
+    },
+    {
+      "text": "turn on the lights",
+      "want": "lightsOn",
+      "got": {
+        "hand15": "unknown",
+        "flat": "lightsOn",
+        "tiered": "lightsOn"
+      }
+    },
+    {
+      "text": "turn off the lights",
+      "want": "lightsOff",
+      "got": {
+        "hand15": "unknown",
+        "flat": "lightsOff",
+        "tiered": "lightsOff"
+      }
+    },
+    {
+      "text": "make the lights warmer",
+      "want": "lightsWarm",
+      "got": {
+        "hand15": "unknown",
+        "flat": "lightsWarm",
+        "tiered": "lightsWarm"
+      }
+    },
+    {
+      "text": "dim the lights",
+      "want": "lightsDown",
+      "got": {
+        "hand15": "unknown",
+        "flat": "lightsDown",
+        "tiered": "lightsDown"
+      }
+    },
+    {
+      "text": "what song is this",
+      "want": "get_track",
+      "got": {
+        "hand15": "unknown",
+        "flat": "unknown",
+        "tiered": "generalWhatQuestions"
+      }
+    },
+    {
+      "text": "what stations do you have",
+      "want": "showStations",
+      "got": {
+        "hand15": "unknown",
+        "flat": "showStations",
+        "tiered": "showStations"
+      }
+    },
+    {
+      "text": "how is my commute",
+      "want": "requestCommute",
+      "got": {
+        "hand15": "chitchat",
+        "flat": "requestCommute",
+        "tiered": "requestCommute"
+      }
+    },
+    {
+      "text": "what's on my calendar",
+      "want": "requestCalendar",
+      "got": {
+        "hand15": "unknown",
+        "flat": "requestCalendar",
+        "tiered": "requestCalendar"
+      }
+    },
+    {
+      "text": "what's in the news",
+      "want": "requestNews",
+      "got": {
+        "hand15": "unknown",
+        "flat": "requestNews",
+        "tiered": "requestNews"
+      }
+    },
+    {
+      "text": "take a picture",
+      "want": "createOnePhoto",
+      "got": {
+        "hand15": "launchSkill",
+        "flat": "createOnePhoto",
+        "tiered": "createOnePhoto"
+      }
+    },
+    {
+      "text": "record a video",
+      "want": "createVideo",
+      "got": {
+        "hand15": "launchSkill",
+        "flat": "requestRecordVideo",
+        "tiered": "requestRecordVideo"
+      }
+    },
+    {
+      "text": "open the gallery",
+      "want": "galleryOpen",
+      "got": {
+        "hand15": "launchSkill",
+        "flat": "galleryOpen",
+        "tiered": "galleryOpen"
+      }
+    },
+    {
+      "text": "who am i",
+      "want": "launchWhoAmI",
+      "got": {
+        "hand15": "whoAmI",
+        "flat": "launchWhoAmI",
+        "tiered": "launchWhoAmI"
+      }
+    },
+    {
+      "text": "good morning",
+      "want": "goodMorning",
+      "got": {
+        "hand15": "whatsUp",
+        "flat": "goodMorning",
+        "tiered": "goodMorning"
+      }
+    },
+    {
+      "text": "goodbye",
+      "want": "goodBye",
+      "got": {
+        "hand15": "goodbye",
+        "flat": "goodBye",
+        "tiered": "goodBye"
+      }
+    },
+    {
+      "text": "hey jibo",
+      "want": "heyJibo",
+      "got": {
+        "hand15": "whatsUp",
+        "flat": "heyJibo",
+        "tiered": "heyJibo"
+      }
+    },
+    {
+      "text": "how much battery do you have",
+      "want": "battery",
+      "got": {
+        "hand15": "unknown",
+        "flat": "battery",
+        "tiered": "battery"
+      }
+    },
+    {
+      "text": "are you connected to wifi",
+      "want": "wifiStatus",
+      "got": {
+        "hand15": "unknown",
+        "flat": "wifiStatus",
+        "tiered": "wifiStatus"
+      }
+    },
+    {
+      "text": "tell me a knock knock joke",
+      "want": "jokeKnockKnock",
+      "got": {
+        "hand15": "tellAJoke",
+        "flat": "jokeKnockKnock",
+        "tiered": "jokeKnockKnock"
+      }
+    },
+    {
+      "text": "what's the weather tomorrow",
+      "want": "requestWeather",
+      "got": {
+        "hand15": "unknown",
+        "flat": "requestWeather",
+        "tiered": "requestWeatherPR"
+      }
+    },
+    {
+      "text": "do you like pizza",
+      "want": "doesJiboLikeThing",
+      "got": {
+        "hand15": "doYouLike",
+        "flat": "doesJiboLikeTasteOfThing",
+        "tiered": "doesJiboLikeTasteOfThing"
+      }
+    },
+    {
+      "text": "tell me about yourself",
+      "want": "requestTellAboutYourself",
+      "got": {
+        "hand15": "tellMeAboutYourself",
+        "flat": "requestTellAboutYourself",
+        "tiered": "requestTellAboutYourself"
+      }
+    },
+    {
+      "text": "dance for me",
+      "want": "requestDance",
+      "got": {
+        "hand15": "unknown",
+        "flat": "requestDance",
+        "tiered": "requestDance"
+      }
+    },
+    {
+      "text": "tell me a story",
+      "want": "requestStory",
+      "got": {
+        "hand15": "unknown",
+        "flat": "requestStory",
+        "tiered": "requestStory"
+      }
+    },
+    {
+      "text": "who is alexa",
+      "want": "whoIsPerson",
+      "got": {
+        "hand15": "chitchat",
+        "flat": "whoIsPerson",
+        "tiered": "whoIsPerson"
+      }
+    },
+    {
+      "text": "sing me a song",
+      "want": "requestSingSong",
+      "got": {
+        "hand15": "unknown",
+        "flat": "requestSingSong",
+        "tiered": "requestSingSong"
+      }
+    },
+    {
+      "text": "asdfgh qwerty zxcvb",
+      "want": "unknown",
+      "got": {
+        "hand15": "unknown",
+        "flat": "unknown",
+        "tiered": "unknown"
+      }
+    }
+  ]
+}

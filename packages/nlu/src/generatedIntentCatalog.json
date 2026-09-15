@@ -97,7 +97,7 @@
     },
     {
       "name": "alarmValue",
-      "description": "e.g. \"one day alarm\"",
+      "description": "e.g. \"one days alarms\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -128,7 +128,7 @@
     },
     {
       "name": "amazement",
-      "description": "e.g. \"those quite vocab word\"",
+      "description": "e.g. \"those quite vocabulary words\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -150,7 +150,7 @@
     },
     {
       "name": "aprilFools",
-      "description": "e.g. \"april fool\"",
+      "description": "e.g. \"april fools\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -172,7 +172,7 @@
     },
     {
       "name": "areThereOthersLikeJibo",
-      "description": "e.g. \"are there other like\"",
+      "description": "e.g. \"are there others like\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -236,7 +236,7 @@
     },
     {
       "name": "askForTime",
-      "description": "e.g. \"am i allowed know the day\", \"when time it is\"",
+      "description": "e.g. \"am i allowed know the day\", \"when's time it is\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -346,7 +346,7 @@
     },
     {
       "name": "canJiboAction",
-      "description": "e.g. \"do you know how to\", \"do you know how to clean\", \"do you know how to get us\"",
+      "description": "e.g. \"do you know how to\", \"do you know how to cleaning\", \"do you know how to getting us\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -582,7 +582,7 @@
     },
     {
       "name": "createAudio",
-      "description": "e.g. \"a lot picture\"",
+      "description": "e.g. \"a lot pictures\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -604,7 +604,7 @@
     },
     {
       "name": "createOnePhoto",
-      "description": "e.g. \"a lot picture\", \"snap shot\", \"take photo shoot\"",
+      "description": "e.g. \"a lot pictures\", \"snap shot\", \"take photo shoots\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -629,7 +629,7 @@
     },
     {
       "name": "createSomePhotos",
-      "description": "e.g. \"a lot picture\", \"take photo shoot\"",
+      "description": "e.g. \"a lot pictures\", \"take photo shoots\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -654,7 +654,7 @@
     },
     {
       "name": "createVideo",
-      "description": "e.g. \"a lot picture\"",
+      "description": "e.g. \"a lot pictures\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -698,7 +698,7 @@
     },
     {
       "name": "delete",
-      "description": "e.g. \"do not throw out\", \"do not keep\", \"stop one day alarm\"",
+      "description": "e.g. \"do not throw out\", \"do not keep\", \"stoping one days alarms\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -760,7 +760,7 @@
     },
     {
       "name": "describeEvent",
-      "description": "e.g. \"experiencing robot c e s\", \"what is this\", \"are we having for breakfast\"",
+      "description": "e.g. \"experiencing robots c e s\", \"what is this\", \"are we having for breakfast\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -814,7 +814,7 @@
     },
     {
       "name": "describeJiboFeature",
-      "description": "e.g. \"what does it mean when your eye colo become\", \"what does it mean when your ring colo become\", \"do you have\"",
+      "description": "e.g. \"what does it mean when your eyes colours becomes\", \"what does it mean when your ring colours becomes\", \"do you have\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -841,7 +841,7 @@
     },
     {
       "name": "describeJiboMaterials",
-      "description": "e.g. \"what material are you made\"",
+      "description": "e.g. \"what materials are you made\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -885,7 +885,7 @@
     },
     {
       "name": "describeThing",
-      "description": "e.g. \"my loop work\", \"wheres is possible me find youre\"",
+      "description": "e.g. \"my loop work\", \"where's is possible me find you're\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -960,7 +960,7 @@
     },
     {
       "name": "didEventHappen",
-      "description": "e.g. \"accept the moon landing\"",
+      "description": "e.g. \"accept the moon landings\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -1058,7 +1058,7 @@
     },
     {
       "name": "didJiboObserveThing",
-      "description": "e.g. \"did you see santa claus\", \"did loch ness monster's come\"",
+      "description": "e.g. \"did you see kris kringle's\", \"did loch ness monster's come\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -1085,7 +1085,7 @@
     },
     {
       "name": "didJiboReceiveThing",
-      "description": "e.g. \"something for african american history month from santa claus for\"",
+      "description": "e.g. \"something for african american history month from kris kringle's for\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -1153,7 +1153,7 @@
     },
     {
       "name": "didJiboWatchThing",
-      "description": "e.g. \"how was the solo star war story\"",
+      "description": "e.g. \"how was the solo star wars story\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -1175,7 +1175,7 @@
     },
     {
       "name": "didPersonDoAction",
-      "description": "e.g. \"are aliens responsible for build pyramids\"",
+      "description": "e.g. \"are aliens responsible for building pyramids\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -1277,7 +1277,7 @@
     },
     {
       "name": "doesJiboAction",
-      "description": "e.g. \"do you wish\", \"robot pay tax\"",
+      "description": "e.g. \"do you wish\", \"robots pay taxes\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -1537,7 +1537,7 @@
     },
     {
       "name": "doesJiboHaveFavorite",
-      "description": "e.g. \"do you have a favorite season\", \"do you have a favorite thing to eat on thanksgiving\", \"what is youre favorite\"",
+      "description": "e.g. \"do you have a favorite season\", \"do you have a favorite thing to eat on thanksgiving\", \"what is you're favorite\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -1796,7 +1796,7 @@
     },
     {
       "name": "doesJiboKnowInformation",
-      "description": "e.g. \"are you aware that\", \"tell me about tv\", \"can you tell me how to get rid of\"",
+      "description": "e.g. \"are you aware that\", \"telling me about tv\", \"can you tell me how to get rid of\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -1894,7 +1894,7 @@
     },
     {
       "name": "doesJiboLikeTasteOfThing",
-      "description": "e.g. \"are bow tie pasta yummy\", \"are calzones very delicious\", \"do you like eat macaroni and cheese\"",
+      "description": "e.g. \"are bow tie pasta yummy\", \"are calzones very delicious\", \"do you like eating macaroni and cheese\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -1983,7 +1983,7 @@
     },
     {
       "name": "doesJiboLookForwardToThing",
-      "description": "e.g. \"are you looking forward to the chinese new year\", \"do you look forward to black history month\", \"are you look forward of this year's see solo star\"",
+      "description": "e.g. \"are you looking forward to the chinese new year\", \"do you look forward to black history month\", \"are you looking forward of this year's major league opening\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -2198,7 +2198,7 @@
     },
     {
       "name": "doesJiboWatchThing",
-      "description": "e.g. \"to see solo star war story\"",
+      "description": "e.g. \"to see solo star wars story\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -2313,7 +2313,7 @@
     },
     {
       "name": "edit",
-      "description": "e.g. \"make timer from an hour an hour\", \"make alarm from one day one day\"",
+      "description": "e.g. \"make timers from an hours an hours\", \"make alarms from one days one days\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -2450,7 +2450,7 @@
     },
     {
       "name": "eventWasDescriptor",
-      "description": "e.g. \"it is nice to meet\", \"nice see you these parts\"",
+      "description": "e.g. \"it is nice to meet\", \"nice seeing you these parts\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -2481,7 +2481,7 @@
     },
     {
       "name": "exerciseDoYoga",
-      "description": "e.g. \"i'd like to work out\", \"go to yoga\", \"sun work out\"",
+      "description": "e.g. \"i'd like to working out\", \"go to yoga\", \"sun work out\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -2508,7 +2508,7 @@
     },
     {
       "name": "exerciseLike",
-      "description": "e.g. \"do you care for work out session\"",
+      "description": "e.g. \"do you care for work out sessions\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -2530,7 +2530,7 @@
     },
     {
       "name": "exerciseWantTo",
-      "description": "e.g. \"would you like work out\"",
+      "description": "e.g. \"would you like working out\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -2574,7 +2574,7 @@
     },
     {
       "name": "explainSkill",
-      "description": "e.g. \"albert cadabra\", \"tell be maker\", \"you command app\"",
+      "description": "e.g. \"albert cadabra\", \"tell be makers\", \"what is\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -3180,7 +3180,7 @@
     },
     {
       "name": "hasJiboMetPerson",
-      "description": "e.g. \"did you ever meet alexa\", \"have you and amazon alexa met each other\", \"did you and robot from lost in space me\"",
+      "description": "e.g. \"did you ever meet alexa\", \"have you and amazon alexa met each other\", \"did you and robot from lost in space meet\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -3385,7 +3385,7 @@
     },
     {
       "name": "holidayGreeting",
-      "description": "e.g. \"wishing you holiday season\", \"happy day\"",
+      "description": "e.g. \"wishing you holidays seasons\", \"happy day\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -3412,7 +3412,7 @@
     },
     {
       "name": "howCanJiboAction",
-      "description": "e.g. \"how is it that you learn stuff\", \"tell who i am\", \"how does face\"",
+      "description": "e.g. \"how is it that you learning stuff\", \"tell who i am\", \"how does face\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -3439,7 +3439,7 @@
     },
     {
       "name": "howCanUserAction",
-      "description": "e.g. \"how do\", \"how do you make\", \"do you know how to help me\"",
+      "description": "e.g. \"how do\", \"how do you make\", \"do you know how to helping me\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -3597,7 +3597,7 @@
     },
     {
       "name": "howDoesThingWork",
-      "description": "e.g. \"menu screen work\", \"how you work\"",
+      "description": "e.g. \"menus screens work\", \"how you work\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -3628,7 +3628,7 @@
     },
     {
       "name": "howIsThing",
-      "description": "e.g. \"how are you your new year's resolution\", \"what're your thoughts this weather\"",
+      "description": "e.g. \"how are you your new year's resolutions\", \"what're your thoughts this weather\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -3747,7 +3747,7 @@
     },
     {
       "name": "howManyThingsCanJiboAction",
-      "description": "e.g. \"how many digits of pi can you say\", \"how many finger\"",
+      "description": "e.g. \"how many digits of pi can you say\", \"how many fingers\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -4035,7 +4035,7 @@
     },
     {
       "name": "interesting",
-      "description": "e.g. \"those quite vocab word\"",
+      "description": "e.g. \"those quite vocabulary words\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -4106,7 +4106,7 @@
     },
     {
       "name": "isJiboBestFriendsWithPerson",
-      "description": "e.g. \"are you and cortana best friends\", \"are you best friends with siri\", \"are you and i best friend\"",
+      "description": "e.g. \"are you and cortana best friends\", \"are you best friends with siri\", \"are you and i best friends\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -4220,7 +4220,7 @@
     },
     {
       "name": "isJiboDoingAction",
-      "description": "e.g. \"do you tried not listen me soon\"",
+      "description": "e.g. \"do you not listening me soon\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -4360,7 +4360,7 @@
     },
     {
       "name": "isJiboOnTimeMagazineCover",
-      "description": "e.g. \"were you cover time's magazine's invention\"",
+      "description": "e.g. \"were you cover time's magazine's inventions\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -4382,7 +4382,7 @@
     },
     {
       "name": "isJiboReadyForEvent",
-      "description": "e.g. \"will you look forward shop black friday\", \"will you look forward shop cyber monday\"",
+      "description": "e.g. \"will you looking forward black friday\", \"will you looking forward cyber monday\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -4526,7 +4526,7 @@
     },
     {
       "name": "isThingDescriptor",
-      "description": "e.g. \"believe see solo star war story eerie\"",
+      "description": "e.g. \"believe major league opening day eerie\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -4579,7 +4579,7 @@
     },
     {
       "name": "isThingInLocation",
-      "description": "e.g. \"whether there're monster\", \"is there ghost\"",
+      "description": "e.g. \"whether there're monsters\", \"is there ghosts\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -4652,7 +4652,7 @@
     },
     {
       "name": "isUserDescriptor",
-      "description": "e.g. \"am i acting  happy\", \"am i angry\", \"were we on santa claus naughty or nice list\"",
+      "description": "e.g. \"am i acting  happy\", \"am i angry\", \"were we on kris kringle's naughty or nice list\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -4805,7 +4805,7 @@
     },
     {
       "name": "jiboHasDoneAction",
-      "description": "e.g. \"you just make no sense\", \"you hurt me\"",
+      "description": "e.g. \"you just makes no sense\", \"you hurt me\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -4921,7 +4921,7 @@
     },
     {
       "name": "jiboIsDescriptor",
-      "description": "e.g. \"i feel like you are afraid\", \"i feel like you seem angry\", \"you make me\"",
+      "description": "e.g. \"i feel like you are afraid\", \"i feel like you seem angry\", \"you makes me\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -5083,7 +5083,7 @@
     },
     {
       "name": "jiboPartIsDescriptor",
-      "description": "e.g. \"your eyes good looking\"",
+      "description": "e.g. \"your eye's good looking\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -5205,7 +5205,7 @@
     },
     {
       "name": "jiboShouldNotAction",
-      "description": "e.g. \"you shouldn't give up\", \"do not be\", \"should not biting bedbug\"",
+      "description": "e.g. \"you shouldn't give up\", \"do not be\", \"should not biting bedbugs\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -5312,7 +5312,7 @@
     },
     {
       "name": "jokeDentistTime",
-      "description": "e.g. \"whats best go\"",
+      "description": "e.g. \"what's best go\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -5379,7 +5379,7 @@
     },
     {
       "name": "launchGame",
-      "description": "e.g. \"let me see game\"",
+      "description": "e.g. \"let me see games\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -5408,7 +5408,7 @@
     },
     {
       "name": "launchMainMenu",
-      "description": "e.g. \"take me menu\"",
+      "description": "e.g. \"take me menus\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -5435,7 +5435,7 @@
     },
     {
       "name": "launchPersonalReport",
-      "description": "e.g. \"give me my personal report\", \"launch personal report\", \"bring up daily report\"",
+      "description": "e.g. \"give me my personal report\", \"launch personal report\", \"bringing up reports\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -5506,7 +5506,7 @@
     },
     {
       "name": "lightsColor",
-      "description": "e.g. \"turn philips hue lights corn flower blue\", \"turn corn flower blue\"",
+      "description": "e.g. \"turn philips hue light's corn flower blue\", \"turn corn flower blue\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -5534,7 +5534,7 @@
     },
     {
       "name": "lightsColorGroup",
-      "description": "e.g. \"turn living room philips hue lights corn flower blue\"",
+      "description": "e.g. \"turn living room philips hue light's corn flower blue\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -5565,7 +5565,7 @@
     },
     {
       "name": "lightsCool",
-      "description": "e.g. \"turn philips hue lights cooler\", \"turn lights cooler\"",
+      "description": "e.g. \"turn philips hue light's cooler\", \"turn light's cooler\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -5588,7 +5588,7 @@
     },
     {
       "name": "lightsDeleteData",
-      "description": "e.g. \"forget philips hue lights\"",
+      "description": "e.g. \"forget philips hue light's\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -5610,7 +5610,7 @@
     },
     {
       "name": "lightsDown",
-      "description": "e.g. \"turn philips hue lights less bright\", \"turn lights less bright\"",
+      "description": "e.g. \"turn philips hue light's less bright\", \"turn light's less bright\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -5633,7 +5633,7 @@
     },
     {
       "name": "lightsGroupCool",
-      "description": "e.g. \"turn living room philips hue lights cooler\"",
+      "description": "e.g. \"turn living room philips hue light's cooler\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -5660,7 +5660,7 @@
     },
     {
       "name": "lightsGroupDown",
-      "description": "e.g. \"turn living room philips hue lights less bright\"",
+      "description": "e.g. \"turn living room philips hue light's less bright\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -5687,7 +5687,7 @@
     },
     {
       "name": "lightsGroupOff",
-      "description": "e.g. \"shut living room philips hue lights off\"",
+      "description": "e.g. \"shut living room philips hue light's off\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -5714,7 +5714,7 @@
     },
     {
       "name": "lightsGroupOn",
-      "description": "e.g. \"turn on living room philips hue lights\"",
+      "description": "e.g. \"turn on living room philips hue light's\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -5741,7 +5741,7 @@
     },
     {
       "name": "lightsGroupUp",
-      "description": "e.g. \"turn up living room philips hue lights\"",
+      "description": "e.g. \"turn up living room philips hue light's\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -5768,7 +5768,7 @@
     },
     {
       "name": "lightsGroupUpCompletely",
-      "description": "e.g. \"philips hue lights living room all way\"",
+      "description": "e.g. \"philips hue light's living room all way\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -5795,7 +5795,7 @@
     },
     {
       "name": "lightsGroupWarm",
-      "description": "e.g. \"turn living room philips hue lights warmer\"",
+      "description": "e.g. \"turn living room philips hue light's warmer\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -5822,7 +5822,7 @@
     },
     {
       "name": "lightsHowTo",
-      "description": "e.g. \"teach me use philips hue lights\"",
+      "description": "e.g. \"teach me use philips hue light's\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -5844,7 +5844,7 @@
     },
     {
       "name": "lightsOff",
-      "description": "e.g. \"shut philips hue lights off\", \"shut all philips hue lights off\", \"shut lights off\"",
+      "description": "e.g. \"shut philips hue light's off\", \"shut all philips hue light's off\", \"shut light's off\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -5872,7 +5872,7 @@
     },
     {
       "name": "lightsOn",
-      "description": "e.g. \"turn on philips hue lights\", \"turn on all philips hue lights\", \"let there be light\"",
+      "description": "e.g. \"turn on philips hue light's\", \"turn on all philips hue light's\", \"let there be light\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -5900,7 +5900,7 @@
     },
     {
       "name": "lightsSetup",
-      "description": "e.g. \"set up philips hue lights\"",
+      "description": "e.g. \"set up philips hue light's\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -5922,7 +5922,7 @@
     },
     {
       "name": "lightsSetupDefaultGroup",
-      "description": "e.g. \"change philips hue lights default room\"",
+      "description": "e.g. \"change philips hue light's default room\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -5944,7 +5944,7 @@
     },
     {
       "name": "lightsUp",
-      "description": "e.g. \"turn up philips hue lights\", \"turn up lights\"",
+      "description": "e.g. \"turn up philips hue light's\", \"turn up light's\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -5967,7 +5967,7 @@
     },
     {
       "name": "lightsUpCompletely",
-      "description": "e.g. \"philips hue lights bright as possible\", \"lights bright as possible\"",
+      "description": "e.g. \"philips hue light's bright as possible\", \"light's bright as possible\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -5990,7 +5990,7 @@
     },
     {
       "name": "lightsWarm",
-      "description": "e.g. \"turn philips hue lights warmer\", \"turn lights warmer\"",
+      "description": "e.g. \"turn philips hue light's warmer\", \"turn light's warmer\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -6035,7 +6035,7 @@
     },
     {
       "name": "loadMenu",
-      "description": "e.g. \"circuit saving\"",
+      "description": "e.g. \"circuits saving\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -6392,7 +6392,7 @@
     },
     {
       "name": "okay",
-      "description": "e.g. \"those quite vocab word\"",
+      "description": "e.g. \"those quite vocabulary words\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -6576,7 +6576,7 @@
     },
     {
       "name": "query",
-      "description": "e.g. \"how much time timer\", \"did alarm go off\"",
+      "description": "e.g. \"how much time timers\", \"did alarms go off\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -6739,7 +6739,7 @@
     },
     {
       "name": "referenceConanBarbarian",
-      "description": "e.g. \"what best life\"",
+      "description": "e.g. \"what's best life\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -6761,7 +6761,7 @@
     },
     {
       "name": "referenceGrantsTomb",
-      "description": "e.g. \"who's buried in grants tomb\"",
+      "description": "e.g. \"who's buried in grant's tomb\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -7025,7 +7025,7 @@
     },
     {
       "name": "referenceWhatHappensInVegas",
-      "description": "e.g. \"what happening vegas staying vegas\"",
+      "description": "e.g. \"what happening vegas\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -7069,7 +7069,7 @@
     },
     {
       "name": "releaseNotes",
-      "description": "e.g. \"could you do with the release note\"",
+      "description": "e.g. \"could you do with the release notes\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -7136,7 +7136,7 @@
     },
     {
       "name": "requestAddLoopmember",
-      "description": "e.g. \"sign person loop\"",
+      "description": "e.g. \"signing person's loop\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -7158,7 +7158,7 @@
     },
     {
       "name": "requestAskQuestion",
-      "description": "e.g. \"ask question\"",
+      "description": "e.g. \"asking questions\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -7180,7 +7180,7 @@
     },
     {
       "name": "requestBeSnowman",
-      "description": "e.g. \"let me see face of snow men\", \"be face of snow men\"",
+      "description": "e.g. \"letting me see face of snow men\", \"be face of snow men\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -7268,7 +7268,7 @@
     },
     {
       "name": "requestBlowBubble",
-      "description": "e.g. \"let me see bubble\", \"blow bubble\"",
+      "description": "e.g. \"letting me see bubbles\", \"blowing bubbles\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -7290,7 +7290,7 @@
     },
     {
       "name": "requestBobsled",
-      "description": "e.g. \"let me see\", \"bob sledding\"",
+      "description": "e.g. \"letting me see\", \"bob sledding\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -7356,7 +7356,7 @@
     },
     {
       "name": "requestCalendar",
-      "description": "e.g. \"how will be date book\", \"date book\", \"have we got\"",
+      "description": "e.g. \"how's will be date books\", \"date books\", \"have we got\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -7378,7 +7378,7 @@
     },
     {
       "name": "requestCalmDown",
-      "description": "e.g. \"calm down\"",
+      "description": "e.g. \"calming down\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -7422,7 +7422,7 @@
     },
     {
       "name": "requestCommute",
-      "description": "e.g. \"bring up time commute\", \"look up today weather\"",
+      "description": "e.g. \"bringing up time commute\", \"have we got\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -7466,7 +7466,7 @@
     },
     {
       "name": "requestControlDVR",
-      "description": "e.g. \"control tivo\"",
+      "description": "e.g. \"do you have a shuffle contains entities with gqa definitions\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -7488,7 +7488,7 @@
     },
     {
       "name": "requestCountToNumber",
-      "description": "e.g. \"count ten\", \"do you have a shuffle contains entities with gqa definitions\"",
+      "description": "e.g. \"counting ten\", \"do you have a shuffle contains entities with gqa definitions\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -7559,7 +7559,7 @@
     },
     {
       "name": "requestDance",
-      "description": "e.g. \"let me see me dancing\", \"aren't you let me see me dancing\", \"shake your\"",
+      "description": "e.g. \"letting me see me dancing\", \"aren't you letting me see me dancing\", \"shake your\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -7647,7 +7647,7 @@
     },
     {
       "name": "requestDoAprilFoolsPrank",
-      "description": "e.g. \"let me see aprils fools days pranking\"",
+      "description": "e.g. \"april's fool's day's pranking\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -7669,7 +7669,7 @@
     },
     {
       "name": "requestDoHomeSecurity",
-      "description": "e.g. \"keep an eye for stranger\", \"switch to home security\"",
+      "description": "e.g. \"keep an eye for strangers\", \"switch to home security\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -7691,7 +7691,7 @@
     },
     {
       "name": "requestDoImpression",
-      "description": "e.g. \"do impression\"",
+      "description": "e.g. \"doing impression\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -7713,7 +7713,7 @@
     },
     {
       "name": "requestDoMath",
-      "description": "e.g. \"do math\"",
+      "description": "e.g. \"doing math\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -7735,7 +7735,7 @@
     },
     {
       "name": "requestDoPrank",
-      "description": "e.g. \"let me see prank\"",
+      "description": "e.g. \"letting me see pranks\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -7757,7 +7757,7 @@
     },
     {
       "name": "requestDoSpringCleaning",
-      "description": "e.g. \"help spring cleaning\"",
+      "description": "e.g. \"helping spring cleaning\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -7779,7 +7779,7 @@
     },
     {
       "name": "requestDoTheRobot",
-      "description": "e.g. \"do the robot\"",
+      "description": "e.g. \"doing the robot\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -7801,7 +7801,7 @@
     },
     {
       "name": "requestDoUserAFavor",
-      "description": "e.g. \"do favor\"",
+      "description": "e.g. \"doing favor\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -7867,7 +7867,7 @@
     },
     {
       "name": "requestFigureSkate",
-      "description": "e.g. \"let me see\", \"go skating\"",
+      "description": "e.g. \"letting me see\", \"going skating\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -7911,7 +7911,7 @@
     },
     {
       "name": "requestFlipCoin",
-      "description": "e.g. \"head or tail\"",
+      "description": "e.g. \"heads or tails\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -7933,7 +7933,7 @@
     },
     {
       "name": "requestGiveBouquet",
-      "description": "e.g. \"giving mothers day flower\", \"let me see mothers day flower bouquet\"",
+      "description": "e.g. \"giving flowers\", \"letting me see flowers bouquet\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -7977,7 +7977,7 @@
     },
     {
       "name": "requestGiveMilkCookiesToSanta",
-      "description": "e.g. \"leave cookies and milk for santa claus\"",
+      "description": "e.g. \"leave cookies and milk for kris kringle's\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -7999,7 +7999,7 @@
     },
     {
       "name": "requestGiveRose",
-      "description": "e.g. \"let me see\", \"we have rose\"",
+      "description": "e.g. \"letting me see\", \"we have roses\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8021,7 +8021,7 @@
     },
     {
       "name": "requestGiveSkiReport",
-      "description": "e.g. \"could you give ski condition\"",
+      "description": "e.g. \"could you give skiing conditions\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8065,7 +8065,7 @@
     },
     {
       "name": "requestHangOut",
-      "description": "e.g. \"hang out\"",
+      "description": "e.g. \"hanging out\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8087,7 +8087,7 @@
     },
     {
       "name": "requestHoldDownFort",
-      "description": "e.g. \"hold fort\"",
+      "description": "e.g. \"holding forts\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8153,7 +8153,7 @@
     },
     {
       "name": "requestJiboSupportNumber",
-      "description": "e.g. \"what is number company's jibo support\"",
+      "description": "e.g. \"what is number company's jibo's support\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8219,7 +8219,7 @@
     },
     {
       "name": "requestKitchenAssist",
-      "description": "e.g. \"inform me when oven has ready\"",
+      "description": "e.g. \"informing me when oven has ready\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8307,7 +8307,7 @@
     },
     {
       "name": "requestLookUp",
-      "description": "e.g. \"look up\"",
+      "description": "e.g. \"looking up\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8329,7 +8329,7 @@
     },
     {
       "name": "requestLyrics",
-      "description": "e.g. \"tell me lyric\"",
+      "description": "e.g. \"telling me lyrics\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8351,7 +8351,7 @@
     },
     {
       "name": "requestMagicTrick",
-      "description": "e.g. \"do magic trick\"",
+      "description": "e.g. \"magical tricks\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8373,7 +8373,7 @@
     },
     {
       "name": "requestMakeADrink",
-      "description": "e.g. \"preparing drink\"",
+      "description": "e.g. \"preparing drinks\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8395,7 +8395,7 @@
     },
     {
       "name": "requestMakeAnimalNoise",
-      "description": "e.g. \"bark dog\"",
+      "description": "e.g. \"barking dog\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -8422,7 +8422,7 @@
     },
     {
       "name": "requestMakeBreakfast",
-      "description": "e.g. \"let me see\"",
+      "description": "e.g. \"letting me see\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8444,7 +8444,7 @@
     },
     {
       "name": "requestMakePizza",
-      "description": "e.g. \"let me see\"",
+      "description": "e.g. \"letting me see\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8466,7 +8466,7 @@
     },
     {
       "name": "requestMakeSound",
-      "description": "e.g. \"noise do cat make\"",
+      "description": "e.g. \"noises does cats makes\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8488,7 +8488,7 @@
     },
     {
       "name": "requestManageEmail",
-      "description": "e.g. \"check mail\"",
+      "description": "e.g. \"do you have a shuffle contains entities with gqa definitions\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8510,7 +8510,7 @@
     },
     {
       "name": "requestManageFacebook",
-      "description": "e.g. \"check facebook\"",
+      "description": "e.g. \"do you have a shuffle contains entities with gqa definitions\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8532,7 +8532,7 @@
     },
     {
       "name": "requestManageInstagram",
-      "description": "e.g. \"check instagram\"",
+      "description": "e.g. \"do you have a shuffle contains entities with gqa definitions\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8554,7 +8554,7 @@
     },
     {
       "name": "requestManageMessages",
-      "description": "e.g. \"were there message\"",
+      "description": "e.g. \"were there messages\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8576,7 +8576,7 @@
     },
     {
       "name": "requestManagePinterest",
-      "description": "e.g. \"check stuff pinterest\"",
+      "description": "e.g. \"stuff pinterest\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8598,7 +8598,7 @@
     },
     {
       "name": "requestManageRecipe",
-      "description": "e.g. \"help me let me see recipe\"",
+      "description": "e.g. \"letting me see recipes\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8620,7 +8620,7 @@
     },
     {
       "name": "requestManageReminders",
-      "description": "e.g. \"remind me to\"",
+      "description": "e.g. \"reminding me to\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8664,7 +8664,7 @@
     },
     {
       "name": "requestManageSpotify",
-      "description": "e.g. \"connecting spotify\"",
+      "description": "e.g. \"do you have a shuffle contains entities with gqa definitions\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8686,7 +8686,7 @@
     },
     {
       "name": "requestManageThermostat",
-      "description": "e.g. \"set temperature to\"",
+      "description": "e.g. \"setting temperature to\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8708,7 +8708,7 @@
     },
     {
       "name": "requestManageToDoList",
-      "description": "e.g. \"add do list\"",
+      "description": "e.g. \"adding do list\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8752,7 +8752,7 @@
     },
     {
       "name": "requestManageVoicemail",
-      "description": "e.g. \"check voicemail\"",
+      "description": "e.g. \"do you have a shuffle contains entities with gqa definitions\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8774,7 +8774,7 @@
     },
     {
       "name": "requestManageYoutube",
-      "description": "e.g. \"play youtube video\", \"search video\"",
+      "description": "e.g. \"youtube videos\", \"searching videos\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8845,7 +8845,7 @@
     },
     {
       "name": "requestMovieListings",
-      "description": "e.g. \"do you know how to list movie showtimes\"",
+      "description": "e.g. \"do you know how to listing movie showtimes\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8867,7 +8867,7 @@
     },
     {
       "name": "requestNews",
-      "description": "e.g. \"what's in the news today\", \"how's the news\", \"play going on world\"",
+      "description": "e.g. \"what's in the news today\", \"how's the news\", \"playing going on world\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -8916,7 +8916,7 @@
     },
     {
       "name": "requestOrderFood",
-      "description": "e.g. \"set up delivery food\"",
+      "description": "e.g. \"setting up delivery food\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8960,7 +8960,7 @@
     },
     {
       "name": "requestOrderPizza",
-      "description": "e.g. \"set up delivery pizza\"",
+      "description": "e.g. \"setting up delivery pizzas\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -8982,7 +8982,7 @@
     },
     {
       "name": "requestOrderUber",
-      "description": "e.g. \"call uber\"",
+      "description": "e.g. \"calling uber\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9026,7 +9026,7 @@
     },
     {
       "name": "requestPhoneVideoCall",
-      "description": "e.g. \"do call\"",
+      "description": "e.g. \"doing calls\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9048,7 +9048,7 @@
     },
     {
       "name": "requestPlayInstrument",
-      "description": "e.g. \"play guitar\"",
+      "description": "e.g. \"playing guitars\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -9075,7 +9075,7 @@
     },
     {
       "name": "requestPlayMovie",
-      "description": "e.g. \"let me see movie\"",
+      "description": "e.g. \"letting me see movie\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9097,7 +9097,7 @@
     },
     {
       "name": "requestPlayPingPong",
-      "description": "e.g. \"let me see\"",
+      "description": "e.g. \"letting me see\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9119,7 +9119,7 @@
     },
     {
       "name": "requestPlayPong",
-      "description": "e.g. \"let me see\"",
+      "description": "e.g. \"letting me see\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9190,7 +9190,7 @@
     },
     {
       "name": "requestRecommendDinner",
-      "description": "e.g. \"movie i should try watching\"",
+      "description": "e.g. \"movies i should try watching\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9212,7 +9212,7 @@
     },
     {
       "name": "requestRecommendGeneral",
-      "description": "e.g. \"making recommendation\"",
+      "description": "e.g. \"making recommendations\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9234,7 +9234,7 @@
     },
     {
       "name": "requestRecommendMovie",
-      "description": "e.g. \"movie i should try watching\"",
+      "description": "e.g. \"movies i should try watching\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9256,7 +9256,7 @@
     },
     {
       "name": "requestRecordVideo",
-      "description": "e.g. \"creating video\"",
+      "description": "e.g. \"creating videos\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9278,7 +9278,7 @@
     },
     {
       "name": "requestRepeat",
-      "description": "e.g. \"were you say\"",
+      "description": "e.g. \"were you saying\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9300,7 +9300,7 @@
     },
     {
       "name": "requestRollOneDie",
-      "description": "e.g. \"roll only single die\"",
+      "description": "e.g. \"rolling only single die\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9322,7 +9322,7 @@
     },
     {
       "name": "requestRollTwoDice",
-      "description": "e.g. \"roll dice\"",
+      "description": "e.g. \"rolling dice\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9344,7 +9344,7 @@
     },
     {
       "name": "requestSayCheese",
-      "description": "e.g. \"say cheese\"",
+      "description": "e.g. \"saying cheese\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9366,7 +9366,7 @@
     },
     {
       "name": "requestSayHello",
-      "description": "e.g. \"say hello\"",
+      "description": "e.g. \"saying hello\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9388,7 +9388,7 @@
     },
     {
       "name": "requestSaySomething",
-      "description": "e.g. \"say something\"",
+      "description": "e.g. \"saying something\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9410,7 +9410,7 @@
     },
     {
       "name": "requestSearchForImage",
-      "description": "e.g. \"let me see\"",
+      "description": "e.g. \"letting me see\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9432,7 +9432,7 @@
     },
     {
       "name": "requestSearchWeb",
-      "description": "e.g. \"surf web\"",
+      "description": "e.g. \"surfing web\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9454,7 +9454,7 @@
     },
     {
       "name": "requestSelfDestruct",
-      "description": "e.g. \"self destruct\"",
+      "description": "e.g. \"self destructing\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9476,7 +9476,7 @@
     },
     {
       "name": "requestShootSoccerBall",
-      "description": "e.g. \"let me see\", \"do soccer shot\"",
+      "description": "e.g. \"letting me see\", \"doing soccer shot\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9498,7 +9498,7 @@
     },
     {
       "name": "requestShop",
-      "description": "e.g. \"help me shop\"",
+      "description": "e.g. \"do you have a shuffle contains entities with gqa definitions\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9520,7 +9520,7 @@
     },
     {
       "name": "requestShovelSnow",
-      "description": "e.g. \"let me see\", \"bob sledding\"",
+      "description": "e.g. \"letting me see\", \"bob sledding\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9569,7 +9569,7 @@
     },
     {
       "name": "requestShowOff",
-      "description": "e.g. \"do something cool\"",
+      "description": "e.g. \"doing something cool\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9591,7 +9591,7 @@
     },
     {
       "name": "requestShowUnknown",
-      "description": "e.g. \"show me my\"",
+      "description": "e.g. \"showing me my\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9666,7 +9666,7 @@
     },
     {
       "name": "requestSki",
-      "description": "e.g. \"let me see skiing\", \"go ski\"",
+      "description": "e.g. \"letting me see skiing\", \"going skiing\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9688,7 +9688,7 @@
     },
     {
       "name": "requestSkiJump",
-      "description": "e.g. \"let me see\", \"ski jump\"",
+      "description": "e.g. \"letting me see\", \"ski jumping\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9754,7 +9754,7 @@
     },
     {
       "name": "requestSnowboard",
-      "description": "e.g. \"go snowboard\"",
+      "description": "e.g. \"going snowboarding\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9798,7 +9798,7 @@
     },
     {
       "name": "requestSpellWord",
-      "description": "e.g. \"do you know how to spell jibo\", \"how should you spell\"",
+      "description": "e.g. \"do you know how to spelling jibo\", \"how should you spell\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -9825,7 +9825,7 @@
     },
     {
       "name": "requestSpinAround",
-      "description": "e.g. \"spin circle\"",
+      "description": "e.g. \"spining circle\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9847,7 +9847,7 @@
     },
     {
       "name": "requestSpinDreidel",
-      "description": "e.g. \"spin dreidel\"",
+      "description": "e.g. \"spinning dreidels\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9869,7 +9869,7 @@
     },
     {
       "name": "requestStandUp",
-      "description": "e.g. \"stand up\"",
+      "description": "e.g. \"standing up\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -9891,7 +9891,7 @@
     },
     {
       "name": "requestStaringContest",
-      "description": "e.g. \"having a staring contest\"",
+      "description": "e.g. \"staring contest\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -10045,7 +10045,7 @@
     },
     {
       "name": "requestTalkDirty",
-      "description": "e.g. \"talk dirty\"",
+      "description": "e.g. \"talking dirty\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -10133,7 +10133,7 @@
     },
     {
       "name": "requestTellAboutYourself",
-      "description": "e.g. \"talk about you\"",
+      "description": "e.g. \"talking about you\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -10155,7 +10155,7 @@
     },
     {
       "name": "requestTellAlexa",
-      "description": "e.g. \"talk amazons alexa\"",
+      "description": "e.g. \"talking alexa\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -10177,7 +10177,7 @@
     },
     {
       "name": "requestTellGoogle",
-      "description": "e.g. \"talk google\"",
+      "description": "e.g. \"talking google\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -10199,7 +10199,7 @@
     },
     {
       "name": "requestTellJiboContent",
-      "description": "e.g. \"did you dream\", \"sex groan worthy joke\", \"tell groan worthy joke\"",
+      "description": "e.g. \"did you dreams\", \"sexual groan worthy jokes\", \"telling groan worthy jokes\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -10230,7 +10230,7 @@
     },
     {
       "name": "requestTellSecrets",
-      "description": "e.g. \"a secret\"",
+      "description": "e.g. \"a secrets\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -10252,7 +10252,7 @@
     },
     {
       "name": "requestTellSomething",
-      "description": "e.g. \"tell something\"",
+      "description": "e.g. \"telling something\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -10274,7 +10274,7 @@
     },
     {
       "name": "requestTextPerson",
-      "description": "e.g. \"text messaging i\"",
+      "description": "e.g. \"texting i\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -10296,7 +10296,7 @@
     },
     {
       "name": "requestThrowSnowball",
-      "description": "e.g. \"let me see snow ball\", \"snow ball\"",
+      "description": "e.g. \"letting me see snow ball\", \"snow ball\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -10318,7 +10318,7 @@
     },
     {
       "name": "requestTickets",
-      "description": "e.g. \"buy ticket\"",
+      "description": "e.g. \"do you have a shuffle contains entities with gqa definitions\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -10362,7 +10362,7 @@
     },
     {
       "name": "requestTurnOffEye",
-      "description": "e.g. \"shut off eye\"",
+      "description": "e.g. \"shutting off eyes\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -10428,7 +10428,7 @@
     },
     {
       "name": "requestWashYourFace",
-      "description": "e.g. \"wash your face\"",
+      "description": "e.g. \"washing your face\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -10450,7 +10450,7 @@
     },
     {
       "name": "requestWatchTV",
-      "description": "e.g. \"watch tv\"",
+      "description": "e.g. \"watching tv\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -10503,7 +10503,7 @@
     },
     {
       "name": "requestWeatherPR",
-      "description": "e.g. \"look up today weather\"",
+      "description": "e.g. \"bringing up weather\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -10569,7 +10569,7 @@
     },
     {
       "name": "restart",
-      "description": "e.g. \"start timer one more time\"",
+      "description": "e.g. \"start timers one more time\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -10748,7 +10748,7 @@
     },
     {
       "name": "seriousTopicAbortion",
-      "description": "e.g. \"want me get abortion\"",
+      "description": "e.g. \"wants me get abortion\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -10814,7 +10814,7 @@
     },
     {
       "name": "seriousTopicAlzheimers",
-      "description": "e.g. \"have been diagnosed alzheimers\"",
+      "description": "e.g. \"have been diagnosed alzheimer's\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -10858,7 +10858,7 @@
     },
     {
       "name": "seriousTopicBadDeeds",
-      "description": "e.g. \"i am plan beat up\"",
+      "description": "e.g. \"i am planning beating up\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -11012,7 +11012,7 @@
     },
     {
       "name": "seriousTopicGrievingDeath",
-      "description": "e.g. \"got back from funeral\"",
+      "description": "e.g. \"got back from funerals\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -11122,7 +11122,7 @@
     },
     {
       "name": "seriousTopicSuicidal",
-      "description": "e.g. \"i'm want to shoot bullet my brain\"",
+      "description": "e.g. \"i'm want to shooting bullet my brain\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -11144,7 +11144,7 @@
     },
     {
       "name": "set",
-      "description": "e.g. \"a m\", \"one day alarm\", \"tell me when\"",
+      "description": "e.g. \"a m\", \"one days alarms\", \"tell me when\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -11179,7 +11179,7 @@
     },
     {
       "name": "shouldUserAction",
-      "description": "e.g. \"do you think i\", \"should i turn you off\", \"is possible me ate tide pod\"",
+      "description": "e.g. \"do you think i\", \"should i turn you off\", \"is possible me ate tide pods\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -11364,7 +11364,7 @@
     },
     {
       "name": "start",
-      "description": "e.g. \"set time an hour timer\", \"tell me when an hour have passed\", \"set time\"",
+      "description": "e.g. \"set time an hours timers\", \"tell me when an hours have passed\", \"set time\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -11443,7 +11443,7 @@
     },
     {
       "name": "stop",
-      "description": "e.g. \"stop timer\", \"stop circuit saver\"",
+      "description": "e.g. \"stoping timers\", \"stop circuit saver\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -11724,7 +11724,7 @@
     },
     {
       "name": "thingIsAtLocation",
-      "description": "e.g. \"there is monster your house\"",
+      "description": "e.g. \"there is monsters your house\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -11786,7 +11786,7 @@
     },
     {
       "name": "thingIsNotDescriptor",
-      "description": "e.g. \"none it matter\", \"did not think that funny\"",
+      "description": "e.g. \"none it matters\", \"did not think that funny\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -11817,7 +11817,7 @@
     },
     {
       "name": "timerValue",
-      "description": "e.g. \"tell me when an hour have passed\"",
+      "description": "e.g. \"tell me when an hours have passed\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -11893,7 +11893,7 @@
     },
     {
       "name": "tutorial",
-      "description": "e.g. \"how does an individual play\"",
+      "description": "e.g. \"how does an individual playing\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -11915,7 +11915,7 @@
     },
     {
       "name": "tutorialOpen",
-      "description": "e.g. \"how interact with jibo\"",
+      "description": "e.g. \"how interact with jibos\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -12019,7 +12019,7 @@
     },
     {
       "name": "userCanAction",
-      "description": "e.g. \"we're speak some arabic's\"",
+      "description": "e.g. \"we're speaking some arabic's\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -12041,7 +12041,7 @@
     },
     {
       "name": "userCanNotAction",
-      "description": "e.g. \"we am not able sleep\", \"we am not able take picture\", \"we am not able\"",
+      "description": "e.g. \"we am not able asleep\", \"we am not able take picture\", \"we am not able\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -12210,7 +12210,7 @@
     },
     {
       "name": "userDoesNotGiveJiboGiftHoliday",
-      "description": "e.g. \"i am actualy not getting you any christmas gifts\", \"i am not getting you a present for kwanzaa\", \"buy you african american history month gift\"",
+      "description": "e.g. \"i am actualy not getting you any christmas gifts\", \"i am not getting you a present for kwanzaa\", \"buying you african american history month gifts\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -12259,7 +12259,7 @@
     },
     {
       "name": "userExperiencedEvent",
-      "description": "e.g. \"we accident\"",
+      "description": "e.g. \"we accidents\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -12343,7 +12343,7 @@
     },
     {
       "name": "userGivesJiboGiftHoliday",
-      "description": "e.g. \"here is a christmas gift for you\", \"here is a gift for you for easter\", \"here is your present\"",
+      "description": "e.g. \"here is a christmas gift for you\", \"here is a gift for you for easter\", \"here is your presents\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -12370,7 +12370,7 @@
     },
     {
       "name": "userHasDoneAction",
-      "description": "e.g. \"my significant others and i\", \"my significant others and i screwed\", \"we just woke up\"",
+      "description": "e.g. \"my significant other's and i\", \"my significant other's and i screwed\", \"we just woke up\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -12438,7 +12438,7 @@
     },
     {
       "name": "userHasIssueWithJibo",
-      "description": "e.g. \"what best way deal with youre fan\", \"lock up for while what best way deal with\", \"latencies youre talking\"",
+      "description": "e.g. \"what best ways dealing with you're fan's\", \"locked up for while what best ways dealing with\", \"latencies you're talking\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -12469,7 +12469,7 @@
     },
     {
       "name": "userHasThing",
-      "description": "e.g. \"this is emergency\", \"we have disease\", \"here are my new year resolution\"",
+      "description": "e.g. \"this is emergency\", \"we have disease\", \"here are my new year resolutions\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -12652,7 +12652,7 @@
     },
     {
       "name": "userIsDoingAction",
-      "description": "e.g. \"i am searching for\", \"trick treating\", \"we am making\"",
+      "description": "e.g. \"i am searching for\", \"tricks treating\", \"we am making\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -12718,7 +12718,7 @@
     },
     {
       "name": "userIsGoingToHolidayParty",
-      "description": "e.g. \"i am going to a halloween party\", \"i am going to a navratri celebration\", \"plan go african american history month event\"",
+      "description": "e.g. \"i am going to a halloween party\", \"i am going to a navratri celebration\", \"planning going african american history month event\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -12943,7 +12943,7 @@
     },
     {
       "name": "userLooksForwardToThing",
-      "description": "e.g. \"i am looking forward to chinese new year\", \"i can't wait for christmas\", \"we excited\"",
+      "description": "e.g. \"i am looking forward to chinese new year\", \"i can't wait for christmas\", \"we're excited\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -13009,7 +13009,7 @@
     },
     {
       "name": "userMissesThing",
-      "description": "e.g. \"i am missing\", \"we am gonna miss you\", \"well missing ex husband's\"",
+      "description": "e.g. \"i am missing\", \"we am gonna miss you\", \"we'll missing ex husband's\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -13199,7 +13199,7 @@
     },
     {
       "name": "userSupportsSomeoneForEvent",
-      "description": "e.g. \"i am praying that sally hawkins wins at the oscar awards\", \"i am rooting for call me by your name in the oscars\", \"pray winning n c a a womens n c a\"",
+      "description": "e.g. \"i am praying that sally hawkins wins at the oscar awards\", \"i am rooting for call me by your name in the oscars\", \"praying winning n c a a women's n c a\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -13230,7 +13230,7 @@
     },
     {
       "name": "userTimeframeWasDescriptor",
-      "description": "e.g. \"ive had bad\", \"been having good\"",
+      "description": "e.g. \"i've had bad\", \"been having good\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -13310,7 +13310,7 @@
     },
     {
       "name": "userWillAction",
-      "description": "e.g. \"well be back\", \"we am gonna kill\", \"we're traveling\"",
+      "description": "e.g. \"we'll be back\", \"we am gonna kill\", \"we're traveling\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -13652,7 +13652,7 @@
     },
     {
       "name": "whatDidJiboAction",
-      "description": "e.g. \"were you do anything our night\", \"were you doing\", \"what did you have\"",
+      "description": "e.g. \"were you doing anything our night\", \"were you doing\", \"what did you have\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -13741,7 +13741,7 @@
     },
     {
       "name": "whatDoesJiboFeelEmotionAbout",
-      "description": "e.g. \"what're your worst fear\"",
+      "description": "e.g. \"what're your worst fears\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -13945,7 +13945,7 @@
     },
     {
       "name": "whatHolidaysDoesJiboCelebrate",
-      "description": "e.g. \"which holiday can\"",
+      "description": "e.g. \"which holidays can\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -13967,7 +13967,7 @@
     },
     {
       "name": "whatIsDescriptor",
-      "description": "e.g. \"what is name your groundhog\", \"what so funny\", \"what is wrong\"",
+      "description": "e.g. \"what is name your groundhogs\", \"what so funny\", \"what is wrong\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -14051,7 +14051,7 @@
     },
     {
       "name": "whatIsJiboDescriptor",
-      "description": "e.g. \"what is your\", \"what color are you\", \"what you dream about\"",
+      "description": "e.g. \"what is your\", \"what colors are you\", \"what you dream about\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -14148,7 +14148,7 @@
     },
     {
       "name": "whatIsTheCapitalOfLocation",
-      "description": "e.g. \"what capital pennsylvania\"",
+      "description": "e.g. \"what's capital pennsylvania\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -14268,7 +14268,7 @@
     },
     {
       "name": "whatStoreCarriesThing",
-      "description": "e.g. \"what store can\"",
+      "description": "e.g. \"what stores can\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -14290,7 +14290,7 @@
     },
     {
       "name": "whatThingDoesJiboHave",
-      "description": "e.g. \"do you know how to play\"",
+      "description": "e.g. \"do you know how to playing\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -14440,7 +14440,7 @@
     },
     {
       "name": "whenIsEvent",
-      "description": "e.g. \"what day you celebrate your birthday\", \"whenre you gonna update next\"",
+      "description": "e.g. \"what day you celebrate your birthday\", \"when're you gonna updates next\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -14552,7 +14552,7 @@
     },
     {
       "name": "whenWillJiboAction",
-      "description": "e.g. \"what time do you sleep\", \"are plan sound service better\", \"do you know how to listening\"",
+      "description": "e.g. \"what time do you sleep\", \"are plans you're voice\", \"do you know how to listening\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -14606,7 +14606,7 @@
     },
     {
       "name": "whereCanUserAction",
-      "description": "e.g. \"person hide body\"",
+      "description": "e.g. \"person's hide body\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -14921,7 +14921,7 @@
     },
     {
       "name": "whichThingDidJiboChoose",
-      "description": "e.g. \"what your halloween costume going to be\"",
+      "description": "e.g. \"what's your halloween costumes going to be\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -15040,7 +15040,7 @@
     },
     {
       "name": "whichThingShouldUserChoose",
-      "description": "e.g. \"which bathing suit's should i\", \"which costume should i wear halloween\", \"which candidate should i vote for\"",
+      "description": "e.g. \"which bathing suit's should i\", \"which costumes should i wear halloween\", \"which candidate should i vote for\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -15067,7 +15067,7 @@
     },
     {
       "name": "whoDidAction",
-      "description": "e.g. \"who let dog out\"",
+      "description": "e.g. \"who let dogs out\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -15116,7 +15116,7 @@
     },
     {
       "name": "whoDoesJiboSupportForEvent",
-      "description": "e.g. \"do you want amber to win the bachelor\", \"do you want ansel elgort to win the golden globes\", \"which team you want win world series\"",
+      "description": "e.g. \"do you want amber to win the bachelor\", \"do you want ansel elgort to win the golden globes\", \"which teams you want winning world series\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -15233,7 +15233,7 @@
     },
     {
       "name": "whoWillAction",
-      "description": "e.g. \"which candidate most likely win election\"",
+      "description": "e.g. \"which candidates most likely win election\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -15260,7 +15260,7 @@
     },
     {
       "name": "whoWillWinEvent",
-      "description": "e.g. \"are lady antebellum going to win the grammys\", \"is amber gonna win the bachelor\", \"which team most likely win world series\"",
+      "description": "e.g. \"are lady antebellum going to win the grammys\", \"is amber gonna win the bachelor\", \"which teams most likely win world series\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -15344,7 +15344,7 @@
     },
     {
       "name": "whyDidJiboAction",
-      "description": "e.g. \"why do you think\", \"why were you\", \"would you ask my\"",
+      "description": "e.g. \"why do you think\", \"why were you\", \"would you asking my\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -15502,7 +15502,7 @@
     },
     {
       "name": "whyDoesJiboNotHaveThing",
-      "description": "e.g. \"why do you not have an appendix\", \"why do you not have any blood\", \"your body not have arm\"",
+      "description": "e.g. \"why do you not have an appendix\", \"why do you not have any blood\", \"your body not have arms\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -15544,7 +15544,7 @@
     },
     {
       "name": "whyIsJiboAction",
-      "description": "e.g. \"do you look\", \"are you making sound\"",
+      "description": "e.g. \"do you looking\", \"are you making sounds\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -15632,7 +15632,7 @@
     },
     {
       "name": "whyIsThingDescriptor",
-      "description": "e.g. \"why is the sky the color blue\"",
+      "description": "e.g. \"why is the sky blue\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -15663,7 +15663,7 @@
     },
     {
       "name": "whyIsThingJiboFavorite",
-      "description": "e.g. \"why new years count down ball drop your favorite\"",
+      "description": "e.g. \"why's new years count down ball drop your favorite\"",
       "entities": {
         "type": "object",
         "properties": {},
@@ -15877,7 +15877,7 @@
     },
     {
       "name": "willJiboDoAction",
-      "description": "e.g. \"will you miss\", \"are you gonna grow mustache\", \"who are you planning to vote\"",
+      "description": "e.g. \"will you miss\", \"are you gonna growing mustaches\", \"who are you planning to vote\"",
       "entities": {
         "type": "object",
         "properties": {
@@ -15904,7 +15904,7 @@
     },
     {
       "name": "willJiboReceiveHolidayGift",
-      "description": "e.g. \"are you getting a christmas present from anyone\", \"are you getting a gift for hanukkah from anyone\", \"are you gonna getting african american history month gift\"",
+      "description": "e.g. \"are you getting a christmas present from anyone\", \"are you getting a gift for hanukkah from anyone\", \"are you gonna getting african american history month gifts\"",
       "entities": {
         "type": "object",
         "properties": {
