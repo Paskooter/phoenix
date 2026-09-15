@@ -239,6 +239,19 @@ arrays rather than an encoded polyline, and CommuteParse reads neither field. `l
 `arrival_time`/`departure_time`, `warnings`, `fare` and `geocoded_waypoints` are still not produced.
 These are provider gaps, not port defects.
 
+## A19b — the original Jot client cannot be driven over TLS (open)
+`scripts/parity-a19-jot-sdk` runs the genuine `@jibo/jibo-server-client@3.0.42` against Phoenix's
+classic Jot face over plain HTTP on a bridge network. TLS is behind `--tls` and does not work: handed
+a custom `https.Agent` carrying the server's CA, the node-8 aws-sdk fork hangs rather than completing
+the handshake, producing no error and no output. Host networking hangs the same client the same way,
+while `curl` from an identical container reaches the same port fine, so the fault is in the era's
+client rather than in the server or the network.
+
+The twelve conformance steps are transport-independent, so this bounds the transport claim only:
+**the original client's request construction, `X-Amz-Target` header and SigV4 signing are exercised
+for real; the TLS handshake against that client is not.** Phoenix's own TLS is separately exercised
+by the robot-facing stack.
+
 ## A05f — oobeRestartSIGKILL is flaky (open, pre-existing)
 `packages/account/test/oobeRestartSIGKILL.test.js` "SIGKILL mid-write leaves a complete snapshot
 with the issued robot credentials" fails roughly one run in three. Observed 2026-09-15 on an

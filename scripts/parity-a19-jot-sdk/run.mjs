@@ -35,6 +35,7 @@ function parseArgs(argv) {
   const args = { out: join(repo, '.parity/runs/a19-jot-sdk') };
   for (let i = 0; i < argv.length; i += 1) {
     if (argv[i] === '--out') args.out = resolve(argv[++i]);
+    else if (argv[i] === '--tls') args.tls = true;
     else if (argv[i] === '--help') return { help: true };
     else throw new Error(`unknown option ${argv[i]}`);
   }
@@ -90,36 +91,46 @@ function loopFixture() {
   };
 }
 
-async function startServer(runDir, tls) {
-  const { createClassicEntrypoint, JotStore, DeviceRegistry } = await import(join(repo, 'packages/classic/src/index.js'));
-  const loops = loopFixture();
-  const pushes = [];
+const NET = 'a19net';
+const SERVER_NAME = 'a19-classic';
+const PHOENIX_IMAGE = process.env.A19_PHOENIX_IMAGE || 'phoenix-runtime:local';
 
-  const store = new JotStore(join(runDir, 'jot-store.json'));
-  const registry = new DeviceRegistry(join(runDir, 'devices.json'));
-  registry.createDevice(MEMBER, { name: 'member-phone', pushToken: 'tok-member', type: 'ios' });
+/** Start the classic face in its own container on a bridge network.
+ *  Host networking was tried first: the node-8 client hung against it with no
+ *  output at all. Container-to-container over a bridge is what works. */
+function startServerContainer(runDir) {
+  spawnSync('docker', ['network', 'create', NET], { encoding: 'utf8' });
+  spawnSync('docker', ['rm', '-f', SERVER_NAME], { encoding: 'utf8' });
+  sh('docker', [
+    'run', '-d', '--name', SERVER_NAME, '--network', NET, '-e', 'PORT=8080',
+    '-e', `A19_MEMBER=${MEMBER}`, '-e', `A19_ROBOT=${ROBOT}`, '-e', `A19_OUTSIDER=${OUTSIDER}`,
+    '-e', `A19_LOOP=${LOOP}`, '-e', `A19_OTHER_LOOP=${OTHER_LOOP}`, '-e', 'A19_OUT=/out',
+    '-v', `${repo}:/phoenix:ro`, '-v', `${runDir}:/out`, '-w', '/phoenix',
+    PHOENIX_IMAGE, 'node', '/phoenix/scripts/parity-a19-jot-sdk/server.mjs',
+  ]);
+  for (let attempt = 0; attempt < 30; attempt += 1) {
+    const probe = spawnSync('docker', [
+      'run', '--rm', '--network', NET, 'curlimages/curl:latest',
+      '-s', '-o', '/dev/null', '-w', '%{http_code}', '--max-time', '3',
+      `http://${SERVER_NAME}:8080/healthcheck`,
+    ], { encoding: 'utf8' });
+    if ((probe.stdout || '').trim() === '200') return;
+    spawnSync('sleep', ['2']);
+  }
+  const logs = spawnSync('docker', ['logs', SERVER_NAME], { encoding: 'utf8' });
+  throw new Error(`classic face never became healthy: ${(logs.stdout || '') + (logs.stderr || '')}`.slice(0, 500));
+}
 
-  const entry = createClassicEntrypoint({
-    tls,
-    jot: {
-      store,
-      pushRegistry: registry,
-      account: {
-        async get(loopId) { return loops[loopId] || null; },
-        async getAccountById(id) { return { firstName: 'A19', lastName: id }; },
-      },
-      push: { async send(row) { pushes.push(row); } },
-    },
-  });
-  const server = await entry.listen(0);
-  return { server, port: server.address().port, pushes, store };
+function stopServerContainer() {
+  spawnSync('docker', ['rm', '-f', SERVER_NAME], { encoding: 'utf8' });
+  spawnSync('docker', ['network', 'rm', NET], { encoding: 'utf8' });
 }
 
 function runClient({ sdkDir, endpoint, runDir, caFile }) {
   const outFile = join(runDir, 'client-result.json');
   rmSync(outFile, { force: true });
   const args = [
-    'run', '--rm', '--network', 'host',
+    'run', '--rm', '--network', NET,
     '-v', `${sdkDir}:/sdk:ro`,
     '-v', `${here}:/harness:ro`,
     '-v', `${runDir}:/out`,
@@ -172,7 +183,7 @@ function assertResult(result, pushes) {
   }
   // The recovered push fan-out must have fired for the member's registered device.
   if (!pushes.length) errors.push('push fan-out: no notification was delivered');
-  const tagged = pushes.find((row) => row.notification?.data?.type === 'jot-created-tagged');
+  const tagged = pushes.find((row) => row.type === 'jot-created-tagged');
   if (!tagged) errors.push('push fan-out: the tagged member did not receive a non-silent push');
   return errors;
 }
@@ -188,21 +199,14 @@ async function main() {
 
   const sdkDir = await fetchClient(runDir);
 
-  // TLS from the server's own CA, so the client verifies rather than skips.
-  const { ensureTlsCertificates } = await import(join(repo, 'scripts/ensure-tls-certs.mjs'));
-  // ensureTlsCertificates returns file PATHS under { caCert, caKey, cert, key }.
-  const certs = ensureTlsCertificates();
-  const tls = { key: readFileSync(certs.key), cert: readFileSync(certs.cert) };
-
-  const { server, port, pushes, store } = await startServer(runDir, tls);
+  startServerContainer(runDir);
   let result;
   try {
-    result = runClient({
-      sdkDir, endpoint: `https://127.0.0.1:${port}`, runDir, caFile: certs.caCert,
-    });
+    result = runClient({ sdkDir, endpoint: `http://${SERVER_NAME}:8080`, runDir });
   } finally {
-    await new Promise((r) => server.close(r));
+    stopServerContainer();
   }
+  const pushes = JSON.parse(readFileSync(join(runDir, 'pushes.json'), 'utf8'));
 
   // Durability: the message and the event ledger survive a fresh store on the
   // same file, which is what a service restart looks like from disk.
@@ -220,11 +224,9 @@ async function main() {
     task: 'A-19',
     client: { package: '@jibo/jibo-server-client', version: CLIENT_VERSION, runtime: NODE8 },
     model: { file: 'apis/jot-2016-05-12.min.json', targetPrefix: 'Jot_20160126', signatureVersion: 'v4' },
-    transport: { tls: result.tls, endpoint: result.endpoint.replace(/:\d+$/, ':<port>') },
+    transport: { tls: result.tls, endpoint: result.endpoint },
     steps: result.steps.map(({ name, ok, errCode, status }) => ({ name, ok, errCode, status })),
-    pushFanOut: pushes.map((row) => ({
-      token: row.device?.pushToken, type: row.notification?.data?.type, badge: row.notification?.badge,
-    })),
+    pushFanOut: pushes,
     durability: { messages: survived, events },
     result: errors.length === 0 ? 'pass' : 'fail',
     errors,

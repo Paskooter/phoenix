@@ -52,9 +52,38 @@ function record(name, err, data) {
   });
 }
 
+// Every step is time-bounded. A step that neither succeeds nor errors would
+// otherwise hang the whole run with no output at all, which is exactly what an
+// unbounded version of this harness did.
+var STEP_TIMEOUT_MS = Number(process.env.A19_STEP_TIMEOUT_MS || 20000);
+
 function step(name, fn) {
   return new Promise(function (resolve) {
-    fn(function (err, data) { record(name, err, data); resolve(data); });
+    var settled = false;
+    var timer = setTimeout(function () {
+      if (settled) return;
+      settled = true;
+      process.stderr.write('STEP_TIMEOUT ' + name + '\n');
+      record(name, { code: 'STEP_TIMEOUT', statusCode: 0 }, null);
+      resolve(null);
+    }, STEP_TIMEOUT_MS);
+    try {
+      fn(function (err, data) {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        process.stderr.write('STEP ' + name + ' ' + (err ? 'ERR ' + err.code : 'OK') + '\n');
+        record(name, err, data);
+        resolve(data);
+      });
+    } catch (e) {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      process.stderr.write('STEP_THREW ' + name + ' ' + e.message + '\n');
+      record(name, { code: 'THREW', statusCode: 0 }, null);
+      resolve(null);
+    }
   });
 }
 
