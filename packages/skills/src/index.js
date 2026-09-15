@@ -13,7 +13,7 @@ import { answerSkill } from './answerSkill.js';
 import { getChitchatSkill } from './chitchatSkill.js';
 import { getReportSkill } from './reportSkill.js';
 import { colorSkill } from './colorSkill.js';
-import { exampleSkill } from './exampleSkill.js';
+import { exampleSkill, createExampleSkill } from './exampleSkill.js';
 import { templateSkill } from './templateSkill.js';
 import {
   GQA_WIKIPEDIA_PROFILE,
@@ -101,7 +101,7 @@ export {
 export { createReportSkill, getReportSkill, reportSkill } from './reportSkill.js';
 export { createChitchatSkill, getChitchatSkill, chitchatSkill } from './chitchatSkill.js';
 export { colorSkill } from './colorSkill.js';
-export { exampleSkill } from './exampleSkill.js';
+export { exampleSkill, createExampleSkill } from './exampleSkill.js';
 export { templateSkill } from './templateSkill.js';
 export {
   createGqaWikipediaService,
@@ -226,7 +226,10 @@ export const SKILLS = [
   { id: 'template-skill', handler: templateSkill },
 ];
 
-const SKILL_IDS = new Set(SKILLS.map((skill) => skill.id));
+// `example` is served in addition to the built-in ids: the reference's example
+// fixture takes its id at construction, so a deployment may register it under
+// that name (the original integration suite does).
+const SKILL_IDS = new Set([...SKILLS.map((skill) => skill.id), 'example']);
 
 function answerSkillEntry(handler = answerSkill, route) {
   const entry = { id: 'answer-skill', handler };
@@ -272,6 +275,9 @@ function createSelectedSkill(skillId, {
   if (skillId === 'report-skill') return { id: skillId, handler: getReportSkill({ graphManager: new GraphManager() }) };
   if (skillId === 'answer-skill') return answerSkillEntry(answerHandler, answerRoute);
   if (skillId === 'news') return newsSkillEntry(newsHandler, newsRoute);
+  // The example fixture carries whatever id it is registered under, as the
+  // reference's `new ExampleSkill(<id>)` does.
+  if (skillId === 'example') return { id: skillId, handler: createExampleSkill(skillId) };
   return SKILLS.find((skill) => skill.id === skillId);
 }
 

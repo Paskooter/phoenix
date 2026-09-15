@@ -19,6 +19,13 @@ import {
 } from '../src/externalAgents.js';
 import { parseRequest, parseRequestAsync } from '../src/requestParser.js';
 
+// The default external-agent provider is env-selected (PHOENIX_NLU_EXTERNAL),
+// and @phoenix/common fills process.env from the repo-root .env on import. A
+// deployment that enables the live lane would otherwise change what "default"
+// means here, so these assertions pin it rather than read the ambient value.
+// node --test gives each file its own process, so this cannot leak.
+process.env.PHOENIX_NLU_EXTERNAL = 'disabled';
+
 const request = (extra = {}) => ({
   text: 'do you like pizza',
   rules: ['launch'],

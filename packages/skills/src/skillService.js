@@ -57,7 +57,15 @@ export function skillRoute(skillId, handler) {
     } catch (err) {
       // BaseSkill logs the original thrown value, then uses the shared
       // getErrorMessage helper for the wire-visible error message.
-      log.error('skill handler threw', { error: err });
+      //
+      // An Error has no enumerable own properties, so a structured logger
+      // serialises it as `{}` and the line carries nothing at all -- which is
+      // what it did while diagnosing an all-Phoenix substitution run. Log the
+      // message and stack, as the rest of the codebase does, and keep the
+      // original value's shape for a non-Error throw.
+      log.error('skill handler threw', err instanceof Error
+        ? { error: err.message, stack: err.stack }
+        : { error: err });
       return errorResponse(skillId, getErrorMessage(err));
     }
   };

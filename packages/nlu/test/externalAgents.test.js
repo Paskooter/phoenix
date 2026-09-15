@@ -15,6 +15,13 @@ import {
   EXTERNAL_ATTACHMENT_REVISION, DEFAULT_EXTERNAL_ATTACHMENT_REVISION, resolveExternalAttachmentRevision,
 } from '../src/externalAgents.js';
 
+// The default external-agent provider is env-selected (PHOENIX_NLU_EXTERNAL),
+// and @phoenix/common fills process.env from the repo-root .env on import. A
+// deployment that enables the live lane would otherwise change what "default"
+// means here, so these assertions pin it rather than read the ambient value.
+// node --test gives each file its own process, so this cannot leak.
+process.env.PHOENIX_NLU_EXTERNAL = 'disabled';
+
 const selectedRuntime = process.env.PHOENIX_NLU_RUNTIME;
 delete process.env.PHOENIX_NLU_RUNTIME;
 test.after(() => { if (selectedRuntime !== undefined) process.env.PHOENIX_NLU_RUNTIME = selectedRuntime; });

@@ -160,4 +160,16 @@ function buildExampleSkill(gm) {
   return g;
 }
 
-export const exampleSkill = createGraphSkill({ name: 'example-skill', build: buildExampleSkill });
+/**
+ * The reference constructs this fixture with its id -- `new ExampleSkill('example')`
+ * (integration-tests-int/src/utils/integration.ts:55) -- so the skill is not
+ * tied to one name, and a deployment that registers it as `example` must be
+ * able to serve it under that name. GraphSkill rejects a request whose skill id
+ * does not match its own, so a hardcoded name makes the fixture unusable
+ * against the original suite's registry.
+ */
+export function createExampleSkill(name = 'example-skill') {
+  return createGraphSkill({ name, build: buildExampleSkill });
+}
+
+export const exampleSkill = createExampleSkill('example-skill');

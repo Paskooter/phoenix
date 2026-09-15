@@ -58,6 +58,15 @@ So this lane runs only the four files that share `TEST_SKILL_CONFIG`
 via `tests/r01-shared.js`. **The excluded four are a scope reduction, not a
 pass.** Covering them needs a hub that can be reconfigured per test.
 
+## The generated registry is temporary, by necessity
+
+Phoenix's gateway resolves its skills index from
+`packages/gateway/resources/skills/`, and S-06 pins every file in that directory
+to a source digest. The generated `skills-r01.json` / `example_manifest.json`
+must therefore be written there for the run and **removed afterwards**, or
+`S-06: every hub skill index and manifest file matches the pinned-source digest`
+fails. Leaving them behind is what that test is for; it caught exactly this.
+
 ## Result
 
 Both sides run the same four files with the same out-of-process original parser.
