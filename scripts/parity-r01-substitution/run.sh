@@ -40,10 +40,17 @@ die() { echo "ABORT: $*" >&2; exit 1; }
 # against one; a dead peer produces failures that read exactly like findings.
 require_listening() {
   local name=$1 pattern=${2:-listening}
-  docker ps --filter "name=^${name}$" --format '{{.Names}}' | grep -q "$name" \
-    || { docker logs --tail 5 "$name" 2>&1 >&2 || true; die "$name is not running"; }
-  docker logs "$name" 2>&1 | grep -q "$pattern" \
-    || { docker logs --tail 5 "$name" 2>&1 >&2 || true; die "$name never reported '$pattern'"; }
+  # `grep -q` exits the moment it matches, which closes the pipe and kills the
+  # producer with SIGPIPE. Under `set -o pipefail` that makes the pipeline fail
+  # ON SUCCESS, so the guard fired hardest exactly when the service was healthy.
+  # `grep -c` consumes all input, so the exit status means what it says.
+  local running matches
+  running=$(docker ps --filter "name=^${name}$" --format '{{.Names}}' | grep -c "$name" || true)
+  [ "$running" -gt 0 ] \
+    || { docker logs --tail 5 "$name" >&2 2>&1 || true; die "$name is not running"; }
+  matches=$(docker logs "$name" 2>&1 | grep -c "$pattern" || true)
+  [ "$matches" -gt 0 ] \
+    || { docker logs --tail 5 "$name" >&2 2>&1 || true; die "$name never reported '$pattern'"; }
 }
 
 setup() {
@@ -85,13 +92,14 @@ case "${1:-}" in
   baseline)
     require_listening r01-orig-parser '"ready":true'
     docker run --rm --network "$NET" -v "$SCRATCH":/work -w /work/packages/integration-tests-int \
-      -e R01_PARSER_BASE_URL=http://r01-orig-parser:9999 "$NODE8" $SUITE
+      -e R01_PARSER_BASE_URL=http://r01-orig-parser:9999 -e R01_TRACE_DIR="${R01_TRACE_DIR:-}" "$NODE8" $SUITE
     ;;
 
   hub)
     require_listening r01-orig-parser '"ready":true'
     start_phoenix_hub r01-orig-parser:9999
-    docker exec -e R01_HUB_EXTERNAL=1 -e R01_HUB_PORT=$HUB_PORT -e R01_SKILL_PORT=$SKILL_PORT r01-test $SUITE
+    docker exec -e R01_HUB_EXTERNAL=1 -e R01_HUB_PORT=$HUB_PORT -e R01_SKILL_PORT=$SKILL_PORT \
+      -e R01_TRACE_DIR="${R01_TRACE_DIR:-}" r01-test $SUITE
     ;;
 
   all-phoenix)
@@ -105,7 +113,8 @@ case "${1:-}" in
     require_listening r01-phoenix-skills
     start_phoenix_hub r01-phoenix-nlu:9999
     docker exec -e R01_HUB_EXTERNAL=1 -e R01_SKILL_EXTERNAL=1 \
-      -e R01_HUB_PORT=$HUB_PORT -e R01_SKILL_PORT=$SKILL_PORT r01-test $SUITE
+      -e R01_HUB_PORT=$HUB_PORT -e R01_SKILL_PORT=$SKILL_PORT \
+      -e R01_TRACE_DIR="${R01_TRACE_DIR:-}" r01-test $SUITE
     ;;
 
   teardown)
