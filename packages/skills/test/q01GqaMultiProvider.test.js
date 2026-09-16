@@ -4,6 +4,7 @@ import { createServer } from 'node:http';
 import {
   createGqaMultiProviderProfile,
   createGqaMultiProviderService,
+  GQA_PUBLIC_ENDPOINTS,
   readGqaMultiProviderProfileConfig,
 } from '../src/gqaMultiProviderService.js';
 import { start } from '../src/index.js';
@@ -206,7 +207,7 @@ function assertNoAnswer(body) {
   assert.equal(typeof body.timings.total, 'number');
 }
 
-test('Q-01 multi-provider profile requires explicit endpoints and preserves source group deadlines', () => {
+test('Q-01 multi-provider profile reads explicit endpoints, defaults keyless public endpoints, and preserves source group deadlines', () => {
   assert.deepEqual(readGqaMultiProviderProfileConfig({
     ETCO_gqa_bingApi: 'http://fixture.invalid/bing',
     ETCO_gqa_bingKey: 'bing-key',
@@ -216,11 +217,24 @@ test('Q-01 multi-provider profile requires explicit endpoints and preserves sour
     ETCO_gqa_providerTimeoutMs: '3000',
     ETCO_gqa_wolframGroupTimeoutMs: '4000',
   }), {
-    bing: { endpoint: 'http://fixture.invalid/bing', apiKey: 'bing-key', timeoutMs: undefined },
+    bing: {
+      endpoint: 'http://fixture.invalid/bing',
+      apiKey: 'bing-key',
+      duckDuckGoEndpoint: GQA_PUBLIC_ENDPOINTS.duckduckgo,
+      timeoutMs: undefined,
+    },
     wikipedia: { endpoint: 'http://fixture.invalid/wiki', timeoutMs: undefined, userAgent: undefined },
     wolfram: { endpoint: 'http://fixture.invalid/wolfram', apiKey: 'wolfram-key' },
     timeouts: [3000, 4000],
   });
+
+  const unset = readGqaMultiProviderProfileConfig({});
+  assert.equal(unset.bing.duckDuckGoEndpoint, GQA_PUBLIC_ENDPOINTS.duckduckgo);
+  assert.equal(unset.wikipedia.endpoint, GQA_PUBLIC_ENDPOINTS.wikipedia);
+  assert.equal(unset.wolfram.endpoint, GQA_PUBLIC_ENDPOINTS.wolfram);
+  assert.equal(unset.wolfram.apiKey, undefined);
+  assert.equal(unset.bing.endpoint, undefined);
+
   assert.throws(
     () => createGqaMultiProviderProfile({
       bing: { endpoint: 'http://fixture.invalid/bing' },

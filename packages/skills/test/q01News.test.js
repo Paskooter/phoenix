@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createServer } from 'node:http';
 import {
   NEWS_SOURCE_PATHS,
   createApNewsProvider,
@@ -379,9 +380,27 @@ test('Q-01 registry-to-host proof: selected answer-skill co-hosts news and keeps
     ETCO_hub_skillsConfig: 'skills-gqa-default.json',
   });
   const news = config.skills.find((skill) => skill.id === 'news');
+  const peers = await Promise.all(['bing', 'wiki', 'wolfram'].map(() => {
+    const peer = createServer((_request, response) => {
+      response.writeHead(503, { 'content-type': 'application/json' });
+      response.end(JSON.stringify({ error: 'fixture provider unavailable' }));
+    });
+    return new Promise((resolve) => peer.listen(0, '127.0.0.1', () => resolve({
+      peer,
+      endpoint: `http://127.0.0.1:${peer.address().port}/fixture`,
+    })));
+  }));
   const server = await start(0, {
     skillId: 'answer-skill',
     newsConfig: { rng: () => 0, clock: () => NOW, newsProvider: async () => ['headline'] },
+    gqaEnvironment: {
+      ETCO_gqa_bingApi: peers[0].endpoint,
+      ETCO_gqa_bingKey: 'fixture-bing-key',
+      ETCO_gqa_wikiApi: peers[1].endpoint,
+      ETCO_gqa_wolframApi: peers[2].endpoint,
+      ETCO_gqa_wolframKey: 'fixture-wolfram-key',
+    },
+    gqaConfig: { random: () => 0, timeouts: [20, 20] },
   });
   try {
     const port = server.address().port;
@@ -396,15 +415,26 @@ test('Q-01 registry-to-host proof: selected answer-skill co-hosts news and keeps
 
     const answer = await fetch(`http://127.0.0.1:${port}/v1/main`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', 'x-jibo-transid': 'news-test' },
       body: JSON.stringify({
         type: 'LISTEN_LAUNCH',
-        data: { result: { asr: { text: 'hello' }, nlu: { entities: {} } } },
+        msgID: 'news-answer-request',
+        ts: NOW,
+        data: {
+          general: { accountID: 'fixture-account', robotID: 'fixture-robot', remoteAddress: '127.0.0.1' },
+          runtime: { location: { lat: 42.1, lng: -71.2, countryCode: 'US' } },
+          skill: { id: 'answer-skill', session: null },
+          result: {
+            nlu: { intent: 'generalWhatQuestions', entities: {} },
+            asr: { text: 'what is a fixture fact', confidence: 1 },
+          },
+        },
       }),
     });
     assert.equal(answer.status, 200);
     assert.equal((await answer.json()).data.skill.id, 'answer-skill');
   } finally {
     await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+    await Promise.all(peers.map(({ peer }) => new Promise((resolve) => peer.close(resolve))));
   }
 });

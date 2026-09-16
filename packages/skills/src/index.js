@@ -126,6 +126,7 @@ export {
   validateGqaDefaultProfile,
   GQA_DEFAULT_PROFILE,
   GQA_DEFAULT_PROFILE_ENV,
+  GQA_ORDINARY_PROFILE,
 } from './gqaDefaultService.js';
 export {
   createStructQaClassicHandler,

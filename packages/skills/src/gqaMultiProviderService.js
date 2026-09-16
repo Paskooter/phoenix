@@ -123,24 +123,53 @@ function sourceProfileWikipediaProvider(provider) {
 }
 
 /**
- * Read only the explicit multi-provider profile configuration from an
- * environment.  Missing endpoints remain undefined and fail when the caller
- * selects the profile; they never fall back to public provider URLs.
+ * Public, keyless endpoints so the profile can start unconfigured.
+ *
+ * This profile used to require every endpoint explicitly, so that importing or
+ * selecting it could not contact a live provider by accident. That made sense
+ * while it was opt-in. It is now the default answer profile (the owner's
+ * decision), and a default that refuses to start unless three endpoints are set
+ * is not a working default.
+ *
+ * Only keyless public endpoints are defaulted. Wolfram's app id is NOT
+ * defaulted -- without `ETCO_gqa_wolframKey` that provider answers with a
+ * provider message per request rather than failing startup, which keeps the
+ * recovered three-provider plan intact (gqaAnswerSkill's pipeline requires all
+ * three to be present) while degrading honestly.
+ *
+ * Recorded as divergence Q01e.
+ */
+export const GQA_PUBLIC_ENDPOINTS = Object.freeze({
+  duckduckgo: 'https://api.duckduckgo.com/',
+  wikipedia: 'https://en.wikipedia.org/w/api.php',
+  wolfram: 'https://api.wolframalpha.com/v2/query',
+});
+
+/**
+ * Read the multi-provider profile configuration from an environment.
+ * An endpoint the environment does not set falls back to its public keyless
+ * default above; an explicitly configured endpoint always wins.
  */
 export function readGqaMultiProviderProfileConfig(env = process.env) {
   return {
     bing: {
+      // Microsoft retired the Bing Search API. An explicitly configured Bing
+      // endpoint still selects the Bing adapter; otherwise the slot is served
+      // by DuckDuckGo's Instant Answer API, which like Bing returns typed
+      // answer cards and never plain web pages.
       endpoint: env.ETCO_gqa_bingApi,
       apiKey: env.ETCO_gqa_bingKey,
+      duckDuckGoEndpoint: env.ETCO_gqa_duckDuckGoApi || GQA_PUBLIC_ENDPOINTS.duckduckgo,
       timeoutMs: configuredTimeout(env.ETCO_gqa_bingTimeoutMs, undefined, 'ETCO_gqa_bingTimeoutMs'),
     },
     wikipedia: {
-      endpoint: env.ETCO_gqa_wikiApi,
+      endpoint: env.ETCO_gqa_wikiApi || GQA_PUBLIC_ENDPOINTS.wikipedia,
       timeoutMs: configuredTimeout(env.ETCO_gqa_wikiTimeoutMs, undefined, 'ETCO_gqa_wikiTimeoutMs'),
       userAgent: env.ETCO_gqa_wikiUserAgent || undefined,
     },
     wolfram: {
-      endpoint: env.ETCO_gqa_wolframApi,
+      endpoint: env.ETCO_gqa_wolframApi || GQA_PUBLIC_ENDPOINTS.wolfram,
+      // Deliberately NOT defaulted: an app id is a credential.
       apiKey: env.ETCO_gqa_wolframKey,
     },
     timeouts: [

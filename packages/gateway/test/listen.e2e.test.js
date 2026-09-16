@@ -22,6 +22,13 @@ before(async () => {
   process.env.ETCO_server_hubTokenSecret = SECRET;
   process.env.NET_parser = `localhost:${PORTS.nlu}`;
   process.env.NET_skills = `localhost:${PORTS.skills}`;
+  // This e2e pins the ordinary Phoenix answer protocol over the wire
+  // (LISTEN -> SKILL_ACTION with a JCP SEQUENCE): the reference robot
+  // compatibility contract. Unset PHOENIX_GQA_DEFAULT_PROFILE now selects the
+  // source-backed GQA pipeline, which answers with a source SLIM shape and
+  // requires the source request fields, so this host opts back into the
+  // ordinary handler explicitly. That is the deliberate opt-out.
+  process.env.PHOENIX_GQA_DEFAULT_PROFILE = 'phoenix-answer';
   // Original launch-history recording defaults to true. Keep that enabled
   // and host its real dependency inside this test instead of contacting a
   // workstation service through the default hostname/port.
@@ -49,6 +56,7 @@ after(async () => {
   nluSrv?.close?.();
   skillsSrv?.close?.();
   historySrv?.close?.();
+  delete process.env.PHOENIX_GQA_DEFAULT_PROFILE;
   if (historyDir) await rm(historyDir, { recursive: true, force: true });
 });
 

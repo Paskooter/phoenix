@@ -66,8 +66,19 @@ export function createGqaDefaultSkill({ env = process.env, ...options } = {}) {
  * A caller can use `undefined`/empty to retain the ordinary Phoenix answer
  * handler; any non-empty value must be the known source-backed profile.
  */
+export const GQA_ORDINARY_PROFILE = 'phoenix-answer';
+
 export function validateGqaDefaultProfile(value) {
-  if (value === undefined || value === null || value === '') return undefined;
+  // Unset now means the source-backed multi-provider pipeline, not the ordinary
+  // Phoenix answer handler. Jibo answered general questions by racing Bing and
+  // Wikipedia and then falling back to Wolfram; that is what a Jibo should do
+  // out of the box, so it is the default rather than something to opt into.
+  //
+  // The ordinary handler -- the Pegasus answer-skill port, LLM or honest
+  // placeholder -- stays reachable as an explicit choice for a deployment that
+  // wants a language model in that slot instead.
+  if (value === undefined || value === null || value === '') return GQA_DEFAULT_PROFILE;
+  if (value === GQA_ORDINARY_PROFILE) return undefined;
   if (value !== GQA_DEFAULT_PROFILE) {
     throw new Error(`Unknown ${GQA_DEFAULT_PROFILE_ENV} '${value}'`);
   }

@@ -1,7 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
-import { createGqaDefaultSkill, start } from '../src/index.js';
+import {
+  createGqaDefaultSkill,
+  createGqaMultiProviderProfile,
+  GQA_DEFAULT_PROFILE,
+  GQA_MULTI_PROVIDER_PROFILE,
+  GQA_ORDINARY_PROFILE,
+  readGqaMultiProviderProfileConfig,
+  validateGqaDefaultProfile,
+  start,
+} from '../src/index.js';
+import { GQA_PUBLIC_ENDPOINTS } from '../src/gqaMultiProviderService.js';
 import { createGateway } from '../../gateway/src/index.js';
 import { loadConfig } from '../../gateway/src/config.js';
 
@@ -138,23 +148,90 @@ function assertGqaAnswer(body) {
   assert.equal(body.data.analytics.answer[1].properties.success, true);
 }
 
-test('shared-host GQA profile requires an explicit source provider configuration', () => {
-  assert.throws(
-    () => createGqaDefaultSkill({ env: {} }),
-    /Wikipedia endpoint must be configured explicitly/,
-  );
-  assert.throws(
-    () => start(0, {
-      skillId: null,
-      gqaDefaultProfile: 'multi-provider',
-      gqaEnvironment: {},
-    }),
-    /Wikipedia endpoint must be configured explicitly/,
-  );
+test('shared-host GQA profile starts unconfigured under the new default profile', async () => {
+  assert.equal(validateGqaDefaultProfile(undefined), GQA_DEFAULT_PROFILE);
+  assert.equal(validateGqaDefaultProfile(null), GQA_DEFAULT_PROFILE);
+  assert.equal(validateGqaDefaultProfile(''), GQA_DEFAULT_PROFILE);
+
+  const skill = createGqaDefaultSkill({ env: {} });
+  assert.equal(skill.id, 'answer-skill');
+  assert.equal(skill.profile.profile, GQA_MULTI_PROVIDER_PROFILE);
+  assert.ok(skill.profile.providers.Bing);
+  assert.ok(skill.profile.providers.Wikipedia);
+  assert.ok(skill.profile.providers['Wolfram Alpha']);
+
+  const server = await start(0, {
+    skillId: null,
+    gqaDefaultProfile: GQA_DEFAULT_PROFILE,
+    gqaEnvironment: {},
+    gqaConfig: { random: () => 0 },
+  });
+  try {
+    assert.ok(server.address().port > 0);
+  } finally {
+    await closeServer(server);
+  }
+
   assert.throws(
     () => start(0, { skillId: null, gqaDefaultProfile: 'unknown' }),
     /Unknown PHOENIX_GQA_DEFAULT_PROFILE 'unknown'/,
   );
+});
+
+test('phoenix-answer still selects the ordinary Phoenix answer handler', async () => {
+  assert.equal(validateGqaDefaultProfile(GQA_ORDINARY_PROFILE), undefined);
+  const previousUrl = process.env.PHOENIX_LLM_URL;
+  process.env.PHOENIX_LLM_URL = '';
+  let server;
+  try {
+    server = await start(0, {
+      skillId: null,
+      gqaDefaultProfile: GQA_ORDINARY_PROFILE,
+      gqaEnvironment: {},
+    });
+    const result = await post(server, '/v1/main', GQA_REQUEST);
+    assert.equal(result.response.status, 200);
+    assert.equal(result.body.type, 'SKILL_ACTION');
+    assert.equal(result.body.data.skill.id, 'answer-skill');
+    assert.equal(result.body.data.analytics.answer, undefined);
+    const jcp = result.body.data.action.config.jcp;
+    assert.equal(jcp.type, 'SEQUENCE');
+    const slim = jcp.children.find((node) => node.type === 'SLIM');
+    assert.equal(slim.config.play.meta.mim_id, 'AnswerReply');
+    assert.match(slim.config.play.esml, /I don't have an answer source connected yet\./);
+  } finally {
+    if (previousUrl === undefined) delete process.env.PHOENIX_LLM_URL;
+    else process.env.PHOENIX_LLM_URL = previousUrl;
+    if (server) await closeServer(server);
+  }
+});
+
+test('default profile is reachable with no environment at all', async () => {
+  assert.equal(validateGqaDefaultProfile(undefined), GQA_DEFAULT_PROFILE);
+  assert.equal(validateGqaDefaultProfile(null), GQA_DEFAULT_PROFILE);
+
+  const unset = readGqaMultiProviderProfileConfig({});
+  assert.equal(unset.bing.duckDuckGoEndpoint, GQA_PUBLIC_ENDPOINTS.duckduckgo);
+  assert.equal(unset.wikipedia.endpoint, GQA_PUBLIC_ENDPOINTS.wikipedia);
+  assert.equal(unset.wolfram.endpoint, GQA_PUBLIC_ENDPOINTS.wolfram);
+  assert.equal(unset.wolfram.apiKey, undefined);
+
+  const profile = createGqaMultiProviderProfile(unset);
+  assert.equal(profile.profile, GQA_MULTI_PROVIDER_PROFILE);
+  assert.ok(profile.providers.Bing);
+  assert.ok(profile.providers.Wikipedia);
+  assert.ok(profile.providers['Wolfram Alpha']);
+
+  const service = await start(0, {
+    skillId: null,
+    gqaEnvironment: {},
+    gqaConfig: { random: () => 0 },
+  });
+  try {
+    assert.ok(service.address().port > 0);
+  } finally {
+    await closeServer(service);
+  }
 });
 
 test('default skills host routes GQA answer and preserves other skill selection', async () => {

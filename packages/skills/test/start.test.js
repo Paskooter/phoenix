@@ -14,7 +14,7 @@ const requests = {
     type: 'LISTEN_LAUNCH', msgID: 'answer', ts: 1,
     data: {
       general: { accountID: 'a', robotID: 'r', lang: 'en-US' },
-      runtime: { dialog: {} },
+      runtime: { dialog: {}, location: { lat: 42.36, lng: -71.06, countryCode: 'US' } },
       skill: { id: 'answer-skill' },
       result: { asr: { text: 'who is ada lovelace' }, nlu: { intent: 'generalWhoQuestions', rules: ['launch'], entities: {} }, memo: { type: 'who' } },
     },
@@ -68,8 +68,10 @@ const requests = {
 
 // Known first-response identity of each replacement skill. `mim` is the source MIM id for
 // the MIM-driven skills; `esml` covers the skeleton skills that emit a literal play.
+// answer-skill is deliberately absent here: an unset profile now selects the
+// source-backed GQA pipeline, whose SLIM carries a GQA prompt_id rather than an
+// ordinary AnswerReply MIM.
 const expectedIdentity = {
-  'answer-skill': { mim: 'AnswerReply' },
   'report-skill': { mim: 'PersonalReportWhoIsThis' },
   'chitchat-skill': { mim: 'RA_JBO_SpecificDance' },
   'color-skill': { mim: 'ColorQN' },
@@ -77,12 +79,43 @@ const expectedIdentity = {
   'template-skill': { mim: 'template-mim' },
 };
 
+// An unset PHOENIX_GQA_DEFAULT_PROFILE now means the source-backed multi-provider
+// answer pipeline. These selection tests are about skill identity, not about the
+// live providers, so an offline fixture keeps them hermetic and fast: every peer
+// is a closed loopback port and the source group deadlines are shrunk to 20ms.
+function answerSkillOptions() {
+  return {
+    gqaEnvironment: {
+      ETCO_gqa_bingApi: 'http://127.0.0.1:9',
+      ETCO_gqa_bingKey: 'fixture-bing-key',
+      ETCO_gqa_wikiApi: 'http://127.0.0.1:9',
+      ETCO_gqa_wolframApi: 'http://127.0.0.1:9',
+      ETCO_gqa_wolframKey: 'fixture-wolfram-key',
+    },
+    gqaConfig: { random: () => 0, timeouts: [20, 20] },
+  };
+}
+
+// The source GQA route requires the X-JIBO-transID header; every other skill
+// handles it as an ignorable extra header, so a single shared header keeps the
+// requests valid for whichever profile is serving answer-skill.
 function post(port, path, body) {
   return fetch(`http://127.0.0.1:${port}${path}`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json', 'x-jibo-transid': 'start-test-trans' },
     body: JSON.stringify(body),
   }).then(async (response) => ({ status: response.status, body: await response.json() }));
+}
+
+// A fixture provider outage yields the source GQA action under the answer-skill
+// identity: status 200, the skill id, and a source GQA SLIM (provider failures
+// map to the source GQA_error MIM; a clean no-answer would map to GQA_no_answer_*).
+function assertAnswerSkillIdentity(response, skillId) {
+  assert.equal(response.type, 'SKILL_ACTION', skillId);
+  assert.equal(response.data.skill.id, skillId, `${skillId}/response identity`);
+  assert.equal(response.data.analytics.answer[1].properties.success, false, skillId);
+  const play = firstSlim(response).config.play;
+  assert.match(play.meta.prompt_id, /^GQA_/, `${skillId}/source GQA prompt`);
 }
 
 function firstSlim(response) {
@@ -96,13 +129,16 @@ function close(server) {
 
 test('PHOENIX_SKILL_ID selects the real skill at /v1/main', async () => {
   for (const skillId of Object.keys(requests)) {
-    const server = await start(0, { skillId });
+    const server = await start(0, { skillId, ...(skillId === 'answer-skill' ? answerSkillOptions() : {}) });
     try {
       const port = server.address().port;
       const result = await post(port, '/v1/main', requests[skillId]);
       assert.equal(result.status, 200, skillId);
-      assert.equal(result.body.type, 'SKILL_ACTION', skillId);
       assert.equal(result.body.data.skill.id, skillId, `${skillId}/response identity`);
+      if (skillId === 'answer-skill') {
+        assertAnswerSkillIdentity(result.body, skillId);
+        continue;
+      }
       const play = firstSlim(result.body).config.play;
       if (expectedIdentity[skillId].mim) {
         assert.equal(play.meta.mim_id, expectedIdentity[skillId].mim, `${skillId}/known response`);
@@ -117,7 +153,7 @@ test('PHOENIX_SKILL_ID selects the real skill at /v1/main', async () => {
 
 test('each selected host retains its namespaced /v1/<id>/main alias', async () => {
   for (const skillId of Object.keys(requests)) {
-    const server = await start(0, { skillId });
+    const server = await start(0, { skillId, ...(skillId === 'answer-skill' ? answerSkillOptions() : {}) });
     try {
       const port = server.address().port;
       const result = await post(port, `/v1/${skillId}/main`, requests[skillId]);
@@ -142,7 +178,7 @@ test('a selected host does not expose another skill at its namespaced alias', as
 });
 
 test('without PHOENIX_SKILL_ID the shared host keeps combined routes', async () => {
-  const server = await start(0, { skillId: null });
+  const server = await start(0, { skillId: null, ...answerSkillOptions() });
   try {
     const port = server.address().port;
     const defaultRoute = await post(port, '/v1/main', requests['answer-skill']);

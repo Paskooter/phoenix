@@ -625,7 +625,7 @@ test('Q-01 composite Wolfram attribution is source-backed and retrieve/wipe rema
   }, { mode: 'bing-success' });
 });
 
-test('Q-01 composite selected profile rejects any missing provider endpoint before opening a listener', () => {
+test('Q-01 composite selected profile requires explicit endpoints when constructed directly, and starts from public defaults with an empty environment', async () => {
   assert.throws(
     () => createGqaMultiProviderProfile({
       bing: { endpoint: 'http://fixture.invalid/bing' },
@@ -634,8 +634,10 @@ test('Q-01 composite selected profile rejects any missing provider endpoint befo
     }),
     /GQA Wolfram Alpha endpoint must be configured explicitly/,
   );
-  assert.throws(
-    () => start(0, { gqaProfile: 'multi-provider', gqaEnvironment: {} }),
-    /Wikipedia endpoint must be configured explicitly/,
-  );
+  const server = await start(0, { gqaProfile: 'multi-provider', gqaEnvironment: {} });
+  try {
+    assert.ok(server.address().port > 0);
+  } finally {
+    await closeServer(server);
+  }
 });
