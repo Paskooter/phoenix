@@ -26,7 +26,13 @@
 // POST /api/token (the original two-argument {accessKeyId, secretAccessKey} portal token).
 
 import { sendJson } from '@phoenix/common';
-import { createOwnerAccount, verifyPassword, createLoop, mintSetupToken, findToken, ACCESS_TOKEN_LIFETIME_MS, secretMatches, createHubToken } from './model.js';
+import { createOwnerAccount, createLoop, mintSetupToken, findToken, ACCESS_TOKEN_LIFETIME_MS, secretMatches, createHubToken } from './model.js';
+// Password comparison MUST be compareAccountPassword, not model.js's scrypt-only
+// verifyPassword. A household restored from the original cloud stores
+// `sha512$512$10000$<salt>$<hash>` (the source utils/password.ts pbkdf2 encoding);
+// verifyPassword returns false for anything that is not `scrypt:`, so the real
+// account -- the one the owner signs into on the phone -- could never log in here.
+import { compareAccountPassword } from './accountIdentity.js';
 import { createSession, destroySession, getSession, sessionCookie, clearCookie, checkAdminPassword } from './sessions.js';
 import { buildQrCodes } from './qrPayload.js';
 import { userFromSession as sessionUser, portalAccount } from './portal/session.js';
@@ -106,7 +112,7 @@ export function portalRoutes(store, options = {}) {
     'POST /api/login': ({ res, body }) => {
       const { email, password } = body || {};
       const account = email ? store.accountByEmail(email) : null;
-      if (!account || !account.isActive || !verifyPassword(password, account.password)) {
+      if (!account || !account.isActive || !compareAccountPassword(password, account.password)) {
         return sendJson(res, 401, { error: 'invalid email or password' });
       }
       const session = createSession(store, { kind: 'user', accountId: account._id });

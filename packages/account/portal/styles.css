@@ -38,6 +38,12 @@ h3 { margin: 18px 0 8px; font-size: 15px; }
 .section-head { margin-bottom: 6px; }
 .row { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
 form { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+/* `hidden` is display:none by default, but ANY later display rule beats it --
+   `label { display: flex }` below made the signup-only First name field show on
+   the LOGIN tab. One global rule so an element with `hidden` is always hidden,
+   whatever else styles it. */
+[hidden] { display: none !important; }
+
 label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
 label.check, label.sub { flex-direction: row; align-items: center; gap: 8px; }
 label.sub { flex-direction: column; align-items: stretch; gap: 4px; }

@@ -2,7 +2,10 @@
 // change is exactly the account the mobile app signs into.
 
 import { sendJson } from '@phoenix/common';
-import { hashPassword, verifyPassword } from '../model.js';
+import { hashPassword } from '../model.js';
+// Both formats, same reason as the login route: an imported household's password
+// is the source pbkdf2 encoding, not the portal's scrypt.
+import { compareAccountPassword } from '../accountIdentity.js';
 import { requireUser, portalAccount } from './session.js';
 
 const GENDERS = ['male', 'female', 'other', 'they'];
@@ -56,7 +59,7 @@ export function portalProfileRoutes(store) {
       const account = requireUser(store, req, res);
       if (!account) return;
       const { currentPassword, newPassword } = body || {};
-      if (typeof currentPassword !== 'string' || !verifyPassword(currentPassword, account.password)) {
+      if (typeof currentPassword !== 'string' || !compareAccountPassword(currentPassword, account.password)) {
         return sendJson(res, 401, { error: 'current password is incorrect' });
       }
       if (typeof newPassword !== 'string' || newPassword.length < 8) {
@@ -75,7 +78,7 @@ export function portalProfileRoutes(store) {
       const account = requireUser(store, req, res);
       if (!account) return;
       const { currentPassword, email } = body || {};
-      if (typeof currentPassword !== 'string' || !verifyPassword(currentPassword, account.password)) {
+      if (typeof currentPassword !== 'string' || !compareAccountPassword(currentPassword, account.password)) {
         return sendJson(res, 401, { error: 'current password is incorrect' });
       }
       if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
