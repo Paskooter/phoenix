@@ -1,5 +1,65 @@
 # `@be/be` release index
 
+## SUPPORTED VERSION: BE 11.0.1
+
+**Phoenix targets BE 11.0.1.** This is the version to bundle, to document, and to
+base further BE work on. It is not a preference — it is the only release
+measured to retain the behaviour Phoenix depends on.
+
+Root compared 12.0.0, 11.0.3, 11.0.2 and 11.0.1 in descending order against the
+same Phoenix process. **Only 11.0.1**:
+
+* issued `[0.05, 0.73, 0.94]` and queued `hj-sp-transition-to-blink-ns` during
+  the local listening test — the cyan listening eye. Screenshots of the newer
+  releases show the ordinary pale eye.
+* initialises the proactive runtime, executes Nimbus joke TTS, and reaches the
+  original surprise/local-listening interactions after speech.
+
+What the newer releases lost:
+
+| release | regression |
+| --- | --- |
+| 11.0.2 | listening-light and eye-animation change lands here, plus a separate proactive-configuration change that produces the after-speech null error |
+| 11.0.3 | matches the disabled 11.0.2 implementation |
+| 12.0.0 | local-listening path commands only LED off — this is the missing-blue-ring report |
+
+Evidence: [HARDWARE.md](HARDWARE.md) (the descending comparison and screenshots)
+and [the BE release audit](evidence/2026-09-05/be-release-audit/report.md).
+
+### Running it on a robot
+
+The skill is installed as directory `phoenix-be-11-0-1-parity`, but the skills
+service matches on the **package name**, not the directory:
+
+```bash
+# list what is installed
+curl -s -X POST -H 'Content-Type: application/json' -d '{}' \
+  http://<robot>:8686/diskspace
+
+# stop whatever is running, then start 11.0.1
+curl -s -X POST -H 'Content-Type: application/json' -d '{}' \
+  http://<robot>:8686/stop
+curl -s -X POST -H 'Content-Type: application/json' \
+  -d '{"dirName":"@be/phoenix-parity-11-0-1"}' http://<robot>:8686/run
+
+# confirm
+ps aux | grep '[e]lectron' | grep -oE '/opt/jibo/Jibo/Skills/[^ ]*'
+```
+
+`8686` is the SkillsService of `jibo-ssm` (`skills-service-manager` v16.0.0).
+Note that the SSM's own `jibo-ssm-normal.json` declares `startSkill: "@be/be"`,
+which is **not** the supported version — starting the robot's default gives
+12.0.0-era behaviour, not 11.0.1.
+
+| directory | package name |
+| --- | --- |
+| `phoenix-be-11-0-1-parity` | `@be/phoenix-parity-11-0-1` |
+| `phoenix-be-11-0-2-parity` | `@be/phoenix-parity-11-0-2` |
+| `phoenix-be12-parity` | `@be/phoenix-parity` |
+| `@be/be` | `@be/be` |
+
+---
+
 This index records the production BE archives visible in the pinned Jibo archive repository on 2026-09-05 and the source comparison relevant to listening, HJ handoff, the blue ring, Nimbus follow-ups, and speech/display behavior. Archive listing: <https://pvindex.org/repository/skills/jibo-be/>.
 
 ## Descending archive inventory
