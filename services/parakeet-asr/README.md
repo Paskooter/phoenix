@@ -96,18 +96,25 @@ word look like several. Silent chunks are not decoded.
 ## Running
 
 ```bash
-# contract only, no model: 242 MB, starts instantly
-docker build --target service -t parakeet-asr:service .
-
-# with NeMo + torch, for the real deployment
-docker build --target model -t parakeet-asr:latest .
+# the real deployment
+docker build -t parakeet-asr:latest .
 docker run -d --gpus all -p 6972:6972 parakeet-asr:latest
+
+# contract only: no NeMo, torch or CUDA. Exercises the API and the streaming
+# protocol on any machine; cannot transcribe.
+docker build --target contract -t parakeet-asr:contract .
+docker run --rm parakeet-asr:contract python -m pytest tests/ -q
 ```
+
+The original built on `nvcr.io/nvidia/nemo:26.02`. That image needs an NGC
+login to pull, so this installs NeMo from pip on a plain `python:3.10-slim`
+base instead. Do not switch the base back without checking that the pull still
+works.
 
 | env | default | meaning |
 | --- | --- | --- |
-| `PARAKEET_MODEL` | `nvidia/parakeet-tdt-0.6b-v2` | NeMo model name |
-| `PARAKEET_DEVICE` | `cuda` | `cuda` or `cpu` |
+| `PARAKEET_MODEL` | `nvidia/parakeet-rnnt-0.6b` | NeMo model name. **Not** interchangeable with `parakeet-tdt-0.6b-v2`: TDT emits punctuation, and punctuation does not parse. |
+| `PARAKEET_DEVICE` | *(unset)* | e.g. `cuda`; unset lets NeMo decide |
 | `PARAKEET_INTERIM_MS` | `300` | interim decode window |
 | `PARAKEET_SILENCE_RMS` | `200` | below this a chunk is silence |
 

@@ -1,0 +1,4 @@
+# The model layer. Separate from requirements.txt because this pulls torch and
+# NeMo -- large, GPU-specific, and not needed to exercise the wire contract.
+nemo_toolkit[asr]>=1.23
+omegaconf>=2.3
