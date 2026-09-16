@@ -82,6 +82,12 @@ symlink. For example, `phoenix-robot@moth.service` uses:
   include `PHOENIX_ENV_FILE=/dev/null` and use absolute paths.
 - `~/.local/share/phoenix/moth/current`: a symlink to the reviewed, frozen
   checkout with its installed dependencies. Switch it only while stopped.
+  It is frozen on purpose: a restart re-runs whatever that checkout already
+  holds, so a change in your working tree does not reach the robot until you
+  advance the checkout the symlink names and then restart. Read the `revision`
+  field of the launcher's ready line to see which commit is actually serving --
+  two live failures were once diagnosed as code faults when the running stack
+  was simply 215 commits behind.
 - `PHOENIX_ROBOT_RUN`: a private persistent directory for the launcher receipt,
   notification state and backups.
 
