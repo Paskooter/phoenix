@@ -328,17 +328,20 @@ function sendPushValidationError(res, message) {
 
 /**
  * Thin read sidecar for the web portal: the Push_20160729 AWS surface only has Create/Remove,
- * but the portal's "push registrations" view needs a list. The registry keys devices by the
- * signed access key (the source AccountPush collection key), so identity here is the raw access
- * key the caller presents — via the portal's `portal-key` header or a standard SigV4 Authorization.
+ * but the portal's "push registrations" view needs a list.
+ *
+ * Identity resolution is `accessKeyIdFromAuth`, the same shared helper makePushHandler below
+ * uses, so this route reads exactly the devices the AWS surface would write for the same
+ * caller. An earlier draft parsed a bespoke `portal-key <accessKeyId>` header and pulled the
+ * Credential scope out of a SigV4 header with its own regex; both are gone. A second,
+ * weaker identity scheme on the robot's front door is worth avoiding even where the
+ * architecture already trusts an upstream gateway for signature verification — one
+ * convention, one helper, one place to tighten later.
  */
 export function pushRoutes(registry = new DeviceRegistry()) {
   return {
     'GET /push/devices': ({ req, res }) => {
-      const header = String(req?.headers?.['authorization'] || '');
-      const portal = /^portal-key\s+([A-Za-z0-9_-]+)/.exec(header);
-      const sigv4 = /Credential=([^/,\s]+)\//.exec(header);
-      const accessKeyId = (portal && portal[1]) || (sigv4 && sigv4[1]) || null;
+      const accessKeyId = accessKeyIdFromAuth(req);
       if (!accessKeyId) return void sendJson(res, 401, { error: 'missing credentials' });
       return { devices: registry.activeDevices(accessKeyId) };
     },

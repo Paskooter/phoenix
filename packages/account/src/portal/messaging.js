@@ -3,6 +3,8 @@
 // identity. Push registration listing needs a thin read sidecar on the classic push handler
 // (its AWS surface only has Create/Remove), added there as GET /push/devices.
 
+import { signSigV4 } from '@phoenix/common';
+import { DEFAULT_REGION, DEFAULT_SERVICE } from './classicClient.js';
 import { sendJson } from '@phoenix/common';
 import { classicCall, ClassicCallError } from './classicClient.js';
 import { requireUser } from './session.js';
@@ -106,9 +108,23 @@ export function portalMessagingRoutes(store, options = {}) {
       if (!account) return;
       if (!blobBase) return sendJson(res, 502, { error: 'classic base not configured' });
       try {
-        const upstream = await fetch(`${String(blobBase).replace(/\/+$/, '')}/push/devices`, {
-          headers: { authorization: `portal-key ${account.accessKeyId}` },
+        // Signed exactly like the portal's other Classic calls, so the sidecar resolves
+        // identity through the same accessKeyIdFromAuth path as Push_20160729 itself.
+        const pushPath = '/push/devices';
+        const pushUrl = `${String(blobBase).replace(/\/+$/, '')}${pushPath}`;
+        const signed = signSigV4({
+          method: 'GET',
+          path: pushPath,
+          headers: { host: new URL(pushUrl).host },
+          body: '',
+          accessKeyId: account.accessKeyId,
+          secretAccessKey: account.secretAccessKey,
+          region: DEFAULT_REGION,
+          service: DEFAULT_SERVICE,
         });
+        // signSigV4 returns {headers, authorization, canonicalRequest, stringToSign};
+        // `headers` is the map to send, with Authorization already folded in.
+        const upstream = await fetch(pushUrl, { headers: signed.headers });
         const body = await upstream.json().catch(() => null);
         if (!upstream.ok) {
           return sendJson(res, upstream.status, { error: (body && body.error) || 'push list failed' });
