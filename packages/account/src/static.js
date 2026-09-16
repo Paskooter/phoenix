@@ -13,6 +13,7 @@ const MIME = {
   '.js': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.svg': 'image/svg+xml',
+  '.png': 'image/png',
 };
 
 function serve(file) {
@@ -29,7 +30,13 @@ function serve(file) {
 
 /** Explicit GET routes for every portal asset; `/` and `/admin` serve index.html. */
 export function staticRoutes() {
-  const files = ['index.html', 'app.js', 'styles.css', 'qr.js'];
+  // Vendored third-party assets keep their own directory so it stays obvious what
+  // is ours. Leaflet is served from here rather than a CDN: the portal runs on a
+  // LAN beside the robot and must not depend on an outside host to render. (Map
+  // TILES do come from OpenStreetMap over the internet; the picker degrades to
+  // manual latitude/longitude entry when they cannot be reached.)
+  const files = ['index.html', 'app.js', 'styles.css', 'qr.js', 'map.js',
+    'vendor/leaflet.js', 'vendor/leaflet.css'];
   const routes = {
     'GET /': serve('index.html'),
     'GET /admin': serve('index.html'), // SPA — client routes on the hash

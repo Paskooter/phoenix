@@ -3,6 +3,7 @@
 // REST face (session cookie) that the original portal used. QR rendered by the vendored qr.js.
 
 import { qrSvg } from '/qr.js';
+import { createLocationPicker } from '/map.js';
 
 const app = document.getElementById('app');
 const sidebar = document.getElementById('sidebar');
@@ -50,6 +51,46 @@ const row = (left, right) => h('div', { class: 'kv' }, h('span', { class: 'k' },
 const panel = (...kids) => h('section', { class: 'card' }, h('h2', { class: 'sr-only' }, ''), ...kids);
 const errP = (msg) => h('p', { class: 'error' }, msg);
 
+// -- controls -----------------------------------------------------------------
+// A bare <input type=checkbox> is unreadable at a glance and unpleasant to hit on
+// a phone, and these are settings a household toggles, not a form they fill in.
+// Both helpers keep the same `name` and checked semantics, so FormData still
+// reads them exactly as before — only the presentation changes.
+
+/** A labelled toggle. `hint` explains the setting under its name. */
+const toggle = (name, checked, label, hint) => {
+  const input = h('input', { type: 'checkbox', name, checked: !!checked });
+  const el = h('label', { class: 'switch' },
+    input,
+    h('span', { class: 'track' }),
+    h('span', { class: 'switch-text' },
+      h('span', {}, label),
+      hint ? h('span', { class: 'switch-hint' }, hint) : null));
+  // Grey the rest of the group out while the setting is off, so the page shows
+  // what is actually in effect instead of a wall of equally-live controls.
+  const sync = () => {
+    const group = el.closest('fieldset');
+    if (group) group.classList.toggle('group-off', !input.checked);
+  };
+  input.addEventListener('change', sync);
+  queueMicrotask(sync);
+  return el;
+};
+
+/** A pill for multi-select lists (news categories, calendars, media selection). */
+const chip = (name, checked, label) => h(
+  'label', { class: 'chip' },
+  h('input', { type: 'checkbox', name, checked: !!checked }),
+  h('span', { class: 'chip-mark' }),
+  h('span', {}, label),
+);
+
+/** Sentence-case a source key like `googleWork` or `top_stories`. */
+const prettyLabel = (key) => String(key)
+  .replace(/[_-]+/g, ' ')
+  .replace(/([a-z\d])([A-Z])/g, '$1 $2')
+  .replace(/^./, (c) => c.toUpperCase());
+
 let me = null;
 
 async function refreshMe() {
@@ -82,8 +123,10 @@ function memberRow(member, loop, opts = {}) {
   const statusBadge = h('span', { class: `status status-${member.status || 'invited'}` }, member.status || 'invited');
 
   const linkedNote = linked
-    ? h('span', { class: 'muted' }, `→ ${linked.email}${linked.isActive ? '' : ' (inactive)'}`)
-    : h('span', { class: 'muted warn' }, 'not linked to an account');
+    ? h('span', { class: 'muted' }, `\u2192 ${linked.email}${linked.isActive ? '' : ' (inactive)'}`)
+    // Say what the consequence is, not just the state: an unlinked member is why
+    // the report skill answers "I had trouble fetching your personal settings".
+    : h('span', { class: 'member-unlinked-note' }, 'No account linked \u2014 Jibo cannot load their personal report');
 
   const actions = [];
   if (opts.onLink) {
@@ -118,9 +161,10 @@ function enrollmentControl(member, loop, onChange) {
     if (r.ok) { notify('Enrollment saved'); if (onChange) onChange(); }
     else notify(r.data.error || 'failed', 'error');
   };
-  return h('div', { class: 'enroll' },
-    h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: !!member.enrolled?.face, on: { change: on('face') } }), ' face'),
-    h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: !!member.enrolled?.voice, on: { change: on('voice') } }), ' voice'));
+  const enrolChip = (kind, label) => h('label', { class: 'chip' },
+    h('input', { type: 'checkbox', checked: !!member.enrolled?.[kind], on: { change: on(kind) } }),
+    h('span', { class: 'chip-mark' }), h('span', {}, label));
+  return h('div', { class: 'enroll' }, enrolChip('face', 'Face'), enrolChip('voice', 'Voice'));
 }
 
 async function renderLoop() {
@@ -205,11 +249,15 @@ async function renderLoop() {
         h('button', { type: 'button', class: 'link', on: { click: () => { state.editId = null; renderMemberList(); } } }, 'Close'));
       children.unshift(form);
     }
-    return h('div', { class: 'member-block', 'data-member': m.id }, ...children);
+    return h('div', { class: `member-block${m.account ? '' : ' unlinked'}`, 'data-member': m.id }, ...children);
   }
 
   function renderMemberList() {
-    listEl.replaceChildren(...active.members.map(buildMemberBlock));
+    // Members needing an account link come first: they are the actionable ones,
+    // and on a 12-person household they were otherwise scattered down the page.
+    const ordered = [...active.members].sort((a, b) => Number(!!a.account) - Number(!!b.account));
+    const grid = h('div', { class: 'member-grid' }, ...ordered.map(buildMemberBlock));
+    listEl.replaceChildren(grid);
   }
   renderMemberList();
 
@@ -305,43 +353,54 @@ async function renderSettings() {
   const s = r.data.settings;
 
   const form = h('form', { class: 'settings-form', on: { submit: save } });
-  const num = (v) => (v === '' || v == null ? null : Number(v));
 
   const weather = h('fieldset', {},
     h('legend', {}, 'Weather'),
-    h('label', { class: 'check' }, h('input', { type: 'checkbox', name: 'weather', checked: s.weather.active }), ' Include weather in the report'),
-    h('label', { class: 'sub' }, 'Units', h('select', { name: 'units' },
-      h('option', { value: 'f', selected: !s.weather.celsius }, 'Fahrenheit'),
-      h('option', { value: 'c', selected: s.weather.celsius }, 'Celsius'))));
+    toggle('weather', s.weather.active, 'Include weather', 'Jibo opens the report with today\u2019s forecast.'),
+    h('label', { class: 'sub' }, h('span', { class: 'field-label' }, 'Units'),
+      h('select', { name: 'units' },
+        h('option', { value: 'f', selected: !s.weather.celsius }, 'Fahrenheit'),
+        h('option', { value: 'c', selected: s.weather.celsius }, 'Celsius'))));
 
   const news = h('fieldset', {},
     h('legend', {}, 'News'),
-    h('label', { class: 'check' }, h('input', { type: 'checkbox', name: 'news', checked: s.news.active }), ' Read the news'),
+    toggle('news', s.news.active, 'Read the news', 'Pick the categories Jibo should cover.'),
     h('div', { class: 'chips' },
-      Object.entries(s.news.categories).map(([cat, on]) =>
-        h('label', { class: 'check' }, h('input', { type: 'checkbox', name: `news_${cat}`, checked: on }), ' ' + cat))));
+      Object.entries(s.news.categories).map(([cat, on]) => chip(`news_${cat}`, on, prettyLabel(cat)))));
+
+  // Commute used to be four bare number fields — home lat, home lng, work lat,
+  // work lng. Nobody knows their coordinates, so the setting was effectively
+  // unusable. The picker keeps the same submitted values and lets you point at a
+  // map instead; the manual fields are still there, folded away, for when the
+  // tiles cannot be reached.
+  const picker = createLocationPicker({
+    places: [
+      { key: 'home', label: 'Home', point: s.commute.home || {} },
+      { key: 'work', label: 'Work', point: s.commute.work || {} },
+    ],
+  });
 
   const commute = h('fieldset', {},
     h('legend', {}, 'Commute'),
-    h('label', { class: 'check' }, h('input', { type: 'checkbox', name: 'commute', checked: s.commute.active }), ' Give commute directions'),
-    h('label', { class: 'sub' }, 'Mode', h('select', { name: 'mode' },
-      ['driving', 'walking', 'bicycling', 'transit'].map((m) => h('option', { value: m, selected: s.commute.mode === m }, m)))),
-    h('div', { class: 'grid2' },
-      h('label', { class: 'sub' }, 'Home lat', h('input', { name: 'home_lat', value: s.commute.home.lat ?? '' })),
-      h('label', { class: 'sub' }, 'Home lng', h('input', { name: 'home_lng', value: s.commute.home.lng ?? '' })),
-      h('label', { class: 'sub' }, 'Work lat', h('input', { name: 'work_lat', value: s.commute.work.lat ?? '' })),
-      h('label', { class: 'sub' }, 'Work lng', h('input', { name: 'work_lng', value: s.commute.work.lng ?? '' }))));
+    toggle('commute', s.commute.active, 'Give commute directions', 'How long it takes to get from home to work.'),
+    h('label', { class: 'sub' }, h('span', { class: 'field-label' }, 'Travel mode'),
+      h('select', { name: 'mode' },
+        [['driving', 'Driving'], ['walking', 'Walking'], ['bicycling', 'Cycling'], ['transit', 'Public transit']]
+          .map(([value, label]) => h('option', { value, selected: s.commute.mode === value }, label)))),
+    picker.element);
 
   const calendar = h('fieldset', {},
     h('legend', {}, 'Calendar'),
-    h('label', { class: 'check' }, h('input', { type: 'checkbox', name: 'calendar', checked: s.calendar.active }), ' Read your calendar'),
+    toggle('calendar', s.calendar.active, 'Read your calendar', 'Which calendars Jibo may look at.'),
     h('div', { class: 'chips' },
-      [['googlePersonal', 'Google personal'], ['googleWork', 'Google work'], ['outlookPersonal', 'Outlook personal'], ['outlookWork', 'Outlook work']]
-        .map(([key, label]) => h('label', { class: 'check' }, h('input', { type: 'checkbox', name: `cal_${key}`, checked: s.calendar[key] }), ' ' + label))));
+      [['googlePersonal', 'Google personal'], ['googleWork', 'Google work'],
+       ['outlookPersonal', 'Outlook personal'], ['outlookWork', 'Outlook work']]
+        .map(([key, label]) => chip(`cal_${key}`, s.calendar[key], label))));
 
   form.append(weather, news, commute, calendar,
-    h('button', { type: 'submit', class: 'primary' }, 'Save'),
-    h('p', { class: 'muted' }, 'What Jibo includes when you ask for your personal report.'));
+    h('div', { class: 'row' },
+      h('p', { class: 'muted' }, 'What Jibo includes when you ask for your personal report.'),
+      h('button', { type: 'submit', class: 'primary' }, 'Save changes')));
 
   container.appendChild(form);
 
@@ -355,9 +414,7 @@ async function renderSettings() {
     const body = {
       weather: { active: !!fd.weather, celsius: fd.units === 'c' },
       news: { active: !!fd.news, categories: newsCats },
-      commute: { active: !!fd.commute, mode: fd.mode,
-        home: { lat: num(fd.home_lat), lng: num(fd.home_lng) },
-        work: { lat: num(fd.work_lat), lng: num(fd.work_lng) } },
+      commute: { active: !!fd.commute, mode: fd.mode, ...picker.value() },
       calendar: { active: !!fd.calendar, ...calendar },
     };
     const r = await api('PUT', '/api/settings', body);
@@ -383,12 +440,14 @@ async function renderProfile() {
   const form = h('form', { on: { submit: saveProfile } },
     h('label', { class: 'sub' }, 'First name', h('input', { name: 'firstName', value: a.firstName || '' })),
     h('label', { class: 'sub' }, 'Last name', h('input', { name: 'lastName', value: a.lastName || '' })),
-    h('label', { class: 'sub' }, 'Birthday (epoch ms)', h('input', { name: 'birthday', value: a.birthday ?? '' })),
+    h('label', { class: 'sub' }, h('span', { class: 'field-label' }, 'Birthday'),
+      h('input', { type: 'date', name: 'birthdayDate',
+        value: a.birthday ? new Date(Number(a.birthday)).toISOString().slice(0, 10) : '' })),
     h('label', { class: 'sub' }, 'Gender', h('select', { name: 'gender' },
       ['', 'male', 'female', 'other', 'they'].map((g) => h('option', { value: g, selected: a.gender === g }, g || '(none)')))),
     h('label', { class: 'sub' }, 'Phone number', h('input', { name: 'phoneNumber', value: a.phoneNumber || '' })),
-    h('label', { class: 'check' }, h('input', { type: 'checkbox', name: 'messagingAllowed', checked: a.messagingAllowed ?? true }), ' Allow messaging'),
-    h('button', { type: 'submit', class: 'primary' }, 'Save'),
+    toggle('messagingAllowed', a.messagingAllowed ?? true, 'Allow messaging', 'Let other people in the loop send you messages through Jibo.'),
+    h('button', { type: 'submit', class: 'primary' }, 'Save changes'),
     h('p', { class: 'muted' }, `Signed in as ${a.email}`));
   card.appendChild(form);
   container.appendChild(card);
@@ -416,7 +475,8 @@ async function renderProfile() {
       firstName: fd.firstName || undefined,
       lastName: fd.lastName || undefined,
       gender: fd.gender || undefined,
-      birthday: fd.birthday === '' ? null : Number(fd.birthday),
+      // The field is a date picker now; the API still stores epoch ms.
+      birthday: fd.birthdayDate ? Date.parse(`${fd.birthdayDate}T00:00:00Z`) : null,
       phoneNumber: fd.phoneNumber || null,
       messagingAllowed: !!fd.messagingAllowed,
     };
@@ -504,9 +564,9 @@ async function renderGallery() {
     const tile = h('div', { class: 'media-tile', 'data-path': m.path },
       h('img', { src: imageUrl(m), loading: 'lazy', on: { click: () => openMedia(m) } }),
       h('div', { class: 'media-caption' }, `${m.type} · ${fmtDate(m.created)}`),
-      h('label', { class: 'check' }, h('input', { type: 'checkbox', on: { change: (e) => {
+      h('label', { class: 'chip' }, h('input', { type: 'checkbox', on: { change: (e) => {
         if (e.target.checked) selected.add(m.path); else selected.delete(m.path);
-      } } }), ' delete'));
+      } } }), h('span', { class: 'chip-mark' }), h('span', {}, 'Select')));
     grid.appendChild(tile);
   });
   container.appendChild(grid);
