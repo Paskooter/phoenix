@@ -263,7 +263,12 @@ function buildReport({ initialMetadata, restartMetadata, initialRun, restartRun,
       package: '@jibo/jibo-server-client',
       version: JSON.parse(fs.readFileSync(path.join(sdkRoot, 'package.json'), 'utf8')).version,
       root: sdkRoot,
-      packageTarballSha256: sha256(path.join(sdkRoot, '.yarn-tarball.tgz')),
+      // The yarn-cache copy carries the tarball it was unpacked from; a client
+      // tree lifted off the robot does not. Its absence is recorded, not fatal:
+      // the per-file digests below are what identify the client either way.
+      packageTarballSha256: fs.existsSync(path.join(sdkRoot, '.yarn-tarball.tgz'))
+        ? sha256(path.join(sdkRoot, '.yarn-tarball.tgz'))
+        : null,
       files: {
         oobe: sha256(path.join(sdkRoot, 'clients/oobe.js')),
         oobeadmin: sha256(path.join(sdkRoot, 'clients/oobeadmin.js')),

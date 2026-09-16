@@ -3811,13 +3811,74 @@
         "packages/account/src/qrPayload.js",
         "packages/account/portal/qr.js"
       ],
-      "finding": "The accepted Account implementation covers setup/reconnect, suspended replacement, unbound relocation, token persistence/expiry, OOBE authentication, administrator service-token issuance and UTF-8 QR framing. The public parser matches the pinned Hapi media/entity boundary and preserves source-simple reconnect behavior. The installed original @jibo/jibo-server-client 3.0.110 under Node 8.9.4 now drives all five normal/admin OOBE operations across both Account and Classic faces: 38 initial and 46 post-restart checks pass, issued ordinary/replacement/service credentials survive a real service-process restart, and all nine Store collections match disk. A-03 and A-04 are now verified, so only hardware evidence remains open: a robot restart, fresh robot/firmware/date evidence, native pairing, TLS ingress, and household preservation. docs/parity/evidence/2026-09-14/a05-hardware-gap/README.md separates the read-only and reboot-only items from the ones that need explicit user consent because they would re-pair the robot or change live household state.",
+      "finding": "The accepted Account implementation covers setup/reconnect, suspended replacement, unbound relocation, token persistence/expiry, OOBE authentication, administrator service-token issuance and UTF-8 QR framing. The public parser matches the pinned Hapi media/entity boundary and preserves source-simple reconnect behavior. The installed original @jibo/jibo-server-client 3.0.110 under Node 8.9.4 now drives all five normal/admin OOBE operations across both Account and Classic faces: 38 initial and 46 post-restart checks pass, issued ordinary/replacement/service credentials survive a real service-process restart, and all nine Store collections match disk. A-03 and A-04 are now verified, so only hardware evidence remains open: a robot restart, fresh robot/firmware/date evidence, native pairing, TLS ingress, and household preservation. docs/parity/evidence/2026-09-14/a05-hardware-gap/README.md separates the read-only and reboot-only items from the ones that need explicit user consent because they would re-pair the robot or change live household state.\n\nUPDATE 2026-09-16. The matrix was accepted against @jibo/jibo-server-client 3.0.110, which is installed nowhere on Moth: the native oobe-config pairing skill runs 3.0.41 and jibo-ssm 16.0.0 runs 3.0.117. Both were copied read-only off the robot and each passes the full 38+46 matrix against Phoenix, and clients/oobe.js, oobeadmin.js, account.js, loop.js and apis/oobe-2016-10-26.min.json are byte-identical across all three versions. Fresh robot/firmware/date evidence is captured, the robot-restart credential witness is re-read, and TLS ingress is read from the robot's own patched client with rejectUnauthorized:true intact. REMAINING, and a decision for the owner rather than a gap in the work: running native out-of-box pairing through the robot's UI, which issues new credentials and can detach Moth from the household, plus camera/microphone/screen/notification behaviour on the hardware.",
       "acceptance": [
         "Verify every normal/admin OOBE target and the complete setup, expired/used-token, reconnect, robot replacement and suspended-loop flows.",
         "Compare SDK request/response and QR payload framing with original consumers; preserve issued credentials across service/robot restart.",
         "Retain hardware evidence by robot/firmware/date; prior notes are not a fresh parity run."
       ],
-      "verification": [],
+      "verification": [
+        {
+          "date": "2026-09-16",
+          "basis": "installed original SDK OOBE matrix re-run at current HEAD",
+          "artifact": "docs/parity/evidence/2026-09-13/a05-installed-sdk-restart-6e817e3/README.md",
+          "result": "pass",
+          "notes": "38 initial and 46 post-restart checks, 0 failures, across the Account and Classic faces with @jibo/jibo-server-client 3.0.110 under the extracted original Node 8.9.4. Previously recorded only at the pinned base 6e817e3; re-run here at HEAD via A05_ALLOW_OTHER_REVISION=1.",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "d9938fd",
+          "command": "A05_ALLOW_OTHER_REVISION=1 node scripts/parity-a05/runInstalledSdkMatrix.mjs"
+        },
+        {
+          "date": "2026-09-16",
+          "basis": "the robot's OWN client versions, lifted off Moth and run against Phoenix",
+          "artifact": "docs/parity/evidence/2026-09-16/a05-hardware/README.md",
+          "result": "pass",
+          "notes": "Moth runs 3.0.41 (the native oobe-config pairing skill) and 3.0.117 (jibo-ssm 16.0.0 and the BE 11.0.1 slot), NOT the 3.0.110 the matrix was accepted against. Both were copied read-only and each passed 38 initial + 46 restart checks with zero failures. clients/oobe.js, oobeadmin.js, account.js, loop.js and apis/oobe-2016-10-26.min.json are byte-identical across all three versions, so the OOBE surface is the same code.",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "d9938fd",
+          "command": "A05_ALLOW_OTHER_REVISION=1 A05_CLIENT_ROOT=$HOME/.local/share/phoenix/a05-robot-clients/client-3.0.41 node scripts/parity-a05/runInstalledSdkMatrix.mjs"
+        },
+        {
+          "date": "2026-09-16",
+          "basis": "falsification of the OOBE matrix under the robot's native pairing client",
+          "artifact": "docs/parity/evidence/2026-09-16/a05-hardware/README.md",
+          "result": "pass",
+          "notes": "Disarming the GetServiceToken admin gate (robotFace.js:588) fails exactly 'account FALSIFY non-admin GetServiceToken unexpectedly succeeded' with exit 1 under the robot's 3.0.41 client; byte-exact restore returns 38/46. The harness discriminates under the client the robot would actually pair with.",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "d9938fd",
+          "command": "sed -i 's/if (!caller || !caller.isAdmin) {/if (false) {/' packages/account/src/robotFace.js && A05_ALLOW_OTHER_REVISION=1 A05_CLIENT_ROOT=$HOME/.local/share/phoenix/a05-robot-clients/client-3.0.41 node scripts/parity-a05/runInstalledSdkMatrix.mjs; git checkout -- packages/account/src/robotFace.js"
+        },
+        {
+          "date": "2026-09-16",
+          "basis": "fresh hardware evidence by robot, firmware and date",
+          "artifact": "docs/parity/evidence/2026-09-16/a05-hardware/README.md",
+          "result": "pass",
+          "notes": "Moth-Radius-Breazeal-Felt, Tegra L4T R21 rev 5.0 (board ardbeg, 2016-06-08), kernel 3.10.104 built 2019-02-24, Buildroot 2015.11, skills-service-manager 16.0.0, robot clock 2026-09-16T04:23:01Z. Read-only capture; only digests and key names, no secret value.",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "d9938fd",
+          "command": "ssh root@moth-radius-breazeal-felt.jibo 'hostname; date -u; cat /proc/sys/kernel/random/boot_id; sha256sum /var/jibo/identity.json /var/jibo/credentials.json; head -1 /etc/nv_tegra_release; cat /proc/version'"
+        },
+        {
+          "date": "2026-09-16",
+          "basis": "robot-restart credential survival, independently re-read",
+          "artifact": "docs/parity/evidence/2026-09-15/a05-restart/README.md",
+          "result": "pass",
+          "notes": "The 2026-09-15 witness (boot id changed e6dedbec->0c0610c0 while sha256(/var/jibo/credentials.json) stayed 2c8fdf39...2cb654) re-read 25 h later by a different agent: boot id and credential digest both unchanged, so the same boot still holds the pre-reboot credentials. That run also recorded a failed first reboot attempt caught by the boot-id check, which a weaker 'SSH answered again' witness would have passed.",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "d9938fd",
+          "command": "ssh root@moth-radius-breazeal-felt.jibo 'cat /proc/sys/kernel/random/boot_id; sha256sum /var/jibo/credentials.json'"
+        },
+        {
+          "date": "2026-09-16",
+          "basis": "TLS ingress read from the robot's own client",
+          "artifact": "docs/parity/evidence/2026-09-16/a05-hardware/README.md",
+          "result": "pass",
+          "notes": "The robot's live 3.0.117 tree carries the repoint-robot.sh patch and its pre-patch backup. The diff preserves rejectUnauthorized:true and adds lib/http/phoenix-ca.pem; region_config.json still resolves */* to https://{region}.jibo.com. The robot reaches Phoenix over TLS with real certificate verification, not with verification disabled.",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "d9938fd",
+          "command": "diff lib/http/node.js.phoenix-ca.bak lib/http/node.js  # inside the copied client-3.0.117 tree"
+        }
+      ],
       "implementationReview": {
         "state": "accepted",
         "assignee": "Luna Max / w18_a05_review; Codex root",
