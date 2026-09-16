@@ -380,13 +380,29 @@ async function renderSettings() {
     ],
   });
 
+  // Departure time decides how much of the commute experience you get, and the
+  // portal had no control for it at all. Jibo only shows the traffic and
+  // departure displays when you ask within two hours BEFORE this time
+  // (report-skill CommuteMimLogic: minsLeft > 120 takes the plain "Now" branch
+  // with no views attached). Ask at 3am with a 9am departure and all you get is
+  // spoken text — which is exactly what it sounds like when it is set wrong.
+  const depHour = s.commute.time?.hour ?? 9;
+  const depMin = s.commute.time?.min ?? 0;
+  const pad = (n) => String(n).padStart(2, '0');
+
   const commute = h('fieldset', {},
     h('legend', {}, 'Commute'),
     toggle('commute', s.commute.active, 'Give commute directions', 'How long it takes to get from home to work.'),
-    h('label', { class: 'sub' }, h('span', { class: 'field-label' }, 'Travel mode'),
-      h('select', { name: 'mode' },
-        [['driving', 'Driving'], ['walking', 'Walking'], ['bicycling', 'Cycling'], ['transit', 'Public transit']]
-          .map(([value, label]) => h('option', { value, selected: s.commute.mode === value }, label)))),
+    h('div', { class: 'grid2' },
+      h('label', { class: 'sub' }, h('span', { class: 'field-label' }, 'Travel mode'),
+        h('select', { name: 'mode' },
+          [['driving', 'Driving'], ['walking', 'Walking'], ['bicycling', 'Cycling'], ['transit', 'Public transit']]
+            .map(([value, label]) => h('option', { value, selected: s.commute.mode === value }, label)))),
+      h('label', { class: 'sub' }, h('span', { class: 'field-label' }, 'Usual departure time'),
+        h('input', { type: 'time', name: 'departure', value: `${pad(depHour)}:${pad(depMin)}` }))),
+    h('p', { class: 'muted' },
+      'Jibo shows the traffic and departure displays when you ask within two hours before this time. '
+      + 'Ask earlier than that and he just says how long the trip takes right now.'),
     picker.element);
 
   const calendar = h('fieldset', {},
@@ -414,7 +430,15 @@ async function renderSettings() {
     const body = {
       weather: { active: !!fd.weather, celsius: fd.units === 'c' },
       news: { active: !!fd.news, categories: newsCats },
-      commute: { active: !!fd.commute, mode: fd.mode, ...picker.value() },
+      commute: {
+        active: !!fd.commute,
+        mode: fd.mode,
+        ...picker.value(),
+        // <input type=time> gives "HH:MM"; the wire format is {hour, min}.
+        ...(typeof fd.departure === 'string' && /^\d{1,2}:\d{2}$/.test(fd.departure)
+          ? { time: { hour: Number(fd.departure.split(':')[0]), min: Number(fd.departure.split(':')[1]) } }
+          : {}),
+      },
       calendar: { active: !!fd.calendar, ...calendar },
     };
     const r = await api('PUT', '/api/settings', body);
