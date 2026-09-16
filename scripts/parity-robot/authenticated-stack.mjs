@@ -4,6 +4,7 @@ import { readFileSync, statSync, mkdirSync, writeFileSync, renameSync } from 'no
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
+import { createServer } from 'node:http';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 function port(value, name) {
@@ -147,6 +148,16 @@ export async function startAuthenticatedRobotStack({
     // requests arriving during Account startup are durably recorded until the
     // Classic notification store and resolver are ready.
     accountStore = new Store(accountPath);
+    // The web portal is served by THIS account service and fronts the Classic
+    // services over plain HTTP. Classic in this stack is TLS-only, on the robot's
+    // entrypoint port with a development CA the portal's fetch has no reason to
+    // trust, so it also gets a loopback HTTP listener onto the same express app
+    // (bound below, once classic exists). Announce the port here rather than
+    // there: portalRoutes resolves classicBase ONCE, when the service is
+    // constructed, so setting NET_classic afterwards would be too late and every
+    // Classic-fronted page would report the entrypoint unreachable.
+    const classicLocalPort = choosePort(12);
+    if (classicLocalPort) process.env.NET_classic = `127.0.0.1:${classicLocalPort}`;
     account = createAccountService({ store: accountStore });
     servers.push(account.server);
     await listen(account.server, choosePort(11));
@@ -198,6 +209,14 @@ export async function startAuthenticatedRobotStack({
     // classic.app in a second server would leave its upgrade listener behind.
     classic.server.on('tlsClientError', (_error, socket) => socket.destroy());
     await listen(classic.server, tlsPort, entrypointHost);
+    // Loopback ONLY. This listener bypasses TLS by design, so it must never be
+    // reachable off the host; `listen` defaults to 127.0.0.1 and is left to.
+    if (classicLocalPort) {
+      const classicLocal = createServer(classic.app);
+      servers.push(classicLocal);
+      await listen(classicLocal, classicLocalPort);
+      endpoints.classicLocal = classicLocal.address().port;
+    }
     endpoints.entrypointTls = classic.server.address().port;
 
     // Attach the Account -> Classic bridge only after Classic has a durable
