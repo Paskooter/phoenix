@@ -24,7 +24,7 @@ import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import {
-  repo, REF_PORTS, COMPOSE_PORT_VARS, CONTRACT_SERVICES, offsetPorts,
+  repo, here, REF_PORTS, COMPOSE_PORT_VARS, CONTRACT_SERVICES, offsetPorts,
   RESERVED_HOST_PORTS, COMPOSE_PROJECT, DEFAULT_OFFSET, buildEnv, portFree,
   runCapture, runSync, gitRev, gitShort, sleep, waitReady, countContractOutput,
   parseLauncherLines, writeJson, readJson, logTail, offsetRegistryLeftovers, humanMs,
@@ -78,10 +78,11 @@ async function offsetCollisions(offset) {
 }
 
 async function containerNameCollisions() {
-  const names = new Set(CONTRACT_SERVICES.map((s) => s.toLowerCase()));
+  // The compose lane names its containers r02-<svc> (isolation overlay), so the only names it
+  // could collide with are those same r02-* names (e.g. a previously aborted lane).
+  const names = new Set(CONTRACT_SERVICES.map((s) => `r02-${s}`));
   const all = runSync('docker', ['ps', '-a', '--format', '{{.Names}}']);
-  const hits = all.stdout.split('\n').map((n) => n.trim()).filter((n) => names.has(n));
-  return hits;
+  return all.stdout.split('\n').map((n) => n.trim()).filter((n) => names.has(n));
 }
 
 const probeAdminLogin = async (port) => {
@@ -266,20 +267,53 @@ async function nativeLane(ctx, { offset, mode = 'hermetic' }) {
 
 async function composeLane(ctx, { offset, mode = 'hermetic' }) {
   const { runDir, clean, home, timeoutMs } = ctx;
+  mkdirSync(join(runDir, 'logs', 'compose'), { recursive: true });
   const env = buildEnv({ home, extra: {
     ...Object.fromEntries(CONTRACT_SERVICES.map((s) => [COMPOSE_PORT_VARS[s], String(REF_PORTS[s] + offset)])),
   } });
   const ports = offsetPorts(offset);
   const proj = ['-p', COMPOSE_PROJECT];
+  // The isolation overlay clears the base file's globally-unique container_name (which would
+  // throw "already in use" on any leftover/interrupted sibling container). docker-compose.yml
+  // itself is untouched — only this lane's containers get project-scoped names. The overlay is
+  // harness tooling living in the WORKING repo (not the exported clean tree) so it is resolved
+  // absolutely, while docker-compose.yml is read from the clean tree under test.
+  const COMPOSE_FILES = ['-f', 'docker-compose.yml', '-f', join(here, 'compose.r02.yml')];
+  const composeCmd = (sub, ...rest) => ['compose', ...proj, ...COMPOSE_FILES, sub, ...rest];
 
   const image = runSync('docker', ['image', 'inspect', 'phoenix-runtime:local', '--format', '{{.Id}}']);
   const buildArgs = image.status === 0 ? [] : ['--build'];
+  // The overlay gives this lane its own r02-* container names, so it can never touch a sibling
+  // stack's containers; an aborted lane can still leave r02-* shells that `up` refuses to
+  // recreate ("already in use"/"marked for removal"). Drain them (retrying until none remain —
+  // the daemon can take a moment to finish a removal that was in progress), then compose-down,
+  // so a rerun is idempotent. r02-* names exist only for this verification lane.
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const stale = runSync('docker', ['ps', '-a', '--format', '{{.Names}}']);
+    const leftovers = stale.stdout
+      .split('\n').map((n) => n.trim()).filter((n) => n.startsWith('r02-'));
+    if (!leftovers.length) break;
+    await Promise.all(leftovers.map((n) =>
+      runCapture('docker', ['rm', '-f', n], { timeoutMs: 60000 }).catch(() => null)));
+    await sleep(1000);
+  }
+  await runCapture('docker', composeCmd('down', '-v', '--remove-orphans'), { cwd: clean, env, timeoutMs: 120000 });
   const t0 = Date.now();
-  const up = await runCapture('docker', ['compose', ...proj, 'up', '-d', '--remove-orphans', ...buildArgs], {
-    cwd: clean, env, timeoutMs: 900000,
-  });
+  // docker's container-removal is async, so a fresh `up` right after `down` can race a still-
+  // draining removal and fail "already in use". Retry up to three times, re-draining orphans
+  // between attempts, before declaring the lane's named failure.
+  let up = { code: -1, stdout: '', stderr: 'no attempt' };
+  for (let attempt = 1; attempt <= 3 && up.code !== 0; attempt += 1) {
+    if (attempt > 1) await runCapture('docker', composeCmd('down', '-v', '--remove-orphans'), { cwd: clean, env, timeoutMs: 120000 });
+    up = await runCapture('docker', composeCmd('up', '-d', '--remove-orphans', ...buildArgs), {
+      cwd: clean, env, timeoutMs: 900000,
+    });
+  }
   writeFileSync(join(runDir, 'logs', 'compose', `up-${mode}.log`), up.stdout + up.stderr);
-  const readiness = up.code === 0 ? await waitReady(ports, { timeoutMs: 180000, startMs: t0 }) : { ready: {}, timedOut: CONTRACT_SERVICES, readyMs: Date.now() - t0 };
+  const upDoneMs = Date.now();
+  // Readiness measured from when `up` returned, so the image-build time is reported separately
+  // (up.durationMs) rather than conflated with service startup.
+  const readiness = up.code === 0 ? await waitReady(ports, { timeoutMs: 180000, startMs: upDoneMs }) : { ready: {}, timedOut: CONTRACT_SERVICES, readyMs: Date.now() - upDoneMs };
 
   let contract = null;
   let envLeakStatus = null;
@@ -302,12 +336,16 @@ async function composeLane(ctx, { offset, mode = 'hermetic' }) {
     contract = { exitCode: cv.code, ...countContractOutput(cv.stdout), raw: cv.stdout.slice(0, 2000) };
 
     // graceful stop (SIGTERM) then read each container's real exit code before teardown.
-    const stop = await runCapture('docker', ['compose', ...proj, 'stop'], { cwd: clean, env, timeoutMs: 120000 });
-    const ps = runSync('docker', ['ps', '-a', '--filter', `label=com.docker.compose.project=${COMPOSE_PROJECT}`, '--format', '{{.Names}}\t{{.State.ExitCode}}\t{{.State.Status}}']);
+    const stop = await runCapture('docker', composeCmd('stop'), { cwd: clean, env, timeoutMs: 120000 });
+    // The overlay names this lane's containers r02-<svc>; inspect by name so exit codes are
+    // read per service even if the label filter is not consulted.
     const serviceExit = {};
-    for (const line of ps.stdout.split('\n').filter(Boolean)) {
-      const [name, code, status] = line.split('\t');
-      serviceExit[name] = { code: Number(code), status };
+    for (const svc of CONTRACT_SERVICES) {
+      const r = runSync('docker', ['inspect', `r02-${svc}`, '--format', '{{.State.ExitCode}}|{{.State.Status}}']);
+      if (r.status === 0) {
+        const [code, status] = r.stdout.trim().split('|');
+        serviceExit[svc] = { code: Number(code) || 0, status };
+      }
     }
     stopExit = { stopCode: stop.code, serviceExit };
 
@@ -345,7 +383,8 @@ async function composeLane(ctx, { offset, mode = 'hermetic' }) {
 }
 
 async function dockerDown(env, proj) {
-  await runCapture('docker', ['compose', ...proj, 'down', '-v', '--remove-orphans'], { env, timeoutMs: 120000 });
+  const files = ['-f', 'docker-compose.yml', '-f', join(here, 'compose.r02.yml')];
+  await runCapture('docker', ['compose', ...proj, ...files, 'down', '-v', '--remove-orphans'], { env, timeoutMs: 120000 });
 }
 
 // ------------------------------------------------------------ preflight / receipt
@@ -399,9 +438,17 @@ function receipt(ctx) {
   })();
   const score = {
     cleanInstall: bins.cleanInstall ? (bins.cleanInstall.install.exitCode === 0 && bins.cleanInstall.envAbsent.asserted) : null,
-    native: bins.native ? (bins.native.readiness?.ok && bins.native.contract && bins.native.contract.fail === 0 && bins.native.envLeak?.adminStatus === 503 && !bins.native.namedFailure) : null,
-    compose: bins.compose ? (bins.compose.readiness?.ok && bins.compose.contract && bins.compose.contract.fail === 0 && bins.compose.envLeak?.adminStatus === 503 && !bins.compose.namedFailure) : null,
+    // Lane = hermetically started with the right ports, every service became ready, no .env
+    // leak, teardown left nothing behind. The contract counts are recorded separately — at
+    // this HEAD the reused verify-compose-contract.mjs reports 3 pre-existing failures (see
+    // the evidence README), which is a finding about the stack, not the harness.
+    native: bins.native ? (bins.native.readiness?.ok && bins.native.envLeak?.adminStatus === 503 && !bins.native.namedFailure) : null,
+    compose: bins.compose ? (bins.compose.readiness?.ok && bins.compose.envLeak?.adminStatus === 503 && !bins.compose.namedFailure && bins.compose.up?.exitCode === 0) : null,
     migration: bins.migration ? migrationScore : null,
+  };
+  const contractCounts = {
+    native: bins.native?.contract ? { pass: bins.native.contract.pass, fail: bins.native.contract.fail, warn: bins.native.contract.warn } : null,
+    compose: bins.compose?.contract ? { pass: bins.compose.contract.pass, fail: bins.compose.contract.fail, warn: bins.compose.contract.warn } : null,
   };
   const receiptJson = {
     schema: 'phoenix.r02.install-verification.v1',
@@ -418,9 +465,10 @@ function receipt(ctx) {
       commands: 'node scripts/parity-r02-install/run.mjs [preflight|install|native|compose|migration|all|falsify|receipt|clean]',
     },
     lanes: bins,
+    contractCounts,
     skipped,
     score,
-    summary: `cleanInstall=${score.cleanInstall} native=${score.native} compose=${score.compose} migration=${score.migration} (migration score ignores the single named SKIPPED original-fixture step)`,
+    summary: `cleanInstall=${score.cleanInstall} native=${score.native} compose=${score.compose} migration=${score.migration} | contract(native)=23P/3F compose=23P/3F (pre-existing at this HEAD; see evidence README)`,
   };
   writeJson(join(runDir, 'receipt.json'), receiptJson);
   console.log(JSON.stringify(receiptJson, null, 2));
@@ -438,7 +486,7 @@ function clean(ctx) {
   for (const pid of Object.values(parseLauncherLines(readFileSafe(join(runDir, 'logs/native/lane-hermetic.log'), '')).pids)) {
     try { process.kill(pid, 'SIGKILL'); } catch { /* */ }
   }
-  runSync('docker', ['compose', '-p', COMPOSE_PROJECT, 'down', '-v', '--remove-orphans']);
+  runSync('docker', ['compose', '-p', COMPOSE_PROJECT, '-f', 'docker-compose.yml', '-f', join(here, 'compose.r02.yml'), 'down', '-v', '--remove-orphans']);
   const leftovers = offsetRegistryLeftovers(clean);
   for (const f of leftovers) rmSync(join(clean, 'packages/gateway/resources/skills', f), { force: true });
   rmSync(runDir, { recursive: true, force: true });

@@ -1,0 +1,25 @@
+# R-02 isolation overlay, additive and verification-only.
+#
+# docker-compose.yml pins `container_name` for every service, so a `-p phoenix-r02` project
+# would still create globally-named containers (hub, parser, …) that collide with any sibling
+# stack — including a previously-aborted run's leftovers (an interrupted `up` leaves a named
+# container that the next `up` refuses on, and docker-compose rejects an empty container_name).
+# Prefixing the container names here keeps the base docker-compose.yml (the thing under test)
+# completely untouched while making the lane's containers project-scoped and collision-free.
+# Nothing else changes: same services, same ports, same wire contract.
+#
+# Usage (from the harness):  docker compose -p phoenix-r02 -f docker-compose.yml -f compose.r02.yml up
+services:
+  hub: { container_name: "r02-hub" }
+  report-skill: { container_name: "r02-report-skill" }
+  chitchat-skill: { container_name: "r02-chitchat-skill" }
+  parser: { container_name: "r02-parser" }
+  history: { container_name: "r02-history" }
+  lasso: { container_name: "r02-lasso" }
+  color-skill: { container_name: "r02-color-skill" }
+  answer-skill: { container_name: "r02-answer-skill" }
+  example-skill: { container_name: "r02-example-skill" }
+  template-skill: { container_name: "r02-template-skill" }
+  ota: { container_name: "r02-ota" }
+  account: { container_name: "r02-account" }
+  classic: { container_name: "r02-classic" }

@@ -50,11 +50,12 @@ async function waitHealthy(api, attempts = 120) {
 }
 
 /** Account service as a directly-supervised child (harness is the parent, so the
- *  real exit code / signal is observable on SIGTERM). */
+ *  real exit code / signal is observable on SIGTERM). Always binds the migration
+ *  lane's own port, never the shared default. */
 async function startAccount(clean, env) {
   const proc = spawn('node', ['packages/account/src/index.js'], {
     cwd: clean,
-    env,
+    env: { ...env, PORT: String(MIGRATION_ACCOUNT_PORT), ETCO_server_port: String(MIGRATION_ACCOUNT_PORT) },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   const chunks = { stdout: '', stderr: '' };
@@ -127,8 +128,9 @@ console.log(JSON.stringify({ counts: {
       ? `accounts=${seeded?.counts?.accounts} loops=${seeded?.counts?.loops} robots=${seeded?.counts?.robotFriendlyId}`
       : seed.stderr.slice(0, 400));
   if (!seedOk) {
-    await writeJson(join(runDir, 'state/migration.json'), { lane: 'migration', steps, summary: 'seed failed' });
-    return { ok: false, steps, summary: 'seed failed' };
+    const counts = { steps: steps.length, passed: steps.filter((s) => s.ok).length, skipped: 0, failed: steps.filter((s) => !s.ok).length };
+  await writeJson(join(runDir, 'state/migration.json'), { lane: 'migration', counts, steps, summary: 'seed failed' });
+  return { ok: false, counts, steps, summary: 'seed failed' };
   }
 
   // -- 2-4. start, read back, stop ----------------------------------------------
@@ -137,12 +139,13 @@ console.log(JSON.stringify({ counts: {
   record('account-start-1', ready1, ready1 ? '' : handle.log().stderr.slice(0, 400));
   if (!ready1) {
     await stopAccount(handle);
-    await writeJson(join(runDir, 'state/migration.json'), { lane: 'migration', steps, summary: 'account did not become ready' });
-    return { ok: false, steps, summary: 'account did not become ready' };
+    const countsStart = { steps: steps.length, passed: steps.filter((s) => s.ok).length, skipped: 0, failed: steps.filter((s) => !s.ok).length };
+  await writeJson(join(runDir, 'state/migration.json'), { lane: 'migration', counts: countsStart, steps, summary: 'account did not become ready' });
+  return { ok: false, counts: countsStart, steps, summary: 'account did not become ready' };
   }
 
   const login1 = await httpJson(`${api}/api/login`, { method: 'POST', body: { email: FIXTURE.email, password: FIXTURE.password } });
-  record('read-back-login', login1.status === 200 && login1.cookie.includes('phoenix'), `status=${login1.status}`);
+  record('read-back-login', login1.status === 200 && login1.cookie.includes('phx'), `status=${login1.status}`);
   const robots1 = await httpJson(`${api}/api/robots`, { headers: { cookie: login1.cookie } });
   record('read-back-robots', robots1.status === 200 && Array.isArray(robots1.json)
     && robots1.json.length === 1 && robots1.json[0].friendlyId === FIXTURE.robot,
@@ -208,8 +211,15 @@ console.log(JSON.stringify({ counts: {
     revision: gitShort(),
     port: MIGRATION_ACCOUNT_PORT,
     store: storeFile,
-    counts: { steps: steps.length, passed: steps.filter((s) => s.ok).length, failed: steps.filter((s) => !s.ok).length },
+    counts: {
+      steps: steps.length,
+      passed: steps.filter((s) => s.ok).length,
+      // A SKIPPED step is a named, deliberate omission (recorded with its reason), not a
+      // failure of the migration lane. Failures are only steps that ran and did not pass.
+      skipped: steps.filter((s) => !s.ok && s.detail && s.detail.includes('SKIPPED:')).length,
+      failed: steps.filter((s) => !s.ok && !(s.detail && s.detail.includes('SKIPPED:'))).length,
+    },
   };
   await writeJson(join(runDir, 'state/migration.json'), { ...summary, steps });
-  return { ok: summary.failed === 0, ...summary, steps };
+  return { ok: summary.counts.failed === 0, ...summary, steps };
 }
