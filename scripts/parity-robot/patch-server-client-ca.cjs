@@ -288,14 +288,18 @@ function inspectTargets(targets, previousReceipt, desiredCaHash) {
     }
     var caExists = isRegular(target.caPath);
     var caHash = caExists ? sha256File(target.caPath) : null;
-    if (desiredCaHash && caExists && caHash !== desiredCaHash) {
+    // An owned bundle is one this utility installed (previous receipt records
+    // caCreated) and has not been modified since (current hash still matches
+    // the receipt). It may be updated to a new requested bundle — this is the
+    // additive-CA path (a robot that already trusts one Phoenix CA gains the
+    // shared CA beside it). Anything else is foreign and is never clobbered.
+    var ownedBundle = Boolean(desiredCaHash && caExists
+      && previousByNode[target.nodePath]
+      && previousByNode[target.nodePath].caCreated === true
+      && previousByNode[target.nodePath].caSha256 === caHash);
+    if (desiredCaHash && caExists && caHash !== desiredCaHash && !ownedBundle) {
       fail('existing package CA differs from requested bundle at ' + target.caPath
         + ': ' + caHash + ' (requested ' + desiredCaHash + ')');
-    }
-    if (desiredCaHash && caExists && previousByNode[target.nodePath]
-      && previousByNode[target.nodePath].caCreated === true
-      && previousByNode[target.nodePath].caSha256 !== desiredCaHash) {
-      fail('existing receipt disagrees with package CA at ' + target.caPath);
     }
     if (caExists && previousByNode[target.nodePath]
       && previousByNode[target.nodePath].caCreated === true
@@ -314,6 +318,7 @@ function inspectTargets(targets, previousReceipt, desiredCaHash) {
       caExists: caExists,
       caHash: caHash,
       previous: previousByNode[target.nodePath] || null,
+      ownedBundle: ownedBundle,
       caCreated: Boolean(desiredCaHash && !caExists)
     });
   });
@@ -359,7 +364,7 @@ function checkWritable(state, receiptPath, caBundle, dryRun) {
   state.forEach(function(entry) {
     var nodeDirectory = path.dirname(entry.target.nodePath);
     directories[nodeDirectory] = true;
-    if (caBundle && !entry.caExists) directories[path.dirname(entry.target.caPath)] = true;
+    if (caBundle && (!entry.caExists || entry.ownedBundle)) directories[path.dirname(entry.target.caPath)] = true;
     if (entry.state === 'patched') directories[nodeDirectory] = true;
     if (entry.state === 'original' && isRegular(entry.target.backupPath)) directories[path.dirname(entry.target.backupPath)] = true;
   });
@@ -415,8 +420,9 @@ function previousCaCreated(entry) {
   return Boolean(entry.previous && entry.previous.caCreated === true);
 }
 
-function makeReceipt(receiptPath, state, bundle, roots, operation, previousReceipt) {
+function makeReceipt(receiptPath, state, bundle, roots, operation, previousReceipt, wroteCaNodePaths) {
   var previousBundle = previousReceipt && previousReceipt.caBundle || null;
+  var wrote = wroteCaNodePaths || [];
   return {
     schema: 1,
     utility: 'patch-server-client-ca.cjs',
@@ -451,7 +457,9 @@ function makeReceipt(receiptPath, state, bundle, roots, operation, previousRecei
         caPath: entry.target.caPath,
         caSha256: entry.caHash || (bundle && bundle.sha256)
           || (entry.previous && entry.previous.caSha256) || null,
-        caCreated: bundle ? Boolean(!entry.caExists || previousCaCreated(entry)) : previousCaCreated(entry)
+        caCreated: bundle
+          ? Boolean(previousCaCreated(entry) || wrote.indexOf(entry.target.nodePath) >= 0)
+          : previousCaCreated(entry)
       };
     })
   };
@@ -503,7 +511,9 @@ function runApply(options) {
           aliases: entry.target.aliases,
           sourceState: entry.state,
           caPath: entry.target.caPath,
-          caState: entry.caExists ? 'present' : bundle ? 'would-install' : 'absent'
+          caState: entry.caExists
+            ? (entry.ownedBundle && entry.caHash !== (bundle && bundle.sha256) ? 'would-update' : 'present')
+            : bundle ? 'would-install' : 'absent'
         };
       })
     };
@@ -542,17 +552,21 @@ function runApply(options) {
         mutation.nodeChanged = true;
         mutation.backupCreated = backupCreated;
       }
-      if (bundle && !entry.caExists) {
-        if (fs.existsSync(target.caPath)) {
-          fail('package CA appeared after survey: ' + target.caPath);
+      if (bundle && (!entry.caExists || entry.ownedBundle)) {
+        if (fs.existsSync(target.caPath) && !isRegular(target.caPath)) {
+          fail('package CA path is not a regular file: ' + target.caPath);
         }
         mutation.caWriteAttempted = true;
+        mutation.caBefore = entry.caExists ? fs.readFileSync(target.caPath) : null;
         atomicWrite(target.caPath, bundle.bytes, 0o644);
         if (sha256File(target.caPath) !== bundle.sha256) fail('package CA verification failed: ' + target.caPath);
         mutation.caCreated = true;
+        entry.caHash = bundle.sha256;
       }
     });
-    var receipt = makeReceipt(options.receipt, state, bundle, options.roots, 'apply', previous);
+    var receipt = makeReceipt(options.receipt, state, bundle, options.roots, 'apply', previous,
+      mutated.filter(function(item) { return item.caCreated; })
+        .map(function(item) { return item.entry.target.nodePath; }));
     writeReceipt(options.receipt, receipt);
     return { ok: true, dryRun: false, receipt: receipt };
   } catch (error) {
@@ -566,7 +580,12 @@ function runApply(options) {
       }
       if ((item.caCreated || item.caWriteAttempted) && isRegular(target.caPath)
         && bundle && sha256File(target.caPath) === bundle.sha256) {
-        fs.unlinkSync(target.caPath);
+        if (item.caBefore) {
+          // Roll back an update of an owned bundle to its exact previous bytes.
+          atomicWrite(target.caPath, item.caBefore, 0o644);
+        } else {
+          fs.unlinkSync(target.caPath);
+        }
       }
       // Keep a verified backup as an audit aid; removing it would make an
       // interrupted run harder to inspect and is not needed for idempotence.

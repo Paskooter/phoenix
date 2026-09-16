@@ -80,6 +80,15 @@ function makeCertificate(directory) {
   return bundle;
 }
 
+function makeAnotherCertificate(directory) {
+  var other = path.join(directory, 'other-openssl');
+  childProcess.spawnSync('openssl', [
+    'req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-days', '1',
+    '-subj', '/CN=foreign-unrelated-ca', '-keyout', other + '.key', '-out', other + '.crt'
+  ], {encoding: 'utf8', stdio: 'ignore'});
+  return other + '.crt';
+}
+
 function packageNode(root, relativeDirectory) {
   return path.join(root, relativeDirectory, 'lib', 'http', 'node.js');
 }
@@ -137,6 +146,42 @@ function main() {
       assert.strictEqual(target.caCreated, true);
       assert.strictEqual(target.caSha256, secondApply.value.receipt.caBundle.sha256);
     });
+
+    // ADDITIVE CA: applying with a NEWLY larger bundle must replace only the
+    // CA files this utility owns (never a foreign CA), record the new bundle
+    // hash, and still revert cleanly. This is the shared-CA-on-already-patched
+    // path (repoint-robot.sh keeping Moth's own CA when adding the Phoenix CA).
+    var grownPem = path.join(temporary, 'grown-bundle.pem');
+    fs.writeFileSync(grownPem, Buffer.concat([fs.readFileSync(bundle), fs.readFileSync(bundle), fs.readFileSync(bundle)]));
+    var grownHash = hashFile(grownPem);
+    var grown = runJson(['--root', root, '--ca-bundle', grownPem, '--receipt', receipt]);
+    assert.strictEqual(grown.value.receipt.targets.length, 2);
+    grown.value.receipt.targets.forEach(function(target) {
+      assert.strictEqual(target.caCreated, true);
+      assert.strictEqual(target.caSha256, grownHash);
+      assert.strictEqual(hashFile(target.caPath), grownHash);
+    });
+    // A foreign (unowned) CA file must never be replaced, even when the
+    // requested bundle differs.
+    var foreignPem = path.join(temporary, 'foreign.pem');
+    fs.writeFileSync(foreignPem, makeAnotherCertificate(temporary));
+    var foreignTarget = path.join(root, 'one', 'node_modules', '@jibo', 'jibo-server-client', 'lib', 'http', 'phoenix-ca.pem');
+    fs.writeFileSync(foreignTarget, fs.readFileSync(foreignPem));
+    var foreignBefore = hashFile(foreignTarget);
+    var foreignRun = run(['--root', root, '--ca-bundle', grownPem, '--receipt', receipt, '--json']);
+    assert.notStrictEqual(foreignRun.status, 0, 'foreign CA replacement must be refused');
+    assert.strictEqual(hashFile(foreignTarget), foreignBefore, 'foreign CA file must be untouched');
+    fs.unlinkSync(foreignTarget); // restore for the revert assertion below
+
+    // Revert after an additive update must remove the owned bundle entirely.
+    var grownReverted = runJson(['--root', root, '--receipt', receipt, '--revert']);
+    grownReverted.value.receipt.targets.forEach(function(target) {
+      assert.strictEqual(fs.existsSync(target.caPath), false);
+    });
+
+    // Reinstate the CA (as the plain apply below expects) and record the
+    // original bundle for the subsequent revert checks.
+    runJson(['--root', root, '--ca-bundle', bundle, '--receipt', receipt]);
 
     // Dry-run must work with no writable receipt parent requirement and must
     // leave every byte unchanged.
@@ -211,6 +256,9 @@ function main() {
         'dry-run leaves bytes unchanged',
         'mode-preserving revert and repeat revert',
         'bundle-less reapply retains CA ownership',
+        'additive CA update to an owned bundle',
+        'foreign (unowned) CA is never replaced',
+        'revert after an additive CA update',
         'unknown source fails before mutation',
         'invalid bundle and missing argument fail before mutation'
       ]

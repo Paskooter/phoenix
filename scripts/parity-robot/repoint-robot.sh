@@ -57,6 +57,9 @@
 #                       plain-HTTP deployments; a TLS deployment is already handled
 #                       by the hosts entries, and rewriting would break it.
 #   --regions a,b,c     extra regions to map (the live region is always included)
+#   --trust-first       skip the live-verification gate, so the CA is installed even
+#                       while the server still presents a different certificate. Used to
+#                       sequence trust BEFORE the server switch (see onboard-robot.sh).
 #   --dry-run           run every check, print the plan, change nothing
 #   --yes               skip the confirmation prompt
 #   --drop-bind         also unmount a detected /etc/ssl/certs bind after installing
@@ -66,7 +69,7 @@ set -euo pipefail
 
 ROBOT=""; PHOENIX=""; CERT_DIR="${PHOENIX_TLS_HOME:-${XDG_DATA_HOME:-${HOME}/.local/share}/phoenix/tls}"; CA=""
 SERVER_CRT=""; SERVER_KEY=""; EXTRA_NAMES=""; REGEN=0
-EXTRA_REGIONS="api"; DRY=0; ASSUME_YES=0; DROP_BIND=0; VERIFY=0; REVERT=0; CERT_ONLY=0
+EXTRA_REGIONS="api"; DRY=0; ASSUME_YES=0; DROP_BIND=0; VERIFY=0; REVERT=0; CERT_ONLY=0; TRUST_FIRST=0
 HUB_PORT=9000; DO_HUB=1; DO_ADOPT=1; CLASSIC_URL=""; ACCOUNT_STORE=""
 CLIENT_CA_RECEIPT="/var/lib/phoenix/jibo-server-client-ca.json"
 MARK_BEGIN="# >>> phoenix-repoint >>>"
@@ -92,6 +95,7 @@ while [ $# -gt 0 ]; do
     --yes) ASSUME_YES=1; shift ;;
     --drop-bind) DROP_BIND=1; shift ;;
     --verify) VERIFY=1; shift ;;
+    --trust-first) TRUST_FIRST=1; shift ;;
     --revert) REVERT=1; shift ;;
     -h|--help) sed -n '2,40p' "$0"; exit 0 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
@@ -320,6 +324,11 @@ if [ "$REVERT" -eq 0 ]; then
   # different certificate directory than the one we are reading, which would
   # otherwise install trust for a CA the server never uses and leave the robot
   # rejecting it for reasons that look like anything but this.
+  #
+  # --trust-first deliberately skips this gate: onboarding installs the shared CA
+  # on the robots while the server still serves the old certificate, and the
+  # server switch happens only afterwards (onboard-robot.sh --switch-server).
+  if [ "$TRUST_FIRST" -eq 0 ]; then
   for r in $REGIONS; do
     CHAIN_OK="$(echo | openssl s_client -connect "${PHOENIX}:443" -servername "${r}.jibo.com" \
       -verify_hostname "${r}.jibo.com" -CAfile "$CA" 2>/dev/null | grep -c 'Verify return code: 0 (ok)' || true)"
@@ -335,6 +344,11 @@ if [ "$REVERT" -eq 0 ]; then
       die "the CA does not verify the running server for ${r}.jibo.com"
     fi
   done
+  else
+    warn "--trust-first: skipping the live-verification gate. The server still serves another"
+    warn "certificate; the robot will trust this CA but cannot reach the server over TLS with"
+    warn "verification on until the server switch lands (onboard-robot.sh --switch-server)."
+  fi
 fi
 
 # ---------------------------------------------------------------- plan
@@ -352,6 +366,7 @@ else
   done
   echo "  - install CA into the real /etc/ssl/certs as phoenix-ca.crt + ${CA_HASH:-<hash of the CA to be created>}.0"
   echo "  - append it to ca-certificates.crt (backed up first)"
+  [ "$TRUST_FIRST" -eq 1 ] && echo "  - trust-first: live-verification gate skipped; the server switch lands separately"
   [ "$DO_HUB" -eq 1 ] && echo "  - point Jetstream's conversation hub at ${PHOENIX}:${HUB_PORT} and restart it"
   echo "  - patch every supported Node client copy and install the robot's full CA bundle beside it (receipt: $CLIENT_CA_RECEIPT)"
   [ -n "$CLASSIC_URL" ] && echo "  - rewrite every region_config.json to $CLASSIC_URL"
@@ -428,8 +443,8 @@ if [ "$REVERT" -eq 1 ]; then
     MOUNTED=1
     R=/tmp/.phoenix-rootfs/etc/ssl/certs
     [ -d \$R ] || { echo 'real /etc/ssl/certs missing' >&2; exit 1; }
-    rm -f \$R/phoenix-ca.crt \$R/*.0.phoenix 2>/dev/null || true
-    for l in \$R/*.0; do [ -L \"\$l\" ] && [ \"\$(readlink \$l)\" = phoenix-ca.crt ] && rm -f \$l; done 2>/dev/null || true
+    rm -f \$R/phoenix-ca.crt \$R/*.0.phoenix \$R/phoenix-ca.*.crt 2>/dev/null || true
+    for l in \$R/*.0; do [ -L \"\$l\" ] && { case \"\$(readlink \$l)\" in phoenix-ca.crt|phoenix-ca.*.crt) rm -f \$l;; esac; }; done 2>/dev/null || true
     [ -f \$R/ca-certificates.crt.phx-orig ] && mv -f \$R/ca-certificates.crt.phx-orig \$R/ca-certificates.crt || true
     sync"
   ok "revert complete"
@@ -506,6 +521,16 @@ rsh "set -e
   MOUNTED=1
   R=/tmp/.phoenix-rootfs/etc/ssl/certs
   [ -d \$R ] || { echo 'real /etc/ssl/certs missing' >&2; exit 1; }
+  # A second different CA must not clobber the robot's existing CA out of the
+  # hash store: preserve the current phoenix-ca.crt under its own hash name and
+  # re-point any existing hash link before overwriting it.
+  for l in \$R/*.0; do
+    if [ -L \"\$l\" ] && [ \"\$(readlink \$l)\" = phoenix-ca.crt ]; then
+      OLDHASH=\${l##*/}; OLDHASH=\${OLDHASH%.0}
+      cp -p \$R/phoenix-ca.crt \$R/phoenix-ca.\$OLDHASH.crt
+      ln -sf phoenix-ca.\$OLDHASH.crt \$l
+    fi
+  done 2>/dev/null || true
   cp '$REMOTE_CA_TMP' \$R/phoenix-ca.crt
   chmod 644 \$R/phoenix-ca.crt
   ln -sf phoenix-ca.crt \$R/${CA_HASH}.0
