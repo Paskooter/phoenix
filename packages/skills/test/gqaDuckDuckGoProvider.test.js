@@ -268,3 +268,54 @@ test('DuckDuckGo provider factory validates its injectable seams', () => {
   assert.throws(() => createDuckDuckGoProvider({ clock: 'not a function' }), /DuckDuckGo clock must be a function/);
   assert.throws(() => createDuckDuckGoProvider({ headers: [] }), /DuckDuckGo headers must be a mapping/);
 });
+// Speakable length at the provider edge ---------------------------------------
+//
+// Found live on Moth, 2026-09-16: "who is ada lovelace" produced a correct GQA
+// answer that the robot never said. jibo-tts-service logged
+//   "The input prompt is too long and is more than 500 characters in length"
+// and spoke nothing at all — the whole DuckDuckGo Abstract had been handed to
+// it. Wikipedia's adapter already speaks only the first sentence (GQA's
+// documented "no more than a sentence or so at a time"); the Bing slot has to
+// apply the same rule to the same kind of prose, or the slot is not
+// interchangeable and the robot goes silent.
+
+const ADA_ABSTRACT = 'Augusta Ada King, Countess of Lovelace, also known as Ada Lovelace, '
+  + 'was an English mathematician and writer chiefly known for work on Charles Babbage’s '
+  + 'proposed mechanical general-purpose computer, the analytical engine. She was the first to '
+  + 'recognise the machine had applications beyond pure calculation. Lovelace is often considered '
+  + 'the first computer programmer. Lovelace was the only legitimate child of poet Lord Byron and '
+  + 'reformer Anne Isabella Milbanke. Lord Byron separated from his wife a month after Ada was '
+  + 'born, and died when she was eight.';
+
+test('DuckDuckGo speaks only the first sentence of an Abstract, as the Wikipedia adapter does', () => {
+  assert.ok(ADA_ABSTRACT.length > 500, 'the fixture must be long enough to have been refused by TTS');
+
+  const out = extractDuckDuckGoAnswer({
+    Type: 'A',
+    AbstractText: ADA_ABSTRACT,
+    AbstractURL: 'https://en.wikipedia.org/wiki/Ada_Lovelace',
+  });
+
+  const spoken = out.response.payload;
+  assert.equal(
+    spoken,
+    'Augusta Ada King, Countess of Lovelace, also known as Ada Lovelace, was an English '
+    + 'mathematician and writer chiefly known for work on Charles Babbage’s proposed '
+    + 'mechanical general-purpose computer, the analytical engine.',
+  );
+  // The robot's own ceiling, stated as the number it is.
+  assert.ok(spoken.length <= 500, `spoken text is ${spoken.length} chars; jibo-tts-service refuses over 500`);
+  // Trimming the spoken text must not cost the attribution URL.
+  assert.equal(out.url, 'https://en.wikipedia.org/wiki/Ada_Lovelace');
+});
+
+test('DuckDuckGo leaves a short Answer field alone — only Abstract prose is sentence-bounded', () => {
+  // `Answer` is the Instant Answer: a calculation or one-liner, already the
+  // length Bing's conversation.spokenText was. Trimming it would be wrong.
+  const calc = extractDuckDuckGoAnswer({ AnswerType: 'calc', Answer: '3 pounds = 1.360 kilograms' });
+  assert.equal(calc.response.payload, '3 pounds = 1.360 kilograms');
+
+  // A multi-sentence Answer is likewise not a Wikipedia lead and stays whole.
+  const multi = extractDuckDuckGoAnswer({ AnswerType: 'calc', Answer: 'Yes. Definitely yes.' });
+  assert.equal(multi.response.payload, 'Yes. Definitely yes.');
+});

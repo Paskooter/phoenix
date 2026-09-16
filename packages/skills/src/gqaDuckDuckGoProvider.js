@@ -13,6 +13,9 @@
 
 import { BING_UNHELPFUL_SPOKEN_TEXT } from './gqaBingProvider.js';
 import { unidecodeForBingFilter } from './gqaUnidecodeFilter.js';
+// The same sentence tokenizer the Wikipedia adapter speaks through, so prose
+// entering the Bing slot is bounded by the same rule rather than a second one.
+import { firstSentence } from './gqaWikipediaProvider.js';
 
 export const DUCKDUCKGO_SOURCE_API = 'https://api.duckduckgo.com/';
 export const DUCKDUCKGO_SOURCE_PARAMS = Object.freeze([
@@ -133,7 +136,27 @@ export function extractDuckDuckGoAnswer(parsed, { unidecode = defaultUnidecode }
   const answerValue = sourceGet(parsed, 'Answer', '', 'parsed');
   const abstractValue = sourceGet(parsed, 'AbstractText', '', 'parsed');
   let spokenText = asSpokenString(answerValue);
-  if (spokenText === null) spokenText = asSpokenString(abstractValue);
+  if (spokenText === null) {
+    // `Answer` is DuckDuckGo's Instant Answer -- a calculation or a one-liner,
+    // already the length Bing's conversation.spokenText was. `AbstractText` is
+    // not: it is an encyclopaedia lead, several sentences long.
+    //
+    // GQA's length discipline lives at the provider edge, and it is to speak
+    // "no more than a sentence or so at a time" (gqa.py make_response_for_hub,
+    // quoting JIBO-6702). The Wikipedia adapter enforces that with
+    // firstSentence; prose entering the Bing slot needs the same rule, applied
+    // by the same tokenizer, or the two providers speak to different lengths
+    // from the same kind of text.
+    //
+    // This is not a cosmetic difference. Jibo's on-robot TTS refuses a prompt
+    // over 500 characters outright ("The input prompt is too long and is more
+    // than 500 characters in length", jibo-tts-service) -- the robot goes
+    // silent rather than speaking a truncated answer. An untrimmed lead is
+    // therefore a no-answer, which is exactly what the discipline exists to
+    // prevent.
+    const abstractText = asSpokenString(abstractValue);
+    spokenText = abstractText === null ? null : (firstSentence(abstractText) || null);
+  }
   if (spokenText === null) return {};
 
   // The Bing source tests unidecode(spoken_text).strip('.') before every
