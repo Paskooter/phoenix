@@ -1,31 +1,30 @@
-# Parakeet ASR REST API — drop-in superset of the deployed 0.1.0 server.
+# Parakeet ASR REST API — a drop-in superset of the original hive_mind
+# parakeet-service, adding streaming and real confidence.
 #
-# Adds interim results over a WebSocket (so the hub's earlyEOS can fire) and
-# real decoder confidence, while POST /transcribe stays byte-compatible for the
-# two existing clients.
-#
-# Built in two stages so the contract layer is not rebuilt when the model layer
-# changes, and so a CPU-only smoke test can stop at `service`.
-FROM python:3.10-slim AS service
+# Modelled on that service deliberately: same NeMo base image, same model, same
+# ffmpeg resampling, same VRAM-resident startup, same .wav contract. Those are
+# not incidental — the model choice in particular decides what the robot hears,
+# because parakeet-tdt-0.6b-v2 emits punctuation and the Jibo grammars cannot
+# parse it ("turn on the lights." does not match at all).
+FROM nvcr.io/nvidia/nemo:26.02
 
-WORKDIR /srv
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+WORKDIR /workspace
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# ffmpeg for automatic resampling, plus the API stack. websockets is the one
+# addition over the original, for the streaming endpoint.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ffmpeg && \
+    rm -rf /var/lib/apt/lists/* && \
+    pip install --no-cache-dir fastapi uvicorn python-multipart websockets \
+      lhotse editdistance jiwer
 
-COPY app ./app
-COPY tests ./tests
+COPY app /workspace/app
+COPY tests /workspace/tests
 
 EXPOSE 6972
-# PARAKEET_MODEL    NeMo model name          (default nvidia/parakeet-tdt-0.6b-v2)
-# PARAKEET_DEVICE   cuda | cpu               (default cuda)
-# PARAKEET_INTERIM_MS  interim decode window (default 300)
-# PARAKEET_SILENCE_RMS below this is silence  (default 200)
-CMD ["uvicorn", "app.server:app", "--host", "0.0.0.0", "--port", "6972"]
 
-# The model layer. Kept last so `--target service` builds without CUDA wheels.
-FROM service AS model
-COPY requirements-model.txt .
-RUN pip install --no-cache-dir -r requirements-model.txt
+# PARAKEET_MODEL        nvidia/parakeet-rnnt-0.6b   model name
+# PARAKEET_DEVICE       (unset)                     e.g. cuda; unset lets NeMo decide
+# PARAKEET_INTERIM_MS   300                         streaming interim decode window
+# PARAKEET_SILENCE_RMS  200                         below this a chunk is silence
 CMD ["uvicorn", "app.server:app", "--host", "0.0.0.0", "--port", "6972"]

@@ -163,3 +163,64 @@ def test_healthz_does_not_need_a_model():
     c = TestClient(server.app)
     body = c.get("/healthz").json()
     assert body["ok"] is True
+
+
+# --- ASR output must be parseable by the grammars --------------------------
+
+def test_punctuation_and_case_are_stripped():
+    # Not cosmetic. Measured against jibo-nlu 2.8.3 over the pinned launch.fst:
+    #   "turn on the lights"   -> lightsOn
+    #   "turn on the lights."  -> NO PARSE
+    # parakeet-tdt-0.6b-v2 emits punctuation and capitalisation, so without this
+    # the upgraded server silently breaks intent recognition on the robot.
+    c = client(StubRecognizer("Testing, testing, one, two, three."))
+    body = c.post("/transcribe", files={"file": ("a.wav", make_wav(), "audio/wav")}).json()
+    assert body["text"] == "testing testing one two three"
+    assert body["transcript"]["text_raw"] == "Testing, testing, one, two, three."
+
+
+def test_apostrophes_and_hyphens_survive():
+    # The grammars carry forms like "don't"; stripping these would break them
+    # instead of fixing anything.
+    c = client(StubRecognizer("Don't wake me up."))
+    body = c.post("/transcribe", files={"file": ("a.wav", make_wav(), "audio/wav")}).json()
+    assert body["text"] == "don't wake me up"
+
+
+def test_normalisation_runs_after_punctuation_is_removed():
+    c = client(StubRecognizer("Testing, testing, one, two, three."))
+    body = c.post("/transcribe?normalize=true",
+                  files={"file": ("a.wav", make_wav(), "audio/wav")}).json()
+    assert body["text"] == "testing testing 1 2 3"
+
+
+# --- parity with the original hive_mind parakeet-service -------------------
+
+def test_non_wav_is_rejected_like_the_original():
+    # app.py: raise HTTPException(400, "Only .wav files are supported.")
+    c = client(StubRecognizer("hi"))
+    r = c.post("/transcribe", files={"file": ("a.mp3", b"\x00\x00", "audio/mpeg")})
+    assert r.status_code == 400
+    assert "wav" in r.json()["detail"].lower()
+
+
+def test_the_default_model_is_the_one_the_original_ran():
+    # nvidia/parakeet-rnnt-0.6b, NOT parakeet-tdt-0.6b-v2. The TDT model emits
+    # punctuation and capitalisation, and punctuation does not parse:
+    # "turn on the lights." -> NO PARSE against jibo-nlu 2.8.3.
+    from app.recognizer import NemoRecognizer
+    assert NemoRecognizer().model_name == "nvidia/parakeet-rnnt-0.6b"
+
+
+def test_the_model_is_loaded_at_startup_not_on_first_request():
+    # The original held the model in VRAM from startup so the first request did
+    # not pay the 30-90s load.
+    class Loadable(StubRecognizer):
+        loaded = False
+
+        def load(self):
+            Loadable.loaded = True
+
+    server.set_recognizer(Loadable("hi"))
+    with TestClient(server.app):
+        assert Loadable.loaded is True

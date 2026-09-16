@@ -31,10 +31,12 @@ import os
 import tempfile
 from typing import Optional
 
-from fastapi import FastAPI, File, Query, UploadFile, WebSocket, WebSocketDisconnect
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, File, HTTPException, Query, UploadFile, WebSocket, WebSocketDisconnect
 
 from .recognizer import Recognizer, Transcript, rms
-from .normalize import normalize_text
+from .normalize import normalize_text, to_asr_text
 
 SAMPLE_RATE = int(os.environ.get("PARAKEET_SAMPLE_RATE", "16000"))
 # How much new audio to accumulate before re-decoding during streaming. The hub
@@ -63,12 +65,39 @@ def get_recognizer() -> Recognizer:
     return _recognizer
 
 
-app = FastAPI(title="Parakeet ASR REST API", version=API_VERSION)
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    """Load the model before accepting requests, as the original service did.
+
+    The original logged "Model loaded successfully and ready for requests!"
+    after pulling the weights into VRAM, so the first transcription is not the
+    one that pays the 30-90s load. A recognizer injected by tests is left
+    alone.
+    """
+    recognizer = _recognizer
+    if recognizer is None:
+        from .recognizer import NemoRecognizer
+        recognizer = NemoRecognizer()
+        set_recognizer(recognizer)
+    loader = getattr(recognizer, "load", None)
+    if callable(loader):
+        print(f"Loading {getattr(recognizer, 'model_name', 'model')} into VRAM...")
+        loader()
+        print("Model loaded successfully and ready for requests!")
+    yield
+
+
+app = FastAPI(title="Parakeet ASR REST API", version=API_VERSION, lifespan=lifespan)
 
 
 def _payload(filename: str, transcript: Transcript, normalize: bool) -> dict:
     raw = transcript.text
-    text = normalize_text(raw) if normalize else raw
+    # Always applied. A model that emits punctuation and capitalisation breaks
+    # the grammars outright ("turn on the lights." does not parse), and both the
+    # 0.1.0 server and Google returned bare lowercase text. See normalize.py.
+    text = to_asr_text(raw)
+    if normalize:
+        text = normalize_text(text)
     body = transcript.as_payload()
     body["text"] = text
     body["text_raw"] = raw
@@ -103,11 +132,22 @@ async def transcribe_audio(
         ),
     ),
 ) -> dict:
+    # The original rejected anything but .wav; keep that so a client that
+    # depends on the 400 still gets it.
+    if not (file.filename or "").endswith(".wav"):
+        raise HTTPException(status_code=400, detail="Only .wav files are supported.")
+
     data = await file.read()
-    with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as tmp:
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
         tmp.write(data)
-        tmp.flush()
-        transcript = get_recognizer().transcribe_wav(tmp.name)
+        path = tmp.name
+    try:
+        transcript = get_recognizer().transcribe_wav(path)
+    except RuntimeError as error:                      # ffmpeg / decode failure
+        raise HTTPException(status_code=500, detail=str(error))
+    finally:
+        if os.path.exists(path):
+            os.remove(path)
     return _payload(file.filename or "audio.wav", transcript, normalize)
 
 

@@ -1,5 +1,0 @@
-# Installed separately from requirements.txt: this pulls torch and NeMo, which
-# are large and GPU-specific, while the service contract above is not. Tests run
-# against an injected recognizer and need none of this.
-nemo_toolkit[asr]>=1.23
-omegaconf>=2.3

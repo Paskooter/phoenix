@@ -87,54 +87,100 @@ class StubRecognizer:
 
 
 class NemoRecognizer:
-    """NVIDIA NeMo Parakeet.
+    """NVIDIA NeMo Parakeet, modelled on the original hive_mind parakeet-service.
 
-    Word confidence is OFF by default in NeMo; it has to be asked for through
-    the decoding config. That is why the deployed 0.1.0 server returned
-    ``frame_confidence``/``token_confidence``/``word_confidence`` all null and
-    the client had nothing to report.
+    Three things are inherited from that service deliberately, because changing
+    any of them changes what the robot hears:
+
+    * **Model.** ``nvidia/parakeet-rnnt-0.6b``. This is not interchangeable with
+      the newer ``parakeet-tdt-0.6b-v2``: the TDT model emits punctuation and
+      capitalisation, and punctuation stops the Jibo grammars dead
+      ("turn on the lights." does not parse at all against jibo-nlu 2.8.3).
+      The RNNT model returns the bare lowercase text the grammars expect.
+    * **Resident in VRAM.** Loaded once at startup, not per request.
+    * **ffmpeg resampling.** Any sample rate, channel count or bit depth is
+      accepted and converted to 16 kHz mono s16 before inference.
+
+    What is added: word confidence, which NeMo does not preserve unless the
+    decoding config asks for it.
     """
 
+    DEFAULT_MODEL = "nvidia/parakeet-rnnt-0.6b"
+
     def __init__(self, model_name: Optional[str] = None, device: Optional[str] = None) -> None:
-        self.model_name = model_name or os.environ.get(
-            "PARAKEET_MODEL", "nvidia/parakeet-tdt-0.6b-v2")
-        self.device = device or os.environ.get("PARAKEET_DEVICE", "cuda")
+        self.model_name = model_name or os.environ.get("PARAKEET_MODEL", self.DEFAULT_MODEL)
+        self.device = device or os.environ.get("PARAKEET_DEVICE", "")
         self._model = None
 
-    def _load(self):
+    def load(self):
+        """Load the model. Called at startup so the first request is not slow."""
         if self._model is not None:
             return self._model
-        import nemo.collections.asr as nemo_asr  # imported lazily: heavy, GPU-bound
+        import nemo.collections.asr as nemo_asr  # heavy, GPU-bound; imported lazily
         model = nemo_asr.models.ASRModel.from_pretrained(model_name=self.model_name)
-        model = model.to(self.device)
+        if self.device:
+            model = model.to(self.device)
         model.eval()
         self._enable_confidence(model)
         self._model = model
         return model
 
+    # Kept for callers that reach a request before startup finished.
+    _load = load
+
     @staticmethod
     def _enable_confidence(model) -> None:
-        """Ask the decoder for confidence. Without this every field comes back null."""
+        """Ask the decoder for word confidence; without this every field is null."""
         try:
             from omegaconf import open_dict
             cfg = model.cfg.decoding
             with open_dict(cfg):
-                cfg.preserve_alignments = True
-                cfg.compute_timestamps = True
-                confidence = cfg.get("confidence_cfg", {})
+                confidence = dict(cfg.get("confidence_cfg", {}) or {})
                 confidence["preserve_frame_confidence"] = True
                 confidence["preserve_token_confidence"] = True
                 confidence["preserve_word_confidence"] = True
+                confidence["exclude_blank"] = True
+                confidence["aggregation"] = "mean"
+                # NeMo defaults to an ENTROPY measure, which is not a
+                # probability: a correct transcript came back at 0.07 with
+                # per-word values near 0.002. `max_prob` is the max softmax
+                # probability per token, the 0-1 quantity the wire contract
+                # means and the one Google supplied.
+                method = dict(confidence.get("method_cfg", {}) or {})
+                method["name"] = "max_prob"
+                confidence["method_cfg"] = method
                 cfg.confidence_cfg = confidence
             model.change_decoding_strategy(cfg)
         except Exception:  # pragma: no cover - depends on model/NeMo version
-            # A model whose decoder cannot preserve confidence still transcribes;
-            # it reports confidence None, which the wire contract allows.
+            # A decoder that cannot preserve confidence still transcribes; it
+            # reports confidence None, which the wire contract allows.
             pass
+
+    @staticmethod
+    def resample(path: str) -> str:
+        """16 kHz mono s16 via ffmpeg, as the original service did.
+
+        Clients may send whatever the robot captured; the model needs one
+        format. Returns a NEW path; the caller cleans it up.
+        """
+        import subprocess
+        out = path[:-4] + "_16k.wav" if path.endswith(".wav") else path + "_16k.wav"
+        cmd = ["ffmpeg", "-y", "-i", path, "-ar", "16000", "-ac", "1",
+               "-sample_fmt", "s16", out]
+        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60)
+        if result.returncode != 0:
+            if os.path.exists(out):
+                os.remove(out)
+            raise RuntimeError(f"ffmpeg resampling failed: {result.stderr.decode()[:500]}")
+        return out
 
     @staticmethod
     def _to_transcript(hyp) -> Transcript:
         text = getattr(hyp, "text", None)
+        # Some NeMo versions nest a hypothesis inside `.text`, which is why both
+        # existing clients defensively read `transcript.text`.
+        if text is not None and not isinstance(text, str):
+            text = getattr(text, "text", None) or str(text)
         if text is None:
             text = str(hyp)
         words = list(getattr(hyp, "word_confidence", None) or [])
@@ -146,23 +192,34 @@ class NemoRecognizer:
         )
 
     def transcribe_wav(self, path: str) -> Transcript:
-        model = self._load()
-        hyps = model.transcribe([path], return_hypotheses=True)
-        if isinstance(hyps, tuple):  # some versions return (best, all)
-            hyps = hyps[0]
-        if not hyps:
-            return Transcript(text="")
-        return self._to_transcript(hyps[0])
+        model = self.load()
+        resampled = None
+        try:
+            resampled = self.resample(path)
+            hyps = model.transcribe([resampled], return_hypotheses=True)
+            if isinstance(hyps, tuple):  # some versions return (best, all)
+                hyps = hyps[0]
+            if not hyps:
+                return Transcript(text="")
+            return self._to_transcript(hyps[0])
+        finally:
+            if resampled and os.path.exists(resampled):
+                os.remove(resampled)
 
     def transcribe_pcm(self, pcm: bytes, sample_rate: int) -> Transcript:
         import tempfile
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as tmp:
-            with wave.open(tmp.name, "wb") as w:
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+            path = tmp.name
+        try:
+            with wave.open(path, "wb") as w:
                 w.setnchannels(1)
                 w.setsampwidth(2)
                 w.setframerate(sample_rate)
                 w.writeframes(pcm)
-            return self.transcribe_wav(tmp.name)
+            return self.transcribe_wav(path)
+        finally:
+            if os.path.exists(path):
+                os.remove(path)
 
 
 def rms(pcm: bytes) -> float:

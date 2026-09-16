@@ -94,3 +94,34 @@ def normalize_text(text: str) -> str:
                 k += 1
         i = j
     return " ".join(out)
+
+
+# --- ASR output contract ---------------------------------------------------
+
+# Trailing and embedded punctuation is not cosmetic here: it stops the parse
+# dead. Measured against jibo-nlu 2.8.3 over the pinned launch.fst:
+#
+#     turn on the lights                  -> lightsOn
+#     turn on the lights.                 -> NO PARSE
+#     testing testing one two three       -> partialRecognition
+#     testing, testing, one, two, three   -> NO PARSE
+#
+# The runtime lowercases before parsing (RobustParserClient.handleNLU) but never
+# strips punctuation, so a model that emits punctuation and capitalisation --
+# parakeet-tdt-0.6b-v2 does -- silently breaks intent recognition. The 0.1.0
+# server returned bare lowercase text and so did Google, so this restores the
+# contract both the grammars and the previous deployment assume.
+_PUNCT = re.compile(r"[^\w\s'\-]+")
+_REPEAT_WS = re.compile(r"\s+")
+
+
+def to_asr_text(text: str) -> str:
+    """Lowercase, drop punctuation, collapse whitespace.
+
+    Apostrophes and hyphens are kept: the grammars carry forms like `don't` and
+    `wake-up`, and stripping them would break those instead.
+    """
+    if not text:
+        return text
+    cleaned = _PUNCT.sub(" ", text)
+    return _REPEAT_WS.sub(" ", cleaned).strip().lower()
