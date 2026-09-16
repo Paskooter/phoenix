@@ -295,6 +295,7 @@ export function buildGqaAnswerAnalytics(output) {
     if (output.source === 'Bing') source = 'bing';
     else if (output.source === 'Wolfram Alpha') source = 'wolfram';
     else if (output.source === 'Wikipedia') source = 'wiki';
+    else if (output.source === 'DuckDuckGo') source = 'duckduckgo';
     if (Object.prototype.hasOwnProperty.call(output, 'type')) category = output.type;
   }
   const properties = { success };

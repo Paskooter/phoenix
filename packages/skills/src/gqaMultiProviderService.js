@@ -4,9 +4,14 @@
 // Bing and Wikipedia start together with a three-second group deadline, then
 // Wolfram Alpha starts with a four-second deadline.  This module wires the
 // three source-shaped adapters into that existing orchestration without
-// changing the default answer-skill registry.  Endpoints are required from
-// the caller so importing or selecting this profile cannot contact a live
-// provider accidentally.
+// changing the default answer-skill registry.
+//
+// Microsoft retired the Bing Search API, so the first-group slot defaults to
+// the DuckDuckGo Instant Answer provider (no API key, public API).  Bing
+// remains selectable for that slot when a source `bing_api` endpoint is
+// configured; Wikipedia and Wolfram Alpha endpoints are still required from
+// the caller so selecting this profile cannot contact a live provider
+// accidentally.
 
 import { createService } from '@phoenix/common';
 import {
@@ -15,6 +20,10 @@ import {
   createGqaProviderPipeline,
 } from './gqaAnswerSkill.js';
 import { createBingProvider } from './gqaBingProvider.js';
+import {
+  createDuckDuckGoProvider,
+  DUCKDUCKGO_SOURCE_API,
+} from './gqaDuckDuckGoProvider.js';
 import { createWikipediaProvider } from './gqaWikipediaProvider.js';
 import { createWolframProvider } from './gqaWolframProvider.js';
 import {
@@ -43,6 +52,12 @@ function configuredEndpoint(value, name) {
     throw new TypeError(`GQA ${name} endpoint must be configured explicitly`);
   }
   return value;
+}
+
+// The recovered Bing stage is dead upstream, so the first-group slot defaults
+// to DuckDuckGo unless a caller configures a source Bing endpoint explicitly.
+function bingEndpointConfigured(value) {
+  return typeof value === 'function' || (typeof value === 'string' && value.length > 0);
 }
 
 function configuredTimeout(value, fallback, label) {
@@ -161,11 +176,17 @@ export function createGqaMultiProviderProfile({
   const accountLookup = configuredAccountLookup(account);
   const attributionStore = configuredAttribution(attribution);
 
-  const bingProvider = createBingProvider({
-    ...bingConfig,
-    endpoint: configuredEndpoint(bingConfig.endpoint, 'Bing'),
-    clock: bingConfig.clock || clock,
-  });
+  const bingProvider = bingEndpointConfigured(bingConfig.endpoint)
+    ? createBingProvider({
+      ...bingConfig,
+      endpoint: configuredEndpoint(bingConfig.endpoint, 'Bing'),
+      clock: bingConfig.clock || clock,
+    })
+    : createDuckDuckGoProvider({
+      ...bingConfig,
+      endpoint: bingConfig.duckDuckGoEndpoint || DUCKDUCKGO_SOURCE_API,
+      clock: bingConfig.clock || clock,
+    });
   const wikipediaProvider = createWikipediaProvider({
     ...wikipediaConfig,
     endpoint: configuredEndpoint(wikipediaConfig.endpoint, 'Wikipedia'),

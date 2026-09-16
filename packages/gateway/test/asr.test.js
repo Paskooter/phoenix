@@ -36,6 +36,13 @@ const SPEECH = () => pcmChunk(8000); // RMS 8000 >> 400 threshold
 function mockParakeet(transcript) {
   return new Promise((resolve) => {
     const srv = http.createServer((req, res) => {
+      // Only the batch recognition is a recognizer call; the session also probes
+      // /healthz for a streaming endpoint, which this 0.1.0 stand-in lacks.
+      if (req.method !== 'POST' || req.url !== '/transcribe') {
+        res.writeHead(404);
+        res.end();
+        return;
+      }
       const chunks = [];
       req.on('data', (c) => chunks.push(c));
       req.on('end', () => {

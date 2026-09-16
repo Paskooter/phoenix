@@ -636,6 +636,6 @@ test('Q-01 composite selected profile rejects any missing provider endpoint befo
   );
   assert.throws(
     () => start(0, { gqaProfile: 'multi-provider', gqaEnvironment: {} }),
-    /Bing endpoint must be configured explicitly/,
+    /Wikipedia endpoint must be configured explicitly/,
   );
 });

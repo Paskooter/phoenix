@@ -45,6 +45,13 @@ async function startMockParakeet(transcripts) {
   const pending = [...transcripts];
   const requests = [];
   const server = http.createServer(async (req, res) => {
+    // Count recognitions only: the session probes /healthz for a streaming
+    // endpoint, which this 0.1.0 stand-in does not offer.
+    if (req.method !== 'POST' || req.url !== '/transcribe') {
+      res.writeHead(404);
+      res.end();
+      return;
+    }
     for await (const _ of req) { /* drain */ }
     requests.push(Date.now());
     const transcript = pending.length > 1 ? pending.shift() : pending[0];

@@ -141,7 +141,7 @@ function assertGqaAnswer(body) {
 test('shared-host GQA profile requires an explicit source provider configuration', () => {
   assert.throws(
     () => createGqaDefaultSkill({ env: {} }),
-    /Bing endpoint must be configured explicitly/,
+    /Wikipedia endpoint must be configured explicitly/,
   );
   assert.throws(
     () => start(0, {
@@ -149,7 +149,7 @@ test('shared-host GQA profile requires an explicit source provider configuration
       gqaDefaultProfile: 'multi-provider',
       gqaEnvironment: {},
     }),
-    /Bing endpoint must be configured explicitly/,
+    /Wikipedia endpoint must be configured explicitly/,
   );
   assert.throws(
     () => start(0, { skillId: null, gqaDefaultProfile: 'unknown' }),

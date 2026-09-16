@@ -24,8 +24,21 @@
 // every endpoint; a batch recognizer reports exactly nothing there. So an empty
 // silence endpoint keeps listening (bounded) and only a recognized utterance —
 // or the caller's budget — ends the ASR phase.
+//
+// Streaming upgrade (DIVERGENCES H07b): a streaming-capable server (API >= 0.2.0)
+// advertises `GET /healthz` and offers `WS /stream`. When it does, accepted PCM
+// is fed to the socket as it arrives and each `interim` transcript updates the
+// same incremental result seam (`lastResult` / `getLastIncremental()` / onResult)
+// that the Google session uses, so `fastEOSRegex` can match an interim and
+// `_fireEOSAndFinalize` truncates the utterance at the trigger word instead of
+// waiting for a whole-utterance batch hypothesis. On `eos` the server answers
+// with a `final` transcript/confidence. A server without the streaming endpoint
+// (no `/healthz`, API 0.1.0), or one whose socket fails mid-session, falls back
+// to the unchanged `/transcribe` batch path.
 
 import http from 'node:http';
+import https from 'node:https';
+import { WebSocket } from 'ws';
 import { FastEOS } from './fastEOS.js';
 import {
   AUDIO_ENCODINGS,
@@ -48,6 +61,28 @@ const MAX_BUFFER_MS = 30000;
 const MAX_BUFFER_BYTES = (BYTES_PER_SEC * MAX_BUFFER_MS) / 1000;
 
 const POST_TIMEOUT_MS = 30000;
+
+// Streaming transport: `/healthz` is the capability probe (present only on API
+// >= 0.2.0), `/stream` the WebSocket recognizer. Bounded like the batch path so a
+// wedged socket cannot hold a turn open, and a mid-flight failure falls back to
+// batch rather than dropping the turn.
+const STREAMING_API_VERSION = '0.2.0';
+const HEALTH_TIMEOUT_MS = 3000;
+const STREAM_FINAL_TIMEOUT_MS = 30000;
+const STREAM_PENDING_MAX_BYTES = 2 * 1024 * 1024;
+
+/** True when `version` (e.g. "0.2.0") is at least `minimum` (e.g. "0.2.0"). */
+function apiVersionAtLeast(version, minimum) {
+  const parse = (value) => String(value).split('.').map((part) => parseInt(part, 10) || 0);
+  const actual = parse(version);
+  const required = parse(minimum);
+  for (let i = 0; i < Math.max(actual.length, required.length); i += 1) {
+    const a = actual[i] || 0;
+    const b = required[i] || 0;
+    if (a !== b) return a > b;
+  }
+  return true;
+}
 
 // A silence endpoint that recognizes no words is treated as a false endpoint
 // (see the header note): keep listening instead of ending the turn. Bounded so a
@@ -104,10 +139,27 @@ export class ParakeetASRSession {
     this.pcmCarry = null;
     this.finalizeReason = null;
 
-    // Parakeet is a batch recognizer, so earlyEOS cannot interrupt an interim
-    // stream. The reference still builds the regex here and (per its comment)
-    // applies it post-hoc in finalize() so the client-visible FAST_EOS
-    // annotation is not silently dropped by the batch replacement.
+    // Streaming state. `streamingSupported` is set once `/healthz` confirms a
+    // streaming endpoint; `streamingReady` once the socket is open and `start`
+    // was sent; `streamingFailed` latches a socket failure and forces the batch
+    // path for the rest of the session. Audio accepted before the socket is open
+    // is queued (bounded); the batch buffer keeps its own copy for fallback.
+    this.streamingSupported = false;
+    this.streamingUnsupported = false;
+    this.streamingReady = false;
+    this.streamingFailed = false;
+    this.streamSocket = null;
+    this.streamPending = [];
+    this.streamPendingBytes = 0;
+    this.streamFinalWaiter = null;
+    this.streamFinalTimer = null;
+    this.streamEosSent = false;
+    this.streamClosing = false;
+    this.fastEosResult = null;
+
+    // The regex is applied to each interim when streaming and post-hoc to the
+    // final batch transcript otherwise; the client-visible FAST_EOS annotation
+    // is never silently dropped.
     this.fastEOSRegex = null;
     if (this.config.earlyEOS && this.config.earlyEOS.length > 0) {
       this.fastEOSRegex = FastEOS.buildRegex(this.config.earlyEOS);
@@ -184,6 +236,7 @@ export class ParakeetASRSession {
     this.pcmCarry = this.totalBytes % BYTES_PER_SAMPLE === 0
       ? null
       : pcm.subarray(pcm.length - 1);
+    this._sendStreamAudio(pcm);
   }
 
   _appendEndOfInputPcm(audioBuffer = Buffer.alloc(0)) {
@@ -276,6 +329,10 @@ export class ParakeetASRSession {
         this._handleAudioError(err);
       }
     }
+    // Probe for the streaming endpoint in the background; audio accepted while
+    // the probe/socket is in flight is queued and flushed on open. A server
+    // without it (or a probe failure) leaves the batch path untouched.
+    this._initStreaming();
     return this.startPromise;
   }
 
@@ -298,6 +355,7 @@ export class ParakeetASRSession {
       } else {
         this.state = 'DONE';
         this._closeDecoder();
+        this._closeStream();
         if (this.resolveStart) this.resolveStart(undefined);
       }
     }
@@ -319,6 +377,7 @@ export class ParakeetASRSession {
     this.pcmPending = Buffer.alloc(0);
     this.pcmCarry = null;
     this._closeDecoder();
+    this._closeStream();
     if (this.resolveStart) {
       const resolve = this.resolveStart;
       this.resolveStart = null;
@@ -409,11 +468,26 @@ export class ParakeetASRSession {
     });
   }
 
+  /**
+   * True while the streaming socket can answer this finalization. A latched
+   * socket failure, or a socket that is no longer open, sends the turn to the
+   * batch path; a FastEOS result obtained from an interim needs no live socket.
+   */
+  _shouldUseStream() {
+    if (this.streamingFailed) return false;
+    if (this.fastEosResult) return true;
+    return this.streamingReady
+      && !!this.streamSocket
+      && this.streamSocket.readyState === WebSocket.OPEN;
+  }
+
   async _finalize({ mode = 'cancel' } = {}) {
-    // A caller stop is the encoded stream's end-of-input: retain complete
-    // frames already accepted by the session, and let the decoder discard an
-    // incomplete container tail.  VAD/max-buffer EOS is a cancellation point;
-    // audio after the detected EOS must not be appended while the POST starts.
+    if (this._shouldUseStream()) return this._finalizeViaStream(mode);
+    return this._finalizeViaBatch(mode);
+  }
+
+  /** Drain the decoder for an explicit end-of-input, then run the batch POST. */
+  async _finalizeViaBatch(mode) {
     if (mode === 'end-of-input' && this.decoder) {
       const decoder = this.decoder;
       try {
@@ -427,6 +501,16 @@ export class ParakeetASRSession {
     } else {
       this._closeDecoder();
     }
+    // The streaming socket (if one was opening) has no part in a batch POST.
+    this._closeStream();
+    return this._finalizeBatchWork(mode);
+  }
+
+  async _finalizeBatchWork(mode) {
+    // A caller stop is the encoded stream's end-of-input: retain complete
+    // frames already accepted by the session, and let the decoder discard an
+    // incomplete container tail.  VAD/max-buffer EOS is a cancellation point;
+    // audio after the detected EOS must not be appended while the POST starts.
     if (mode === 'end-of-input') this._appendEndOfInputPcm();
     else this.pcmPending = Buffer.alloc(0);
     if (this.decoderError) throw this.decoderError;
@@ -450,21 +534,386 @@ export class ParakeetASRSession {
     // Prefer the server's confidence; fall back to the historical synthetic
     // value only when the deployment cannot supply one, so an old server keeps
     // working unchanged.
+    this._emitFinalResult(transcript, posted.confidence);
+  }
+
+  /** End the recognizer stream and settle with the `final` transcript. */
+  async _finalizeViaStream(mode) {
+    if (mode === 'end-of-input' && this.decoder) {
+      const decoder = this.decoder;
+      try {
+        await decoder.finish({ allowTruncated: true });
+      } finally {
+        if (this.decoder === decoder) this._closeDecoder();
+      }
+    } else {
+      this._closeDecoder();
+    }
+    if (mode === 'end-of-input') this._appendEndOfInputPcm();
+    else this.pcmPending = Buffer.alloc(0);
+    if (this.decoderError) throw this.decoderError;
+    if (this.pcmCarry) throw new AudioFormatError('ASR PCM ended on an odd byte boundary');
+
+    // FastEOS fired on an interim: that interim is the truncated transcript and
+    // the trigger word has already cut the utterance, exactly like the original
+    // Google session. Do not wait for a server final (it would include audio the
+    // speaker said after the trigger).
+    if (this.fastEosResult) {
+      const result = this.fastEosResult;
+      this._sendStreamEos();
+      this._closeStream();
+      this._emitFinalResult(result.text, result.confidence);
+      return;
+    }
+
+    let final;
+    try {
+      final = await this._requestStreamFinal();
+    } catch (err) {
+      // The socket failed while we waited for the final: the buffered PCM is
+      // still good, so recognize it over the unchanged batch path instead of
+      // losing the turn.
+      this.log.warn?.('Parakeet /stream final failed; falling back to batch: ' + err.message);
+      this._streamFailed(err);
+      this._closeStream();
+      return this._finalizeBatchWork(mode);
+    }
+    this._closeStream();
+    if (!final.text && this._shouldRelisten()) {
+      this._resetForRelisten();
+      this._restartStream();
+      return;
+    }
+    this._emitFinalResult(final.text, final.confidence);
+  }
+
+  /**
+   * Settle the session with a transcript/confidence. Prefers the recognizer's
+   * confidence and only synthesizes the historical 1.0/0.0 when the server
+   * supplied none; annotates FAST_EOS when the text matches earlyEOS (post-hoc,
+   * the reference's batch behavior).
+   */
+  _emitFinalResult(transcript, confidence) {
+    const text = transcript || '';
     const result = {
-      text: transcript || '',
-      confidence: posted.confidence !== null && posted.confidence !== undefined
-        ? posted.confidence
-        : (transcript ? 1.0 : 0.0),
+      text,
+      confidence: confidence !== null && confidence !== undefined
+        ? confidence
+        : (text ? 1.0 : 0.0),
     };
-    // Post-hoc earlyEOS: annotate the final transcript when it matches the
-    // cleaned earlyEOS phrases (the reference's stated batch behavior).
-    if (transcript && this.fastEOSRegex && this.fastEOSRegex.test(transcript)) {
+    if (text && this.fastEOSRegex && this.fastEOSRegex.test(text)) {
       result.annotation = 'FAST_EOS';
     }
     this.lastResult = result;
     if (this.resultHandler) this.resultHandler(result);
     this.state = 'DONE';
     if (this.resolveStart) this.resolveStart(result);
+  }
+
+  // --- Streaming transport ---------------------------------------------------
+
+  /** Probe `/healthz` once; resolves true only for a streaming-capable server. */
+  _probeStreamingSupport() {
+    return new Promise((resolve) => {
+      let parsed;
+      try {
+        parsed = new URL(this.parakeetUrl);
+      } catch {
+        resolve(false);
+        return;
+      }
+      const secure = parsed.protocol === 'https:';
+      const transport = secure ? https : http;
+      const port = parsed.port ? parseInt(parsed.port, 10) : (secure ? 443 : 80);
+      const req = transport.request({
+        method: 'GET',
+        host: parsed.hostname,
+        port,
+        path: '/healthz',
+        timeout: HEALTH_TIMEOUT_MS,
+        agent: false,
+        headers: { connection: 'close' },
+      }, (res) => {
+        const bufs = [];
+        res.on('data', (c) => bufs.push(c));
+        res.on('end', () => {
+          if (res.statusCode !== 200) { resolve(false); return; }
+          try {
+            const json = JSON.parse(Buffer.concat(bufs).toString('utf8'));
+            resolve(
+              json?.ok === true
+              && typeof json?.api_version === 'string'
+              && apiVersionAtLeast(json.api_version, STREAMING_API_VERSION),
+            );
+          } catch {
+            resolve(false);
+          }
+        });
+      });
+      req.on('timeout', () => { req.destroy(new Error('Parakeet /healthz timed out')); });
+      req.on('error', () => resolve(false));
+      req.end();
+    });
+  }
+
+  _initStreaming() {
+    this._probeStreamingSupport()
+      .then((supported) => {
+        if (!supported) {
+          this.streamingUnsupported = true;
+          this.streamPending = [];
+          this.streamPendingBytes = 0;
+          return;
+        }
+        if (this.stopped || this.aborted || this.state === 'DONE') return;
+        this.streamingSupported = true;
+        this._openStream();
+      })
+      .catch(() => { this.streamingUnsupported = true; });
+  }
+
+  _openStream() {
+    if (!this.streamingSupported || this.streamingFailed || this.streamSocket) return;
+    if (this.stopped || this.aborted || this.state === 'DONE') return;
+    let url;
+    try {
+      url = new URL(this.parakeetUrl);
+    } catch {
+      this.streamingFailed = true;
+      return;
+    }
+    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    url.pathname = '/stream';
+    url.search = '';
+    url.hash = '';
+    let socket;
+    try {
+      socket = new WebSocket(url.toString());
+    } catch (err) {
+      this.streamingFailed = true;
+      this.log.warn?.('[asr] Parakeet streaming socket could not be created; using batch: ' + err.message);
+      return;
+    }
+    this.streamSocket = socket;
+    this.streamEosSent = false;
+    this.streamClosing = false;
+    socket.on('open', () => {
+      if (this.streamSocket !== socket) return;
+      if (this.stopped || this.aborted || this.state === 'DONE') { this._closeStream(); return; }
+      this.streamingReady = true;
+      try {
+        socket.send(JSON.stringify({ type: 'start', sampleRate: SAMPLE_RATE, normalize: false }));
+      } catch (err) {
+        this._streamFailed(err);
+        return;
+      }
+      const pending = this.streamPending;
+      this.streamPending = [];
+      this.streamPendingBytes = 0;
+      for (const chunk of pending) {
+        try {
+          socket.send(chunk);
+        } catch (err) {
+          this._streamFailed(err);
+          return;
+        }
+      }
+    });
+    socket.on('message', (data, isBinary) => {
+      if (this.streamSocket !== socket || isBinary) return;
+      this._handleStreamMessage(data.toString());
+    });
+    socket.on('error', (err) => this._streamFailed(err));
+    socket.on('close', () => {
+      if (this.streamSocket !== socket) return;
+      this.streamingReady = false;
+      if (this.streamFinalWaiter) {
+        const waiter = this.streamFinalWaiter;
+        this.streamFinalWaiter = null;
+        if (this.streamFinalTimer) { clearTimeout(this.streamFinalTimer); this.streamFinalTimer = null; }
+        waiter.reject(new Error('Parakeet stream closed before a final result'));
+      } else if (!this.streamClosing && this.state !== 'DONE') {
+        // A close we did not ask for is a mid-session failure: latch it so the
+        // rest of the turn (and its buffered PCM) goes through batch instead.
+        this._streamFailed(new Error('Parakeet stream closed unexpectedly'));
+      }
+    });
+  }
+
+  _handleStreamMessage(text) {
+    let msg;
+    try {
+      msg = JSON.parse(text);
+    } catch {
+      return;
+    }
+    if (!msg || typeof msg !== 'object') return;
+    if (msg.type === 'interim') {
+      this._handleStreamInterim(this._parseStreamPayload(msg));
+    } else if (msg.type === 'final') {
+      const result = this._parseStreamPayload(msg);
+      // The recognizer answered; a following socket close is routine, not a
+      // mid-session failure.
+      this.streamClosing = true;
+      if (this.streamFinalWaiter) {
+        const waiter = this.streamFinalWaiter;
+        this.streamFinalWaiter = null;
+        if (this.streamFinalTimer) { clearTimeout(this.streamFinalTimer); this.streamFinalTimer = null; }
+        waiter.resolve(result);
+      } else {
+        this.lastResult = result;
+      }
+    }
+  }
+
+  /**
+   * The server contract puts `text`/`confidence` at the top level; the deployed
+   * 0.2.0 server also nests a NeMo hypothesis under `transcript`, so accept both.
+   */
+  _parseStreamPayload(msg) {
+    let text = typeof msg.text === 'string' ? msg.text : null;
+    let confidence = typeof msg.confidence === 'number' ? msg.confidence : null;
+    if (text === null && msg.transcript !== undefined && msg.transcript !== null) {
+      if (typeof msg.transcript === 'string') {
+        text = msg.transcript;
+      } else if (typeof msg.transcript === 'object') {
+        text = typeof msg.transcript.text === 'string' ? msg.transcript.text : null;
+        if (confidence === null && typeof msg.transcript.confidence === 'number') {
+          confidence = msg.transcript.confidence;
+        }
+      }
+    }
+    return { text: text || '', confidence };
+  }
+
+  /**
+   * Surface an interim through the incremental seam. On an earlyEOS match the
+   * utterance is truncated here (H07b): annotate the interim FAST_EOS and end
+   * the turn through the same `_fireEOSAndFinalize` used by VAD endpoints.
+   */
+  _handleStreamInterim(result) {
+    if (this.stopped || this.aborted || this.state === 'FINALIZING' || this.state === 'DONE') return;
+    if (!result.text) return;
+    if (this.fastEOSRegex && this.fastEOSRegex.test(result.text)) {
+      const annotated = { text: result.text, confidence: result.confidence, annotation: 'FAST_EOS' };
+      this.lastResult = annotated;
+      this.fastEosResult = annotated;
+      this.log.info?.('Incremental transcription contains a FastEOS trigger word/phrase. Stopping ASR and returning.');
+      this._fireEOSAndFinalize('fast-eos');
+      return;
+    }
+    this.lastResult = result;
+    if (this.resultHandler) this.resultHandler(result);
+  }
+
+  _sendStreamAudio(pcm) {
+    if (this.streamingFailed || this.streamEosSent || !pcm || pcm.length === 0) return;
+    if (this.streamingReady && this.streamSocket && this.streamSocket.readyState === WebSocket.OPEN) {
+      try {
+        this.streamSocket.send(pcm);
+      } catch (err) {
+        this._streamFailed(err);
+      }
+      return;
+    }
+    if (this.streamingUnsupported) return;
+    // The probe/socket is still in flight (or the socket just opened): hold the
+    // audio so the recognizer hears the beginning of the utterance too.
+    if (this.streamPendingBytes + pcm.length > STREAM_PENDING_MAX_BYTES) {
+      if (this.streamingSupported) this._streamFailed(new Error('Parakeet stream audio queue overflowed before the socket was ready'));
+      return;
+    }
+    this.streamPending.push(Buffer.from(pcm));
+    this.streamPendingBytes += pcm.length;
+  }
+
+  _requestStreamFinal() {
+    return new Promise((resolve, reject) => {
+      const socket = this.streamSocket;
+      if (!socket || !this.streamingReady || socket.readyState !== WebSocket.OPEN) {
+        reject(new Error('Parakeet stream is not open'));
+        return;
+      }
+      this.streamEosSent = true;
+      this.streamFinalWaiter = { resolve, reject };
+      if (this.streamFinalTimer) clearTimeout(this.streamFinalTimer);
+      this.streamFinalTimer = setTimeout(() => {
+        if (this.streamFinalWaiter) {
+          const waiter = this.streamFinalWaiter;
+          this.streamFinalWaiter = null;
+          this.streamFinalTimer = null;
+          waiter.reject(new Error('Parakeet stream final timed out'));
+        }
+      }, STREAM_FINAL_TIMEOUT_MS);
+      this.streamFinalTimer.unref?.();
+      try {
+        socket.send(JSON.stringify({ type: 'eos' }));
+      } catch (err) {
+        if (this.streamFinalWaiter) {
+          const waiter = this.streamFinalWaiter;
+          this.streamFinalWaiter = null;
+          if (this.streamFinalTimer) { clearTimeout(this.streamFinalTimer); this.streamFinalTimer = null; }
+          waiter.reject(err);
+        }
+      }
+    });
+  }
+
+  _sendStreamEos() {
+    const socket = this.streamSocket;
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+    try {
+      this.streamEosSent = true;
+      socket.send(JSON.stringify({ type: 'eos' }));
+    } catch {
+      /* best effort: the socket is about to be closed */
+    }
+  }
+
+  /** Latch a socket failure so the rest of the session uses the batch path. */
+  _streamFailed(err) {
+    if (this.streamingFailed) return;
+    this.streamingFailed = true;
+    this.streamingReady = false;
+    const socket = this.streamSocket;
+    this.streamSocket = null;
+    this.streamPending = [];
+    this.streamPendingBytes = 0;
+    if (socket) {
+      try { socket.terminate(); } catch { /* already gone */ }
+    }
+    if (this.streamFinalWaiter) {
+      const waiter = this.streamFinalWaiter;
+      this.streamFinalWaiter = null;
+      if (this.streamFinalTimer) { clearTimeout(this.streamFinalTimer); this.streamFinalTimer = null; }
+      waiter.reject(err instanceof Error ? err : new Error(String(err)));
+    }
+    if (!this.stopped && this.state !== 'DONE') {
+      this.log.warn?.('[asr] Parakeet /stream failed; falling back to batch: ' + (err?.message || err));
+    }
+  }
+
+  _restartStream() {
+    if (!this.streamingSupported || this.streamingFailed || this.aborted || this.stopped) return;
+    this.streamEosSent = false;
+    this._openStream();
+  }
+
+  _closeStream() {
+    const socket = this.streamSocket;
+    this.streamClosing = true;
+    this.streamSocket = null;
+    this.streamingReady = false;
+    this.streamPending = [];
+    this.streamPendingBytes = 0;
+    if (this.streamFinalTimer) { clearTimeout(this.streamFinalTimer); this.streamFinalTimer = null; }
+    this.streamFinalWaiter = null;
+    if (!socket) return;
+    socket.on('error', () => { /* teardown races must not throw */ });
+    try {
+      if (socket.readyState === WebSocket.OPEN) socket.close();
+      else socket.terminate();
+    } catch { /* already gone */ }
   }
 
   _handleAudioError(err) {
@@ -475,6 +924,7 @@ export class ParakeetASRSession {
     this.stopped = true;
     this.state = 'DONE';
     this._closeDecoder();
+    this._closeStream();
     if (this.rejectStart) {
       const reject = this.rejectStart;
       this.rejectStart = null;
