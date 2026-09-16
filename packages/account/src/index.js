@@ -310,7 +310,10 @@ export function createAccountService({
         }
       },
       ...staticRoutes(),         // the portal UI (GET /, /admin, assets)
-      ...portalRoutes(store),     // REST /api/* (sessions)
+      ...portalRoutes(store, {
+        loopUpdatedOutbox,
+        invitationProviders: effectiveInvitationProviders,
+      }), // REST /api/* (sessions)
       ...settingsPeerRoutes(store), // internal Account client seams used by source Settings
       ...backupPeerRoutes(store),   // internal Account client seam used by source Backup (getLoop)
       ...keyPeerRoutes(store),      // internal Account client seam used by source Key (loop members)

@@ -19,7 +19,7 @@ import { LogStore, makeLogHandler, logHttpRoutes } from './log.js';
 import { makeRobotHandler, RobotStore } from './robot.js';
 import { NotificationHub, makeNotificationHandler, attachNotificationSocket } from './notification.js';
 import { KeyStore, makeKeyHandler, keyRoutes, accountMembership } from './key.js';
-import { DeviceRegistry, makePushHandler } from './push.js';
+import { DeviceRegistry, makePushHandler, pushRoutes } from './push.js';
 import { createJotMessageCreatedConsumer } from './jotPushConsumer.js';
 import { BackupStore, makeBackupHandler, backupBlobRoutes } from './backup.js';
 import { MediaStore, makeMediaHandler, mediaBlobRoutes, isMediaUpload } from './media.js';
@@ -45,7 +45,7 @@ export { makeRobotHandler, RobotStore } from './robot.js';
 export { NotificationHub, createVerifiedNotificationAccountResolver } from './notification.js';
 export { NotificationStore } from './notification.js';
 export { KeyStore, keyRoutes, KEY_ERRORS } from './key.js';
-export { DeviceRegistry } from './push.js';
+export { DeviceRegistry, makePushHandler, pushRoutes } from './push.js';
 export { BackupStore, credentialsAccountId, accountLoopRobot } from './backup.js';
 export { MediaStore, makeMediaHandler, mediaBlobRoutes, expandMedia, accessKeyAccountResolver, MEDIA_ERRORS, MEDIA_TYPES, AUTHORIZED_UNDER_ADMIN } from './media.js';
 export {
@@ -372,6 +372,7 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
   const jotStore = jot?.store || new JotStore();
   const jotMedia = jot?.media || mediaStoreClient(mediaStore, { accountLoops: jot?.accountLoops });
   const voiceTrainingStore = voiceTraining?.store || new VoiceTrainingStore();
+  const pushRegistry = jot?.pushRegistry || new DeviceRegistry();
   const service = createService({
     name: 'classic',
     tls,
@@ -396,11 +397,13 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
         person: { store: personStore, account: person?.account, questions: person?.questions, holidays: person?.holidays, now: person?.now },
         collision: collision || {},
         gqa: classicGqa,
-        jot: { ...jot, store: jotStore, media: jotMedia },
+        jot: { ...jot, store: jotStore, media: jotMedia, pushRegistry },
         voiceTraining: { ...voiceTraining, store: voiceTrainingStore },
       }),
       // Jot's direct, non-X-Amz-Target bulk unread-count route (srv-jot-ws-archived src/routes/route.js).
       ...jotHttpRoutes({ store: jotStore, account: jot?.account, media: jotMedia, onEvent: jot?.onEvent }),
+      // Push's web-portal read sidecar (the AWS surface has no list op).
+      ...pushRoutes(pushRegistry),
       // VoiceTraining's self-hosted blob route: the `url` virtual of the legacy Backup record
       // (schemes/backup.js) pointed at an S3 presigned GET; Phoenix serves the bytes itself.
       ...voiceTrainingBlobRoutes(voiceTrainingStore),

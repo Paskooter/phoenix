@@ -1,36 +1,49 @@
 // Portal + admin REST face (we design this; session-cookie auth). Routes are exact-match
 // (createService), so parameters travel as query strings or JSON bodies.
 //
-//   POST /api/signup {email,password,firstName?}   -> {account}        + session cookie
-//   POST /api/login  {email,password}              -> {account}        + session cookie
-//   POST /api/logout                               -> {}               (clears cookie)
+//   POST /api/signup {email,password,firstName?}   -> {account}              + session cookie
+//   POST /api/login  {email,password}              -> {account}              + session cookie
+//   POST /api/logout                               -> {}                     (clears cookie)
 //   GET  /api/me                                   -> {account} | 401
 //   GET  /api/robots                               -> [{friendlyId,loopName,loopId,created,lastSeen}]
-//   POST /api/admin/login {password}               -> {admin:true}     + admin session cookie
-//   GET  /api/admin/me                             -> {admin:true} | 401
-//   GET  /api/admin/robots                         -> all adopted robots (across every account)
-//   POST /api/admin/adopt {friendlyId, ownerEmail?} -> credentials + repoint instructions
+//   GET  /api/robots/detail …                      -> robot record + Robot_20160225 read
+//   POST /api/robots/setup …                       -> QR pairing payload (MUST be preserved)
+//   GET  /api/robots/setup/status?token=           -> pairing completion poll
+//   GET  /api/loop  / PUT /api/loop …              -> loops + members (see portal/loops.js)
+//   PUT /api/me  POST /api/me/password …           -> profile (see portal/profile.js)
+//   GET/PUT /api/settings                          -> report-skill settings (settingsFace.js)
+//   GET /api/media · /api/people · /api/jot · /api/push · /api/notifications · /api/update/status
+//   GET /api/oauthclients · GET /api/ifttt         -> classic-fronted surfaces (portal/*)
+//   POST /api/token                                -> per-robot hub token (gateway/skills contract)
+//   GET  /api/verify                               -> gateway robot-authorisation (contract frozen)
+//   POST /api/admin/login   GET /api/admin/me   GET /api/admin/robots   POST /api/admin/adopt
 //
-// ADMIN_PASSWORD comes from .env; when unset the admin face is disabled entirely.
+// Twenty /api mounts live in src/portal/* — this file keeps the original routes and composes the
+// rest. ADMIN_PASSWORD comes from .env; when unset the admin face is disabled entirely.
+//
+// TWO CONTRACTS ARE FROZEN AND MUST NOT CHANGE: GET /api/verify (the gateway calls it to
+// authorise every robot connection and the skills GQA attribution store calls it too) and
+// POST /api/token (the original two-argument {accessKeyId, secretAccessKey} portal token).
 
 import { sendJson } from '@phoenix/common';
 import { createOwnerAccount, verifyPassword, createLoop, mintSetupToken, findToken, ACCESS_TOKEN_LIFETIME_MS, secretMatches, createHubToken } from './model.js';
 import { createSession, destroySession, getSession, sessionCookie, clearCookie, checkAdminPassword } from './sessions.js';
 import { buildQrCodes } from './qrPayload.js';
+import { userFromSession as sessionUser, portalAccount } from './portal/session.js';
+import { classicBaseUrl } from './portal/classicClient.js';
+import { portalLoopRoutes } from './portal/loops.js';
+import { portalProfileRoutes } from './portal/profile.js';
+import { portalRobotRoutes } from './portal/robots.js';
+import { portalMediaRoutes } from './portal/media.js';
+import { portalPeopleRoutes } from './portal/people.js';
+import { portalMessagingRoutes } from './portal/messaging.js';
+import { portalSystemRoutes } from './portal/system.js';
 
 // The region written into an adopted robot's credentials.json. A robot's native
 // client builds its service hostnames from this value — `<region>.jibo.com` for
 // REST and `<region>-socket.jibo.com` for the notification socket — and verifies
-// each against the serving certificate. scripts/ensure-tls-certs.mjs issues that
-// certificate for the region(s) in PHOENIX_TLS_REGIONS (default 'api'), and both
-// scripts/parity-robot/repoint-robot.sh and scripts/point-robot-at-phoenix.sh fall
-// back to 'api' when a robot has no region of its own. Keep this default in step
-// with them: writing a region the certificate does not carry makes the robot reject
-// the server, no matter what it trusts.
-//
-// 'api' is the region the physical Jibo reports (read from its
-// /var/jibo/credentials.json). 'phx' is NOT a Jibo region — it was a historical
-// placeholder in this repo and must not be used as a fallback.
+// each against the serving certificate. Keep this default in step with the
+// scripts that point robots at Phoenix.
 export const DEFAULT_ACCOUNT_REGION = 'api';
 
 /**
@@ -41,10 +54,6 @@ export const DEFAULT_ACCOUNT_REGION = 'api';
 export function accountRegion(env = process.env) {
   return env.ETCO_account_region || DEFAULT_ACCOUNT_REGION;
 }
-
-const publicAccount = (a) => ({
-  id: a._id, email: a.email, firstName: a.firstName, lastName: a.lastName, created: a.created,
-});
 
 const robotView = ({ robot, loop, owner }) => ({
   friendlyId: robot.friendlyId,
@@ -62,9 +71,7 @@ function withCookie(res, cookie, status, body) {
 }
 
 export function userFromSession(store, req) {
-  const session = getSession(store, req);
-  if (!session || session.kind !== 'user') return null;
-  return store.accounts.get(session.accountId) || null;
+  return sessionUser(store, req);
 }
 
 export function isAdmin(store, req) {
@@ -73,7 +80,13 @@ export function isAdmin(store, req) {
 }
 
 /** @param {import('./store.js').Store} store @returns route map fragment for createService */
-export function portalRoutes(store) {
+export function portalRoutes(store, options = {}) {
+  const portal = {
+    loopUpdatedOutbox: options.loopUpdatedOutbox,
+    invitationProviders: options.invitationProviders,
+    classicBase: options.classicBase || classicBaseUrl(),
+    classicCall: options.classicCall,
+  };
   return {
     'POST /api/signup': ({ res, body }) => {
       const { email, password, firstName = '' } = body || {};
@@ -87,7 +100,7 @@ export function portalRoutes(store) {
         return sendJson(res, err.code === 'ACCOUNT_EXISTS' ? 409 : 500, { error: err.message });
       }
       const session = createSession(store, { kind: 'user', accountId: account._id });
-      return withCookie(res, sessionCookie(session), 200, { account: publicAccount(account) });
+      return withCookie(res, sessionCookie(session), 200, { account: portalAccount(account) });
     },
 
     'POST /api/login': ({ res, body }) => {
@@ -97,7 +110,7 @@ export function portalRoutes(store) {
         return sendJson(res, 401, { error: 'invalid email or password' });
       }
       const session = createSession(store, { kind: 'user', accountId: account._id });
-      return withCookie(res, sessionCookie(session), 200, { account: publicAccount(account) });
+      return withCookie(res, sessionCookie(session), 200, { account: portalAccount(account) });
     },
 
     'POST /api/logout': ({ req, res }) => {
@@ -109,7 +122,7 @@ export function portalRoutes(store) {
     'GET /api/me': ({ req, res }) => {
       const account = userFromSession(store, req);
       if (!account) return sendJson(res, 401, { error: 'not logged in' });
-      return { account: publicAccount(account) };
+      return { account: portalAccount(account) };
     },
 
     'GET /api/robots': ({ req, res }) => {
@@ -166,7 +179,7 @@ export function portalRoutes(store) {
     },
 
     // The gateway calls this to validate a hub token's accessKeyId claim against a live account.
-    // Never returns the secret — identity only.
+    // Never returns the secret — identity only. CONTRACT FROZEN.
     'GET /api/verify': ({ res, url }) => {
       const accessKeyId = url.searchParams.get('accessKeyId');
       const account = accessKeyId ? store.accountByAccessKeyId(accessKeyId) : null;
@@ -222,6 +235,15 @@ export function portalRoutes(store) {
         ],
       };
     },
+
+    // -- the rest of the mobile-app surface ------------------------------------
+    ...portalLoopRoutes(store, portal),
+    ...portalProfileRoutes(store),
+    ...portalRobotRoutes(store, portal),
+    ...portalMediaRoutes(store, portal),
+    ...portalPeopleRoutes(store, portal),
+    ...portalMessagingRoutes(store, portal),
+    ...portalSystemRoutes(store, portal),
   };
 }
 

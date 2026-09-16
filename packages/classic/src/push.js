@@ -14,6 +14,7 @@
 // a future real provider (APNs/FCM) only has to implement send() and optionally
 // report invalid tokens. The robot-facing push goes over the entrypoint socket.
 
+import { sendJson } from '@phoenix/common';
 import {
   chmodSync, existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync,
 } from 'node:fs';
@@ -323,6 +324,25 @@ function sendPushValidationError(res, message) {
     'content-length': Buffer.byteLength(body),
   });
   res.end(body);
+}
+
+/**
+ * Thin read sidecar for the web portal: the Push_20160729 AWS surface only has Create/Remove,
+ * but the portal's "push registrations" view needs a list. The registry keys devices by the
+ * signed access key (the source AccountPush collection key), so identity here is the raw access
+ * key the caller presents — via the portal's `portal-key` header or a standard SigV4 Authorization.
+ */
+export function pushRoutes(registry = new DeviceRegistry()) {
+  return {
+    'GET /push/devices': ({ req, res }) => {
+      const header = String(req?.headers?.['authorization'] || '');
+      const portal = /^portal-key\s+([A-Za-z0-9_-]+)/.exec(header);
+      const sigv4 = /Credential=([^/,\s]+)\//.exec(header);
+      const accessKeyId = (portal && portal[1]) || (sigv4 && sigv4[1]) || null;
+      if (!accessKeyId) return void sendJson(res, 401, { error: 'missing credentials' });
+      return { devices: registry.activeDevices(accessKeyId) };
+    },
+  };
 }
 
 /** AWS-JSON handler for Push_20160729 (CreateDevice / RemoveDevice). */
