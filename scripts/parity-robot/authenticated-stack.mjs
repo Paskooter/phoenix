@@ -54,6 +54,7 @@ import { ensureTlsCertificates } from '../ensure-tls-certs.mjs';
 export async function startAuthenticatedRobotStack({
   runDir, secretFile, storeFile, keyFile, certFile, snapshotManifest,
   basePort = 19000, entrypointPort = 443, entrypointHost = '0.0.0.0',
+  accountHost = '127.0.0.1',
   publicUrl = 'https://localhost', parakeetUrl = 'http://192.168.1.252:6972',
 } = {}) {
   if (process.env.PHOENIX_ENV_FILE !== '/dev/null') throw new Error('PHOENIX_ENV_FILE=/dev/null is required');
@@ -160,7 +161,14 @@ export async function startAuthenticatedRobotStack({
     if (classicLocalPort) process.env.NET_classic = `127.0.0.1:${classicLocalPort}`;
     account = createAccountService({ store: accountStore });
     servers.push(account.server);
-    await listen(account.server, choosePort(11));
+    // The portal is served by this account service. It binds loopback by default:
+    // it carries login sessions and an admin surface, so exposing it is a
+    // deliberate act, not a default. PHOENIX_ROBOT_ACCOUNT_HOST=0.0.0.0 opts in
+    // for a trusted LAN (a browser on another machine — WSL, a phone — cannot
+    // reach a loopback bind, and an SSH tunnel does not help there).
+    // The classic loopback listener below is NOT covered by this and stays on
+    // 127.0.0.1: that one bypasses TLS.
+    await listen(account.server, choosePort(11), accountHost);
     endpoints.account = account.server.address().port;
     process.env.NET_account = `127.0.0.1:${endpoints.account}`;
 
@@ -283,6 +291,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       basePort: process.env.PHOENIX_ROBOT_PORT ?? 19000,
       entrypointPort: process.env.PHOENIX_ROBOT_ENTRYPOINT_PORT ?? 443,
       entrypointHost: process.env.PHOENIX_ROBOT_ENTRYPOINT_HOST || '0.0.0.0',
+      accountHost: process.env.PHOENIX_ROBOT_ACCOUNT_HOST || '127.0.0.1',
       publicUrl: process.env.PHOENIX_ROBOT_PUBLIC_URL || 'https://localhost',
       parakeetUrl: process.env.ETCO_server_parakeetUrl || 'http://192.168.1.252:6972',
     });
