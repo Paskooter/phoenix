@@ -1,7 +1,8 @@
 # Wikipedia's "No match" — a real gap, and why the obvious fix is NOT shipped
 
 Date: 2026-09-16
-Status: **open question, deliberately unresolved. No code changed.**
+Status: **RESOLVED. Phoenix is correct as it stands; the proposed change would
+have been a divergence. No code changed, and none should be.**
 
 The owner asked, fairly: is the Wikipedia provider just broken? I had said it
 was "behaving as the source designed it". That was an assertion, not a finding,
@@ -101,3 +102,68 @@ With the real `question_type`, `canAnswer` refuses "how tall is mount everest"
 outright — `Blocked by WIKIPEDIA_QUESTION_WORDS restriction.` — before any
 lookup happens. That part *is* source behaviour and is not in question here.
 Wolfram Alpha, now configured, answers that class of question.
+
+
+---
+
+# Resolved: the source never calls the function that has auto_suggest
+
+`gqa/wiki.py` was not missing from the archive, only from the local recovered
+copy. It is in `jiborobot/srv-gqa-ws` at `ebe1a7d3` — the same revision Phoenix
+already pins as `WIKIPEDIA_SOURCE_REVISION`:
+
+```bash
+git clone --bare https://pvindex.org/gitea/jiborobot/srv-gqa-ws.git
+git show ebe1a7d38f511570060c1fbf61bec89d58419b26:gqa/wiki.py
+```
+
+`gqa/wiki.py:110-112`:
+
+```python
+    try:
+        wikipedia.set_api_url(gqa.config.CONFIG_DICT["wiki_api"])
+        page = wikipedia.WikipediaPage(title=query)
+```
+
+It constructs **`wikipedia.WikipediaPage` directly**. `auto_suggest` is a
+parameter of the module-level helper `wikipedia.page()`, which this file never
+calls:
+
+```
+$ git show ebe1a7d3:gqa/wiki.py | grep -c auto_suggest      -> 0
+$ git show ebe1a7d3:gqa/wiki.py | grep -c 'wikipedia\.page(' -> 0
+```
+
+`WikipediaPage.__init__` goes straight to `__load`, the direct title lookup.
+There is no search stage, and there never was one.
+
+**So Phoenix's strict title lookup is exactly right**, and the change measured
+in the section above would have been a divergence from the service Jibo ran —
+one that broke "who is Ada Lovelace" and "who was Marie Curie" to fix a question
+form Wikipedia was never the provider for. Reverting it was correct.
+
+Corroboration that the port was made from this file: its error strings are the
+source's, one for one.
+
+| string | `wiki.py` | `gqaWikipediaProvider.js` |
+| --- | --- | --- |
+| `No match for query '{0}'` | 1 | 1 |
+| `apparently got article on related but different topic` | 1 | 1 |
+| `Unexpected empty summary for query '{0}'` | 1 | 1 |
+| `due to article blacklist` | 1 | 1 |
+
+`wiki.py` is now saved to
+`.parity/reviews/q01-gqa-20260906/source/gqa/wiki.py` so the next agent to ask
+this question finds the answer instead of the gap.
+
+## What the owner actually asked
+
+> "is that just broken then... there's no way they intended it to just be
+> stupid and not work"
+
+It is not broken, and it was intended — but the intent only makes sense with the
+rest of the pipeline present. Wikipedia was never meant to field "how tall is
+X". Bing was, through an answer card written to be spoken, and Wikipedia raced
+alongside it for entity questions, which it still does correctly. What changed
+is that Bing is gone. The replacement for that role is Wolfram Alpha, now
+configured, which answers exactly the quantitative class Wikipedia declines.
