@@ -28,6 +28,7 @@ import {
   RESERVED_HOST_PORTS, COMPOSE_PROJECT, DEFAULT_OFFSET, buildEnv, portFree,
   runCapture, runSync, gitRev, gitShort, sleep, waitReady, countContractOutput,
   parseLauncherLines, writeJson, readJson, logTail, offsetRegistryLeftovers, humanMs,
+  resetCleanTree,
 } from './lib.mjs';
 import { runMigration, MIGRATION_ACCOUNT_PORT } from './migration.mjs';
 
@@ -151,6 +152,9 @@ async function cleanInstall(ctx) {
 // criterion 3 is load-bearing (the harness catches the leak instead of papering over it).
 async function nativeLane(ctx, { offset, mode = 'hermetic' }) {
   const { runDir, clean, home, timeoutMs } = ctx;
+  // A prior compose lane leaves a root-owned account store in the exported tree that this
+  // native lane (running as the invoking user) must not inherit — start from a clean store.
+  resetCleanTree(clean);
   const logsDir = join(runDir, 'logs', 'native');
   mkdirSync(logsDir, { recursive: true });
   const ports = offsetPorts(offset);
@@ -265,9 +269,10 @@ async function nativeLane(ctx, { offset, mode = 'hermetic' }) {
 
 // ------------------------------------------------- C: the compose (docker) lane
 
-async function composeLane(ctx, { offset, mode = 'hermetic' }) {
+async function composeLane(ctx, { offset, mode = 'hermetic', noBuild = false }) {
   const { runDir, clean, home, timeoutMs } = ctx;
   mkdirSync(join(runDir, 'logs', 'compose'), { recursive: true });
+  resetCleanTree(clean);
   const env = buildEnv({ home, extra: {
     ...Object.fromEntries(CONTRACT_SERVICES.map((s) => [COMPOSE_PORT_VARS[s], String(REF_PORTS[s] + offset)])),
   } });
@@ -282,7 +287,11 @@ async function composeLane(ctx, { offset, mode = 'hermetic' }) {
   const composeCmd = (sub, ...rest) => ['compose', ...proj, ...COMPOSE_FILES, sub, ...rest];
 
   const image = runSync('docker', ['image', 'inspect', 'phoenix-runtime:local', '--format', '{{.Id}}']);
-  const buildArgs = image.status === 0 ? [] : ['--build'];
+  // Always rebuild from the exported clean tree — a cached phoenix-runtime:local built from an
+  // earlier (possibly dirty or root-owned) tree would make the compose lane test the wrong source.
+  // noBuild is used only by the falsification restore lane right after the leak lane already
+  // built the same clean tree.
+  const buildArgs = noBuild ? [] : ['--build'];
   // The overlay gives this lane its own r02-* container names, so it can never touch a sibling
   // stack's containers; an aborted lane can still leave r02-* shells that `up` refuses to
   // recreate ("already in use"/"marked for removal"). Drain them (retrying until none remain —
@@ -475,7 +484,7 @@ function receipt(ctx) {
   return receiptJson;
 }
 
-function clean(ctx) {
+function cleanRun(ctx) {
   const { runDir, clean } = ctx;
   // Stop anything this harness left running, scoped to what it started.
   for (const f of ['native-hermetic.json', 'native-leak.json']) {
@@ -513,11 +522,19 @@ async function falsify(ctx, mode) {
   let restored = false;
 
   if (mode === 'native-leak' || mode === 'compose-leak') {
+    // Plant a canary .env and run the lane in its NON-hermetic form (launcher without --no-env,
+    // no PHOENIX_ENV_FILE=/dev/null). The control passes only when the leak is actually
+    // observed: anything other than the hermetic 503 on the canary admin password means a .env
+    // value reached the account service. A lane that does not leak under this setup cannot be
+    // falsified and is reported as such.
     writeFileSync(join(clean, '.env'), CANARY_ENV_CONTENT);
     try {
       if (mode === 'native-leak') observed = await nativeLane(ctx, { offset, mode: 'leak' });
       else observed = await composeLane(ctx, { offset, mode: 'leak' });
-      namedFailure = observed.namedFailure || { name: 'NO_LEAK', detail: 'the planted .env leak was not observed by the lane (unexpected)' };
+      const status = observed.envLeak?.adminStatus;
+      namedFailure = status !== undefined && status !== 503
+        ? { name: 'ENV_LEAK_DETECTED', detail: `planted .env reached the account service: admin/login returned ${status}; the hermetic control expects 503 (no ADMIN_PASSWORD)` }
+        : { name: 'LEAK_NOT_OBSERVED', detail: `planted .env with ADMIN_PASSWORD but admin/login returned ${status}; the leak was not (re)detected — control cannot fail, a harness finding` };
     } finally {
       rmSync(join(clean, '.env'), { force: true });
       restored = !existsSync(join(clean, '.env'));
@@ -542,29 +559,41 @@ async function falsify(ctx, mode) {
     throw new Error(`unknown falsify mode ${mode}`);
   }
 
+  const leakObserved = namedFailure?.name === 'ENV_LEAK_DETECTED';
+  const collisionObserved = namedFailure?.name === 'PORT_COLLISION'
+    || namedFailure?.name === 'COMPOSE_UP_FAILED'
+    || namedFailure?.name === 'READINESS_TIMEOUT';
   const result = {
     lane: 'falsify',
     mode,
     offset,
-    namedFailure,
+    namedFailure: leakObserved ? { ...namedFailure, falsified: true } : namedFailure,
     observed: summarizeLane(observed),
     restored,
     durationMs: Date.now() - t0,
-    ok: namedFailure !== null && namedFailure.name !== 'NO_LEAK' && namedFailure.name !== 'NO_COLLISION_FAILURE',
+    ok: leakObserved || collisionObserved,
   };
 
   // Restore = put the environment back AND prove the lane passes again. Rerunning the full
-  // hermetic lane after the deliberate breakage is what "record both outputs" means here.
+  // hermetic lane after the deliberate breakage is what "record both outputs" means here. The
+  // restored lane must be hermetic (ADMIN_PASSWORD absent => admin/login 503), reach its
+  // services, and match the hermetic baseline contract counts — including the 3 pre-existing
+  // failures recorded on the clean hermetic lane, so we compare counts, not demand zero.
   let restoredLane = null;
   if (result.ok) {
     if (mode === 'native-leak' || mode === 'native-collision') {
       restoredLane = await nativeLane(ctx, { offset, mode: 'hermetic' });
     } else {
-      restoredLane = await composeLane(ctx, { offset, mode: 'hermetic' });
+      restoredLane = await composeLane(ctx, { offset, mode: 'hermetic', noBuild: true });
     }
+    const basis = mode === 'native-leak' || mode === 'native-collision'
+      ? readJson(join(runDir, 'state/native-hermetic.json'))
+      : readJson(join(runDir, 'state/compose-hermetic.json'));
     result.restoredLane = summarizeLane(restoredLane);
     result.restoredOk = restoredLane.namedFailure === null && restoredLane.readiness?.ok
-      && restoredLane.envLeak?.adminStatus === 503 && (restoredLane.contract?.fail ?? -1) === 0;
+      && restoredLane.envLeak?.adminStatus === 503
+      && restoredLane.contract?.pass === basis?.contract?.pass
+      && restoredLane.contract?.fail === basis?.contract?.fail;
   }
   writeFileSync(join(runDir, 'logs', 'falsify', `${mode}.log`), `${JSON.stringify(result, null, 2)}\n`);
   writeJson(join(runDir, 'state', `falsify-${mode}.json`), result);
@@ -659,7 +688,7 @@ async function main() {
       break;
     }
     case 'clean': {
-      clean(ctx);
+      cleanRun(ctx);
       break;
     }
     default:

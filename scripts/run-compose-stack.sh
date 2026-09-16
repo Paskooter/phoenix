@@ -162,6 +162,8 @@ echo "ext: ota:$(p 9010) (OTA update server)${ACCOUNT_URL:+ · account+portal:$(
 [ -n "$ACCOUNT_URL" ] && echo "portal: http://localhost:$(p 9011)  (admin at /#/admin — needs ADMIN_PASSWORD)"
 [ -n "$CLASSIC_NOTE" ] && echo "robot front door: http://localhost:$(p 9012)  (point the robot region here)"
 echo "logs: $LOG_DIR/phx-compose-*.log"
+# The harness needs each service's pid to signal it on shutdown; announce them.
+for svc in "${!JOB_PIDS[@]}"; do echo "compose-contract pid $svc ${JOB_PIDS[$svc]}"; done
 
 # Wait on every registered service and report each process's real exit status. `wait $pid`
 # returns the job's status (128+N for a signal death), which the R-02 shutdown lane records.

@@ -2,7 +2,7 @@
 // real account store (~/.local/share/phoenix), or the live robot stack.
 
 import { spawn, spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -224,4 +224,21 @@ export function offsetRegistryLeftovers(tree) {
   try { entries = readdirSync(join(tree, 'packages/gateway/resources/skills')); }
   catch { return [`cannot read resources dir (tree=${tree})`]; }
   return entries.filter((e) => e.startsWith('skills-native-offset-'));
+}
+
+// The compose lane runs its containers as root against the bind-mounted ./packages, so it can
+// leave a root-owned account store (packages/account/data/store.json) that a subsequent native
+// lane — running as the invoking user — could no longer read (EACCES). Reset the mutable data
+// dirs in the exported tree before each lane so no lane inherits another lane's writes.
+export function resetCleanTree(tree) {
+  const dir = join(tree, 'packages/account/data');
+  const rm = (p) => { try { rmSync(p, { recursive: true, force: true }); } catch { /* best effort */ } };
+  rm(join(dir, 'store.json'));
+  let entries = [];
+  try { entries = readdirSync(dir); } catch { return; }
+  for (const e of entries) {
+    if (e.startsWith('store.json') || e === 'member-photos' || e === 'gqa-attribution.json') {
+      rm(join(dir, e));
+    }
+  }
 }
