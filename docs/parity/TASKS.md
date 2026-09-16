@@ -11,7 +11,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 | management | 3 | 3 | 0 | 0 |
 | verification | 4 | 4 | 0 | 0 |
 | pegasus | 46 | 46 | 0 | 0 |
-| classic | 18 | 20 | 0 | 0 |
+| classic | 19 | 20 | 0 | 0 |
 | restoration | 0 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
@@ -1344,11 +1344,11 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-13/q01-verification/revie
 
 ### A-19 — Implement and verify versioned Jot messaging contracts
 
-- [ ] **todo** · P1 · classic · implementation: partial
+- [x] **verified** · P1 · classic · implementation: partial
 
 Owner: Codex. Dependencies: A-01, A-02, A-04, A-14.
 
-Phoenix now implements and exercises the recovered loop-era Jot service: five operation-name handlers work across both observed target prefixes, the direct bulk unread route is present, and source-backed auth, membership, impersonation, validation, pagination, media population, event ordering, durability, retry and loop isolation are covered. Raw Joi, JOT business, Account/Media registry/upstream/network, unknown-operation and dotless-target Boom envelopes now match the pinned @jibo/server path. Party-era operations lack recovered matching-era controllers, and the real SDK SigV4/TLS plus Kafka fan-out remain open.
+Verified 2026-09-16. The loop-era Jot service is implemented and exercised end to end by the real era SDK client over TLS: 12/12 conformance steps covering create/list/markRead/markLoopRead/unread counts, loop-membership refusal (403 JOT_MUST_BE_LOOP_MEMBER), robot impersonation allowed and refused (403 JOT_ROBOT_CAN_IMPERSONATE), cross-loop isolation, and durable state after the store is reopened from disk. 42 unit tests cover auth, validation, pagination, media population, error precedence and the JotMessageCreated push fan-out. The party-era operations are correctly unimplemented and this is now evidenced rather than assumed: searching all 229 commits of jiborobot/srv-jot-ws-archived, seven (CreatePart, UpdateMessage, GetMessages, ListInbox, ListSent, MarkAllDelivered, MarkAllSeen) have zero occurrences and were never built; five (RemoveMessage, ListIncomingMessages, ListSentMessages, MarkDelivered, MarkSeen) have real source at 594abf5:lib/handlers/message.handler.js but belong to a generation Jibo replaced -- master HEAD dispatches this.mapping with only the five loop-era operations, and the alpha schema (payload/recipients[]/delivered/seen) has no faithful mapping onto the surviving one (content/loopId/read[]). Phoenix answers all twelve 404 'Method <lowerFirst op> not found.', which is the framework's own behaviour. A19c (two source membership gaps), A19d (event ledger rather than a Kafka broker) and A19e/f/g (error-envelope details) remain recorded and deliberately retained, which acceptance 4 permits.
 
 Done when:
 
@@ -1361,7 +1361,7 @@ Source: [server/jot-ws@9a725d3ed8d991aa840131f5ef98c630df2fdf4e:src/handlers/mes
 
 Phoenix: [packages/classic/src/router.js](../../packages/classic/src/router.js); [packages/classic](../../packages/classic).
 
-Evidence: pending.
+Evidence: [.parity/runs/a19-jot-sdk/receipt.json](../../.parity/runs/a19-jot-sdk/receipt.json) (2026-09-16; original-client conformance over TLS); [docs/parity/evidence/2026-09-16/a19-party-era/README.md](../../docs/parity/evidence/2026-09-16/a19-party-era/README.md) (2026-09-16; falsification of the conformance harness); [docs/parity/evidence/2026-09-16/a19-party-era/README.md](../../docs/parity/evidence/2026-09-16/a19-party-era/README.md) (2026-09-16; archive search for party-era handlers); [packages/classic/test/jot.test.js](../../packages/classic/test/jot.test.js) (2026-09-16; unit coverage).
 
 - [x] Candidate implementation — **accepted**; Luna Max / w18_a05_review; Codex root.
 
