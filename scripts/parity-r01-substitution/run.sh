@@ -20,6 +20,8 @@
 # Usage:
 #   run.sh setup            start peers, generate the registry
 #   run.sh baseline         all-original control (parser out of process)
+#   run.sh parser           Phoenix NLU only, original hub
+#   run.sh skills           Phoenix skills only, original hub and parser
 #   run.sh hub              Phoenix gateway only
 #   run.sh all-phoenix      Phoenix gateway + NLU + skills
 #   run.sh teardown         stop containers, remove the generated registry
@@ -102,6 +104,35 @@ case "${1:-}" in
     require_listening r01-orig-parser '"ready":true'
     docker run --rm --network "$NET" -v "$SCRATCH":/work -w /work/packages/integration-tests-int \
       -e R01_PARSER_BASE_URL=http://r01-orig-parser:9999 -e R01_TRACE_DIR="${R01_TRACE_DIR:-}" "$NODE8" $SUITE
+    ;;
+
+  parser)
+    # One service at a time, part 1: the ORIGINAL hub, in process as the suite
+    # builds it, talking to Phoenix's NLU instead of the original parser. Only
+    # the parser base URL changes; no caller, URL shape or test case does.
+    docker rm -f r01-phoenix-nlu >/dev/null 2>&1 || true
+    docker run -d --name r01-phoenix-nlu --network "$NET" -v "$PHOENIX":/phoenix -w /phoenix \
+      -e PORT=9999 "$NODE22" node packages/nlu/src/index.js >/dev/null
+    sleep 8
+    require_listening r01-phoenix-nlu
+    docker exec -e R01_PARSER_BASE_URL=http://r01-phoenix-nlu:9999 \
+      -e R01_TRACE_DIR="${R01_TRACE_DIR:-}" r01-test $SUITE
+    ;;
+
+  skills)
+    # One service at a time, part 2: the ORIGINAL hub and the ORIGINAL parser,
+    # with the example skill served by Phoenix's skills host on the port the
+    # hub's own registry already points at. R01_SKILL_EXTERNAL withholds the
+    # suite's in-process skill so the two do not contend for it.
+    require_listening r01-orig-parser '"ready":true'
+    docker rm -f r01-phoenix-skills >/dev/null 2>&1 || true
+    docker run -d --name r01-phoenix-skills --network "container:r01-test" -v "$PHOENIX":/phoenix -w /phoenix \
+      -e ETCO_server_port=$SKILL_PORT -e PHOENIX_SKILL_ID=example "$NODE22" node packages/skills/src/index.js >/dev/null
+    sleep 8
+    require_listening r01-phoenix-skills
+    docker exec -e R01_SKILL_EXTERNAL=1 -e R01_SKILL_PORT=$SKILL_PORT \
+      -e R01_PARSER_BASE_URL=http://r01-orig-parser:9999 \
+      -e R01_TRACE_DIR="${R01_TRACE_DIR:-}" r01-test $SUITE
     ;;
 
   hub)

@@ -48,13 +48,24 @@ Lanes that never reconfigure are untouched: the supervisor starts once from the
 registry `setup` generated, and the all-original control never sets
 `R01_HUB_EXTERNAL`, so it builds its hub in-process exactly as before.
 
-## Result — all three lanes agree
+## Result — all five lanes agree
 
-| stack | passing | failing | files | reconfigures |
-| --- | --- | --- | --- | --- |
-| all-original (control) | **13** | 2 | 6 | n/a (in-process) |
-| Phoenix gateway only | **13** | 2 | 6 | 13 |
-| all-Phoenix (gateway + NLU + skills) | **13** | 2 | 6 | 13 |
+Acceptance criterion 1 asks for one service replaced at a time. The lane had
+only ever substituted the gateway, so two more were added: `parser` (the
+ORIGINAL in-process hub and the original example skill, pointed at Phoenix's
+NLU) and `skills` (the original hub and original parser, with Phoenix serving
+the example skill on the port the hub's own registry already names).
+
+| stack | substituted | passing | failing | files | reconfigures |
+| --- | --- | --- | --- | --- | --- |
+| all-original (control) | — | **13** | 2 | 6 | n/a (in-process) |
+| `parser` | NLU | **13** | 2 | 6 | n/a (in-process hub) |
+| `skills` | skills host | **13** | 2 | 6 | n/a (in-process hub) |
+| `hub` | gateway | **13** | 2 | 6 | 13 |
+| `all-phoenix` | gateway + NLU + skills | **13** | 2 | 6 | 13 |
+
+Every substitution, alone and together, matches the all-original control
+exactly.
 
 The two failures are identical on all three, **including the all-original
 control**:
@@ -168,11 +179,33 @@ scoped to that path and then runs S-06 itself, printing the dirty state rather
 than leaving the failure for an unrelated later run. Verified: 11 files, S-06
 4/4 pass.
 
+## A second defect the new lanes found
+
+The `skills` lane aborted before a single case ran:
+
+```
+Error: listen EADDRINUSE :::8099
+  at SkillService.init (/work/packages/utils/lib/service/BaseService.js:167)
+```
+
+`R01_SKILL_EXTERNAL` -- the flag meaning "this process does not own the example
+skill" -- was honoured only inside the `R01_HUB_EXTERNAL` branch of
+`integration.startHub`. A lane that substitutes the skill but keeps the
+ORIGINAL hub falls through to the bottom of that function, which started the
+in-process skill unconditionally and collided with Phoenix's on the shared
+port. The flag now means the same thing on both paths.
+
+Worth noting what this says about the earlier lanes: the gap was invisible for
+as long as the only substitution was the gateway. Adding the one-service-at-a-
+time lanes is what exposed it.
+
 ## Reproduction
 
 ```bash
 scripts/parity-r01-substitution/run.sh setup
 R01_TRACE_DIR=/work/r01-traces/baseline     scripts/parity-r01-substitution/run.sh baseline
+R01_TRACE_DIR=/work/r01-traces/parser       scripts/parity-r01-substitution/run.sh parser
+R01_TRACE_DIR=/work/r01-traces/skills       scripts/parity-r01-substitution/run.sh skills
 R01_TRACE_DIR=/work/r01-traces/hub          scripts/parity-r01-substitution/run.sh hub
 R01_TRACE_DIR=/work/r01-traces/all-phoenix  scripts/parity-r01-substitution/run.sh all-phoenix
 node scripts/parity-r01-substitution/compare-traces.mjs <traces>/baseline <traces>/hub
