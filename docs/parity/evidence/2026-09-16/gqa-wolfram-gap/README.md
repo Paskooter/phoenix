@@ -1,7 +1,8 @@
 # GQA answers "who is X" but not "how tall is X" — Wolfram Alpha is unconfigured
 
 Date: 2026-09-16
-Status: **diagnosis. Blocked on a credential only the owner can supply.**
+Status: **CLOSED the same day.** The owner supplied an App ID; all three
+questions now answer. Diagnosis and the fix are both below.
 
 Reported live: "who is Ada Lovelace" answers; "how tall is Mount Everest" and
 "how many calories in an apple" both come back as the no-answer MIM.
@@ -93,3 +94,37 @@ Until then the honest statement of GQA's live coverage is: entity questions
 ("who is X", "what is X") are answered from DuckDuckGo and Wikipedia;
 quantitative and computational questions ("how tall", "how many", conversions,
 arithmetic) are not answered at all.
+
+
+---
+
+# Closed — the App ID was the whole gap
+
+The owner supplied a Wolfram Alpha App ID. It was written to
+`~/.config/phoenix/moth.env` as `ETCO_gqa_wolframKey` (mode 0600, outside the
+repository and untracked — that file is the robot stack's environment and sets
+`PHOENIX_ENV_FILE=/dev/null`, so the repository `.env` never reaches it), and
+the stack was restarted. **The value is not recorded here or anywhere in Git.**
+
+Same three questions, against the running stack on port 29003, immediately
+after:
+
+| question | source | chars | spoken |
+| --- | --- | --- | --- |
+| how tall is mount everest | **Wolfram Alpha** | 67 | "The elevation of Mount Everest is about 29032 feet above sea level." |
+| how many calories in an apple | **Wolfram Alpha** | 48 | "There are about 91 dietary Calories in an apple." |
+| who is ada lovelace | DuckDuckGo | 220 | "Augusta Ada King, Countess of Lovelace … the analytical engine." |
+
+Nothing in Phoenix changed. The second provider group was already implemented,
+already in the right place in the pipeline, and already reached at the right
+moment; it had no credential and returned HTTP 400. With one it answers.
+
+Two things worth keeping from this:
+
+* `spokenresult=true` earns its place. Both Wolfram answers are 67 and 48
+  characters — an order of magnitude inside the robot's 500-character TTS
+  ceiling, with no trimming needed. The provider whose answers had to be
+  sentence-bounded was the prose one.
+* The division of labour is now the one Jibo had: entity questions from the
+  Bing slot and Wikipedia, quantitative and computational questions from
+  Wolfram.
