@@ -139,8 +139,19 @@ case "${1:-}" in
     # run. Return the pinned directory to its committed state instead of
     # guessing the filenames: restore tracked files, remove untracked ones, and
     # scope both to that one path.
+    #
+    # `git clean -fq` alone is NOT enough and this bit once already: the
+    # generated files are gitignored, so plain clean skips them and S-06 fails
+    # with "skills dir file count 35 !== 33". `-x` is what makes clean consider
+    # ignored files, and nothing ignored belongs in a directory S-06 pins to an
+    # exact file list anyway.
     git -C "$PHOENIX" checkout -- packages/gateway/resources/skills/ 2>/dev/null || true
-    git -C "$PHOENIX" clean -fq -- packages/gateway/resources/skills/ 2>/dev/null || true
+    git -C "$PHOENIX" clean -fqx -- packages/gateway/resources/skills/ 2>/dev/null || true
+    # Say so here rather than leaving it for the next unrelated test run.
+    if ! (cd "$PHOENIX" && node --test packages/gateway/test/manifestProvenance.test.js >/dev/null 2>&1); then
+      echo "WARNING: S-06 still fails after teardown; the pinned skills directory is dirty" >&2
+      (cd "$PHOENIX" && git status --porcelain --ignored packages/gateway/resources/skills/) >&2
+    fi
     echo "torn down; generated registry removed"
     ;;
 
