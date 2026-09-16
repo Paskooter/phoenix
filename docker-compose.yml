@@ -21,6 +21,11 @@
 # Optional LAN services (Parakeet ASR + LM Studio), as in the user's reference override:
 #   PARAKEET_URL=http://192.168.1.252:6972 LLM_URL=http://192.168.1.252:1234/v1 docker compose up
 
+# All host ports are parametrized with their reference value as the default, so an existing
+# `docker compose up` binds exactly the reference range. A parity/verification run supplies
+# explicit *_PORT values (e.g. HUB_PORT=9200 REPORT_SKILL_PORT=9203 …) to shift the host ports
+# away from an occupied reference port without changing the contract's shape; container-side
+# services keep talking to each other on :8080 either way.
 x-phoenix-defaults: &phoenix-defaults
   build:
     context: .
@@ -61,7 +66,7 @@ services:
       - ETCO_server_parakeetUrl=${PARAKEET_URL:-}
       - PHOENIX_FFMPEG=/usr/bin/ffmpeg
     ports:
-      - 9000:8080
+      - ${HUB_PORT:-9000}:8080
 
   parser:
     <<: *phoenix-defaults
@@ -73,7 +78,7 @@ services:
       - ETCO_parser_llmUrl=${LLM_URL:-}
       - ETCO_parser_llmModel=${LLM_MODEL:-google/gemma-4-e4b}
     ports:
-      - 9005:8080
+      - ${PARSER_PORT:-9005}:8080
 
   history:
     <<: *phoenix-defaults
@@ -81,7 +86,7 @@ services:
     working_dir: /phoenix
     command: node packages/history/src/index.js
     ports:
-      - 9006:8080
+      - ${HISTORY_PORT:-9006}:8080
 
   lasso:
     <<: *phoenix-defaults
@@ -89,7 +94,7 @@ services:
     working_dir: /phoenix
     command: node packages/data/src/index.js
     ports:
-      - 9007:8080
+      - ${LASSO_PORT:-9007}:8080
 
   answer-skill:
     <<: *phoenix-defaults
@@ -103,7 +108,7 @@ services:
       - ETCO_answer_llmUrl=${LLM_URL:-}
       - ETCO_answer_llmModel=${LLM_MODEL:-google/gemma-4-e4b}
     ports:
-      - 9009:8080
+      - ${ANSWER_SKILL_PORT:-9009}:8080
 
   report-skill:
     <<: *phoenix-defaults
@@ -118,7 +123,7 @@ services:
       - NET_settings=${NET_settings:-${NET_SETTINGS:-settings.jibo.aws}}
       - prefsFromConfig=${prefsFromConfig:-${PREFS_FROM_CONFIG:-false}}
     ports:
-      - 9003:8080
+      - ${REPORT_SKILL_PORT:-9003}:8080
 
   chitchat-skill:
     <<: *phoenix-defaults
@@ -130,7 +135,7 @@ services:
       - PHOENIX_SKILL_ID=chitchat-skill
       - NET_data=lasso:8080
     ports:
-      - 9004:8080
+      - ${CHITCHAT_SKILL_PORT:-9004}:8080
 
   # The remaining independently deployed cloud skills. Each container serves exactly one
   # skill at POST /v1/main (baseskill/SkillService.ts:12-18) and retains its
@@ -149,7 +154,7 @@ services:
       - PORT=8080
       - PHOENIX_SKILL_ID=color-skill
     ports:
-      - 9008:8080
+      - ${COLOR_SKILL_PORT:-9008}:8080
 
   example-skill:
     <<: *phoenix-defaults
@@ -160,7 +165,7 @@ services:
       - PORT=8080
       - PHOENIX_SKILL_ID=example-skill
     ports:
-      - 9013:8080
+      - ${EXAMPLE_SKILL_PORT:-9013}:8080
 
   template-skill:
     <<: *phoenix-defaults
@@ -171,7 +176,7 @@ services:
       - PORT=8080
       - PHOENIX_SKILL_ID=template-skill
     ports:
-      - 9014:8080
+      - ${TEMPLATE_SKILL_PORT:-9014}:8080
 
   # Phoenix extension — NOT part of the reference Pegasus conversational contract (the
   # verify-compose-contract check ignores it). The OTA update server: a robot points its
@@ -188,7 +193,7 @@ services:
       # the public origin when using a reverse proxy. Default: derived from the request Host header.
       - ETCO_ota_publicUrl=${OTA_PUBLIC_URL:-}
     ports:
-      - 9010:8080
+      - ${OTA_PORT:-9010}:8080
 
   # Phoenix extension: the account service — web portal (signup/login, add-a-robot QR),
   # the OOBE pairing service the robot calls (OOBE.setupRobot), and per-robot hub-token
@@ -212,7 +217,7 @@ services:
       - ETCO_account_photoBaseUrl=${PHOTO_PUBLIC_URL:-${ETCO_account_photoBaseUrl:-${CLASSIC_PUBLIC_URL:-}}}
       - ETCO_account_photoDirectory=${PHOTO_DIRECTORY:-${ETCO_account_photoDirectory:-/phoenix/packages/account/data/member-photos}}
     ports:
-      - 9011:8080
+      - ${ACCOUNT_PORT:-9011}:8080
 
   # Phoenix extension: the classic-service entrypoint — the robot's SINGLE front door for every
   # Classic Service (dispatch by X-Amz-Target prefix). In-process log/robot/notification/key/push
@@ -235,7 +240,7 @@ services:
       - account
       - ota
     ports:
-      - 9012:8080
+      - ${CLASSIC_PORT:-9012}:8080
 
 networks:
   pegasus-nw:

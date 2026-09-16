@@ -10,7 +10,10 @@
 import WebSocket from 'ws';
 
 const HOST = process.env.HOST || 'localhost';
-const PORTS = { hub: 9000, 'report-skill': 9003, 'chitchat-skill': 9004, parser: 9005, history: 9006, lasso: 9007, 'color-skill': 9008, 'answer-skill': 9009, 'example-skill': 9013, 'template-skill': 9014 };
+// A parity run may shift every reference host port by the same amount so it can avoid an
+// occupied port (R-02: browser-proxy holds 9013 on the verification host). Unset = reference.
+const OFFSET = Number(process.env.PHOENIX_PORT_OFFSET || 0);
+const PORTS = Object.fromEntries(Object.entries({ hub: 9000, 'report-skill': 9003, 'chitchat-skill': 9004, parser: 9005, history: 9006, lasso: 9007, 'color-skill': 9008, 'answer-skill': 9009, 'example-skill': 9013, 'template-skill': 9014 }).map(([k, v]) => [k, v + OFFSET]));
 
 let failures = 0;
 const check = (name, cond, detail) => {
@@ -171,7 +174,7 @@ for (const [skillId, body] of Object.entries(REMAINING)) {
 
 // 5. EXTENSION (non-fatal): the account service + web portal. Not part of the reference
 // Pegasus conversational contract — failures here are warnings, not contract violations.
-const ACCOUNT = 9011;
+const ACCOUNT = 9011 + OFFSET;
 let extWarnings = 0;
 const ext = (name, cond, detail) => {
   if (cond) console.log('PASS', name);
@@ -200,7 +203,7 @@ try {
   ext('[ext] account service reachable', false, e.message);
 }
 // 6. EXTENSION (non-fatal): the classic-service entrypoint — the robot's single front door.
-const CLASSIC = 9012;
+const CLASSIC = 9012 + OFFSET;
 const camz = (target, body) => fetch(`http://${HOST}:${CLASSIC}/`, {
   method: 'POST', headers: { 'content-type': 'application/x-amz-json-1.1', 'x-amz-target': target }, body: JSON.stringify(body || {}),
 });
