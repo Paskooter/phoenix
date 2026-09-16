@@ -2152,7 +2152,7 @@
         "packages/data/src/news.js",
         "packages/data/src/index.js"
       ],
-      "finding": "Bounded RSS\u2192AP image adapter integrated: provider URLs/dimensions reach original NewsParse/NewsViews and real Moth news screens. NPR image gaps, original AP attribution, full AP metadata and poll/cache lifecycle remain open.",
+      "finding": "Bounded RSS→AP image adapter integrated: provider URLs/dimensions reach original NewsParse/NewsViews and real Moth news screens. NPR image gaps, original AP attribution, full AP metadata and poll/cache lifecycle remain open.",
       "acceptance": [
         "Match all category IDs, XML structure, image/attribution/header handling and upstream/cache errors with original AP fixtures.",
         "Reproduce configurable polling/prefetch behavior, category-specific cache updates and shutdown cleanup.",
@@ -2688,7 +2688,7 @@
           "assignee": "Luna Max / capture_writer_repair; root acceptance",
           "candidateRevision": "db15280b6c5ee54bdbefe2b09acd221d32e1402e",
           "worktree": ".parity/worktrees/report-lasso-integration",
-          "scope": "Agent reports strict43 zero differences for the isolated Report Lasso transport candidate. Historical review found redirect header reconstruction and requested exact source TypeError wording. The wording request is superseded by the user\u2019s consumer-focused compatibility policy: it is nonblocking unless client interpretation changes. Later bounded acceptance is recorded above; prefetch rejection behavior remains an explicit Node8/Node22 divergence."
+          "scope": "Agent reports strict43 zero differences for the isolated Report Lasso transport candidate. Historical review found redirect header reconstruction and requested exact source TypeError wording. The wording request is superseded by the user’s consumer-focused compatibility policy: it is nonblocking unless client interpretation changes. Later bounded acceptance is recorded above; prefetch rejection behavior remains an explicit Node8/Node22 divergence."
         }
       ]
     },
@@ -3274,7 +3274,7 @@
       "track": "restoration",
       "phase": 4,
       "priority": "P1",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -3290,12 +3290,73 @@
         "packages/skills/src/answerSkill.js",
         "packages/nlu/src/llmFallback.js"
       ],
-      "finding": "The two halves of X-01 are in different states, and the previous finding described only one of them. NLU half: the restored branch's LLM fallback is implemented and pinned in-source to 715e0dd0 (packages/nlu/src/llmFallback.js, including its 15-entry INTENT_TOOLS catalog, tool_choice auto and 8000 ms timeout), with fallbackArbitration.js pinned to the same revision and the external-agent block selectable between 5c0a739 ATTACH and 715e0dd0 OMIT. It is env-gated and off by default. Answer half: X-01's reference is pegasus-restored packages/answer-skill/server.js at the restored branch head d682547a, and no Phoenix source pins or reimplements it. packages/skills/src/answerSkill.js is explicitly a port of the ORIGINAL Pegasus answer-skill (LLM or honest placeholder, 600-char limit, 12 s timeout) and has no Wikipedia path, so the old finding is accurate about that file but says nothing about the separate Wikipedia-first GQA lane that now exists under Q-01. Separation: the machinery criterion 2 asks for exists and is tested - the default answer handler is the original port, the GQA profiles are selected only by PHOENIX_GQA_PROFILE/PHOENIX_GQA_DEFAULT_PROFILE, applyGqaContinuity runs only on an explicit opt-in defaulting to false, and q01GqaProfile.test.js asserts the default registry does not select the Wikipedia profile implicitly. But what is kept separate is the Q-01/GQA lane, not a retained restored-branch answer profile. Gap: there is no X-01 verification lane at all - packages/skills/test holds 17 q01 files and zero X-01 files - so none of criterion 1's six named properties (Wikipedia-first ordering, LLM tool catalog, fallback text, response normalization, timing, output limits) has a differential against the restored branch, and criterion 2 has no separate count to publish. See docs/parity/evidence/2026-09-14/x01-restored-profile/gap.md.",
+      "finding": "The two halves of X-01 are in different states, and the previous finding described only one of them. NLU half: the restored branch's LLM fallback is implemented and pinned in-source to 715e0dd0 (packages/nlu/src/llmFallback.js, including its 15-entry INTENT_TOOLS catalog, tool_choice auto and 8000 ms timeout), with fallbackArbitration.js pinned to the same revision and the external-agent block selectable between 5c0a739 ATTACH and 715e0dd0 OMIT. It is env-gated and off by default. Answer half: X-01's reference is pegasus-restored packages/answer-skill/server.js at the restored branch head d682547a, and no Phoenix source pins or reimplements it. packages/skills/src/answerSkill.js is explicitly a port of the ORIGINAL Pegasus answer-skill (LLM or honest placeholder, 600-char limit, 12 s timeout) and has no Wikipedia path, so the old finding is accurate about that file but says nothing about the separate Wikipedia-first GQA lane that now exists under Q-01. Separation: the machinery criterion 2 asks for exists and is tested - the default answer handler is the original port, the GQA profiles are selected only by PHOENIX_GQA_PROFILE/PHOENIX_GQA_DEFAULT_PROFILE, applyGqaContinuity runs only on an explicit opt-in defaulting to false, and q01GqaProfile.test.js asserts the default registry does not select the Wikipedia profile implicitly. But what is kept separate is the Q-01/GQA lane, not a retained restored-branch answer profile. Gap: there is no X-01 verification lane at all - packages/skills/test holds 17 q01 files and zero X-01 files - so none of criterion 1's six named properties (Wikipedia-first ordering, LLM tool catalog, fallback text, response normalization, timing, output limits) has a differential against the restored branch, and criterion 2 has no separate count to publish. See docs/parity/evidence/2026-09-14/x01-restored-profile/gap.md.\n\nRESOLVED 2026-09-16. Both halves now have a verification lane. Answer half: packages/skills/test/x01AnswerBehaviour.test.js (11 tests) measures the six named properties behaviourally against the recovered GQA pipeline, and the default answer profile is now the recovered multi-provider plan rather than the ordinary port. NLU half: 21 tests across llmFallback/fallbackArbitration/externalAgentLlm pin the 715e0dd0 catalog and keep it off by default. Criterion 2's previous assertion (q01GqaProfile.test.js:411) could not fail and was replaced by two handler-identity tests. Answer-text identity remains deliberately unclaimed per the owner's narrowing.",
       "acceptance": [
         "If the restored profile is retained, match Wikipedia-first, LLM tool catalog, fallback text, response normalization, timing and output limits against that specific branch.",
         "Keep its corpus, configuration and verified counts separate from original Pegasus and prevent implicit intent remaps in the original profile."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-16",
+          "basis": "answer half — behavioural differential of the recovered GQA pipeline",
+          "artifact": "docs/parity/evidence/2026-09-16/x01-answer-behaviour/README.md",
+          "result": "pass",
+          "notes": "11/11. Provider plan (Bing-slot+Wikipedia 3000 ms, then Wolfram 4000 ms), output limits (sentence-level at the Wikipedia provider, no 600-char handler cap on this path), fallback text (exact no-answer MIM string), response normalization (query cleaning, banned-word gate, single terminating period, Unidecode unhelpful-prefix filter) and skill budget (7000 ms worst case under Timeouts.skill 10000 ms). Answer-text identity deliberately not claimed — owner's narrowing.",
+          "referenceRevision": "d682547a3",
+          "phoenixRevision": "10b9e47",
+          "command": "node --test packages/skills/test/x01AnswerBehaviour.test.js"
+        },
+        {
+          "date": "2026-09-16",
+          "basis": "answer half — independent falsification by the root agent",
+          "artifact": "docs/parity/evidence/2026-09-16/x01-answer-behaviour/README.md",
+          "result": "pass",
+          "notes": "Breaks chosen independently of the authoring agent's F1/F2. chooseGqaNoAnswerType forced to 'generic' and gqaBannedWordPresent forced to false fails tests 5, 7, 8 and 9 by name (5 pass / 4 fail); byte-exact restore returns 9/9.",
+          "referenceRevision": "d682547a3",
+          "phoenixRevision": "10b9e47",
+          "command": "python3 - <<'E'\nfrom pathlib import Path\na=Path('packages/skills/src/gqaAnswerSkill.js');a.write_text(a.read_text().replace(\"  return weightedChoice([\\n    { value: questionType, weight: 0.25 },\",\"  return 'generic';\\n  return weightedChoice([\\n    { value: questionType, weight: 0.25 },\"))\nb=Path('packages/skills/src/gqaBannedWords.js');b.write_text(b.read_text().replace('  let value = text.toLowerCase();','  return false;\\n  let value = text.toLowerCase();',1))\nE\nnode --test packages/skills/test/x01AnswerBehaviour.test.js; git checkout -- packages/skills/src/gqaAnswerSkill.js packages/skills/src/gqaBannedWords.js"
+        },
+        {
+          "date": "2026-09-16",
+          "basis": "NLU half — restored-branch LLM fallback pinned and falsified",
+          "artifact": "packages/nlu/test/llmFallback.test.js",
+          "result": "pass",
+          "notes": "21 tests across llmFallback (7), fallbackArbitration (5) and externalAgentLlm (9): 15-entry catalog source-exact to 715e0dd0, tool_choice auto, temperature 0, 8000 ms timeout honoured by cancellation, DISABLED with no configured URL, and the fallback catalog proven not derived from the archived Dialogflow catalog. Falsified by setting the timeout to 30000 and tool_choice to 'none' — fails tests 1 and 3 by name; byte-exact restore returns 7/7.",
+          "referenceRevision": "715e0dd0719ecca5164959d713862a1402430623",
+          "phoenixRevision": "10b9e47",
+          "command": "node --test packages/nlu/test/llmFallback.test.js packages/nlu/test/fallbackArbitration.test.js packages/nlu/test/externalAgentLlm.test.js"
+        },
+        {
+          "date": "2026-09-16",
+          "basis": "criterion 2 — profile separation, replacing an assertion that could not fail",
+          "artifact": "docs/parity/evidence/2026-09-16/x01-answer-behaviour/README.md",
+          "result": "pass",
+          "notes": "The standing separation assertion (q01GqaProfile.test.js:411) only asserted server.address().port > 0, which is true for any mounted handler. Replaced by two tests that observe which handler the shared host mounted, via wire behaviour the handlers do not share (source envelope validation and the robot-IP GQA_error gate versus the AnswerReply SEQUENCE and honest placeholder). Falsified by inverting validateGqaDefaultProfile: both fail by name; byte-exact restore returns 11/11.",
+          "referenceRevision": "d682547a3",
+          "phoenixRevision": "10b9e47",
+          "command": "node --test packages/skills/test/x01AnswerBehaviour.test.js  # tests 10 and 11"
+        },
+        {
+          "date": "2026-09-16",
+          "basis": "live confirmation on the authenticated robot stack",
+          "artifact": "docs/parity/evidence/2026-09-16/x01-answer-behaviour/README.md",
+          "result": "pass",
+          "notes": "Moth stack at revision a8794ec, skills service port 29003, no ETCO_gqa_* configured so the keyless public endpoints applied. 'who is ada lovelace' answered in 184 ms from the DuckDuckGo Instant Answer provider in the Bing slot. Confirms the narrowed behaviour claim end to end, not only through injected seams.",
+          "referenceRevision": "d682547a3",
+          "phoenixRevision": "a8794ec",
+          "command": "curl -s -X POST http://127.0.0.1:29003/v1/answer-skill/main -H 'content-type: application/json' -H 'x-jibo-transid: t' -d '{\"type\":\"gqa\",\"data\":{\"result\":{\"asr\":{\"text\":\"who is ada lovelace\"},\"nlu\":{\"intent\":\"gqa\",\"entities\":{}}},\"runtime\":{\"location\":{\"lat\":42.36,\"lng\":-71.06}},\"general\":{\"accountID\":\"probe\",\"remoteAddress\":\"192.168.1.50\"},\"skill\":{\"session\":{\"id\":\"s1\"}}}}'"
+        },
+        {
+          "date": "2026-09-16",
+          "basis": "full-suite regression with multi-provider as the default",
+          "artifact": "packages/skills/test",
+          "result": "pass",
+          "notes": "642/642 skills tests and 274/274 NLU tests pass (6 NLU skips are the compiled-FST profile lane needing a provisioned PHOENIX_NLU_COMPILED_HOME; unrelated to X-01).",
+          "referenceRevision": "d682547a3",
+          "phoenixRevision": "10b9e47",
+          "command": "node --test 'packages/skills/test/*.test.js' && node --test 'packages/nlu/test/*.test.js'"
+        }
+      ]
     },
     {
       "id": "A-01",

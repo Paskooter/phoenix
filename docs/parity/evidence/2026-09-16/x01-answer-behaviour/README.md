@@ -204,3 +204,146 @@ After restoring both files, the suite is back to **9/9 pass**.
   behavioural contract around them.
 - **Attribution persistence (Bing/Wolfram URL insertion)**: exercised by
   `q01Gqa*` attribution tests, out of scope here.
+---
+
+# Root-agent independent verification (2026-09-16, later same day)
+
+The sections above were written by the agent that built
+`x01AnswerBehaviour.test.js`. What follows is an independent check by the root
+agent: the claims were reproduced, and the suite was falsified **again with
+different breaks** than the F1/F2 above, so the two falsification sets do not
+share a failure mode.
+
+## Reproduced
+
+```
+node --test packages/skills/test/x01AnswerBehaviour.test.js   # 9/9 pass (2.2 s)
+node --test packages/nlu/test/llmFallback.test.js             # 7/7
+node --test packages/nlu/test/fallbackArbitration.test.js     # 5/5
+node --test packages/nlu/test/externalAgentLlm.test.js        # 9/9
+```
+
+## Independent falsifications — answer half
+
+**FA — always take the generic no-answer branch.** `chooseGqaNoAnswerType`
+(`gqaAnswerSkill.js:127`) returns `'generic'` unconditionally instead of the
+source `random.choices([questionType, 'generic'], weights=[.25,.75])`.
+
+**FB — disarm the banned-word gate.** `gqaBannedWordPresent`
+(`gqaBannedWords.js:17`) returns `false` unconditionally.
+
+Both applied together:
+
+```
+not ok 5 - X-01 answer: when no provider answers the caller gets the honest no-answer MIM, with an exact deterministic string
+not ok 7 - X-01 answer: a banned-word query is normalized to the banned-word MIM and no provider is consulted
+not ok 8 - X-01 answer: the Unidecode-backed unhelpful-prefix filter rejects boilerplate answers before they are spoken
+not ok 9 - X-01 answer: the recovered pipeline finishes inside the gateway skill budget even when every provider accepts and never answers
+# pass 5  # fail 4
+```
+
+Tests 8 and 9 also bind the exact fallback string, so FA reaches them too —
+that is the tests binding to behaviour, not a harness artefact. Restored
+byte-exact (`git status --porcelain packages/skills/src/` empty); back to 9/9.
+
+## Independent falsification — NLU half
+
+**FC** `LLM_DEFAULT_TIMEOUT_MS` 8000 → 30000. **FD** `tool_choice` `'auto'` →
+`'none'` (`llmFallback.js:43`, `:237`).
+
+```
+not ok 1 - fallback catalog is source-exact and inside the gateway parser budget
+not ok 3 - fallback sends the source catalog/tool_choice/temperature and decodes recorded tool calls
+# pass 5  # fail 2
+```
+
+Restored byte-exact; back to 7/7.
+
+## Gap found and closed: the separation assertion could not fail
+
+Criterion 2's only standing assertion was
+`q01GqaProfile.test.js:411`, "Q-01 default skill registry does not select the
+Wikipedia profile implicitly", whose entire body is:
+
+```js
+const server = await start(0, { skillId: 'answer-skill', gqaProfile: undefined });
+assert.ok(server.address().port > 0);
+```
+
+A listener always gets a non-zero port. That test passes for any handler the
+host might mount, including the one it is named after — it cannot fail for the
+reason it claims. It was cited in the earlier gap analysis as machinery
+satisfying criterion 2; it does not.
+
+Two replacement tests now observe **which handler the shared host actually
+mounted**, through wire behaviour the two handlers do not share, with no
+network:
+
+- `X-01 separation: the shared host mounts the recovered GQA handler by
+  default…` — with `PHOENIX_GQA_PROFILE` and `PHOENIX_GQA_DEFAULT_PROFILE` both
+  empty (exactly what `scripts/parity-robot/authenticated-stack.mjs:115` sets),
+  a body with no `type` is rejected with the source
+  `Missing GQA request field type`, a valid envelope with no
+  `general.remoteAddress` selects the `GQA_error` MIM family, and the ordinary
+  port's placeholder is never spoken.
+- `X-01 separation: PHOENIX_GQA_DEFAULT_PROFILE=phoenix-answer selects the
+  original Pegasus port…` — the same malformed body is *accepted*, the JCP is
+  an `AnswerReply` SEQUENCE rather than a bare SLIM with a `prompt_id`, and the
+  spoken text is the honest placeholder.
+
+Falsified together by inverting the selector (`gqaDefaultService.js:79-80`:
+`''` → `undefined`, `'phoenix-answer'` → `GQA_DEFAULT_PROFILE`):
+
+```
+not ok 10 - X-01 separation: the shared host mounts the recovered GQA handler by default, not the ordinary answer-skill port
+not ok 11 - X-01 separation: PHOENIX_GQA_DEFAULT_PROFILE=phoenix-answer selects the original Pegasus port, which never reaches a GQA provider
+# pass 9  # fail 2
+```
+
+Restored byte-exact; 11/11.
+
+One incidental finding recorded while writing these: `answerSkill` resolves its
+LLM endpoint from the **ambient** `process.env` at call time
+(`resolveLlmProvider`, `packages/contracts/src/llmProvider.js:98`), not from an
+injected environment, so on a machine with `PHOENIX_LLM_URL` configured the
+ordinary profile takes a real 8 s LLM timeout. The separation test clears and
+restores those names rather than depending on the developer's environment.
+
+## Live confirmation on the robot stack
+
+Offline behaviour is what the suite proves. The behavioural claim the owner
+actually narrowed X-01 to — "generally give a proper answer for general
+questions" — was additionally confirmed against the running authenticated stack
+on Moth (revision `a8794ec`, skills service port 29003, no `ETCO_gqa_*` set, so
+the keyless public endpoints applied):
+
+```
+POST /v1/answer-skill/main   {"type":"gqa", … "asr":{"text":"who is ada lovelace"} …}
+→ 184 ms, prompt_id "DuckDuckGo"
+  "Augusta Ada King, Countess of Lovelace, also known as Ada Lovelace, was an
+   English mathematician and writer chiefly known for work on Charles Babbage's
+   proposed mechanical general-purpose computer…"
+```
+
+## Full-suite regression
+
+```
+node --test 'packages/skills/test/*.test.js'   # 642/642 pass
+node --test 'packages/nlu/test/*.test.js'      # 274 pass, 0 fail, 6 skipped
+```
+
+The 6 NLU skips are the compiled-FST profile lane (needs a provisioned
+`PHOENIX_NLU_COMPILED_HOME`); they pre-date X-01 and are unrelated to it.
+
+## Scope reductions, stated in the open
+
+1. **Answer-text identity is not claimed** — the owner's narrowing; Wikipedia
+   and DuckDuckGo are live services.
+2. **Real 3000/4000 ms deadlines are verified by construction**, not by a
+   7-second wall-clock wait in every run; the behavioural deadline tests use
+   compressed timings.
+3. **The restored branch's own Wikipedia-first profile is retained but is not
+   the default.** The default is the recovered Jibo multi-provider plan
+   (DuckDuckGo-in-Bing-slot + Wikipedia, then Wolfram), because that is what a
+   Jibo actually did. The Wikipedia-only profile stays selectable via
+   `PHOENIX_GQA_PROFILE=wikipedia` and is covered by the `q01Gqa*` suite.

@@ -35,6 +35,7 @@ import {
   createDuckDuckGoProvider,
   extractDuckDuckGoAnswer,
 } from '../src/gqaDuckDuckGoProvider.js';
+import { start } from '../src/index.js';
 
 function sourceRequest({ text = 'what is a fixture fact', intent = 'generalWhatQuestions' } = {}) {
   return {
@@ -280,4 +281,106 @@ test('X-01 answer: the recovered pipeline finishes inside the gateway skill budg
   assert.ok(elapsed < Timeouts.skill, `took ${elapsed}ms, over the ${Timeouts.skill}ms skill budget`);
   assert.ok(elapsed >= 1900, `both group deadlines must fire before output is produced (elapsed ${elapsed}ms)`);
   assert.equal(actionText(out), "I can't seem to find what this is. Sorry.");
+});
+// 6. Profile separation (X-01 acceptance criterion 2) -------------------------
+//
+// Criterion 2 asks that the recovered profile's configuration stay separate
+// from original Pegasus and that nothing implicitly remaps the original
+// profile.  The pre-existing assertion for this
+// (q01GqaProfile.test.js:411) only checks that a listener came up on a port,
+// which cannot fail for the reason it names.  These two tests instead observe
+// WHICH handler the shared skills host actually mounted, through wire
+// behaviour that the two handlers do not share.
+//
+// Discriminators, neither of which touches the network:
+//   * the recovered GQA route validates the source request envelope and
+//     answers a body with no `type` with the source 500 shape
+//     (gqaAnswerSkill.js validateGqaRequestEnvelope), and answers a request
+//     with no robot IP with the GQA_error MIM;
+//   * the ordinary Pegasus answer-skill port has neither check and, with no
+//     LLM configured, speaks its honest placeholder.
+
+async function postJson(port, path, body) {
+  const response = await fetch(`http://127.0.0.1:${port}${path}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-jibo-transid': 'x01-separation' },
+    body: JSON.stringify(body),
+  });
+  return { status: response.status, body: await response.json() };
+}
+
+async function withHost(options, run) {
+  const server = await start(0, options);
+  try {
+    return await run(server.address().port);
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
+}
+
+test('X-01 separation: the shared host mounts the recovered GQA handler by default, not the ordinary answer-skill port', async () => {
+  // An environment with no GQA selectors at all: this is what the robot
+  // launcher produces (it blanks PHOENIX_GQA_PROFILE and
+  // PHOENIX_GQA_DEFAULT_PROFILE rather than setting them).
+  const env = Object.fromEntries(
+    Object.entries(process.env).filter(([name]) => !name.startsWith('ETCO_gqa_')),
+  );
+  env.PHOENIX_GQA_PROFILE = '';
+  env.PHOENIX_GQA_DEFAULT_PROFILE = '';
+
+  await withHost({ gqaProfile: '', gqaDefaultProfile: '', gqaEnvironment: env }, async (port) => {
+    // Source envelope validation belongs only to the recovered GQA route.
+    const malformed = await postJson(port, '/v1/answer-skill/main', { data: {} });
+    assert.equal(malformed.body.message, 'Missing GQA request field type');
+
+    // The robot-IP gate likewise belongs only to the recovered route.  Passing
+    // a valid envelope without general.remoteAddress must select GQA_error,
+    // which the ordinary handler has no concept of.
+    const request = sourceRequest();
+    delete request.data.general.remoteAddress;
+    const noIp = await postJson(port, '/v1/answer-skill/main', request);
+    // The MIM file supplies numbered variants (GQA_error_07, _08, ...); the
+    // family is what identifies the branch.
+    assert.match(promptId(noIp.body), /^GQA_error(_\d+)?$/);
+
+    // And the ordinary handler's placeholder must never be spoken here.
+    assert.ok(!String(actionText(noIp.body)).includes("don't have an answer source"));
+  });
+});
+
+test('X-01 separation: PHOENIX_GQA_DEFAULT_PROFILE=phoenix-answer selects the original Pegasus port, which never reaches a GQA provider', async () => {
+  // answerSkill resolves its LLM endpoint from the ambient process env at call
+  // time (resolveLlmProvider reads ETCO_answer_llm* then PHOENIX_LLM_*), not
+  // from an injected environment, so a developer machine with a configured
+  // model would otherwise make this test both slow and machine-dependent.
+  // Clear only those names, and restore them.
+  const llmNames = Object.keys(process.env)
+    .filter((name) => name.startsWith('PHOENIX_LLM_') || name.startsWith('ETCO_answer_llm')
+      || name === 'OPENROUTER_API_KEY');
+  const saved = llmNames.map((name) => [name, process.env[name]]);
+  for (const name of llmNames) delete process.env[name];
+
+  try {
+    await withHost({ gqaProfile: '', gqaDefaultProfile: 'phoenix-answer' }, async (port) => {
+      // The ordinary route has no source envelope validation: a body with no
+      // `type` is accepted rather than rejected the way the GQA route rejects
+      // it.  This is the discriminator that cannot be satisfied by both.
+      const malformed = await postJson(port, '/v1/answer-skill/main', { data: {} });
+      assert.notEqual(malformed.body.message, 'Missing GQA request field type');
+
+      // Shape: the ordinary port speaks through an AnswerReply SEQUENCE; the
+      // recovered GQA route speaks a bare SLIM carrying a prompt_id.
+      const out = await postJson(port, '/v1/answer-skill/main', sourceRequest());
+      assert.equal(out.body.data.action.config.jcp.type, 'SEQUENCE');
+      const play = out.body.data.action.config.jcp.children[0].config.play;
+      assert.equal(play.meta.mim_id, 'AnswerReply');
+      assert.equal(play.meta.prompt_id, undefined);
+      assert.equal(
+        play.esml,
+        "You asked about what is a fixture fact. I don't have an answer source connected yet.",
+      );
+    });
+  } finally {
+    for (const [name, value] of saved) if (value !== undefined) process.env[name] = value;
+  }
 });

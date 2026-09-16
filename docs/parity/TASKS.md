@@ -12,7 +12,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 | verification | 4 | 4 | 0 | 0 |
 | pegasus | 46 | 46 | 0 | 0 |
 | classic | 19 | 20 | 0 | 0 |
-| restoration | 0 | 1 | 0 | 0 |
+| restoration | 1 | 1 | 0 | 0 |
 | release | 0 | 5 | 0 | 0 |
 
 Current task: none.
@@ -1394,11 +1394,13 @@ Evidence: [packages/classic/test/voiceTraining.test.js](../../packages/classic/t
 
 ### X-01 — Verify restored-branch answer and NLU extensions separately
 
-- [ ] **todo** · P1 · restoration · implementation: partial
+- [x] **verified** · P1 · restoration · implementation: partial
 
 Owner: Codex. Dependencies: Q-01, N-07, PM-03.
 
 The two halves of X-01 are in different states, and the previous finding described only one of them. NLU half: the restored branch's LLM fallback is implemented and pinned in-source to 715e0dd0 (packages/nlu/src/llmFallback.js, including its 15-entry INTENT_TOOLS catalog, tool_choice auto and 8000 ms timeout), with fallbackArbitration.js pinned to the same revision and the external-agent block selectable between 5c0a739 ATTACH and 715e0dd0 OMIT. It is env-gated and off by default. Answer half: X-01's reference is pegasus-restored packages/answer-skill/server.js at the restored branch head d682547a, and no Phoenix source pins or reimplements it. packages/skills/src/answerSkill.js is explicitly a port of the ORIGINAL Pegasus answer-skill (LLM or honest placeholder, 600-char limit, 12 s timeout) and has no Wikipedia path, so the old finding is accurate about that file but says nothing about the separate Wikipedia-first GQA lane that now exists under Q-01. Separation: the machinery criterion 2 asks for exists and is tested - the default answer handler is the original port, the GQA profiles are selected only by PHOENIX_GQA_PROFILE/PHOENIX_GQA_DEFAULT_PROFILE, applyGqaContinuity runs only on an explicit opt-in defaulting to false, and q01GqaProfile.test.js asserts the default registry does not select the Wikipedia profile implicitly. But what is kept separate is the Q-01/GQA lane, not a retained restored-branch answer profile. Gap: there is no X-01 verification lane at all - packages/skills/test holds 17 q01 files and zero X-01 files - so none of criterion 1's six named properties (Wikipedia-first ordering, LLM tool catalog, fallback text, response normalization, timing, output limits) has a differential against the restored branch, and criterion 2 has no separate count to publish. See docs/parity/evidence/2026-09-14/x01-restored-profile/gap.md.
+
+RESOLVED 2026-09-16. Both halves now have a verification lane. Answer half: packages/skills/test/x01AnswerBehaviour.test.js (11 tests) measures the six named properties behaviourally against the recovered GQA pipeline, and the default answer profile is now the recovered multi-provider plan rather than the ordinary port. NLU half: 21 tests across llmFallback/fallbackArbitration/externalAgentLlm pin the 715e0dd0 catalog and keep it off by default. Criterion 2's previous assertion (q01GqaProfile.test.js:411) could not fail and was replaced by two handler-identity tests. Answer-text identity remains deliberately unclaimed per the owner's narrowing.
 
 Done when:
 
@@ -1409,7 +1411,7 @@ Source: [Restored Pegasus packages/answer-skill/server.js](https://pvindex.org/g
 
 Phoenix: [packages/skills/src/answerSkill.js](../../packages/skills/src/answerSkill.js); [packages/nlu/src/llmFallback.js](../../packages/nlu/src/llmFallback.js).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-16/x01-answer-behaviour/README.md](../../docs/parity/evidence/2026-09-16/x01-answer-behaviour/README.md) (2026-09-16; answer half — behavioural differential of the recovered GQA pipeline); [docs/parity/evidence/2026-09-16/x01-answer-behaviour/README.md](../../docs/parity/evidence/2026-09-16/x01-answer-behaviour/README.md) (2026-09-16; answer half — independent falsification by the root agent); [packages/nlu/test/llmFallback.test.js](../../packages/nlu/test/llmFallback.test.js) (2026-09-16; NLU half — restored-branch LLM fallback pinned and falsified); [docs/parity/evidence/2026-09-16/x01-answer-behaviour/README.md](../../docs/parity/evidence/2026-09-16/x01-answer-behaviour/README.md) (2026-09-16; criterion 2 — profile separation, replacing an assertion that could not fail); [docs/parity/evidence/2026-09-16/x01-answer-behaviour/README.md](../../docs/parity/evidence/2026-09-16/x01-answer-behaviour/README.md) (2026-09-16; live confirmation on the authenticated robot stack); [packages/skills/test](../../packages/skills/test) (2026-09-16; full-suite regression with multi-provider as the default).
 
 ### A-03 — Complete Account operations and account lifecycle
 
