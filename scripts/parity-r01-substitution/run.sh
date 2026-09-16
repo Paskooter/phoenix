@@ -30,6 +30,8 @@ SCRATCH="${R01_SCRATCH:-$HOME/.local/share/phoenix/r01/ref-with-devdeps}"
 NET=r01net
 HUB_PORT=8098
 SKILL_PORT=8099
+# Control route for per-test hub reconfiguration (hub-supervisor.mjs).
+CONTROL_PORT=8097
 NODE8=node:8.9.4-slim
 NODE22=node:22.22.0-slim
 SUITE="../../node_modules/.bin/mocha -r ts-node/register ./tests/r01-shared.js"
@@ -78,10 +80,17 @@ setup() {
 start_phoenix_hub() {
   local parser=$1
   docker rm -f r01-phoenix-hub >/dev/null 2>&1 || true
+  # The hub runs under hub-supervisor.mjs, not directly. The supervisor owns the
+  # unmodified gateway process and exposes one control route so a test file can
+  # hand it that file's own skill registry before its describe runs (see the
+  # header of hub-supervisor.mjs). Lanes that never reconfigure are unaffected:
+  # the supervisor starts the gateway once from the registry setup generated.
   docker run -d --name r01-phoenix-hub --network "container:r01-test" -v "$PHOENIX":/phoenix -w /phoenix \
     -e PORT=$HUB_PORT -e ETCO_server_hubTokenSecret=my-hard-kept-secret \
     -e NET_parser="$parser" -e NET_history=127.0.0.1:9 \
-    -e ETCO_hub_skillsConfig=skills-r01.json "$NODE22" node packages/gateway/src/index.js >/dev/null
+    -e R01_CONTROL_PORT=$CONTROL_PORT -e R01_SKILL_PORT=$SKILL_PORT \
+    -e ETCO_hub_skillsConfig=skills-r01.json \
+    "$NODE22" node scripts/parity-r01-substitution/hub-supervisor.mjs >/dev/null
   sleep 7
   require_listening r01-phoenix-hub
 }
@@ -99,6 +108,7 @@ case "${1:-}" in
     require_listening r01-orig-parser '"ready":true'
     start_phoenix_hub r01-orig-parser:9999
     docker exec -e R01_HUB_EXTERNAL=1 -e R01_HUB_PORT=$HUB_PORT -e R01_SKILL_PORT=$SKILL_PORT \
+      -e R01_HUB_CONTROL=http://127.0.0.1:$CONTROL_PORT \
       -e R01_TRACE_DIR="${R01_TRACE_DIR:-}" r01-test $SUITE
     ;;
 
@@ -114,14 +124,23 @@ case "${1:-}" in
     start_phoenix_hub r01-phoenix-nlu:9999
     docker exec -e R01_HUB_EXTERNAL=1 -e R01_SKILL_EXTERNAL=1 \
       -e R01_HUB_PORT=$HUB_PORT -e R01_SKILL_PORT=$SKILL_PORT \
+      -e R01_HUB_CONTROL=http://127.0.0.1:$CONTROL_PORT \
       -e R01_TRACE_DIR="${R01_TRACE_DIR:-}" r01-test $SUITE
     ;;
 
   teardown)
     docker rm -f r01-orig-parser r01-test r01-phoenix-hub r01-phoenix-nlu r01-phoenix-skills >/dev/null 2>&1 || true
     # Must accompany the container teardown: S-06 pins this directory.
-    rm -f "$PHOENIX/packages/gateway/resources/skills/skills-r01.json" \
-          "$PHOENIX/packages/gateway/resources/skills/example_manifest.json"
+    #
+    # Named removal was enough while the registry was generated once from
+    # TEST_SKILL_CONFIG. The supervisor now writes one manifest per skill id in
+    # whichever registry a test file supplies, so a file naming a skill other
+    # than `example` would leave a manifest behind and fail S-06 on the next
+    # run. Return the pinned directory to its committed state instead of
+    # guessing the filenames: restore tracked files, remove untracked ones, and
+    # scope both to that one path.
+    git -C "$PHOENIX" checkout -- packages/gateway/resources/skills/ 2>/dev/null || true
+    git -C "$PHOENIX" clean -fq -- packages/gateway/resources/skills/ 2>/dev/null || true
     echo "torn down; generated registry removed"
     ;;
 
