@@ -13,7 +13,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 | pegasus | 46 | 46 | 0 | 0 |
 | classic | 19 | 20 | 0 | 0 |
 | restoration | 1 | 1 | 0 | 0 |
-| release | 0 | 5 | 0 | 0 |
+| release | 1 | 5 | 0 | 0 |
 
 Current task: none.
 
@@ -1752,11 +1752,11 @@ Evidence: [docs/parity/evidence/2026-09-10/a18-oauth-lps/review.md](../../docs/p
 
 ### R-01 — Pass full reference-client and service-substitution tests
 
-- [ ] **todo** · P0 · release · implementation: unverified
+- [x] **verified** · P0 · release · implementation: complete
 
 Owner: Codex. Dependencies: C-01, C-02, C-03, H-01, H-02, H-03, H-04, H-05, H-06, H-07, H-08, N-01, N-02, N-03, N-04, N-05, N-06, N-07, N-08, I-01, I-02, I-03, D-01, D-02, D-03, D-04, D-05, D-06, D-07, S-01, S-02, S-03, S-04, S-05, S-06, S-07, S-08, S-09, S-10, S-11, S-12, S-13, S-14, Q-01, H-09, H-10.
 
-Existing compose smoke checks use Phoenix-specific skill paths and cannot prove individual service substitution.
+Five substitution lanes over the original integration-tests-int suite -- control, parser, skills, hub and all-phoenix -- all score 13 passing / 2 failing, and the two failures occur on the all-original control too. Per-test hub reconfiguration (hub-supervisor.mjs) lets a substituted out-of-process hub take each file's own registry, so the lane covers every hub-exercising file; withholding it drops the score and fails a named case, so the mechanism is load-bearing. Whole-WS-message comparison shows 4/8 streams byte-identical with all differences in the ASR layer and each one explained and measured. Remaining divergences are recorded, not unexplained: H07c confidence, recognizer spread, digits versus number words (measured to change no intent or slot), and Phoenix answering the external-agent requests the original parser 500s on. lasso and personal-report are excluded because they do not exercise the hub at all; they belong to a skills-service lane.
 
 Done when:
 
@@ -1768,7 +1768,7 @@ Source: [Original Pegasus packages/hub-client](https://pvindex.org/gitea/jiboV2/
 
 Phoenix: [packages/harness](../../packages/harness); [scripts/verify-compose-contract.mjs](../../scripts/verify-compose-contract.mjs).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-16/r01-per-test-reconfiguration/README.md](../../docs/parity/evidence/2026-09-16/r01-per-test-reconfiguration/README.md) (2026-09-16; one reference service replaced at a time, original suite unchanged); [docs/parity/evidence/2026-09-16/r01-per-test-reconfiguration/README.md](../../docs/parity/evidence/2026-09-16/r01-per-test-reconfiguration/README.md) (2026-09-16; the two failures are not substitution differences); [docs/parity/evidence/2026-09-16/r01-per-test-reconfiguration/README.md](../../docs/parity/evidence/2026-09-16/r01-per-test-reconfiguration/README.md) (2026-09-16; per-test hub reconfiguration, falsified); [docs/parity/evidence/2026-09-16/r01-per-test-reconfiguration/README.md](../../docs/parity/evidence/2026-09-16/r01-per-test-reconfiguration/README.md) (2026-09-16; whole-message side-effect comparison); [docs/parity/evidence/2026-09-16/r01-per-test-reconfiguration/README.md](../../docs/parity/evidence/2026-09-16/r01-per-test-reconfiguration/README.md) (2026-09-16; scope correction and two defects the lane found in itself).
 
 ### R-02 — Verify installation, native/compose startup and data migration
 
