@@ -126,6 +126,19 @@ export async function startAuthenticatedRobotStack({
     ETCO_hub_disableAuth: 'false', ETCO_hub_accountUrl: '',
     ETCO_server_parakeetUrl: parakeetUrl,
   });
+  // The report skill asks the Settings service for a speaker's personal
+  // preferences, and with NET_settings unset it falls back to the SOURCE default
+  // `settings.jibo.aws` -- a hostname that died with the original cloud. Live
+  // symptom: "Error getting Settings data: ENOTFOUND, getaddrinfo ENOTFOUND
+  // settings.jibo.aws", then "Using default UserPrefs", so a commute saved in the
+  // portal was never read back.
+  //
+  // packages/account exports the internal Settings service for exactly this peer
+  // and nothing was starting it. Announce its port BEFORE the service loop below
+  // imports the skills package: report/env.js getReportEnv() caches on its first
+  // call, so setting this afterwards would look right and change nothing.
+  const settingsPort = choosePort(13);
+  if (settingsPort) process.env.NET_settings = `127.0.0.1:${settingsPort}`;
   try {
     const { compiledFstRuntimeConfig } = await import('../../packages/nlu/src/compiledFstRuntime.js');
     const compiledProfile = snapshotManifest ? compiledFstRuntimeConfig() : null;
@@ -171,6 +184,16 @@ export async function startAuthenticatedRobotStack({
     await listen(account.server, choosePort(11), accountHost);
     endpoints.account = account.server.address().port;
     process.env.NET_account = `127.0.0.1:${endpoints.account}`;
+
+    // Same store as Account and Classic: the settings a speaker saves in the
+    // portal are the ones the report skill must read back.
+    if (settingsPort) {
+      const { createSettingsInternalService } = await import('../../packages/account/src/index.js');
+      const settings = createSettingsInternalService({ store: accountStore });
+      servers.push(settings.server);
+      await listen(settings.server, settingsPort);
+      endpoints.settings = settings.server.address().port;
+    }
 
     const { createClassicEntrypoint, MediaStore, accessKeyAccountResolver, createVerifiedNotificationAccountResolver } = await import('../../packages/classic/src/index.js');
     const notificationAccountResolver = createVerifiedNotificationAccountResolver({
