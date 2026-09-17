@@ -24,7 +24,7 @@ const MAX_OGG_PAGE_BYTES = 27 + 255 + (255 * 255);
  * swallowed: capture must never affect a live turn.
  */
 let captureSeq = 0;
-function openCapture(encoding) {
+export function openCapture(encoding) {
   const dir = process.env.PHOENIX_ASR_CAPTURE_DIR;
   if (!dir) return null;
   try {

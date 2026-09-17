@@ -38,10 +38,12 @@
 
 import http from 'node:http';
 import https from 'node:https';
+import fs from 'node:fs';
 import { WebSocket } from 'ws';
 import { FastEOS } from './fastEOS.js';
 import {
   AUDIO_ENCODINGS,
+  openCapture,
   AudioDecodeError,
   AudioFormatError,
   StreamingAudioDecoder,
@@ -177,6 +179,14 @@ export class ParakeetASRSession {
     if (this.stopped || this.state === 'FINALIZING' || this.state === 'DONE') return;
     if (!Buffer.isBuffer(audioBuffer)) throw new AudioFormatError('ASR audio frames must be Buffers');
     if (audioBuffer.length === 0) return;
+    // LINEAR16 never reaches StreamingAudioDecoder, so its capture lives here;
+    // encoded turns are teed inside the decoder instead.
+    if (this.audio.encoding === AUDIO_ENCODINGS.LINEAR16 && process.env.PHOENIX_ASR_CAPTURE_DIR) {
+      if (this.pcmCapture === undefined) this.pcmCapture = openCapture(AUDIO_ENCODINGS.LINEAR16);
+      if (this.pcmCapture) {
+        try { fs.writeSync(this.pcmCapture.fd, audioBuffer); } catch { this.pcmCapture = null; }
+      }
+    }
     if (this.audio.encoding !== AUDIO_ENCODINGS.LINEAR16) {
       if (this.started) {
         try {
