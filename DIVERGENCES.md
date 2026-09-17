@@ -125,6 +125,15 @@ open questions; root read the source and classifies them here.
 
 
 
+## Speech endpointing (Phoenix-original; the reference had none)
+
+| # | Decision | Why | Impact |
+|---|---|---|---|
+| ASR-1 | The trailing-silence window that ends a turn is **400 ms**, overridable with `PHOENIX_ASR_SILENCE_EOS_MS`. It was 700 ms. | The reference never endpointed locally — Google's recognizer reported `END_OF_SINGLE_UTTERANCE` itself (`GoogleASRSession.ts:106`) — so this window is a Phoenix invention with no source value to be faithful to, and it is the dominant cost of the pause a person feels after they stop talking. Measured 2026-09-17 on real captured turns by replaying them through the real session at several windows (`scripts/parity-asr-encoding/eos-latency.mjs`): a Linear16 robot's pause is **exactly the window** — 0.70 s at 700 ms, 0.40 s at 400 ms, on every capture. An `OGG_OPUS` robot pays it twice, because its audio arrives in ~0.45–0.51 s pages (measured: 22 pages for a 10.90 s turn), so the silence is not even visible until the page carrying it lands; the window still dominates the controllable half. The speaker asked for "maybe a second" and explicitly not five. | Shortens the pause by 300 ms on every turn. **Trade-off, recorded deliberately:** a mid-sentence hesitation longer than the window now ends the turn and cuts the utterance. Because the reference's endpointing was dynamic and external, there is no source behaviour to match here, and the alternative — keeping a pause the speaker has asked to shorten — is worse. `eos-latency.mjs` is the harness to re-derive this value; the empty-endpoint re-listen still recovers a window that recognizes no words at all. |
+| ASR-2 | Every completed turn logs `ASR turn` at info: `reason`, `audioMs`, `silenceWaitMs`, `recognizeMs`, `relistens`, `chars`. | The pause has two halves — waiting out the silence, then recognizing the buffer — and a log that prints only a total cannot tell them apart, so a change to either could not be attributed. `recognizeMs` is measured from **the first** EOS, so a re-listen's wasted round trip is included rather than hidden. No transcript text or household data is logged. | One extra info line per turn on the listening path. |
+
+
+
 ## Credential store (D-02)
 
 | # | Decision | Why | Impact |
@@ -249,10 +258,10 @@ arrays rather than an encoded polyline, and CommuteParse reads neither field. `l
 `arrival_time`/`departure_time`, `warnings`, `fare` and `geocoded_waypoints` are still not produced.
 These are provider gaps, not port defects.
 
-## A05f — oobeRestartSIGKILL is flaky (open, pre-existing)
+## A05f — oobeRestartSIGKILL is flaky (RESOLVED 2026-09-17)
 `packages/account/test/oobeRestartSIGKILL.test.js` "SIGKILL mid-write leaves a complete snapshot
-with the issued robot credentials" fails roughly one run in three. Observed 2026-09-15 on an
-otherwise untouched tree, so it is not caused by the Jot fan-out work landed the same day.
+with the issued robot credentials" failed roughly one run in three. Observed 2026-09-15 on an
+otherwise untouched tree, so it was not caused by the Jot fan-out work landed the same day.
 
 Quantified 2026-09-15 while checking whether an unrelated change had caused it: **3 failures in 8
 consecutive runs on a clean HEAD**, the test file run alone. Small samples on either side of a
@@ -264,6 +273,19 @@ flake fixed first.
 A flaky test in a parity suite is worse than a missing one: it trains readers to re-run until green,
 which is exactly how a real regression gets waved through. It should be made deterministic or
 quarantined with its reason recorded, not left to chance.
+
+**Root cause and fix.** The flake was not scheduling jitter — the test asserted something the
+mechanism cannot provide. It required that **no `.tmp` file survive the kill**, but `Store.flush`
+writes `openSync(tmp,'wx')` … `renameSync(tmp, file)` and cleans the temp file in a `finally`. A
+`SIGKILL` cannot run a `finally`, so when the signal lands between the open and the rename an
+abandoned temp file remains **by construction** — and the child loops on `flush()` precisely so the
+kill lands mid-write. Re-measured at the demanded run count, same machine: **8 failures in 25 runs
+with the original assertion, 0 in 25 with it corrected.** The corrected test asserts what the
+atomic-write mechanism actually guarantees and what the A-05 criterion actually needs: the committed
+snapshot stays complete JSON with its issued robot credentials, the access key still resolves to the
+robot after the crash, a missing store still loads as empty, and any abandoned temp file is
+**private** (`0600`) so a torn write can never be read as truth. The credential and atomicity
+assertions — the ones the criterion rests on — passed in every one of the 51 runs.
 
 ## N03a — conditional semantic actions are silently skipped (open)
 `parser.js parseActionBlock` accepts only `key = value` statements and `continue`s on anything else,

@@ -58,7 +58,17 @@ const VAD_WINDOW_BYTES = (BYTES_PER_SEC * VAD_WINDOW_MS) / 1000;
 
 const SPEECH_RMS_THRESHOLD = 400;
 const SPEECH_MIN_MS = 150;
-const SILENCE_TO_EOS_MS = 700;
+// How much trailing silence ends the turn. The reference never endpointed here
+// (Google's recognizer reported END_OF_SINGLE_UTTERANCE itself), so this is a
+// Phoenix choice, and it is the dominant cost in the pause a person feels after
+// they stop talking. An encoded robot pays it twice: OGG_OPUS arrives in ~500 ms
+// pages, so the silence is not even visible until the page that carries it lands.
+const SILENCE_TO_EOS_MS = Number(process.env.PHOENIX_ASR_SILENCE_EOS_MS || 400);
+
+// Exported so tests derive the window instead of restating it: a test that
+// asserts a literal keeps passing when the constant changes, and then pins the
+// wrong behaviour. This is the value the endpointer actually uses.
+export const ASR_SILENCE_TO_EOS_MS = SILENCE_TO_EOS_MS;
 
 // Adaptive endpointing.
 //
@@ -143,6 +153,7 @@ export class ParakeetASRSession {
     this.speechRunMs = 0;        // consecutive ms currently over the gate
     this.sosFired = false;
     this.eosFired = false;
+    this.eosAt = null;           // wall clock at EOS, for silence-vs-recognition timing
     this.eosEmitted = false;
     this.stopped = false;
     this.aborted = false;
@@ -456,6 +467,7 @@ export class ParakeetASRSession {
   _fireEOSAndFinalize(reason) {
     if (this.eosFired) return;
     this.eosFired = true;
+    this.eosAt = Date.now();
     this.state = 'FINALIZING';
     this.finalizeReason = reason;
     this.pcmPending = Buffer.alloc(0);
@@ -477,6 +489,7 @@ export class ParakeetASRSession {
    */
   async finalizeNow() {
     if (this.aborted || this.stopped || this.state === 'FINALIZING' || this.state === 'DONE') return undefined;
+    this.eosAt = Date.now();
     this.state = 'FINALIZING';
     this.finalizeReason = 'max-speech';
     this.pcmPending = Buffer.alloc(0);
@@ -666,6 +679,19 @@ export class ParakeetASRSession {
       result.annotation = 'FAST_EOS';
     }
     this.lastResult = result;
+    // Where a turn's wall clock actually goes. The pause a speaker notices is the
+    // silence wait plus the recognition round trip; logging only a total leaves
+    // the two indistinguishable, so record both halves on every real turn.
+    if (this.eosAt) {
+      this.log.info?.('ASR turn', {
+        reason: this.finalizeReason,
+        audioMs: Math.round(bytesToMs(this.totalBytes)),
+        silenceWaitMs: SILENCE_TO_EOS_MS,
+        recognizeMs: Date.now() - this.eosAt,
+        relistens: this.relistenCount,
+        chars: text.length,
+      });
+    }
     if (this.resultHandler) this.resultHandler(result);
     this.state = 'DONE';
     if (this.resolveStart) this.resolveStart(result);

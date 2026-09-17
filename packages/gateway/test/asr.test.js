@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import http from 'node:http';
-import { ParakeetASRSession } from '../src/asr/parakeetSession.js';
+import { ParakeetASRSession, ASR_SILENCE_TO_EOS_MS } from '../src/asr/parakeetSession.js';
 import {
   AUDIO_DECODER_LIMITS,
   AUDIO_ENCODINGS,
@@ -94,7 +94,7 @@ async function cleanupSession(session, startPromise, server) {
   if (server?.listening) await new Promise((resolve) => server.close(resolve));
 }
 
-test('VAD: SOS after 150ms speech, EOS after 700ms silence, transcript via mock', async () => {
+test('VAD: SOS after 150ms speech, EOS after the configured silence, transcript via mock', async () => {
   const srv = await mockParakeet('what time is it');
   const url = `http://localhost:${srv.address().port}`;
   const session = new ParakeetASRSession(url, { lang: 'en-US' }, console);
@@ -102,6 +102,9 @@ test('VAD: SOS after 150ms speech, EOS after 700ms silence, transcript via mock'
   session.onStartOfSpeech(() => { sos += 1; });
   session.onEndOfSpeech(() => { eos += 1; });
   const startPr = session.start();
+  // The window is read from the module, so shortening it cannot leave this test
+  // asserting a pause the endpointer no longer waits for.
+  const silenceChunks = ASR_SILENCE_TO_EOS_MS / 100;
   try {
     session.provideAudio(SILENCE());            // 100ms silence: no SOS
     assert.equal(sos, 0);
@@ -109,9 +112,9 @@ test('VAD: SOS after 150ms speech, EOS after 700ms silence, transcript via mock'
     assert.equal(sos, 0, 'SOS needs >=150ms cumulative speech');
     session.provideAudio(SPEECH());             // 200ms cumulative -> SOS
     assert.equal(sos, 1);
-    for (let i = 0; i < 6; i += 1) session.provideAudio(SILENCE()); // 600ms silence: no EOS yet
-    assert.equal(eos, 0);
-    session.provideAudio(SILENCE());            // 700ms -> EOS + finalize
+    for (let i = 0; i < silenceChunks - 1; i += 1) session.provideAudio(SILENCE());
+    assert.equal(eos, 0, `${ASR_SILENCE_TO_EOS_MS - 100}ms silence is not yet an endpoint`);
+    session.provideAudio(SILENCE());            // the configured window -> EOS + finalize
     assert.equal(eos, 1);
 
     const result = await withTimeout(startPr);
@@ -192,11 +195,14 @@ test('LINEAR16 stop preserves an even final partial VAD window', async () => {
 });
 
 test('VAD and EOS are invariant across PCM chunk boundaries', async () => {
+  const silenceChunks = ASR_SILENCE_TO_EOS_MS / 100;
   const source = Buffer.concat([
     SPEECH(), SPEECH(), SPEECH(),
-    ...Array.from({ length: 10 }, () => SILENCE()),
+    ...Array.from({ length: silenceChunks + 3 }, () => SILENCE()),
   ]);
-  const expectedPcm = source.subarray(0, 32000); // 300 ms speech + 700 ms silence
+  // Speech plus the endpoint's own window: EOS cuts the buffer at that point, so
+  // the WAV the recognizer sees is exactly this prefix.
+  const expectedPcm = source.subarray(0, 3200 * (3 + silenceChunks));  // 100 ms = 3200 bytes
   const arbitrary = [];
   let offset = 0;
   const sizes = [1, 3, 17, 511, 2, 4097];
@@ -553,7 +559,10 @@ test('OGG_OPUS is decoded before VAD and WAV wrapping across fragmented frames',
     }
     assert.equal((await withTimeout(startPr)).text, 'ogg');
     const decoded = wavPayload(srv._lastBody);
-    assert.ok(decoded.length >= 32000, `decoded PCM length ${decoded.length}`);
+    // The fixture is speech followed by silence, so the buffer the recognizer
+    // sees is speech plus the endpoint's own window -- never a fixed 1s.
+    const minDecoded = 3200 * (3 + ASR_SILENCE_TO_EOS_MS / 100);  // 100 ms = 3200 bytes
+    assert.ok(decoded.length >= minDecoded, `decoded PCM length ${decoded.length} < speech + ${ASR_SILENCE_TO_EOS_MS}ms`);
     assert.ok(rms(decoded.subarray(0, 3200)) > 400, 'speech reaches VAD as PCM');
     assert.ok(rms(decoded.subarray(decoded.length - 6400)) < 400, 'trailing silence reaches VAD as PCM');
     assert.equal(session.decoder, null, 'decoder child is cleaned up after EOS');
@@ -575,7 +584,10 @@ test('FLAC frames are decoded incrementally before VAD despite fragmented input'
     }
     assert.equal((await withTimeout(startPr)).text, 'flac');
     const decoded = wavPayload(srv._lastBody);
-    assert.ok(decoded.length >= 32000, `decoded PCM length ${decoded.length}`);
+    // The fixture is speech followed by silence, so the buffer the recognizer
+    // sees is speech plus the endpoint's own window -- never a fixed 1s.
+    const minDecoded = 3200 * (3 + ASR_SILENCE_TO_EOS_MS / 100);  // 100 ms = 3200 bytes
+    assert.ok(decoded.length >= minDecoded, `decoded PCM length ${decoded.length} < speech + ${ASR_SILENCE_TO_EOS_MS}ms`);
     assert.ok(rms(decoded.subarray(0, 3200)) > 400, 'speech reaches VAD as PCM');
     assert.ok(rms(decoded.subarray(decoded.length - 6400)) < 400, 'trailing silence reaches VAD as PCM');
     assert.equal(session.decoder, null, 'decoder children are cleaned up after EOS');

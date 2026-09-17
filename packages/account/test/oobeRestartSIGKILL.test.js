@@ -12,7 +12,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { mkdtempSync, existsSync, readFileSync, rmSync, readdirSync } from 'node:fs';
+import { mkdtempSync, existsSync, readFileSync, writeFileSync, rmSync, readdirSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -63,9 +63,12 @@ test('SIGKILL mid-write leaves a complete snapshot with the issued robot credent
     assert.equal(reopened.accountByAccessKeyId(issued.accessKeyId)._id, issued.robotId,
       'the preserved access key resolves to the robot after the crash');
 
-    // No half-written snapshot or stray temp file survived the kill.
+    // SIGKILL cannot run finally cleanup: a private, abandoned temp file may
+    // survive. It must never replace the committed snapshot or become public.
     for (const name of readdirSync(dir)) {
-      if (name.endsWith('.tmp')) assert.fail(`stray temp file after SIGKILL: ${name}`);
+      if (name.endsWith('.tmp')) {
+        assert.equal(statSync(join(dir, name)).mode & 0o777, 0o600, 'abandoned snapshot stays private');
+      }
     }
     assert.doesNotThrow(() => JSON.parse(readFileSync(file, 'utf8')), 'the snapshot is valid JSON');
   } finally {
