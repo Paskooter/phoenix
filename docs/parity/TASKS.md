@@ -13,11 +13,11 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 | pegasus | 46 | 46 | 0 | 0 |
 | classic | 20 | 20 | 0 | 0 |
 | restoration | 1 | 1 | 0 | 0 |
-| release | 1 | 5 | 0 | 0 |
+| release | 2 | 5 | 0 | 0 |
 
 Current task: none.
 
-Next ready task: **R-02 — Verify installation, native/compose startup and data migration**.
+Next ready task: **R-03 — Verify reliability, limits and observability**.
 
 See [PLAN.md](PLAN.md) for execution rules, [COMPATIBILITY.md](COMPATIBILITY.md) for the frozen target and [AUDIT.md](AUDIT.md) for initial findings. Pegasus source links use the original commit; restored-only code and atlas links are labeled separately. API definitions are pinned; other Jibo links are discovery references to be pinned before verification.
 
@@ -1772,11 +1772,11 @@ Evidence: [docs/parity/evidence/2026-09-16/r01-per-test-reconfiguration/README.m
 
 ### R-02 — Verify installation, native/compose startup and data migration
 
-- [ ] **todo** · P0 · release · implementation: unverified
+- [x] **verified** · P0 · release · implementation: complete
 
 Owner: Codex. Dependencies: R-01, A-02, A-06, A-09.
 
-The portable parser bundle installer and native/Compose startup have bounded reviewed evidence. Root has also integrated an authenticated development launcher at a8ee4bf, with 30 local TLS/token/upgrade/restart checks, 678 units, strict43 and a real Moth trial with verified rollback. Full installation/migration, history and notification durability, host/robot reboot supervision and persistent authenticated rollout remain open. Root patched all 27 installed Moth Node client copies from the pinned source fork; strict TLS and signed ListLoops pass on real Node 6, with historical household preservation and guarded persistent file deployment. Full installation/migration and new patch reboot acceptance remain open. Root accepted a reusable private household snapshot staging utility after source review, preservation/conflict guards, injected write races, private wire/backup/reload comparison and 814 passing unit tests. It stages files without live deployment; full migration and R-02 remain open. Root deployed frozen d7934a6 with isolated workspace dependencies while retaining the private persistent store. Six service health checks, real profile/notification controls, household preservation and clock view/TTS/idle pass. Full installation, migration, crash and reboot acceptance remain open.
+Hermetic install harness at scripts/parity-r02-install/: clean install from HEAD with .env asserted absent, native and compose lanes both hermetic and ready, migration with backup/restore/rollback on temporary stores. The criterion-3 violation was real and is fixed as an opt-out: run-compose-stack.sh and docker-compose.yml both read this machine's .env, so a verification run inherited live LAN endpoints. The three contract failures the lane reported were the smoke check gone stale, not Phoenix defects -- two asserted a routed WS turn in an auth-disabled stack, which the ORIGINAL hub also refuses, and one used the pre-X-01 answer-skill envelope; all three now pass. Recorded scope reduction: original-database-fixture migration is SKIPPED because no restorable MongoDB dump exists in the archive; the JSON-store path is exercised instead.
 
 Done when:
 
@@ -1788,7 +1788,7 @@ Source: [Original Pegasus docker-compose.yml](https://pvindex.org/gitea/jiboV2/p
 
 Phoenix: [docker-compose.yml](../../docker-compose.yml); [scripts/run-compose-stack.sh](../../scripts/run-compose-stack.sh); [scripts/run-sim-stack.sh](../../scripts/run-sim-stack.sh); [README.md](../../README.md).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-17/r02-install/README.md](../../docs/parity/evidence/2026-09-17/r02-install/README.md) (2026-09-17; clean install from HEAD with no .env present); [docs/parity/evidence/2026-09-17/r02-install/README.md](../../docs/parity/evidence/2026-09-17/r02-install/README.md) (2026-09-17; isolated native and compose deployments, correct names/ports/readiness/shutdown); [docs/parity/evidence/2026-09-17/r02-install/README.md](../../docs/parity/evidence/2026-09-17/r02-install/README.md) (2026-09-17; the launcher's .env dependency, made opt-out); [docs/parity/evidence/2026-09-17/r02-install/README.md](../../docs/parity/evidence/2026-09-17/r02-install/README.md) (2026-09-17; migration, backup/restore and rollback on temporary stores); [docs/parity/evidence/2026-09-17/r02-install/README.md](../../docs/parity/evidence/2026-09-17/r02-install/README.md) (2026-09-17; the three contract failures were a stale check, and are fixed); [docs/parity/evidence/2026-09-17/r02-install/README.md](../../docs/parity/evidence/2026-09-17/r02-install/README.md) (2026-09-17; falsification of the harness and the contract check).
 
 - [x] Candidate implementation — **accepted**; Codex root.
 

@@ -4734,8 +4734,8 @@
       "track": "release",
       "phase": 5,
       "priority": "P0",
-      "status": "todo",
-      "implementation": "unverified",
+      "status": "verified",
+      "implementation": "complete",
       "owner": "Codex",
       "dependsOn": [
         "R-01",
@@ -4754,13 +4754,74 @@
         "scripts/run-sim-stack.sh",
         "README.md"
       ],
-      "finding": "The portable parser bundle installer and native/Compose startup have bounded reviewed evidence. Root has also integrated an authenticated development launcher at a8ee4bf, with 30 local TLS/token/upgrade/restart checks, 678 units, strict43 and a real Moth trial with verified rollback. Full installation/migration, history and notification durability, host/robot reboot supervision and persistent authenticated rollout remain open. Root patched all 27 installed Moth Node client copies from the pinned source fork; strict TLS and signed ListLoops pass on real Node 6, with historical household preservation and guarded persistent file deployment. Full installation/migration and new patch reboot acceptance remain open. Root accepted a reusable private household snapshot staging utility after source review, preservation/conflict guards, injected write races, private wire/backup/reload comparison and 814 passing unit tests. It stages files without live deployment; full migration and R-02 remain open. Root deployed frozen d7934a6 with isolated workspace dependencies while retaining the private persistent store. Six service health checks, real profile/notification controls, household preservation and clock view/TTS/idle pass. Full installation, migration, crash and reboot acceptance remain open.",
+      "finding": "Hermetic install harness at scripts/parity-r02-install/: clean install from HEAD with .env asserted absent, native and compose lanes both hermetic and ready, migration with backup/restore/rollback on temporary stores. The criterion-3 violation was real and is fixed as an opt-out: run-compose-stack.sh and docker-compose.yml both read this machine's .env, so a verification run inherited live LAN endpoints. The three contract failures the lane reported were the smoke check gone stale, not Phoenix defects -- two asserted a routed WS turn in an auth-disabled stack, which the ORIGINAL hub also refuses, and one used the pre-X-01 answer-skill envelope; all three now pass. Recorded scope reduction: original-database-fixture migration is SKIPPED because no restorable MongoDB dump exists in the archive; the JSON-store path is exercised instead.",
       "acceptance": [
         "Test a clean install and isolated native/compose deployments with correct service names, ports, configuration, startup/shutdown and readiness.",
         "Verify migration from the current Phoenix stores and, where available, original database fixtures with backup/restore and rollback.",
         "Make verification commands use temporary stores/test accounts and avoid depending on this machine's .env, siblings or live robot."
       ],
-      "verification": [],
+      "verification": [
+        {
+          "date": "2026-09-17",
+          "basis": "clean install from HEAD with no .env present",
+          "artifact": "docs/parity/evidence/2026-09-17/r02-install/README.md",
+          "result": "pass",
+          "notes": "HEAD exported to a temp tree, asserted `.env` absent, npm ci exit 0. env.absent=true is checked, not assumed; the admin face answering 503 (ADMIN_PASSWORD lives only in .env) is the same property proven from the other side.",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "704103a",
+          "command": "scripts/parity-r02-install/run.sh all --offset 200"
+        },
+        {
+          "date": "2026-09-17",
+          "basis": "isolated native and compose deployments, correct names/ports/readiness/shutdown",
+          "artifact": "docs/parity/evidence/2026-09-17/r02-install/README.md",
+          "result": "pass",
+          "notes": "Both lanes hermetic with a scrubbed environment and temp stores: readiness OK for all 13 services, per-service shutdown exit codes recorded, no named failure. Host ports are parametrised with the reference values as defaults so an ordinary `docker compose up` is unchanged while a verification run shifts off port 9013, which an unrelated browser-proxy container holds on this host.",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "704103a",
+          "command": "scripts/parity-r02-install/run.sh native --offset 200; scripts/parity-r02-install/run.sh compose --offset 200"
+        },
+        {
+          "date": "2026-09-17",
+          "basis": "the launcher's .env dependency, made opt-out",
+          "artifact": "docs/parity/evidence/2026-09-17/r02-install/README.md",
+          "result": "pass",
+          "notes": "R-02 criterion 3 was genuinely violated: run-compose-stack.sh sourced ./.env unconditionally and docker-compose.yml carried env_file .env, so a 'verification' run inherited live LAN endpoints (PARAKEET_URL, LLM_URL). Now --no-env / PHOENIX_ENV_FILE=/dev/null opt out, defaults unchanged, so existing use still works.",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "704103a",
+          "command": "bash scripts/run-compose-stack.sh --no-env"
+        },
+        {
+          "date": "2026-09-17",
+          "basis": "migration, backup/restore and rollback on temporary stores",
+          "artifact": "docs/parity/evidence/2026-09-17/r02-install/README.md",
+          "result": "pass",
+          "notes": "Fixture account/loop/robot seeded, service restarted over the same store and the data read back, backup taken, store mutated, restore verified to undo the mutation. One step SKIPPED and named in the receipt: original-db-fixtures, because the original account/loop data lived in MongoDB and no restorable dump exists in the Jibo archive. Recorded in the open rather than counted as a pass.",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "704103a",
+          "command": "scripts/parity-r02-install/run.sh migration"
+        },
+        {
+          "date": "2026-09-17",
+          "basis": "the three contract failures were a stale check, and are fixed",
+          "artifact": "docs/parity/evidence/2026-09-17/r02-install/README.md",
+          "result": "pass",
+          "notes": "Both lanes reported 23P/3F identically. Two were the WS turn: these lanes run disableAuth, and a CONTEXT cannot complete in that mode in Phoenix OR the original -- MessagePreProcessor builds its defaults unconditionally from socket.auth.id (reference MessagePreProcessor.ts:21). Proven by experiment: supplying accountID/robotID changes nothing. The third was the answer-skill POST using the pre-X-01 envelope without X-JIBO-transID; H-09 evidence dated 2026-09-10 recorded it passing, so it is an X-01 consequence dated 2026-09-16, not pre-existing. Check fixed: ALL PASS, 0 failures.",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "704103a",
+          "command": "PHOENIX_PORT_OFFSET=300 node scripts/verify-compose-contract.mjs"
+        },
+        {
+          "date": "2026-09-17",
+          "basis": "falsification of the harness and the contract check",
+          "artifact": "docs/parity/evidence/2026-09-17/r02-install/README.md",
+          "result": "pass",
+          "notes": "Contract check pointed at empty ports reports 19 failures. An answer-skill on the ordinary profile answers a SEQUENCE where GQA answers a SLIM, so the GQA assertion is pinned rather than passing on any JSON. S-06 re-checked after teardown: 11 files, 4/4 -- the generated registry lives in the temp clean tree, never the working copy, and offsetRegistryLeftovers() asserts it is not left behind.",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "704103a",
+          "command": "PHOENIX_PORT_OFFSET=900 node scripts/verify-compose-contract.mjs; node --test packages/gateway/test/manifestProvenance.test.js"
+        }
+      ],
       "implementationReview": {
         "state": "accepted",
         "assignee": "Codex root",
