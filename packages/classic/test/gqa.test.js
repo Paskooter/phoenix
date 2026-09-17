@@ -324,3 +324,25 @@ test('two Classic registrations keep their resolved JSON type sets independent',
     await new Promise((resolve, reject) => service.server.close((error) => error ? reject(error) : resolve()));
   }
 });
+
+// The shipping phone app sends `GQA_20160930s.ListAttribution` — with a trailing
+// `s` the pinned client's own targetPrefix (`GQA_20160930`) does not have.
+// Observed live on 2026-09-17 against the real app: Phoenix answered
+// `classic: no service for target`, because GQA was registered
+// `/^gqa_20160930$/i` while every other service in that table uses an unanchored
+// prefix. It was the only anchored entry, so it was the only one that could miss
+// a version suffix, and the visible effect was that answer history never loaded.
+test('the GQA route matches the version suffix the real app sends', async () => {
+  const { readFileSync } = await import('node:fs');
+  const source = readFileSync(new URL('../src/index.js', import.meta.url), 'utf8');
+  const line = source.split('\n').find((l) => l.includes('makeGqaHandler(gqa'));
+  assert.ok(line, 'the GQA registration must exist');
+  const pattern = /match: \/([^/]+)\/i/.exec(line);
+  assert.ok(pattern, `could not read the GQA match pattern from: ${line.trim()}`);
+  const re = new RegExp(pattern[1], 'i');
+
+  assert.ok(re.test('GQA_20160930'), 'must still match the pinned client targetPrefix');
+  assert.ok(re.test('GQA_20160930s'), 'must match the suffix the shipping app sends');
+  assert.ok(re.test('gqa_20160930S'), 'the router compares case-insensitively');
+  assert.ok(!re.test('GQAX_20160930'), 'must not match an unrelated service');
+});

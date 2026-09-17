@@ -148,6 +148,17 @@ export async function startAuthenticatedRobotStack({
     }
     // Open the actual service implementations, then bind their real addresses
     // into the downstream clients before importing/creating the Hub.
+    // OTA is not optional for a robot that has just completed OOBE. The classic
+    // entrypoint proxies every Update_* target to it (classic/src/index.js:
+    // `{ match: /^update/i, proxyTo: () => netUrl('ota', DefaultPort.ota) }`), and
+    // with nothing listening the robot's post-setup update check hits a dead proxy
+    // and sits on "updating operating system" forever. Observed on Aero, 2026-09-17,
+    // immediately after a real app-driven pairing.
+    //
+    // Offering nothing is the correct answer here and is what the catalog decides:
+    // _applicable() refuses any entry whose toVersion equals the robot's version and
+    // only offers a `*` entry to an OLDER robot, so a robot at 13.0.0 gets
+    // UPDATE_NOT_FOUND rather than a pointless 574 MB re-flash of what it is running.
     for (const [name, offset] of [['nlu', 5], ['history', 6], ['data', 7], ['skills', 3]]) {
       const module = await import(`../../packages/${name}/src/index.js`);
       const server = await module.start(choosePort(offset));
@@ -156,6 +167,34 @@ export async function startAuthenticatedRobotStack({
       endpoints[netName] = server.address().port;
       process.env[`NET_${netName}`] = `127.0.0.1:${endpoints[netName]}`;
     }
+    // OTA does not fit the loop above: its start() takes an OPTIONS OBJECT
+    // (`{port}`), not a port number, and resolves to {svc, catalog} rather than a
+    // server — passing a number silently lands it on its own default port with no
+    // NET_ota set, which is worse than not starting it.
+    //
+    // dataDir is pinned to the MAIN checkout: the packages are hundreds of
+    // megabytes and gitignored, so they exist only there, and this stack runs from
+    // a separate deploy worktree whose packages/ota/data is empty.
+    {
+      const otaPort = choosePort(10);
+      if (otaPort) {
+        const ota = await import('../../packages/ota/src/index.js');
+        // packages/ota/data holds hundreds of megabytes of update tars and is
+        // gitignored, so it exists only where it was built. This stack runs from a
+        // deploy worktree whose copy is empty, and resolving relative to this file
+        // finds that empty one — the catalog then loads with `available: 0` and
+        // quietly serves UPDATE_NOT_FOUND to every robot, including ones that
+        // genuinely need an update. Point ETCO_ota_dataDir at the built directory.
+        const { svc } = await ota.start({
+          port: otaPort,
+          ...(process.env.ETCO_ota_dataDir ? { dataDir: process.env.ETCO_ota_dataDir } : {}),
+        });
+        servers.push(svc.server);
+        endpoints.ota = otaPort;
+        process.env.NET_ota = `127.0.0.1:${otaPort}`;
+      }
+    }
+
     const { createAccountService, Store } = await import('../../packages/account/src/index.js');
     // Account and Classic share one Store instance in this colocated
     // development profile. The outbox is constructed without a publisher so
