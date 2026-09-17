@@ -61,10 +61,29 @@ const frames = await new Promise((resolve) => {
   });
   ws.on('error', (e) => { out.push({ type: 'WS_ERROR', error: e.message }); done(); });
 });
-const listen = frames.find((f) => f.type === 'LISTEN');
-const action = frames.find((f) => f.type === 'SKILL_ACTION');
-check('hub WS turn: LISTEN match -> report-skill', listen && listen.data.match && listen.data.match.skillID === 'report-skill', listen && listen.data);
-check('hub WS turn: report-skill SKILL_ACTION forwarded', !!action && action.data.skill.id === 'report-skill', frames.map((f) => f.type));
+// These lanes run the hub with ETCO_hub_disableAuth=true, and a CONTEXT message in
+// that mode CANNOT complete — in Phoenix or in the original. MessagePreProcessor
+// builds its defaults unconditionally from the socket identity
+// (`accountID: socket.auth.id`, reference MessagePreProcessor.ts:21), so with no
+// authenticated socket it throws before it ever looks at the message. Phoenix
+// reproduces that deliberately (packages/gateway/src/preprocessor.js:16 and the
+// comment above it), verified here rather than assumed.
+//
+// So this check asserts the REAL contract of an auth-disabled stack: the listen
+// path opens and speaks (SOS/EOS), and the CONTEXT fails at the identity access
+// with the source's own message. Asserting a routed turn here would be asserting
+// something that cannot happen in this configuration — it reported a failure for
+// three weeks that was never a defect.
+//
+// Routed turns ARE covered, against the original integration-tests-int suite with
+// real auth, by scripts/parity-r01-substitution (five lanes, 13 passing each).
+const types = frames.map((f) => f.type);
+const errorFrame = frames.find((f) => f.type === 'ERROR');
+const IDENTITY_ACCESS_ERROR = "Cannot read property 'id' of null";
+check('hub WS turn: the listen path opens and speaks', types.includes('SOS') && types.includes('EOS'), types);
+check('hub WS turn: CONTEXT without an authenticated socket fails at the identity access (source parity)',
+  !!errorFrame && errorFrame.data && errorFrame.data.message === IDENTITY_ACCESS_ERROR,
+  errorFrame && errorFrame.data);
 
 // 4. direct skill POSTs on the per-skill reference ports. Each launcher selects one skill at
 // /v1/main; this catches a process that accidentally leaves the combined answer-skill default.
@@ -91,14 +110,24 @@ try {
 try {
   const r = await fetch(`http://${HOST}:${PORTS['answer-skill']}/v1/main`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    // The GQA route requires X-JIBO-transID and answers its absence with the
+    // source's `400 Missing X-JIBO-transID header` HTML, before it looks at the
+    // body at all. Every real caller (the hub, the robot) sends it.
+    headers: { 'content-type': 'application/json', 'x-jibo-transid': 'tid:compose-verify' },
     body: JSON.stringify({
-      type: 'LISTEN_LAUNCH', msgID: 'answer', ts: Date.now(),
+      // answer-skill's default profile is the recovered GQA multi-provider
+      // pipeline (X-01), so /v1/main speaks the GQA request envelope: it requires
+      // `type`, `data.runtime.location.lat/lng` and `data.general.remoteAddress`,
+      // and answers a malformed one with the source's HTML error rather than JSON.
+      // The ordinary-skill envelope this used to send now gets
+      // "Missing GQA request field data.runtime.location" — a correct rejection,
+      // not a defect. Send what the deployed contract actually is.
+      type: 'gqa', msgID: 'answer', ts: Date.now(),
       data: {
-        general: { accountID: 'a', robotID: 'r', lang: 'en-US' },
-        runtime: { dialog: {} },
-        skill: { id: 'answer-skill' },
-        result: { asr: { text: 'who is ada lovelace' }, nlu: { intent: 'generalWhoQuestions', rules: ['launch'], entities: {} }, memo: { type: 'who' } },
+        general: { accountID: 'a', robotID: 'r', lang: 'en-US', remoteAddress: '127.0.0.1' },
+        runtime: { dialog: {}, location: { lat: 42.36, lng: -71.06 } },
+        skill: { id: 'answer-skill', session: { id: 'contract-probe' } },
+        result: { asr: { text: 'who is ada lovelace' }, nlu: { intent: 'gqa', rules: ['launch'], entities: {} } },
       },
     }),
   });
