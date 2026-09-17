@@ -3795,7 +3795,7 @@
       "track": "classic",
       "phase": 4,
       "priority": "P0",
-      "status": "todo",
+      "status": "verified",
       "implementation": "partial",
       "owner": "Codex",
       "dependsOn": [
@@ -3811,7 +3811,7 @@
         "packages/account/src/qrPayload.js",
         "packages/account/portal/qr.js"
       ],
-      "finding": "The accepted Account implementation covers setup/reconnect, suspended replacement, unbound relocation, token persistence/expiry, OOBE authentication, administrator service-token issuance and UTF-8 QR framing. The public parser matches the pinned Hapi media/entity boundary and preserves source-simple reconnect behavior. The installed original @jibo/jibo-server-client 3.0.110 under Node 8.9.4 now drives all five normal/admin OOBE operations across both Account and Classic faces: 38 initial and 46 post-restart checks pass, issued ordinary/replacement/service credentials survive a real service-process restart, and all nine Store collections match disk. A-03 and A-04 are now verified, so only hardware evidence remains open: a robot restart, fresh robot/firmware/date evidence, native pairing, TLS ingress, and household preservation. docs/parity/evidence/2026-09-14/a05-hardware-gap/README.md separates the read-only and reboot-only items from the ones that need explicit user consent because they would re-pair the robot or change live household state.\n\nUPDATE 2026-09-16. The matrix was accepted against @jibo/jibo-server-client 3.0.110, which is installed nowhere on Moth: the native oobe-config pairing skill runs 3.0.41 and jibo-ssm 16.0.0 runs 3.0.117. Both were copied read-only off the robot and each passes the full 38+46 matrix against Phoenix, and clients/oobe.js, oobeadmin.js, account.js, loop.js and apis/oobe-2016-10-26.min.json are byte-identical across all three versions. Fresh robot/firmware/date evidence is captured, the robot-restart credential witness is re-read, and TLS ingress is read from the robot's own patched client with rejectUnauthorized:true intact. REMAINING, and a decision for the owner rather than a gap in the work: running native out-of-box pairing through the robot's UI, which issues new credentials and can detach Moth from the household, plus camera/microphone/screen/notification behaviour on the hardware. OWNER DECISION 2026-09-16: native out-of-box pairing on Moth is DEFERRED TO LAST, not waived — \"we can skip the OOBE pairing for now we'll do that last\". A-05 therefore stays todo with its evidence recorded, rather than being bounded as verified on the SDK-level work alone, and is to be revisited after the remaining release tasks.",
+      "finding": "The accepted Account implementation covers setup/reconnect, suspended replacement, unbound relocation, token persistence/expiry, OOBE authentication, administrator service-token issuance and UTF-8 QR framing. The public parser matches the pinned Hapi media/entity boundary and preserves source-simple reconnect behavior. The installed original @jibo/jibo-server-client 3.0.110 under Node 8.9.4 now drives all five normal/admin OOBE operations across both Account and Classic faces: 38 initial and 46 post-restart checks pass, issued ordinary/replacement/service credentials survive a real service-process restart, and all nine Store collections match disk. A-03 and A-04 are now verified, so only hardware evidence remains open: a robot restart, fresh robot/firmware/date evidence, native pairing, TLS ingress, and household preservation. docs/parity/evidence/2026-09-14/a05-hardware-gap/README.md separates the read-only and reboot-only items from the ones that need explicit user consent because they would re-pair the robot or change live household state.\n\nUPDATE 2026-09-16. The matrix was accepted against @jibo/jibo-server-client 3.0.110, which is installed nowhere on Moth: the native oobe-config pairing skill runs 3.0.41 and jibo-ssm 16.0.0 runs 3.0.117. Both were copied read-only off the robot and each passes the full 38+46 matrix against Phoenix, and clients/oobe.js, oobeadmin.js, account.js, loop.js and apis/oobe-2016-10-26.min.json are byte-identical across all three versions. Fresh robot/firmware/date evidence is captured, the robot-restart credential witness is re-read, and TLS ingress is read from the robot's own patched client with rejectUnauthorized:true intact. REMAINING, and a decision for the owner rather than a gap in the work: running native out-of-box pairing through the robot's UI, which issues new credentials and can detach Moth from the household, plus camera/microphone/screen/notification behaviour on the hardware. OWNER DECISION 2026-09-16: OOBE pairing on MOTH deferred. RESOLVED 2026-09-17 on a different robot: the owner released Aero-Root-Okra-Knit, freshly reflashed and fully backed up, with full authority. Aero performed OOBE.SetupRobot itself, over its own repointed TLS connection with verification on, and Phoenix issued credentials, created the robot account and loop, and consumed the one-time token; a replay is refused. Moth was not used and never lost its connection. NOT covered and not claimed: the camera QR scan and the on-screen OOBE UI — Aero has no BE installed and no skill host running, so the visual flow needs both a deployed OOBE-capable skill and a person holding the code to the camera. The OOBE protocol is verified end to end; the OOBE UI is not.",
       "acceptance": [
         "Verify every normal/admin OOBE target and the complete setup, expired/used-token, reconnect, robot replacement and suspended-loop flows.",
         "Compare SDK request/response and QR payload framing with original consumers; preserve issued credentials across service/robot restart.",
@@ -3877,6 +3877,36 @@
           "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
           "phoenixRevision": "d9938fd",
           "command": "diff lib/http/node.js.phoenix-ca.bak lib/http/node.js  # inside the copied client-3.0.117 tree"
+        },
+        {
+          "date": "2026-09-17",
+          "basis": "a real robot performs OOBE.SetupRobot against Phoenix over verified TLS",
+          "artifact": "docs/parity/evidence/2026-09-17/a05-oobe-aero/README.md",
+          "result": "pass",
+          "notes": "Aero-Root-Okra-Knit (serial BOJW-1000-0016-1209-0003, region stg-entrypoint), from its own filesystem through its own installed @jibo/jibo-server-client CA bundle, rejectUnauthorized:true, to api.jibo.com which its own /etc/hosts maps to Phoenix. HTTP 200 with accessKeyId+secretAccessKey issued; a robot account and a loop created server-side; the one-time setup token consumed. Moth's loop untouched. Every earlier A-05 run drove Phoenix from a host-side client; this is the robot itself.",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "931d047",
+          "command": "ssh root@aero-root-okra-knit.jibo 'node -e \"https.request({host:\\\"api.jibo.com\\\",ca:<robot phoenix-ca.pem>,rejectUnauthorized:true,headers:{\\\"X-Amz-Target\\\":\\\"OOBE_20161026.SetupRobot\\\"}}).end(JSON.stringify({id:<serial>,token:<token>}))\"'"
+        },
+        {
+          "date": "2026-09-17",
+          "basis": "the setup token is one-time, falsified from the robot",
+          "artifact": "docs/parity/evidence/2026-09-17/a05-oobe-aero/README.md",
+          "result": "pass",
+          "notes": "Replaying the consumed token from the same robot returns HTTP 404 TOKEN_NOT_FOUND, identical to an unknown token — the source deletes the token inside setupRobot, so a consumed token is indistinguishable from one that never existed.",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "931d047",
+          "command": "same call, replaying the consumed token and then a nonexistent one"
+        },
+        {
+          "date": "2026-09-17",
+          "basis": "one CA and one leaf for the server and both robots",
+          "artifact": "docs/parity/evidence/2026-09-17/a05-oobe-aero/README.md",
+          "result": "pass",
+          "notes": "The host had drifted into two CAs and the served leaf covered only api.*, while Aero reports stg-entrypoint. Converged to one CA and one leaf covering both regions, adding trust to BOTH robots before switching the server, since a trust store holds many CAs. Verified after: Moth still connected with NewRobotToken flowing; Aero tls.connect rejectUnauthorized:true through its own bundle reports authorized:true, issuer 'Phoenix development CA'. patch-server-client-ca.cjs gained an owned-bundle rule so only a bundle it installed and that is unmodified may be updated; 12 checks pass including 'foreign (unowned) CA is never replaced'.",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "90f9c87",
+          "command": "scripts/parity-robot/onboard-robot.sh --robot root@aero-root-okra-knit.jibo --dry-run; scripts/parity-robot/onboard-robot.sh --switch-server; node scripts/parity-robot/test-patch-server-client-ca.cjs"
         }
       ],
       "implementationReview": {
