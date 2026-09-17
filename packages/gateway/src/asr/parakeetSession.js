@@ -59,6 +59,27 @@ const VAD_WINDOW_BYTES = (BYTES_PER_SEC * VAD_WINDOW_MS) / 1000;
 const SPEECH_RMS_THRESHOLD = 400;
 const SPEECH_MIN_MS = 150;
 const SILENCE_TO_EOS_MS = 700;
+
+// Adaptive endpointing.
+//
+// The reference cloud never endpointed locally: Google's recognizer reported
+// END_OF_SINGLE_UTTERANCE itself (GoogleASRSession.ts:106).  Parakeet is a batch
+// recognizer, so this session has to decide end-of-speech on its own, and a bare
+// `rms > 400` gate is wrong in any room whose noise floor approaches 400 -- a
+// single 10 ms window above the line resets the whole silence run, so the 700 ms
+// EOS is never reached and the robot streams until its own max-speech cap.
+// Measured on a real robot: floor p25 260-280, median 310-340, and turns of 12,
+// 16 and 19.45 s for a two-second question.
+//
+// Two corrections, both no-ops on clean audio (a floor near zero keeps the
+// effective threshold at exactly SPEECH_RMS_THRESHOLD):
+//   * track the room's noise floor and lift the speech gate above it;
+//   * require a sustained burst to re-open speech, so one noisy window no longer
+//     discards an otherwise-quiet run.
+const NOISE_FLOOR_MARGIN = Number(process.env.PHOENIX_ASR_NOISE_MARGIN || 1.8);
+const NOISE_FLOOR_ATTACK = 0.05;   // EMA weight while the floor is rising
+const NOISE_FLOOR_DECAY = 0.25;    // faster when it drops, so a quiet room recovers
+const SPEECH_DEBOUNCE_MS = 30;     // consecutive ms over the gate before speech resumes
 const MAX_BUFFER_MS = 30000;
 const MAX_BUFFER_BYTES = (BYTES_PER_SEC * MAX_BUFFER_MS) / 1000;
 
@@ -118,6 +139,8 @@ export class ParakeetASRSession {
     this.silenceBytes = 0;
     this.state = 'WAITING';
 
+    this.noiseFloor = null;      // EMA of non-speech window RMS, null until measured
+    this.speechRunMs = 0;        // consecutive ms currently over the gate
     this.sosFired = false;
     this.eosFired = false;
     this.eosEmitted = false;
@@ -262,9 +285,37 @@ export class ParakeetASRSession {
     this._appendAcceptedPcm(pcm.subarray(0, remaining));
   }
 
+  /**
+   * The speech gate for the current room: never below the reference constant,
+   * and lifted clear of the measured noise floor when that floor runs hot.
+   */
+  _speechGate() {
+    if (this.noiseFloor === null) return SPEECH_RMS_THRESHOLD;
+    return Math.max(SPEECH_RMS_THRESHOLD, this.noiseFloor * NOISE_FLOOR_MARGIN);
+  }
+
+  _trackNoiseFloor(rms) {
+    if (this.noiseFloor === null) { this.noiseFloor = rms; return; }
+    const alpha = rms > this.noiseFloor ? NOISE_FLOOR_ATTACK : NOISE_FLOOR_DECAY;
+    this.noiseFloor += alpha * (rms - this.noiseFloor);
+  }
+
   _consumeVadWindow(window) {
     const rms = ParakeetASRSession.computeRMS(window);
-    if (rms > SPEECH_RMS_THRESHOLD) {
+    const gate = this._speechGate();
+    if (rms <= gate) {
+      // Only windows the gate calls silence feed the floor estimate, so speech
+      // can never drag the gate up after itself.
+      this._trackNoiseFloor(rms);
+      this.speechRunMs = 0;
+    } else {
+      this.speechRunMs += VAD_WINDOW_MS;
+    }
+    // A burst shorter than the debounce is noise, not the speaker resuming: it
+    // must not discard a silence run that is on its way to the EOS threshold.
+    const isSpeech = rms > gate
+      && (this.speechRunMs >= SPEECH_DEBOUNCE_MS || this.state === 'SPEAKING');
+    if (isSpeech) {
       this.speechBytes += window.length;
       this.silenceBytes = 0;
       if (!this.sosFired && bytesToMs(this.speechBytes) >= SPEECH_MIN_MS) {
