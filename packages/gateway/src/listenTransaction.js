@@ -168,7 +168,18 @@ export class ListenTransaction {
     // CONTEXT is preprocessed (identity defaults + validation) before dispatch.
     try {
       if (json.type === RequestType.CONTEXT) preprocessContext(json, this.auth, this.socket._remoteAddress);
-    } catch (err) { return this.reject(err); }
+    } catch (err) {
+      // A CONTEXT the preprocessor rejects is almost always shaped wrong rather
+      // than merely wrong-valued.  Report the shape -- key names and types only,
+      // never the values, which carry loop member names and household data.
+      if (json && json.type === RequestType.CONTEXT) {
+        const shape = (o) => (o && typeof o === 'object'
+          ? Object.fromEntries(Object.keys(o).map((k) => [k, Array.isArray(o[k]) ? `array[${o[k].length}]` : o[k] === null ? 'null' : typeof o[k]]))
+          : typeof o);
+        this.log.error('CONTEXT rejected', { reason: err.message, dataKeys: shape(json.data) });
+      }
+      return this.reject(err);
+    }
     this._handleJSON(json).catch((err) => this.reject(err));
   }
 
