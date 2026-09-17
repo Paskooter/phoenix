@@ -1,5 +1,7 @@
 import { spawn } from 'node:child_process';
 import { EventEmitter } from 'node:events';
+import fs from 'node:fs';
+import path from 'node:path';
 import { FLACDecoder } from '@wasm-audio-decoders/flac';
 
 export const AUDIO_ENCODINGS = Object.freeze({
@@ -14,6 +16,26 @@ const MAX_PENDING_INPUT_BYTES = 2 * 1024 * 1024;
 const MAX_STDERR_BYTES = 16 * 1024;
 const MAX_FLAC_OUTPUT_BYTES = 4 * 1024 * 1024;
 const MAX_OGG_PAGE_BYTES = 27 + 255 + (255 * 255);
+
+/**
+ * Diagnostic tee.  `PHOENIX_ASR_CAPTURE_DIR` writes the exact encoded bytes a
+ * client streamed for one turn to disk so a decode failure can be replayed
+ * offline.  It is off unless the variable is set, and every failure here is
+ * swallowed: capture must never affect a live turn.
+ */
+let captureSeq = 0;
+function openCapture(encoding) {
+  const dir = process.env.PHOENIX_ASR_CAPTURE_DIR;
+  if (!dir) return null;
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+    const ext = encoding === AUDIO_ENCODINGS.OGG_OPUS ? 'ogg' : encoding === AUDIO_ENCODINGS.FLAC ? 'flac' : 'raw';
+    const file = path.join(dir, `asr-${Date.now()}-${process.pid}-${captureSeq++}.${ext}`);
+    return { file, fd: fs.openSync(file, 'w'), bytes: 0 };
+  } catch {
+    return null;
+  }
+}
 
 export class AudioFormatError extends Error {
   constructor(message, code = 'ERR_AUDIO_FORMAT') {
@@ -204,6 +226,7 @@ export class StreamingAudioDecoder extends EventEmitter {
     this.oggBuffer = Buffer.alloc(0);
     this.oggPages = 0;
     this.oggSawEos = false;
+    this.capture = openCapture(this.encoding);
     this.flacBuffer = Buffer.alloc(0);
     this.flacMetadata = null;
     this.flacSawFrame = false;
@@ -303,7 +326,14 @@ export class StreamingAudioDecoder extends EventEmitter {
         this._settleFinishSuccess();
         this.emit('finish');
       } else {
-        this._fail(new AudioDecodeError('Audio decoder ended before ASR end-of-speech'));
+        // The decoder exited cleanly while the turn was still open.  For Ogg
+        // that means the client terminated its logical bitstream with an EOS
+        // page mid-turn (a chained stream), so record what the page parser saw
+        // — the counters separate "client hung up" from "client chained".
+        const diag = this.encoding === AUDIO_ENCODINGS.OGG_OPUS
+          ? ` (oggPages=${this.oggPages}, oggSawEos=${this.oggSawEos}, pendingBytes=${this.oggBuffer.length}, decodedBytes=${this.decodedBytes})`
+          : ` (decodedBytes=${this.decodedBytes})`;
+        this._fail(new AudioDecodeError(`Audio decoder ended before ASR end-of-speech${diag}`));
       }
     });
     this._flush();
@@ -327,6 +357,7 @@ export class StreamingAudioDecoder extends EventEmitter {
     if (this.closing || this.failed || this.inputEnded) return false;
     if (!Buffer.isBuffer(chunk)) throw new AudioFormatError('ASR audio frames must be Buffers');
     if (chunk.length === 0) return true;
+    this._capture(chunk);
     if (this.encoding === AUDIO_ENCODINGS.FLAC) return this._writeFlac(chunk);
     if (this.queuedBytes + chunk.length > MAX_PENDING_INPUT_BYTES) {
       const err = new AudioDecodeError(`Audio decoder input queue exceeded ${MAX_PENDING_INPUT_BYTES} bytes`);
@@ -604,6 +635,26 @@ export class StreamingAudioDecoder extends EventEmitter {
     ready.then(() => decoder.free()).catch(() => {});
   }
 
+  _capture(chunk) {
+    if (!this.capture) return;
+    try {
+      fs.writeSync(this.capture.fd, chunk);
+      this.capture.bytes += chunk.length;
+    } catch {
+      this.capture = null;
+    }
+  }
+
+  _closeCapture(outcome) {
+    const cap = this.capture;
+    if (!cap) return;
+    this.capture = null;
+    try {
+      fs.closeSync(cap.fd);
+      this.log?.warn?.({ file: cap.file, bytes: cap.bytes, outcome }, 'ASR audio capture written');
+    } catch {}
+  }
+
   _flush() {
     const stdin = this.child?.stdin;
     if (!stdin || stdin.destroyed || this.waitingDrain || this.failed || this.closing) return;
@@ -625,6 +676,7 @@ export class StreamingAudioDecoder extends EventEmitter {
   _fail(err) {
     if (this.failed || this.closing) return;
     this.failed = true;
+    this._closeCapture(`failed: ${err?.message || err}`);
     const wrapped = err instanceof AudioDecodeError || err instanceof AudioFormatError
       ? err
       : new AudioDecodeError(err?.message || String(err), err);
@@ -640,6 +692,7 @@ export class StreamingAudioDecoder extends EventEmitter {
   }
 
   _settleFinishSuccess() {
+    this._closeCapture('ok');
     const resolve = this.finishResolve;
     this.finishResolve = null;
     this.finishReject = null;
