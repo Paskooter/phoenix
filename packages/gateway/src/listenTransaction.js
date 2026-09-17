@@ -176,7 +176,14 @@ export class ListenTransaction {
         const shape = (o) => (o && typeof o === 'object'
           ? Object.fromEntries(Object.keys(o).map((k) => [k, Array.isArray(o[k]) ? `array[${o[k].length}]` : o[k] === null ? 'null' : typeof o[k]]))
           : typeof o);
-        this.log.error('CONTEXT rejected', { reason: err.message, dataKeys: shape(json.data) });
+        this.log.error('CONTEXT rejected', {
+          reason: err.message,
+          dataKeys: shape(json.data),
+          // Ground truth for which robot this is: the transId's uuid-v1 node
+          // field is only an inference about the sender.
+          remote: this.socket && this.socket._remoteAddress,
+          robotID: json.data && json.data.general && json.data.general.robotID,
+        });
       }
       return this.reject(err);
     }
