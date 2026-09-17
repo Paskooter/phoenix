@@ -112,3 +112,99 @@ ssh root@aero-root-okra-knit.jibo 'node -e "
     headers:{\"X-Amz-Target\":\"OOBE_20161026.SetupRobot\"}},…)
   .end(JSON.stringify({id: <serial>, token: <token>}))"'
 ```
+
+---
+
+# The camera and UI half, closed: a real phone app paired a real robot
+
+Same day, later. The section above deliberately did **not** claim the camera QR
+scan or the on-screen OOBE flow, because they need a person and an OOBE-capable
+skill. The owner supplied both — their phone app, configured against this same
+Phoenix server. This records what happened, including the things that broke.
+
+## The flow, end to end
+
+**Robot** (`oobe-config`, the out-of-box skill — see "BE is not an OOBE build"
+below):
+
+```
+OOBE-CONFIG: Server set to stg-entrypoint
+OOBE-CONFIG: Display Logo, then QR Prompt
+OOBE-CONFIG: Number of QR Codes scanned: 1
+OOBE-CONFIG: QR codes scanned in 22.09 seconds
+OOBE-CONFIG: Successfully retrieved account by access token
+OOBE-CONFIG: Successfully retrieved and saved robot credentials
+OOBE-CONFIG: Fully connected after 7.85 seconds
+```
+
+**Server**, in order: `OOBE_20161026.PrepareRobot` (the app minting the setup
+token), ~20 × `OOBE_20161026.GetStatus` polling over about 40 seconds, then
+`OOBE_20161026.SetupRobot` the moment the robot's camera read the code.
+
+**Result**: robot account `Aero-Root-Okra-Knit` active with keys, a new loop
+`dfb820876a7f6e99c6e60c1f` with 2 members, the one-time token consumed, and
+Moth's loop untouched. The robot's credential digest changed from `4c38c90e…`
+to `354f9cec…`, so they were genuinely reissued.
+
+**Credentials survive a restart.** Forced reboot, boot id
+`5fbce08e…` → `c499f7d3…`, credential digest `354f9cec…` unchanged. That is
+A-05's "preserve issued credentials across robot restart" clause, on a robot
+paired minutes earlier by the app rather than by a script.
+
+**And the robot works.** After the reboot it drives the Classic surface on its
+own: `Backup_20170222.List`, `Key_20160201.ShouldCreate`, `Loop_20160324.ListLoops`,
+`Notification_20150505.NewRobotToken`, `Person_20160801.ListHolidays`,
+`Media_20160725.List`, `Account_20151111.Get`.
+
+## Four defects this found, none of which a host-side test could
+
+**1. The robot stack never started the OTA service.** The classic entrypoint
+proxies every `Update_*` target to it; with nothing listening, a robot that has
+just finished setup runs its update check against a dead proxy and sits on
+"updating operating system" indefinitely. That is exactly what happened. Fixed
+in `authenticated-stack.mjs`.
+
+Two corrections were needed along the way, both worth recording because each was
+briefly *worse* than the original bug:
+ * adding `ota` to the service loop broke stack startup — its `start()` takes an
+   options object, not a port, and resolves to `{svc, catalog}` rather than a
+   server, so it landed on its own default port with no `NET_ota` and the stack
+   came up `ready:false`;
+ * resolving `dataDir` relative to the launcher found the **deploy worktree's**
+   empty `packages/ota/data` (the tars are gitignored and exist only in the main
+   checkout), giving `available: 0` — which would have served `UPDATE_NOT_FOUND`
+   to every robot including ones that genuinely needed updating, and would have
+   looked correct for the robot under test. Now an explicit `ETCO_ota_dataDir`.
+
+Verified after: `available: 2`; a robot at 12.0.0 is offered `os-13.0.0`, and one
+at 13.0.0 gets `UPDATE_NOT_FOUND`.
+
+**2. `GQA_20160930s.ListAttribution` was unroutable.** The shipping app sends a
+trailing `s` the pinned client's own `targetPrefix` does not have. GQA was
+registered `/^gqa_20160930$/i` — the only anchored entry in a table where every
+other service uses an unanchored prefix, so the only one that could miss a
+version suffix. Phoenix answered `no service for target`, and answer history
+never loaded in the app. Unanchored; falsified by restoring the `$`.
+
+**3. BE 11.0.1 is not an OOBE-capable build.** Started on an unprovisioned robot
+it loops on `Skills config load error … first time: true, has backup data: null`
+and never leaves the logo screen. `oobe-config` is the skill that runs the
+out-of-box flow. After pairing, BE loads fully (`Jibo is ready... awaiting launch
+command`). The order for a factory robot is: repoint → unprovision → run
+`oobe-config` → pair from the app → reboot → run BE.
+
+**4. The dev shell's `POST /reboot` does not reboot.** It answers "Rebooting…"
+and the robot stays up — `uptime` was 22:34 afterwards. Same trap the 2026-09-15
+Moth restart recorded: busybox `reboot` signals init and init ignores it. Use
+`sync; sync; /sbin/reboot -f` and verify with `/proc/sys/kernel/random/boot_id`,
+never with "did SSH come back".
+
+## One more thing the reboot fixed
+
+Between pairing and rebooting, BE looped on
+`error when checking if backup data exists … {"status":"error","message":"LoopID is not cached"}`.
+That is the robot's own local cache, populated at service start — and its
+services had started before it had any credentials, so the cache was empty and
+never refilled. The reboot repopulated it and `Backup_20170222.List` has
+succeeded since. Worth knowing: a robot needs a restart after OOBE before its
+local caches reflect the new identity.
