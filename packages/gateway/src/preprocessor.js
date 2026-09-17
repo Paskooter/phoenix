@@ -22,8 +22,14 @@ export function preprocessContext(message, auth, remoteAddress) {
   const data = readLegacyProperty(message, 'data');
   data.general = Object.assign({}, defaults, readLegacyProperty(data, 'general'));
 
-  const runtime = readLegacyProperty(data, 'runtime');
-  const loop = readLegacyProperty(runtime, 'loop');
+  // Deliberate compatibility divergence: MessagePreProcessor.ts at the pinned
+  // Pegasus revision reads `message.data.runtime.loop` unguarded. Captured
+  // robot CONTEXTs can carry only general; absent runtime has no names to trim.
+  // Preserve runtime as received and still validate authenticated identity.
+  // This avoids the preprocessing failure, not the need for a running BE.
+  const runtime = data.runtime;
+  const missingRuntime = !Array.isArray(data) && (runtime === undefined || runtime === null);
+  const loop = missingRuntime ? undefined : readLegacyProperty(runtime, 'loop');
   if (loop && loop.users) {
     const users = loop.users;
     const forEach = readLegacyProperty(users, 'forEach');

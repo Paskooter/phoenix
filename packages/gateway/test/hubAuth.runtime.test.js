@@ -176,6 +176,29 @@ test('listen: general defaults are filled from the authenticated socket, not the
   });
 });
 
+test('listen: absent runtime reaches a terminal result without weakening identity checks', async () => {
+  await withGateway({}, async (port) => {
+    for (const runtime of [undefined, null]) {
+      const data = runtime === undefined ? { general: {} } : { general: {}, runtime };
+      const messages = await drive(port, '/listen', [
+        listenNlu,
+        { type: 'CONTEXT', data },
+        nluNoMatch,
+      ]);
+      assert.deepEqual(messages.map((m) => m.type), ['SOS', 'EOS', 'LISTEN']);
+      assert.equal(messages.at(-1).final, true);
+      assert.equal(messages.at(-1).data.match, null);
+      for (const [field, value] of [['accountID', 'acct-B'], ['robotID', 'robot-B']]) {
+        const rejected = await drive(port, '/listen', [
+          { type: 'CONTEXT', data: { ...data, general: { [field]: value } } },
+        ]);
+        assert.equal(rejected.length, 1);
+        assertErrorFrame(rejected[0], `data.general.${field} is not equal to socket ${field}`);
+      }
+    }
+  });
+});
+
 // --- upgrade-time authentication ---------------------------------------------
 
 test('an empty configured secret rejects even a correctly signed token', async () => {

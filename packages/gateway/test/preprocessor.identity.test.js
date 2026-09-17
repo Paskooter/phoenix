@@ -84,9 +84,20 @@ test('CONTEXT rejects conflicting and explicitly missing identity fields', () =>
   }
 });
 
+// Captured robot CONTEXTs can carry only general. The pinned preprocessor
+// throws on absent runtime; Phoenix deliberately accepts object data without
+// inventing runtime or bypassing authenticated identity validation.
+test('a CONTEXT without runtime is accepted -- there are no names to trim', () => {
+  for (const runtime of [undefined, null]) {
+    const data = runtime === undefined ? { general: {} } : { general: {}, runtime };
+    const message = context(data);
+    assert.equal(message.data.general.accountID, AUTH.id);
+    assert.equal(message.data.general.robotID, AUTH.friendlyId);
+    assert.equal(message.data.runtime, runtime);
+  }
+});
+
 test('malformed CONTEXTs preserve source property and iteration errors', () => {
-  expectError(() => context({ general: {} }), "Cannot read property 'loop' of undefined", 'TypeError');
-  expectError(() => context({ general: {}, runtime: null }), "Cannot read property 'loop' of null", 'TypeError');
   expectError(() => context({ general: {}, runtime: { loop: { users: {} } } }), 'loop.users.forEach is not a function', 'TypeError');
   expectError(() => context({ general: {}, runtime: { loop: { users: [null] } } }), "Cannot read property 'firstName' of null", 'TypeError');
   expectError(() => context({ general: {}, runtime: { loop: { users: [{ firstName: 7 }] } } }), 'user.firstName.trim is not a function', 'TypeError');

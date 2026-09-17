@@ -223,12 +223,32 @@ test('auth differential: 1965 pinned-source outcomes replay exactly', async () =
   assert.equal(Object.keys(direct).length + Object.keys(auth).length + Object.keys(upgrades).length, 1965, 'total auth cases');
 });
 
-test('identity differential: 187 pinned-source CONTEXT outcomes replay exactly', () => {
+test('identity differential: 182 exact outcomes and 5 explicit missing-runtime divergences', () => {
   const actual = identityResults();
   const expected = IDENTITY_GOLDEN.cases;
+  // Define the compatibility boundary by JSON shape, never by fixture name.
+  // Array data remains malformed; object data may omit runtime.
+  const divergences = new Map(IDENTITY_FIXTURE.cases.filter(({ message }) => {
+    const data = message && message.data;
+    return message && message.type === 'CONTEXT' && data &&
+      typeof data === 'object' && !Array.isArray(data) && data.runtime == null;
+  }).map(({ id, message }) => [id, String(message.data.runtime)]));
+  assert.equal(divergences.size, 5, 'bounded missing-runtime cases');
   assert.deepEqual(Object.keys(actual).sort(), Object.keys(expected).sort(), 'case id set');
   for (const id of Object.keys(expected)) {
-    assert.deepEqual(actual[id], expected[id], `case/${id}`);
+    if (divergences.has(id)) {
+      // Keep the frozen source failure intact. Phoenix deliberately accepts
+      // absent runtime, without inventing runtime data or changing identity.
+      assert.equal(expected[id].ok, false, `source/${id}`);
+      assert.deepEqual(expected[id].error, {
+        name: 'TypeError',
+        constructor: 'TypeError',
+        message: `Cannot read property 'loop' of ${divergences.get(id)}`,
+      }, `source/${id}`);
+      assert.deepEqual(actual[id], { ok: true, message: expected[id].message }, `divergence/${id}`);
+    } else {
+      assert.deepEqual(actual[id], expected[id], `case/${id}`);
+    }
   }
   assert.equal(Object.keys(actual).length, 187, 'total identity cases');
 });
