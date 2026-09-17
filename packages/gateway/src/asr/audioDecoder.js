@@ -24,13 +24,14 @@ const MAX_OGG_PAGE_BYTES = 27 + 255 + (255 * 255);
  * swallowed: capture must never affect a live turn.
  */
 let captureSeq = 0;
-export function openCapture(encoding) {
+export function openCapture(encoding, label) {
   const dir = process.env.PHOENIX_ASR_CAPTURE_DIR;
   if (!dir) return null;
   try {
     fs.mkdirSync(dir, { recursive: true });
     const ext = encoding === AUDIO_ENCODINGS.OGG_OPUS ? 'ogg' : encoding === AUDIO_ENCODINGS.FLAC ? 'flac' : 'raw';
-    const file = path.join(dir, `asr-${Date.now()}-${process.pid}-${captureSeq++}.${ext}`);
+    const tag = label ? `-${String(label).replace(/[^A-Za-z0-9_-]/g, '')}` : '';
+    const file = path.join(dir, `asr-${Date.now()}-${process.pid}-${captureSeq++}${tag}.${ext}`);
     return { file, fd: fs.openSync(file, 'w'), bytes: 0 };
   } catch {
     return null;
@@ -226,7 +227,7 @@ export class StreamingAudioDecoder extends EventEmitter {
     this.oggBuffer = Buffer.alloc(0);
     this.oggPages = 0;
     this.oggSawEos = false;
-    this.capture = openCapture(this.encoding);
+    this.capture = openCapture(this.encoding, log && log.transId);
     this.flacBuffer = Buffer.alloc(0);
     this.flacMetadata = null;
     this.flacSawFrame = false;

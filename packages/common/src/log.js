@@ -29,5 +29,7 @@ export function logger(namespace, trace = {}) {
     sink.write(JSON.stringify(line) + '\n');
   };
 
-  return { error: emit('error'), warn: emit('warn'), info: emit('info'), debug: emit('debug') };
+  // `transId` is exposed so a component holding only the logger can label its
+  // own diagnostics with the transaction it belongs to.
+  return { error: emit('error'), warn: emit('warn'), info: emit('info'), debug: emit('debug'), transId: trace.transId };
 }

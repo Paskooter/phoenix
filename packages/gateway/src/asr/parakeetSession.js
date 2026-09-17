@@ -182,7 +182,7 @@ export class ParakeetASRSession {
     // LINEAR16 never reaches StreamingAudioDecoder, so its capture lives here;
     // encoded turns are teed inside the decoder instead.
     if (this.audio.encoding === AUDIO_ENCODINGS.LINEAR16 && process.env.PHOENIX_ASR_CAPTURE_DIR) {
-      if (this.pcmCapture === undefined) this.pcmCapture = openCapture(AUDIO_ENCODINGS.LINEAR16);
+      if (this.pcmCapture === undefined) this.pcmCapture = openCapture(AUDIO_ENCODINGS.LINEAR16, this.log && this.log.transId);
       if (this.pcmCapture) {
         try { fs.writeSync(this.pcmCapture.fd, audioBuffer); } catch { this.pcmCapture = null; }
       }
