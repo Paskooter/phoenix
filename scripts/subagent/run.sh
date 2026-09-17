@@ -38,7 +38,11 @@ set -uo pipefail
 
 NAME="${1:?usage: run.sh <name> <prompt-file> [model] [max-attempts]}"
 PROMPT_FILE="${2:?prompt file required}"
-MODEL="${3:-openrouter/deepseek/deepseek-v4-flash-0731}"
+# Default model. stealth/union-alpha is free and high quality while the promotion
+# runs (owner's call, 2026-09-17; revisit after 2026-09-24 — when it stops being
+# free the fallback is openrouter/deepseek/deepseek-v4-flash-0731, which is what
+# every run before this date used). Override per run with the third argument.
+MODEL="${3:-openrouter/stealth/union-alpha}"
 MAX_ATTEMPTS="${4:-5}"
 WORKDIR="${SUBAGENT_DIR:-/home/shell/work/phoenix}"
 OUT="/tmp/${NAME}"
