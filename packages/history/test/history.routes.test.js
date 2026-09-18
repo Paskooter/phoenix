@@ -229,16 +229,21 @@ test('empty / non-JSON bodies reach the handler as {} (reference body-parser def
   } finally { svc.server.close(); }
 });
 
-test('healthcheck is the base-service route (documented history divergence I-01b)', async () => {
+test('healthcheck reports the store state, as the reference HistoryService does (I-01b, repaired)', async () => {
   const { svc, base } = await start();
   try {
-    // Reference HistoryService overrides getHealthcheckResponse (HistoryService.ts:60-76) with
-    // {status, skillLaunchDB, speechHistoryDB}. Phoenix serves the base 'ok' text; DIVERGENCES.md
-    // records this as I-01b (reported, not changed). This test pins the CURRENT contract only.
+    // Reference HistoryService overrides getHealthcheckResponse (HistoryService.ts) with
+    // {status, skillLaunchDB, speechHistoryDB} and a 200/500 status code, using the DBClientState
+    // enum. Phoenix served the base 'ok' text until 2026-09-18; DIVERGENCES.md recorded that as
+    // I-01b (reported, not changed) and now records it repaired. This test pins the SOURCE
+    // contract, so a regression to the shared plain 'ok' fails here.
+    //
+    // The body keeps exactly the source's three members -- a consumer parses it -- and the store
+    // state is the source's member names even though Phoenix keeps both record kinds in one JSON
+    // snapshot rather than two Mongo connections. See healthcheck.test.js for the 500 path.
     const r = await request(base, 'GET', '/healthcheck');
     assert.equal(r.status, 200);
-    assert.equal(r.contentType, 'text/html; charset=utf-8');
-    assert.equal(r.json, 'ok');
+    assert.deepEqual(r.json, { status: 'ok', skillLaunchDB: 'CONNECTED', speechHistoryDB: 'CONNECTED' });
   } finally { svc.server.close(); }
 });
 

@@ -4,6 +4,8 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import { once } from 'node:events';
 import { join } from 'node:path';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -183,7 +185,14 @@ async function requestJson(url, options = {}) {
 }
 
 export async function measureHistoryHealthcheck() {
-  const store = new ToggleHistoryStore();
+  // A REAL store-level fault, because that is what the healthcheck now answers:
+  // can the durable snapshot be read and written right now. The earlier version of
+  // this probe injected a throw inside addSkillLaunch on an otherwise healthy
+  // store, which no store-level check can see -- the store WAS usable, the
+  // injected method was not. Corrupting the committed snapshot is the failure a
+  // file-backed store actually meets.
+  const dir = await mkdtemp(join(tmpdir(), 'r03-obs-health-'));
+  const store = new HistoryStore(join(dir, 'store.json'));
   const service = createHistoryService(store);
   await withSuppressedServiceLogs(() => service.listen(0));
   const base = `http://127.0.0.1:${service.server.address().port}`;
@@ -195,32 +204,44 @@ export async function measureHistoryHealthcheck() {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ timestamp: Date.now(), sessionID: 'r03', robotID: TRACE.robotId, skillID: 'r03-skill' }),
       });
-      store.down = true;
+      // The committed snapshot becomes unparseable, as external corruption or a
+      // torn write would leave it.
+      await writeFile(join(dir, 'store.json'), '{ not json');
+      const after = await requestJson(`${base}/healthcheck`);
+      // A successful write heals the snapshot; the service must recover without a
+      // restart rather than staying latched unhealthy.
       const writeAfter = await requestJson(`${base}/v1/skill/launch`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ timestamp: Date.now(), sessionID: 'r03-down', robotID: TRACE.robotId, skillID: 'r03-skill' }),
+        body: JSON.stringify({ timestamp: Date.now(), sessionID: 'r03-heal', robotID: TRACE.robotId, skillID: 'r03-skill' }),
       });
-      const after = await requestJson(`${base}/healthcheck`);
-      return { before, writeBefore, writeAfter, after };
+      const healed = await requestJson(`${base}/healthcheck`);
+      return { before, writeBefore, after, writeAfter, healed };
     });
-    const { before, writeBefore, writeAfter, after } = observed;
-    assert.deepEqual(before, { status: 200, body: 'ok' });
+    const { before, writeBefore, after, writeAfter, healed } = observed;
+    // The source body exactly: three members, DBClientState names.
+    const HEALTHY = { status: 200, body: { status: 'ok', skillLaunchDB: 'CONNECTED', speechHistoryDB: 'CONNECTED' } };
+    assert.deepEqual(before, HEALTHY);
     assert.equal(writeBefore.status, 200);
-    assert.equal(writeAfter.status, 500);
-    assert.deepEqual(after, { status: 200, body: 'ok' });
+    // The false-health check: a broken store must NOT be reported as ok.
+    assert.deepEqual(after, { status: 500, body: { status: 'error', skillLaunchDB: 'DISCONNECTED', speechHistoryDB: 'DISCONNECTED' } });
+    assert.equal(writeAfter.status, 200);
+    assert.deepEqual(healed, HEALTHY);
     return {
       endpoint: 'GET /healthcheck',
       baseline: before,
       storeOperationBeforeFault: { status: writeBefore.status },
-      injectedStoreFault: 'addSkillLaunch throws fixture history store unavailable',
-      storeOperationAfterFault: { status: writeAfter.status },
+      injectedStoreFault: 'the committed snapshot is replaced with unparseable bytes',
       afterFault: after,
-      falselyHealthy: after.status === 200 && writeAfter.status >= 500,
-      classification: 'Phoenix endpoint is liveness-only; reference HistoryService makes this path dependency-aware.',
+      storeOperationAfterFault: { status: writeAfter.status },
+      afterRecovery: healed,
+      falselyHealthy: after.status === 200,
+      recoveredWithoutRestart: healed.status === 200,
+      classification: 'History overrides the shared healthcheck with its store state and a 500, as the pinned HistoryService does; the other services stay liveness-only.',
     };
   } finally {
     await closeServer(service.server);
+    await rm(dir, { recursive: true, force: true });
   }
 }
 
@@ -241,7 +262,13 @@ async function measureServiceHealthSourceInventory() {
   }
   assert.equal(rows.length, Object.keys(DefaultPort).length);
   assert.ok(rows.every((row) => row.createServiceCalls >= 1 || row.wrapperFactory));
-  assert.ok(rows.every((row) => row.suppliesHealthcheckOverride === false));
+  // Only History overrides the shared health response, in Phoenix exactly as in the
+  // reference: packages/history/src/HistoryService.ts is the one service that
+  // replaces getHealthcheckResponse with its store state and a 500. Every other
+  // service must stay on BaseService's literal `ok` -- a service that silently grew
+  // its own idea of healthy would be a behaviour change, not an improvement.
+  const overrides = rows.filter((row) => row.suppliesHealthcheckOverride).map((row) => row.service);
+  assert.deepEqual(overrides, ['history'], 'exactly History supplies a healthcheck override');
   return rows;
 }
 
