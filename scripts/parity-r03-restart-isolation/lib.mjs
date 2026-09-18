@@ -126,7 +126,7 @@ export async function chooseOffset({ candidates = [700, 800, 600, 1000, 1100, 12
  * Construct only deliberate child variables. `LLM_URL` is a loopback fixture owned by the
  * harness; it is not a machine or LAN dependency. All stores live under the supplied run dir.
  */
-export function hermeticEnv({ home, runDir, offset, ports, llmUrl, tokenSecret }) {
+export function hermeticEnv({ home, runDir, offset, ports, llmUrl, asrUrl, tokenSecret }) {
   const stores = join(runDir, 'stores');
   const logs = join(runDir, 'logs');
   const tmp = join(home, 'tmp');
@@ -150,6 +150,7 @@ export function hermeticEnv({ home, runDir, offset, ports, llmUrl, tokenSecret }
     DISABLE_AUTH: 'false',
     PHOENIX_GQA_DEFAULT_PROFILE: 'phoenix-answer',
     LLM_URL: llmUrl,
+    PARAKEET_URL: asrUrl,
     LLM_MODEL: 'r03-loopback-fixture',
     ACCOUNT: '1',
     CLASSIC: '1',

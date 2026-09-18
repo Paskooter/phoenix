@@ -212,6 +212,65 @@ async function startLoopbackLlm() {
   };
 }
 
+async function startLoopbackAsr() {
+  const requests = [];
+  const server = createServer(async (request, response) => {
+    let body = Buffer.alloc(0);
+    for await (const chunk of request) body = Buffer.concat([body, Buffer.from(chunk)]);
+    requests.push({ method: request.method, path: request.url, bytes: body.length, at: Date.now() });
+    if (request.url === '/healthz') {
+      // Deliberately advertise the batch-only API so the probe exercises the same
+      // Parakeet REST path without creating a streaming socket or LAN dependency.
+      response.writeHead(404, { 'content-type': 'application/json' });
+      response.end(JSON.stringify({ ok: false }));
+      return;
+    }
+    if (request.url === '/transcribe') {
+      response.writeHead(200, { 'content-type': 'application/json' });
+      response.end(JSON.stringify({ transcript: 'R03 ASR fixture.' }));
+      return;
+    }
+    response.writeHead(404);
+    response.end();
+  });
+  server.listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  return {
+    url: `http://127.0.0.1:${server.address().port}`,
+    requests,
+    async stop() {
+      server.closeAllConnections?.();
+      await new Promise((resolveClose) => server.close(() => resolveClose()));
+    },
+  };
+}
+
+function pcmSpeechChunk(durationMs = 10, amplitude = 1200) {
+  const samples = Math.floor((16000 * durationMs) / 1000);
+  const chunk = Buffer.alloc(samples * 2);
+  for (let index = 0; index < samples; index += 1) chunk.writeInt16LE(amplitude, index * 2);
+  return chunk;
+}
+
+async function openPendingAsr(hubPort, identity, transId, asrFixture) {
+  const robot = await openRobot(hubPort, identity, transId);
+  robot.ws.send(message('LISTEN', {
+    lang: 'en-US', hotphrase: false, rules: ['launch'],
+    asr: { encoding: 'LINEAR16', sampleRate: 16000 },
+  }, 'pending-asr'));
+  robot.ws.send(message('CONTEXT', contextFor(identity), 'pending-asr'));
+  // 200 ms of a fixed high-energy PCM tone is enough to enter SPEAKING and emit
+  // SOS, but no trailing silence is sent, so the ASR transaction remains in flight.
+  for (let index = 0; index < 20; index += 1) robot.ws.send(pcmSpeechChunk());
+  await waitUntil(() => robot.frames.some((frame) => frame.type === 'SOS'), {
+    label: `${transId} ASR SOS before restart`,
+  });
+  await waitUntil(() => asrFixture.requests.some((request) => request.path === '/healthz'), {
+    label: `${transId} ASR fixture probe`,
+  });
+  return robot;
+}
+
 function contextFor(identity) {
   return {
     general: {
@@ -501,17 +560,20 @@ async function main() {
     cycle1Turns: [],
     cycle2Accounts: [],
     cycle3Pending: null,
+    cycle3Asr: null,
     cycle4Disconnect: null,
     cycle5Accounts: null,
   };
   let stack = null;
   let loopback = null;
+  let loopbackAsr = null;
   let offsetChoice;
   let ports;
   let env;
   let accountFile;
   let historyFile;
   let activePending = null;
+  let activePendingAsr = null;
 
   const receipt = {
     schemaVersion: 1,
@@ -560,6 +622,7 @@ async function main() {
     receipt.configuration.ports = ports;
 
     loopback = await startLoopbackLlm();
+    loopbackAsr = await startLoopbackAsr();
     accountFile = join(args.runDir, 'stores', 'account.json');
     historyFile = join(args.runDir, 'stores', 'history.json');
     seedAccountStore(accountFile);
@@ -569,6 +632,7 @@ async function main() {
       offset: offsetChoice.offset,
       ports,
       llmUrl: loopback.url,
+      asrUrl: loopbackAsr.url,
       tokenSecret: TOKEN_SECRET,
     });
 
@@ -653,6 +717,17 @@ async function main() {
         } catch (error) {
           check(failures, 'cycle-3/pending-context-is-observable', false, error.message);
         }
+        try {
+          activePendingAsr = await openPendingAsr(ports.hub, IDENTITIES[1], 'r03-pending-asr-before-restart', loopbackAsr);
+          probes.cycle3Asr = {
+            framesBeforeStop: structuredClone(activePendingAsr.frames),
+            fixtureRequestsBeforeStop: structuredClone(loopbackAsr.requests),
+          };
+          cycleResult.checks.inFlightAsrBeforeStop = probes.cycle3Asr;
+          check(failures, 'cycle-3/in-flight-asr-is-observable', activePendingAsr.frames.some((frame) => frame.type === 'SOS') && activePendingAsr.frames.every((frame) => frame.final !== true), probes.cycle3Asr);
+        } catch (error) {
+          check(failures, 'cycle-3/in-flight-asr-is-observable', false, error.message);
+        }
       }
 
       if (readiness.ok && cycle === 4) {
@@ -710,6 +785,21 @@ async function main() {
         await closeRobot(activePending);
         activePending = null;
       }
+      if (activePendingAsr) {
+        try { await waitUntil(() => activePendingAsr.closed, { timeoutMs: 3000, label: 'ASR socket close after process stop' }); } catch { /* recorded below */ }
+        await sleep(250);
+        const asrAfterStop = {
+          closedAfterStop: activePendingAsr.closed,
+          framesAfterStop: structuredClone(activePendingAsr.frames),
+          finalCountAfterStop: activePendingAsr.frames.filter((frame) => frame.final === true).length,
+          transcribeRequestsAfterStop: loopbackAsr.requests.filter((request) => request.path === '/transcribe').length,
+        };
+        cycleResult.checks.inFlightAsrAfterStop = asrAfterStop;
+        probes.cycle3Asr.afterStop = asrAfterStop;
+        check(failures, 'cycle-3/in-flight-asr-does-not-survive-process-stop', asrAfterStop.closedAfterStop && asrAfterStop.finalCountAfterStop === 0 && asrAfterStop.transcribeRequestsAfterStop === 0, asrAfterStop);
+        await closeRobot(activePendingAsr);
+        activePendingAsr = null;
+      }
       cycleResult.stop = {
         elapsedMs: Date.now() - stopStarted,
         code: stopResult.code,
@@ -736,12 +826,16 @@ async function main() {
     failures.push({ name: 'harness-aborted', detail: error.stack || error.message });
   } finally {
     if (activePending) await closeRobot(activePending);
+    if (activePendingAsr) await closeRobot(activePendingAsr);
     if (stack) {
       try { await stopStack(stack); } catch { /* best effort */ }
       stack = null;
     }
     if (loopback) {
       try { await loopback.stop(); } catch { /* best effort */ }
+    }
+    if (loopbackAsr) {
+      try { await loopbackAsr.stop(); } catch { /* best effort */ }
     }
   }
 
@@ -770,7 +864,7 @@ async function main() {
     stateLeakage: {
       pendingContext: probes.cycle3Pending,
       observableCheck: 'old WebSocket closed with no final frame after its process was stopped; a fresh process then served only fresh transIds',
-      inFlightAsr: 'not measured: this lane used CLIENT_NLU and did not claim server-side microphone/Parakeet continuity',
+      inFlightAsr: probes.cycle3Asr,
     },
     crossRobotIsolation: {
       concurrentTurns: probes.cycle1Turns.map((turn) => ({ transId: turn.transId, identity: turn.identity, frames: turn.frames.map((frame) => frame.type) })),
@@ -785,6 +879,7 @@ async function main() {
         : 'not established',
     },
     loopbackProviderRequests: loopback?.requests.length ?? null,
+    loopbackAsrRequests: loopbackAsr?.requests ?? [],
   };
   receipt.completedAt = new Date().toISOString();
   receipt.ok = failures.length === 0 && completedCycles === args.cycles && receipt.falsification?.passed === true;

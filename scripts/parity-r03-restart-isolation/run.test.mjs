@@ -32,6 +32,7 @@ test('R-03 child environment is hermetic and points stores into the run director
     offset: 700,
     ports: offsetPorts(700),
     llmUrl: 'http://127.0.0.1:32123/v1',
+    asrUrl: 'http://127.0.0.1:32124',
     tokenSecret: 'r03-test-secret',
   });
   assert.equal(env.PHOENIX_ENV_FILE, '/dev/null');
@@ -39,7 +40,7 @@ test('R-03 child environment is hermetic and points stores into the run director
   assert.equal(env.ETCO_account_dataFile, '/tmp/r03-run/stores/account.json');
   assert.equal(env.ETCO_history_dataFile, '/tmp/r03-run/stores/history.json');
   assert.equal(env.LLM_URL, 'http://127.0.0.1:32123/v1');
-  assert.equal(Object.hasOwn(env, 'PARAKEET_URL'), false);
+  assert.equal(env.PARAKEET_URL, 'http://127.0.0.1:32124');
   assert.equal(Object.hasOwn(env, 'ADMIN_PASSWORD'), false);
 });
 
