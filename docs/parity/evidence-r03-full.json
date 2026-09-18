@@ -1,0 +1,408 @@
+{
+  "schemaVersion": 2,
+  "lane": "R-03 reliability: real sockets, load, queue and memory",
+  "acceptance": "bounded-evidence-only",
+  "capturedAt": "2026-09-18T02:08:46.046Z",
+  "phoenixRevision": "5a94708e8fb26089706b70e388c511044b9936f7",
+  "node": "v22.22.0",
+  "sabotageMode": null,
+  "transport": "real Phoenix gateway WebSocket + real local HTTP parser/skill sockets; synthetic peers and identities; no hardware/live ports",
+  "load": [
+    {
+      "concurrency": 1,
+      "turns": 64,
+      "peerDelayMs": 20,
+      "elapsedMs": 2860.3086970000004,
+      "throughputPerSecond": 22.375207286935712,
+      "latencyMs": {
+        "n": 64,
+        "p50": 44.13288499999999,
+        "p95": 45.105939000000035,
+        "max": 46.66966200000002
+      },
+      "peakInFlight": 1,
+      "finalTypes": [
+        "SKILL_ACTION"
+      ],
+      "parser": {
+        "total": 64,
+        "maxActive": 1,
+        "trace": {
+          "records": 64,
+          "mismatches": 0
+        }
+      },
+      "skill": {
+        "total": 64,
+        "maxActive": 1,
+        "trace": {
+          "records": 64,
+          "mismatches": 0
+        }
+      },
+      "dropsOrErrors": 0
+    },
+    {
+      "concurrency": 8,
+      "turns": 64,
+      "peerDelayMs": 20,
+      "elapsedMs": 413.2832360000002,
+      "throughputPerSecond": 154.8574789034026,
+      "latencyMs": {
+        "n": 64,
+        "p50": 44.96810800000003,
+        "p95": 67.16827899999998,
+        "max": 89.77718400000003
+      },
+      "peakInFlight": 8,
+      "finalTypes": [
+        "SKILL_ACTION"
+      ],
+      "parser": {
+        "total": 64,
+        "maxActive": 8,
+        "trace": {
+          "records": 64,
+          "mismatches": 0
+        }
+      },
+      "skill": {
+        "total": 64,
+        "maxActive": 8,
+        "trace": {
+          "records": 64,
+          "mismatches": 0
+        }
+      },
+      "dropsOrErrors": 0
+    },
+    {
+      "concurrency": 32,
+      "turns": 64,
+      "peerDelayMs": 20,
+      "elapsedMs": 213.9645019999998,
+      "throughputPerSecond": 299.11503731586305,
+      "latencyMs": {
+        "n": 64,
+        "p50": 78.48945800000001,
+        "p95": 117.24664800000028,
+        "max": 118.58010399999966
+      },
+      "peakInFlight": 32,
+      "finalTypes": [
+        "SKILL_ACTION"
+      ],
+      "parser": {
+        "total": 64,
+        "maxActive": 17,
+        "trace": {
+          "records": 64,
+          "mismatches": 0
+        }
+      },
+      "skill": {
+        "total": 64,
+        "maxActive": 18,
+        "trace": {
+          "records": 64,
+          "mismatches": 0
+        }
+      },
+      "dropsOrErrors": 0
+    },
+    {
+      "concurrency": 64,
+      "turns": 64,
+      "peerDelayMs": 20,
+      "elapsedMs": 170.3830210000001,
+      "throughputPerSecond": 375.62428242189674,
+      "latencyMs": {
+        "n": 64,
+        "p50": 105.3782799999999,
+        "p95": 159.5668099999998,
+        "max": 163.2462700000001
+      },
+      "peakInFlight": 64,
+      "finalTypes": [
+        "SKILL_ACTION"
+      ],
+      "parser": {
+        "total": 64,
+        "maxActive": 22,
+        "trace": {
+          "records": 64,
+          "mismatches": 0
+        }
+      },
+      "skill": {
+        "total": 64,
+        "maxActive": 19,
+        "trace": {
+          "records": 64,
+          "mismatches": 0
+        }
+      },
+      "dropsOrErrors": 0
+    }
+  ],
+  "queueSaturation": {
+    "turns": 64,
+    "parserPendingAtHold": 64,
+    "parserActiveAtHold": 64,
+    "parserMaxActive": 64,
+    "parserSettled": 64,
+    "skillRequestsAfterRelease": 64,
+    "dropsOrErrors": 0,
+    "conclusion": "no rejection/drop observed while turns equal the tested hold size; this is not an unbounded-cap proof"
+  },
+  "queue": {
+    "scope": "Phoenix StreamingAudioDecoder encoded-input queue",
+    "maxPendingInputBytes": 2097152,
+    "attemptedBytes": 2097153,
+    "rejected": true,
+    "errorCode": "ERR_AUDIO_DECODE",
+    "errorMessageShape": "Audio decoder input queue exceeded <limit> bytes",
+    "queuedBytesAfterAbort": 0,
+    "childAfterAbort": false
+  },
+  "preSessionAudio": {
+    "chunksSentBeforeListen": 33,
+    "chunkBytes": 65536,
+    "bytesSentBeforeListen": 2162688,
+    "retained": {
+      "chunks": 33,
+      "bytes": 2162688
+    },
+    "rejected": false,
+    "conclusion": "pre-session ListenTransaction staging retained every tested chunk; no hard cap was observed before an ASR session existed"
+  },
+  "memory": {
+    "waves": 6,
+    "turns": 768,
+    "concurrency": 32,
+    "baseline": {
+      "rss": 121032704,
+      "heapTotal": 51900416,
+      "heapUsed": 16120856,
+      "external": 3830239,
+      "arrayBuffers": 117366,
+      "gatewaySockets": 0,
+      "parserActive": 0,
+      "skillActive": 0
+    },
+    "samples": [
+      {
+        "rss": 124170240,
+        "heapTotal": 52162560,
+        "heapUsed": 16395128,
+        "external": 3830239,
+        "arrayBuffers": 117366,
+        "gatewaySockets": 0,
+        "parserActive": 0,
+        "skillActive": 0
+      },
+      {
+        "rss": 124940288,
+        "heapTotal": 52424704,
+        "heapUsed": 16495392,
+        "external": 3830239,
+        "arrayBuffers": 117366,
+        "gatewaySockets": 0,
+        "parserActive": 0,
+        "skillActive": 0
+      },
+      {
+        "rss": 125505536,
+        "heapTotal": 52948992,
+        "heapUsed": 16553096,
+        "external": 3830239,
+        "arrayBuffers": 117366,
+        "gatewaySockets": 0,
+        "parserActive": 0,
+        "skillActive": 0
+      },
+      {
+        "rss": 126713856,
+        "heapTotal": 52948992,
+        "heapUsed": 16814480,
+        "external": 3830239,
+        "arrayBuffers": 117366,
+        "gatewaySockets": 0,
+        "parserActive": 0,
+        "skillActive": 0
+      },
+      {
+        "rss": 127184896,
+        "heapTotal": 52948992,
+        "heapUsed": 16734272,
+        "external": 3830239,
+        "arrayBuffers": 117366,
+        "gatewaySockets": 0,
+        "parserActive": 0,
+        "skillActive": 0
+      },
+      {
+        "rss": 127991808,
+        "heapTotal": 53211136,
+        "heapUsed": 16870712,
+        "external": 3830239,
+        "arrayBuffers": 117366,
+        "gatewaySockets": 0,
+        "parserActive": 0,
+        "skillActive": 0
+      }
+    ],
+    "deltas": {
+      "rss": {
+        "baseline": 121032704,
+        "max": 127991808,
+        "maxDelta": 6959104,
+        "final": 127991808
+      },
+      "heapTotal": {
+        "baseline": 51900416,
+        "max": 53211136,
+        "maxDelta": 1310720,
+        "final": 53211136
+      },
+      "heapUsed": {
+        "baseline": 16120856,
+        "max": 16870712,
+        "maxDelta": 749856,
+        "final": 16870712
+      },
+      "external": {
+        "baseline": 3830239,
+        "max": 3830239,
+        "maxDelta": 0,
+        "final": 3830239
+      },
+      "arrayBuffers": {
+        "baseline": 117366,
+        "max": 117366,
+        "maxDelta": 0,
+        "final": 117366
+      }
+    },
+    "finiteRunBound": "observed after forced GC; not a proof of an all-duration heap/RSS bound",
+    "leakedLiveResources": false
+  },
+  "timeouts": [
+    {
+      "kind": "parser",
+      "budgetMs": 10000,
+      "result": {
+        "id": "timeout-parser",
+        "kind": "normal",
+        "ok": false,
+        "finalType": "ERROR",
+        "code": "PARSER",
+        "finalAt": 16373.604358,
+        "elapsedMs": 10003.397001,
+        "frames": [
+          "SOS",
+          "EOS",
+          "ERROR"
+        ]
+      },
+      "pendingAtTimeout": 1,
+      "lateSettlements": 1,
+      "lateFrames": 0,
+      "peerRequestContinuedAfterTimeout": true
+    },
+    {
+      "kind": "skill",
+      "budgetMs": 10000,
+      "result": {
+        "id": "timeout-skill",
+        "kind": "normal",
+        "ok": false,
+        "finalType": "ERROR",
+        "code": "TIMEOUT_SKILL",
+        "finalAt": 26631.647341,
+        "elapsedMs": 10006.083604,
+        "frames": [
+          "SOS",
+          "EOS",
+          "LISTEN",
+          "ERROR"
+        ]
+      },
+      "pendingAtTimeout": 1,
+      "lateSettlements": 1,
+      "lateFrames": 0,
+      "peerRequestContinuedAfterTimeout": true
+    },
+    {
+      "kind": "context",
+      "budgetMs": 5000,
+      "result": {
+        "id": "timeout-context",
+        "kind": "context-timeout",
+        "ok": false,
+        "finalType": "ERROR",
+        "code": "TIMEOUT_CONTEXT",
+        "finalAt": 31886.815184,
+        "elapsedMs": 5003.134265000001,
+        "frames": [
+          "SOS",
+          "EOS",
+          "ERROR"
+        ]
+      },
+      "pendingAtTimeout": 0,
+      "lateSettlements": 0,
+      "lateFrames": 0,
+      "peerRequestContinuedAfterTimeout": false
+    },
+    {
+      "kind": "asr",
+      "budgetMs": 40000,
+      "result": {
+        "id": "timeout-asr",
+        "kind": "asr-timeout",
+        "ok": false,
+        "finalType": "ERROR",
+        "code": "ASR",
+        "finalAt": 71890.260125,
+        "elapsedMs": 40002.86603999999,
+        "frames": [
+          "ERROR"
+        ]
+      },
+      "pendingAtTimeout": 0,
+      "lateSettlements": 0,
+      "lateFrames": 0,
+      "peerRequestContinuedAfterTimeout": false,
+      "asrSessionStops": 1
+    }
+  ],
+  "sourceContracts": {
+    "queue": {
+      "url": "https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/parser/src/utils/ConcurrentQueue.ts#L11-L39",
+      "quote": "\"This queue guarantees that maxConcurrent handlers are running in parallel\"; when activeCount is full, pending work is returned by promiseToProcess; only pendingCount > 10 * maxConcurrent emits a warning.",
+      "implication": "The pinned parser queue has a concurrency limit and a warning threshold, not a hard pending-work rejection/drop rule."
+    },
+    "timeout2": {
+      "url": "https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/utils/PromiseUtils.ts#L19-L32",
+      "quote": "timeout2 resolves the string \"TIMEOUT\" at timeoutMs; the original promise is still attached with then/catch and is not cancelled."
+    },
+    "budgets": {
+      "url": "https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/listen/ListenTransactionHandler.ts#L38-L44",
+      "quote": "TIMEOUT_ASR = 40 * 1000; TIMEOUT_PARSER = 10 * 1000; TIMEOUT_CONTEXT = 5 * 1000; TIMEOUT_SKILL = 10 * 1000.",
+      "parserAndSkill": "The parser path calls timeout2 at lines 307-322 and the skill path at lines 397-414."
+    },
+    "phoenixQueueSources": {
+      "decoder": "packages/gateway/src/asr/audioDecoder.js#L13-L16 and #L357-L382",
+      "decoderQuote": "MAX_PENDING_INPUT_BYTES = 2 * 1024 * 1024; write() throws AudioDecodeError when queuedBytes + chunk.length exceeds it.",
+      "preSession": "packages/gateway/src/listenTransaction.js#L129-L165",
+      "preSessionQuote": "audioChunks starts as [] and handleMessage pushes every audio buffer while asrSession is absent; this staging path has no byte check in the cited lines."
+    }
+  },
+  "unknowns": [
+    "No pinned Pegasus runtime was executed in this lane; source queue and timeout semantics are cited/inferred, not source-runtime differential measurements.",
+    "The load sweep bounds only the tested finite population and concurrency arms; it does not establish production capacity or an unbounded queue limit.",
+    "The finite memory run checks post-GC RSS/heap observations and zero live sockets; it does not prove a formal long-running memory bound.",
+    "The pre-session audio probe demonstrates retained staging at 2,162,688 bytes but does not establish behavior at larger floods, after Listen arrives, or under process/container memory pressure."
+  ]
+}
