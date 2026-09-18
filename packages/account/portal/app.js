@@ -2449,9 +2449,10 @@ async function renderAdminLogs() {
     const events = res.data.events || [];
     for (const line of events) appendLine(line);
     if (events.length) trim();
+    const noun = state.shown === 1 ? 'line' : 'lines';
     status.textContent = state.paused
-      ? `paused — ${state.shown} lines`
-      : `${state.shown} lines · ${res.data.buffered} buffered in this process`
+      ? `paused — ${state.shown} ${noun}`
+      : `${state.shown} ${noun} · ${res.data.buffered} buffered in this process`
         + (res.data.dropped > state.dropped ? ` · ${res.data.dropped - state.dropped} dropped since last poll` : '');
     state.dropped = res.data.dropped;
     if (events.length && stick) list.scrollTop = list.scrollHeight;
