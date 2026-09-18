@@ -1,0 +1,227 @@
+{
+  "schemaVersion": 1,
+  "task": "R-03 observability",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "phoenixRevision": "a74d37455316f5ed97cfa008455fc6004c226e47",
+  "capturedAt": "2026-09-18T02:26:37.216Z",
+  "sourceTreeBoundary": "No packages/*/src files edited by this lane",
+  "tracePropagation": {
+    "calls": [
+      {
+        "method": "POST",
+        "url": "/v1/parse",
+        "trace": {
+          "transId": "r03-trace-001",
+          "robotId": "r03-robot-001",
+          "loggingConfig": "{\"gateway\":\"debug\",\"history\":\"info\"}"
+        }
+      },
+      {
+        "method": "POST",
+        "url": "/v1/speech",
+        "trace": {
+          "transId": "r03-trace-001",
+          "robotId": "r03-robot-001",
+          "loggingConfig": "{\"gateway\":\"debug\",\"history\":\"info\"}"
+        }
+      },
+      {
+        "method": "POST",
+        "url": "/",
+        "trace": {
+          "transId": "r03-trace-001",
+          "robotId": "r03-robot-001",
+          "loggingConfig": "{\"gateway\":\"debug\",\"history\":\"info\"}"
+        }
+      }
+    ],
+    "propagatedVerbatim": true,
+    "paths": [
+      "POST /v1/parse",
+      "POST /v1/speech",
+      "POST /"
+    ]
+  },
+  "logging": {
+    "records": [
+      {
+        "t": "2026-09-18T02:26:37.247Z",
+        "level": "debug",
+        "ns": "r03.probe",
+        "msg": "debug fixture",
+        "transId": "r03-trace-001"
+      },
+      {
+        "t": "2026-09-18T02:26:37.247Z",
+        "level": "info",
+        "ns": "r03.probe",
+        "msg": "info fixture",
+        "transId": "r03-trace-001"
+      },
+      {
+        "t": "2026-09-18T02:26:37.247Z",
+        "level": "info",
+        "ns": "r03.probe",
+        "msg": "malformed-config fixture",
+        "transId": "r03-trace-001"
+      }
+    ],
+    "alwaysFields": [
+      "t",
+      "level",
+      "ns",
+      "msg"
+    ],
+    "conditionalFields": [
+      "transId"
+    ],
+    "notAutomaticallyEmitted": [
+      "robotId",
+      "loggingConfig"
+    ],
+    "malformedLoggingConfig": "ignored; global threshold remains active"
+  },
+  "healthcheck": {
+    "endpoint": "GET /healthcheck",
+    "baseline": {
+      "status": 200,
+      "body": {
+        "status": "ok",
+        "skillLaunchDB": "CONNECTED",
+        "speechHistoryDB": "CONNECTED"
+      }
+    },
+    "storeOperationBeforeFault": {
+      "status": 200
+    },
+    "injectedStoreFault": "the committed snapshot is replaced with unparseable bytes",
+    "afterFault": {
+      "status": 500,
+      "body": {
+        "status": "error",
+        "skillLaunchDB": "DISCONNECTED",
+        "speechHistoryDB": "DISCONNECTED"
+      }
+    },
+    "storeOperationAfterFault": {
+      "status": 200
+    },
+    "afterRecovery": {
+      "status": 200,
+      "body": {
+        "status": "ok",
+        "skillLaunchDB": "CONNECTED",
+        "speechHistoryDB": "CONNECTED"
+      }
+    },
+    "falselyHealthy": false,
+    "recoveredWithoutRestart": true,
+    "classification": "History overrides the shared healthcheck with its store state and a 500, as the pinned HistoryService does; the other services stay liveness-only."
+  },
+  "serviceHealthSourceInventory": [
+    {
+      "service": "gateway",
+      "createServiceCalls": 1,
+      "wrapperFactory": null,
+      "suppliesHealthcheckOverride": false,
+      "defaultPort": 7010
+    },
+    {
+      "service": "nlu",
+      "createServiceCalls": 1,
+      "wrapperFactory": null,
+      "suppliesHealthcheckOverride": false,
+      "defaultPort": 7011
+    },
+    {
+      "service": "data",
+      "createServiceCalls": 1,
+      "wrapperFactory": null,
+      "suppliesHealthcheckOverride": false,
+      "defaultPort": 7012
+    },
+    {
+      "service": "history",
+      "createServiceCalls": 1,
+      "wrapperFactory": null,
+      "suppliesHealthcheckOverride": true,
+      "defaultPort": 7013
+    },
+    {
+      "service": "skills",
+      "createServiceCalls": 0,
+      "wrapperFactory": "createSkillsService",
+      "suppliesHealthcheckOverride": false,
+      "defaultPort": 7014
+    },
+    {
+      "service": "account",
+      "createServiceCalls": 1,
+      "wrapperFactory": null,
+      "suppliesHealthcheckOverride": false,
+      "defaultPort": 7016
+    },
+    {
+      "service": "classic",
+      "createServiceCalls": 1,
+      "wrapperFactory": null,
+      "suppliesHealthcheckOverride": false,
+      "defaultPort": 7017
+    },
+    {
+      "service": "ota",
+      "createServiceCalls": 0,
+      "wrapperFactory": "createOtaService",
+      "suppliesHealthcheckOverride": false,
+      "defaultPort": 7015
+    }
+  ],
+  "configuration": {
+    "envPrecedence": {
+      "ETCO_probe_value": "explicit",
+      "ETCO_probe_empty": "default-empty"
+    },
+    "ports": {
+      "defaultSource": 8080,
+      "etco": 8123,
+      "argvWins": 8124,
+      "malformedEtco": "NaN",
+      "malformedEtcoIsNaN": true,
+      "phoenixPortAlias": 8125
+    },
+    "llm": {
+      "url": "http://scoped.invalid/v1",
+      "model": "scoped-model",
+      "timeoutMs": 10000,
+      "headers": [
+        "X-Scoped",
+        "X-Shared"
+      ],
+      "malformedScopedTimeout": "silently defaulted to 10000; shared PHOENIX_LLM_TIMEOUT_MS=6000 was not used"
+    },
+    "accountVerifyTimeout": {
+      "accountDefault": 5000,
+      "accountEmpty": 5000,
+      "accountMalformed": "throws"
+    },
+    "newsPolling": {
+      "defaultEnabled": {
+        "pollingEnabled": false,
+        "pollIntervalMS": 3600000
+      },
+      "malformedInterval": {
+        "pollingEnabled": true,
+        "pollIntervalMS": 3600000
+      }
+    },
+    "gateway": {
+      "disableAuth": false,
+      "parserURL": "http://parser:9005",
+      "historyURL": "http://history:9006",
+      "settingsURL": "http://settings:9007",
+      "emptyValues": "source readEnvVars precedence falls back to defaults"
+    },
+    "conclusion": "ETCO_* source names win over defaults; scoped LLM values win over PHOENIX_*; validation is inconsistent across timeout surfaces."
+  },
+  "acceptance": "measured-gap"
+}

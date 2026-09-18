@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "task": "R-03",
+  "measuredAt": "2026-09-18T03:39:50.209Z",
+  "phoenixRevision": "550fb83804075db117f2cd6611e78a83c745cb06",
+  "measurement": "real ListenTransaction, wall-clock budgets, unresponsive peers",
+  "undrivenByDesign": {
+    "wsMaxMs": 180000,
+    "closeAfterFinalMs": 2000,
+    "reason": "Timeouts.wsMax maps to ResponseWrapper TIMEOUT_MAX_DURATION and closeAfterFinal to TIMEOUT_CLOSE_AFTER_FINAL; both are documented dead code in the reference because `closed` starts true, and the client closes on the final frame. Pinned by a gateway test rather than a 180s wait."
+  },
+  "transaction": {
+    "budgetMs": 60000,
+    "advertisedMs": 60000,
+    "outcome": {
+      "ok": false,
+      "code": null,
+      "error": "Maximum transaction time of 60000 exceeded",
+      "elapsedMs": 60001.478399
+    }
+  },
+  "asr": {
+    "budgetMs": 40000,
+    "advertisedMs": 40000,
+    "outcome": {
+      "ok": false,
+      "code": "ASR",
+      "error": "Timeout of 40000 while waiting for ASR",
+      "elapsedMs": 40004.386114
+    },
+    "frames": []
+  }
+}

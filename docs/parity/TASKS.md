@@ -13,11 +13,11 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 | pegasus | 46 | 46 | 0 | 0 |
 | classic | 20 | 20 | 0 | 0 |
 | restoration | 1 | 1 | 0 | 0 |
-| release | 2 | 7 | 0 | 0 |
+| release | 3 | 7 | 0 | 0 |
 
 Current task: none.
 
-Next ready task: **R-03 — Verify reliability, limits and observability**.
+Next ready task: **R-04 — Verify supported robot/firmware and original-client journeys**.
 
 See [PLAN.md](PLAN.md) for execution rules, [COMPATIBILITY.md](COMPATIBILITY.md) for the frozen target and [AUDIT.md](AUDIT.md) for initial findings. Pegasus source links use the original commit; restored-only code and atlas links are labeled separately. API definitions are pinned; other Jibo links are discovery references to be pinned before verification.
 
@@ -1800,7 +1800,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-07/hardware/authenticated
 
 ### R-03 — Verify reliability, limits and observability
 
-- [ ] **todo** · P0 · release · implementation: unverified
+- [x] **verified** · P0 · release · implementation: complete
 
 Owner: Codex. Dependencies: R-01, H-07, H-08, I-03.
 
@@ -1816,7 +1816,7 @@ Source: [Original Pegasus packages/utils/src/service](https://pvindex.org/gitea/
 
 Phoenix: [packages/common](../../packages/common); [packages/gateway](../../packages/gateway); [packages/nlu](../../packages/nlu); [packages/history](../../packages/history); [packages/data](../../packages/data).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-09-18/r03/README.md](../../docs/parity/evidence/2026-09-18/r03/README.md) (2026-09-18; clause 1: latency and throughput against the pinned budgets, under concurrency and with slow, unavailable and hanging peers); [docs/parity/evidence/2026-09-18/r03/README.md](../../docs/parity/evidence/2026-09-18/r03/README.md) (2026-09-18; clause 2: bounded memory and queues, timeout cancellation, cross-robot isolation, error/retry); [docs/parity/evidence/2026-09-18/r03/root-runs/observability.json](../../docs/parity/evidence/2026-09-18/r03/root-runs/observability.json) (2026-09-18; clause 3: trace, log, metrics and configuration behaviour; failures observable without falsely healthy service state).
 
 ### R-04 — Verify supported robot/firmware and original-client journeys
 

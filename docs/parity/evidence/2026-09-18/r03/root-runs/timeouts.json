@@ -1,0 +1,299 @@
+{
+  "schemaVersion": 2,
+  "task": "R-03",
+  "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+  "sourceCitations": [
+    {
+      "url": "https://pvindex.org/gitea/jiboV2/pegasus/raw/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/utils/PromiseUtils.ts",
+      "lines": "17-29",
+      "quote": "timeout2 returns the string 'TIMEOUT'; the original promise is still only chained with then/catch and is not cancelled."
+    },
+    {
+      "url": "https://pvindex.org/gitea/jiboV2/pegasus/raw/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/listen/ListenTransactionHandler.ts",
+      "lines": "304-321",
+      "quote": "Parser timeout2 is converted to HubErrorCode.TIMEOUT_PARSER, then the catch rethrows HubErrorCode.PARSER."
+    },
+    {
+      "url": "https://pvindex.org/gitea/jiboV2/pegasus/raw/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/listen/ListenTransactionHandler.ts",
+      "lines": "439-450",
+      "quote": "stopASR stops the ASR session, ends the audio stream, and clears both ASR timers."
+    },
+    {
+      "url": "https://pvindex.org/gitea/jiboV2/pegasus/raw/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub/src/listen/ListenHandler.ts",
+      "lines": "46-60",
+      "quote": "A transaction error becomes a final ERROR envelope with code only when it is a HubError."
+    }
+  ],
+  "measurement": "real loopback HTTP peers, real Phoenix gateway WebSocket, real ParakeetASRSession, wall-clock deadlines",
+  "httpTimeouts": [
+    {
+      "kind": "parser",
+      "budgetMs": 10000,
+      "errorCode": "PARSER",
+      "errorMessage": "Timeout of 10000 while waiting for parser",
+      "timeoutElapsedMs": 10007,
+      "requestToErrorMs": 9996,
+      "lateResponseDelayMs": 40,
+      "frameTypesAtTimeout": [
+        "SOS",
+        "EOS",
+        "ERROR"
+      ],
+      "lateFrames": 0,
+      "peerOpenAtTimeout": true,
+      "http": {
+        "method": "POST",
+        "url": "/v1/parse",
+        "requestBodyType": "NLU",
+        "startedAt": 1789698042321,
+        "requestEndedAt": 1789698042321,
+        "responseSentAt": 1789698052357,
+        "responseFinishedAt": 1789698052358,
+        "responseClosedAt": 1789698052358,
+        "requestAbortedAt": null,
+        "socketClosedAt": 1789698052364,
+        "socketOpenAtSnapshot": false
+      },
+      "cancellation": {
+        "cancelledByGateway": false,
+        "observedRequestAbortedAt": null,
+        "observedSocketClosedAt": 1789698052364
+      }
+    },
+    {
+      "kind": "skill",
+      "budgetMs": 10000,
+      "errorCode": "TIMEOUT_SKILL",
+      "errorMessage": "Timeout of 10000 while waiting for the skill response from 'fixture-skill'",
+      "timeoutElapsedMs": 10006,
+      "requestToErrorMs": 9999,
+      "lateResponseDelayMs": 45,
+      "frameTypesAtTimeout": [
+        "SOS",
+        "EOS",
+        "LISTEN",
+        "ERROR"
+      ],
+      "lateFrames": 0,
+      "peerOpenAtTimeout": true,
+      "http": {
+        "method": "POST",
+        "url": "/v1/main",
+        "requestBodyType": "LISTEN_LAUNCH",
+        "startedAt": 1789698052461,
+        "requestEndedAt": 1789698052461,
+        "responseSentAt": 1789698062505,
+        "responseFinishedAt": 1789698062505,
+        "responseClosedAt": 1789698062505,
+        "requestAbortedAt": null,
+        "socketClosedAt": 1789698062507,
+        "socketOpenAtSnapshot": false
+      },
+      "cancellation": {
+        "cancelledByGateway": false,
+        "observedRequestAbortedAt": null,
+        "observedSocketClosedAt": 1789698062507
+      }
+    }
+  ],
+  "contextTimeout": {
+    "budgetMs": 5000,
+    "errorCode": "TIMEOUT_CONTEXT",
+    "errorMessage": "Timeout of 5000 while waiting for the context message",
+    "timeoutElapsedMs": 5001,
+    "frameTypes": [
+      "SOS",
+      "EOS",
+      "ERROR"
+    ],
+    "externalPeerRequests": 0
+  },
+  "disconnect": {
+    "kind": "skill-after-ws-disconnect",
+    "disconnectAt": 1789698067619,
+    "peerResponseAt": 1789698067670,
+    "peerResponseDelayMs": 51,
+    "peerOpenAfterDisconnect": true,
+    "lateSettlementObserved": true,
+    "lateFrames": 0,
+    "frameTypesBeforeDisconnect": [
+      "SOS",
+      "EOS",
+      "LISTEN"
+    ],
+    "http": {
+      "method": "POST",
+      "url": "/v1/main",
+      "requestBodyType": "LISTEN_LAUNCH",
+      "startedAt": 1789698067615,
+      "requestEndedAt": 1789698067615,
+      "responseSentAt": 1789698067670,
+      "responseFinishedAt": 1789698067670,
+      "responseClosedAt": 1789698067670,
+      "requestAbortedAt": null,
+      "socketClosedAt": 1789698067671,
+      "socketOpenAtSnapshot": false
+    },
+    "cancellation": {
+      "cancelledByGateway": false,
+      "observedRequestAbortedAt": null,
+      "observedSocketClosedAt": 1789698067671
+    }
+  },
+  "asrCancellation": {
+    "kind": "client-asr-cancellation",
+    "cancelAt": 1789698067783,
+    "finalAt": 1789698067788,
+    "elapsedMs": 5,
+    "frameTypes": [
+      "EOS",
+      "LISTEN"
+    ],
+    "finalAsrText": "client cancellation wins",
+    "session": {
+      "stopped": true,
+      "aborted": false,
+      "state": "DONE",
+      "totalBytes": 3200
+    },
+    "recognizerRequests": [
+      {
+        "method": "GET",
+        "url": "/healthz",
+        "bodyBytes": 0
+      }
+    ],
+    "transcribeRequests": 0,
+    "logCount": 0
+  },
+  "asrAbandonment": {
+    "kind": "ws-disconnect-asr-abandonment",
+    "disconnectAt": 1789698067803,
+    "frameTypesBeforeDisconnect": [
+      "SOS"
+    ],
+    "framesAfterDisconnect": 0,
+    "session": {
+      "stopped": true,
+      "aborted": true,
+      "state": "DONE",
+      "totalBytes": 0,
+      "sosFired": true
+    },
+    "recognizerRequests": [
+      {
+        "method": "GET",
+        "url": "/healthz",
+        "bodyBytes": 0
+      }
+    ],
+    "transcribeRequests": 0,
+    "logCount": 0
+  },
+  "oggPolicy": {
+    "fixtureBytes": 2128,
+    "metadataAndHeaderBytes": 185,
+    "partialAudioBytes": 2100,
+    "audioWithoutEosBytes": 2037,
+    "independentMetadata": {
+      "completePages": 2,
+      "pendingBytes": 47
+    },
+    "independentPartial": {
+      "completePages": 3,
+      "pendingBytes": 63
+    },
+    "independentAudioWithoutEos": {
+      "completePages": 3,
+      "pendingBytes": 0
+    },
+    "strictPartial": {
+      "allowTruncated": false,
+      "outcome": {
+        "ok": false,
+        "code": "ERR_AUDIO_DECODE",
+        "name": "AudioDecodeError",
+        "message": "Truncated OGG page"
+      },
+      "decodedBytes": 31760,
+      "decoderPages": 3,
+      "decoderSawEos": false,
+      "decoderPendingBytes": 63,
+      "pcmBytes": 31760
+    },
+    "allowedPartial": {
+      "allowTruncated": true,
+      "outcome": {
+        "ok": true
+      },
+      "decodedBytes": 31792,
+      "decoderPages": 3,
+      "decoderSawEos": false,
+      "decoderPendingBytes": 63,
+      "pcmBytes": 31792
+    },
+    "strictMetadata": {
+      "allowTruncated": false,
+      "outcome": {
+        "ok": false,
+        "code": "ERR_AUDIO_DECODE",
+        "name": "AudioDecodeError",
+        "message": "Truncated OGG page"
+      },
+      "decodedBytes": 0,
+      "decoderPages": 2,
+      "decoderSawEos": false,
+      "decoderPendingBytes": 47,
+      "pcmBytes": 0
+    },
+    "allowedMetadata": {
+      "allowTruncated": true,
+      "outcome": {
+        "ok": false,
+        "code": "ERR_AUDIO_DECODE",
+        "name": "AudioDecodeError",
+        "message": "Audio decoder exited with code 1: pipe:0: End of file"
+      },
+      "decodedBytes": 0,
+      "decoderPages": 2,
+      "decoderSawEos": false,
+      "decoderPendingBytes": 47,
+      "pcmBytes": 0
+    },
+    "unexpectedEof": {
+      "error": {
+        "code": "ERR_AUDIO_DECODE",
+        "name": "AudioDecodeError",
+        "message": "Audio decoder ended before ASR end-of-speech (oggPages=3, oggSawEos=false, pendingBytes=0, decodedBytes=31792)"
+      },
+      "decoderPages": 3,
+      "decoderSawEos": false,
+      "decoderPendingBytes": 0,
+      "decodedBytes": 31792
+    },
+    "consumerContract": {
+      "emptyAsrState": "noInput",
+      "errorCodeForDecoderFailure": "ASR"
+    },
+    "decision": {
+      "decodableAudioBeforeTruncation": "allowTruncated",
+      "metadataOnlyOrZeroDecodedAudio": "noInput",
+      "malformedOrNoCompletePage": "retain_ASR_error",
+      "proposedPatch": "Treat peer EOF as explicit end-of-input, call finish({allowTruncated:true}); if decodedBytes is zero, resolve {text:\"\",confidence:0} so the turn reaches noInput. Keep ERR_AUDIO_DECODE/ASR for malformed input or no complete page."
+    }
+  },
+  "falsification": {
+    "caught": true,
+    "name": "AssertionError",
+    "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'TIMEOUT_PARSER'\n- 'PARSER'\n"
+  },
+  "elapsedMs": 25900.17943,
+  "acceptance": "bounded-evidence",
+  "unknowns": [
+    "No pinned-reference runtime was executed; source citations are static oracle evidence only.",
+    "No real robot, Moth, live service, TLS deployment, process restart, sustained-memory, or production ASR provider was used.",
+    "ASR 40s, whole-transaction 60s, WebSocket 180s, and close-after-final 2s budgets were not driven in this lane.",
+    "The OGG decision is measured on the checked-in encoded fixture plus an independently shaped metadata/header prefix, not the private household capture.",
+    "The disconnect path intentionally leaves the transaction lifecycle unresolved until its own work settles; this lane measures resource abandonment and wire silence, not a new lifecycle policy."
+  ]
+}

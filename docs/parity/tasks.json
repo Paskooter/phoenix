@@ -4867,8 +4867,8 @@
       "track": "release",
       "phase": 5,
       "priority": "P0",
-      "status": "todo",
-      "implementation": "unverified",
+      "status": "verified",
+      "implementation": "complete",
       "owner": "Codex",
       "dependsOn": [
         "R-01",
@@ -4894,7 +4894,38 @@
         "Verify bounded memory/queues, timeout cancellation, no cross-robot state leakage and expected error/retry behavior.",
         "Check trace/log/metrics/configuration behavior and make failures observable without falsely healthy service state."
       ],
-      "verification": []
+      "verification": [
+        {
+          "date": "2026-09-18",
+          "basis": "clause 1: latency and throughput against the pinned budgets, under concurrency and with slow, unavailable and hanging peers",
+          "artifact": "docs/parity/evidence/2026-09-18/r03/README.md",
+          "result": "pass",
+          "notes": "Root re-ran the lanes. parser 10007ms -> PARSER, skill 10006ms -> TIMEOUT_SKILL, context 5001ms -> TIMEOUT_CONTEXT, asr 40004ms -> ASR, transaction 60001ms -> 'Maximum transaction time of 60000 exceeded' with no HubError code (which is the reference behaviour: its timeout rejects the outer handle without stopping the state machine or adding a code). Throughput 22.4 / 154.9 / 299.1 / 375.6 turns per second at concurrency 1/8/32/64, p50 44-105ms, with zero drops, zero errors and zero trace mismatches across 64 turns per arm. wsMax 180s and closeAfterFinal 2s are deliberately not driven: they map to timers that are dead code in the reference too, and the premise is pinned by a test instead.",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "ce1d6df",
+          "command": "node scripts/parity-r03-reliability/budgets.mjs && node scripts/parity-r03-reliability/real-run.mjs OUT.json && node --expose-gc scripts/parity-r03-reliability/real-load.mjs OUT.json"
+        },
+        {
+          "date": "2026-09-18",
+          "basis": "clause 2: bounded memory and queues, timeout cancellation, cross-robot isolation, error/retry",
+          "artifact": "docs/parity/evidence/2026-09-18/r03/README.md",
+          "result": "pass",
+          "notes": "768 turns over six waves: post-GC deltas heap used 749856B, RSS 6959104B, no live-resource leaks (six waves is not a formal long-run bound and is recorded as such). Decoder pending limit 2097152 bytes enforced, 2097153 rejected with ERR_AUDIO_DECODE and no child left. Timeouts do NOT cancel the in-flight peer and emit zero late frames -- source-faithful, since PromiseUtils timeout2 leaves the underlying promise running. Cross-robot isolation held across 24 concurrent turns and across five restart cycles. The clause surfaced one real divergence, fixed in ce1d6df: the reference ends and NULLS its audioStream in stopASR and drops later packets, while Phoenix kept staging audio during the NLU and skill legs that nothing would read. There is no byte cap in the source, so none was invented; the outer bound is the client close, pinned by test.",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "ce1d6df",
+          "command": "node scripts/parity-r03-restart-isolation/run.sh run --offset 700 --cycles 5 --timeout 60000 && node scripts/parity-r03-restart-isolation/run.sh falsify --offset 700 && node --test packages/gateway/test/listen.audioStaging.test.js"
+        },
+        {
+          "date": "2026-09-18",
+          "basis": "clause 3: trace, log, metrics and configuration behaviour; failures observable without falsely healthy service state",
+          "artifact": "docs/parity/evidence/2026-09-18/r03/root-runs/observability.json",
+          "result": "pass",
+          "notes": "Trace propagated verbatim across three real HTTP calls. Logs always carry t/level/ns/msg. The lane found the defect this clause exists for -- the History store returned 500 while /healthcheck still answered 200 'ok' -- and it is repaired: History now reports {status, skillLaunchDB, speechHistoryDB} with 500/status 'error'/DISCONNECTED when the store is unusable, recovering without a restart, while the other seven services keep the shared literal 'ok' (asserted directly). DIVERGENCES I-01b is marked repaired. Metrics: there is no metrics surface to measure and that is the finding -- zero occurrences of 'prometheus' in the pinned Gitea mirror, and the metrics in the archive load-testing plan belong to the ASR/NLU mock services, not a shipped service. Configuration is measured, with malformed values recorded rather than repaired: a malformed ETCO_server_port yields NaN and a malformed scoped LLM timeout silently falls back to the shared default.",
+          "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
+          "phoenixRevision": "ce1d6df",
+          "command": "node scripts/parity-r03-observability/run.mjs OUT.json && node --test scripts/parity-r03-observability/run.test.mjs"
+        }
+      ]
     },
     {
       "id": "R-04",
