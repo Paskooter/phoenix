@@ -135,7 +135,10 @@ runs):
 the new filesystem has been written *and unmounted*. So the repoint configuration
 must be **baked into the image** — the way `stage-modern-userland.js` already bakes
 the modern userland into `skills.ext4` "rather than being added after image
-creation" — and the hooks are for things outside the replaced filesystem.
+creation" — and the package therefore carries **no hooks at all**. That is stronger
+than "we chose not to use a hook": a hook that errors is fatal and produces a
+redownload-and-retry loop, so a payload with no hook members cannot enter that loop,
+and the absence of `./preinstall`/`./postinstall` is asserted against the built tar.
 
 ## Where the repoint configuration has to land
 
@@ -150,20 +153,30 @@ by an OS update:
 | the region / server URL in `/var/jibo/credentials.json` | `var` | **no — `/var` is preserved, deliberately** |
 
 The last row is the one to think about, because it is exactly why a never-repointed
-robot would upgrade cleanly and still not find the server. Options, none of them
-decided yet:
+robot would upgrade cleanly and still not find the server. **Decided: bake the
+default URL at payload-build time** from this server's configured public URL.
 
-1. bake a default URL at payload-build time from the configured Phoenix public URL
-   (simple, but the image becomes deployment-specific);
-2. have the OTA server hand the robot its own URL as part of the update it is served,
-   which Phoenix's Update service already partially does — it returns a download
-   `url` pointing at **this** server, derived from the request `Host` or
-   `ETCO_ota_publicUrl`;
-3. a narrowly scoped hook that writes the region/URL during the update, accepting
-   that it touches preserved state and must be idempotent and safe to re-run.
+That makes the URL a **build-time input**: a payload built for a different public
+URL is a different payload with a different hash. Changing the URL therefore means
+building and publishing a new payload rather than editing anything on the robot —
+accepted deliberately, because it is the only option that repoints a robot which has
+never been provisioned against this server.
 
-Whichever is chosen has to be recorded in DIVERGENCES, because the reference had no
-such step: a reference robot was provisioned by the factory/cloud, not repointed.
+The build **refuses to run with no configured public URL**. Shipping one silently
+would produce an update that cannot repoint the robots needing it most. An explicit
+opt-out flag may produce the documented leave-as-is payload — one that carries no URL
+and lets each robot keep whatever it already has — and in that case the manifest must
+record that the package carries no URL, and nothing may present it as the repoint
+payload.
+
+Where the URL actually lives when baked: the `override` block of
+`/usr/local/etc/jibo-jetstream-service.json` on the **services** partition supplies the
+hub host and port, the hosts entry in **rootfs** supplies the name, and the CA trust
+patch in **rootfs** makes the TLS work. `/var/jibo/credentials.json`'s region is
+preserved and is not the mechanism.
+
+Recorded in DIVERGENCES, because the reference had no such step: a reference robot was
+provisioned by the factory/cloud, not repointed by its own update.
 
 ## What is genuinely unproven here
 

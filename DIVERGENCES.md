@@ -78,6 +78,14 @@ Notification transport. Explicit caller-supplied HTTP agents/options retain
 upstream precedence. The installer records original and patched file hashes and
 supports guarded restoration.
 
+## OTA payload: the repoint is baked into the image (R-07)
+
+| # | Decision | Why | Impact |
+|---|---|---|---|
+| R2 | The repoint configuration ships **inside the OTA image**, and the published package carries **no `preinstall`/`postinstall` hooks at all**. The server URL is a **build-time input**, taken from this server's configured public URL; the build refuses to run without one unless an explicit leave-as-is opt-out is passed, and the manifest records which case it is. | The archived updater (`PlatformTeam/jibo-ota-updater`) applies a package as `preinstall` → write the filesystem to the device → `postinstall`, and **both hooks run while the robot is still on its old root** — the incoming filesystem is mounted at `/tmp/other` and unmounted before the root switch. A hook therefore cannot edit the image it is installing. Separately, **an error in either hook is fatal**: `apply_common.fail()` writes work state `retry` and reboots, so a hook with a bug becomes a redownload-and-retry loop rather than a failed update. The repoint spans four partitions while an os/services update replaces three: hosts and the CA-trust patch (R1) in `rootfs`, the jetstream hub/entrypoint `override` in `services`, BE 11.0.1 under `/opt` in `skills` — and the region in `/var/jibo/credentials.json`, which is **preserved on purpose** and so cannot carry the URL for a robot that was never repointed. | **The repoint now works for a robot that has never been touched over SSH**, which is the whole point: previously the firmware upgraded and the robot still could not find the server. Costs accepted deliberately: a payload is **deployment-specific**, so changing the public URL means building and publishing a new payload with a new hash rather than editing a robot; and a payload built with no configured URL is a different, documented artefact rather than a silent default. The reference has no equivalent step — a reference robot was provisioned by the factory and cloud, not repointed by its own update — so this is a Phoenix extension, recorded here rather than presented as parity. No hooks means the fatal-retry path cannot be entered from our payload. |
+
+
+
 ## Loop event and projection behavior
 
 Both rows below are **pre-existing Phoenix behavior** (they predate the
