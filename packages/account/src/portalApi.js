@@ -49,6 +49,7 @@ import { portalMessagingRoutes } from './portal/messaging.js';
 import { portalSystemRoutes } from './portal/system.js';
 import { adminConfigRoutes } from './admin/configRoutes.js';
 import { adminOpsRoutes } from './admin/adminRoutes.js';
+import { adminLogRoutes } from './admin/logRoutes.js';
 
 // The region written into an adopted robot's credentials.json. A robot's native
 // client builds its service hostnames from this value — `<region>.jibo.com` for
@@ -282,6 +283,7 @@ export function portalRoutes(store, options = {}) {
     // grants nothing on its own.
     ...adminConfigRoutes(store, { requireAdmin, sendJson }),
     ...adminOpsRoutes(store, { requireAdmin, sendJson, currentAccount: sessionUser }),
+    ...adminLogRoutes(store, { requireAdmin, sendJson }),
   };
 }
 

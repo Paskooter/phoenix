@@ -1336,3 +1336,92 @@ pre.json {
   .calendar-weekday { padding-inline: .25rem; font-size: .65rem; }
 }
 
+
+/* ---------------------------------------------------------------------------
+   Admin log console (#/admin/logs)
+
+   A terminal-shaped tail of the server's own log lines. The list is fixed
+   height and scrolls rather than growing the page, because a log view that
+   pushes the rest of the layout around as lines arrive is unreadable.
+   --------------------------------------------------------------------------- */
+
+.log-panel { display: grid; gap: .75rem; margin-top: 1rem; }
+
+.log-toolbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .75rem;
+  padding: .7rem .85rem;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius, .6rem);
+}
+
+.log-control {
+  display: inline-flex; align-items: center; gap: .4rem;
+  font-size: .78rem; color: var(--fg-dim);
+}
+
+.log-control select,
+.log-control input {
+  font: inherit; font-size: .8rem;
+  padding: .3rem .5rem;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius, .6rem);
+}
+
+.log-control input { min-width: 12rem; }
+
+.log-actions { display: inline-flex; align-items: center; gap: .5rem; margin-left: auto; }
+
+.log-list {
+  height: min(60vh, 34rem);
+  overflow-y: auto;
+  padding: .55rem .7rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius, .6rem);
+  font-family: var(--font-mono);
+  font-size: .74rem;
+  line-height: 1.5;
+}
+
+.log-line {
+  display: flex; align-items: baseline; gap: .5rem;
+  padding: .12rem 0;
+  border-bottom: 1px solid var(--border-soft);
+  white-space: pre-wrap; word-break: break-word;
+}
+
+.log-line:last-child { border-bottom: 0; }
+
+.log-time { flex: none; color: var(--faint); }
+
+.log-badge {
+  flex: none; min-width: 3.1rem; text-align: center;
+  padding: .02rem .3rem;
+  font-size: .64rem; letter-spacing: .02em; text-transform: uppercase;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--fg-dim);
+}
+
+.log-badge-error { color: var(--error); border-color: var(--error); background: var(--error-soft); }
+.log-badge-warn { color: var(--accent-warm, var(--accent)); border-color: var(--accent-line); background: var(--accent-soft); }
+.log-badge-info { color: var(--cool); border-color: var(--cool); background: var(--cool-soft); }
+.log-badge-debug { color: var(--faint); }
+
+.log-ns-name { flex: none; color: var(--accent); }
+.log-msg { flex: 1 1 auto; color: var(--fg); }
+.log-extras { flex: none; color: var(--fg-dim); }
+
+/* An error line is worth finding without reading every line. */
+.log-line.log-error .log-msg { color: var(--error); }
+.log-line.log-warn .log-msg { color: var(--accent-warm, var(--accent)); }
+
+@media (max-width: 650px) {
+  .log-control input { min-width: 0; width: 100%; }
+  .log-actions { margin-left: 0; }
+  .log-list { height: 55vh; font-size: .68rem; }
+  .log-ns-name { display: none; }
+}

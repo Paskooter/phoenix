@@ -1594,6 +1594,7 @@ async function renderSystem() {
 const ADMIN_TABS = [
   { hash: '#/admin', label: 'Status', icon: 'server' },
   { hash: '#/admin/config', label: 'Configuration', icon: 'sliders' },
+  { hash: '#/admin/logs', label: 'Logs', icon: 'message' },
   { hash: '#/admin/robots', label: 'Robots', icon: 'robot' },
   { hash: '#/admin/admins', label: 'Administrators', icon: 'users' },
 ];
@@ -2368,6 +2369,142 @@ const ROUTES = {
 };
 
 /**
+ * The server's own log lines, live.
+ *
+ * This polls with a cursor instead of holding a stream open. The shared service
+ * boundary serialises a route's return value and ends the response, so a
+ * server-sent-event endpoint would mean changing that boundary for one screen;
+ * a one-second cursor poll is a few hundred bytes and reads as live.
+ *
+ * What it can show is bounded by the deployment: in the colocated stack every
+ * service shares one process, so this is a whole-server view, while under docker
+ * compose each container has its own process and only the account service's
+ * lines appear here.
+ *
+ * The level selector filters what was recorded. It cannot reveal lines the
+ * service suppressed at its own LOG_LEVEL — run the service at debug to see
+ * debug lines.
+ */
+async function renderAdminLogs() {
+  const container = adminPage('#/admin/logs', 'Logs', 'What this server is doing, as it happens.');
+  show(container);
+  if (!(await adminGate(container))) return;
+
+  const state = { cursor: 0, level: '', ns: '', paused: false, shown: 0, dropped: 0 };
+
+  const list = h('div', { class: 'log-list', role: 'log', 'aria-live': 'polite' });
+  const status = h('span', { class: 'note', text: 'connecting…' });
+
+  const levelSelect = h('select', { class: 'log-level' },
+    ...[['', 'All levels'], ['error', 'Error and above'], ['warn', 'Warn and above'],
+      ['info', 'Info and above'], ['debug', 'Debug and above']]
+      .map(([value, label]) => h('option', { value, selected: value === state.level }, label)));
+
+  const nsInput = h('input', {
+    type: 'search', class: 'log-ns', placeholder: 'namespace, e.g. gateway',
+    'aria-label': 'Filter by namespace prefix',
+  });
+
+  function appendLine(line) {
+    const time = new Date(line.t);
+    const stamp = Number.isNaN(time.getTime()) ? '' : time.toLocaleTimeString();
+    const extras = Object.entries(line)
+      .filter(([k]) => !['t', 'level', 'ns', 'msg', 'seq'].includes(k))
+      .map(([k, v]) => `${k}=${typeof v === 'object' ? JSON.stringify(v) : v}`)
+      .join(' ');
+    const el = h('div', { class: `log-line log-${line.level}` },
+      h('span', { class: 'log-time', text: stamp }),
+      h('span', { class: `log-badge log-badge-${line.level}`, text: line.level }),
+      h('span', { class: 'log-ns-name', text: line.ns || '' }),
+      h('span', { class: 'log-msg', text: line.msg }),
+      extras ? h('span', { class: 'log-extras', text: extras }) : null);
+    list.append(el);
+    state.shown += 1;
+  }
+
+  // Newest at the bottom, like a terminal. Only auto-scroll if the reader is
+  // already at the bottom, so scrolling back to read something is not yanked
+  // away by the next line.
+  function atBottom() {
+    return list.scrollHeight - list.scrollTop - list.clientHeight < 40;
+  }
+
+  function trim() {
+    // Keep the DOM bounded no matter how long the tab is left open.
+    while (list.childElementCount > 500) list.firstElementChild.remove();
+  }
+
+  async function tick() {
+    if (state.paused) return;
+    const q = new URLSearchParams({ since: String(state.cursor), limit: '200' });
+    if (state.level) q.set('level', state.level);
+    if (state.ns) q.set('ns', state.ns);
+    const res = await api('GET', `/api/admin/logs?${q.toString()}`);
+    if (!res.ok) {
+      status.textContent = res.data?.error || 'could not read the log';
+      return;
+    }
+    const stick = atBottom();
+    state.cursor = res.data.cursor;
+    const events = res.data.events || [];
+    for (const line of events) appendLine(line);
+    if (events.length) trim();
+    status.textContent = state.paused
+      ? `paused — ${state.shown} lines`
+      : `${state.shown} lines · ${res.data.buffered} buffered in this process`
+        + (res.data.dropped > state.dropped ? ` · ${res.data.dropped - state.dropped} dropped since last poll` : '');
+    state.dropped = res.data.dropped;
+    if (events.length && stick) list.scrollTop = list.scrollHeight;
+  }
+
+  // A filter change re-reads from the start of the buffer, because the filter
+  // changes which lines exist as far as this view is concerned.
+  function applyFilter() {
+    state.level = levelSelect.value;
+    state.ns = nsInput.value.trim();
+    state.cursor = 0;
+    state.shown = 0;
+    list.replaceChildren();
+    tick();
+  }
+
+  levelSelect.addEventListener('change', applyFilter);
+  let nsTimer = null;
+  nsInput.addEventListener('input', () => {
+    clearTimeout(nsTimer);
+    nsTimer = setTimeout(applyFilter, 300);
+  });
+
+  const pause = h('button', { class: 'btn btn-quiet', type: 'button', text: 'Pause' });
+  pause.addEventListener('click', () => {
+    state.paused = !state.paused;
+    pause.textContent = state.paused ? 'Resume' : 'Pause';
+    if (!state.paused) tick();
+  });
+
+  const clear = h('button', { class: 'btn btn-quiet', type: 'button', text: 'Clear' });
+  clear.addEventListener('click', () => { list.replaceChildren(); state.shown = 0; });
+
+  const toolbar = h('div', { class: 'log-toolbar' },
+    h('label', { class: 'log-control' }, 'Level', levelSelect),
+    h('label', { class: 'log-control' }, 'Namespace', nsInput),
+    h('div', { class: 'log-actions' }, pause, clear, status));
+
+  const wrap = h('div', { class: 'log-panel' }, toolbar, list);
+  container.append(wrap);
+
+  await tick();
+  stopPoll();
+  pollTimer = setInterval(tick, 1000);
+
+  container.querySelector('.notice-info')?.remove();
+  container.append(h('p', { class: 'note' },
+    'Only lines this process logged appear here. The level selector filters what '
+    + 'was recorded — it cannot reveal lines the service suppressed, so run it at '
+    + 'LOG_LEVEL=debug to see debug output.'));
+}
+
+/**
  * The admin area. Kept out of ROUTES because reaching it does not require the
  * signed-in-and-nav-highlighted treatment the household surfaces get: the
  * server decides who may see it, and it has its own sub-navigation.
@@ -2375,6 +2512,7 @@ const ROUTES = {
 const ADMIN_ROUTES = {
   '#/admin': renderAdminStatus,
   '#/admin/config': renderAdminConfig,
+  '#/admin/logs': renderAdminLogs,
   '#/admin/robots': renderAdminRobots,
   '#/admin/admins': renderAdminAdmins,
 };
