@@ -1256,7 +1256,10 @@ async function renderAdd() {
       'Waiting for the robot to scan…');
 
     const paint = () => holder.replaceChildren(...[0, 1].map((i) =>
-      h('div', {}, qrSvg(codes[(frame + i) % codes.length], 5))));
+      // qrSvg() returns SVG *markup*. It must go in as markup: a plain string
+      // child is appended as a text node, which is why the setup code used to
+      // render as a wall of literal <svg> source instead of a scannable code.
+      h('div', { html: qrSvg(codes[(frame + i) % codes.length], 5) })));
     paint();
 
     container.append(card('Setup code', { sub: `${codes.length} frames` },
