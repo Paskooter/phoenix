@@ -13,7 +13,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 | pegasus | 46 | 46 | 0 | 0 |
 | classic | 20 | 20 | 0 | 0 |
 | restoration | 1 | 1 | 0 | 0 |
-| release | 2 | 5 | 0 | 0 |
+| release | 2 | 7 | 0 | 0 |
 
 Current task: none.
 
@@ -1839,13 +1839,61 @@ Phoenix: [HW-OOBE-TEST.md](../../HW-OOBE-TEST.md); [packages/harness](../../pack
 
 Evidence: pending.
 
+### R-06 — Verify an over-the-air upgrade from a stock 5.4.0 robot to the published 13.0.0 packages
+
+- [ ] **todo** · P0 · release · implementation: unverified
+
+Owner: Codex. Dependencies: R-02, R-03, A-05, R-07.
+
+The Update service is implemented and unit-tested and the real 13.0.0 'Last Dance' packages are on disk, but no real robot has ever walked the upgrade: the standing ECONNREFUSED 127.0.0.1:7015 comes from the development launcher starting only account, classic and gateway, never OTA, so the path a robot would take has not even been reachable. This is a release gate because it is the difference between supporting a robot that was already repointed by hand and supporting any robot that arrives on an older firmware.
+
+Done when:
+
+- Flash the test robot to stock 5.4.0 over USB, read the installed version off the robot itself, and record serial, firmware and configuration before changing anything.
+- Serve the update from the deployed stack: the OTA service must actually be running and reachable by the robot, and Update_20160301.GetUpdateFrom / ListUpdatesFrom must offer the 13.0.0 packages to that robot's fromVersion.
+- Complete the upgrade on the robot: download through the offered url, verify the package against its advertised length and SHA-1, apply the A/B rootfs swap, reboot, and come back up on 13.0.0.
+- Prove /var survived the swap: calibration and the robot's own identity/keying are unchanged, and no re-flash was needed.
+- With no manual repoint step, the upgraded robot must reach this server, return to its loop, and complete one real spoken turn end to end.
+- Record robot, firmware, configuration, package ids, timings and robot-side logs, and state plainly what was NOT exercised.
+- Falsification: a package whose bytes do not match the advertised SHA-1 must be refused by the robot's updater, and the robot must still boot its old slot afterwards.
+
+Source: jiborobot/srv-update-ws; jiborobot/jibo-ota-updater; jiborobot/srv-jibo-server-client/apis.
+
+Phoenix: [packages/ota](../../packages/ota); [scripts/build-ota-packages.sh](../../scripts/build-ota-packages.sh); [scripts/parity-robot/authenticated-stack.mjs](../../scripts/parity-robot/authenticated-stack.mjs); [docs/parity/HARDWARE.md](../../docs/parity/HARDWARE.md).
+
+Evidence: pending.
+
+### R-07 — Package the Phoenix repoint configuration into the OTA payload
+
+- [ ] **todo** · P0 · release · implementation: unverified
+
+Owner: Codex. Dependencies: R-02, A-05.
+
+The published packages are the stock Jibo 13.0.0 build; everything that makes a robot able to reach Phoenix is applied afterwards over SSH by scripts/point-robot-at-phoenix.sh. A robot that has never been repointed therefore upgrades its firmware and still cannot reach the server, so the update cannot yet serve the 'any robot that connects' case.
+
+Done when:
+
+- Produce the payload from a script so it is reproducible: a versioned os/services package set whose filesystem content carries the repoint configuration.
+- Carry the certificate-trust change inside the payload: the patched @jibo/jibo-server-client CA handling from DIVERGENCES R1, not an SSH step after the fact.
+- Ship BE 11.0.1 (phoenix-parity-11-0-1) rather than the newest BE, because 12.0.0-era @be/be loses the cyan listening eye, the proactive runtime and the Nimbus follow-ups.
+- Default the robot's server URL from this server's configured public URL so a robot that has never been repointed reaches it, and state explicitly what happens when that URL is unset.
+- Set the hosts-file entry the repoint script sets, and show the resulting robot needs no manual repoint step.
+- Publish the manifest entry with the real length and SHA-1 computed from the artifact, keep the never-offered-again loop-guard for a robot already at the target version, and keep the update idempotent so a second pass is harmless.
+- Falsification: show the payload actually carries the change (inspect the built tar, not the build script) and that a robot with NO repoint reaches the server, while a robot pointed at a deliberately wrong URL does not.
+
+Source: jiborobot/jibo-ota-updater/src/package-update.js; jiborobot/srv-jibo-server-client/apis; [Restored Pegasus docs/atlas/runtime-topology.md](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/d682547a31511cd164db0913b6104eb1786455a2/docs/atlas/runtime-topology.md).
+
+Phoenix: [scripts/build-ota-packages.sh](../../scripts/build-ota-packages.sh); [packages/ota/manifest.json](../../packages/ota/manifest.json); [scripts/point-robot-at-phoenix.sh](../../scripts/point-robot-at-phoenix.sh); [DIVERGENCES.md](../../DIVERGENCES.md).
+
+Evidence: pending.
+
 ## 6. Close the release checklist
 
 ### R-05 — Close the source checklist and publish a release parity report
 
 - [ ] **todo** · P0 · release · implementation: unverified
 
-Owner: Codex. Dependencies: R-01, R-02, R-03, R-04, A-01, A-02, A-03, A-04, A-05, A-06, A-07, A-08, A-09, A-10, A-11, A-12, A-13, A-14, A-15, A-16, A-17, A-18.
+Owner: Codex. Dependencies: R-01, R-02, R-03, R-04, A-01, A-02, A-03, A-04, A-05, A-06, A-07, A-08, A-09, A-10, A-11, A-12, A-13, A-14, A-15, A-16, A-17, A-18, R-06, R-07.
 
 Completion must cover the scoped product and every required behavior, not just the previous M1-M9 milestone labels.
 

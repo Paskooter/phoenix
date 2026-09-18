@@ -27,9 +27,9 @@ external-service cases that neither side can host. Everything else is tracked op
 
 <!-- parity-progress:start -->
 
-![96.2% checklist completion — 76 of 79 tasks verified](docs/parity/progress.svg)
+![93.8% checklist completion — 76 of 81 tasks verified](docs/parity/progress.svg)
 
-**96.2% checklist completion · 76/79 tasks verified.**
+**93.8% checklist completion · 76/81 tasks verified.**
 
 Counts only tasks whose full acceptance criteria and evidence have been reviewed. Candidate implementations do not count. This includes planning and verification tooling; it is not a percentage of server functionality.
 
@@ -40,7 +40,7 @@ Counts only tasks whose full acceptance criteria and evidence have been reviewed
 | Pegasus | 46 | 46 |
 | Companion cloud | 20 | 20 |
 | Restoration | 1 | 1 |
-| Release | 2 | 5 |
+| Release | 2 | 7 |
 
 [Verified checklist](docs/parity/TASKS.md) · [Execution plan](docs/parity/PLAN.md) · [Behavioral comparisons](docs/parity/PRODUCTION.md)
 
@@ -54,8 +54,10 @@ Progress is regenerated from the task ledger by the repository's pre-commit hook
 - **Conversation end to end** — WebSocket hub, server-side ASR, a JavaScript grammar engine,
   intent routing, graph-based skills, redirects and proactive selection.
 - **Dialog content** — the complete 4,424 chitchat MIMs and 82 report MIMs.
-- **Robot revival** — an OTA update server that walks a 2017 robot up to modern firmware in
-  place, preserving per-robot calibration.
+- **Robot revival** — an OTA update server that implements the pinned Update API and serves the
+  real 13.0.0 "Last Dance" subsystem packages from this host. **No robot has completed an upgrade
+  yet**: see [R-06/R-07](docs/parity/OTA-UPGRADE.md) — the path is implemented, and the payload
+  still has to carry the repoint configuration so an unmodified robot can reach this server.
 - **Pairing** — the real OOBE QR handshake for a factory-reset robot, and adoption for a robot
   that paired with the original cloud years ago.
 - **Per-robot authentication** — the genuine SigV4 → hub-token exchange, verified against real
@@ -66,8 +68,10 @@ Progress is regenerated from the task ledger by the repository's pre-commit hook
 
 Calendar and OAuth, follow-up grammars, the personal report's robot displays, proactive
 settings, and a number of Classic operations. Microphone/wake-word and physical-ring behavior
-are unverified on hardware. See the [audit](docs/parity/AUDIT.md) for measured coverage and
-specific defects, and [DIVERGENCES.md](DIVERGENCES.md) for deliberate departures.
+are unverified on hardware. **The over-the-air upgrade path has never been exercised on a real
+robot** — see [OTA-UPGRADE.md](docs/parity/OTA-UPGRADE.md). See the [audit](docs/parity/AUDIT.md)
+for measured coverage and specific defects, and [DIVERGENCES.md](DIVERGENCES.md) for deliberate
+departures.
 
 ## Layout
 
