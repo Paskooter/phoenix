@@ -131,6 +131,9 @@ export class ListenTransaction {
     // effect: once a client-supplied turn (or any state exit) supersedes the
     // ASR phase, that phase may no longer emit SOS/EOS or contribute a result.
     this.asrCancelled = false; // mirrors the reference's stopASR() effect
+    // Mirrors the reference's `audioStream`: live from construction, ended and
+    // nulled by stopASR(), after which handleAudio drops what arrives.
+    this.audioStreamClosed = false;
     this.abandoned = false;    // peer closed: no write can be delivered any more
     this.sosTimer = null;
     this.maxSpeechTimer = null;
@@ -160,6 +163,16 @@ export class ListenTransaction {
       // Binary frames = raw 16 kHz 16-bit mono PCM. Stream straight into a live
       // ASR session (reference: audioStream.on('data') -> provideAudio); buffer
       // anything that arrives before the session exists so no audio is lost.
+      //
+      // Once the ASR phase has stopped, the reference DROPS audio instead of
+      // buffering it: `stopASR()` ends and nulls `audioStream`, and `handleAudio`
+      // logs "Got audio packet but audio stream is closed". Without that, a robot
+      // that keeps streaming after its turn is recognised leaves frames in a
+      // buffer no consumer will ever read -- retained until the socket closes
+      // (closeAfterFinal) on the settled path, and for the whole NLU + skill legs
+      // on the normal path. Same rule here, so the retained set matches the
+      // reference's.
+      if (this.audioStreamClosed) return;
       if (this.asrSession) this.asrSession.provideAudio(audio);
       else this.audioChunks.push(audio);
       return;
@@ -313,6 +326,9 @@ export class ListenTransaction {
     // follows the same path.
     const t0 = now();
     this.asrCancelled = false;
+    // A fresh ASR phase reopens the audio path, matching a reference transaction
+    // that had not yet reached stopASR().
+    this.audioStreamClosed = false;
     try {
       const out = await withTimeout(this._runASRSession(), Timeouts.asr).finally(() => {
         // Reference stopASR(): always stop the session when the ASR phase settles.
@@ -432,8 +448,12 @@ export class ListenTransaction {
       this.asrSession = null;
     }
     this._clearASRTimers();
-    // After stopASR the reference's audioStream is null, so further audio is
-    // dropped instead of buffered for a session that will never consume it.
+    // Reference stopASR() ends AND nulls `audioStream`, so every later packet
+    // takes the "audio stream is closed" branch and is dropped. That is the only
+    // thing bounding pre-session audio to the ASR phase; without it, audio arriving
+    // during the NLU and skill legs (up to the parser and skill budgets) sits in a
+    // buffer nothing reads. A fresh ASR phase reopens the stream.
+    this.audioStreamClosed = true;
     if (this.asrCancelled) this.audioChunks.length = 0;
   }
 
@@ -461,6 +481,9 @@ export class ListenTransaction {
     if (this.abandoned) return;
     this.abandoned = true;
     this.asrCancelled = true;
+    // The peer is gone: nothing can consume audio any more, so close the path the
+    // same way stopASR() does rather than letting later frames accumulate.
+    this.audioStreamClosed = true;
     const session = this.asrSession;
     if (session) {
       try {
