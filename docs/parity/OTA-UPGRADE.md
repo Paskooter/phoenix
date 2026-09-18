@@ -216,6 +216,33 @@ provisioned by the factory/cloud, not repointed by its own update.
    makes a bad OS slot survivable. An update path never seen to refuse a bad package
    is not a verified update path.
 
+## Two delivery paths, one repoint (R-07, R-08)
+
+The repoint content is the same either way — hosts entry, CA trust, BE 11.0.1, a
+baked server URL. What differs is how it reaches the robot:
+
+| | OTA (R-06, R-07) | Flash (R-08) |
+| --- | --- | --- |
+| Delivery | the Update service, an `os`/`services` package pair | a full image written over USB with `flash-jibo-preserve-var.sh` |
+| Starting point | whatever firmware the robot already runs, including 5.4.0 | a robot being provisioned or recovered |
+| `/var` | preserved by the A/B slot swap | preserved because the helper never writes that partition |
+| Rollback | U-Boot `bootcount`/`bootlimit` after the slot flip | the same mechanism, plus the old slot still on disk |
+
+Both were open as of 2026-09-18: **no built image carries the repoint at all.**
+Grepping every overlay in the workbench for `region_config`, `HubClient.override`,
+`phoenix-ca` and `jibo-server-client` returns nothing, and the workbench does not
+reference `point-robot-at-phoenix.sh` anywhere — so a flashed *or* updated robot still
+needs the SSH repoint afterwards until R-07 and R-08 land. That is the single gap both
+tasks exist to close.
+
+R-08 additionally owns the certificate question, because it is the path where it
+bites hardest: the robot's public bundle holds 180 certificates of which **58 have
+already passed their `notAfter` date**, and the workbench's own gate requires pinning
+a maintained CA source and testing chains that must succeed *and* chains that must be
+rejected — explicitly not deleting expired roots.
+
+
+
 ## Risks worth naming before starting
 
 - An OTA that rewrites the hosts file and the server URL is a remote configuration

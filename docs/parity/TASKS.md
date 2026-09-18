@@ -13,7 +13,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 | pegasus | 46 | 46 | 0 | 0 |
 | classic | 20 | 20 | 0 | 0 |
 | restoration | 1 | 1 | 0 | 0 |
-| release | 3 | 7 | 0 | 0 |
+| release | 3 | 8 | 0 | 0 |
 
 Current task: none.
 
@@ -1890,13 +1890,38 @@ Phoenix: [scripts/build-ota-packages.sh](../../scripts/build-ota-packages.sh); [
 
 Evidence: pending.
 
+### R-08 — Build and flash a pre-baked robot image that already points at this server
+
+- [ ] **todo** · P0 · release · implementation: unverified
+
+Owner: Codex. Dependencies: R-02, R-07, A-05.
+
+The firmware workbench at /home/shell/work/hermes-be/firmware has a working full-flash pipeline and has produced production-signed candidates (2026-09-02, 2026-09-03) and composed candidates (2026-09-05), offline-validated and stored on the resource host (root@192.168.1.23:/srv/jibo-release, 861MB-1.1GB each), plus firmware/production/flash-jibo-preserve-var.sh, which flashes the boot chain, rootfsA/B, services and skills while deliberately leaving /var intact. What no image carries is the repoint: grepping every built overlay for region_config, HubClient.override, phoenix-ca and jibo-server-client returns nothing, and the workbench does not reference the repoint script at all -- so a flashed robot still needs the SSH repoint afterwards, which is the same gap R-07 closes for the OTA path. The certificate side is not release-validated either: the robot's public bundle holds 180 certificates of which 58 have already passed their notAfter date, and the workbench's own gate requires mapping the OS/Node/Electron trust consumers, pinning a maintained CA source and testing accepted AND rejected chains, explicitly warning against simply deleting expired roots. The candidates are recorded as production-signed-candidate-not-hardware-validated, and the record still describes the composed candidate as unflashed while the owner reports flashed bootable images, so the first act is to read the robot and reconcile.
+
+Done when:
+
+- Build the image in the workbench rather than from scratch, keeping its plan-first and secret-free discipline, and bake the repoint into the image exactly as R-07 defines it so that NO SSH repoint step is needed after flashing.
+- Carry the certificate configuration inside the image: the Phoenix CA in the robot client's trust path, i.e. the patched @jibo/jibo-server-client CA handling from DIVERGENCES R1, plus a deliberate decision about the robot's own public trust store. 58 of its 180 certificates are already expired, so pin a maintained CA source, stage the change reversibly, and test chains that MUST succeed and chains that MUST be rejected with hostname and expiry verification intact -- do not delete expired roots and do not copy robot identity into a public bundle.
+- Bake the server URL and the hosts entry from this server's configured public URL, as R-07 decided, and refuse to build without one unless the documented leave-as-is opt-out is passed and recorded.
+- Ship BE 11.0.1 (phoenix-parity-11-0-1) rather than 12.0.0-era @be/be, which loses the cyan listening eye, the proactive runtime and the Nimbus follow-ups.
+- Flash a real robot with firmware/production/flash-jibo-preserve-var.sh, supplying the robot's measured skills capacity and the explicit GPT-range acknowledgement the helper demands, and prove /var survived: identity, Wi-Fi settings, calibration and registry unchanged.
+- With NO repoint step of any kind, the flashed robot must boot on its own, reach this server, complete OOBE or resume its existing loop, and complete one real spoken turn end to end.
+- Reconcile the robot's actual state against the workbench record before and after, since the record still describes the composed candidate as unflashed while the owner reports flashed bootable images, and record image hashes, robot, firmware, configuration and what was NOT exercised.
+- Falsification, both halves: an image built with a deliberately wrong public URL must fail to reach the server, proving the bake is what makes it work rather than something else; and a deliberately unbootable rootfs slot must fall back through bootcount/bootlimit rather than leaving the robot dead. Also record that a full flash rewrites the boot chain and can rewrite GPT, so partition ranges are verified and /var is backed up before the write.
+
+Source: jiborobot/srv-jibo-server-client/apis; [Original Pegasus packages/hub-client](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub-client).
+
+Phoenix: [scripts/point-robot-at-phoenix.sh](../../scripts/point-robot-at-phoenix.sh); [docs/parity/OTA-UPGRADE.md](../../docs/parity/OTA-UPGRADE.md); [docs/parity/HARDWARE.md](../../docs/parity/HARDWARE.md); [DIVERGENCES.md](../../DIVERGENCES.md).
+
+Evidence: pending.
+
 ## 6. Close the release checklist
 
 ### R-05 — Close the source checklist and publish a release parity report
 
 - [ ] **todo** · P0 · release · implementation: unverified
 
-Owner: Codex. Dependencies: R-01, R-02, R-03, R-04, A-01, A-02, A-03, A-04, A-05, A-06, A-07, A-08, A-09, A-10, A-11, A-12, A-13, A-14, A-15, A-16, A-17, A-18, R-06, R-07.
+Owner: Codex. Dependencies: R-01, R-02, R-03, R-04, A-01, A-02, A-03, A-04, A-05, A-06, A-07, A-08, A-09, A-10, A-11, A-12, A-13, A-14, A-15, A-16, A-17, A-18, R-06, R-07, R-08.
 
 Completion must cover the scoped product and every required behavior, not just the previous M1-M9 milestone labels.
 
