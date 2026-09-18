@@ -51,6 +51,15 @@ export function dataToFriendly(d) {
       googleWork: !!get(d, 'google:workCalendar:readonly', 'credentialExists'),
       outlookPersonal: !!get(d, 'outlook:personalCalendar:readonly', 'credentialExists'),
       outlookWork: !!get(d, 'outlook:workCalendar:readonly', 'credentialExists'),
+      timeZone: get(d, 'calendarTimeZone', 'value') || null,
+      icalSubscriptions: Array.isArray(get(d, 'icalSubscriptions', 'subscriptions'))
+        ? get(d, 'icalSubscriptions', 'subscriptions').map((item) => ({
+          id: item.id,
+          label: item.label,
+          enabled: item.enabled !== false,
+          verification: item.verification || { status: 'unknown', eventCount: 0 },
+        }))
+        : [],
     },
   };
 }
@@ -78,6 +87,12 @@ export function friendlyToData(friendly, base = defaultSettingsData()) {
   }
   if (f.calendar) {
     if ('active' in f.calendar) d.calendarEnabled = { value: f.calendar.active ? 1 : 0 };
+    if ('timeZone' in f.calendar && typeof f.calendar.timeZone === 'string' && f.calendar.timeZone.trim()) {
+      d.calendarTimeZone = { value: f.calendar.timeZone.trim() };
+    }
+    if (Array.isArray(f.calendar.icalSubscriptions)) {
+      d.icalSubscriptions = { subscriptions: f.calendar.icalSubscriptions };
+    }
     if ('googlePersonal' in f.calendar) d['google:personalCalendar:readonly'] = { credentialExists: !!f.calendar.googlePersonal };
     if ('googleWork' in f.calendar) d['google:workCalendar:readonly'] = { credentialExists: !!f.calendar.googleWork };
     if ('outlookPersonal' in f.calendar) d['outlook:personalCalendar:readonly'] = { credentialExists: !!f.calendar.outlookPersonal };

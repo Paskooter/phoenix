@@ -103,6 +103,16 @@ export class SettingsClient {
         googleWorkCreds: !!checkProp('google:workCalendar:readonly', 'credentialExists'),
         outlookPersonalCreds: !!checkProp('outlook:personalCalendar:readonly', 'credentialExists'),
         outlookWorkCreds: !!checkProp('outlook:workCalendar:readonly', 'credentialExists'),
+        timeZone: checkProp('calendarTimeZone', 'value') || null,
+        icalSubscriptions: Array.isArray(checkProp('icalSubscriptions', 'subscriptions'))
+          ? checkProp('icalSubscriptions', 'subscriptions').map((subscription) => ({
+            id: subscription.id,
+            label: subscription.label,
+            enabled: subscription.enabled !== false,
+            verification: subscription.verification || { status: 'unknown', eventCount: 0 },
+            events: Array.isArray(subscription.events) ? subscription.events : [],
+          }))
+          : [],
       },
       commute: Object.assign({}, commutePrefs, { complete: SettingsClient.commutePrefsComplete(commutePrefs) }),
       news: {
@@ -128,7 +138,15 @@ export class SettingsClient {
     log?.info?.('Using default UserPrefs');
     return {
       weather: { active: true, useCelsius: false },
-      calendar: { active: false, googlePersonalCreds: false, googleWorkCreds: false, outlookPersonalCreds: false, outlookWorkCreds: false },
+      calendar: {
+        active: false,
+        googlePersonalCreds: false,
+        googleWorkCreds: false,
+        outlookPersonalCreds: false,
+        outlookWorkCreds: false,
+        timeZone: null,
+        icalSubscriptions: [],
+      },
       commute: {
         active: false,
         workTime: { hour: null, min: null },

@@ -17,6 +17,7 @@ export { readTrace, writeTrace } from './headers.js';
 export { logger } from './log.js';
 export { createService, sendText, sendJson, readJson, legacyJsonError } from './service.js';
 export * as jwt from './jwt.js';
+export * as ical from './ical.js';
 export {
   SIGV4_ALGORITHM,
   SIGV4_CLOCK_SKEW_MS,

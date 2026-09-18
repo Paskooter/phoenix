@@ -14,6 +14,7 @@ import { getStore } from './store.js';
 import { portalRoutes } from './portalApi.js';
 import { robotFaceRoutes } from './robotFace.js';
 import { settingsPeerRoutes, settingsPortalRoutes } from './settingsFace.js';
+import { calendarPortalRoutes } from './calendarRoutes.js';
 import { backupPeerRoutes } from './backupPeerRoutes.js';
 import { keyPeerRoutes } from './keyPeerRoutes.js';
 import { staticRoutes } from './static.js';
@@ -58,6 +59,7 @@ export {
 } from './accountIdentity.js';
 export * as sessions from './sessions.js';
 export { portalRoutes } from './portalApi.js';
+export { calendarPortalRoutes } from './calendarRoutes.js';
 export { robotFaceRoutes } from './robotFace.js';
 export {
   createSettingsInternalService,
@@ -250,6 +252,8 @@ export function createAccountService({
   smsTimeoutMs,
   smsHeaders,
   lpsStsProvider,
+  calendarFetcher,
+  calendarFetchTimeoutMs,
 } = {}) {
   // The source Settings controller is always the production algorithm. Explicit provider
   // injection is reserved for tests; normal construction uses Phoenix storage/NET seams.
@@ -319,6 +323,10 @@ export function createAccountService({
       ...keyPeerRoutes(store),      // internal Account client seam used by source Key (loop members)
       ...listAssociatedLoopsRoute(store), // trusted Account -> GQA loop resolution peer
       ...settingsPortalRoutes(store), // GET/PUT /api/settings (the report-settings editor)
+      ...calendarPortalRoutes(store, {
+        fetcher: calendarFetcher,
+        fetchOptions: calendarFetchTimeoutMs === undefined ? {} : { timeoutMs: calendarFetchTimeoutMs },
+      }), // owner-scoped iCal subscriptions and cached events
       ...robotFaceRoutes(store, {
         settingsProviders: effectiveSettingsProviders,
         loopUpdatedOutbox,
