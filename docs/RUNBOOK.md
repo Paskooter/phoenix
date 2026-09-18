@@ -240,67 +240,27 @@ timestamped `.phx-bak-*` backup beside it on the robot.
 
 ## 10. Hosting on the internet instead of a LAN
 
-Everything above assumes the robot and the server share a network. Putting the
-server on the public internet works, but one constraint drives the whole design
-and surprises people:
+The complete VPS/home-server deployment, nginx front door, Cloudflare design
+options, port map, private-CA procedure, firewall rules, backups, upgrades,
+and verification checklist are maintained in
+[`docs/DEPLOYMENT.md`](DEPLOYMENT.md). Read that guide before exposing any
+Phoenix listener to the internet.
 
-> **You cannot get a publicly trusted certificate for `<region>.jibo.com`,**
-> because you do not own `jibo.com`. And you cannot change that hostname — the
-> robot's native client builds it from its region and hardcodes the `.jibo.com`
-> suffix and port 443.
+The short version is:
 
-So the robot's cloud API and notification socket need **your own CA installed on
-the robot, whether you are on a LAN or on the internet**. Public hosting does not
-remove that step. What changes is only *where the names point* and *how traffic
-reaches you*.
+- The robot's native `<region>.jibo.com` and `<region>-socket.jibo.com` names
+  and port 443 are not configurable by public DNS. They require an operator CA
+  installed on the robot and a certificate with those names.
+- The portal and other names you own can use a public certificate behind nginx
+  (and optionally Cloudflare). Cloudflare's normal proxy cannot proxy the
+  stock `jibo.com` names because they are not in your zone.
+- TLS is not authentication. Classic robot requests currently have the
+  unauthenticated OOBE boundary documented in `DIVERGENCES.md`; restrict
+  source addresses where possible, keep internal ports private, set
+  `DISABLE_AUTH=false`, and use a real hub secret.
 
-It helps to split the hostnames into two groups:
-
-| Group | Hostnames | Certificate | Why |
-|---|---|---|---|
-| **Baked into the robot** | `<region>.jibo.com`, `<region>-socket.jibo.com` | **Your own CA**, installed on the robot | You cannot own the name, so no public CA will issue for it |
-| **Chosen by you** | hub, web portal | A normal public certificate (Let's Encrypt) | These hostnames are configuration, not hardcoded |
-
-### The two ways to do it
-
-**A. LAN (steps 1–9 above).** The robot reaches the server by private IP. Nothing
-is exposed to the internet. This is the right choice for a robot in your home, and
-it is what the rest of this runbook assumes.
-
-**B. Internet.** Use this when the robot is somewhere the server is not.
-
-1. **Include your public names in the server's certificate.** Set them before
-   the server starts:
-   ```bash
-   export PHOENIX_TLS_EXTRA_NAMES=hub.example.com
-   ```
-   The `.jibo.com` names are still signed by your own CA. Only the names you own
-   can also be served by a public certificate, via a reverse proxy.
-
-2. **Make port 443 reachable.** Forward TCP 443 from your router or open it in the
-   cloud firewall. The port is not negotiable; the robot hardcodes it.
-
-3. **Point the robot at your public address.** Run the repoint script with
-   `--phoenix <your-public-ip>`. It writes the same hosts entries, just with a
-   routable address. Public DNS is not involved and cannot help you here: those
-   names belong to someone else.
-
-4. **Restrict who can reach it.** The entrypoint is now internet-facing. At
-   minimum, firewall 443 to the robot's source address if it is static. Read the
-   authentication caveats in [Operations](OPERATIONS.md) before exposing it —
-   several Classic routes still rely on network trust, so "it is behind TLS" is
-   not the same as "it is authenticated".
-
-5. **Optionally give the hub and portal real certificates.** Those hostnames *are*
-   configurable, so they can sit behind a normal reverse proxy with Let's Encrypt.
-   [Operations](OPERATIONS.md) has a worked Caddy configuration.
-
-### A dynamic address
-
-If your public IP changes, the hosts entries the robot holds go stale and it
-silently stops connecting. Either use a static address, or re-run the repoint
-script when the address changes — it is idempotent and replaces the managed block
-in place.
+Do not duplicate the deployment procedure here; update `docs/DEPLOYMENT.md`
+when the hosting topology or code contract changes.
 
 ## What this does not do
 
