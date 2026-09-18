@@ -682,6 +682,269 @@ async function renderLoop() {
   }
 }
 
+function browserTimeZone(candidate) {
+  const value = typeof candidate === 'string' && candidate.trim() ? candidate.trim() : '';
+  try {
+    const zone = value || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    new Intl.DateTimeFormat(undefined, { timeZone: zone }).format();
+    return zone;
+  } catch {
+    return 'UTC';
+  }
+}
+
+function calendarDateKey(timestamp, timeZone) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone, year: 'numeric', month: '2-digit', day: '2-digit', numberingSystem: 'latn',
+  }).formatToParts(new Date(timestamp));
+  const values = Object.fromEntries(parts.filter((part) => part.type !== 'literal').map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+function calendarMonthLabel(cursor, timeZone) {
+  // Format midday on the selected civil month, not UTC midnight: western timezones
+  // would otherwise display the previous month for a cursor at the first UTC instant.
+  const sample = new Date(Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth(), 15, 12));
+  return new Intl.DateTimeFormat(undefined, { timeZone, month: 'long', year: 'numeric' }).format(sample);
+}
+
+function calendarCursorForToday(timeZone) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone, year: 'numeric', month: '2-digit', numberingSystem: 'latn',
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.filter((part) => part.type !== 'literal').map((part) => [part.type, part.value]));
+  return new Date(Date.UTC(Number(values.year), Number(values.month) - 1, 1));
+}
+
+function calendarMonthWindow(cursor) {
+  const year = cursor.getUTCFullYear();
+  const month = cursor.getUTCMonth();
+  const firstDay = new Date(Date.UTC(year, month, 1)).getUTCDay();
+  const gridStart = Date.UTC(year, month, 1 - firstDay);
+  const gridEnd = gridStart + 42 * 86400000;
+  return {
+    start: new Date(gridStart - 2 * 86400000).toISOString(),
+    end: new Date(gridEnd + 2 * 86400000).toISOString(),
+  };
+}
+
+function maskedCalendarUrl(value) {
+  try {
+    const url = new URL(value);
+    return `${url.protocol}//${url.host}${url.pathname}${url.search ? ' · query hidden' : ''}`;
+  } catch {
+    return 'Saved calendar link';
+  }
+}
+
+function calendarStatus(subscription) {
+  const status = subscription.verification?.status || 'unknown';
+  return {
+    label: status === 'ok' ? 'Verified' : status === 'invalid' ? 'Needs attention' : 'Not checked',
+    className: status === 'ok' ? 'status-ok' : status === 'invalid' ? 'status-error' : 'status-unknown',
+  };
+}
+
+function createCalendarManager({ subscriptions: initialSubscriptions, timeZone: initialTimeZone }) {
+  let subscriptions = Array.isArray(initialSubscriptions) ? initialSubscriptions : [];
+  let timeZone = browserTimeZone(initialTimeZone);
+  let cursor = calendarCursorForToday(timeZone);
+  let editingId = null;
+
+  const root = h('div', { class: 'ical-manager' });
+  const list = h('div', { class: 'ical-subscription-list' });
+  const preview = h('div', { class: 'ical-preview' });
+  const helper = h('p', { class: 'field-hint ical-manager-hint' },
+    'Paste a read-only iCal subscription URL. Phoenix checks it now, keeps bad links editable, and caches the parsed events for the report.');
+  const labelInput = h('input', { type: 'text', maxlength: 120, placeholder: 'e.g. Family', autocomplete: 'off' });
+  const urlInput = h('input', { type: 'url', inputmode: 'url', placeholder: 'https://calendar.example.com/feed.ics', autocomplete: 'url' });
+  const timeZoneInput = h('input', {
+    type: 'text', name: 'calendarTimeZone', value: timeZone, placeholder: 'America/New_York',
+    spellcheck: 'false', autocomplete: 'off',
+  });
+  const addButton = h('button', { type: 'button', class: 'btn btn-primary btn-sm' }, 'Save calendar link');
+  const cancelButton = h('button', { type: 'button', class: 'btn btn-sm', hidden: true }, 'Cancel edit');
+  const addStatus = h('p', { class: 'field-hint ical-add-status', role: 'status', 'aria-live': 'polite' });
+
+  function renderSubscriptions() {
+    if (!subscriptions.length) {
+      list.replaceChildren(empty('No calendars linked', 'Add a read-only iCal URL above to see its events here.', 'calendar'));
+      return;
+    }
+    list.replaceChildren(...subscriptions.map((subscription) => {
+      const state = calendarStatus(subscription);
+      const enabled = h('input', { type: 'checkbox', checked: subscription.enabled !== false, 'aria-label': `Use ${subscription.label}` });
+      enabled.addEventListener('change', async () => {
+        enabled.disabled = true;
+        const result = await api('PUT', `/api/calendar/subscriptions/${encodeURIComponent(subscription.id)}`, { enabled: enabled.checked });
+        if (!result.ok) enabled.checked = subscription.enabled !== false;
+        else await reloadSubscriptions();
+        enabled.disabled = false;
+      });
+      const verify = h('button', {
+        type: 'button', class: 'btn btn-sm', on: { click: async () => {
+          verify.disabled = true;
+          const result = await api('POST', `/api/calendar/subscriptions/${encodeURIComponent(subscription.id)}/verify`);
+          verify.disabled = false;
+          if (result.ok) { notify(result.data.subscription.verification.status === 'ok' ? 'Calendar verified' : 'Calendar still needs attention', result.data.subscription.verification.status === 'ok' ? 'ok' : 'error'); await reloadSubscriptions(); }
+          else notify(result.data.error || 'Could not verify calendar', 'error');
+        } },
+      }, 'Verify');
+      const edit = h('button', {
+        type: 'button', class: 'btn btn-sm', on: { click: () => {
+          editingId = subscription.id;
+          labelInput.value = subscription.label || '';
+          urlInput.value = subscription.url || '';
+          addButton.textContent = 'Update calendar link';
+          cancelButton.hidden = false;
+          urlInput.focus();
+        } },
+      }, 'Edit');
+      const remove = h('button', {
+        type: 'button', class: 'btn btn-sm btn-danger', on: { click: async () => {
+          const yes = await confirmDialog({ title: 'Remove this calendar?', body: `Remove ${subscription.label} from the account?`, confirmLabel: 'Remove' });
+          if (!yes) return;
+          const result = await api('DELETE', `/api/calendar/subscriptions/${encodeURIComponent(subscription.id)}`);
+          if (result.ok) { notify('Calendar removed'); await reloadSubscriptions(); }
+          else notify(result.data.error || 'Could not remove calendar', 'error');
+        } },
+      }, 'Remove');
+      const error = subscription.verification?.status === 'invalid'
+        ? h('p', { class: 'ical-subscription-error', text: subscription.verification.lastError || 'The link could not be verified.' }) : null;
+      return h('article', { class: 'ical-subscription' },
+        h('div', { class: 'ical-subscription-main' },
+          h('div', { class: 'ical-subscription-title' },
+            h('span', { class: 'ical-enabled' }, enabled),
+            h('strong', { text: subscription.label }),
+            h('span', { class: `status-badge ${state.className}`, text: state.label })),
+          h('div', { class: 'ical-subscription-url', text: maskedCalendarUrl(subscription.url) }),
+          h('div', { class: 'ical-subscription-meta' },
+            `${subscription.verification?.eventCount || 0} events`,
+            subscription.verification?.lastChecked ? ` · checked ${fmtDate(subscription.verification.lastChecked)}` : ''),
+          error),
+        h('div', { class: 'ical-subscription-actions' }, verify, edit, remove));
+    }));
+  }
+
+  function renderMonth(events) {
+    const eventByDay = new Map();
+    for (const event of events || []) {
+      if (!event?.start?.timestamp) continue;
+      const key = calendarDateKey(event.start.timestamp, timeZone);
+      if (!eventByDay.has(key)) eventByDay.set(key, []);
+      eventByDay.get(key).push(event);
+    }
+    const year = cursor.getUTCFullYear();
+    const month = cursor.getUTCMonth();
+    const firstDay = new Date(Date.UTC(year, month, 1)).getUTCDay();
+    const today = calendarDateKey(Date.now(), timeZone);
+    const cells = [];
+    for (let index = 0; index < 42; index += 1) {
+      const civil = new Date(Date.UTC(year, month, 1 + index - firstDay));
+      const key = `${civil.getUTCFullYear()}-${String(civil.getUTCMonth() + 1).padStart(2, '0')}-${String(civil.getUTCDate()).padStart(2, '0')}`;
+      const dayEvents = eventByDay.get(key) || [];
+      cells.push(h('div', { class: `calendar-day${civil.getUTCMonth() === month ? '' : ' outside'}${key === today ? ' today' : ''}` },
+        h('span', { class: 'calendar-day-number', text: civil.getUTCDate() }),
+        h('div', { class: 'calendar-day-events' }, dayEvents.slice(0, 4).map((event) => h('div', {
+          class: `calendar-event${event.fullDay ? ' all-day' : ''}`, title: event.summary || 'Calendar event',
+        }, event.fullDay ? (event.summary || 'Untitled') : `${new Intl.DateTimeFormat(undefined, { timeZone, timeStyle: 'short' }).format(new Date(event.start.timestamp))} · ${event.summary || 'Untitled'}`))),
+        dayEvents.length > 4 ? h('span', { class: 'calendar-more', text: `+${dayEvents.length - 4} more` }) : null));
+    }
+    const header = h('div', { class: 'ical-preview-head' },
+      h('div', {}, h('h4', { text: calendarMonthLabel(cursor, timeZone) }), h('p', { text: `${events.length} event${events.length === 1 ? '' : 's'} · ${timeZone}` })),
+      h('div', { class: 'ical-preview-nav' },
+        h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Previous month', on: { click: () => { cursor = new Date(Date.UTC(year, month - 1, 1)); loadEvents(); } } }, icon('back', 16)),
+        h('button', { type: 'button', class: 'btn btn-sm', on: { click: () => { cursor = calendarCursorForToday(timeZone); loadEvents(); } } }, 'Today'),
+        h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Next month', on: { click: () => { cursor = new Date(Date.UTC(year, month + 1, 1)); loadEvents(); } } }, icon('arrow', 16))));
+    const weekLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => h('span', { class: 'calendar-weekday', text: day }));
+    preview.replaceChildren(header, h('div', { class: 'calendar-grid' }, ...weekLabels, ...cells));
+  }
+
+  async function loadEvents() {
+    if (!subscriptions.length) {
+      preview.replaceChildren(empty('Your calendar preview starts here', 'Verify a subscription to populate a live month view.', 'calendar'));
+      return;
+    }
+    if (!subscriptions.some((subscription) => subscription.verification?.status === 'ok')) {
+      preview.replaceChildren(errorBox('Calendar preview unavailable', 'At least one subscription must verify successfully before Phoenix can show events.'));
+      return;
+    }
+    preview.replaceChildren(h('div', { class: 'ical-preview-loading' }, loading(7)));
+    const window = calendarMonthWindow(cursor);
+    const result = await api('GET', `/api/calendar/events?start=${encodeURIComponent(window.start)}&end=${encodeURIComponent(window.end)}`);
+    if (!result.ok) {
+      preview.replaceChildren(errorBox('Could not load the calendar preview.', result.data.error));
+      return;
+    }
+    renderMonth(result.data.events || []);
+  }
+
+  async function reloadSubscriptions() {
+    const result = await api('GET', '/api/calendar/subscriptions');
+    if (!result.ok) {
+      list.replaceChildren(errorBox('Could not load calendar subscriptions.', result.data.error));
+      preview.replaceChildren(errorBox('Could not load the calendar preview.', result.data.error));
+      return;
+    }
+    subscriptions = result.data.subscriptions || [];
+    timeZone = browserTimeZone(result.data.timeZone || timeZone);
+    timeZoneInput.value = timeZone;
+    renderSubscriptions();
+    await loadEvents();
+  }
+
+  addButton.addEventListener('click', async () => {
+    const url = urlInput.value.trim();
+    if (!url) { addStatus.textContent = 'Paste an iCal URL first.'; return; }
+    addButton.disabled = true;
+    cancelButton.disabled = true;
+    addStatus.textContent = editingId ? 'Updating and verifying…' : 'Saving and verifying…';
+    const path = editingId ? `/api/calendar/subscriptions/${encodeURIComponent(editingId)}` : '/api/calendar/subscriptions';
+    const result = await api(editingId ? 'PUT' : 'POST', path, { label: labelInput.value.trim() || 'Calendar', url, enabled: true });
+    addButton.disabled = false;
+    cancelButton.disabled = false;
+    if (!result.ok) {
+      addStatus.textContent = result.data.error || 'Could not save this calendar.';
+      return;
+    }
+    const status = result.data.subscription.verification.status;
+    notify(status === 'ok' ? 'Calendar linked' : 'Calendar saved — needs attention', status === 'ok' ? 'ok' : 'error');
+    editingId = null;
+    labelInput.value = '';
+    urlInput.value = '';
+    addButton.textContent = 'Save calendar link';
+    cancelButton.hidden = true;
+    addStatus.textContent = status === 'ok' ? 'Verified and ready for the report.' : 'Saved safely. Fix the link or verify it again when ready.';
+    await reloadSubscriptions();
+  });
+  cancelButton.addEventListener('click', () => {
+    editingId = null;
+    labelInput.value = '';
+    urlInput.value = '';
+    addButton.textContent = 'Save calendar link';
+    cancelButton.hidden = true;
+    addStatus.textContent = '';
+  });
+  timeZoneInput.addEventListener('change', () => {
+    timeZone = browserTimeZone(timeZoneInput.value);
+    timeZoneInput.value = timeZone;
+    loadEvents();
+  });
+
+  root.append(
+    helper,
+    h('div', { class: 'ical-add-grid' },
+      field('Calendar name', labelInput, 'A name only you will see in this account.'),
+      field('iCal subscription URL', urlInput, 'http, https, and webcal links are supported.'),
+      field('Display timezone', timeZoneInput, 'Events are laid out in this IANA timezone.')),
+    h('div', { class: 'ical-add-actions' }, addButton, cancelButton, addStatus),
+    list,
+    preview);
+  renderSubscriptions();
+  loadEvents();
+  return { element: root };
+}
+
 /* ==========================================================================
    Personal report settings
    ========================================================================== */
@@ -689,7 +952,10 @@ async function renderLoop() {
 async function renderSettings() {
   show(page('Personal report', 'What the robot includes when you ask for your report.', loading(6)));
 
-  const r = await api('GET', '/api/settings');
+  const [r, calendarRes] = await Promise.all([
+    api('GET', '/api/settings'),
+    api('GET', '/api/calendar/subscriptions'),
+  ]);
   const container = page('Personal report', 'What the robot includes when you ask for your report.');
   if (!r.ok) { container.append(errorBox('Could not load your settings.', r.data.error)); return show(container); }
   const s = r.data.settings;
@@ -738,13 +1004,14 @@ async function renderSettings() {
         + 'before this time. Ask earlier and it just says how long the trip takes right now.')),
     picker.element);
 
-  const calendar = h('fieldset', {},
+  const calendarManager = createCalendarManager({
+    subscriptions: calendarRes.ok ? calendarRes.data.subscriptions : (s.calendar.icalSubscriptions || []),
+    timeZone: calendarRes.ok ? calendarRes.data.timeZone : s.calendar.timeZone,
+  });
+  const calendar = h('fieldset', { class: 'calendar-fieldset' },
     h('legend', {}, 'Calendar'),
-    toggle('calendar', s.calendar.active, 'Read your calendar', 'Which calendars the robot may look at.'),
-    h('div', { class: 'chips' },
-      [['googlePersonal', 'Google personal'], ['googleWork', 'Google work'],
-        ['outlookPersonal', 'Outlook personal'], ['outlookWork', 'Outlook work']]
-        .map(([key, label]) => chip(`cal_${key}`, s.calendar[key], label))));
+    toggle('calendar', s.calendar.active, 'Read your calendar', 'Use verified iCal subscriptions in the robot’s report.'),
+    calendarManager.element);
 
   const saveBtn = h('button', { type: 'submit', class: 'btn btn-primary' }, 'Save changes');
   form.append(weather, news, commute, calendar,
@@ -758,8 +1025,6 @@ async function renderSettings() {
     const fd = Object.fromEntries(new FormData(form));
     const newsCats = {};
     for (const k of Object.keys(s.news.categories)) newsCats[k] = !!fd[`news_${k}`];
-    const cal = {};
-    for (const k of ['googlePersonal', 'googleWork', 'outlookPersonal', 'outlookWork']) cal[k] = !!fd[`cal_${k}`];
     const payload = {
       weather: { active: !!fd.weather, celsius: fd.units === 'c' },
       news: { active: !!fd.news, categories: newsCats },
@@ -772,7 +1037,9 @@ async function renderSettings() {
           ? { time: { hour: Number(fd.departure.split(':')[0]), min: Number(fd.departure.split(':')[1]) } }
           : {}),
       },
-      calendar: { active: !!fd.calendar, ...cal },
+      // The four legacy credential flags stay in storage for report compatibility,
+      // but this editor no longer pretends that a checkbox links a provider.
+      calendar: { active: !!fd.calendar, timeZone: fd.calendarTimeZone || undefined },
     };
     const res = await api('PUT', '/api/settings', payload);
     saveBtn.disabled = false;

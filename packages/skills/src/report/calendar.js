@@ -107,6 +107,10 @@ export async function getData(userPrefs, data) {
   const prefs = userPrefs.calendar;
   const iso = data.runtime.location.iso;
   const endDate = endOfTomorrowISO(iso);
+  const subscriptions = Array.isArray(prefs.icalSubscriptions) ? prefs.icalSubscriptions : [];
+  const enabledIcal = subscriptions.filter((subscription) => subscription && subscription.enabled !== false);
+  const validIcal = enabledIcal.filter((subscription) => subscription.verification?.status === 'ok');
+  const icalEvents = validIcal.flatMap((subscription) => Array.isArray(subscription.events) ? subscription.events : []);
 
   try {
     const personalEventsPromise = prefs.googlePersonalCreds ? LassoClient.fetchCalendarEvents(data, 'google', 'personalCalendar', endDate)
@@ -116,15 +120,19 @@ export async function getData(userPrefs, data) {
       : prefs.outlookWorkCreds ? LassoClient.fetchCalendarEvents(data, 'outlook', 'workCalendar', endDate)
         : null;
 
-    if (personalEventsPromise === null && workEventsPromise === null) return [Names.calendar, []];
+    if (personalEventsPromise === null && workEventsPromise === null) {
+      if (enabledIcal.length && !validIcal.length) return [Names.calendar, null];
+      return [Names.calendar, icalEvents.sort((a, b) => a.start.timestamp - b.start.timestamp)];
+    }
 
     const [personalCal, workCal] = await Promise.all([personalEventsPromise, workEventsPromise]);
     const personalEvents = personalCal ? personalCal.events : [];
     const workEvents = workCal ? workCal.events : [];
-    const mergedEvents = [...personalEvents, ...workEvents]
+    const mergedEvents = [...personalEvents, ...workEvents, ...icalEvents]
       .sort((a, b) => a.start.timestamp - b.start.timestamp);
     return [Names.calendar, mergedEvents];
   } catch (err) {
+    if (icalEvents.length) return [Names.calendar, icalEvents.sort((a, b) => a.start.timestamp - b.start.timestamp)];
     log?.error?.(`Failed to get calendar events from Lasso: ${err.message}`);
     return [Names.calendar, null];
   }
@@ -203,9 +211,11 @@ export class CalendarMimLogic extends DefaultNode {
 
   anyCalendarsConnected(data) {
     const calPrefs = data.local.userPrefs && data.local.userPrefs.calendar;
+    const subscriptions = Array.isArray(calPrefs?.icalSubscriptions) ? calPrefs.icalSubscriptions : [];
     return !!calPrefs && (
       calPrefs.googlePersonalCreds || calPrefs.googleWorkCreds
       || calPrefs.outlookPersonalCreds || calPrefs.outlookWorkCreds
+      || subscriptions.some((subscription) => subscription && subscription.enabled !== false)
     );
   }
 
