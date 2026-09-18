@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en" data-title-template="Security — %s">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Security — Phoenix</title>
+<meta name="description" content="How a Phoenix installation authenticates robots and people, what it does not protect against, and how to report a vulnerability." />
+<meta name="color-scheme" content="dark light" />
+<meta name="theme-color" content="#08090d" media="(prefers-color-scheme: dark)" />
+<meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)" />
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+<link rel="canonical" href="/security" />
+<link rel="stylesheet" href="/theme.css" />
+<link rel="stylesheet" href="/site.css" />
+<script>
+  (function () {
+    var r = document.documentElement;
+    r.classList.add('js');
+    try {
+      var t = localStorage.getItem('phoenix.theme');
+      if (t === 'dark' || t === 'light') r.setAttribute('data-theme', t);
+    } catch (e) {}
+  })();
+</script>
+</head>
+
+<body data-page="legal">
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="/" aria-label="Phoenix home">
+      <span class="brand-mark" data-brand-logo>
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <defs>
+            <linearGradient id="pm1" x1=".1" y1="0" x2=".9" y2="1">
+              <stop offset="0" stop-color="var(--accent-lift)" />
+              <stop offset=".45" stop-color="var(--accent)" />
+              <stop offset="1" stop-color="var(--accent-hot)" />
+            </linearGradient>
+          </defs>
+          <path fill="url(#pm1)" d="M16 2c7 6.5 10 11.5 10 16.5 0 4-2.6 7.2-6.4 8.4 1.2-2.6 1-5.4-1-8.6-1.5-2.4-2-4.4-1.6-6.4-3 2.6-4.4 5-4.4 7.4 0 2.2.9 4.4 2.6 6.6C10.2 25 7 21.6 7 17.4 7 12.6 10 7.6 16 2Z" />
+        </svg>
+      </span>
+      <span data-brand="wordmark">Phoenix</span>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="/#product">Product</a>
+      <a href="/#how">How it works</a>
+      <a href="/#status">Status</a>
+      <a href="/#faq">FAQ</a>
+    </nav>
+    <div class="header-actions">
+      <button class="icon-btn" data-theme-toggle type="button" aria-label="Theme">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true">
+          <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z" stroke="currentColor"
+                stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      </button>
+      <a class="btn btn-ghost btn-sm desktop-only" href="/app">Console</a>
+      <button class="icon-btn nav-toggle" type="button" aria-expanded="false"
+              aria-controls="mobile-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+          <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" /></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<nav class="mobile-nav" id="mobile-nav" aria-label="Mobile">
+  <a href="/#product">Product</a>
+  <a href="/#how">How it works</a>
+  <a href="/#status">Status</a>
+  <a href="/#faq">FAQ</a>
+  <a class="btn btn-primary btn-lg btn-block" href="/app">Open console</a>
+</nav>
+
+<main id="main">
+
+<div class="legal-head">
+  <div class="wrap">
+    <p class="eyebrow">Legal</p>
+    <h1>Security</h1>
+    <p class="updated">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true">
+        <path d="M12 7v5l3 2m6-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" stroke="currentColor"
+              stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      Last updated <span data-brand="legal.updated">18 September 2026</span>
+    </p>
+  </div>
+</div>
+
+<div class="wrap legal-layout">
+  <aside class="toc">
+    <h2>On this page</h2>
+    <ol>
+      <li><a href="#model">1. The threat model</a></li>
+      <li><a href="#auth">2. How access is controlled</a></li>
+      <li><a href="#deploy">3. Deploying it safely</a></li>
+      <li><a href="#exposure">4. Exposing it to the internet</a></li>
+      <li><a href="#limits">5. What is not hardened</a></li>
+      <li><a href="#supply">6. Supply chain</a></li>
+      <li><a href="#report">7. Reporting a vulnerability</a></li>
+      <li><a href="#scope">8. Scope</a></li>
+    </ol>
+  </aside>
+
+  <article class="prose">
+    <div class="plain-summary">
+      <h2>The short version</h2>
+      <p>Phoenix is designed to run on a private network beside your robot. It authenticates robots
+        and people, but it has not been through a formal security audit, and it should not be
+        exposed directly to the public internet without a TLS-terminating reverse proxy in front
+        of it.</p>
+      <p>If you find a vulnerability, please report it privately to the maintainer of the repository
+        before disclosing it publicly.</p>
+    </div>
+
+    <h2 id="model">1. The threat model</h2>
+    <p>Phoenix assumes it is running on a machine the operator controls, on a network the operator
+      trusts, serving a household. The assets worth protecting are the household's account
+      credentials, the robot's credentials, and the personal data described in the
+      <a href="/privacy">privacy policy</a> — photographs, messages, locations and voice.</p>
+    <p>The design does <strong>not</strong> assume a hostile local network, and it is not built to
+      withstand an attacker who already has a shell on the host. If the machine is compromised, the
+      data on it is compromised.</p>
+
+    <h2 id="auth">2. How access is controlled</h2>
+    <ul>
+      <li><strong>People</strong> sign in with an email address and password against the instance's
+        own account store. Passwords are stored hashed, never in plain text. A successful sign-in
+        issues a session cookie which every console API route checks.</li>
+      <li><strong>Robots</strong> connect over TLS and authenticate with their own genuine
+        credentials. Requests from a robot are signed, and the signature is verified before the
+        request is served.</li>
+      <li><strong>The console</strong> talks to the services it fronts using the signed-in account's
+        own keys, rather than a shared administrative credential, so a session can only reach what
+        that account could reach.</li>
+      <li><strong>The admin surface</strong> is gated separately by a password held in the
+        instance's environment configuration, not by an ordinary account.</li>
+    </ul>
+
+    <h2 id="deploy">3. Deploying it safely</h2>
+    <p>If you are running an instance, these are the things that actually matter:</p>
+    <ul>
+      <li>Terminate TLS in front of the service. A reverse-proxy configuration is included with the
+        source; use a real certificate rather than a self-signed one wherever the robot will accept
+        it.</li>
+      <li>Set a strong, unique admin password in the environment configuration, and do not reuse a
+        password from anywhere else.</li>
+      <li>Keep the environment file, the data directory and any credential material readable only by
+        the account the service runs as.</li>
+      <li>Run the service as an unprivileged user, not as root.</li>
+      <li>Back up the data directory yourself. Nobody else has a copy, and a lost disk is lost
+        photographs.</li>
+      <li>Keep the host patched. Most realistic compromises of a home server are not application
+        bugs.</li>
+    </ul>
+
+    <h2 id="exposure">4. Exposing it to the internet</h2>
+    <p>Many people will want to reach their robot's console from outside the house. If you do:</p>
+    <ul>
+      <li>Put a TLS-terminating reverse proxy in front of it and never expose the service port
+        directly.</li>
+      <li>Restrict the admin surface by source address at the proxy, in addition to its password.</li>
+      <li>Consider putting the whole console behind a VPN or a private tunnel instead. For a
+        household service this is both easier and stronger than hardening a public endpoint.</li>
+      <li>Rate-limit authentication endpoints at the proxy.</li>
+    </ul>
+    <p>The shipped reverse-proxy configuration sets sensible security headers, separates the static
+      site from the proxied API, and is commented so you can see what each directive is for.</p>
+
+    <h2 id="limits">5. What is not hardened</h2>
+    <p>Stated plainly, because a security page that only lists strengths is not a security page:</p>
+    <ul>
+      <li>Phoenix has not undergone an independent security audit or penetration test.</li>
+      <li>There is no built-in rate limiting or brute-force lockout on sign-in; that belongs at your
+        proxy.</li>
+      <li>There is no multi-factor authentication.</li>
+      <li>Some compatibility surfaces reproduce the behaviour of a service designed around 2016, and
+        those behaviours cannot be modernised without breaking the robot that depends on them.</li>
+      <li>Several console surfaces are read-only or partial, and are labelled as such in the
+        interface.</li>
+    </ul>
+
+    <h2 id="supply">6. Supply chain</h2>
+    <p>The project deliberately carries a very small dependency footprint — a single external runtime
+      dependency — which keeps the amount of third-party code running beside your household data
+      small enough to reason about.</p>
+    <p>Front-end libraries are vendored into the repository and served from your own instance rather
+      than loaded from a CDN, so no outside host can inject code into a page that has access to your
+      session. This website loads no third-party scripts, styles or fonts at all.</p>
+
+    <h2 id="report">7. Reporting a vulnerability</h2>
+    <p>If you believe you have found a security problem, please report it <strong>privately
+      first</strong>, to the maintainer of the repository the software came from, and give a
+      reasonable period for a fix before disclosing it publicly.</p>
+    <p>A useful report includes what you found, where, how to reproduce it, and what an attacker
+      could achieve with it. There is no bug-bounty programme and no money behind this project;
+      there is genuine gratitude, and credit if you would like it.</p>
+    <p>Please do not test against an instance that is not yours. Someone's photographs of their
+      family are on the other side of it.</p>
+
+    <h2 id="scope">8. Scope</h2>
+    <p>In scope: the Phoenix source code, its default configuration, and the console and website it
+      serves.</p>
+    <p>Out of scope: individual people's deployments and the networks they run on, the original
+      robot firmware and hardware, and third-party data services an operator has chosen to
+      configure.</p>
+
+    <hr />
+    <p class="faint">See also: <a href="/terms">Terms of use</a> and
+      <a href="/privacy">Privacy policy</a>.</p>
+  </article>
+</div>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-bottom">
+      <p class="footer-legal" data-brand="footer.legal">
+        Phoenix is an independent project with no affiliation to, or endorsement by, Jibo, Inc., its
+        successors or any current rights holder. "Jibo" is used only to identify the hardware this
+        software is compatible with.
+      </p>
+      <div class="footer-meta">
+        <span data-brand="footer.copyright">Released for non-commercial use. No warranty of any kind.</span>
+        <a href="/">Home</a>
+        <a href="/terms">Terms</a>
+        <a href="/privacy">Privacy</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script type="module" src="/site.js"></script>
+</body>
+</html>

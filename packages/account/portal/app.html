@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en" data-title-template="Console — %s">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Console — Phoenix</title>
+<meta name="description" content="Manage your household, robots, personal report settings, gallery and messages." />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="color-scheme" content="dark light" />
+<meta name="theme-color" content="#08090d" media="(prefers-color-scheme: dark)" />
+<meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)" />
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<link rel="stylesheet" href="/theme.css" />
+<link rel="stylesheet" href="/console.css" />
+<script>
+  (function () {
+    var r = document.documentElement;
+    r.classList.add('js');
+    try {
+      var t = localStorage.getItem('phoenix.theme');
+      if (t === 'dark' || t === 'light') r.setAttribute('data-theme', t);
+    } catch (e) {}
+  })();
+</script>
+</head>
+
+<body class="console">
+<a class="skip-link" href="#app">Skip to content</a>
+
+<!-- Closes the sidebar drawer on small screens. -->
+<div class="scrim" id="scrim" hidden></div>
+
+<!-- ==================================================================== -->
+<!-- Signed-in shell                                                      -->
+<!-- ==================================================================== -->
+<div class="shell" id="shell" hidden>
+  <aside class="sidebar" id="sidebar">
+    <a class="sidebar-brand" href="/">
+      <span class="brand-mark" data-brand-logo>
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <defs>
+            <linearGradient id="pm1" x1=".1" y1="0" x2=".9" y2="1">
+              <stop offset="0" stop-color="var(--accent-lift)" />
+              <stop offset=".45" stop-color="var(--accent)" />
+              <stop offset="1" stop-color="var(--accent-hot)" />
+            </linearGradient>
+          </defs>
+          <path fill="url(#pm1)" d="M16 2c7 6.5 10 11.5 10 16.5 0 4-2.6 7.2-6.4 8.4 1.2-2.6 1-5.4-1-8.6-1.5-2.4-2-4.4-1.6-6.4-3 2.6-4.4 5-4.4 7.4 0 2.2.9 4.4 2.6 6.6C10.2 25 7 21.6 7 17.4 7 12.6 10 7.6 16 2Z" />
+        </svg>
+      </span>
+      <span data-brand="wordmark">Phoenix</span>
+      <span class="tag">Console</span>
+    </a>
+
+    <nav id="nav" aria-label="Console">
+      <a class="nav-item" href="#/" data-route="#/">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true">
+          <path d="M3.5 10.5 12 3.5l8.5 7M5.5 9.5V20h13V9.5" stroke="currentColor"
+                stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        <span>Overview</span>
+      </a>
+      <a class="nav-item" href="#/loop" data-route="#/loop">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true">
+          <path d="M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20M10 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM20 20v-1.5a3.5 3.5 0 0 0-2.6-3.4M15.4 4.6a3.5 3.5 0 0 1 0 6.8"
+                stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        <span>Household</span>
+        <span class="badge" id="badge-members" hidden></span>
+      </a>
+      <a class="nav-item" href="#/settings" data-route="#/settings">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true">
+          <path d="M4 7h10M18 7h2M4 17h4M12 17h8M4 12h2M10 12h10M16 5v4M10 15v4M8 10v4"
+                stroke="currentColor" stroke-width="1.6" stroke-linecap="round" /></svg>
+        <span>Personal report</span>
+      </a>
+      <a class="nav-item" href="#/robot" data-route="#/robot">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true">
+          <path d="M8 4h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8a4 4 0 0 1 4-4ZM9.5 10.5h.01M14.5 10.5h.01M9 15h6"
+                stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        <span>Robots</span>
+        <span class="badge" id="badge-robots" hidden></span>
+      </a>
+      <a class="nav-item" href="#/gallery" data-route="#/gallery">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true">
+          <path d="M4 5.5h16v13H4zM4 15l4.5-4.5 4 4 3-3L20 16M15.5 9.5h.01"
+                stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        <span>Gallery</span>
+      </a>
+      <a class="nav-item" href="#/messaging" data-route="#/messaging">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true">
+          <path d="M20 11.5a7.6 7.6 0 0 1-8.2 7.6 8.2 8.2 0 0 1-3.4-.8L4 19.5l1.4-4a7.6 7.6 0 0 1-1-3.9 7.6 7.6 0 0 1 8.2-7.6A7.6 7.6 0 0 1 20 11.5Z"
+                stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" /></svg>
+        <span>Messages</span>
+      </a>
+      <a class="nav-item" href="#/people" data-route="#/people">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true">
+          <path d="M12 13.5a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM5 20.5a7 7 0 0 1 14 0M9.5 9.5h.01M14.5 9.5h.01"
+                stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        <span>People</span>
+      </a>
+
+      <p class="side-label">System</p>
+      <a class="nav-item" href="#/profile" data-route="#/profile">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true">
+          <path d="M19 20v-1.5a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4V20M12 11a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z"
+                stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        <span>Account</span>
+      </a>
+      <a class="nav-item" href="#/system" data-route="#/system">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true">
+          <path d="M7 5h10a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2ZM7 13h10a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2ZM8.5 8h.01M8.5 16h.01"
+                stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        <span>System</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div style="position:relative">
+        <button class="account-chip" id="account-chip" type="button"
+                aria-haspopup="menu" aria-expanded="false">
+          <span class="avatar" id="avatar">?</span>
+          <span class="who"><b id="who-name">—</b><span id="who-email"></span></span>
+          <svg class="caret-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true">
+            <path d="m8 10 4 4 4-4" stroke="currentColor" stroke-width="1.8"
+                  stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </button>
+
+        <div class="menu" id="account-menu" role="menu" hidden>
+          <a href="#/profile" role="menuitem">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" aria-hidden="true">
+              <path d="M19 20v-1.5a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4V20M12 11a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z"
+                    stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            Account settings
+          </a>
+          <button type="button" role="menuitem" data-theme-toggle>
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" aria-hidden="true">
+              <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z" stroke="currentColor"
+                    stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            Theme
+          </button>
+          <a href="/" role="menuitem">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" aria-hidden="true">
+              <path d="M3.5 10.5 12 3.5l8.5 7M5.5 9.5V20h13V9.5" stroke="currentColor"
+                    stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            Front page
+          </a>
+          <div class="sep"></div>
+          <button type="button" role="menuitem" class="danger" id="logout">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" aria-hidden="true">
+              <path d="M15 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-2M19 12H9m10 0-3-3m3 3-3 3"
+                    stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            Sign out
+          </button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div>
+    <header class="topbar">
+      <button class="icon-btn menu-btn" id="menu-btn" type="button" aria-label="Menu"
+              aria-controls="sidebar" aria-expanded="false">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+          <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" /></svg>
+      </button>
+      <h1 id="page-title">Overview</h1>
+      <div class="spacer"></div>
+      <button class="icon-btn" data-theme-toggle type="button" aria-label="Theme">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true">
+          <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z" stroke="currentColor"
+                stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      </button>
+    </header>
+
+    <main id="app" class="page" tabindex="-1"></main>
+  </div>
+</div>
+
+<!-- ==================================================================== -->
+<!-- Signed-out                                                           -->
+<!-- ==================================================================== -->
+<div id="auth-root" hidden></div>
+
+<template id="tpl-auth">
+  <div class="auth-page">
+    <aside class="auth-aside">
+      <a class="brand" href="/">
+        <span class="brand-mark" data-brand-logo>
+          <svg viewBox="0 0 32 32" aria-hidden="true">
+          <defs>
+            <linearGradient id="pm2" x1=".1" y1="0" x2=".9" y2="1">
+              <stop offset="0" stop-color="var(--accent-lift)" />
+              <stop offset=".45" stop-color="var(--accent)" />
+              <stop offset="1" stop-color="var(--accent-hot)" />
+            </linearGradient>
+          </defs>
+          <path fill="url(#pm2)" d="M16 2c7 6.5 10 11.5 10 16.5 0 4-2.6 7.2-6.4 8.4 1.2-2.6 1-5.4-1-8.6-1.5-2.4-2-4.4-1.6-6.4-3 2.6-4.4 5-4.4 7.4 0 2.2.9 4.4 2.6 6.6C10.2 25 7 21.6 7 17.4 7 12.6 10 7.6 16 2Z" />
+        </svg>
+        </span>
+        <span data-brand="wordmark">Phoenix</span>
+      </a>
+
+      <div>
+        <h2 data-brand="tagline">The cloud Jibo can talk to again.</h2>
+        <p data-brand="description">
+          A ground-up reimplementation of the cloud service that gave Jibo its voice — self-hosted,
+          open, and running on hardware you own.
+        </p>
+        <div class="auth-points">
+          <div class="auth-point">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true">
+              <path d="m5 12.5 4.5 4.5L19 7.5" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" /></svg>
+            Your household, members and their account links
+          </div>
+          <div class="auth-point">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true">
+              <path d="m5 12.5 4.5 4.5L19 7.5" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" /></svg>
+            Personal report settings — weather, news, commute, calendar
+          </div>
+          <div class="auth-point">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true">
+              <path d="m5 12.5 4.5 4.5L19 7.5" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" /></svg>
+            Robot pairing, the gallery, and household messages
+          </div>
+        </div>
+      </div>
+
+      <p class="field-hint">Everything here lives on this server, and nowhere else.</p>
+    </aside>
+
+    <div class="auth-main">
+      <div class="auth-box">
+        <a class="brand" href="/" style="display:inline-flex">
+          <span class="brand-mark" data-brand-logo>
+            <svg viewBox="0 0 32 32" aria-hidden="true">
+          <defs>
+            <linearGradient id="pm3" x1=".1" y1="0" x2=".9" y2="1">
+              <stop offset="0" stop-color="var(--accent-lift)" />
+              <stop offset=".45" stop-color="var(--accent)" />
+              <stop offset="1" stop-color="var(--accent-hot)" />
+            </linearGradient>
+          </defs>
+          <path fill="url(#pm3)" d="M16 2c7 6.5 10 11.5 10 16.5 0 4-2.6 7.2-6.4 8.4 1.2-2.6 1-5.4-1-8.6-1.5-2.4-2-4.4-1.6-6.4-3 2.6-4.4 5-4.4 7.4 0 2.2.9 4.4 2.6 6.6C10.2 25 7 21.6 7 17.4 7 12.6 10 7.6 16 2Z" />
+        </svg>
+          </span>
+          <span data-brand="wordmark">Phoenix</span>
+        </a>
+
+        <h1 id="auth-title" data-brand="console.signInTitle">Welcome back</h1>
+        <p id="auth-sub" data-brand="console.signInBody">
+          Use the same account you sign into the robot app with.
+        </p>
+
+        <div class="segment" id="auth-segment" data-active="login" role="tablist">
+          <span class="seg-thumb" aria-hidden="true"></span>
+          <button class="tab active" data-tab="login" type="button" role="tab"
+                  aria-selected="true">Sign in</button>
+          <button class="tab" data-tab="signup" type="button" role="tab"
+                  aria-selected="false">Create account</button>
+        </div>
+
+        <form class="auth-form" id="auth-form" novalidate>
+          <label class="field">
+            <span class="field-label">Email address</span>
+            <input name="email" type="email" autocomplete="email" required
+                   placeholder="you@example.com" />
+          </label>
+          <label class="field signup-only" hidden>
+            <span class="field-label">First name</span>
+            <input name="firstName" type="text" autocomplete="given-name"
+                   placeholder="What should the robot call you?" />
+          </label>
+          <label class="field">
+            <span class="field-label">Password</span>
+            <input name="password" type="password" autocomplete="current-password"
+                   minlength="8" required placeholder="At least 8 characters" />
+          </label>
+          <p class="error" id="auth-error" hidden></p>
+          <button type="submit" class="btn btn-primary btn-lg btn-block" id="auth-submit">
+            Sign in
+          </button>
+        </form>
+
+        <p class="auth-foot">
+          This account exists only on this server. By continuing you accept the
+          <a href="/terms">terms of use</a> and the <a href="/privacy">privacy policy</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script type="module" src="/app.js"></script>
+</body>
+</html>

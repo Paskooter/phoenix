@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Relative locations: an instance is reached by whatever hostname its
+     operator gave it, and this file ships with the source rather than being
+     generated per deployment. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>/</loc><changefreq>monthly</changefreq><priority>1.0</priority></url>
+  <url><loc>/terms</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>/privacy</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>/security</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+</urlset>

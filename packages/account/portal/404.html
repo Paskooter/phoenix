@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" data-title-template="Not found — %s">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Not found — Phoenix</title>
+<meta name="robots" content="noindex" />
+<meta name="color-scheme" content="dark light" />
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="/theme.css" />
+<link rel="stylesheet" href="/site.css" />
+<script>
+  (function () {
+    var r = document.documentElement;
+    r.classList.add('js');
+    try {
+      var t = localStorage.getItem('phoenix.theme');
+      if (t === 'dark' || t === 'light') r.setAttribute('data-theme', t);
+    } catch (e) {}
+  })();
+</script>
+</head>
+
+<body data-page="error">
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="/" aria-label="Phoenix home">
+      <span class="brand-mark" data-brand-logo>
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <defs>
+            <linearGradient id="pm1" x1=".1" y1="0" x2=".9" y2="1">
+              <stop offset="0" stop-color="var(--accent-lift)" />
+              <stop offset=".45" stop-color="var(--accent)" />
+              <stop offset="1" stop-color="var(--accent-hot)" />
+            </linearGradient>
+          </defs>
+          <path fill="url(#pm1)" d="M16 2c7 6.5 10 11.5 10 16.5 0 4-2.6 7.2-6.4 8.4 1.2-2.6 1-5.4-1-8.6-1.5-2.4-2-4.4-1.6-6.4-3 2.6-4.4 5-4.4 7.4 0 2.2.9 4.4 2.6 6.6C10.2 25 7 21.6 7 17.4 7 12.6 10 7.6 16 2Z" />
+        </svg>
+      </span>
+      <span data-brand="wordmark">Phoenix</span>
+    </a>
+    <div class="header-actions" style="margin-inline-start:auto">
+      <button class="icon-btn" data-theme-toggle type="button" aria-label="Theme">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true">
+          <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z" stroke="currentColor"
+                stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap center-page">
+  <div>
+    <p class="code grad">404</p>
+    <h1>This page doesn't exist</h1>
+    <p>The link may be out of date, or the page may have moved. The console and the front page are
+      both still where you left them.</p>
+    <div class="cta-actions">
+      <a class="btn btn-primary btn-lg" href="/">Back to the front page</a>
+      <a class="btn btn-ghost btn-lg" href="/app">Open the console</a>
+    </div>
+  </div>
+</main>
+
+<script type="module" src="/site.js"></script>
+</body>
+</html>

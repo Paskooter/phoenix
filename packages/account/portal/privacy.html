@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en" data-title-template="Privacy — %s">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Privacy — Phoenix</title>
+<meta name="description" content="What a Phoenix installation stores, where it stays, and who can see it. No telemetry, no analytics, no operated service." />
+<meta name="color-scheme" content="dark light" />
+<meta name="theme-color" content="#08090d" media="(prefers-color-scheme: dark)" />
+<meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)" />
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+<link rel="canonical" href="/privacy" />
+<link rel="stylesheet" href="/theme.css" />
+<link rel="stylesheet" href="/site.css" />
+<script>
+  (function () {
+    var r = document.documentElement;
+    r.classList.add('js');
+    try {
+      var t = localStorage.getItem('phoenix.theme');
+      if (t === 'dark' || t === 'light') r.setAttribute('data-theme', t);
+    } catch (e) {}
+  })();
+</script>
+</head>
+
+<body data-page="legal">
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="/" aria-label="Phoenix home">
+      <span class="brand-mark" data-brand-logo>
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <defs>
+            <linearGradient id="pm1" x1=".1" y1="0" x2=".9" y2="1">
+              <stop offset="0" stop-color="var(--accent-lift)" />
+              <stop offset=".45" stop-color="var(--accent)" />
+              <stop offset="1" stop-color="var(--accent-hot)" />
+            </linearGradient>
+          </defs>
+          <path fill="url(#pm1)" d="M16 2c7 6.5 10 11.5 10 16.5 0 4-2.6 7.2-6.4 8.4 1.2-2.6 1-5.4-1-8.6-1.5-2.4-2-4.4-1.6-6.4-3 2.6-4.4 5-4.4 7.4 0 2.2.9 4.4 2.6 6.6C10.2 25 7 21.6 7 17.4 7 12.6 10 7.6 16 2Z" />
+        </svg>
+      </span>
+      <span data-brand="wordmark">Phoenix</span>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="/#product">Product</a>
+      <a href="/#how">How it works</a>
+      <a href="/#status">Status</a>
+      <a href="/#faq">FAQ</a>
+    </nav>
+    <div class="header-actions">
+      <button class="icon-btn" data-theme-toggle type="button" aria-label="Theme">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true">
+          <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z" stroke="currentColor"
+                stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      </button>
+      <a class="btn btn-ghost btn-sm desktop-only" href="/app">Console</a>
+      <button class="icon-btn nav-toggle" type="button" aria-expanded="false"
+              aria-controls="mobile-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+          <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" /></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<nav class="mobile-nav" id="mobile-nav" aria-label="Mobile">
+  <a href="/#product">Product</a>
+  <a href="/#how">How it works</a>
+  <a href="/#status">Status</a>
+  <a href="/#faq">FAQ</a>
+  <a class="btn btn-primary btn-lg btn-block" href="/app">Open console</a>
+</nav>
+
+<main id="main">
+
+<div class="legal-head">
+  <div class="wrap">
+    <p class="eyebrow">Legal</p>
+    <h1>Privacy</h1>
+    <p class="updated">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true">
+        <path d="M12 7v5l3 2m6-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" stroke="currentColor"
+              stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      Last updated <span data-brand="legal.updated">18 September 2026</span>
+    </p>
+  </div>
+</div>
+
+<div class="wrap legal-layout">
+  <aside class="toc">
+    <h2>On this page</h2>
+    <ol>
+      <li><a href="#model">1. Who holds your data</a></li>
+      <li><a href="#collected">2. What an instance stores</a></li>
+      <li><a href="#cookies">3. Cookies and local storage</a></li>
+      <li><a href="#outside">4. What leaves the machine</a></li>
+      <li><a href="#no-telemetry">5. No telemetry</a></li>
+      <li><a href="#household">6. Other people in the household</a></li>
+      <li><a href="#children">7. Children</a></li>
+      <li><a href="#retention">8. Retention and deletion</a></li>
+      <li><a href="#rights">9. Your rights</a></li>
+      <li><a href="#security">10. Security</a></li>
+      <li><a href="#changes">11. Changes</a></li>
+      <li><a href="#contact">12. Contact</a></li>
+    </ol>
+  </aside>
+
+  <article class="prose">
+    <div class="plain-summary">
+      <h2>The short version</h2>
+      <p>Phoenix does not send your data anywhere. There is no Phoenix server to send it to. Your
+        robot talks to a machine you control, and everything it produces — recordings, transcripts,
+        photographs, messages, settings — stays on that machine.</p>
+      <p>Nobody who wrote this software can see any of it. There is no analytics, no telemetry, no
+        crash reporting and no tracking of any kind. The only things that reach the outside world
+        are the external data services the person running the instance chooses to switch on.</p>
+    </div>
+
+    <h2 id="model">1. Who holds your data</h2>
+    <p>Phoenix is software you install, not a service someone runs for you. That single fact
+      determines everything in this policy.</p>
+    <p>Whoever installed and operates the instance you are using — probably you — is the person who
+      holds the data and, in data-protection terms, the person responsible for it. The contributors
+      to the Phoenix project are <strong>not</strong> a processor, a controller, or a party to your
+      data at all. They have no access to your installation and no copy of anything in it.</p>
+    <p>If you are using someone else's instance, the questions in this policy are properly addressed
+      to them.</p>
+
+    <h2 id="collected">2. What an instance stores</h2>
+    <p>A Phoenix installation keeps the following on its own disk, because the features the robot
+      expects cannot work without it:</p>
+    <dl>
+      <dt>Account details</dt>
+      <dd>Email address, a hashed password, first and last name, and optionally birthday, gender and
+        phone number. These exist so a person can sign in and so the robot can address them.</dd>
+
+      <dt>Household ("loop") records</dt>
+      <dd>The household, its members, nicknames and phonetic names, invitation and membership state,
+        the link between a member and an account, and whether each member has completed face or
+        voice enrolment.</dd>
+
+      <dt>Personal report settings</dt>
+      <dd>Your weather units, chosen news categories, calendar selections, and — if you use the
+        commute feature — your home and work locations and usual departure time. Home and work
+        coordinates are precise location data about where you live and work. They are stored so the
+        robot can tell you about your journey, and for no other purpose.</dd>
+
+      <dt>Robot records and credentials</dt>
+      <dd>The robots paired with the household, their identifiers, and the credentials used to
+        authenticate them.</dd>
+
+      <dt>Media</dt>
+      <dd>Photographs and other media the robot captures, along with their timestamps.</dd>
+
+      <dt>Messages and notifications</dt>
+      <dd>Messages sent within the household, and push-notification registrations for devices that
+        asked to receive them.</dd>
+
+      <dt>Speech</dt>
+      <dd>Audio streamed from the robot is processed by the recognition service on your own machine
+        to produce a transcript. Whether audio or transcripts are written to disk, and for how long,
+        depends on how the instance is configured and logged.</dd>
+    </dl>
+
+    <h2 id="cookies">3. Cookies and local storage</h2>
+    <p>The console sets <strong>one</strong> cookie, <code>phx_session</code>. It identifies your
+      signed-in session to the instance and nothing else. It is not used for advertising, profiling
+      or tracking across sites, and there is nowhere for it to be shared to. Signing out clears it.</p>
+    <p>The site stores one preference in your browser's local storage — your choice of light or dark
+      theme. It never leaves your browser.</p>
+    <p>There are no third-party cookies, no advertising pixels, and no consent banner, because there
+      is nothing to consent to.</p>
+
+    <h2 id="outside">4. What leaves the machine</h2>
+    <p>Phoenix is built to keep everything local. The exceptions are the outside data sources the
+      robot's own features need, and each is a deliberate configuration choice by whoever runs the
+      instance:</p>
+    <ul>
+      <li><strong>Map tiles</strong>, used only by the location picker when you are setting a commute
+        address. The map library itself is served from your own instance rather than a CDN; only the
+        tile images are fetched from outside, and the picker falls back to manual latitude and
+        longitude entry if it cannot reach them.</li>
+      <li><strong>Weather, news, traffic and calendar providers</strong>, contacted when you ask for
+        a personal report that includes them. A request to such a provider necessarily reveals what
+        was asked for — for example, the coordinates of a journey.</li>
+      <li><strong>Push-notification services</strong>, if you register a device for them.</li>
+    </ul>
+    <p>Each of these is operated by a third party under its own privacy policy. Turning a feature off
+      in the console stops the corresponding requests.</p>
+
+    <h2 id="no-telemetry">5. No telemetry</h2>
+    <p>Phoenix contains no analytics, no telemetry, no crash or error reporting, no usage metrics, no
+      fingerprinting, no A/B testing and no beacons. This website loads no third-party scripts, no
+      third-party fonts and no tracking of any kind. Everything it needs is served from the instance
+      you are looking at.</p>
+    <p>This is verifiable rather than promised: the source is available, and the network tab of your
+      browser is the shortest audit.</p>
+
+    <h2 id="household">6. Other people in the household</h2>
+    <p>A social robot is a shared device. If you run an instance, it will hold personal data about
+      people other than you — their names, their voices, their faces, their photographs, their
+      messages and their report settings.</p>
+    <p>Those people have a reasonable expectation of knowing that this is happening. If you operate
+      an instance, please tell the people around the robot what it records and what is kept, and
+      respect it when they ask you to delete something. In some jurisdictions this is not merely
+      courtesy but a legal obligation you personally carry.</p>
+
+    <h2 id="children">7. Children</h2>
+    <p>This robot was widely used in family homes, and children frequently interacted with it. A
+      Phoenix instance may therefore process children's voices, faces and photographs.</p>
+    <p>The Phoenix project does not knowingly collect anything from anyone, since it collects nothing
+      at all. But if you operate an instance in a household with children, you are the one handling
+      children's personal data, and the responsibility for doing so lawfully and carefully is
+      yours.</p>
+
+    <h2 id="retention">8. Retention and deletion</h2>
+    <p>Data stays on the instance until it is deleted there. The console can delete media and remove
+      members, push registrations and robots. Nothing is retained anywhere else, because there is
+      nowhere else.</p>
+    <p>Deleting the instance's data directory removes everything. There is no backup you do not
+      control, which also means there is no recovery if you delete something by mistake.</p>
+
+    <h2 id="rights">9. Your rights</h2>
+    <p>Depending on where you live, you may have rights to access, correct, export, delete or
+      restrict the processing of your personal data.</p>
+    <p>Those rights are exercised against the person operating the instance holding your data. If
+      that is you, you already have complete access: the data is on your disk and the console edits
+      it directly. If it is someone else, ask them. The Phoenix project cannot act on such a request,
+      because it holds nothing to act on.</p>
+
+    <h2 id="security">10. Security</h2>
+    <p>Passwords are stored hashed, robot connections are authenticated, and the session cookie
+      governs access to the console. The practical security of your data, however, depends far more
+      on how the instance is deployed — whether it is exposed to the internet, whether it uses TLS,
+      and how the host machine is secured.</p>
+    <p>The <a href="/security">Security</a> page covers this in more detail, including how to report
+      a vulnerability.</p>
+
+    <h2 id="changes">11. Changes</h2>
+    <p>This policy may be revised as the software changes. The version that applies to an
+      installation is the one distributed with it, dated above. Material changes to what the software
+      stores or transmits will be reflected here.</p>
+
+    <h2 id="contact">12. Contact</h2>
+    <p>For anything about your data on a specific installation, contact
+      <span data-brand="legal.contact">the maintainer of the Phoenix instance you are using</span>.</p>
+    <p>For a question about what the software itself does, the source repository is the place to
+      ask — and to check the answer.</p>
+
+    <hr />
+    <p class="faint">See also: <a href="/terms">Terms of use</a> and
+      <a href="/security">Security</a>.</p>
+  </article>
+</div>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-bottom">
+      <p class="footer-legal" data-brand="footer.legal">
+        Phoenix is an independent project with no affiliation to, or endorsement by, Jibo, Inc., its
+        successors or any current rights holder. "Jibo" is used only to identify the hardware this
+        software is compatible with.
+      </p>
+      <div class="footer-meta">
+        <span data-brand="footer.copyright">Released for non-commercial use. No warranty of any kind.</span>
+        <a href="/">Home</a>
+        <a href="/terms">Terms</a>
+        <a href="/security">Security</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script type="module" src="/site.js"></script>
+</body>
+</html>
