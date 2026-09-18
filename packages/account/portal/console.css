@@ -334,6 +334,9 @@ body.console { background: var(--bg); }
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  /* Collapses against a following sibling's margin, so it only ever adds
+     space where there was none. */
+  margin-bottom: 1rem;
 }
 .stat {
   padding: 1.25rem 1.3rem;
@@ -999,3 +1002,206 @@ pre.json {
 }
 .auth-foot a { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
 .auth-foot a:hover { color: var(--accent); }
+
+/* ==========================================================================
+   Administration
+   ========================================================================== */
+
+/* Sub-navigation inside the admin area. Same idea as the auth segment, sized
+   for four items and for wrapping on a phone. */
+.subnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem;
+  padding: .25rem;
+  margin-bottom: 1.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+  border: 1px solid var(--border-soft);
+}
+.subnav a {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  padding: .45rem .8rem;
+  border-radius: var(--radius-xs);
+  font-size: var(--t-sm);
+  font-weight: 540;
+  color: var(--muted);
+  transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
+}
+.subnav a:hover { color: var(--fg); background: var(--panel-3); }
+.subnav a.active { background: var(--panel); color: var(--fg); box-shadow: var(--shadow-sm); }
+.subnav a.active svg { color: var(--accent); }
+.subnav .count {
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+  padding: 0 .35rem;
+  border-radius: var(--radius-pill);
+  background: var(--panel-3);
+  color: var(--muted);
+}
+
+/* -- Configuration editor ------------------------------------------------ */
+
+.cfg-toolbar {
+  position: sticky;
+  top: var(--header-h);
+  z-index: 15;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem;
+  align-items: center;
+  padding: .85rem 0;
+  margin-bottom: 1.25rem;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border-soft);
+}
+.cfg-toolbar .search { flex: 1; min-width: 14rem; }
+.cfg-toolbar .chip { white-space: nowrap; }
+
+.cfg-layout { display: grid; gap: 1.75rem; align-items: start; }
+@media (min-width: 1020px) {
+  .cfg-layout { grid-template-columns: 210px minmax(0, 1fr); }
+}
+
+/* Group index, sticky beside the settings on a wide screen. */
+.cfg-index { position: sticky; top: calc(var(--header-h) + 4.5rem); display: grid; gap: 1px; }
+.cfg-index a {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .4rem .65rem;
+  border-radius: var(--radius-xs);
+  border-left: 2px solid transparent;
+  font-size: var(--t-sm);
+  color: var(--muted);
+  line-height: 1.35;
+}
+.cfg-index a:hover { color: var(--fg); background: var(--panel-2); }
+.cfg-index a.current { color: var(--accent); border-left-color: var(--accent); background: var(--accent-soft); }
+.cfg-index .n {
+  margin-inline-start: auto;
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--faint);
+}
+@media (max-width: 1019px) { .cfg-index { display: none; } }
+
+.cfg-group { margin-bottom: 2.5rem; scroll-margin-top: calc(var(--header-h) + 5rem); }
+.cfg-group > header { margin-bottom: 1rem; }
+.cfg-group h3 { font-size: var(--t-lg); letter-spacing: -.02em; margin-bottom: .35rem; }
+.cfg-group > header p { font-size: var(--t-sm); color: var(--muted); line-height: 1.6; max-width: 70ch; }
+
+.cfg-list { display: grid; gap: .6rem; }
+
+.cfg-item {
+  padding: 1.1rem 1.15rem;
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  border: 1px solid var(--border-soft);
+  transition: border-color var(--fast) var(--ease), background var(--fast) var(--ease);
+}
+.cfg-item:hover { border-color: var(--border); }
+/* An edited-but-unsaved row has to be findable in a list of seventy-eight. */
+.cfg-item.dirty { border-color: var(--accent-line); background: var(--accent-soft); }
+.cfg-item.locked { opacity: .82; }
+
+.cfg-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: .5rem;
+  margin-bottom: .2rem;
+}
+.cfg-head .name { font-weight: 580; font-size: var(--t-base); letter-spacing: -.012em; }
+.cfg-key {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  color: var(--faint);
+  word-break: break-all;
+}
+.cfg-badges { margin-inline-start: auto; display: flex; gap: .35rem; flex-wrap: wrap; }
+
+.cfg-help {
+  font-size: var(--t-sm);
+  color: var(--muted);
+  line-height: 1.6;
+  margin: .5rem 0 .75rem;
+  max-width: 78ch;
+}
+
+.cfg-control { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.cfg-control > input,
+.cfg-control > select { flex: 1; min-width: 12rem; }
+.cfg-control .btn { flex: none; }
+/* A secret's field is monospace so a pasted key is readable character by character. */
+.cfg-control input[data-secret] { font-family: var(--font-mono); font-size: var(--t-sm); }
+
+.cfg-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem 1rem;
+  align-items: center;
+  margin-top: .75rem;
+  padding-top: .65rem;
+  border-top: 1px solid var(--hairline);
+  font-size: var(--t-xs);
+  color: var(--faint);
+}
+.cfg-foot .restart { display: flex; align-items: center; gap: .35rem; }
+.cfg-foot .revert { margin-inline-start: auto; }
+
+.cfg-locked-note {
+  display: flex;
+  gap: .5rem;
+  margin-top: .6rem;
+  padding: .55rem .7rem;
+  border-radius: var(--radius-xs);
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: var(--t-xs);
+  line-height: 1.55;
+}
+
+.cfg-empty { padding: 3rem 1rem; text-align: center; color: var(--muted); font-size: var(--t-sm); }
+
+/* -- Restart instructions ------------------------------------------------ */
+
+.restart-panel { display: grid; gap: .9rem; }
+.restart-cmd {
+  display: flex;
+  align-items: flex-start;
+  gap: .6rem;
+  padding: .6rem .7rem;
+  border-radius: var(--radius-xs);
+  background: var(--bg-soft);
+  border: 1px solid var(--border-soft);
+}
+.restart-cmd .prompt { color: var(--accent); font-family: var(--font-mono); font-size: var(--t-sm); flex: none; }
+.restart-cmd code {
+  flex: 1;
+  font-size: var(--t-sm);
+  color: var(--fg-dim);
+  overflow-x: auto;
+  white-space: pre;
+  scrollbar-width: none;
+}
+.restart-cmd code::-webkit-scrollbar { display: none; }
+.restart-how { font-size: var(--t-xs); color: var(--muted); margin-bottom: .35rem; font-weight: 560; }
+
+/* -- Peer status --------------------------------------------------------- */
+
+.peer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem;
+  padding: .7rem 0;
+  border-bottom: 1px solid var(--hairline);
+  font-size: var(--t-sm);
+}
+.peer:last-child { border-bottom: 0; }
+.peer .who { font-weight: 540; min-width: 8rem; }
+.peer .target { font-family: var(--font-mono); font-size: var(--t-xs); color: var(--muted); word-break: break-all; }
+.peer .pill { margin-inline-start: auto; }

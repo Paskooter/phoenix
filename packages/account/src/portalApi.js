@@ -47,6 +47,8 @@ import { portalMediaRoutes } from './portal/media.js';
 import { portalPeopleRoutes } from './portal/people.js';
 import { portalMessagingRoutes } from './portal/messaging.js';
 import { portalSystemRoutes } from './portal/system.js';
+import { adminConfigRoutes } from './admin/configRoutes.js';
+import { adminOpsRoutes } from './admin/adminRoutes.js';
 
 // The region written into an adopted robot's credentials.json. A robot's native
 // client builds its service hostnames from this value — `<region>.jibo.com` for
@@ -274,6 +276,12 @@ export function portalRoutes(store, options = {}) {
     ...portalPeopleRoutes(store, portal),
     ...portalMessagingRoutes(store, portal),
     ...portalSystemRoutes(store, portal),
+
+    // The admin surface's configuration and operations routes. Each re-checks
+    // requireAdmin itself, exactly as the routes above do — being mounted here
+    // grants nothing on its own.
+    ...adminConfigRoutes(store, { requireAdmin, sendJson }),
+    ...adminOpsRoutes(store, { requireAdmin, sendJson, currentAccount: sessionUser }),
   };
 }
 

@@ -15,7 +15,7 @@ There is no build step, no framework and no npm dependency. Plain HTML, CSS and 
 | `/` | `index.html` | Public landing page |
 | `/terms`, `/privacy`, `/security` | the legal pages | Static, no session needed |
 | `/app` | `app.html` | The console. Hash routes beneath it (`#/loop`, `#/settings`, …) |
-| `/admin` | `app.html` | The admin surface, available to accounts with `isAdmin` |
+| `/admin` | `app.html` | The admin surface, available to accounts with `isAdmin`. Sub-routes: `#/admin` (status), `#/admin/config`, `#/admin/robots`, `#/admin/admins` |
 | `/branding.json` | branding, merged | See **Branding** below |
 | `/api/*` | the REST face | Unchanged |
 
@@ -90,6 +90,10 @@ in `deploy/nginx/phoenix.conf`).
 | `site.css` / `site.js` | The public site and legal pages |
 | `console.css` / `app.js` | The signed-in console |
 | `brand.js` | Branding loader and the theme switch, shared by both |
+| `../src/admin/configCatalog.js` | Every settable environment variable: type, default, help, which services read it |
+| `../src/admin/envFile.js` | Reads and rewrites `.env`, preserving every comment |
+| `../src/admin/configRoutes.js` | `GET/PUT /api/admin/config`, reveal and generate |
+| `../src/admin/adminRoutes.js` | `/api/admin/admins` and `/api/admin/status` |
 | `branding.json` | Every configurable string, the logo and the accent |
 | `qr.js` | Robot-pairing QR renderer — **carried over unchanged** |
 | `map.js` | Commute location picker |
@@ -117,6 +121,55 @@ reached.
   - `POST /api/token` — unchanged, original two-argument contract.
   - The pairing flow — `POST /api/robots/setup`, `GET /api/robots/setup/status`, and the
     multi-frame QR renderer in `qr.js` — is carried over verbatim.
+
+## The admin surface
+
+Reached at `/app#/admin` (or `/admin`) by an account whose `isAdmin` flag is set. It appears in
+the sidebar only for such an account, but that is presentation: every `/api/admin/*` route
+re-checks the flag server-side on each request, so a hand-edited client grants itself nothing,
+and a revoke takes effect immediately with no stale session to wait out.
+
+Four tabs:
+
+| Tab | What it does |
+|---|---|
+| **Status** | This process (Node, platform, uptime, memory, working directory), which configuration file is in use, store counts, and a live probe of every configured peer service |
+| **Configuration** | Every environment variable the stack reads — see below |
+| **Robots** | Every robot adopted on this server across all households, plus manual adoption |
+| **Administrators** | Who has the flag; grant and revoke it |
+
+### Configuration
+
+The catalogue lives in `src/admin/configCatalog.js` — one entry per setting, with its type,
+real default, help text, and which services read it. Adding a setting there is the only change
+needed; the console renders whatever the catalogue declares.
+
+Three things this surface is careful about, because getting them wrong wastes an afternoon:
+
+- **Nothing is applied live.** Services resolve these at startup. A save writes to `.env` and
+  then names the services still running with the old value, with the restart command for Docker
+  Compose, systemd user units, and running the service directly. It never implies the change is
+  already in force.
+- **A value pinned by a real environment variable is shown read-only**, with the reason.
+  `dotenv.js` only fills keys the environment left unset, so editing such a key would write a
+  line that never takes effect. The console knows which is which because `dotEnvLoaded()`
+  records what the loader actually filled, rather than inferring it by comparison.
+- **Secrets never ride along with the catalogue.** They arrive masked; an administrator reveals
+  one by name, one at a time, and can generate a strong replacement.
+
+Writes go through `src/admin/envFile.js`, which preserves the file byte for byte apart from the
+lines it owns: an existing key is rewritten in place, a commented-out key is uncommented in
+place, clearing a key comments it out rather than leaving `KEY=`, and a key that appears nowhere
+is appended under a marked section. Writes are atomic and keep one `.bak`. A rejected batch
+writes nothing at all — a half-applied configuration change is worse than none, because you
+cannot tell which half landed.
+
+Granting admin from the command line still works and is the way back in if nobody can sign in:
+
+```sh
+node scripts/portal-grant-admin.mjs --list
+node scripts/portal-grant-admin.mjs --email you@example.com
+```
 
 ## Console surfaces
 

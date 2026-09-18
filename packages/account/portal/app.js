@@ -85,6 +85,11 @@ const ICONS = {
   clock: 'M12 7v5l3 2m6-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
   bell: 'M18 9a6 6 0 1 0-12 0c0 5-2 6.5-2 6.5h16S18 14 18 9ZM10.3 19a2 2 0 0 0 3.4 0',
   download: 'M12 4v10m0 0 4-4m-4 4-4-4M4 18h16',
+  copy: 'M9 9h10v12H9zM5 15V3h10v2',
+  eye: 'M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Zm9.5 2.6a2.6 2.6 0 1 0 0-5.2 2.6 2.6 0 0 0 0 5.2Z',
+  refresh: 'M20 12a8 8 0 1 1-2.6-5.9M20 4v4h-4',
+  lock: 'M7 10.5V8a5 5 0 0 1 10 0v2.5M5.5 10.5h13a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-8.5a1 1 0 0 1 1-1Z',
+  chip: 'M8.5 4h7a4.5 4.5 0 0 1 4.5 4.5v7a4.5 4.5 0 0 1-4.5 4.5h-7A4.5 4.5 0 0 1 4 15.5v-7A4.5 4.5 0 0 1 8.5 4ZM9.5 9.5h5v5h-5zM12 4V1.5m0 21V20M4 12H1.5m21 0H20',
 };
 
 const icon = (name, size = 16, className) => {
@@ -271,6 +276,12 @@ function paintAccount() {
   document.getElementById('who-name').textContent =
     [me.firstName, me.lastName].filter(Boolean).join(' ') || me.email;
   document.getElementById('who-email').textContent = me.email || '';
+
+  // The Administration section only appears for an account that has the flag.
+  // This is presentation, not protection: every /api/admin route re-checks it
+  // server-side, so revealing the link to a hand-edited client grants nothing.
+  const adminNav = document.getElementById('nav-admin');
+  if (adminNav) adminNav.hidden = !me.isAdmin;
 }
 
 /** The first loop, which for essentially every household is the only one. */
@@ -1300,69 +1311,645 @@ async function renderSystem() {
 }
 
 /* ==========================================================================
-   Admin
+   Administration
+   ==========================================================================
+   Four surfaces under #/admin: the server's own status, the configuration
+   editor, adopted robots, and who else is an administrator.
+
+   Administrator access is a property of the signed-in account and the server
+   re-checks it on every /api/admin/* route, so nothing here grants anything —
+   it only decides what to draw. A hand-edited client gets 403s.
    ========================================================================== */
 
-async function renderAdmin() {
-  const container = page('Admin', 'Server-wide robot administration.');
-  show(container);
+const ADMIN_TABS = [
+  { hash: '#/admin', label: 'Status', icon: 'server' },
+  { hash: '#/admin/config', label: 'Configuration', icon: 'sliders' },
+  { hash: '#/admin/robots', label: 'Robots', icon: 'robot' },
+  { hash: '#/admin/admins', label: 'Administrators', icon: 'users' },
+];
 
-  // There is no password to enter here. Administrator access is a property of the
-  // signed-in account and the server re-checks it on every admin route, so this
-  // screen only decides what to show. A signed-out visitor never reaches this
-  // function — the router sends them to the sign-in screen.
+/** The admin page frame: heading, sub-navigation, and a body to fill. */
+function adminPage(active, title, description) {
+  const container = page(title, description);
+  const nav = h('nav', { class: 'subnav', 'aria-label': 'Administration' },
+    ...ADMIN_TABS.map((tab) => h('a', {
+      href: tab.hash,
+      class: tab.hash === active ? 'active' : '',
+      'aria-current': tab.hash === active ? 'page' : null,
+    }, icon(tab.icon, 15), tab.label)));
+  container.querySelector('.page-head').after(nav);
+  return container;
+}
+
+/**
+ * Confirm the session really is an administrator before drawing anything.
+ * Returns false when it has already rendered the refusal.
+ */
+async function adminGate(container) {
   const access = await api('GET', '/api/admin/me');
+  if (access.ok) return true;
 
   if (access.status === 403) {
     container.append(card('Not an administrator', { sub: me ? (me.email || '') : '' },
-      h('p', {}, 'This account is not an administrator, so the server-wide admin surface is not available to it.'),
-      errorBox('An existing administrator grants access with scripts/portal-grant-admin.mjs.', access.data.error)));
-    return;
+      h('p', { class: 'field-hint' },
+        'This account is not an administrator, so the server-wide admin surface is not available '
+        + 'to it. An existing administrator can grant access from the Administrators tab, or from '
+        + 'the command line:'),
+      h('div', { class: 'restart-cmd' },
+        h('span', { class: 'prompt' }, '$'),
+        h('code', { text: 'node scripts/portal-grant-admin.mjs --email ' + (me?.email || 'you@example.com') }),
+        copyButton(() => 'node scripts/portal-grant-admin.mjs --email ' + (me?.email || 'you@example.com')))));
+  } else {
+    container.append(errorBox('Could not check administrator access.', access.data.error));
   }
-  if (!access.ok) {
-    container.append(card('Admin surface unavailable', {},
-      errorBox('Could not check administrator access.', access.data.error)));
-    return;
+  show(container);
+  return false;
+}
+
+/** A small copy-to-clipboard button; `get` supplies the text at click time. */
+function copyButton(get) {
+  const button = h('button', {
+    class: 'btn btn-sm', type: 'button', 'aria-label': 'Copy',
+    on: {
+      click: async (e) => {
+        const target = e.currentTarget;
+        try {
+          await navigator.clipboard.writeText(get());
+          target.replaceChildren(icon('check', 14), 'Copied');
+          setTimeout(() => target.replaceChildren(icon('copy', 14), 'Copy'), 1600);
+        } catch {
+          notify('Could not reach the clipboard — select the text and copy it.', 'error');
+        }
+      },
+    },
+  }, icon('copy', 14), 'Copy');
+  return button;
+}
+
+/* -- Status ---------------------------------------------------------------- */
+
+async function renderAdminStatus() {
+  const container = adminPage('#/admin', 'Administration', 'What this server is doing right now.');
+  show(container);
+  if (!(await adminGate(container))) return;
+
+  container.append(loading(4));
+  const res = await api('GET', '/api/admin/status');
+  container.querySelector('.loading-rows')?.remove();
+
+  if (!res.ok) { container.append(errorBox('Could not read server status.', res.data.error)); return; }
+  const d = res.data;
+
+  const hours = Math.floor(d.runtime.uptimeSeconds / 3600);
+  const mins = Math.floor((d.runtime.uptimeSeconds % 3600) / 60);
+  const uptime = hours ? `${hours}h ${mins}m` : `${mins}m`;
+
+  container.append(h('div', { class: 'stat-grid' },
+    h('article', { class: 'stat' },
+      h('div', { class: 'label' }, icon('clock', 14), 'Uptime'),
+      h('div', { class: 'value', text: uptime }),
+      h('div', { class: 'note', text: `since ${fmtDate(d.runtime.startedAt)}` })),
+    h('article', { class: 'stat' },
+      h('div', { class: 'label' }, icon('users', 14), 'Accounts'),
+      h('div', { class: 'value', text: String(d.store.accounts) }),
+      h('div', { class: 'note', text: `${d.store.loops ?? 0} household${d.store.loops === 1 ? '' : 's'}` })),
+    h('article', { class: 'stat' },
+      h('div', { class: 'label' }, icon('robot', 14), 'Robots'),
+      h('div', { class: 'value', text: String(d.store.robots ?? 0) }),
+      h('div', { class: 'note', text: 'adopted on this server' })),
+    h('article', { class: 'stat' },
+      h('div', { class: 'label' }, icon('chip', 14), 'Memory'),
+      h('div', { class: 'value', text: `${d.runtime.memoryMb} MB` }),
+      h('div', { class: 'note', text: `Node ${d.runtime.node}` }))));
+
+  container.append(card('This process', {},
+    row('Node', d.runtime.node),
+    row('Platform', d.runtime.platform),
+    row('Process ID', String(d.runtime.pid)),
+    row('Working directory', h('code', { text: d.runtime.cwd })),
+    row('Configuration file', d.config.envFileExists
+      ? h('span', {}, h('code', { text: d.config.envFile }),
+        h('span', { class: 'pill' }, `${d.config.envFileKeys} set`))
+      : h('span', { class: 'pill pill-warn' }, `none at ${d.config.envFile}`)),
+    row('Branding override', d.config.brandingFile
+      ? h('code', { text: d.config.brandingFile })
+      : h('span', { class: 'muted' }, 'none — using the shipped defaults'))));
+
+  // Peers: a real probe, not a reading of the configuration.
+  const peerCard = card('Peer services', {
+    sub: d.peers.length ? `${d.peers.filter((p) => p.reachable).length} of ${d.peers.length} reachable` : null,
+  });
+  const peerBody = peerCard.querySelector('.card-body');
+  if (!d.peers.length) {
+    peerBody.replaceChildren(empty('No peers configured',
+      'Service addresses are set with the NET_ settings on the Configuration tab. Without them this '
+      + 'service runs alone.', 'link'));
+  } else {
+    peerBody.replaceChildren(...d.peers.map((p) => h('div', { class: 'peer' },
+      h('span', { class: 'who', text: p.label }),
+      h('span', { class: 'target', text: p.target }),
+      p.reachable
+        ? h('span', { class: 'pill pill-ok' }, h('span', { class: 'dot' }), `${p.status} · ${p.ms} ms`)
+        : h('span', { class: 'pill pill-error' }, p.error || 'unreachable'))));
+    peerBody.append(h('p', { class: 'field-hint', style: 'margin-top:.75rem' },
+      'Each of these was requested just now. A service that is configured but unreachable is shown '
+      + 'unreachable — nothing here is inferred from the configuration alone.'));
+  }
+  container.append(peerCard);
+}
+
+/* -- Configuration --------------------------------------------------------- */
+
+/** Commands for restarting a set of services, in each of the ways this stack runs. */
+function restartInstructions(serviceIds, services) {
+  const compose = serviceIds.map((id) => services[id]?.compose).filter(Boolean);
+  return [
+    {
+      how: 'Docker Compose',
+      cmd: `docker compose restart ${compose.join(' ')}`,
+    },
+    {
+      how: 'systemd user units',
+      cmd: 'systemctl --user restart phoenix-robot@<instance>',
+    },
+    {
+      how: 'Run directly',
+      cmd: serviceIds.map((id) => `node ${services[id]?.script || ''}`).filter(Boolean).join('\n'),
+    },
+  ];
+}
+
+async function renderAdminConfig() {
+  const container = adminPage('#/admin/config', 'Configuration',
+    'Every setting this stack reads from its environment.');
+  show(container);
+  if (!(await adminGate(container))) return;
+
+  container.append(loading(6));
+  const res = await api('GET', '/api/admin/config');
+  container.querySelector('.loading-rows')?.remove();
+  if (!res.ok) { container.append(errorBox('Could not load the configuration.', res.data.error)); return; }
+
+  const { groups, settings, services, envFile } = res.data;
+
+  // Pending edits, keyed by setting. A row is dirty while its value differs
+  // from what the server reported.
+  const edits = new Map();
+  const rows = new Map();
+
+  container.append(h('div', { class: 'notice' }, icon('alert', 15),
+    h('div', {},
+      h('div', {}, 'Changes are written to ', h('code', { text: envFile.path }), '.'),
+      h('div', { class: 'field-hint', style: 'margin-top:.3rem' },
+        'Services read these values when they start, so a change takes effect after you restart the '
+        + 'services each setting names. Nothing here is applied to a running process.'))));
+
+  /* toolbar ------------------------------------------------------------- */
+  const search = h('input', {
+    type: 'search', class: 'search', placeholder: `Search ${settings.length} settings…`,
+    'aria-label': 'Search settings',
+  });
+  const onlyModified = h('label', { class: 'chip' },
+    h('input', { type: 'checkbox' }), h('span', { class: 'chip-mark' }), h('span', {}, 'Modified'));
+  const onlySet = h('label', { class: 'chip' },
+    h('input', { type: 'checkbox' }), h('span', { class: 'chip-mark' }), h('span', {}, 'Set'));
+
+  container.append(h('div', { class: 'cfg-toolbar' }, search, onlySet, onlyModified));
+
+  /* layout -------------------------------------------------------------- */
+  const index = h('nav', { class: 'cfg-index', 'aria-label': 'Setting groups' });
+  const list = h('div', {});
+  container.append(h('div', { class: 'cfg-layout' }, index, list));
+
+  const byGroup = new Map(groups.map((g) => [g.id, []]));
+  for (const s of settings) byGroup.get(s.group)?.push(s);
+
+  for (const group of groups) {
+    const items = byGroup.get(group.id) || [];
+    if (!items.length) continue;
+    index.append(h('a', { href: `#cfg-${group.id}`, 'data-group': group.id },
+      h('span', { text: group.label }), h('span', { class: 'n', text: String(items.length) })));
+
+    const section = h('section', { class: 'cfg-group', id: `cfg-${group.id}`, 'data-group': group.id },
+      h('header', {}, h('h3', { text: group.label }), h('p', { text: group.blurb })),
+      h('div', { class: 'cfg-list' }, ...items.map(settingRow)));
+    list.append(section);
   }
 
-  await loadPanel();
+  const noMatches = h('p', { class: 'cfg-empty', hidden: true }, 'No setting matches that search.');
+  list.append(noMatches);
 
-  async function loadPanel() {
-    const robots = await api('GET', '/api/admin/robots');
-    const list = robots.ok && Array.isArray(robots.data) ? robots.data : [];
-    container.append(card('All adopted robots', { sub: `${list.length}` },
-      robots.ok
-        ? (list.length
-          ? h('div', {}, ...list.map((rb) => row(rb.friendlyId,
-            `${rb.loopName || '—'} · ${rb.ownerEmail || '—'} · ${rb.accessKeyId}`)))
-          : empty('No robots adopted', '', 'robot'))
-        : errorBox('Could not list robots.', robots.data.error)));
+  /* save bar ------------------------------------------------------------ */
+  const summary = h('p', {}, 'No changes yet.');
+  const saveBtn = h('button', { class: 'btn btn-primary', type: 'button', disabled: true }, 'Save changes');
+  const discardBtn = h('button', { class: 'btn', type: 'button', hidden: true }, 'Discard');
+  // Hidden until there is something to save. A permanent bar reading "no
+  // changes yet" is a quarter of a phone screen spent saying nothing.
+  const saveBar = h('div', { class: 'save-bar', hidden: true }, summary, discardBtn, saveBtn);
+  container.append(saveBar);
 
-    const result = h('pre', { class: 'json', hidden: true });
-    const adoptForm = h('form', {},
-      h('div', { class: 'grid2' },
-        field('Robot name', h('input', { name: 'friendlyId', placeholder: 'castle-cylinder-fig-quilt', required: true })),
-        field('Owner email', h('input', { name: 'ownerEmail', type: 'email', placeholder: 'optional' }))),
-      h('div', { class: 'row', style: 'margin-top:1.25rem' },
-        h('button', { type: 'submit', class: 'btn btn-primary' }, 'Adopt')),
-      result);
-    adoptForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const fd = Object.fromEntries(new FormData(adoptForm));
-      const res = await api('POST', '/api/admin/adopt', {
-        friendlyId: fd.friendlyId, ownerEmail: fd.ownerEmail || undefined,
+  saveBtn.addEventListener('click', save);
+  discardBtn.addEventListener('click', () => {
+    for (const key of [...edits.keys()]) revert(key);
+  });
+
+  /* ---------------------------------------------------------------- rows */
+
+  function settingRow(spec) {
+    const badges = h('span', { class: 'cfg-badges' });
+    if (spec.source === 'environment') badges.append(h('span', { class: 'pill pill-warn' }, 'environment'));
+    else if (spec.source === 'file') badges.append(h('span', { class: 'pill pill-accent' }, 'configured'));
+    else badges.append(h('span', { class: 'pill' }, 'default'));
+    if (spec.danger) badges.append(h('span', { class: 'pill pill-error' }, icon('alert', 11), 'sensitive'));
+
+    const control = h('div', { class: 'cfg-control' });
+    let input;
+
+    if (spec.type === 'bool') {
+      input = h('select', {},
+        h('option', { value: '' }, spec.default === null ? 'Not set' : `Not set (${spec.default})`),
+        h('option', { value: 'true' }, 'true'),
+        h('option', { value: 'false' }, 'false'));
+      input.value = spec.value || '';
+    } else if (spec.type === 'enum') {
+      input = h('select', {}, ...(spec.options || []).map((o) =>
+        h('option', { value: o.value }, o.label)));
+      input.value = spec.value || '';
+    } else {
+      input = h('input', {
+        type: spec.type === 'number' ? 'number' : 'text',
+        value: spec.value || '',
+        placeholder: spec.placeholder || (spec.default != null ? `default: ${spec.default}` : 'not set'),
+        autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false',
       });
-      result.hidden = false;
-      if (!res.ok) { result.textContent = `Error: ${res.data.error}`; return; }
-      result.textContent = [
-        '# Write this to /var/jibo/credentials.json on the robot:',
-        JSON.stringify(res.data.credentialsJson, null, 2),
-        '', '# Then point the robot at this server:',
-        ...(res.data.instructions || []),
-      ].join('\n');
-      notify('Robot adopted');
+      if (spec.type === 'secret') {
+        input.setAttribute('data-secret', '');
+        input.setAttribute('type', 'text');
+      }
+      if (spec.min != null) input.setAttribute('min', spec.min);
+      if (spec.max != null) input.setAttribute('max', spec.max);
+    }
+
+    if (spec.locked) input.disabled = true;
+    input.addEventListener('input', () => onEdit(spec, input));
+    input.addEventListener('change', () => onEdit(spec, input));
+    control.append(input);
+
+    // Secrets: reveal what is actually set, and offer a strong replacement.
+    if (spec.type === 'secret' && !spec.locked) {
+      if (spec.hasValue) {
+        control.append(h('button', {
+          class: 'btn btn-sm', type: 'button',
+          on: {
+            // currentTarget is null once the event has finished dispatching,
+            // so the button is captured before the request is awaited.
+            click: async (e) => {
+              const button = e.currentTarget;
+              button.disabled = true;
+              const res2 = await api('POST', '/api/admin/config/reveal', { key: spec.key });
+              button.disabled = false;
+              if (!res2.ok) { notify(res2.data.error || 'Could not reveal', 'error'); return; }
+              input.value = res2.data.value;
+              button.remove();
+              onEdit(spec, input);
+            },
+          },
+        }, icon('eye', 14), 'Reveal'));
+      }
+      control.append(h('button', {
+        class: 'btn btn-sm', type: 'button',
+        on: {
+          click: async () => {
+            const res2 = await api('POST', '/api/admin/config/generate', {});
+            if (!res2.ok) { notify(res2.data.error || 'Could not generate', 'error'); return; }
+            input.value = res2.data.value;
+            onEdit(spec, input);
+          },
+        },
+      }, icon('refresh', 14), 'Generate'));
+    }
+
+    const revertLink = h('button', {
+      class: 'link revert', type: 'button', hidden: true,
+      on: { click: () => revert(spec.key) },
+    }, 'Revert');
+
+    const foot = h('div', { class: 'cfg-foot' },
+      spec.services?.length
+        ? h('span', { class: 'restart' }, icon('refresh', 12),
+          `Needs restart: ${spec.services.map((s) => services[s]?.label || s).join(', ')}`)
+        : null,
+      spec.default != null ? h('span', {}, `Default: ${spec.default}`) : h('span', {}, 'No default'),
+      revertLink);
+
+    const item = h('div', {
+      class: `cfg-item${spec.locked ? ' locked' : ''}`,
+      'data-key': spec.key,
+      'data-search': `${spec.key} ${spec.label} ${spec.help}`.toLowerCase(),
+    },
+      h('div', { class: 'cfg-head' },
+        h('span', { class: 'name', text: spec.label }),
+        h('span', { class: 'cfg-key', text: spec.key }),
+        badges),
+      h('p', { class: 'cfg-help', text: spec.help }),
+      control,
+      spec.locked
+        ? h('div', { class: 'cfg-locked-note' }, icon('lock', 13),
+          h('span', {}, 'Set in the process environment, which always overrides the configuration '
+            + 'file. Editing it here would have no effect, so it is read-only. Change it where the '
+            + 'service is launched.'))
+        : null,
+      // An environment variable shadowing a different configured value is
+      // exactly the situation that wastes an afternoon. Say it out loud.
+      (!spec.locked && spec.fileValue != null && spec.fileValue !== spec.value)
+        ? h('div', { class: 'cfg-locked-note' }, icon('alert', 13),
+          h('span', {}, `The file says "${spec.fileValue}" but the running process has `
+            + `"${spec.value || 'nothing'}". Restart to pick the file value up.`))
+        : null,
+      foot);
+
+    rows.set(spec.key, { item, input, spec, revertLink });
+    return item;
+  }
+
+  function onEdit(spec, input) {
+    const next = String(input.value ?? '');
+    const original = spec.value === '••••••••' ? null : (spec.value || '');
+    // A masked secret has no comparable original, so any typing counts.
+    const dirty = original === null ? next !== '' && next !== '••••••••' : next !== original;
+
+    if (dirty) edits.set(spec.key, next);
+    else edits.delete(spec.key);
+
+    const row = rows.get(spec.key);
+    row.item.classList.toggle('dirty', dirty);
+    row.revertLink.hidden = !dirty;
+    paintSaveBar();
+  }
+
+  function revert(key) {
+    const row = rows.get(key);
+    if (!row) return;
+    row.input.value = row.spec.value === '••••••••' ? '' : (row.spec.value || '');
+    edits.delete(key);
+    row.item.classList.remove('dirty');
+    row.revertLink.hidden = true;
+    paintSaveBar();
+  }
+
+  function paintSaveBar() {
+    const n = edits.size;
+    saveBtn.disabled = n === 0;
+    discardBtn.hidden = n === 0;
+    saveBar.hidden = n === 0;
+    if (!n) return;
+
+    const affected = new Set();
+    for (const key of edits.keys()) {
+      for (const s of rows.get(key)?.spec.services || []) affected.add(services[s]?.label || s);
+    }
+    summary.replaceChildren(
+      h('strong', { text: `${n} change${n === 1 ? '' : 's'}` }),
+      ` — will need a restart of ${[...affected].join(', ')}.`);
+  }
+
+  async function save() {
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving…';
+    const changes = Object.fromEntries(edits);
+    const result = await api('PUT', '/api/admin/config', { changes });
+    saveBtn.textContent = 'Save changes';
+
+    if (!result.ok) {
+      const errors = result.data.errors || {};
+      for (const [key, message] of Object.entries(errors)) {
+        const row = rows.get(key);
+        if (!row) continue;
+        row.input.setAttribute('aria-invalid', 'true');
+        row.item.querySelector('.cfg-help').after(h('p', { class: 'error', 'data-field-error': '' }, message));
+      }
+      notify(result.data.error || 'Could not save', 'error');
+      saveBtn.disabled = false;
+      return;
+    }
+
+    notify(`Saved ${result.data.applied.length + result.data.cleared.length} setting(s)`);
+    showRestartPanel(result.data);
+    await renderAdminConfig();
+  }
+
+  function showRestartPanel(data) {
+    const ids = data.restartRequired || [];
+    if (!ids.length) return;
+    const dialog = h('dialog', { class: 'modal', style: 'width:min(560px,calc(100vw - 2rem))' },
+      h('h3', {}, 'Saved — now restart to apply'),
+      h('p', {}, `Written to ${data.path}. These services read the settings you changed and are `
+        + 'still running with the old values:'),
+      h('div', { class: 'row', style: 'margin:.85rem 0' },
+        ...ids.map((id) => h('span', { class: 'pill pill-accent' }, services[id]?.label || id))),
+      h('p', { class: 'field-hint' },
+        'Restart them the way this stack is run here — these are the usual three:'),
+      h('div', { class: 'restart-panel', style: 'margin-top:.75rem' },
+        ...restartInstructions(ids, services).map((r) => h('div', {},
+          h('div', { class: 'restart-how', text: r.how }),
+          h('div', { class: 'restart-cmd' },
+            h('span', { class: 'prompt' }, '$'),
+            h('code', { text: r.cmd }),
+            copyButton(() => r.cmd))))),
+      data.backup
+        ? h('p', { class: 'field-hint', style: 'margin-top:1rem' },
+          `The previous file was copied to ${data.backup}.`)
+        : null,
+      h('div', { class: 'row row-end', style: 'margin-top:1.25rem' },
+        h('button', {
+          class: 'btn btn-primary', type: 'button',
+          on: { click: () => { dialog.close(); dialog.remove(); } },
+        }, 'Done')));
+    document.body.append(dialog);
+    dialog.showModal();
+  }
+
+  /* ------------------------------------------------------------- filters */
+
+  const applyFilter = () => {
+    const term = search.value.trim().toLowerCase();
+    const wantModified = onlyModified.querySelector('input').checked;
+    const wantSet = onlySet.querySelector('input').checked;
+    let shown = 0;
+
+    for (const [key, { item, spec }] of rows) {
+      const matches = !term || item.dataset.search.includes(term);
+      const modifiedOk = !wantModified || edits.has(key);
+      const setOk = !wantSet || spec.hasValue;
+      const visible = matches && modifiedOk && setOk;
+      item.hidden = !visible;
+      if (visible) shown += 1;
+    }
+    // Hide a group heading whose settings are all filtered out.
+    for (const section of list.querySelectorAll('.cfg-group')) {
+      section.hidden = ![...section.querySelectorAll('.cfg-item')].some((i) => !i.hidden);
+    }
+    noMatches.hidden = shown > 0;
+  };
+
+  search.addEventListener('input', debounce(applyFilter, 120));
+  onlyModified.querySelector('input').addEventListener('change', applyFilter);
+  onlySet.querySelector('input').addEventListener('change', applyFilter);
+
+  // Highlight the group currently on screen in the index.
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        const id = entry.target.dataset.group;
+        for (const a of index.querySelectorAll('a')) a.classList.toggle('current', a.dataset.group === id);
+      }
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    for (const section of list.querySelectorAll('.cfg-group')) io.observe(section);
+  }
+}
+
+/* -- Robots ---------------------------------------------------------------- */
+
+async function renderAdminRobots() {
+  const container = adminPage('#/admin/robots', 'Robots',
+    'Every robot adopted on this server, across all households.');
+  show(container);
+  if (!(await adminGate(container))) return;
+
+  container.append(loading(3));
+  const robots = await api('GET', '/api/admin/robots');
+  container.querySelector('.loading-rows')?.remove();
+
+  const list = robots.ok && Array.isArray(robots.data) ? robots.data : [];
+  const robotCard = card('Adopted robots', { sub: `${list.length}` });
+  const body = robotCard.querySelector('.card-body');
+  if (!robots.ok) body.replaceChildren(errorBox('Could not list robots.', robots.data.error));
+  else if (!list.length) {
+    body.replaceChildren(empty('No robots adopted',
+      'Adopt one below, or pair a new robot from the Robots page.', 'robot'));
+  } else {
+    body.replaceChildren(...list.map((rb) => h('div', { class: 'member-block' },
+      h('div', { class: 'member-name' }, icon('robot', 15), rb.friendlyId),
+      row('Household', rb.loopName || '—'),
+      row('Owner', rb.ownerEmail || '—'),
+      row('Access key', h('code', { text: rb.accessKeyId })),
+      row('Last seen', fmtDate(rb.lastSeen)))));
+    body.classList.add('member-grid');
+  }
+  container.append(robotCard);
+
+  const result = h('pre', { class: 'json', hidden: true });
+  const adoptForm = h('form', {},
+    h('p', { class: 'field-hint' },
+      'For a robot that completed setup against the original cloud years ago. This mints fresh '
+      + 'credentials and a household, and shows you exactly what to write to the robot.'),
+    h('div', { class: 'grid2' },
+      field('Robot name', h('input', {
+        name: 'friendlyId', placeholder: 'castle-cylinder-fig-quilt', required: true,
+        autocapitalize: 'off', spellcheck: 'false',
+      }), 'The four-word name the robot reports.'),
+      field('Owner email', h('input', { name: 'ownerEmail', type: 'email', placeholder: 'optional' }),
+        'An existing account. Leave blank to use the synthetic adopted owner.')),
+    h('div', { class: 'row', style: 'margin-top:1.25rem' },
+      h('button', { type: 'submit', class: 'btn btn-primary' }, 'Adopt robot')),
+    result);
+
+  adoptForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = Object.fromEntries(new FormData(adoptForm));
+    const res = await api('POST', '/api/admin/adopt', {
+      friendlyId: fd.friendlyId, ownerEmail: fd.ownerEmail || undefined,
     });
-    container.append(card('Manually adopt a robot', {}, adoptForm));
+    result.hidden = false;
+    if (!res.ok) { result.textContent = `Error: ${res.data.error}`; return; }
+    result.textContent = [
+      '# Write this to /var/jibo/credentials.json on the robot:',
+      JSON.stringify(res.data.credentialsJson, null, 2),
+      '', '# Then point the robot at this server:',
+      ...(res.data.instructions || []),
+    ].join('\n');
+    notify('Robot adopted');
+  });
+
+  container.append(card('Manually adopt a robot', {}, adoptForm));
+}
+
+/* -- Administrators -------------------------------------------------------- */
+
+async function renderAdminAdmins() {
+  const container = adminPage('#/admin/admins', 'Administrators',
+    'Who can reach this surface. Access is a flag on the account, checked on every request.');
+  show(container);
+  if (!(await adminGate(container))) return;
+
+  container.append(loading(3));
+  const res = await api('GET', '/api/admin/admins');
+  container.querySelector('.loading-rows')?.remove();
+  if (!res.ok) { container.append(errorBox('Could not list accounts.', res.data.error)); return; }
+
+  const { accounts, adminCount } = res.data;
+
+  if (adminCount === 1) {
+    container.append(h('div', { class: 'notice notice-warn' }, icon('alert', 15),
+      h('div', {},
+        h('div', {}, 'This instance has one administrator.'),
+        h('div', { class: 'field-hint', style: 'margin-top:.3rem' },
+          'If that account is lost, admin access is recovered only from the command line with '
+          + 'scripts/portal-grant-admin.mjs. Granting a second administrator avoids that.'))));
+  }
+
+  const listCard = card('Accounts', { sub: `${adminCount} of ${accounts.length} are administrators` });
+  const body = listCard.querySelector('.card-body');
+
+  body.replaceChildren(...accounts.map((a) => {
+    const isSelf = me && a.id === me.id;
+    const name = [a.firstName, a.lastName].filter(Boolean).join(' ');
+    return h('div', { class: `member-block${a.isAdmin ? '' : ' '}`.trim() },
+      h('div', { class: 'member-name' },
+        h('span', { class: 'avatar', style: 'width:24px;height:24px;font-size:10px' },
+          (name || a.email || '?').slice(0, 2).toUpperCase()),
+        name || a.email || a.id,
+        a.isAdmin ? h('span', { class: 'pill pill-accent' }, 'administrator') : null,
+        isSelf ? h('span', { class: 'pill' }, 'you') : null),
+      row('Email', a.email || '—'),
+      row('Active', a.isActive ? 'yes' : 'no'),
+      h('div', { class: 'member-actions' },
+        h('button', {
+          class: a.isAdmin ? 'link danger' : 'link', type: 'button',
+          on: { click: () => setAdmin(a, !a.isAdmin) },
+        }, a.isAdmin ? 'Revoke admin' : 'Make administrator')));
+  }));
+  body.classList.add('member-grid');
+  container.append(listCard);
+
+  container.append(card('From the command line', {},
+    h('p', { class: 'field-hint' },
+      'The same flag, for when nobody can sign in to this page:'),
+    ...[
+      'node scripts/portal-grant-admin.mjs --list',
+      'node scripts/portal-grant-admin.mjs --email you@example.com',
+      'node scripts/portal-grant-admin.mjs --email you@example.com --revoke',
+    ].map((cmd) => h('div', { class: 'restart-cmd' },
+      h('span', { class: 'prompt' }, '$'), h('code', { text: cmd }), copyButton(() => cmd)))));
+
+  async function setAdmin(account, grant) {
+    const label = account.email || account.id;
+    const yes = await confirmDialog({
+      title: grant ? `Make ${label} an administrator?` : `Revoke ${label}'s access?`,
+      body: grant
+        ? 'They will be able to read and change every setting on this server, adopt robots, and grant '
+          + 'administrator access to others.'
+        : 'They will lose access to the admin surface immediately — the flag is checked on every '
+          + 'request, so there is no session to wait out.',
+      confirmLabel: grant ? 'Make administrator' : 'Revoke',
+      danger: !grant,
+    });
+    if (!yes) return;
+    const out = await api('POST', '/api/admin/admins', { email: account.email, grant });
+    if (!out.ok) { notify(out.data.error || 'Could not change access', 'error'); return; }
+    notify(grant ? 'Administrator access granted' : 'Administrator access revoked');
+    await renderAdminAdmins();
   }
 }
 
@@ -1484,7 +2071,12 @@ function initChrome() {
 
 function paintNav(hash) {
   for (const a of document.querySelectorAll('#nav .nav-item')) {
-    a.classList.toggle('active', a.dataset.route === hash);
+    const route = a.dataset.route;
+    // Every #/admin/* sub-route keeps the one Administration item highlighted;
+    // the sub-navigation inside the page says which of them you are on.
+    const active = route === hash
+      || (route === '#/admin' && hash.startsWith('#/admin'));
+    a.classList.toggle('active', active);
   }
 }
 
@@ -1505,6 +2097,18 @@ const ROUTES = {
   '#/add': renderAdd,
 };
 
+/**
+ * The admin area. Kept out of ROUTES because reaching it does not require the
+ * signed-in-and-nav-highlighted treatment the household surfaces get: the
+ * server decides who may see it, and it has its own sub-navigation.
+ */
+const ADMIN_ROUTES = {
+  '#/admin': renderAdminStatus,
+  '#/admin/config': renderAdminConfig,
+  '#/admin/robots': renderAdminRobots,
+  '#/admin/admins': renderAdminAdmins,
+};
+
 async function route() {
   stopPoll();
   // `/admin` is served by the same shell; treat the path as the route so the
@@ -1513,15 +2117,21 @@ async function route() {
 
   await refreshMe();
 
-  if (hash === '#/admin') {
+  if (ADMIN_ROUTES[hash]) {
     // Administrator access follows the signed-in account, so there is nothing to
     // unlock here: a signed-out visitor gets the sign-in screen instead, and a
     // signed-in non-admin is told so rather than being asked for a password.
     if (!me) return renderAuth();
     shell.hidden = false;
     authRoot.hidden = true;
-    paintNav('');
-    return renderAdmin();
+    paintNav(hash);
+    try {
+      await ADMIN_ROUTES[hash]();
+    } catch (error) {
+      show(page('Something went wrong', '',
+        errorBox('This page failed to render.', String(error?.message || error))));
+    }
+    return undefined;
   }
 
   if (!me) return renderAuth();

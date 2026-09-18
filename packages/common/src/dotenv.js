@@ -8,6 +8,24 @@ import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// Which keys in process.env got there from the file. A real environment
+// variable always wins, so this is precisely the set whose live value came from
+// .env rather than from the process environment — which is what the admin
+// console needs to know before it offers to edit one. Recorded here rather than
+// inferred by comparison, because a file value and an environment value that
+// happen to be equal are indistinguishable after the fact.
+//
+// It accumulates across calls on purpose. A second loadDotEnv() fills nothing,
+// because the first one already set those keys; replacing the record there
+// would erase the answer and make every file-sourced setting look like it was
+// pinned by the environment.
+let loadedFromFile = {};
+
+/** Keys whose current process.env value came from the .env file. */
+export function dotEnvLoaded() {
+  return { ...loadedFromFile };
+}
+
 export function loadDotEnv(env = process.env) {
   const candidates = [
     env.PHOENIX_ENV_FILE,
@@ -37,5 +55,6 @@ export function loadDotEnv(env = process.env) {
       loaded[key] = value;
     }
   }
+  loadedFromFile = { ...loadedFromFile, ...loaded };
   return loaded;
 }
