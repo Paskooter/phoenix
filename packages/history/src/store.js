@@ -53,6 +53,19 @@ const RECORD_FIELDS = ['id', 'timestamp', 'sessionID', 'robotID', 'skillID', 'in
 // removes null/undefined values before $set.
 const SPEECH_UPDATE_FIELDS = ['audioFileURL', 'asr', 'personIDs', 'nlu', 'match', 'redirect', 'skill', 'error'];
 
+// The reference reports its datastore's connection state on /healthcheck using
+// this enum (packages/history/src/common/db/DBClient.ts DBClientState). Phoenix
+// keeps skill-launch and speech records in one JSON snapshot rather than two
+// Mongo connections, so both reported fields move together -- but the member
+// NAMES are the source's, because the body is what a consumer parses.
+export const DB_CLIENT_STATE = Object.freeze({
+  DISCONNECTED: 'DISCONNECTED',
+  CONNECTED: 'CONNECTED',
+  CONNECTING: 'CONNECTING',
+  DISCONNECTING: 'DISCONNECTING',
+  UNKNOWN: 'UNKNOWN',
+});
+
 export class HistoryStore {
   /**
    * @param {string|null} [file] durable JSON snapshot path. `null` (the default) keeps the store
@@ -175,6 +188,39 @@ export class HistoryStore {
     } finally {
       try { unlinkSync(tmp); } catch { /* renamed or cleanup unavailable */ }
     }
+  }
+
+  /**
+   * Whether the durable snapshot can actually be read and written RIGHT NOW.
+   *
+   * The reference reports its MongoDB connection state on /healthcheck
+   * (`HistoryService.getHealthcheckResponse`). The equivalent question for a
+   * JSON-file store cannot be answered by remembering that startup succeeded, so
+   * this performs the operations a write needs: parse the committed snapshot, and
+   * create and remove a private probe file in the same directory with the same
+   * call _flush uses. It therefore fails when the snapshot is corrupted, the
+   * directory is read-only, or the filesystem is full.
+   *
+   * @returns {{state: string, detail: (string|null)}} a DBClientState member name
+   */
+  probe() {
+    if (!this.file) return { state: DB_CLIENT_STATE.CONNECTED, detail: 'in-memory store' };
+    try {
+      if (existsSync(this.file)) JSON.parse(readFileSync(this.file, 'utf8'));
+    } catch (error) {
+      return { state: DB_CLIENT_STATE.DISCONNECTED, detail: `snapshot unreadable: ${error.message}` };
+    }
+    const probeFile = `${this.file}.healthcheck`;
+    try {
+      mkdirSync(dirname(this.file), { recursive: true, mode: 0o700 });
+      const fd = openSync(probeFile, 'wx', 0o600);
+      closeSync(fd);
+    } catch (error) {
+      return { state: DB_CLIENT_STATE.DISCONNECTED, detail: `snapshot directory unwritable: ${error.message}` };
+    } finally {
+      try { unlinkSync(probeFile); } catch { /* already removed, or never created */ }
+    }
+    return { state: DB_CLIENT_STATE.CONNECTED, detail: null };
   }
 
   // --- internals ------------------------------------------------------------

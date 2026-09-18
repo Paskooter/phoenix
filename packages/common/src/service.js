@@ -74,9 +74,19 @@ export function createService({
   // Express's default routing is case-insensitive and ignores a trailing slash.
   // Registering the health route before JSON parsing preserves the source
   // middleware order and its health OPTIONS/404 behavior.
-  app.get('/healthcheck', (req, res) => {
-    const body = typeof healthcheckBody === 'function' ? healthcheckBody(req) : healthcheckBody;
-    return res.status(200).send(body);
+  //
+  // BaseService's shared response is the literal `ok` with 200. A source service
+  // may override that, including the STATUS CODE: the reference HistoryService
+  // answers 500 when one of its stores is not connected, so a healthcheck that
+  // could only ever say 200 would report a broken service as healthy. A
+  // `healthcheckBody` that returns {statusCode, body} selects the source status;
+  // every existing service keeps returning its plain string.
+  app.get('/healthcheck', async (req, res) => {
+    const value = typeof healthcheckBody === 'function' ? await healthcheckBody(req) : healthcheckBody;
+    if (value && typeof value === 'object' && typeof value.statusCode === 'number') {
+      return res.status(value.statusCode).send(value.body);
+    }
+    return res.status(200).send(value);
   });
 
   // This is intentionally after healthcheck and before application handlers.

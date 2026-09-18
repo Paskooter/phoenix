@@ -18,7 +18,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createService, logger, parseServiceArgs, serviceCliPort, serviceHelp, runService } from '@phoenix/common';
 import { DefaultPort } from '@phoenix/contracts';
-import { HistoryStore } from './store.js';
+import { HistoryStore, DB_CLIENT_STATE } from './store.js';
 import { validateEvent, validateQuery } from './validators.js';
 
 // I-03: the running service is durable, exactly as the reference (rows live in Mongo, not process
@@ -76,14 +76,38 @@ export function createHistoryService(store = new HistoryStore()) {
     routes[`${method} /v1${path}`] = fn;
     routes[key] = fn;
   }
-  return createService({ name: 'history', routes });
+  return createService({
+    name: 'history',
+    routes,
+    // Source HistoryService overrides BaseService's shared health response with
+    // its datastore state and answers 500 when a store is not connected
+    // (packages/history/src/HistoryService.ts getHealthcheckResponse). A service
+    // whose store is down must not answer 200 `ok`.
+    //
+    // The body keeps exactly the source's three members, because the body is what
+    // a consumer parses. The failure REASON is logged instead of being added as a
+    // fourth member -- observability must not come at the cost of the wire shape.
+    healthcheckBody: () => {
+      const { state, detail } = store.probe();
+      const healthy = state === DB_CLIENT_STATE.CONNECTED;
+      if (!healthy) logger('history').error(`healthcheck: history store not connected (${detail})`);
+      return {
+        statusCode: healthy ? 200 : 500,
+        body: {
+          status: healthy ? 'ok' : 'error',
+          skillLaunchDB: state,
+          speechHistoryDB: state,
+        },
+      };
+    },
+  });
 }
 
 export function start(port = Number(process.env.PORT) || DefaultPort.history) {
   return createHistoryService(new HistoryStore(historyStoreFile())).listen(port);
 }
 
-export { HistoryStore } from './store.js';
+export { HistoryStore, DB_CLIENT_STATE } from './store.js';
 export { buildPredicate, resolveMatch, MatchMethod, RuleField } from './query.js';
 export { validateEvent, validateQuery, validateRule, ValidationError } from './validators.js';
 
