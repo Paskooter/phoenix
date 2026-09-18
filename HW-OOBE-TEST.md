@@ -33,7 +33,7 @@ Two ways to reach that state: **Path A — soft reset** (recommended, keeps 13.0
 
 ```bash
 cd <phoenix>                      # this repo
-cp .env.example .env              # optional; set ADMIN_PASSWORD to enable the admin page
+cp .env.example .env              # optional; the admin page needs an admin ACCOUNT, not a password
 npm install
 ```
 

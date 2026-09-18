@@ -16,10 +16,13 @@
 //   GET /api/oauthclients · GET /api/ifttt         -> classic-fronted surfaces (portal/*)
 //   POST /api/token                                -> per-robot hub token (gateway/skills contract)
 //   GET  /api/verify                               -> gateway robot-authorisation (contract frozen)
-//   POST /api/admin/login   GET /api/admin/me   GET /api/admin/robots   POST /api/admin/adopt
+//   POST /api/admin/login   (REMOVED — the admin face is per-account now)
+//   GET  /api/admin/me   GET /api/admin/robots   POST /api/admin/adopt
 //
 // Twenty /api mounts live in src/portal/* — this file keeps the original routes and composes the
-// rest. ADMIN_PASSWORD comes from .env; when unset the admin face is disabled entirely.
+// rest. The admin face is gated by the signed-in account's `isAdmin` flag, not a shared
+// ADMIN_PASSWORD: grant it with scripts/portal-grant-admin.mjs. A signed-out caller gets 401 and a
+// signed-in non-admin gets 403, so the console can tell them apart.
 //
 // TWO CONTRACTS ARE FROZEN AND MUST NOT CHANGE: GET /api/verify (the gateway calls it to
 // authorise every robot connection and the skills GQA attribution store calls it too) and
@@ -33,7 +36,7 @@ import { createOwnerAccount, createLoop, mintSetupToken, findToken, ACCESS_TOKEN
 // verifyPassword returns false for anything that is not `scrypt:`, so the real
 // account -- the one the owner signs into on the phone -- could never log in here.
 import { compareAccountPassword } from './accountIdentity.js';
-import { createSession, destroySession, getSession, sessionCookie, clearCookie, checkAdminPassword } from './sessions.js';
+import { createSession, destroySession, getSession, sessionCookie, clearCookie } from './sessions.js';
 import { buildQrCodes } from './qrPayload.js';
 import { userFromSession as sessionUser, portalAccount } from './portal/session.js';
 import { classicBaseUrl } from './portal/classicClient.js';
@@ -80,9 +83,37 @@ export function userFromSession(store, req) {
   return sessionUser(store, req);
 }
 
+/**
+ * Administrator access is a property of the signed-in account, not a shared
+ * password. An account with `isAdmin` set is an administrator; anyone else is
+ * not, and a signed-out visitor is nobody.
+ *
+ * This replaced a single shared ADMIN_PASSWORD because that gave every operator
+ * the same credential, left no per-person audit trail, and could not be revoked
+ * for one person without changing it for all of them.
+ */
 export function isAdmin(store, req) {
-  const session = getSession(store, req);
-  return !!(session && session.kind === 'admin');
+  const account = sessionUser(store, req);
+  return !!(account && account.isAdmin);
+}
+
+/**
+ * Answer 401/403 and return false unless the caller is an administrator.
+ * Distinguishing the two matters: the console renders "sign in" for 401 and
+ * "this account is not an administrator" for 403, so a signed-in non-admin is
+ * never told to sign in again.
+ */
+function requireAdmin(store, req, res) {
+  const account = sessionUser(store, req);
+  if (!account) {
+    sendJson(res, 401, { error: 'sign in to use the admin surface' });
+    return false;
+  }
+  if (!account.isAdmin) {
+    sendJson(res, 403, { error: 'this account is not an administrator' });
+    return false;
+  }
+  return true;
 }
 
 /** @param {import('./store.js').Store} store @returns route map fragment for createService */
@@ -193,22 +224,15 @@ export function portalRoutes(store, options = {}) {
       return { valid: true, id: account._id, friendlyId: account.friendlyId || null };
     },
 
-    // -- admin face (ADMIN_PASSWORD from .env) --------------------------------
-
-    'POST /api/admin/login': ({ res, body }) => {
-      if (!process.env.ADMIN_PASSWORD) return sendJson(res, 503, { error: 'admin UI disabled: ADMIN_PASSWORD is not set' });
-      if (!checkAdminPassword(body && body.password)) return sendJson(res, 401, { error: 'wrong admin password' });
-      const session = createSession(store, { kind: 'admin' });
-      return withCookie(res, sessionCookie(session), 200, { admin: true });
-    },
+    // -- admin face (per-account isAdmin; there is no shared password) --------
 
     'GET /api/admin/me': ({ req, res }) => {
-      if (!isAdmin(store, req)) return sendJson(res, 401, { error: 'not admin' });
-      return { admin: true };
+      if (!requireAdmin(store, req, res)) return;
+      return { admin: true, account: portalAccount(userFromSession(store, req)) };
     },
 
     'GET /api/admin/robots': ({ req, res }) => {
-      if (!isAdmin(store, req)) return sendJson(res, 401, { error: 'not admin' });
+      if (!requireAdmin(store, req, res)) return;
       return store.allRobots().map(robotView);
     },
 
@@ -219,7 +243,7 @@ export function portalRoutes(store, options = {}) {
      * a synthetic "adopted@phoenix.local" owner account so admin-only setups need no signup.
      */
     'POST /api/admin/adopt': ({ req, res, body }) => {
-      if (!isAdmin(store, req)) return sendJson(res, 401, { error: 'not admin' });
+      if (!requireAdmin(store, req, res)) return;
       const { friendlyId, ownerEmail } = body || {};
       if (!friendlyId || !/^[a-z0-9-]{3,80}$/i.test(friendlyId)) {
         return sendJson(res, 400, { error: 'friendlyId required (the robot\'s name, e.g. castle-cylinder-fig-quilt)' });

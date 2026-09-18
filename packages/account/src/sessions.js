@@ -1,8 +1,11 @@
-// Cookie sessions for the portal + admin UI. Opaque ids stored server-side (in the Store, so
-// they survive restarts), HttpOnly cookies, 7-day TTL. Two session kinds share the mechanism:
-// kind 'user' carries an accountId; kind 'admin' is granted by the ADMIN_PASSWORD from .env.
+// Cookie sessions for the portal UI. Opaque ids stored server-side (in the Store, so they survive
+// restarts), HttpOnly cookies, 7-day TTL. One session kind, 'user', carrying an accountId.
+//
+// There is no separate admin session: administrator access is a flag on the signed-in account
+// (see portalApi.js's isAdmin), which is why the shared ADMIN_PASSWORD and its session kind are
+// gone. Grant admin with scripts/portal-grant-admin.mjs.
 
-import { randomBytes, timingSafeEqual } from 'node:crypto';
+import { randomBytes } from 'node:crypto';
 
 export const SESSION_TTL_MS = 7 * 24 * 3600 * 1000;
 const COOKIE = 'phx_session';
@@ -49,13 +52,4 @@ export function parseCookies(header) {
     if (eq > 0) out[part.slice(0, eq).trim()] = part.slice(eq + 1).trim();
   }
   return out;
-}
-
-/** Constant-time admin password check against ADMIN_PASSWORD (.env). */
-export function checkAdminPassword(password) {
-  const expected = process.env.ADMIN_PASSWORD || '';
-  if (!expected) return false; // unset = admin UI disabled
-  const a = Buffer.from(String(password));
-  const b = Buffer.from(expected);
-  return a.length === b.length && timingSafeEqual(a, b);
 }

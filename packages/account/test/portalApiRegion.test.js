@@ -13,13 +13,13 @@ import { join } from 'node:path';
 
 const dir = mkdtempSync(join(tmpdir(), 'phx-w3-region-'));
 process.env.ETCO_account_dataFile = join(dir, 'store.json');
-process.env.ADMIN_PASSWORD = 'w3-admin-pass';
 delete process.env.ETCO_account_region;
 
 const { accountRegion, DEFAULT_ACCOUNT_REGION } = await import('../src/portalApi.js');
+const { Store } = await import('../src/store.js');
 const { createAccountService } = await import('../src/index.js');
 
-let server; let base; let cookie;
+let server; let base; let cookie; let store;
 
 async function call(method, path, body) {
   const res = await fetch(`${base}${path}`, {
@@ -33,10 +33,15 @@ async function call(method, path, body) {
 }
 
 before(async () => {
-  server = await createAccountService().listen(0);
+  store = new Store(process.env.ETCO_account_dataFile);
+  server = await createAccountService({ store }).listen(0);
   base = `http://localhost:${server.address().port}`;
-  const login = await call('POST', '/api/admin/login', { password: 'w3-admin-pass' });
-  assert.equal(login.status, 200);
+  // The admin face follows the signed-in account now, so sign up and promote —
+  // exactly what scripts/portal-grant-admin.mjs does. No shared password.
+  const signup = await call('POST', '/api/signup', { email: 'w3@region.test', password: 'w3-region-pass' });
+  assert.equal(signup.status, 200);
+  store.accountByEmail('w3@region.test').isAdmin = true;
+  store.flush();
 });
 after(() => { server.close(); rmSync(dir, { recursive: true, force: true }); });
 

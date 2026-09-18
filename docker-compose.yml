@@ -197,7 +197,8 @@ services:
 
   # Phoenix extension: the account service — web portal (signup/login, add-a-robot QR),
   # the OOBE pairing service the robot calls (OOBE.setupRobot), and per-robot hub-token
-  # issuance + verification. Reads .env (ADMIN_PASSWORD, HUB_TOKEN_SECRET, region). The
+  # issuance + verification. Reads .env (HUB_TOKEN_SECRET, region). The admin face is a
+  # per-account flag, not a password.
   # store persists under ./packages/account/data (a named host mount).
   account:
     <<: *phoenix-defaults
@@ -206,7 +207,7 @@ services:
     command: node packages/account/src/index.js
     env_file:
       - path: .env
-        required: false   # copy .env.example -> .env to set ADMIN_PASSWORD etc.
+        required: false   # copy .env.example -> .env to set HUB_TOKEN_SECRET etc.
     environment:
       - PORT=8080
       - HUB_TOKEN_SECRET=${HUB_TOKEN_SECRET:-dev-hub-token-secret}

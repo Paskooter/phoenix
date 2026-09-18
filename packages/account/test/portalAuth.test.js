@@ -8,13 +8,14 @@ import { join } from 'node:path';
 
 const dir = mkdtempSync(join(tmpdir(), 'phx-account-'));
 process.env.ETCO_account_dataFile = join(dir, 'store.json');
-process.env.ADMIN_PASSWORD = 'test-admin-pass';
+// No ADMIN_PASSWORD: administrator access is a flag on the account, not a shared
+// secret, so the admin face is exercised by promoting an ordinary account below.
 
 const { Store } = await import('../src/store.js');
 const { fillAccessKeys, hashPassword, verifyPassword, createOwnerAccount, createLoop, mintSetupToken, takeValidToken, ACCESS_TOKEN_LIFETIME_MS } = await import('../src/model.js');
 const { createAccountService } = await import('../src/index.js');
 
-let server; let base;
+let server; let base; let store;
 const jars = new Map(); // name -> cookie
 
 async function call(method, path, body, jar = 'default') {
@@ -29,7 +30,10 @@ async function call(method, path, body, jar = 'default') {
 }
 
 before(async () => {
-  server = await createAccountService().listen(0);
+  // An explicit store, so a test can promote an account to administrator the way
+  // scripts/portal-grant-admin.mjs does.
+  store = new Store(process.env.ETCO_account_dataFile);
+  server = await createAccountService({ store }).listen(0);
   base = `http://localhost:${server.address().port}`;
 });
 after(() => { server.close(); rmSync(dir, { recursive: true, force: true }); });
@@ -71,28 +75,58 @@ test('login: wrong password 401, right password 200; duplicate signup 409', asyn
   assert.equal(dup.status, 409);
 });
 
-test('admin: login with .env password, list all robots, manual adopt returns credentials.json', async () => {
-  const noAuth = await call('GET', '/api/admin/robots', null, 'admin');
-  assert.equal(noAuth.status, 401);
-  const badPw = await call('POST', '/api/admin/login', { password: 'wrong' }, 'admin');
-  assert.equal(badPw.status, 401);
-  const ok = await call('POST', '/api/admin/login', { password: 'test-admin-pass' }, 'admin');
-  assert.equal(ok.status, 200);
+test('admin: only an administrator ACCOUNT reaches the admin face; adopt returns credentials.json', async () => {
+  // Signed out: 401, "sign in".
+  const anon = await call('GET', '/api/admin/robots', null, 'admin');
+  assert.equal(anon.status, 401);
 
-  const adopt = await call('POST', '/api/admin/adopt', { friendlyId: 'castle-cylinder-fig-quilt' }, 'admin');
+  // Signed in as an ordinary account: 403, not another sign-in prompt. Telling a
+  // signed-in user to sign in again would be a lie.
+  const asUser = await call('GET', '/api/admin/robots', null, 'j2');
+  assert.equal(asUser.status, 403);
+  assert.match(asUser.body.error, /not an administrator/);
+
+  // The shared-password endpoint is gone, so no password can unlock anything.
+  const gone = await call('POST', '/api/admin/login', { password: 'test-admin-pass' }, 'admin');
+  assert.ok(gone.status === 404 || gone.status === 405, `admin password login is gone (got ${gone.status})`);
+
+  // Promote the account exactly as scripts/portal-grant-admin.mjs does, and the
+  // SAME session now has access — no second login, no separate credential.
+  store.accountByEmail('george@jetson.test').isAdmin = true;
+  store.flush();
+
+  const me = await call('GET', '/api/admin/me', null, 'j2');
+  assert.equal(me.status, 200);
+  assert.equal(me.body.admin, true);
+  assert.equal(me.body.account.email, 'george@jetson.test');
+
+  // The console decides what to show from this flag on the ordinary session
+  // projection, so it must be present there and nowhere else.
+  const meAfter = await call('GET', '/api/me', null, 'j2');
+  assert.equal(meAfter.body.account.isAdmin, true);
+  assert.ok(!JSON.stringify(meAfter.body).includes('password'), 'still no password material');
+
+  const adopt = await call('POST', '/api/admin/adopt', { friendlyId: 'castle-cylinder-fig-quilt' }, 'j2');
   assert.equal(adopt.status, 200);
   assert.match(adopt.body.credentialsJson.accessKeyId, /^[A-Za-z0-9]{20}$/);
   assert.match(adopt.body.credentialsJson.secretAccessKey, /^[A-Za-z0-9]{40}$/);
   assert.equal(adopt.body.robot.friendlyId, 'castle-cylinder-fig-quilt');
 
-  const robots = await call('GET', '/api/admin/robots', null, 'admin');
+  const robots = await call('GET', '/api/admin/robots', null, 'j2');
   assert.equal(robots.status, 200);
   assert.ok(robots.body.some((r) => r.friendlyId === 'castle-cylinder-fig-quilt'));
   assert.ok(!JSON.stringify(robots.body).includes(adopt.body.secretAccessKey), 'secret only shown at adoption');
 
   // adopting the same robot again reuses the account/loop (idempotent), keys unchanged
-  const again = await call('POST', '/api/admin/adopt', { friendlyId: 'castle-cylinder-fig-quilt' }, 'admin');
+  const again = await call('POST', '/api/admin/adopt', { friendlyId: 'castle-cylinder-fig-quilt' }, 'j2');
   assert.equal(again.body.credentialsJson.accessKeyId, adopt.body.credentialsJson.accessKeyId);
+
+  // Revoking takes access away from the live session immediately: the flag is
+  // read per request, so there is no stale admin session to wait out.
+  store.accountByEmail('george@jetson.test').isAdmin = false;
+  store.flush();
+  const revoked = await call('GET', '/api/admin/robots', null, 'j2');
+  assert.equal(revoked.status, 403);
 });
 
 test('owner /api/robots: 401 anonymous; owner sees only their loops', async () => {

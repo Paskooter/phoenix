@@ -32,9 +32,17 @@ with the reference values as defaults — so existing use is unchanged.
 
 `env.absent=true` is the criterion-3 assertion: the clean tree is exported from
 HEAD with no `.env` at all, and that is checked rather than assumed.
-`leak=503` is the same property from the other side — the admin face is disabled
-because `ADMIN_PASSWORD` lives in `.env`, so a 503 proves the private file did
-not leak into the lane.
+`leak=503` is the same property from the other side — `HUB_TOKEN_SECRET` lives
+only in `.env`, so `/api/token` answering 503 (token issuance disabled) proves
+the private file did not leak into the lane.
+
+The canary was `ADMIN_PASSWORD` until 2026-09-18, when the admin face stopped
+being a shared password and became a per-account `isAdmin` flag. A password in a
+`.env` can neither unlock nor disable the admin face now, so the signal moved to
+`HUB_TOKEN_SECRET`, which carries the same two-sided property: 503 when unset,
+401 (invalid credentials) when set. **This harness change means R-02 must be
+re-run to re-establish its evidence** — the lane has not been re-observed against
+the new canary yet, and this document describes the property, not a fresh run.
 
 Port 9013 is held by an unrelated `browser-proxy` container on this host, which
 is why the lanes run at an offset; the contract map shifts with them.

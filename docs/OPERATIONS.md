@@ -38,7 +38,7 @@ Useful env, all optional:
 | `LLM_URL`, `LLM_MODEL` | OpenAI-compatible endpoint (e.g. LM Studio) for the answer-skill + parser fallback |
 | `HUB_TOKEN_SECRET` | JWT secret robots must sign with (default `dev-hub-token-secret`) |
 | `DISABLE_AUTH` | defaults `true` for local use — set `false` to require robot JWTs |
-| `ADMIN_PASSWORD` | password for the portal's admin page (`/#/admin`); unset = admin disabled |
+| — | the admin page (`/#/admin`) has no shared password; grant it per account with `scripts/portal-grant-admin.mjs --email <address>` |
 | `PREFS_FROM_CONFIG` | `true` = personal-report prefs from `resources/report-prefsConfig.json` |
 
 The launcher also starts the **OTA** server (`:9010`), the **account service + web portal**
@@ -191,7 +191,7 @@ from-scratch reimplementation of the robot's `oobe-config` format — see `packa
 **2. Adopt an existing robot — one that paired with the original Jibo cloud years ago.**
 
 Its old credentials are worthless (that database is gone), so adoption *re-issues* them. Open the
-admin page (`/#/admin`, gated by `ADMIN_PASSWORD`), enter the robot's 4-word name, and it returns
+admin page (`/#/admin`, available to administrator accounts — see `scripts/portal-grant-admin.mjs`), enter the robot's 4-word name, and it returns
 the exact `credentials.json` to write plus the repoint command:
 
 ```bash
@@ -267,7 +267,7 @@ Then:
 
 1. **`cp .env.example .env`** and set, at minimum:
    ```
-   ADMIN_PASSWORD=<long random>            # gates the portal admin page
+   # then grant yourself admin (no password): node scripts/portal-grant-admin.mjs --email <you>
    HUB_TOKEN_SECRET=<long random>          # NOT the dev default
    DISABLE_AUTH=false                      # require per-robot hub auth
    ETCO_account_secureCookies=true         # session cookies only over HTTPS

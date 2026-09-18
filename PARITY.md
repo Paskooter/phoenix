@@ -86,7 +86,7 @@ M7 skills ✅(core + chitchat library) · **M8 audio/ASR ❌ ← the big one** �
 **Phase G — classic services: per-robot auth + OOBE portal** ✅ done 2026-06-12 (post-M9 extension; CLASSIC-SERVICES.md / OOBE-PORTAL-HANDOFF.md)
 11. ✅ G.1 config spine (.env loader + .env.example) + packages/account store (accounts/loops/tokens,
     JSON-file persisted, scrypt, fillAccessKeys 20/40) + sessions + REST signup/login/logout/me +
-    admin auth (ADMIN_PASSWORD from .env)
+    admin auth (per-account isAdmin flag; scripts/portal-grant-admin.mjs)
 12. ✅ G.2 robot AWS-JSON face: OOBE.setupRobot/prepareRobot/getStatus (mirrors srv-account-ws,
     exact error codes), loop + robot-account creation, Update_* prefix-proxy -> OTA (single
     front door for the robot repoint)

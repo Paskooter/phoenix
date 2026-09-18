@@ -3,7 +3,8 @@
 This directory is the **whole** web front end: a public marketing site, the legal pages, and
 the signed-in console that does what the Jibo mobile app could do. It is served in place by
 the account service — same process, same port, same origin, same session cookie — or as static
-files behind a reverse proxy with only `/api` proxied back (see `deploy/nginx/`).
+files behind a reverse proxy with `/api` (and, when photo storage is enabled, `/member-photos/`)
+proxied back (see `deploy/nginx/`).
 
 There is no build step, no framework and no npm dependency. Plain HTML, CSS and ES modules.
 
@@ -14,7 +15,7 @@ There is no build step, no framework and no npm dependency. Plain HTML, CSS and 
 | `/` | `index.html` | Public landing page |
 | `/terms`, `/privacy`, `/security` | the legal pages | Static, no session needed |
 | `/app` | `app.html` | The console. Hash routes beneath it (`#/loop`, `#/settings`, …) |
-| `/admin` | `app.html` | The admin surface, gated by `ADMIN_PASSWORD` |
+| `/admin` | `app.html` | The admin surface, available to accounts with `isAdmin` |
 | `/branding.json` | branding, merged | See **Branding** below |
 | `/api/*` | the REST face | Unchanged |
 
@@ -23,14 +24,19 @@ The console used to live at `/` with hash routes. Old links like `/#/loop` are f
 
 ## How to start it
 
+The following is the target-host launch command; it was not run in this documentation update.
+
 ```sh
-node packages/account/src/index.js        # or npm run start:account
+node packages/account/src/index.js
 ```
 
-Then open `http://localhost:7016/` (default `PORT` for account). The console needs the Classic
+The service's standalone default is `PORT=7016` (from `DefaultPort.account`). The repository root
+currently does not define an `npm run start:account` script; use the Node entrypoint above or your
+supervisor's equivalent. Then open `http://localhost:7016/`. The console needs the Classic
 entrypoint for the surfaces it fronts (media, person, jot, push, notification, robot,
 voicetraining, ifttt, update). Point it there with either env var, both optional:
 
+**Example environment values; not executed in this documentation update.**
 ```sh
 NET_classic=http://localhost:7017          # classic entrypoint base URL
 ETCO_account_classicUrl=...                # alias (same meaning)
@@ -66,7 +72,7 @@ actually sets, so the pages are complete and readable before any script runs —
 JavaScript off entirely.
 
 To customise without editing a file inside the checkout, point the account service at your own
-JSON:
+JSON. The following is a configuration example; it was not executed in this documentation update.
 
 ```sh
 PHOENIX_BRANDING_FILE=/etc/phoenix/branding.json
@@ -150,12 +156,11 @@ Unlinked members sort first and are visibly flagged, and the Overview counts the
 
 ## Deployment
 
-`deploy/nginx/phoenix.conf` is a worked configuration: TLS, static root, `/api` proxied to the
-account service, rate limits on sign-in (the application has no lockout of its own), the admin
-surface restricted by source address, a strict CSP, and cache rules that match the fact that
-nothing here is content-hashed.
-
-The account service serves all of the same routes itself, so nginx is optional.
+For a public deployment behind nginx, follow the focused [Phoenix portal nginx hosting guide](../../../docs/portal-nginx-hosting.md).
+It covers the real static route inventory, standalone versus colocated account ports and binds,
+TLS/ACME, the separate robot-facing Classic entrypoint, admin gating, rate limits, cache headers,
+verification, troubleshooting, and rollback. The account service can serve the same portal files
+directly, but nginx is the recommended public front door for static delivery.
 
 ## What was intentionally not implemented, and why
 

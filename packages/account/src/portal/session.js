@@ -27,6 +27,10 @@ export function portalAccount(account) {
     lastName: account.lastName,
     gender: account.gender,
     isActive: !!account.isActive,
+    // Drives the console's admin navigation. It is a display flag, not a
+    // capability: every admin route re-checks the account server-side, so a
+    // hand-edited client cannot grant itself anything.
+    isAdmin: !!account.isAdmin,
     messagingAllowed: account.messagingAllowed === undefined ? true : !!account.messagingAllowed,
     phoneNumber: account.phoneNumber,
     photoUrl: account.photoUrl,

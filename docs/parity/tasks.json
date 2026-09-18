@@ -4766,7 +4766,7 @@
           "basis": "clean install from HEAD with no .env present",
           "artifact": "docs/parity/evidence/2026-09-17/r02-install/README.md",
           "result": "pass",
-          "notes": "HEAD exported to a temp tree, asserted `.env` absent, npm ci exit 0. env.absent=true is checked, not assumed; the admin face answering 503 (ADMIN_PASSWORD lives only in .env) is the same property proven from the other side.",
+          "notes": "HEAD exported to a temp tree, asserted `.env` absent, npm ci exit 0. env.absent=true is checked, not assumed; the same property is proven from the other side by `/api/token` answering 503 while HUB_TOKEN_SECRET lives only in `.env`. The canary was ADMIN_PASSWORD until 2026-09-18, when the admin face stopped being a shared password and became a per-account `isAdmin` flag; the signal moved to HUB_TOKEN_SECRET, which carries the same two-sided property (503 unset, 401 set). HARNESS CHANGED 2026-09-18 — this lane must be re-run to re-observe the property; the note above describes the mechanism, not a fresh run.",
           "referenceRevision": "5c0a7390539663ba749d360de348a428c088505c",
           "phoenixRevision": "704103a",
           "command": "scripts/parity-r02-install/run.sh all --offset 200"

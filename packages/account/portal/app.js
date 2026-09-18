@@ -1307,27 +1307,27 @@ async function renderAdmin() {
   const container = page('Admin', 'Server-wide robot administration.');
   show(container);
 
-  const loginForm = h('form', {},
-    field('Admin password', h('input', { name: 'password', type: 'password', required: true, autocomplete: 'current-password' }),
-      'Set in the server environment, not an ordinary account.'),
-    h('div', { class: 'row', style: 'margin-top:1.25rem' },
-      h('button', { type: 'submit', class: 'btn btn-primary' }, 'Unlock')));
-  const loginCard = card('Locked', {}, loginForm);
-  container.append(loginCard);
+  // There is no password to enter here. Administrator access is a property of the
+  // signed-in account and the server re-checks it on every admin route, so this
+  // screen only decides what to show. A signed-out visitor never reaches this
+  // function — the router sends them to the sign-in screen.
+  const access = await api('GET', '/api/admin/me');
 
-  loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const res = await api('POST', '/api/admin/login', Object.fromEntries(new FormData(loginForm)));
-    if (!res.ok) { notify(res.data.error || 'Wrong password', 'error'); return; }
-    await loadPanel();
-  });
+  if (access.status === 403) {
+    container.append(card('Not an administrator', { sub: me ? (me.email || '') : '' },
+      h('p', {}, 'This account is not an administrator, so the server-wide admin surface is not available to it.'),
+      errorBox('An existing administrator grants access with scripts/portal-grant-admin.mjs.', access.data.error)));
+    return;
+  }
+  if (!access.ok) {
+    container.append(card('Admin surface unavailable', {},
+      errorBox('Could not check administrator access.', access.data.error)));
+    return;
+  }
 
-  // Already unlocked from an earlier visit in this session?
-  const existing = await api('GET', '/api/admin/me');
-  if (existing.ok) await loadPanel();
+  await loadPanel();
 
   async function loadPanel() {
-    loginCard.remove();
     const robots = await api('GET', '/api/admin/robots');
     const list = robots.ok && Array.isArray(robots.data) ? robots.data : [];
     container.append(card('All adopted robots', { sub: `${list.length}` },
@@ -1514,7 +1514,10 @@ async function route() {
   await refreshMe();
 
   if (hash === '#/admin') {
-    // The admin surface has its own password and does not require a session.
+    // Administrator access follows the signed-in account, so there is nothing to
+    // unlock here: a signed-out visitor gets the sign-in screen instead, and a
+    // signed-in non-admin is told so rather than being asked for a password.
+    if (!me) return renderAuth();
     shell.hidden = false;
     authRoot.hidden = true;
     paintNav('');

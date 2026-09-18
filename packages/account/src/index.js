@@ -5,7 +5,7 @@ import { RobotReadClient } from './loopCreation.js';
 //   1. Robot face   — AWS-JSON-1.1 `POST /` dispatched by X-Amz-Target (OOBE.setupRobot …),
 //                     plus a prefix-proxy for Update_* to the OTA service        [G.2]
 //   2. Portal face  — REST /api/* with session cookies (signup/login/robots/QR)  [G.1/G.3]
-//   3. Admin face   — /api/admin/* gated by ADMIN_PASSWORD from .env             [G.1]
+//   3. Admin face   — /api/admin/* gated by the account's isAdmin flag           [G.1]
 // Static portal UI served from ./portal                                          [G.4]
 
 import { createService } from '@phoenix/common';

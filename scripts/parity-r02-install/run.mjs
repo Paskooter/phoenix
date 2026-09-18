@@ -45,8 +45,15 @@ function parseArgs(argv) {
   return args;
 }
 
-const CANARY_ADMIN_PASSWORD = 'r02-canary-password';
-const CANARY_ENV_CONTENT = `ADMIN_PASSWORD=${CANARY_ADMIN_PASSWORD}\n`;
+// The canary is HUB_TOKEN_SECRET rather than the old ADMIN_PASSWORD, which no
+// longer exists: the admin face is a per-account flag now, so a password in a
+// .env can neither unlock nor disable it. HUB_TOKEN_SECRET keeps the same
+// two-sided property this control needs — POST /api/token answers 503 "token
+// issuance disabled" when it is unset, and 401 "invalid credentials" when it is
+// set — so the response status alone proves whether the account service read the
+// planted .env.
+const CANARY_HUB_SECRET = 'r02-canary-hub-secret';
+const CANARY_ENV_CONTENT = `HUB_TOKEN_SECRET=${CANARY_HUB_SECRET}\n`;
 
 async function chooseOffset(args, runDir, state) {
   if (args.offset != null) {
@@ -86,11 +93,13 @@ async function containerNameCollisions() {
   return all.stdout.split('\n').map((n) => n.trim()).filter((n) => names.has(n));
 }
 
-const probeAdminLogin = async (port) => {
+const probeTokenIssuance = async (port) => {
   try {
-    const res = await fetch(`http://127.0.0.1:${port}/api/admin/login`, {
+    const res = await fetch(`http://127.0.0.1:${port}/api/token`, {
       method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ password: CANARY_ADMIN_PASSWORD }),
+      // Deliberately bogus credentials. They never matter in the hermetic case:
+      // an unset HUB_TOKEN_SECRET short-circuits to 503 before they are examined.
+      body: JSON.stringify({ accessKeyId: 'r02canaryaccesskeyid', secretAccessKey: 'r02-canary-secret-access-key' }),
       signal: AbortSignal.timeout(4000),
     });
     return res.status;
@@ -213,7 +222,7 @@ async function nativeLane(ctx, { offset, mode = 'hermetic' }) {
     readySummary = { ok: false, timedOut: readiness.timedOut };
     await teardown();
   } else {
-    envLeakStatus = await probeAdminLogin(ports.account);
+    envLeakStatus = await probeTokenIssuance(ports.account);
     const leakDetected = envLeakStatus !== 503;
 
     const cv = await runCapture('node', ['scripts/verify-compose-contract.mjs'], {
@@ -234,10 +243,10 @@ async function nativeLane(ctx, { offset, mode = 'hermetic' }) {
     for (const [svc, port] of Object.entries(ports)) shutdown.portsFreeAfter[svc] = await portFree(port);
 
     if (mode === 'hermetic' && leakDetected) {
-      named = { name: 'ENV_LEAK_DETECTED', detail: `admin/login returned ${envLeakStatus} while PHOENIX_ENV_FILE=/dev/null + --no-env expected 503 (a .env value reached the account service)` };
+      named = { name: 'ENV_LEAK_DETECTED', detail: `token issuance returned ${envLeakStatus} while PHOENIX_ENV_FILE=/dev/null + --no-env expected 503 (a .env value reached the account service)` };
     }
     if (mode === 'leak' && !leakDetected) {
-      named = { name: 'EXPECTED_ENV_LEAK_NOT_DETECTED', detail: 'planted a .env with ADMIN_PASSWORD but the account service reported admin disabled (503) — the falsification control failed to fail' };
+      named = { name: 'EXPECTED_ENV_LEAK_NOT_DETECTED', detail: 'planted a .env with HUB_TOKEN_SECRET but the account service still reported token issuance disabled (503) — the falsification control failed to fail' };
     }
   }
 
@@ -255,7 +264,7 @@ async function nativeLane(ctx, { offset, mode = 'hermetic' }) {
       totalMs: readiness.readyMs,
     },
     contract,
-    envLeak: { adminStatus: envLeakStatus, expectedExactly: mode === 'hermetic' ? 503 : 200 },
+    envLeak: { tokenStatus: envLeakStatus, expectedExactly: mode === 'hermetic' ? 503 : 401 },
     shutdown,
     registryClean,
     namedFailure: named,
@@ -335,7 +344,7 @@ async function composeLane(ctx, { offset, mode = 'hermetic', noBuild = false }) 
     named = { name: 'READINESS_TIMEOUT', detail: readiness.timedOut.map((s) => `${s}:${ports[s]}`).join(',') };
     await dockerDown(env, proj);
   } else {
-    envLeakStatus = await probeAdminLogin(ports.account);
+    envLeakStatus = await probeTokenIssuance(ports.account);
     const leakDetected = envLeakStatus !== 503;
     const cv = await runCapture('node', ['scripts/verify-compose-contract.mjs'], {
       cwd: clean,
@@ -362,7 +371,7 @@ async function composeLane(ctx, { offset, mode = 'hermetic', noBuild = false }) 
       named = { name: 'ENV_LEAK_DETECTED', detail: `admin/login returned ${envLeakStatus}; expected 503 with no .env in the clean tree` };
     }
     if (mode === 'leak' && !leakDetected) {
-      named = { name: 'EXPECTED_ENV_LEAK_NOT_DETECTED', detail: 'planted .env with ADMIN_PASSWORD but account reported 503' };
+      named = { name: 'EXPECTED_ENV_LEAK_NOT_DETECTED', detail: 'planted .env with HUB_TOKEN_SECRET but account still reported token issuance disabled (503)' };
     }
     await dockerDown(env, proj);
   }
@@ -381,7 +390,7 @@ async function composeLane(ctx, { offset, mode = 'hermetic', noBuild = false }) 
       totalMs: readiness.readyMs,
     },
     contract,
-    envLeak: { adminStatus: envLeakStatus, expectedExactly: mode === 'hermetic' ? 503 : 200 },
+    envLeak: { tokenStatus: envLeakStatus, expectedExactly: mode === 'hermetic' ? 503 : 401 },
     shutdown: stopExit,
     namedFailure: named,
     ok: up.code === 0 && readiness.timedOut.length === 0 && (mode === 'hermetic' ? !(envLeakStatus !== 503) : envLeakStatus !== 503),
@@ -451,8 +460,8 @@ function receipt(ctx) {
     // leak, teardown left nothing behind. The contract counts are recorded separately — at
     // this HEAD the reused verify-compose-contract.mjs reports 3 pre-existing failures (see
     // the evidence README), which is a finding about the stack, not the harness.
-    native: bins.native ? (bins.native.readiness?.ok && bins.native.envLeak?.adminStatus === 503 && !bins.native.namedFailure) : null,
-    compose: bins.compose ? (bins.compose.readiness?.ok && bins.compose.envLeak?.adminStatus === 503 && !bins.compose.namedFailure && bins.compose.up?.exitCode === 0) : null,
+    native: bins.native ? (bins.native.readiness?.ok && bins.native.envLeak?.tokenStatus === 503 && !bins.native.namedFailure) : null,
+    compose: bins.compose ? (bins.compose.readiness?.ok && bins.compose.envLeak?.tokenStatus === 503 && !bins.compose.namedFailure && bins.compose.up?.exitCode === 0) : null,
     migration: bins.migration ? migrationScore : null,
   };
   const contractCounts = {
@@ -524,17 +533,17 @@ async function falsify(ctx, mode) {
   if (mode === 'native-leak' || mode === 'compose-leak') {
     // Plant a canary .env and run the lane in its NON-hermetic form (launcher without --no-env,
     // no PHOENIX_ENV_FILE=/dev/null). The control passes only when the leak is actually
-    // observed: anything other than the hermetic 503 on the canary admin password means a .env
+    // observed: anything other than the hermetic 503 on the canary HUB_TOKEN_SECRET means a .env
     // value reached the account service. A lane that does not leak under this setup cannot be
     // falsified and is reported as such.
     writeFileSync(join(clean, '.env'), CANARY_ENV_CONTENT);
     try {
       if (mode === 'native-leak') observed = await nativeLane(ctx, { offset, mode: 'leak' });
       else observed = await composeLane(ctx, { offset, mode: 'leak' });
-      const status = observed.envLeak?.adminStatus;
+      const status = observed.envLeak?.tokenStatus;
       namedFailure = status !== undefined && status !== 503
-        ? { name: 'ENV_LEAK_DETECTED', detail: `planted .env reached the account service: admin/login returned ${status}; the hermetic control expects 503 (no ADMIN_PASSWORD)` }
-        : { name: 'LEAK_NOT_OBSERVED', detail: `planted .env with ADMIN_PASSWORD but admin/login returned ${status}; the leak was not (re)detected — control cannot fail, a harness finding` };
+        ? { name: 'ENV_LEAK_DETECTED', detail: `planted .env reached the account service: token issuance returned ${status}; the hermetic control expects 503 (no HUB_TOKEN_SECRET)` }
+        : { name: 'LEAK_NOT_OBSERVED', detail: `planted .env with HUB_TOKEN_SECRET but token issuance returned ${status}; the leak was not (re)detected — control cannot fail, a harness finding` };
     } finally {
       rmSync(join(clean, '.env'), { force: true });
       restored = !existsSync(join(clean, '.env'));
@@ -576,7 +585,7 @@ async function falsify(ctx, mode) {
 
   // Restore = put the environment back AND prove the lane passes again. Rerunning the full
   // hermetic lane after the deliberate breakage is what "record both outputs" means here. The
-  // restored lane must be hermetic (ADMIN_PASSWORD absent => admin/login 503), reach its
+  // restored lane must be hermetic (HUB_TOKEN_SECRET absent => token issuance 503), reach its
   // services, and match the hermetic baseline contract counts — including the 3 pre-existing
   // failures recorded on the clean hermetic lane, so we compare counts, not demand zero.
   let restoredLane = null;
@@ -591,7 +600,7 @@ async function falsify(ctx, mode) {
       : readJson(join(runDir, 'state/compose-hermetic.json'));
     result.restoredLane = summarizeLane(restoredLane);
     result.restoredOk = restoredLane.namedFailure === null && restoredLane.readiness?.ok
-      && restoredLane.envLeak?.adminStatus === 503
+      && restoredLane.envLeak?.tokenStatus === 503
       && restoredLane.contract?.pass === basis?.contract?.pass
       && restoredLane.contract?.fail === basis?.contract?.fail;
   }
