@@ -1,92 +1,217 @@
 # The over-the-air upgrade path (R-06, R-07)
 
-This is a release gate. It is written down because the goal is not "a robot we
-already repointed by hand keeps working" — it is **any** robot, on whatever
-firmware it arrived with, upgrading itself to the version this server supports
-and reaching this server without a human touching it over SSH.
+This is a release gate. The goal is not "a robot we already repointed by hand keeps
+working" — it is **any** robot, on whatever firmware it arrives with, upgrading
+itself to the version this server supports and reaching this server without a human
+touching it over SSH.
 
 Ledger: **R-06** (the journey, on hardware) and **R-07** (the payload it needs).
 R-05, the release report, depends on both.
 
 ## The case to prove
 
-A robot flashed to **stock 5.4.0 over USB** upgrades over the air to
-**13.0.0** — the final Jibo firmware ("Last Dance", 2019-02-25 production) — and
-afterwards:
+A robot flashed to **stock 5.4.0 over USB** upgrades over the air to **13.0.0** —
+the final Jibo firmware ("Last Dance", 2019-02-25 production) — carrying our own
+configuration, and afterwards:
 
-1. it is running 13.0.0, confirmed from the robot itself;
+1. it is running the published version, confirmed from the robot itself;
 2. it reaches this Phoenix server with **no manual repoint step**;
 3. it completes a real spoken turn end to end;
-4. its per-robot calibration survived, because the update swaps the inactive
-   rootfs slot and never touches `/var`.
+4. its per-robot state survived, because `/var` is a separate partition the OS
+   update never touches.
 
-## What already exists
+## The firmware workbench that already builds this
 
-- `packages/ota` implements the pinned Update API
-  (`jiborobot/srv-update-ws`): `ListUpdates`, `ListUpdatesFrom`,
-  `GetUpdateFrom`, `CreateUpdate`, `RemoveUpdate`, `ListUniqueFilters`,
-  `SetTarget`, `ListTargets`, plus `GET /ota/package?id=` streaming the bytes
-  with `Content-Length` so the robot's downloader can show progress and verify
-  the SHA-1. It is unit-tested, including the version ordering, the wildcard
-  `fromVersion`, the target overrides and the never-offered-again loop guard.
-- `packages/ota/data/` holds the real 13.0.0 packages (`os-13.0.0.tar`,
-  `services-13.0.0.tar`), and `scripts/build-ota-packages.sh` rebuilds them from
-  a flash buildroot so they are reproducible rather than checked-in artefacts.
-- The robot's own updater is `jibo-ota-updater`
-  (`src/package-update.js` for the packaging shape): an uncompressed tar holding
-  `./filesystem.tar.bz2`; `apply_os.js` writes that to the inactive rootfs slot
-  and flips `activeroot`.
+There is a whole separate workbench at `/home/shell/work/hermes-be/firmware`
+(`PROJECT.md`, `README.md`, `AGENTS.md`, ~5.8 GB of inputs). It is not a plan — it
+has built, composed, validated and flashed images. **Build the payload there, not
+from scratch here.** Its own scope note is worth repeating: the first deliverable is
+a validated **full-flash** release plus rollback, and *"An OTA variant follows only
+when its real updater/signing/install path is validated; it must not hold the first
+working flash release hostage or be mislabeled done."* R-06 is where that OTA
+variant gets validated, and it must not be called done on the strength of a
+full-flash success.
 
-## What is missing
+### The resource host
 
-- **Nothing has ever run it.** No robot has walked an upgrade. The standing
-  `ECONNREFUSED 127.0.0.1:7015` symptom is the development launcher
-  (`scripts/parity-robot/authenticated-stack.mjs`) starting only account, classic
-  and gateway — never OTA — so the service a robot would call is not even up in
-  the configuration we test with.
-- **The payload does not carry the repoint.** The published packages are the
-  stock Jibo build. Everything that lets a robot reach Phoenix is applied
-  afterwards over SSH by `scripts/point-robot-at-phoenix.sh`: the hosts entry,
-  the patched `@jibo/jibo-server-client` CA handling (DIVERGENCES R1), the BE
-  package, and the server URL. A robot that has never been repointed therefore
-  upgrades its firmware and still cannot reach us — which is precisely the case
-  the goal is about.
+Large builds and release archives live off this machine, per
+`firmware/production/storage-policy.md`. As of this writing it reaches:
 
-## What the payload must carry (R-07)
+```
+ssh root@192.168.1.23          # hostname CT120, ~334 GB free
+/srv/jibo-release/             # releases, work dirs, archived legacy images
+/srv/jibo-workbench-20260905/  # the tool checkout used for the builds
+/srv/jibo-buildroot-rootfs/home/ubuntu/   # buildroots and their outputs
+```
 
-- the **hosts-file entry** the repoint script sets;
-- the **certificate-trust change** — the patched `@jibo/jibo-server-client`
-  CA loading from DIVERGENCES R1, inside the image, not an SSH step after it;
-- **BE 11.0.1** (`phoenix-parity-11-0-1`), *not* the newest BE: 12.0.0-era
-  `@be/be` loses the cyan listening eye, the proactive runtime and the Nimbus
-  follow-ups (see `docs/parity/BE-RELEASES.md`);
-- a **default server URL** derived from this server's configured public URL, so
-  a robot that has never been repointed finds us; the manifest must state what
-  happens when that URL is unset;
-- the manifest entry's **real length and SHA-1**, computed from the artefact,
-  because the robot verifies both.
+This is the machine the owner described as "the WSL on my laptop". The workbench's
+storage policy is explicit that the shell host is a shared 126 GiB root filesystem,
+so **stream large artefacts over SSH rather than caching another copy here**.
+
+### The pipeline, as it actually is
+
+```
+buildroot-patches/  ->  build-production.sh   (Buildroot, production key profile)
+                          |-- rootfs.ext4, services.ext4, skills.ext4
+                          |-- jibo.fit, DTBs, u-boot, tegrarcm signed msgs
+                          v
+                     stage-modern-userland.js  (Node 22 / Electron 43 under /opt/jibo-modern)
+                          v
+                     compose-legacy-modern.js  <-- THE ACTUAL RECIPE for the composed images
+                          v
+                     validate-modern-images.js (geometry, hashes, aliases, manifest agreement)
+                          v
+                     package-ota.js --image <img> --subsystem <os|services> --outfile <tar>
+                          v
+                     packages/ota/  (served to the robot)
+```
+
+Note `compose-legacy-modern.js` is the real recipe for the composed sizes; the
+copied vendor `genimage.cfg` is a historical reference only, and the Buildroot
+capacity change lives separately in
+`buildroot-patches/0003-genimage-rootfs-capacity.patch` (rootfsA/B 1000 MiB,
+services 2000 MiB, skills 10,400 MiB).
+
+### Tool inventory worth reusing (`tools/jibo/`)
+
+| Tool | What it is for |
+| --- | --- |
+| `package-ota.js` | Creates the exact nested tar the archived updater consumes. Plan-first. |
+| `validate-ota.js` | Offline validator for that shape; reads the inner tar without installing it. |
+| `compose-legacy-modern.js` | The composition recipe for the corrected images. |
+| `validate-modern-images.js` | Image geometry, hashes, aliases, manifest agreement. |
+| `move-modern-*` / `stage-modern-userland.js` | Stages the modern userland into the image, not after it. |
+| `assemble-release.js` | Assembles and hashes the full bundle + archived flash helpers. |
+| `inspect-artifact.js` | Dependency-free FIT/ext4/OTA/full-flash inspection. Never extracts. |
+| `capture-baseline.js` | Allowlisted read-only SSH inventory of a robot. |
+| `production/flash-jibo-preserve-var.sh` | The full-flash path that deliberately leaves `/var` intact. |
+
+There is also a test suite beside the tools (`tools/jibo/test-*.js`), including
+`test-preserve-var-helper.js`, which is the pattern to follow for R-06's
+falsification: it asserts the helper **refuses** to run without the capacity and
+GPT-acknowledgement arguments rather than trusting the happy path.
+
+### Artefacts that already exist
+
+| Artefact | Where | State |
+| --- | --- | --- |
+| Modern production Buildroot output (rootfs/services/skills ext4, jibo.fit, DTBs, u-boot) | `/srv/jibo-buildroot-rootfs/home/ubuntu/buildroot-modern-production-output/images/` | built 2026-09-02 |
+| OTA packages cut from it (`rootfs.tar`, `services.tar`, `skills.tar`, `var.tar` + JSON manifests) | `/srv/jibo-release/ota-production/` | built 2026-09-02 |
+| Composed modern candidate, offline-validated (rootfs 1,048,576,000 / services 2,097,152,000 / skills 10,905,190,400) | `/srv/jibo-release/jibo-modern-node22-electron43-candidate-20260905` (+ `.tar.bz2`, 861,255,203 B) | validated offline; the composed filesystem candidate had **not** been flashed as of 2026-09-05 |
+| Signed legacy-runtime probe, full-flash only, deliberately with **no** OTA package | `/srv/jibo-release/jibo-legacy-runtime-probe-production-20260903` | 18 flash images |
+| Archived 13.0.0 filesystems (`rootfs` 838,860,800 / `services` 954,631,168 / `skills` 326,343,680 / `var` 2,097,152) | `/srv/jibo-release/legacy-20190225-images/` | the stock 2019 images |
+| Stock 13.0.0 flash buildroot (728,605,067 B) | `firmware/artifacts/reference/` | also the default input for `scripts/build-ota-packages.sh` |
+
+The two tars in `packages/ota/data/` (`os-13.0.0.tar`, `services-13.0.0.tar`) are
+built from that **stock** buildroot. They are not the modern build, so they are not
+the payload R-07 wants to publish.
+
+## The updater's own contract (this is what the payload must satisfy)
+
+Read from `PlatformTeam/jibo-ota-updater` (the archived updater the robot actually
+runs):
+
+- **Subsystem names**: `os` (cut from `rootfs.ext4`) and `services` (from
+  `services.ext4`). Skills packages are built from repo artefacts instead.
+- **Package shape**: an **uncompressed** tar containing `./filesystem.tar.bz2`, plus
+  **optional `./preinstall` and `./postinstall` scripts**. All three members are
+  optional; a package that only extracts and declares success is legal.
+- **Hooks**: both scripts run from the extraction directory. **An error from either
+  is a fatal error — the update is redownloaded and retried.**
+- **Hook order** (`apply_common.applyUpdate`): `preinstall` → write the filesystem
+  to the device → `postinstall`. Both run while the robot is still on its **old**
+  root: the incoming filesystem is mounted at `/tmp/other` and unmounted before the
+  switch.
+- **OS apply** (`apply_os.js`): determine the inactive `rootfsA`/`rootfsB` by
+  comparing `/`'s device against the `by-partlabel` nodes, write the update there,
+  then `fw_setenv activeroot <1|2> && upgrade_available 1 && bootcount 0 &&
+  bootlimit 1`, write work state `verify`, and reboot. **Rollback is U-Boot's
+  `bootcount`/`bootlimit`** — that is the mechanism R-06's falsification must
+  actually exercise.
+- **State**: work state at `/var/jibo/ota.json`, scratch at `/opt/ota`.
+  `fail()` writes state `retry` and reboots.
+
+**Consequence that decides the design:** `postinstall` runs on the old root after
+the new filesystem has been written *and unmounted*. So the repoint configuration
+must be **baked into the image** — the way `stage-modern-userland.js` already bakes
+the modern userland into `skills.ext4` "rather than being added after image
+creation" — and the hooks are for things outside the replaced filesystem.
+
+## Where the repoint configuration has to land
+
+The repoint script's work spans four partitions, and only three of them are replaced
+by an OS update:
+
+| What the repoint sets | Partition | Carried by the OTA payload? |
+| --- | --- | --- |
+| `/etc/hosts` entry, and the patched `@jibo/jibo-server-client` CA handling (DIVERGENCES R1) | `rootfs` | yes — `os` package |
+| `/usr/local/etc/jibo-jetstream-service.json` hub/entrypoint override | `services` | yes — `services` package |
+| `@be/phoenix-parity-11-0-1` under `/opt/jibo/Jibo/Skills` | `skills` | yes — a skills package |
+| the region / server URL in `/var/jibo/credentials.json` | `var` | **no — `/var` is preserved, deliberately** |
+
+The last row is the one to think about, because it is exactly why a never-repointed
+robot would upgrade cleanly and still not find the server. Options, none of them
+decided yet:
+
+1. bake a default URL at payload-build time from the configured Phoenix public URL
+   (simple, but the image becomes deployment-specific);
+2. have the OTA server hand the robot its own URL as part of the update it is served,
+   which Phoenix's Update service already partially does — it returns a download
+   `url` pointing at **this** server, derived from the request `Host` or
+   `ETCO_ota_publicUrl`;
+3. a narrowly scoped hook that writes the region/URL during the update, accepting
+   that it touches preserved state and must be idempotent and safe to re-run.
+
+Whichever is chosen has to be recorded in DIVERGENCES, because the reference had no
+such step: a reference robot was provisioned by the factory/cloud, not repointed.
+
+## What is genuinely unproven here
+
+- **No robot has ever walked an upgrade.** The standing `ECONNREFUSED
+  127.0.0.1:7015` symptom is the development launcher
+  (`scripts/parity-robot/authenticated-stack.mjs`) starting only account, classic and
+  gateway — never OTA — so the service a robot would call is not even running in the
+  configuration we test with.
+- `packages/ota` itself is implemented and unit-tested: all eight operations, version
+  ordering, wildcard `fromVersion`, target overrides, and the loop guard that never
+  re-offers a version the robot already runs.
+- The workbench's own gates that remain open, which the payload inherits: public
+  trust stores are **not** release-validated; Electron's SUID sandbox fails at zygote
+  startup with `EINVAL` and has been run with `--no-sandbox`; legacy services are
+  still Node 6.9.2 / Electron 1.4.3.
+- The owner reports having built and flashed bootable images. The written record lags
+  that — it still describes the composed candidate as unflashed as of 2026-09-05 — so
+  the **first step of R-06 is to read the current state off the robot** and reconcile
+  it with the record rather than trusting either one.
 
 ## Procedure to follow when this is picked up
 
-1. Record the "before" state: serial, installed version read off the robot,
-   configuration — before touching anything.
-2. Bring the OTA service up in the deployed stack and confirm the robot can
-   reach it.
-3. Confirm `Update_20160301.GetUpdateFrom` / `ListUpdatesFrom` offer 13.0.0 to
-   that robot's `fromVersion`.
-4. Let the robot upgrade; capture robot-side logs and timings.
-5. Verify the four outcomes in "The case to prove" above.
-6. Falsify: corrupt a package so its bytes no longer match the advertised SHA-1
-   and confirm the robot's updater refuses it **and** still boots the old slot.
-   An update path that has never been seen to refuse a bad package is not a
-   verified update path.
+1. Read the robot's actual current state (version, boot state, partitions) and
+   reconcile it against the workbench record.
+2. Build the payload in the workbench: image → `compose-legacy-modern.js` →
+   `validate-modern-images.js` → `package-ota.js`, with the repoint configuration
+   baked in, then `validate-ota.js` on the result.
+3. Publish it in `packages/ota` with real length + SHA-1 in the manifest, and bring
+   the OTA service up in the deployed stack where the robot can reach it.
+4. Confirm `Update_20160301.GetUpdateFrom` / `ListUpdatesFrom` offer it to that
+   robot's `fromVersion`.
+5. Let the robot upgrade; capture robot-side logs and timings.
+6. Verify the four outcomes in "The case to prove".
+7. Falsify: corrupt a package so its bytes no longer match the advertised SHA-1 and
+   confirm the updater refuses it **and** the robot still boots — and separately
+   exercise the `bootcount`/`bootlimit` fallback, since that is the mechanism that
+   makes a bad OS slot survivable. An update path never seen to refuse a bad package
+   is not a verified update path.
 
 ## Risks worth naming before starting
 
-- An OTA that rewrites the hosts file and the server URL is a remote
-  configuration change; it must be idempotent and must not strand a robot with
-  no reachable server.
-- The robot must survive a failed update. The A/B slot design is what makes that
-  true, and the falsification step above is what proves it rather than assumes it.
-- Destructive trials (factory reset, wiping) need the owner's explicit
-  authorisation, as A-05 established.
+- An OTA that rewrites the hosts file and the server URL is a remote configuration
+  change; it must be idempotent and must not strand a robot with no reachable server.
+- A **hook error is fatal and triggers a redownload-and-retry loop.** A hook that
+  fails deterministically turns an update into a reboot loop, so any hook must be
+  narrow, idempotent, and tested against the failure path first.
+- The images are large (the modern candidate's archive is 861 MB); the workbench's
+  storage policy exists because a local `ENOSPC` already produced silently empty
+  helper copies once.
+- Destructive trials (factory reset, wiping) need the owner's explicit authorisation,
+  as A-05 established.

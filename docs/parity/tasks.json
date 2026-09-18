@@ -4950,25 +4950,28 @@
         "R-07"
       ],
       "reference": [
+        "PlatformTeam/jibo-ota-updater/README.md",
+        "PlatformTeam/jibo-ota-updater/src/apply_os.js",
         "jiborobot/srv-update-ws",
-        "jiborobot/jibo-ota-updater",
         "jiborobot/srv-jibo-server-client/apis"
       ],
       "phoenix": [
         "packages/ota",
-        "scripts/build-ota-packages.sh",
         "scripts/parity-robot/authenticated-stack.mjs",
+        "scripts/point-robot-at-phoenix.sh",
+        "docs/parity/OTA-UPGRADE.md",
         "docs/parity/HARDWARE.md"
       ],
-      "finding": "The Update service is implemented and unit-tested and the real 13.0.0 'Last Dance' packages are on disk, but no real robot has ever walked the upgrade: the standing ECONNREFUSED 127.0.0.1:7015 comes from the development launcher starting only account, classic and gateway, never OTA, so the path a robot would take has not even been reachable. This is a release gate because it is the difference between supporting a robot that was already repointed by hand and supporting any robot that arrives on an older firmware.",
+      "finding": "The Update service is implemented and unit-tested, the real 13.0.0 packages are on disk, and the firmware workbench has already built and flashed bootable images -- but no robot has ever walked an upgrade, and the standing ECONNREFUSED 127.0.0.1:7015 is the development launcher starting only account, classic and gateway and never OTA, so the path a robot would take has not even been reachable. The written workbench record also lags the owner's report of flashed bootable images (it still describes the composed candidate as unflashed as of 2026-09-05), so the first act of this task is to read the robot's real state rather than trust either record. Rollback is U-Boot's bootcount/bootlimit via fw_setenv activeroot, which is real and must be exercised, not assumed.",
       "acceptance": [
-        "Flash the test robot to stock 5.4.0 over USB, read the installed version off the robot itself, and record serial, firmware and configuration before changing anything.",
-        "Serve the update from the deployed stack: the OTA service must actually be running and reachable by the robot, and Update_20160301.GetUpdateFrom / ListUpdatesFrom must offer the 13.0.0 packages to that robot's fromVersion.",
-        "Complete the upgrade on the robot: download through the offered url, verify the package against its advertised length and SHA-1, apply the A/B rootfs swap, reboot, and come back up on 13.0.0.",
-        "Prove /var survived the swap: calibration and the robot's own identity/keying are unchanged, and no re-flash was needed.",
+        "Read the robot's actual current state first -- installed version off the robot, boot state, GPT and partition sizes -- and reconcile it against the workbench record before changing anything. Record serial, firmware and configuration.",
+        "Flash the baseline to stock 5.4.0 using firmware/production/flash-jibo-preserve-var.sh, which deliberately leaves /var intact; it requires the robot's measured skills capacity in bytes and an explicit GPT-acknowledgement flag, and those refusals are the safety mechanism, not bureaucracy.",
+        "Bring the OTA service up in the deployed stack where the robot can actually reach it, and confirm Update_20160301.GetUpdateFrom / ListUpdatesFrom offer the published package to that robot's fromVersion.",
+        "Complete the upgrade on the robot: download through the offered url, verify the package against its advertised length and SHA-1, apply into the INACTIVE rootfsA/rootfsB slot, flip activeroot, reboot, and come back up on the published version.",
+        "Prove /var survived: identity, Wi-Fi settings, calibration and the registry are unchanged, and no re-flash was needed.",
         "With no manual repoint step, the upgraded robot must reach this server, return to its loop, and complete one real spoken turn end to end.",
         "Record robot, firmware, configuration, package ids, timings and robot-side logs, and state plainly what was NOT exercised.",
-        "Falsification: a package whose bytes do not match the advertised SHA-1 must be refused by the robot's updater, and the robot must still boot its old slot afterwards."
+        "Falsification, both halves: a package whose bytes do not match the advertised SHA-1 must be refused by the updater and the robot must still boot; and a deliberately unbootable OS slot must fall back through bootcount/bootlimit rather than leaving the robot dead. Exercising the rollback is the point -- an upgrade path whose fallback has never fired is not a verified upgrade path."
       ],
       "verification": []
     },
@@ -4986,25 +4989,27 @@
         "A-05"
       ],
       "reference": [
-        "jiborobot/jibo-ota-updater/src/package-update.js",
-        "jiborobot/srv-jibo-server-client/apis",
-        "pegasus-restored:docs/atlas/runtime-topology.md"
+        "PlatformTeam/jibo-ota-updater/README.md",
+        "PlatformTeam/jibo-ota-updater/src/apply_common.js",
+        "PlatformTeam/jibo-ota-updater/src/apply_os.js",
+        "jiborobot/srv-jibo-server-client/apis"
       ],
       "phoenix": [
         "scripts/build-ota-packages.sh",
         "packages/ota/manifest.json",
         "scripts/point-robot-at-phoenix.sh",
+        "docs/parity/OTA-UPGRADE.md",
         "DIVERGENCES.md"
       ],
-      "finding": "The published packages are the stock Jibo 13.0.0 build; everything that makes a robot able to reach Phoenix is applied afterwards over SSH by scripts/point-robot-at-phoenix.sh. A robot that has never been repointed therefore upgrades its firmware and still cannot reach the server, so the update cannot yet serve the 'any robot that connects' case.",
+      "finding": "The workbench at /home/shell/work/hermes-be/firmware already builds, composes, validates and packages images (Buildroot production profile -> compose-legacy-modern.js -> validate-modern-images.js -> package-ota.js), and OTA packages cut from the modern production build already exist on the resource host (root@192.168.1.23:/srv/jibo-release/ota-production). What no image carries is the repoint: the published packages are the stock 13.0.0 build, and everything that lets a robot reach Phoenix is applied after the fact over SSH. The updater's own contract decides the shape of the fix -- postinstall runs on the OLD root after the incoming filesystem has already been written and unmounted, so the repoint must be baked into the image (as stage-modern-userland.js already does for the modern userland), not performed by a hook. The repoint spans four partitions and an os/services update replaces only three: /etc/hosts and the CA-trust change live in rootfs, the jetstream hub override in services, BE under /opt in skills, and the region/server URL in /var -- which is preserved on purpose, and is exactly why a never-repointed robot would upgrade cleanly and still not find the server.",
       "acceptance": [
-        "Produce the payload from a script so it is reproducible: a versioned os/services package set whose filesystem content carries the repoint configuration.",
-        "Carry the certificate-trust change inside the payload: the patched @jibo/jibo-server-client CA handling from DIVERGENCES R1, not an SSH step after the fact.",
-        "Ship BE 11.0.1 (phoenix-parity-11-0-1) rather than the newest BE, because 12.0.0-era @be/be loses the cyan listening eye, the proactive runtime and the Nimbus follow-ups.",
-        "Default the robot's server URL from this server's configured public URL so a robot that has never been repointed reaches it, and state explicitly what happens when that URL is unset.",
-        "Set the hosts-file entry the repoint script sets, and show the resulting robot needs no manual repoint step.",
-        "Publish the manifest entry with the real length and SHA-1 computed from the artifact, keep the never-offered-again loop-guard for a robot already at the target version, and keep the update idempotent so a second pass is harmless.",
-        "Falsification: show the payload actually carries the change (inspect the built tar, not the build script) and that a robot with NO repoint reaches the server, while a robot pointed at a deliberately wrong URL does not."
+        "Build the payload in the workbench rather than from scratch: image -> compose-legacy-modern.js -> validate-modern-images.js -> package-ota.js, keeping the tooling's plan-first and secret-free discipline.",
+        "Bake the repoint configuration into the image, not a postinstall hook: the hosts entry and the patched @jibo/jibo-server-client CA handling (DIVERGENCES R1) in rootfs, the /usr/local/etc/jibo-jetstream-service.json hub override in services, and BE 11.0.1 (phoenix-parity-11-0-1) under /opt/jibo/Jibo/Skills in skills. 12.0.0-era @be/be is not acceptable: it loses the cyan listening eye, the proactive runtime and the Nimbus follow-ups.",
+        "Settle and record in DIVERGENCES how a never-repointed robot learns this server's URL, given that /var/jibo/credentials.json is preserved and not part of an os package: a default baked from the configured public URL, the download url the Update service already returns pointing at this host, or a narrowly scoped idempotent hook. Name which one, and what happens when the configured URL is unset.",
+        "Satisfy the updater's real contract: subsystem names os and services, an uncompressed outer tar carrying ./filesystem.tar.bz2, and any hook present only if it is idempotent and provably safe, because a hook that errors is a FATAL error that triggers a redownload-and-retry loop.",
+        "Publish with the real length and SHA-1 computed from the artefact, keep the never-offered-again loop guard for a robot already at the target version, and keep a second pass harmless.",
+        "Validate the package offline with validate-ota.js before it is ever served, and record the image hashes and geometry alongside it.",
+        "Falsification: inspect the BUILT tar to show the repoint is genuinely inside it rather than only in the build script, and show a robot with no manual repoint reaches the server while one pointed at a deliberately wrong URL does not."
       ],
       "verification": []
     },
