@@ -1,0 +1,14 @@
+{
+  "name": "Phoenix",
+  "short_name": "Phoenix",
+  "description": "The cloud your robot can talk to again.",
+  "start_url": "/app",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#08090d",
+  "theme_color": "#08090d",
+  "orientation": "any",
+  "icons": [
+    { "src": "/assets/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

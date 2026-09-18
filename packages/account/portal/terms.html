@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en" data-title-template="Terms of use — %s">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Terms of use — Phoenix</title>
+<meta name="description" content="The terms under which the Phoenix software is made available: non-commercial, provided as-is, with no warranty and no operated service." />
+<meta name="color-scheme" content="dark light" />
+<meta name="theme-color" content="#08090d" media="(prefers-color-scheme: dark)" />
+<meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)" />
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+<link rel="canonical" href="/terms" />
+<link rel="stylesheet" href="/theme.css" />
+<link rel="stylesheet" href="/site.css" />
+<script>
+  (function () {
+    var r = document.documentElement;
+    r.classList.add('js');
+    try {
+      var t = localStorage.getItem('phoenix.theme');
+      if (t === 'dark' || t === 'light') r.setAttribute('data-theme', t);
+    } catch (e) {}
+  })();
+</script>
+</head>
+
+<body data-page="legal">
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="/" aria-label="Phoenix home">
+      <span class="brand-mark" data-brand-logo>
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <defs>
+            <linearGradient id="pm1" x1=".1" y1="0" x2=".9" y2="1">
+              <stop offset="0" stop-color="var(--accent-lift)" />
+              <stop offset=".45" stop-color="var(--accent)" />
+              <stop offset="1" stop-color="var(--accent-hot)" />
+            </linearGradient>
+          </defs>
+          <path fill="url(#pm1)" d="M16 2c7 6.5 10 11.5 10 16.5 0 4-2.6 7.2-6.4 8.4 1.2-2.6 1-5.4-1-8.6-1.5-2.4-2-4.4-1.6-6.4-3 2.6-4.4 5-4.4 7.4 0 2.2.9 4.4 2.6 6.6C10.2 25 7 21.6 7 17.4 7 12.6 10 7.6 16 2Z" />
+        </svg>
+      </span>
+      <span data-brand="wordmark">Phoenix</span>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="/#product">Product</a>
+      <a href="/#how">How it works</a>
+      <a href="/#status">Status</a>
+      <a href="/#faq">FAQ</a>
+    </nav>
+    <div class="header-actions">
+      <button class="icon-btn" data-theme-toggle type="button" aria-label="Theme">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true">
+          <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z" stroke="currentColor"
+                stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      </button>
+      <a class="btn btn-ghost btn-sm desktop-only" href="/app">Console</a>
+      <button class="icon-btn nav-toggle" type="button" aria-expanded="false"
+              aria-controls="mobile-nav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+          <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" /></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<nav class="mobile-nav" id="mobile-nav" aria-label="Mobile">
+  <a href="/#product">Product</a>
+  <a href="/#how">How it works</a>
+  <a href="/#status">Status</a>
+  <a href="/#faq">FAQ</a>
+  <a class="btn btn-primary btn-lg btn-block" href="/app">Open console</a>
+</nav>
+
+<main id="main">
+
+<div class="legal-head">
+  <div class="wrap">
+    <p class="eyebrow">Legal</p>
+    <h1>Terms of use</h1>
+    <p class="updated">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true">
+        <path d="M12 7v5l3 2m6-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" stroke="currentColor"
+              stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      Last updated <span data-brand="legal.updated">18 September 2026</span>
+    </p>
+  </div>
+</div>
+
+<div class="wrap legal-layout">
+  <aside class="toc">
+    <h2>On this page</h2>
+    <ol>
+      <li><a href="#what">1. What Phoenix is</a></li>
+      <li><a href="#no-service">2. There is no operated service</a></li>
+      <li><a href="#licence">3. Your licence to use it</a></li>
+      <li><a href="#acceptable">4. Acceptable use</a></li>
+      <li><a href="#operators">5. If you run an instance</a></li>
+      <li><a href="#third-party">6. Third-party services</a></li>
+      <li><a href="#trademarks">7. Trademarks and independence</a></li>
+      <li><a href="#no-warranty">8. No warranty</a></li>
+      <li><a href="#liability">9. Limitation of liability</a></li>
+      <li><a href="#hardware">10. Your robot and your hardware</a></li>
+      <li><a href="#changes">11. Changes</a></li>
+      <li><a href="#contact">12. Contact</a></li>
+    </ol>
+  </aside>
+
+  <article class="prose">
+    <div class="plain-summary">
+      <h2>The short version</h2>
+      <p>Phoenix is a free, non-commercial software project. Nobody operates it as a service for
+        you — you run it yourself, on your own machine, and you are responsible for that machine.</p>
+      <p>It comes with no warranty of any kind. It is not affiliated with Jibo, Inc. or any current
+        rights holder. It may break your robot's setup, lose your data, or stop working entirely, and
+        nobody owes you a fix. If that is not acceptable to you, please do not use it.</p>
+    </div>
+
+    <h2 id="what">1. What Phoenix is</h2>
+    <p>Phoenix is an independent, non-commercial, clean-room reimplementation of a cloud service
+      that was shut down in 2019. It is distributed as source code so that owners of the affected
+      hardware can run a compatible service themselves.</p>
+    <p>These terms govern your use of the Phoenix software, this website, and the administrative
+      console served alongside it. By downloading, installing, running or using any of them, you
+      accept these terms. If you do not accept them, do not use Phoenix.</p>
+
+    <h2 id="no-service">2. There is no operated service</h2>
+    <p>This is the single most important thing to understand about Phoenix, and most of what follows
+      depends on it.</p>
+    <p>There is no company behind Phoenix. There is no Phoenix-operated server, no hosted tier, no
+      support desk, no account you hold with anyone, and nothing to purchase or subscribe to. Every
+      running copy of Phoenix belongs to the person who installed it.</p>
+    <p>If you are using a Phoenix console, you are using <strong>someone's own installation</strong>
+      — most likely your own. The people who wrote the software have no access to it, no ability to
+      recover your data, no ability to reset your password, and no visibility into whether it is
+      running at all.</p>
+
+    <h2 id="licence">3. Your licence to use it</h2>
+    <p>You may use, copy, modify and redistribute the Phoenix source code under the terms of the
+      licence distributed with it. Where these terms and that licence disagree about the software
+      itself, the licence governs.</p>
+    <p>Phoenix is offered for <strong>personal and non-commercial use</strong>. It exists so that
+      people who own a particular discontinued robot can keep using the hardware they paid for.
+      Selling access to a Phoenix instance, bundling it into a commercial product, or presenting it
+      as an official or supported service is outside what this project is for and is not permitted
+      under these terms.</p>
+
+    <h2 id="acceptable">4. Acceptable use</h2>
+    <p>When you use Phoenix, or any console served by an instance of it, you agree not to:</p>
+    <ul>
+      <li>access an instance you have not been authorised to use, or attempt to obtain another
+        person's account, session or robot credentials;</li>
+      <li>use it to record, transcribe or monitor people who have not consented to being recorded by
+        the robot in that space;</li>
+      <li>use it to store or distribute unlawful material, or material you have no right to;</li>
+      <li>present it as an official, endorsed or commercially supported product, or as affiliated
+        with any rights holder in the original hardware or software;</li>
+      <li>remove or obscure the notices in section 7 from a copy you redistribute or an instance you
+        make available to others.</li>
+    </ul>
+    <p>A robot with a microphone and a camera sits in somebody's home. Please treat the people around
+      it the way you would want to be treated.</p>
+
+    <h2 id="operators">5. If you run an instance</h2>
+    <p>Running Phoenix makes you, and not this project, responsible for it. In particular, you are
+      responsible for:</p>
+    <ul>
+      <li>the security of the machine, the network it is on and the credentials it holds;</li>
+      <li>everything the instance stores, including other household members' personal data, the
+        photographs the robot takes, and the messages it carries;</li>
+      <li>obtaining whatever consent is required from the people in range of the robot, and telling
+        them what is being recorded and kept;</li>
+      <li>complying with the laws that apply where you live, including any data-protection
+        obligations you may have towards other members of your household;</li>
+      <li>your own backups. Nobody else has a copy.</li>
+    </ul>
+    <p>If you let other people use your instance, those people are your users, not this project's.
+      Any obligation you have to them is yours.</p>
+
+    <h2 id="third-party">6. Third-party services</h2>
+    <p>Phoenix can be configured to reach outside services — for example map tiles, weather, news or
+      traffic providers — because the robot's own features depend on that data. Those services are
+      operated by other people, under their own terms, and this project makes no promise about their
+      availability, accuracy or conduct.</p>
+    <p>Which of them an instance contacts is a configuration decision made by whoever runs it. The
+      software is built so that each one degrades visibly rather than silently when it cannot be
+      reached.</p>
+
+    <h2 id="trademarks">7. Trademarks and independence</h2>
+    <p><strong>Phoenix is not affiliated with, endorsed by, sponsored by or connected to Jibo, Inc.,
+      its successors, assignees, or any current holder of rights in the Jibo hardware, software or
+      trademarks.</strong></p>
+    <p>"Jibo" and any related marks belong to their respective owners. They are used here only
+      descriptively — to identify the hardware this software is compatible with — as is necessary to
+      describe what the project does. No claim of ownership is made, and no association is implied.</p>
+    <p>Phoenix ships no code, binaries, firmware or other proprietary material from the original
+      service. It was written from scratch, using the original only as a behavioural reference.
+      Plain-text data files that the robot already carries on its own hardware are vendored so the
+      reimplementation can interoperate with it.</p>
+    <p>If you hold rights in the original work and believe something in this project oversteps,
+      please raise it with the maintainer of the instance or repository you are looking at. The
+      intent of this project is preservation and interoperability, not appropriation.</p>
+
+    <h2 id="no-warranty">8. No warranty</h2>
+    <p>Phoenix is provided <strong>"as is" and "as available", without warranty of any kind</strong>,
+      express or implied, including but not limited to the implied warranties of merchantability,
+      fitness for a particular purpose, title and non-infringement.</p>
+    <p>Nobody warrants that Phoenix will be uninterrupted, timely, secure, error-free, or compatible
+      with your robot, your firmware version, your network or your future. The project's own
+      documentation states plainly that full behavioural equivalence with the original service is
+      unverified and that parts of the system are incomplete. Please read it before relying on
+      anything here.</p>
+
+    <h2 id="liability">9. Limitation of liability</h2>
+    <p>To the fullest extent permitted by applicable law, no contributor to Phoenix shall be liable
+      for any direct, indirect, incidental, special, consequential, exemplary or punitive damages,
+      or for any loss of data, loss of use, loss of goodwill, hardware damage, or service
+      interruption, arising out of or in connection with Phoenix or these terms — whether in
+      contract, tort (including negligence), strict liability or otherwise, and whether or not any
+      contributor has been advised of the possibility of such damages.</p>
+    <p>Some jurisdictions do not allow the exclusion of certain warranties or the limitation of
+      certain liabilities. Where that is the case, the exclusions and limitations above apply to the
+      greatest extent that law permits, and nothing here is intended to exclude liability that
+      cannot lawfully be excluded.</p>
+    <p>Because Phoenix is supplied free of charge and no contributor operates a service for you,
+      there is no fee against which any remedy could be measured.</p>
+
+    <h2 id="hardware">10. Your robot and your hardware</h2>
+    <p>Using Phoenix involves pointing a physical device at a server you control, and may involve
+      installing software onto that device. This carries real risk. A robot may be rendered
+      unusable, may lose its existing configuration, or may fail to return to any previous service.</p>
+    <p>You accept that risk yourself. The project's documentation records which parts of this path
+      are verified and which are not; the unverified parts are unverified precisely because nobody
+      has yet proven they are safe.</p>
+
+    <h2 id="changes">11. Changes</h2>
+    <p>These terms may change as the project does. The version in effect for a given installation is
+      the one distributed with it, and the "last updated" date above marks the most recent revision
+      of this copy. Continuing to use Phoenix after a change means you accept the revised terms.</p>
+    <p>If these terms are translated or adapted by an operator, the English text distributed with the
+      source is the authoritative one.</p>
+    <p>If any provision of these terms is held unenforceable, the rest remains in effect.</p>
+
+    <h2 id="contact">12. Contact</h2>
+    <p>There is no company to write to. For anything concerning a specific running instance — your
+      account, your data, your robot — the right person is
+      <span data-brand="legal.contact">the maintainer of the Phoenix instance you are using</span>.</p>
+    <p>For anything concerning the software itself, the repository it came from is the place to
+      raise it.</p>
+
+    <hr />
+    <p class="faint">See also: <a href="/privacy">Privacy policy</a> and
+      <a href="/security">Security</a>.</p>
+  </article>
+</div>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-bottom">
+      <p class="footer-legal" data-brand="footer.legal">
+        Phoenix is an independent project with no affiliation to, or endorsement by, Jibo, Inc., its
+        successors or any current rights holder. "Jibo" is used only to identify the hardware this
+        software is compatible with.
+      </p>
+      <div class="footer-meta">
+        <span data-brand="footer.copyright">Released for non-commercial use. No warranty of any kind.</span>
+        <a href="/">Home</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/security">Security</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script type="module" src="/site.js"></script>
+</body>
+</html>

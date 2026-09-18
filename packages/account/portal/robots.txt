@@ -1,0 +1,17 @@
+# Phoenix — a self-hosted instance.
+#
+# The public pages may be indexed. Everything behind a session — the console,
+# the admin surface and the whole API — must not be, and is disallowed here as
+# well as being refused without a valid session.
+
+User-agent: *
+Allow: /$
+Allow: /terms
+Allow: /privacy
+Allow: /security
+Disallow: /app
+Disallow: /admin
+Disallow: /api/
+Disallow: /member-photos/
+
+Sitemap: /sitemap.xml

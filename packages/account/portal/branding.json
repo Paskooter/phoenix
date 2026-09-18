@@ -1,0 +1,187 @@
+{
+  "$comment": "Every piece of visible text and identity on the public site lives here. Change this file (or point PHOENIX_BRANDING_FILE at your own copy) and the whole site follows — no rebuild, no code edit. Keys map to data-brand=\"...\" attributes in the HTML; anything you omit falls back to the text baked into the page.",
+
+  "name": "Phoenix",
+  "wordmark": "Phoenix",
+  "tagline": "The cloud Jibo can talk to again.",
+  "description": "A ground-up reimplementation of the cloud service that gave Jibo its voice — self-hosted, open, and running on hardware you own.",
+
+  "logo": null,
+  "accent": null,
+  "accentWarm": null,
+
+  "nav": {
+    "product": "Product",
+    "how": "How it works",
+    "status": "Status",
+    "faq": "FAQ",
+    "signIn": "Sign in",
+    "cta": "Open console"
+  },
+
+  "hero": {
+    "eyebrow": "Self-hosted robot cloud",
+    "title": "Your Jibo stopped talking in 2019.",
+    "titleAccent": "This is how it speaks again.",
+    "body": "When Jibo's cloud shut down, every robot lost the service that understood speech, chose an answer and moved its body in time with the words. Phoenix is a clean-room reimplementation of that service — speech recognition, natural-language understanding, skills and multimodal response — running entirely on your own hardware.",
+    "primaryCta": "Open the console",
+    "secondaryCta": "See how it works",
+    "note": "Free and non-commercial. No account on anyone else's server."
+  },
+
+  "pipeline": {
+    "eyebrow": "How it works",
+    "title": "One sentence, end to end",
+    "body": "Every word your robot hears takes the same path through Phoenix. Nothing leaves the machine you run it on.",
+    "stages": [
+      { "key": "audio", "label": "Audio", "detail": "The robot opens a WebSocket and streams microphone audio to the hub." },
+      { "key": "asr", "label": "Speech", "detail": "Server-side recognition turns the stream into candidate transcripts." },
+      { "key": "nlu", "label": "Understanding", "detail": "A JavaScript grammar engine parses the transcript into an intent and its slots." },
+      { "key": "skills", "label": "Skills", "detail": "Intent routing picks a graph-based skill, which may redirect or hand off." },
+      { "key": "response", "label": "Response", "detail": "Speech, screen and body motion return as one timed multimodal response." }
+    ]
+  },
+
+  "features": {
+    "eyebrow": "Product",
+    "title": "What it actually does",
+    "body": "Not a mock and not a proxy. Phoenix implements the service the robot expects, and the robot cannot tell the difference.",
+    "items": [
+      {
+        "icon": "conversation",
+        "title": "Conversation, end to end",
+        "body": "WebSocket hub, server-side speech recognition, a grammar engine written in JavaScript, intent routing, graph-based skills, redirects and proactive selection."
+      },
+      {
+        "icon": "library",
+        "title": "The whole dialog library",
+        "body": "All 4,424 chitchat exchanges and 82 report exchanges, reimplemented against the original dialog format — not a sample, not a subset."
+      },
+      {
+        "icon": "household",
+        "title": "Household and people",
+        "body": "Loops, members, face and voice enrolment, and the account links that let the robot fetch each person's own weather, news and commute."
+      },
+      {
+        "icon": "revival",
+        "title": "Robot revival",
+        "body": "An OTA update server implementing the pinned Update API, serving the real 13.0.0 subsystem packages from your host instead of a service that no longer exists."
+      },
+      {
+        "icon": "shield",
+        "title": "Yours, on your hardware",
+        "body": "Robots connect over TLS with their genuine credentials. Audio, transcripts, photos and messages stay on the machine you installed it on."
+      },
+      {
+        "icon": "open",
+        "title": "Open and inspectable",
+        "body": "Node.js and ESM JavaScript with a single external dependency. No Jibo binaries ship — only plain-text data the robot already had."
+      }
+    ]
+  },
+
+  "status": {
+    "eyebrow": "Honest status",
+    "title": "What works, and what doesn't",
+    "body": "This project publishes its own failures. A real robot connects, authenticates and holds a conversation — and full behavioural equivalence with the original is not yet proven. Both of those are true at the same time, and the numbers below are the ones the repository tracks.",
+    "metrics": [
+      { "value": "20,477", "of": "of 20,528", "label": "captured requests where the parser agrees with the original", "detail": "51 residual differences remain tracked and open." },
+      { "value": "4,424", "of": "+ 82", "label": "chitchat and report dialog exchanges implemented", "detail": "The complete library, reimplemented from the original format." },
+      { "value": "77", "of": "of 81", "label": "reviewed checklist tasks verified with evidence", "detail": "Counts reviewed tasks, not working features or percent-complete software." }
+    ],
+    "caveatTitle": "Not finished",
+    "caveats": [
+      "1:1 compatibility with the original service is not yet verified, and is not claimed.",
+      "No robot has yet completed a full over-the-air upgrade through Phoenix.",
+      "Notification delivery over the native socket is implemented but unverified.",
+      "Several surfaces in the console are read-only, and are labelled as such."
+    ]
+  },
+
+  "install": {
+    "eyebrow": "Install",
+    "title": "Run it yourself",
+    "body": "Phoenix is a Node.js workspace with one external dependency. Clone it, point your robot at it, and the console is served on the same host.",
+    "steps": [
+      { "label": "Clone and install", "command": "git clone <your-phoenix-remote> && cd phoenix && npm install" },
+      { "label": "Start the account service", "command": "npm run start:account" },
+      { "label": "Open the console", "command": "http://localhost:7016/app" }
+    ],
+    "note": "Behind a reverse proxy the console is static files and /api is proxied to the account service. A worked nginx configuration ships in deploy/nginx/."
+  },
+
+  "faq": {
+    "eyebrow": "FAQ",
+    "title": "Questions",
+    "items": [
+      {
+        "q": "Is this affiliated with Jibo, Inc. or any current rights holder?",
+        "a": "No. Phoenix is an independent, non-commercial project with no affiliation to, endorsement by, or relationship with Jibo, Inc., its successors or any current rights holder. Jibo is used only to name the hardware this software talks to."
+      },
+      {
+        "q": "Does it ship any of the original software?",
+        "a": "No binaries, no proprietary code. The original service is used strictly as a behavioural reference. Only plain-text data the robot already carries — grammars, dialog files, word lists and manifests — is vendored."
+      },
+      {
+        "q": "Where does my data go?",
+        "a": "Onto the machine you installed Phoenix on, and nowhere else. There is no Phoenix-operated server, no telemetry and no analytics. Map tiles are the one optional exception, and the location picker degrades to manual entry without them."
+      },
+      {
+        "q": "Does my robot need to be modified?",
+        "a": "It needs to be pointed at your server instead of the original one. Phoenix implements the endpoints the robot already calls, and authenticates it with the credentials it already holds."
+      },
+      {
+        "q": "Is it finished?",
+        "a": "No, and the Status section above is the honest version. Conversation works end to end today. Full behavioural comparison against the original still fails, and every gap is tracked in the open."
+      },
+      {
+        "q": "What does it cost?",
+        "a": "Nothing. There is no company, no subscription and nothing to buy. You run it on your own hardware, and the electricity bill is between you and your robot."
+      }
+    ]
+  },
+
+  "cta": {
+    "title": "Bring yours back",
+    "body": "If you already have Phoenix running, the console is one click away. If you don't, everything you need is in the repository.",
+    "primary": "Open the console",
+    "secondary": "Read the documentation"
+  },
+
+  "footer": {
+    "blurb": "A clean-room reimplementation of the cloud service that gave a discontinued social robot its voice. Independent, non-commercial, and self-hosted.",
+    "columns": [
+      {
+        "title": "Product",
+        "links": [
+          { "label": "Overview", "href": "/#product" },
+          { "label": "How it works", "href": "/#how" },
+          { "label": "Status", "href": "/#status" },
+          { "label": "Console", "href": "/app" }
+        ]
+      },
+      {
+        "title": "Legal",
+        "links": [
+          { "label": "Terms of use", "href": "/terms" },
+          { "label": "Privacy", "href": "/privacy" },
+          { "label": "Security", "href": "/security" }
+        ]
+      }
+    ],
+    "legal": "Phoenix is an independent project with no affiliation to, or endorsement by, Jibo, Inc., its successors or any current rights holder. \"Jibo\" is used only to identify the hardware this software is compatible with.",
+    "copyright": "Released for non-commercial use. No warranty of any kind."
+  },
+
+  "legal": {
+    "contact": "the maintainer of the Phoenix instance you are using",
+    "updated": "18 September 2026"
+  },
+
+  "console": {
+    "signInTitle": "Welcome back",
+    "signInBody": "Use the same account you sign into the robot app with.",
+    "signUpTitle": "Create an account",
+    "signUpBody": "This account lives on this server only."
+  }
+}
