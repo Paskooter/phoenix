@@ -86,6 +86,54 @@
         "os": "13.0.2"
       },
       "file": "services-13.0.2.tar"
+    },
+    {
+      "id": "os-13.0.3",
+      "subsystem": "os",
+      "fromVersion": "*",
+      "toVersion": "13.0.3",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build v7. Everything in 13.0.2, plus /etc/ssl/cert.pem -> certs/ca-certificates.crt: OpenSSL's compiled-in default CAfile, which the stock image never shipped. Without it the native Poco client in jibo-jetstream-service verifies against no roots at all and every hub connection fails (\"certificate verify failed\"), so the robot reaches Classic but cannot stream a single audio turn. Also: the CA-accepting jibo-server-client in all six copies with its CA beside each, and client configs world-readable so the unprivileged skill user can read them.",
+      "filter": "",
+      "dependencies": {},
+      "file": "os-13.0.3.tar"
+    },
+    {
+      "id": "os-13.0.3-fcs",
+      "subsystem": "os",
+      "fromVersion": "*",
+      "toVersion": "13.0.3",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build v7. Everything in 13.0.2, plus /etc/ssl/cert.pem -> certs/ca-certificates.crt: OpenSSL's compiled-in default CAfile, which the stock image never shipped. Without it the native Poco client in jibo-jetstream-service verifies against no roots at all and every hub connection fails (\"certificate verify failed\"), so the robot reaches Classic but cannot stream a single audio turn. Also: the CA-accepting jibo-server-client in all six copies with its CA beside each, and client configs world-readable so the unprivileged skill user can read them.",
+      "filter": "fcs",
+      "dependencies": {},
+      "file": "os-13.0.3.tar"
+    },
+    {
+      "id": "services-13.0.3",
+      "subsystem": "services",
+      "fromVersion": "*",
+      "toVersion": "13.0.3",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build v7. Everything in 13.0.2, plus /etc/ssl/cert.pem -> certs/ca-certificates.crt: OpenSSL's compiled-in default CAfile, which the stock image never shipped. Without it the native Poco client in jibo-jetstream-service verifies against no roots at all and every hub connection fails (\"certificate verify failed\"), so the robot reaches Classic but cannot stream a single audio turn. Also: the CA-accepting jibo-server-client in all six copies with its CA beside each, and client configs world-readable so the unprivileged skill user can read them.",
+      "filter": "",
+      "dependencies": {
+        "os": "13.0.3"
+      },
+      "file": "services-13.0.3.tar"
+    },
+    {
+      "id": "services-13.0.3-fcs",
+      "subsystem": "services",
+      "fromVersion": "*",
+      "toVersion": "13.0.3",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build v7. Everything in 13.0.2, plus /etc/ssl/cert.pem -> certs/ca-certificates.crt: OpenSSL's compiled-in default CAfile, which the stock image never shipped. Without it the native Poco client in jibo-jetstream-service verifies against no roots at all and every hub connection fails (\"certificate verify failed\"), so the robot reaches Classic but cannot stream a single audio turn. Also: the CA-accepting jibo-server-client in all six copies with its CA beside each, and client configs world-readable so the unprivileged skill user can read them.",
+      "filter": "fcs",
+      "dependencies": {
+        "os": "13.0.3"
+      },
+      "file": "services-13.0.3.tar"
     }
   ]
 }
