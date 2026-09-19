@@ -80,6 +80,7 @@ while [ $# -gt 0 ]; do
   esac
 done
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 say()  { printf '%s\n' "$*"; }
 step() { printf '\n== %s\n' "$*"; }
 die()  { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
@@ -261,24 +262,63 @@ for p in "${PRESENT[@]}"; do
   APPLIED+=("$p")
 done
 
-# 7b. Put the client back on standard TLS.
-# A robot touched by the older repoint has its client `node.js` patched to pin the
-# Phoenix private CA (with the stock file kept beside it as *.phoenix-ca.bak). That
-# pin is exactly what must go for a publicly-trusted certificate to be used, so
-# restore the stock client when the backup is there.
-CLIENT_DIR="/usr/lib/node_modules/@jibo/jibo-server-client/lib/http"
-if rsh "test -f '${CLIENT_DIR}/node.js.phoenix-ca.bak'" >/dev/null 2>&1; then
+# 7b. Install the CA-accepting client, with the deployment CA beside it.
+# The robot runs Node 6.9.2, which predates NODE_EXTRA_CA_CERTS (added in 7.3) and ignores
+# the system trust store entirely. A stock client therefore cannot verify ANY modern
+# certificate: every request dies with UNABLE_TO_GET_ISSUER_CERT_LOCALLY, which presents
+# exactly like a dead server, and no amount of fixing /etc/ssl/certs will help. The client
+# shipped beside this script is the CA-accepting build. It resolves its trust anchor as
+#   process.env.JIBO_EXTRA_CA_CERTS || __dirname + '/phoenix-ca.pem'
+# and hands it to its https.Agent, so each copy needs both files. Install into EVERY copy:
+# the log client, the OTA updater and the skills each carry their own, and the OTA updater
+# is one of them -- miss it and the robot can never fetch the update that would fix it.
+CLIENT_SOURCE="${SCRIPT_DIR}/robot-client/node.js"
+if [ -r "$CLIENT_SOURCE" ]; then
+  CLIENT_HTTP_DIRS=""
+  for c in "${PRESENT[@]}"; do
+    CLIENT_HTTP_DIRS="${CLIENT_HTTP_DIRS} ${c%/lib/region_config.json}/lib/http"
+  done
   out="$(rsh "
     set -e
-    d='${CLIENT_DIR}'
-    [ -f \"\$d/node.js.prerepoint-${STAMP}.bak\" ] || cp -a \"\$d/node.js\" \"\$d/node.js.prerepoint-${STAMP}.bak\"
-    cp -a \"\$d/node.js.phoenix-ca.bak\" \"\$d/node.js\"
-    printf '  restored the stock client at %s/node.js (private-CA pin removed)\n' \"\$d\"
+    changed=0
+    for d in ${CLIENT_HTTP_DIRS}; do
+      [ -f \"\$d/node.js\" ] || continue
+      [ -f \"\$d/node.js.prerepoint-${STAMP}.bak\" ] || cp -a \"\$d/node.js\" \"\$d/node.js.prerepoint-${STAMP}.bak\"
+      printf '  client at %s -> CA-accepting build\n' \"\$d\"
+      changed=\$((changed+1))
+    done
+    echo \"  copies to update: \$changed\"
   " 2>&1 | tr -d '\r')"
   printf '%s\n' "$out"
-  APPLIED+=("${CLIENT_DIR}/node.js")
+  # Ship the module and the CA, then place them in every copy.
+  rsh "mkdir -p /tmp/robot-client" >/dev/null 2>&1
+  scp -o BatchMode=yes -q "$CLIENT_SOURCE" "${ROBOT}:/tmp/robot-client/node.js" || die "could not upload the client module"
+  CA_SOURCE="${ROOT_PEM_SRC:-}"
+  if [ -n "$CA_SOURCE" ] && [ -r "$CA_SOURCE" ]; then
+    scp -o BatchMode=yes -q "$CA_SOURCE" "${ROBOT}:/tmp/robot-client/phoenix-ca.pem" || die "could not upload the CA"
+  else
+    say "  no CA file available to ship; the client will fall back to its built-in roots"
+  fi
+  out="$(rsh "
+    set -e
+    n=0
+    for d in ${CLIENT_HTTP_DIRS}; do
+      [ -d \"\$d\" ] || continue
+      cp -f /tmp/robot-client/node.js \"\$d/node.js\"
+      chmod 644 \"\$d/node.js\"
+      if [ -f /tmp/robot-client/phoenix-ca.pem ]; then
+        cp -f /tmp/robot-client/phoenix-ca.pem \"\$d/phoenix-ca.pem\"
+        chmod 644 \"\$d/phoenix-ca.pem\"
+      fi
+      n=\$((n+1))
+    done
+    rm -rf /tmp/robot-client
+    printf '  installed the CA-accepting client + CA into %s copies\n' \"\$n\"
+  " 2>&1 | tr -d '\r')"
+  printf '%s\n' "$out"
+  APPLIED+=("${CLIENT_DIRS_NOTE:-client node.js + phoenix-ca.pem (all copies)}")
 else
-  say "  no *.phoenix-ca.bak beside the client; leaving the client as it is"
+  say "  ${CLIENT_SOURCE} not found; the client cannot be given a CA and TLS will fail"
 fi
 
 # 7c. Trust root.
@@ -286,7 +326,7 @@ fi
 # here, from the certificate, and shipped with the file.
 if [ "$HAVE_ROOT" -eq 0 ]; then
   ROOT_PEM_SRC="${REGION_CA}"
-  [ -f "$ROOT_PEM_SRC" ] || ROOT_PEM_SRC="/home/shell/agent-reports/jibo-io-native-image/inputs/isrg-root-x1.pem"
+  [ -f "$ROOT_PEM_SRC" ] || ROOT_PEM_SRC="/home/shell/work/phoenix/scripts/robot-client/isrg-root-x1.pem"
   if [ ! -f "$ROOT_PEM_SRC" ]; then
     say "  no ISRG Root X1 available locally (pass --region-ca <pem>); trust step SKIPPED."
   else
