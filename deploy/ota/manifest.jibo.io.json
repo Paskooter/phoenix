@@ -16,78 +16,6 @@
   ],
   "updates": [
     {
-      "id": "os-13.0.1",
-      "subsystem": "os",
-      "fromVersion": "*",
-      "toVersion": "13.0.1",
-      "created": 1789000000000,
-      "changes": "jibo.io repoint build. Native client, jetstream and ASR endpoints moved from jibo.com to jibo.io; every installed region_config.json copy rewritten (including the nested jibo-log-client, jibo-ota-updater, jibo-ssm and oobe-config copies Node resolves at runtime); ISRG Root X1 installed into the trust store; /etc/hosts intercept and private CA removed.",
-      "filter": "",
-      "dependencies": {},
-      "file": "os-13.0.1.tar"
-    },
-    {
-      "id": "services-13.0.1",
-      "subsystem": "services",
-      "fromVersion": "*",
-      "toVersion": "13.0.1",
-      "created": 1789000000000,
-      "changes": "jibo.io repoint build. Jetstream hub/entrypoint and the ASR service config moved to *.jibo.io; native libJiboServerService.so and jibo-asr-service literals patched to -socket.jibo.io / .jibo.io.",
-      "filter": "",
-      "dependencies": {
-        "os": "13.0.1"
-      },
-      "file": "services-13.0.1.tar"
-    },
-    {
-      "id": "os-13.0.2",
-      "subsystem": "os",
-      "fromVersion": "*",
-      "toVersion": "13.0.2",
-      "created": 1789000000000,
-      "changes": "jibo.io repoint build. Native client, jetstream and ASR endpoints moved from jibo.com to jibo.io; every installed region_config.json copy rewritten (including the nested jibo-log-client, jibo-ota-updater, jibo-ssm and oobe-config copies Node resolves at runtime); ISRG Root X1 installed into the trust store; /etc/hosts intercept and private CA removed.",
-      "filter": "",
-      "dependencies": {},
-      "file": "os-13.0.2.tar"
-    },
-    {
-      "id": "os-13.0.2-fcs",
-      "subsystem": "os",
-      "fromVersion": "*",
-      "toVersion": "13.0.2",
-      "created": 1789000000000,
-      "changes": "jibo.io repoint build. Native client, jetstream and ASR endpoints moved from jibo.com to jibo.io; every installed region_config.json copy rewritten (including the nested jibo-log-client, jibo-ota-updater, jibo-ssm and oobe-config copies Node resolves at runtime); ISRG Root X1 installed into the trust store; /etc/hosts intercept and private CA removed.",
-      "filter": "fcs",
-      "dependencies": {},
-      "file": "os-13.0.2.tar"
-    },
-    {
-      "id": "services-13.0.2",
-      "subsystem": "services",
-      "fromVersion": "*",
-      "toVersion": "13.0.2",
-      "created": 1789000000000,
-      "changes": "jibo.io repoint build. Jetstream hub/entrypoint and the ASR service config moved to *.jibo.io; native libJiboServerService.so and jibo-asr-service literals patched to -socket.jibo.io / .jibo.io.",
-      "filter": "",
-      "dependencies": {
-        "os": "13.0.2"
-      },
-      "file": "services-13.0.2.tar"
-    },
-    {
-      "id": "services-13.0.2-fcs",
-      "subsystem": "services",
-      "fromVersion": "*",
-      "toVersion": "13.0.2",
-      "created": 1789000000000,
-      "changes": "jibo.io repoint build. Jetstream hub/entrypoint and the ASR service config moved to *.jibo.io; native libJiboServerService.so and jibo-asr-service literals patched to -socket.jibo.io / .jibo.io.",
-      "filter": "fcs",
-      "dependencies": {
-        "os": "13.0.2"
-      },
-      "file": "services-13.0.2.tar"
-    },
-    {
       "id": "os-13.0.3",
       "subsystem": "os",
       "fromVersion": "*",
@@ -134,6 +62,54 @@
         "os": "13.0.3"
       },
       "file": "services-13.0.3.tar"
+    },
+    {
+      "id": "os-13.0.4",
+      "subsystem": "os",
+      "fromVersion": "*",
+      "toVersion": "13.0.4",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build v8. Everything in 13.0.3, plus two fixes a real OTA attempt exposed: (1) the OTA downloader (a separate Node 6 script from jibo-server-client) now passes an explicit CA, without which every update download failed instantly with UNABLE_TO_GET_ISSUER_CERT_LOCALLY and a 0-byte file; (2) no HubClient.override is baked, because it wins over region-settings and forced every robot onto api.jibo.io -- the Classic entrypoint, not a hub -- so audio turns went to the wrong service. Each robot now resolves the hub for its own region.",
+      "filter": "",
+      "dependencies": {},
+      "file": "os-13.0.4.tar"
+    },
+    {
+      "id": "os-13.0.4-fcs",
+      "subsystem": "os",
+      "fromVersion": "*",
+      "toVersion": "13.0.4",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build v8. Everything in 13.0.3, plus two fixes a real OTA attempt exposed: (1) the OTA downloader (a separate Node 6 script from jibo-server-client) now passes an explicit CA, without which every update download failed instantly with UNABLE_TO_GET_ISSUER_CERT_LOCALLY and a 0-byte file; (2) no HubClient.override is baked, because it wins over region-settings and forced every robot onto api.jibo.io -- the Classic entrypoint, not a hub -- so audio turns went to the wrong service. Each robot now resolves the hub for its own region.",
+      "filter": "fcs",
+      "dependencies": {},
+      "file": "os-13.0.4.tar"
+    },
+    {
+      "id": "services-13.0.4",
+      "subsystem": "services",
+      "fromVersion": "*",
+      "toVersion": "13.0.4",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build v8. Everything in 13.0.3, plus two fixes a real OTA attempt exposed: (1) the OTA downloader (a separate Node 6 script from jibo-server-client) now passes an explicit CA, without which every update download failed instantly with UNABLE_TO_GET_ISSUER_CERT_LOCALLY and a 0-byte file; (2) no HubClient.override is baked, because it wins over region-settings and forced every robot onto api.jibo.io -- the Classic entrypoint, not a hub -- so audio turns went to the wrong service. Each robot now resolves the hub for its own region.",
+      "filter": "",
+      "dependencies": {
+        "os": "13.0.4"
+      },
+      "file": "services-13.0.4.tar"
+    },
+    {
+      "id": "services-13.0.4-fcs",
+      "subsystem": "services",
+      "fromVersion": "*",
+      "toVersion": "13.0.4",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build v8. Everything in 13.0.3, plus two fixes a real OTA attempt exposed: (1) the OTA downloader (a separate Node 6 script from jibo-server-client) now passes an explicit CA, without which every update download failed instantly with UNABLE_TO_GET_ISSUER_CERT_LOCALLY and a 0-byte file; (2) no HubClient.override is baked, because it wins over region-settings and forced every robot onto api.jibo.io -- the Classic entrypoint, not a hub -- so audio turns went to the wrong service. Each robot now resolves the hub for its own region.",
+      "filter": "fcs",
+      "dependencies": {
+        "os": "13.0.4"
+      },
+      "file": "services-13.0.4.tar"
     }
   ]
 }
