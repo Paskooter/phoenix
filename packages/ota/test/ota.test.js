@@ -147,6 +147,20 @@ test('filter: prefix when asked for, empty-string-exact when not', () => {
   assert.equal(catalog.listUpdates({ subsystem: 'os', filter: 'gr' }).length, 0, 'an unfiltered entry must not be served to a filtered request');
 });
 
+test('a filterless catalog entry is invisible to a stock robot (filter is not a wildcard)', () => {
+  // A stock robot sends otaFilter "fcs", baked into its jibo-ssm-normal.json. An
+  // entry published with filter '' is NOT a wildcard: the source rule prefix-matches
+  // the ENTRY's filter against the REQUEST's, so '' never matches 'fcs'. Publishing
+  // only filterless entries makes a correct, fully-populated catalog report "already
+  // up to date" to every real robot, which is exactly what happened on jibo.io.
+  assert.equal(filterMatches('', 'fcs'), false, "'' must not serve an fcs robot");
+  assert.equal(filterMatches('fcs', 'fcs'), true);
+  // ...and the converse: an fcs entry must not leak to a robot that sends no filter,
+  // which is why a catalog has to carry BOTH forms of each version.
+  assert.equal(filterMatches('fcs', ''), false);
+  assert.equal(filterMatches('', ''), true);
+});
+
 test('filterMatches is the source rule in both directions', () => {
   assert.equal(filterMatches('green', 'gr'), true);
   assert.equal(filterMatches('green', 'blue'), false);

@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "notes": [
+    "Catalog of OTA subsystem packages this server offers. The loader reads only `updates`.",
+    "Each entry's `file` is resolved under the data dir (ETCO_ota_dataDir); length + sha1 are",
+    "computed from the real file at startup, so an entry whose file is absent is skipped.",
+    "fromVersion '*' matches any installed version, with a loop-guard: a package is never offered",
+    "once the robot already runs toVersion. GetUpdateFrom serves the highest toVersion.",
+    "filter '' is a wildcard (matches whatever otaFilter the robot sends).",
+    "13.0.1 is the jibo.io repoint build of platform 13.0.0. It exists as a distinct, higher",
+    "version because a robot already running 13.0.0 would never be offered 13.0.0 again \u2014 the",
+    "loop-guard would suppress exactly the update that performs the repoint.",
+    "Not yet published: a skills package. The behaviour engine's own client copy lives in the",
+    "skills partition, so a complete repoint eventually needs one.",
+    "A stock robot sends otaFilter fcs (baked into jibo-ssm-normal.json). The source filter rule is a PREFIX match when the request carries a filter and an EXACT empty-string match when it does not, so ONE entry cannot serve both: filter  is NOT a wildcard. Every version is therefore published twice, once filterless and once as fcs, pointing at the same file."
+  ],
+  "updates": [
+    {
+      "id": "os-13.0.1",
+      "subsystem": "os",
+      "fromVersion": "*",
+      "toVersion": "13.0.1",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build. Native client, jetstream and ASR endpoints moved from jibo.com to jibo.io; every installed region_config.json copy rewritten (including the nested jibo-log-client, jibo-ota-updater, jibo-ssm and oobe-config copies Node resolves at runtime); ISRG Root X1 installed into the trust store; /etc/hosts intercept and private CA removed.",
+      "filter": "",
+      "dependencies": {},
+      "file": "os-13.0.1.tar"
+    },
+    {
+      "id": "services-13.0.1",
+      "subsystem": "services",
+      "fromVersion": "*",
+      "toVersion": "13.0.1",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build. Jetstream hub/entrypoint and the ASR service config moved to *.jibo.io; native libJiboServerService.so and jibo-asr-service literals patched to -socket.jibo.io / .jibo.io.",
+      "filter": "",
+      "dependencies": {
+        "os": "13.0.1"
+      },
+      "file": "services-13.0.1.tar"
+    },
+    {
+      "id": "os-13.0.2",
+      "subsystem": "os",
+      "fromVersion": "*",
+      "toVersion": "13.0.2",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build. Native client, jetstream and ASR endpoints moved from jibo.com to jibo.io; every installed region_config.json copy rewritten (including the nested jibo-log-client, jibo-ota-updater, jibo-ssm and oobe-config copies Node resolves at runtime); ISRG Root X1 installed into the trust store; /etc/hosts intercept and private CA removed.",
+      "filter": "",
+      "dependencies": {},
+      "file": "os-13.0.2.tar"
+    },
+    {
+      "id": "os-13.0.2-fcs",
+      "subsystem": "os",
+      "fromVersion": "*",
+      "toVersion": "13.0.2",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build. Native client, jetstream and ASR endpoints moved from jibo.com to jibo.io; every installed region_config.json copy rewritten (including the nested jibo-log-client, jibo-ota-updater, jibo-ssm and oobe-config copies Node resolves at runtime); ISRG Root X1 installed into the trust store; /etc/hosts intercept and private CA removed.",
+      "filter": "fcs",
+      "dependencies": {},
+      "file": "os-13.0.2.tar"
+    },
+    {
+      "id": "services-13.0.2",
+      "subsystem": "services",
+      "fromVersion": "*",
+      "toVersion": "13.0.2",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build. Jetstream hub/entrypoint and the ASR service config moved to *.jibo.io; native libJiboServerService.so and jibo-asr-service literals patched to -socket.jibo.io / .jibo.io.",
+      "filter": "",
+      "dependencies": {
+        "os": "13.0.2"
+      },
+      "file": "services-13.0.2.tar"
+    },
+    {
+      "id": "services-13.0.2-fcs",
+      "subsystem": "services",
+      "fromVersion": "*",
+      "toVersion": "13.0.2",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build. Jetstream hub/entrypoint and the ASR service config moved to *.jibo.io; native libJiboServerService.so and jibo-asr-service literals patched to -socket.jibo.io / .jibo.io.",
+      "filter": "fcs",
+      "dependencies": {
+        "os": "13.0.2"
+      },
+      "file": "services-13.0.2.tar"
+    }
+  ]
+}
