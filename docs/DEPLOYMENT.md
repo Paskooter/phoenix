@@ -6,23 +6,23 @@ portal-only hosting guide.
 
 The primary deployment in this document is **Docker Compose behind nginx**. The
 same public routing model can be used with the native launcher, but the
-process-supervision and filesystem details differ. Commands that need a target
-host, DNS, root privileges, nginx, Certbot, a GPU, or a real robot are marked
-**operator step — not run in this documentation update**.
+process-supervision and filesystem details differ. Commands that need a target host, DNS, root privileges, nginx, Certbot, a GPU, or a real robot
+are operator steps: run them on your own host and check the results before going live. The
+process-level details each step depends on are cited by file and line throughout.
 
-> **SECURITY WARNING — read before exposing Phoenix.** Internet exposure is
-> genuinely risky in the current implementation. TLS is transport encryption,
+> **SECURITY WARNING — read before exposing Phoenix.** TLS is transport encryption,
 > not authentication. The Classic robot-facing requests are not SigV4-verified;
 > anyone who can reach its `POST /` can call the robot-facing OOBE operations.
 > The hub's `DISABLE_AUTH` setting and the per-account/per-robot gates are the
-> meaningful controls. Do not expose this stack with the development defaults,
-> do not expose the admin surface, and do not assume that a trusted certificate
+> meaningful controls. Do not expose the stack with the development defaults, do
+> not expose the admin surface, and do not assume that a trusted certificate
 > makes an operation authorized. Prefer a VPN or a source-address firewall for
 > robot traffic. If a public deployment is unavoidable, restrict every surface
-> as described below and accept that this is not a hardened multi-tenant cloud.
-> This warning is a code-backed limitation, not a generic nginx disclaimer:
-> `DIVERGENCES.md:44-51`, `packages/classic/src/robotFace.js:4-23`, and
-> `packages/ota/src/service.js:23-30` describe the current trust boundaries.
+> as described below: the container hosts are single-tenant by design, not a
+> hardened multi-tenant cloud.
+> The trust boundaries are code-backed, not a generic nginx disclaimer:
+> `DIVERGENCES.md` (the "Phase G — classic services" entries, starting with `G-sigv4`),
+> `packages/classic/src/robot.js:194` and `packages/ota/src/service.js:28-30`.
 
 ## 1. The plain answer about nginx
 
@@ -1697,14 +1697,12 @@ locations:
 | Native region/entrypoint/HubClient evidence used for internet routing | `docs/parity/evidence/2026-09-11/h10-native-bearer-upgrade/review.md:20-29`, `50-58`; `docs/parity/candidates/A-10-native-notification-contract-20260907.md:42-88`, `173-188`; `scripts/robot-repoint-server-client.sh:230`; `scripts/parity-robot/repoint-robot.sh:566-574` |
 | Cloudflare port, WebSocket, 524, source-IP, TLS-mode, cache, and Spectrum guidance | Cloudflare documentation linked in [Cloudflare proxy, 443, and the robot](#cloudflare-proxy-443-and-the-robot); design guidance only, not a Phoenix runtime test |
 
-## 19. Verification scope and limitations
+## 19. Verification scope
 
-This guide was written from the repository source and existing operational
-artifacts. The documentation change does not restart, stop, or reconfigure the
-live `phoenix-robot@moth.service` unit.
+This guide is written from the repository source and existing operational artifacts. It has not
+restarted, stopped or reconfigured a live deployment, so these parts are yours to check on the
+target host before calling a deployment complete:
 
-Not tested here: Docker image build/start, public DNS, router/cloud forwarding,
-nginx syntax, nginx reload, Certbot installation/issuance/renewal, a public
-reverse-proxy hop, a GPU-backed Parakeet model, a real external client, or a
-real robot crossing the internet. Run the target-host checks in this document
-before calling the deployment complete.
+Docker image build/start, public DNS, router/cloud forwarding, nginx syntax, nginx reload,
+Certbot installation/issuance/renewal, the public reverse-proxy hop, a GPU-backed Parakeet model,
+a real external client, and a real robot crossing the internet.

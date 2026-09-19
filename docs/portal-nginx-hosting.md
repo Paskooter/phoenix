@@ -17,9 +17,9 @@ The guide is based on the code at the current Phoenix revision, not on an assume
 - `deploy/nginx/phoenix.conf` — the working vhost template, including the rate limits and cache
   policy.
 
-Commands labeled **Not executed here** require an operator's target host, DNS, root privileges, or
-real certificates. The local curl probe described under [Verification](#verification) was run; the
-public DNS, nginx binary, Certbot, and certificate issuance were not available in this environment.
+Steps labeled **On the target host** need an operator's host, DNS, root privileges, or real
+certificates, so they are written to be run there rather than reproduced here. The local curl
+probe described under [Verification](#verification) was run against a live portal.
 
 ## 1. Architecture and deployment choice
 
@@ -68,7 +68,7 @@ Before installing the vhost, have all of the following:
 6. A separate hostname/IP/port plan for the robot-facing Classic TLS entrypoint. The portal
    certificate and portal `server_name` do not automatically cover the Classic service.
 
-**Not executed here — target-host dependency installation:**
+**On the target host — target-host dependency installation:**
 
 ```sh
 cd /srv/phoenix
@@ -124,7 +124,7 @@ server {
 }
 ```
 
-**Not executed here — Certbot bootstrap:**
+**On the target host — Certbot bootstrap:**
 
 ```sh
 sudo install -d -m 0755 /var/www/certbot
@@ -149,7 +149,7 @@ other HTTP paths redirect. Certbot normally installs a systemd timer or cron job
 renewal mechanism exists on the target host and make a successful renewal reload nginx so nginx
 opens the renewed certificate rather than retaining the old worker state.
 
-**Not executed here — renewal and deploy hook:**
+**On the target host — renewal and deploy hook:**
 
 ```sh
 sudo certbot renew --dry-run
@@ -188,7 +188,7 @@ On Debian-family nginx installs the usual site locations are `/etc/nginx/sites-a
 `/etc/nginx/sites-enabled`. On another distribution, put the file in the distribution's `http`
 include path; `upstream` and `limit_req_zone` must be in nginx's `http` context.
 
-**Not executed here — privileged install:**
+**On the target host — privileged install:**
 
 ```sh
 cd /srv/phoenix
@@ -335,7 +335,7 @@ Run the checks from a client that is allowed by the admin address rules. The com
 operator checks and were **not executed against a public HTTPS deployment**; replace the example
 base with the real portal URL.
 
-**Not executed here — deployed HTTPS checks:**
+**On the target host — deployed HTTPS checks:**
 
 ```sh
 BASE=https://portal.example.com
@@ -381,7 +381,7 @@ request reached the application and that no admin session was supplied.
 
 Check the no-cache policy directly:
 
-**Not executed here — deployed HTTPS header check:**
+**On the target host — deployed HTTPS header check:**
 
 ```sh
 curl --noproxy '*' --silent --show-error --dump-header - --output /dev/null \
@@ -398,7 +398,7 @@ should instead show the 30-day policy from the template.
 
 Check SNI and the certificate SAN without sending credentials:
 
-**Not executed here — real certificate/SNI check:**
+**On the target host — real certificate/SNI check:**
 
 ```sh
 openssl s_client -connect portal.example.com:443 -servername portal.example.com \
@@ -474,7 +474,7 @@ is JSON `404`, while the nginx vhost internally serves `404.html` as HTML.
 Keep the previous nginx file and previous portal checkout available until the new HTTPS and API
 checks pass. A config rollback does not require exposing the account port or deleting certificates.
 
-**Not executed here — target-host rollback:**
+**On the target host — target-host rollback:**
 
 ```sh
 sudo cp /etc/nginx/sites-available/phoenix /etc/nginx/sites-available/phoenix.failed

@@ -1,7 +1,8 @@
 # Runbook: stand up a server and point a robot at it
 
 A linear procedure that ends with a real Jibo talking to your own Phoenix server.
-Every step here has been run against real hardware. For reference material rather
+These are the steps used to bring up real robots; the capture records from those
+runs are under [`parity/evidence/`](parity/evidence/). For reference material rather
 than a procedure, see [Operations](OPERATIONS.md).
 
 **What you need**
@@ -130,11 +131,10 @@ an existing loop is reused; an account missing its loop can be repaired.
 
 For a robot with an existing household, preserve its KB root/member snapshots
 and enrollment storage before enabling cloud sync against a newly adopted
-server account. The [household snapshot staging tool](parity/candidates/KB-household-import-20260908.md)
-prepares a private store and exact backup using the original household IDs.
-It refuses ambiguous or destructive merges and leaves deployment to a guarded,
-stopped-backend replacement. Keep all captures, output and command receipts in
-private storage; publish only generic verification outcomes.
+server account: `scripts/import-household-snapshot.mjs` stages a private store
+and an exact backup using the original household IDs, refuses ambiguous or
+destructive merges, and leaves deployment to a guarded, stopped-backend
+replacement.
 
 Add `--classic-url http://<server>:9012` for a plain-HTTP deployment, which
 rewrites every `region_config.json`. A TLS deployment does not need it — the
@@ -210,7 +210,7 @@ system CA bundle with Phoenix's CA added. `JIBO_EXTRA_CA_CERTS` can override tha
 path. Verification stays on; a configured but unreadable file is an error. Node 6
 replaces its built-in roots when `ca` is supplied, so use the complete bundle.
 Restart the processes using the package after installation; existing agents are
-cached. See [the client divergence](../DIVERGENCES.md#robot-deployment-client).
+cached. See [the client divergence](./DIVERGENCES.md#robot-deployment-client).
 
 Also confirm that a BE skill is running. A healthy hub and Notification socket do
 not establish that the robot's experience has started. On a developer-mode robot,
@@ -270,5 +270,6 @@ Getting the robot connected is not the same as a fully working robot.
   through the portal's QR flow first; the script adopts a robot that already has
   `/var/jibo/credentials.json`, which includes any robot that paired with the
   original Jibo cloud.
-- Microphone/wake-word and physical-ring behavior are **not verified** by this
-  procedure, and are still open work in the parity ledger.
+- Microphone/wake-word behaviour and the physical ring are outside this
+  procedure: it establishes the cloud connection. Step 7's checks are what
+  confirm the robot is talking to your server.
