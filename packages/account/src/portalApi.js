@@ -50,6 +50,7 @@ import { portalSystemRoutes } from './portal/system.js';
 import { adminConfigRoutes } from './admin/configRoutes.js';
 import { adminOpsRoutes } from './admin/adminRoutes.js';
 import { adminLogRoutes } from './admin/logRoutes.js';
+import { robotAdoptionRoutes } from './robotAdoption.js';
 
 // The region written into an adopted robot's credentials.json. A robot's native
 // client builds its service hostnames from this value — `<region>.jibo.com` for
@@ -284,6 +285,13 @@ export function portalRoutes(store, options = {}) {
     ...adminConfigRoutes(store, { requireAdmin, sendJson }),
     ...adminOpsRoutes(store, { requireAdmin, sendJson, currentAccount: sessionUser }),
     ...adminLogRoutes(store, { requireAdmin, sendJson }),
+
+    // Self-service adoption for a robot that already holds credentials. This one
+    // is deliberately NOT session-guarded: the caller is the repoint script
+    // running next to the robot, not a signed-in browser, and its proof is the
+    // robot's own secretAccessKey in the body — the same secret every signed
+    // robot request already depends on.
+    ...robotAdoptionRoutes(store, { sendJson }),
   };
 }
 

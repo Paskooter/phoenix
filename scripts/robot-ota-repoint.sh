@@ -152,7 +152,13 @@ step "Public root trust"
 ROOT_SUBJECT="C=US, O=Internet Security Research Group, CN=ISRG Root X1"
 ROOT_SHA="22b557a27055b33606b6559f37703928d3e4ad79f110b407d04986e1843543d1"
 HAVE_ROOT=0
-if rsh "grep -q 'ISRG Root X1' '$TRUST_BUNDLE' 2>/dev/null" >/dev/null 2>&1; then
+# Detect by the certificate's own base64 body, NOT by its subject name: a PEM
+# bundle stores DER in base64, so the human-readable subject "ISRG Root X1" does
+# not appear in the file at all and grepping for it always reports absent. The
+# first line of the encoded body is a stable, unambiguous fingerprint of this
+# exact certificate.
+ROOT_MARKER='MIIFazCCA1OgAwIBAgIRAIIQz7DSQONZRGPgu2OCiwAwDQYJKoZIhvcNAQELBQAw'
+if rsh "grep -q '$ROOT_MARKER' '$TRUST_BUNDLE' 2>/dev/null" >/dev/null 2>&1; then
   HAVE_ROOT=1; say "  ISRG Root X1 already present in ${TRUST_BUNDLE}"
 else
   say "  ISRG Root X1 NOT present in ${TRUST_BUNDLE}"
@@ -193,10 +199,18 @@ step "Plan"
 say "  1. back up and rewrite jibo.com -> jibo.io in ${#PRESENT[@]} client config file(s)"
 say "  2. install the public root into ${TRUST_BUNDLE} (+ ${TRUST_DIR}/isrg-root-x1.pem and its"
 say "     subject-hash symlink), remounting / read-write for the write and back to read-only after"
-say "  3. write a receipt to ${RECEIPT}"
+say "  3. install the CA-accepting client + its CA into every client copy (Node 6 ignores"
+say "     the system trust store, so this is the only way the Node client can verify TLS)"
+say "  4. link /etc/ssl/cert.pem -> ${TRUST_BUNDLE} (OpenSSL's default CAfile, which the"
+say "     stock image never shipped; without it the NATIVE hub client verifies nothing)"
+say "  5. point the jetstream hub override at ${REGION%-entrypoint}-hub.${PUBLIC_SUFFIX}:443, so audio"
+say "     turns go to this server instead of wherever it was pointed before"
+say "  6. hand the robot's existing credentials to https://${REGION}.${PUBLIC_SUFFIX}/api/adopt-robot (idempotent)"
+say "  7. write a receipt to ${RECEIPT}"
 say ""
-say "  NOT touched: /etc/hosts, any private CA, adoption/loop state, hub port, server certs."
-say "  After this the robot can reach ${REST_URL} and take an OTA update from it."
+say "  NOT touched: /etc/hosts, any private CA, server certs, the robot's own credentials."
+say "  After this the robot can reach ${REST_URL}, stream audio to the hub, and take an OTA"
+say "  update from it. A reboot is needed for the native services to reload their config."
 
 if [ "$DRY" -eq 1 ]; then
   say ""
@@ -348,6 +362,118 @@ if [ "$HAVE_ROOT" -eq 0 ]; then
     printf '%s\n' "$out"
     APPLIED+=("${TRUST_BUNDLE}")
   fi
+fi
+
+# 7c-bis. OpenSSL's DEFAULT CAfile.
+#
+# This is deliberately OUTSIDE the `HAVE_ROOT` guard above: a robot can already
+# carry ISRG Root X1 in its bundle and STILL fail every verification, which is
+# exactly the state that made a fully repointed robot look like a dead server.
+#
+# OpenSSL resolves its default trust material from OPENSSLDIR, compiled in as
+# /etc/ssl -- so the default CAfile is /etc/ssl/cert.pem. The Jibo image never
+# shipped that file. The consequence is subtle and easy to misread: anything
+# handed an EXPLICIT ca succeeds (the Node client with phoenix-ca.pem, wget
+# --ca-certificate=...), while anything relying on the DEFAULT store has no roots
+# at all and fails with "certificate verify failed". The native Poco client in
+# jibo-jetstream-service -- the one that streams every audio turn to the hub --
+# is in the second group, so without this the robot connects to Classic happily
+# and cannot open a single hub socket:
+#
+#   CloudConnection::open (poco exception): SSL Exception:
+#   error:14090086:SSL routines:ssl3_get_server_certificate:certificate verify failed
+#
+# Point the default at the bundle, which by now carries the public root.
+out="$(rsh "
+  if [ -e '/etc/ssl/cert.pem' ] && [ ! -L '/etc/ssl/cert.pem' ]; then
+    printf '  /etc/ssl/cert.pem exists and is a real file; left alone\n'
+  else
+    ln -sf '$TRUST_BUNDLE' '/etc/ssl/cert.pem'
+    printf '  /etc/ssl/cert.pem -> %s (OpenSSL default CAfile)\n' \"\$(readlink /etc/ssl/cert.pem)\"
+  fi
+" 2>&1 | tr -d '\r')"
+printf '%s\n' "$out"
+APPLIED+=("/etc/ssl/cert.pem")
+
+# 7c-ter. The hub.
+#
+# The audio path is configured SEPARATELY from the Classic path, in
+# /usr/local/etc/jibo-jetstream-service.json, and `HubClient.override` WINS over
+# `HubClient.region-settings`. A robot that was previously pointed at a LAN
+# Phoenix carries that server's address here and will keep streaming every turn
+# to it no matter how correct the rest of the repoint is -- the public hub log
+# stays empty while the robot answers "the hub reported an error" out loud.
+#
+# NOTE /usr/local is its OWN partition, and remounting / rw does not make it
+# writable. There is also no python3 on the robot: use its node binary.
+# The hub hostname is NOT "<region>-hub": the region is `stg-entrypoint` while its
+# hub is `stg-hub`, i.e. the "-entrypoint" suffix is dropped. The `api` region is
+# the odd one out and uses `neo-hub`. These names come from
+# HubClient.region-settings in the stock jibo-jetstream-service.json.
+HUB_PREFIX="${REGION%-entrypoint}"
+HUB_HOST="${HUB_PREFIX}-hub.${PUBLIC_SUFFIX}"
+[ "$REGION" = "api" ] && HUB_HOST="neo-hub.${PUBLIC_SUFFIX}"
+out="$(rsh "
+  set -e
+  F=/usr/local/etc/jibo-jetstream-service.json
+  [ -f \"\$F\" ] || { printf '  no jetstream config; hub left alone\n'; exit 0; }
+  mount -o remount,rw /usr/local
+  [ -f \"\$F.prerepoint-${STAMP}.bak\" ] || cp -a \"\$F\" \"\$F.prerepoint-${STAMP}.bak\"
+  node -e \"
+    var fs=require('fs'), p='\$F';
+    var d=JSON.parse(fs.readFileSync(p,'utf8'));
+    var hc=d.HubClient||{}, rs=hc['region-settings']||{};
+    Object.keys(rs).forEach(function(n){
+      ['hub_hostname','entrypoint_hostname'].forEach(function(k){
+        if (rs[n][k]) rs[n][k]=String(rs[n][k]).replace(/\\\\.jibo\\\\.com\$/, '.${PUBLIC_SUFFIX}');
+      });
+      rs[n].hub_port=443;
+    });
+    hc.override={hub_port:443,hub_hostname:'${HUB_HOST}',entrypoint_hostname:'${REGION}.${PUBLIC_SUFFIX}'};
+    d.HubClient=hc;
+    fs.writeFileSync(p, JSON.stringify(d,null,2));
+  \"
+  chmod 644 \"\$F\"
+  mount -o remount,ro /usr/local
+  printf '  hub -> %s:443 (jetstream override)\n' '${HUB_HOST}'
+" 2>&1 | tr -d '\r')"
+printf '%s\n' "$out"
+APPLIED+=("/usr/local/etc/jibo-jetstream-service.json")
+
+# 7c-quater. Adoption.
+#
+# A robot that paired with the original cloud years ago still signs every request
+# with the credentials in /var/jibo/credentials.json. Those cannot be reissued
+# without a factory reset, so a server that has never heard of them rejects the
+# robot even though everything above is correct. Hand them to the server's
+# adoption endpoint, which is idempotent: re-running this reports the existing
+# ids rather than forking the household.
+ADOPT_URL="https://${REGION}.${PUBLIC_SUFFIX}/api/adopt-robot"  # built from parts, never from REST_URL (which carries a trailing /)
+CREDS="$(rsh 'cat /var/jibo/credentials.json 2>/dev/null' 2>/dev/null | tr -d '\r')"
+FRIENDLY="$(rsh 'hostname 2>/dev/null' 2>/dev/null | tr -d '\r')"
+AKID="$(printf '%s' "$CREDS" | sed -n 's/.*"accessKeyId"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')"
+ASEC="$(printf '%s' "$CREDS" | sed -n 's/.*"secretAccessKey"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')"
+if [ -z "$AKID" ] || [ -z "$ASEC" ]; then
+  say "  the robot has no credentials to adopt (unpaired); skipping adoption"
+else
+  # The secret is passed on stdin, never on a command line or in the log.
+  ADOPT_BODY="$(printf '{"accessKeyId":"%s","secretAccessKey":"%s","friendlyId":"%s"}' "$AKID" "$ASEC" "$FRIENDLY")"
+  ADOPT_OUT="$(printf '%s' "$ADOPT_BODY" | curl -sS --max-time 30 -X POST "$ADOPT_URL" \
+      -H 'content-type: application/json' --data-binary @- 2>&1)" || true
+  case "$ADOPT_OUT" in
+    *'"adopted":true'*)
+      case "$ADOPT_OUT" in
+        *'"alreadyAdopted":true'*) say "  adoption: already known to the server (no change)" ;;
+        *) say "  adoption: registered with the server" ;;
+      esac
+      APPLIED+=("server adoption for ${AKID}")
+      ;;
+    *)
+      say "  adoption did NOT succeed against ${ADOPT_URL}"
+      say "    server said: $(printf '%s' "$ADOPT_OUT" | head -c 200)"
+      say "    the robot may reach the server and still be rejected until this is resolved."
+      ;;
+  esac
 fi
 
 # 7d. Put / back the way it was found.
