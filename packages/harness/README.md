@@ -12,8 +12,9 @@ node --test packages/harness/test/diff.test.js packages/harness/test/parityCompa
 The first command runs the same 28 HTTP and WebSocket fixtures against the frozen original
 Pegasus modules and current Phoenix services in separate containers. The second calibrates
 the gate using two independent original runs. Exit codes are **0** for agreement, **1** for
-observed differences or invariant failures, and **2** for setup or capture errors. A failing
-Phoenix comparison is expected while the [parity backlog](../../docs/parity/TASKS.md) is open.
+observed differences or invariant failures, and **2** for setup or capture errors: a non-zero
+exit is a reported difference between the two sides, which is the signal this harness exists to
+produce.
 
 See [runner instructions](../../scripts/parity-compare/README.md) for prerequisites, pinned
 images, retained artifacts and the adapter boundary. The [reference setup](../../docs/parity/REFERENCE.md)

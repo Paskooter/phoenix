@@ -9,7 +9,7 @@ The installed pre-commit hook computes from the staged ledger and preserves
 unrelated staged/unstaged README text. New clones install it through
 `npm install`; `parity:check` rejects stale output. A real temporary Git
 repository verifies partial-commit behavior. The combined suite passes all
-405 tests; [progress evidence](docs/parity/evidence/2026-09-06/progress/review.json)
+405 tests; [progress evidence](../parity/evidence/2026-09-06/progress/review.json)
 retains the focused and full logs.
 
 ## 2026-09-06: reviewed JWT, CONTEXT and GraphSkill repairs
@@ -42,7 +42,7 @@ invariants. Its strict result remains failing: 49,155 field differences and
 97 coverage-gap instances (8 original, 89 Phoenix). Complete action objects
 agree in 20,170/20,434 comparisons. The full captures, compressed comparison,
 source fingerprint, dimensions and initial task ownership are retained in
-[the baseline review](docs/parity/evidence/2026-09-06/production/main-057f67c-full-baseline/review.json).
+[the baseline review](../parity/evidence/2026-09-06/production/main-057f67c-full-baseline/review.json).
 V-03 remains active for final corpus-to-gate inventory links.
 
 Root integrated bounded A-02 CreateHubToken/SigV4, exact claims, Joi validation
@@ -109,7 +109,7 @@ Newest first. One line per verified increment (autonomous loop appends here).
   Moth's native Opus and FLAC recordings also expose false speech detection from
   treating compressed bytes as PCM. Both decoded noise captures stay below the
   speech threshold; restored LINEAR16 correctly avoids SOS. Audio configuration is
-  restored byte-for-byte. [Hardware evidence](docs/parity/evidence/2026-09-05/hardware/native-audio-baseline.json)
+  restored byte-for-byte. [Hardware evidence](../parity/evidence/2026-09-05/hardware/native-audio-baseline.json)
   retains hashes and metrics; household recordings stay private.
   Root integrated the Luna capture writer plus an asynchronous Node 8 shutdown fix.
   Fresh 43/73-case original controls have zero measured differences; the report's
@@ -124,7 +124,7 @@ Newest first. One line per verified increment (autonomous loop appends here).
   time; the user confirmed both. Native text injection also exercised Nimbus joke TTS.
   Authentication and Classic services remain outside the transport-only trial.
   Luna Max located the missing listening cues at BE 11.0.1 → 11.0.2; root is testing
-  the release ladder. [HARDWARE.md](docs/parity/HARDWARE.md) records evidence and rollback.
+  the release ladder. [HARDWARE.md](../parity/HARDWARE.md) records evidence and rollback.
   HTTP, encoded-audio and full-corpus writer work now use separate branches/worktrees.
   Root requested repairs after finding defects in the first HTTP and audio candidates;
   neither was integrated or marked verified. V-04 is the active lead verification task.
@@ -135,7 +135,7 @@ Newest first. One line per verified increment (autonomous loop appends here).
   Hashbrown SDK and original native Jetstream source; 13 inspected client/Nimbus files
   match across the two consumer profiles. Verified 485 cached files, including four
   bundled Jibo Server Client instances and their differing API models.
-  [CONSUMERS.md](docs/parity/CONSUMERS.md) maps token bootstrap/SigV4, encoded audio,
+  [CONSUMERS.md](../parity/CONSUMERS.md) maps token bootstrap/SigV4, encoded audio,
   framing, sessions, actions and follow-ups to existing tasks. The web simulator is
   excluded as an oracle; the two robots remain reserved and were not contacted.
   V-03 stays open: the full v2 reference loop finished but its Node 8 export exceeded
@@ -149,20 +149,20 @@ Newest first. One line per verified increment (autonomous loop appends here).
   performance sink, two original smoke captures agree across 42 cases and two report
   captures agree on all measured outputs across 73 cases. The report gate still fails its
   one external `answer` action gap. Fresh Phoenix baselines have 1,659/6,751 differences,
-  respectively, with no trace failures. [PRODUCTION.md](docs/parity/PRODUCTION.md) retains
+  respectively, with no trace failures. [PRODUCTION.md](../parity/PRODUCTION.md) retains
   complete provenance, superseded diagnostics and owning-task assignments. All 280 unit
   tests pass; `npm test` correctly exits 1 on the strict comparison. Revised full corpus
   controls and baseline review remain in progress; no product parity task is checked off.
 
 - 2026-09-05 — **V-03 coverage inventory and production smoke grader implemented; task remains open.**
   This entry records v1 diagnostics, superseded by the fixture review above.
-  [COVERAGE.md](docs/parity/COVERAGE.md) maps 960 original source cases, 89 public operation
+  [COVERAGE.md](../parity/COVERAGE.md) maps 960 original source cases, 89 public operation
   instances, 223 wire declarations, 117 grammar sources and 45 asset sets to owning tasks.
   All three corpora are preserved unchanged: 17,137 base occurrences and 3,370 conditional
   variants, retaining overlaps and missing expectations. The recovered original NLU 2.8.3
   service loads 98 FSTs and produces real parser/router/chitchat/report HTTP traces.
   Two original 40-case captures agree; seven grader tests reject corrupt fields, bytes and
-  sessions. [PRODUCTION.md](docs/parity/PRODUCTION.md) records Phoenix's 1,521 differences and
+  sessions. [PRODUCTION.md](../parity/PRODUCTION.md) records Phoenix's 1,521 differences and
   one action coverage gap. `npm test` now passes 277 unit tests and tracker validation, then
   correctly exits 1 on strict parity failure. Both older diagnostic graders now fail on
   mismatches; the alternate oracle moved outside unit discovery. Fixed an existing calendar
@@ -175,7 +175,7 @@ Newest first. One line per verified increment (autonomous loop appends here).
   Removed blanket ID/time/session/port deletion; bounded ID/address/timing/ETag rules have
   independent checks and corruption tests. Two original runs match all 28 cases; Phoenix
   returns exit 1 with 267 field differences across 26 cases and zero invariant failures.
-  [COMPARISON.md](docs/parity/COMPARISON.md) maps these to HTTP/routes/headers, history identity,
+  [COMPARISON.md](../parity/COMPARISON.md) maps these to HTTP/routes/headers, history identity,
   parser/authentication errors and final-socket behavior. Fixed the fixture's automatic HTTP
   clock and separated slow Docker cleanup from per-case timing; no production handler changed.
   36 focused tests and 263 regressions pass; all pre-existing application edits are preserved.
@@ -183,11 +183,11 @@ Newest first. One line per verified increment (autonomous loop appends here).
   source coverage and strict production grading; no Phoenix product-parity task checked off.
 
 - 2026-09-05 — **PM-03 compatibility baseline and V-01 executable original reference verified.**
-  [COMPATIBILITY.md](docs/parity/COMPATIBILITY.md) freezes original Hashbrown/client/dependency
+  [COMPATIBILITY.md](../parity/COMPATIBILITY.md) freezes original Hashbrown/client/dependency
   pins, classifies all historical divergences and retains the entire companion-cloud backlog.
   Jibo MCP release/QA documentation and the artifact archive identified the historical client
   matrix, the legacy `Settings_20160801.GetSettings` dependency and the requested NLU 2.8.3
-  binary. [REFERENCE.md](docs/parity/REFERENCE.md) records 38 original transactions, 19 fixture
+  binary. [REFERENCE.md](../parity/REFERENCE.md) records 38 original transactions, 19 fixture
   checks and raw HTTP/WS/relay/settings/history-request evidence. The isolated Node 8.9.4
   runtime uses TypeScript 2.5.3 module emission; 376 source inputs and 15 service manifests
   match original Git objects. Full development install hit ENOSPC; a production dependency
@@ -197,8 +197,8 @@ Newest first. One line per verified increment (autonomous loop appends here).
   strict comparisons; no Phoenix feature-parity task is checked off by this infrastructure.
 
 - 2026-09-05 — **Initial 1:1 source audit and parity lifecycle plan.** Published
-  [AUDIT.md](docs/parity/AUDIT.md), [PLAN.md](docs/parity/PLAN.md), a 76-task
-  [checklist](docs/parity/TASKS.md) generated from an evidence/dependency ledger, and
+  [AUDIT.md](../parity/AUDIT.md), [PLAN.md](../parity/PLAN.md), a 76-task
+  [checklist](../parity/TASKS.md) generated from an evidence/dependency ledger, and
   `parity:status` / `parity:check` commands. Compared the current dirty Phoenix baseline with
   Pegasus `d682547a` and identified original hashbrown `5c0a7390` separately from restoration
   changes. Used Jibo MCP for internal docs, original NLU/GQA/JCP source discovery and all 26

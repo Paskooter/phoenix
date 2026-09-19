@@ -28,7 +28,17 @@ Robots and clients connect to the hub at `ws://<host>:9000/listen` (HTTP API on 
 port: `GET /healthcheck`, `GET /v1/skills`); a robot's Classic Services (OOBE, update, log, …)
 go to the classic entrypoint on `:9012`. Logs land in `/tmp/phx-compose-*.log`.
 
-The [portable parser deployment guide](parity/candidates/N-08-snapshot-deployment-root-20260907.md) explains installing the approved graph bundle and selecting it for native or Compose startup.
+An optional **compiled parser profile** can be installed from a reviewed bundle and selected for
+either launcher:
+
+```bash
+node scripts/install-nlu-snapshot.mjs --input <bundle-dir> --output runtime/nlu-snapshot-v1
+PHOENIX_NLU_RUNTIME=compiled-fst PHOENIX_NLU_COMPILED_SNAPSHOT_MANIFEST=runtime/nlu-snapshot-v1/profile.json \
+  bash scripts/run-compose-stack.sh
+```
+
+The default AST parser needs no provisioning at all; see [DIVERGENCES.md](DIVERGENCES.md) for how
+the two profiles relate.
 
 Useful env, all optional:
 
@@ -39,7 +49,7 @@ Useful env, all optional:
 | `HUB_TOKEN_SECRET` | JWT secret robots must sign with (default `dev-hub-token-secret`) |
 | `DISABLE_AUTH` | defaults `true` for local use — set `false` to require robot JWTs |
 | — | the admin page (`/#/admin`) has no shared password; grant it per account with `scripts/portal-grant-admin.mjs --email <address>` |
-| `PREFS_FROM_CONFIG` | `true` = personal-report prefs from `resources/report-prefsConfig.json` |
+| `PREFS_FROM_CONFIG` | `true` = personal-report prefs from `packages/skills/resources/report-prefsConfig.json` |
 
 The launcher also starts the **OTA** server (`:9010`), the **account service + web portal**
 (`:9011`), and the **classic-service entrypoint** (`:9012`, the robot's single front door);
@@ -61,9 +71,8 @@ This launcher auto-detects the optional LAN services and degrades gracefully wit
 
 ## Running it — with Docker
 
-`docker-compose.yml` uses the reference service names and host ports. Individual service
-substitution is still being verified: the audit found differences in default skill URLs and
-environment-variable handling. The following starts the current Phoenix stack:
+`docker-compose.yml` uses the reference service names and host ports. The following starts the
+current Phoenix stack:
 
 ```bash
 docker compose up
@@ -137,7 +146,7 @@ loop-guard so it stops once the robot already runs the target).
 > conversational-contract check.
 
 `update` is one of the robot's **Classic Services** (its cloud REST API surface). For the full
-inventory and how to add another, see **[CLASSIC-SERVICES.md](../CLASSIC-SERVICES.md)**.
+inventory and how to add another, see **[CLASSIC-SERVICES.md](./CLASSIC-SERVICES.md)**.
 
 ## Classic services (the robot's cloud API)
 
@@ -167,7 +176,7 @@ curl -s :9012/ -H 'x-amz-target: OOBE_20161026.SetupRobot' -d '…'           # 
 
 "end-to-end" = verified working through the real consumer; "wire" = the robot protocol is
 verified (the live robot seam is pending hardware); "build-to-spec / stub" = implemented to the
-contract but unverified without the mobile app — see [DIVERGENCES.md](../DIVERGENCES.md).
+contract but unverified without the mobile app — see [DIVERGENCES.md](./DIVERGENCES.md).
 
 ## Web portal + robot adoption
 
@@ -228,7 +237,7 @@ uses the real robot credential exchange:
 [real Moth trial](parity/evidence/2026-09-07/hardware/authenticated-launcher/review.json)
 verified the native signed exchange, both Hub paths, clock rendering and a
 synthetic proactive turn, followed by rollback. Persistent deployment and the
-remaining authentication lifecycle checks are tracked in the parity ledger.
+remaining authentication lifecycle checks are open items in the task ledger.
 
 For the bundled Compose launchers, `DISABLE_AUTH=false` and a private
 `HUB_TOKEN_SECRET` enable Hub authentication. Other Classic operations retain
@@ -283,23 +292,23 @@ Then:
    `scripts/point-robot-at-phoenix.sh <robot-ip> <phoenix-ip> 9012 9000` rewrites `region_config`
    (→ `http://<phoenix>:9012`) and the Jetstream hub target over SSH. (That script repoints the
    REST `region_config`; the robot's notification **wsendpoint** must still be repointed by hand —
-   see [DIVERGENCES.md](../DIVERGENCES.md).)
+   see [DIVERGENCES.md](./DIVERGENCES.md).)
 3. **Firewall the internals.** Bind `:9003`–`:9010` to `127.0.0.1` (or block them at the host
    firewall). Only `:9000`, `:9011`, and `:9012` should be reachable — and only through TLS.
 
-Classic authentication is partially implemented. `Account_20151111.CreateHubToken`
-verifies SigV4 using the stored robot credentials; the [real native TLS trial](parity/evidence/2026-09-06/hardware/a02-native-auth-reviewed.json)
-exercises that path. Most other Classic routes still rely on network trust and
-have separate authentication work outstanding. Portal admin authentication,
-Hub bearer-token checks and TLS do not supply missing authorization for those
-routes. See the [tracked acceptance criteria](parity/TASKS.md) before exposing
-them beyond the development network.
+Classic authentication is deliberately narrow. `Account_20151111.CreateHubToken` verifies SigV4
+against the stored robot credentials and issues the hub token — the
+[real native TLS trial](parity/evidence/2026-09-06/hardware/a02-native-auth-reviewed.json)
+exercises that path on hardware — and the hub verifies the token it receives. The rest of the
+Classic surface relies on network trust, because the original per-account signing keys are
+unrecoverable. Portal admin access, hub bearer-token checks and TLS do not authorize those
+routes: keep them on a trusted network, or behind a firewall/VPN, as
+[DEPLOYMENT.md](DEPLOYMENT.md) describes.
 
 ## Verification
 
-The explicit original GQA factory and HTTP adapter now pass [20 complete source response comparisons, 473 blocked-term controls and 193 query/filter controls](parity/evidence/2026-09-07/gqa-core/review.json). The integrated tree passes 677 unit tests, with seven explicit skips, and all 43 smoke cases. The [explicit Wikipedia profile review](parity/evidence/2026-09-07/gqa-wikipedia/review.json) adds 34 complete response/recovery comparisons and 68 original Hub client HTTP exchanges, including nine corrected page/deadline behaviors. The [Settings Hub review](parity/evidence/2026-09-07/settings-hub/review.json) also accepts 40 payload/transport, 11 redirect/deadline and eight complete service-response controls, including recovery after malformed provider errors. The [Settings code-projection review](parity/evidence/2026-09-07/settings-hub-projection/review.json) adds 22 source controls for payloads, transport and read/update/delete failures. Full GQA provider/deployment parity remains open. The [apostrophe review](parity/evidence/2026-09-07/nlu-apostrophes/review.json) brings focused native parser checks to 21/21; the full default AST replay retains 52 differences. The [portable-parser Moth trial](parity/evidence/2026-09-07/hardware/portable-snapshot/review.json) verified authenticated native transport, clock rendering, joke playback calls and rollback; microphone recognition and the physical ring remain unverified.
-
-Current regression checks and progress tracking:
+Every claim in this repository is backed by tracked evidence. These are the commands that produce
+it:
 
 ```bash
 npm test                                      # unit tests, tracker validation, strict production parity gate
@@ -309,19 +318,15 @@ npm run harness -- --out .parity/runs/compare   # original/Phoenix wire comparis
 npm run harness -- --candidate original --out .parity/runs/control  # calibrate with two original runs
 npm run parity:status                         # tracked tasks and next ready task
 npm run parity:check                          # tracker/evidence consistency
-node packages/harness/src/corpusRunner.js      # legacy chitchat intent/MIM diagnostic; fails on mismatches
-node packages/nlu/tools/legacyOracleDiagnostic.mjs  # legacy alternate-engine diagnostic; not production parity
+node scripts/verify-compose-contract.mjs       # health and wire checks against a running stack
 node scripts/parity-probes.mjs --out /tmp/phoenix-probes.json
-node scripts/verify-compose-contract.mjs       # smoke checks against a running stack
 ```
 
-The [production gate](parity/PRODUCTION.md) compares full HTTP parser requests, entities,
-winning rules, routing/memos and real skill actions/sessions with hash-pinned original captures.
-`npm test` fails when that comparison differs, even if unit tests pass. The two older diagnostics
-now also exit nonzero on mismatches; the alternate-engine oracle moved out of unit-test discovery
-and its saved values retain incomplete provenance. The [harness](../packages/harness/README.md)
-separately compares 28 HTTP/hub fixtures. [COVERAGE.md](parity/COVERAGE.md) inventories 960
-original test cases and 20,507 corpus fixture occurrences; complete corpus grading remains V-03.
-An original/original calibration pass verifies the comparison machinery, not Phoenix behavior.
-Historical simulator/browser checks require a separate `jibo-web-sim` checkout and were not
-rerun in this audit. See [WORKLOG.md](../WORKLOG.md) and [M9-REPORT.md](../M9-REPORT.md) for history.
+The [production gate](parity/PRODUCTION.md) compares full HTTP parser requests, entities, winning
+rules, routing/memos and real skill actions/sessions against hash-pinned original captures;
+`npm test` fails when that comparison differs, even if unit tests pass. The
+[harness](../packages/harness/README.md) separately compares 28 HTTP/hub fixtures, and
+[COVERAGE.md](parity/COVERAGE.md) inventories 960 original test cases and 20,507 corpus fixture
+occurrences. The task ledger under [`docs/parity/`](parity/) holds the per-task evidence — review
+records, hardware captures and comparison reviews — behind every verified item shown by
+`npm run parity:status`.
