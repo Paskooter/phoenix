@@ -246,10 +246,16 @@ for p in "${PRESENT[@]}"; do
     gid=\$(echo \"\$meta\" | cut -d' ' -f3)
     before=\$(grep -o 'jibo\.com' \"\$f\" | wc -l)
     sed -i 's/jibo\.com/jibo\.io/g' \"\$f\"
-    chown \"\$uid:\$gid\" \"\$f\" 2>/dev/null || true
-    chmod \"\$mode\" \"\$f\" 2>/dev/null || true
+    # Modes on this platform are inconsistent across the six copies (seen: 644,
+    # 600 root-only, and 755 uid 2000). A root-only copy is fatal: the behaviour
+    # engine runs as the unprivileged skill user (uid 2000) and cannot read its
+    # own client config, so every skill that reads it fails to construct —
+    # Settings, IFTTT and surprises included. Normalise to world-readable rather
+    # than trying to preserve a mode that may be the bug.
+    chmod 644 \"\$f\" 2>/dev/null || true
+    chmod a+rX \"\$(dirname \"\$f\")\" 2>/dev/null || true
     after=\$(grep -o 'jibo\.com' \"\$f\" | wc -l)
-    printf '  rewrote %s (%s -> %s jibo.com; perms %s %s:%s)\n' '$p' \"\$before\" \"\$after\" \"\$mode\" \"\$uid\" \"\$gid\"
+    printf '  rewrote %s (%s -> %s jibo.com; mode now %s)\n' '$p' \"\$before\" \"\$after\" \"\$(ls -ln \"\$f\" | awk '{print \$1}')\"
   " 2>&1 | tr -d '\r')"
   printf '%s\n' "$out"
   APPLIED+=("$p")
