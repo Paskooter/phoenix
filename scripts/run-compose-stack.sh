@@ -209,6 +209,9 @@ if [ "${ACCOUNT:-1}" != "0" ]; then
   # Empty pass-throughs remain empty: account token issuance must stay disabled
   # until an operator supplies a real secret. A non-empty value from the shell or
   # .env is passed through unchanged.
+  # The portal forwards gallery, update catalog, and classic-account calls to
+  # Classic. Keep that internal hop on the same port map as every other native
+  # service; otherwise the client falls back to the development port 7017.
   PORT=$(p 9011) \
   HUB_TOKEN_SECRET="$HUB_TOKEN_SECRET" \
   ADMIN_PASSWORD="${ADMIN_PASSWORD:-}" \
@@ -216,6 +219,7 @@ if [ "${ACCOUNT:-1}" != "0" ]; then
   ETCO_account_secureCookies="${ETCO_account_secureCookies:-true}" \
   ETCO_account_photoBaseUrl="$PHOTO_PUBLIC_URL" \
   ETCO_account_photoDirectory="$PHOTO_DIRECTORY" \
+  NET_classic=localhost:$(p 9012) \
   NET_ota=localhost:$(p 9010) \
     node packages/account/src/index.js > "$LOG_DIR/phx-compose-account.log"   2>&1 & JOB_PIDS[account]=$!
   ACCOUNT_URL="http://localhost:$(p 9011)"
