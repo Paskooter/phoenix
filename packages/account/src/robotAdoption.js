@@ -220,7 +220,14 @@ export function robotAdoptionRoutes(store, {
 } = {}) {
   return {
     'POST /api/adopt-robot': async ({ req, res, body }) => {
-      const key = req?.socket?.remoteAddress || req?.headers?.['x-forwarded-for']?.split(',')[0] || 'unknown';
+      // The production nginx edge overwrites X-Real-IP after applying its
+      // trusted-proxy real-IP policy.  Prefer that value so a loopback-bound
+      // Account service does not collapse every public client into one rate
+      // bucket; never trust a client-provided X-Forwarded-For chain here.
+      const realIp = req?.headers?.['x-real-ip'];
+      const key = (typeof realIp === 'string' && realIp.trim())
+        || req?.socket?.remoteAddress
+        || 'unknown';
       const limited = rateLimiter?.allow?.(key);
       if (limited && !limited.allowed) {
         const seconds = Math.ceil(limited.retryAfterMs / 1000);
