@@ -126,6 +126,13 @@ reference ports with `PHOENIX_PORT_OFFSET` (`scripts/run-compose-stack.sh:10-45`
 For production, leave the offset at zero unless every nginx upstream and every
 internal peer is changed consistently.
 
+The launcher also sets the Account portal's `NET_classic` peer to the mapped
+Classic port. Keep that wiring when using a custom supervisor: Gallery, Jots,
+People, and update-catalog requests are Account-to-Classic calls. If it is
+omitted, Account falls back to development port `7017`; the portal shell still
+loads, but those authenticated pages fail because production Classic is on
+`9012` (or its configured offset).
+
 ### Separate mode: `authenticated-stack.mjs`
 
 `scripts/parity-robot/authenticated-stack.mjs` is a **different deployment mode**,
@@ -291,6 +298,25 @@ TLS verification (`scripts/parity-robot/repoint-robot.sh:1-35`). It checks the
 certificate being served for the robot's actual region before it changes trust
 (`scripts/parity-robot/repoint-robot.sh:313-345`). Use that mechanism instead of
 trying to invent a public `api.jibo.com` DNS record.
+
+### Certificate names must also be nginx names
+
+Having the robot name in a certificate SAN is necessary but not sufficient.
+nginx selects its upstream only after TLS using the HTTP `Host`/SNI virtual
+host. List every *actual* robot name in the appropriate `server_name` directive:
+
+- `<region>.…` routes to Classic, including the OTA package location;
+- `<region>-socket.…` routes to Classic with WebSocket upgrade headers; and
+- the region's hub name (for example `stg-hub.…`) routes to Hub with WebSocket
+  upgrade headers.
+
+The deployment's aliases (`api.…`, `hub.…`) are not substitutes for an active
+robot whose region is `stg-entrypoint`, `dev-entrypoint`, or another region.
+An unknown-vhost policy such as `return 444` is correct hardening, but a missing
+legitimate name makes the native client report the misleading error `SSL
+connection unexpectedly closed`. After every nginx change, test each exact name
+from the robot or with `--resolve <name>:443:<origin-ip>`; a certificate-only
+test does not prove that it reaches the intended upstream.
 
 ## Cloudflare proxy, 443, and the robot
 
