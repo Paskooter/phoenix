@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Native (no-docker) equivalent of docker-compose.yml — SAME host-port + env contract:
+# Native (no-docker) equivalent of docker-compose.yml. Production defaults are
+# loopback-only so nginx (or another explicitly configured TLS edge) is the only
+# internet-facing listener:
 #   hub 9000 · report-skill 9003 · chitchat-skill 9004 · parser 9005 · history 9006 ·
 #   lasso 9007 · color-skill 9008 · answer-skill 9009 · example-skill 9013 · template-skill 9014
 # The hub resolves cloud skills via skills-native.json (localhost:<port> per skill).
@@ -13,6 +15,14 @@ cd "$(dirname "$0")/.."
 #   PHOENIX_ENV_FILE    source this file instead of ./.env (PHOENIX_ENV_FILE=/dev/null = none)
 #   PHOENIX_PORT_OFFSET shift every reference host port and localhost peer by N
 #   PHOENIX_LOG_DIR     write the per-service logs here instead of /tmp
+#   CLASSIC_DATA_DIR    private durable root for Classic stores (defaults to
+#                       packages/account/data/classic)
+#   PHOENIX_BIND_HOST   listener address (default 127.0.0.1; use a private/LAN
+#                       address only with an explicit firewall/VPN policy)
+#   PHOENIX_REQUIRE_PRODUCTION_CONFIG=true
+#                       refuse startup unless a non-empty secret, auth enabled,
+#                       and fixed HTTPS public origins are configured
+#                       (set this in the production systemd unit)
 
 NO_ENV=0
 for arg in "$@"; do
@@ -21,6 +31,23 @@ for arg in "$@"; do
     *) echo "unknown option: $arg" >&2; exit 2 ;;
   esac
 done
+
+# Environment variables supplied by a supervisor/command line must remain
+# authoritative when the convenience .env file is sourced below. In
+# particular, a production unit's loopback bind and fail-closed gate must not
+# be weakened by a stale checkout-local value.
+_PHOENIX_BIND_HOST_WAS_SET="${PHOENIX_BIND_HOST+x}"
+_PHOENIX_BIND_HOST_VALUE="${PHOENIX_BIND_HOST-}"
+_PHOENIX_REQUIRE_PRODUCTION_WAS_SET="${PHOENIX_REQUIRE_PRODUCTION_CONFIG+x}"
+_PHOENIX_REQUIRE_PRODUCTION_VALUE="${PHOENIX_REQUIRE_PRODUCTION_CONFIG-}"
+_HUB_TOKEN_SECRET_WAS_SET="${HUB_TOKEN_SECRET+x}"
+_HUB_TOKEN_SECRET_VALUE="${HUB_TOKEN_SECRET-}"
+_DISABLE_AUTH_WAS_SET="${DISABLE_AUTH+x}"
+_DISABLE_AUTH_VALUE="${DISABLE_AUTH-}"
+_OTA_PUBLIC_URL_WAS_SET="${OTA_PUBLIC_URL+x}"
+_OTA_PUBLIC_URL_VALUE="${OTA_PUBLIC_URL-}"
+_CLASSIC_PUBLIC_URL_WAS_SET="${CLASSIC_PUBLIC_URL+x}"
+_CLASSIC_PUBLIC_URL_VALUE="${CLASSIC_PUBLIC_URL-}"
 
 # Source .env so friendly names (PARAKEET_URL, LLM_URL, LLM_MODEL, …) are populated for the
 # ETCO_*/NET_* mappings below. The node services already read .env via @phoenix/common's dotenv
@@ -34,6 +61,36 @@ if [ "$NO_ENV" -eq 0 ]; then
   if [ -n "$ENV_FILE" ] && [ -f "$ENV_FILE" ]; then set -a; . "$ENV_FILE"; set +a; fi
 fi
 
+if [ "$_PHOENIX_BIND_HOST_WAS_SET" = x ]; then PHOENIX_BIND_HOST="$_PHOENIX_BIND_HOST_VALUE"; fi
+if [ "$_PHOENIX_REQUIRE_PRODUCTION_WAS_SET" = x ]; then PHOENIX_REQUIRE_PRODUCTION_CONFIG="$_PHOENIX_REQUIRE_PRODUCTION_VALUE"; fi
+if [ "$_HUB_TOKEN_SECRET_WAS_SET" = x ]; then HUB_TOKEN_SECRET="$_HUB_TOKEN_SECRET_VALUE"; fi
+if [ "$_DISABLE_AUTH_WAS_SET" = x ]; then DISABLE_AUTH="$_DISABLE_AUTH_VALUE"; fi
+if [ "$_OTA_PUBLIC_URL_WAS_SET" = x ]; then OTA_PUBLIC_URL="$_OTA_PUBLIC_URL_VALUE"; fi
+if [ "$_CLASSIC_PUBLIC_URL_WAS_SET" = x ]; then CLASSIC_PUBLIC_URL="$_CLASSIC_PUBLIC_URL_VALUE"; fi
+
+# Safe defaults: an unset secret cannot mint or validate a token, and an unset
+# auth flag is still authenticated. The test harness may intentionally run this
+# with no secret to exercise the disabled-token-issuance path; production systemd
+# sets PHOENIX_REQUIRE_PRODUCTION_CONFIG=true below to turn that into a hard stop.
+HUB_TOKEN_SECRET="${HUB_TOKEN_SECRET:-}"
+DISABLE_AUTH="${DISABLE_AUTH:-false}"
+OTA_PUBLIC_URL="${OTA_PUBLIC_URL:-${ETCO_ota_publicUrl:-}}"
+CLASSIC_PUBLIC_URL="${CLASSIC_PUBLIC_URL:-${ETCO_classic_publicUrl:-}}"
+ACCOUNT_INTERNAL_PEER_TOKEN="${ETCO_account_internalPeerToken:-}"
+if [ "${PHOENIX_REQUIRE_PRODUCTION_CONFIG:-false}" = "true" ]; then
+  [ -n "$HUB_TOKEN_SECRET" ] || { echo "refusing production start: HUB_TOKEN_SECRET is empty" >&2; exit 2; }
+  [ "$DISABLE_AUTH" = "false" ] || { echo "refusing production start: DISABLE_AUTH must be false" >&2; exit 2; }
+  case "$OTA_PUBLIC_URL" in
+    https://?*) ;;
+    *) echo "refusing production start: OTA_PUBLIC_URL must be a fixed HTTPS origin" >&2; exit 2 ;;
+  esac
+  case "$CLASSIC_PUBLIC_URL" in
+    https://?*) ;;
+    *) echo "refusing production start: CLASSIC_PUBLIC_URL must be a fixed HTTPS origin" >&2; exit 2 ;;
+  esac
+  [ -n "$ACCOUNT_INTERNAL_PEER_TOKEN" ] || { echo "refusing production start: ETCO_account_internalPeerToken is empty" >&2; exit 2; }
+fi
+
 OFFSET="${PHOENIX_PORT_OFFSET:-0}"
 case "$OFFSET" in
   ''|*[!0-9]*) echo "invalid PHOENIX_PORT_OFFSET: $OFFSET" >&2; exit 2 ;;
@@ -41,8 +98,29 @@ esac
 # Reference host port plus the offset (ref 9000-9014, spacing preserved). Container-side ports
 # never leave 8080, so only the host-facing values and their localhost links shift.
 p() { echo "$(( $1 + OFFSET ))"; }
+BIND_HOST="${PHOENIX_BIND_HOST:-127.0.0.1}"
+case "$BIND_HOST" in
+  *[!A-Za-z0-9_.:\[\]-]*|"")
+    echo "invalid PHOENIX_BIND_HOST: $BIND_HOST" >&2
+    exit 2
+    ;;
+esac
+if [ "${PHOENIX_REQUIRE_PRODUCTION_CONFIG:-false}" = "true" ]; then
+  case "$BIND_HOST" in
+    0.0.0.0|::|\[::\])
+      echo "refusing production start: PHOENIX_BIND_HOST must not be a wildcard" >&2
+      exit 2
+      ;;
+  esac
+fi
+# @phoenix/common reads this for every HTTP service. Keep it exported so the
+# native launcher cannot accidentally leave one service on a wildcard bind.
+export PHOENIX_BIND_HOST="$BIND_HOST"
 LOG_DIR="${PHOENIX_LOG_DIR:-/tmp}"
 mkdir -p "$LOG_DIR"
+CLASSIC_DATA_DIR="${CLASSIC_DATA_DIR:-$PWD/packages/account/data/classic}"
+mkdir -p "$CLASSIC_DATA_DIR"
+chmod 700 "$CLASSIC_DATA_DIR"
 # Every backgrounded service pid is registered so the final wait can report each process's real
 # exit status (used by the R-02 shutdown check). Declared before use to satisfy `set -u`.
 declare -A JOB_PIDS=()
@@ -76,10 +154,22 @@ PARAKEET_URL="${PARAKEET_URL:-}"
 REPORT_PREFS_FROM_CONFIG="${prefsFromConfig:-${PREFS_FROM_CONFIG:-false}}"
 REPORT_LASSO="${NET_lasso:-localhost:$(p 9007)}"
 REPORT_SETTINGS="${NET_settings:-${NET_SETTINGS:-settings.jibo.aws}}"
-CLASSIC_PUBLIC_URL="${CLASSIC_PUBLIC_URL:-${ETCO_classic_publicUrl:-}}"
 PHOTO_PUBLIC_URL="${PHOTO_PUBLIC_URL:-${ETCO_account_photoBaseUrl:-$CLASSIC_PUBLIC_URL}}"
 PHOTO_DIRECTORY="${PHOTO_DIRECTORY:-${ETCO_account_photoDirectory:-$PWD/packages/account/data/member-photos}}"
-GQA_ATTRIBUTION_FILE="${GQA_ATTRIBUTION_FILE:-${ETCO_gqa_attributionFile:-$PWD/packages/account/data/gqa-attribution.json}}"
+GQA_ATTRIBUTION_FILE="${GQA_ATTRIBUTION_FILE:-${ETCO_gqa_attributionFile:-$CLASSIC_DATA_DIR/gqa-attribution.json}}"
+CLASSIC_NOTIFICATION_FILE="${CLASSIC_NOTIFICATION_FILE:-${ETCO_classic_notificationFile:-$CLASSIC_DATA_DIR/notifications.json}}"
+CLASSIC_BACKUP_DIR="${CLASSIC_BACKUP_DIR:-${ETCO_classic_backupDir:-$CLASSIC_DATA_DIR/backups}}"
+CLASSIC_LOG_DIR="${CLASSIC_LOG_DIR:-${ETCO_classic_logDir:-$CLASSIC_DATA_DIR/logs}}"
+CLASSIC_MEDIA_DIR="${CLASSIC_MEDIA_DIR:-${ETCO_classic_mediaDir:-$CLASSIC_DATA_DIR/media}}"
+CLASSIC_MEDIA_FILE="${CLASSIC_MEDIA_FILE:-${ETCO_classic_mediaFile:-$CLASSIC_DATA_DIR/media.json}}"
+CLASSIC_IFTTT_FILE="${CLASSIC_IFTTT_FILE:-${ETCO_classic_iftttFile:-$CLASSIC_DATA_DIR/ifttt.json}}"
+CLASSIC_PERSON_FILE="${CLASSIC_PERSON_FILE:-${ETCO_classic_personFile:-$CLASSIC_DATA_DIR/person.json}}"
+CLASSIC_JOT_FILE="${CLASSIC_JOT_FILE:-${ETCO_classic_jotFile:-$CLASSIC_DATA_DIR/jot.json}}"
+CLASSIC_VOICE_TRAINING_FILE="${CLASSIC_VOICE_TRAINING_FILE:-${ETCO_classic_voiceTrainingFile:-$CLASSIC_DATA_DIR/voice-training.json}}"
+CLASSIC_KEY_FILE="${CLASSIC_KEY_FILE:-${ETCO_classic_keyFile:-$CLASSIC_DATA_DIR/keys.json}}"
+CLASSIC_ROBOT_DIR="${CLASSIC_ROBOT_DIR:-${ETCO_classic_robotDir:-$CLASSIC_DATA_DIR/robots}}"
+CLASSIC_KEY_BINARY_DIR="${CLASSIC_KEY_BINARY_DIR:-${ETCO_classic_keyBinaryDir:-$CLASSIC_DATA_DIR/key-binaries}}"
+CLASSIC_PUSH_FILE="${CLASSIC_PUSH_FILE:-${ETCO_classic_pushFile:-$CLASSIC_DATA_DIR/push.json}}"
 
 PORT=$(p 9005) ETCO_parser_llmUrl="$LLM_URL" ETCO_parser_llmModel="$LLM_MODEL" \
   node packages/nlu/src/index.js      > "$LOG_DIR/phx-compose-parser.log"   2>&1 & JOB_PIDS[parser]=$!
@@ -116,14 +206,14 @@ fi
 # issuance (CLASSIC-SERVICES.md / OOBE-PORTAL-HANDOFF.md). Disable with ACCOUNT=0.
 ACCOUNT_URL=""
 if [ "${ACCOUNT:-1}" != "0" ]; then
-  # Empty pass-throughs fall back to .env (the account service loads it via @phoenix/common; the
-  # dotenv loader fills unset OR empty-string keys). HUB_TOKEN_SECRET keeps its dev default so the
-  # hub + account agree out of the box. A non-empty value exported in the shell still wins.
+  # Empty pass-throughs remain empty: account token issuance must stay disabled
+  # until an operator supplies a real secret. A non-empty value from the shell or
+  # .env is passed through unchanged.
   PORT=$(p 9011) \
-  HUB_TOKEN_SECRET="${HUB_TOKEN_SECRET:-dev-hub-token-secret}" \
+  HUB_TOKEN_SECRET="$HUB_TOKEN_SECRET" \
   ADMIN_PASSWORD="${ADMIN_PASSWORD:-}" \
   ETCO_account_region="${ETCO_account_region:-}" \
-  ETCO_account_secureCookies="${ETCO_account_secureCookies:-}" \
+  ETCO_account_secureCookies="${ETCO_account_secureCookies:-true}" \
   ETCO_account_photoBaseUrl="$PHOTO_PUBLIC_URL" \
   ETCO_account_photoDirectory="$PHOTO_DIRECTORY" \
   NET_ota=localhost:$(p 9010) \
@@ -133,9 +223,9 @@ fi
 
 PORT=$(p 9000) \
 ETCO_hub_skillsConfig="$SKILLS_CONFIG" \
-ETCO_hub_disableAuth="${DISABLE_AUTH:-true}" \
+ETCO_hub_disableAuth="$DISABLE_AUTH" \
 ETCO_hub_accountUrl="${ETCO_hub_accountUrl:-$ACCOUNT_URL}" \
-ETCO_server_hubTokenSecret="${HUB_TOKEN_SECRET:-dev-hub-token-secret}" \
+ETCO_server_hubTokenSecret="$HUB_TOKEN_SECRET" \
 ETCO_server_parakeetUrl="$PARAKEET_URL" \
 NET_parser=localhost:$(p 9005) \
 NET_history=localhost:$(p 9006) \
@@ -153,11 +243,24 @@ if [ "${CLASSIC:-1}" != "0" ]; then
   NET_ota=localhost:$(p 9010) \
   ETCO_gqa_attributionFile="$GQA_ATTRIBUTION_FILE" \
   ETCO_classic_publicUrl="$CLASSIC_PUBLIC_URL" \
+  ETCO_classic_notificationFile="$CLASSIC_NOTIFICATION_FILE" \
+  ETCO_classic_backupDir="$CLASSIC_BACKUP_DIR" \
+  ETCO_classic_logDir="$CLASSIC_LOG_DIR" \
+  ETCO_classic_mediaDir="$CLASSIC_MEDIA_DIR" \
+  ETCO_classic_mediaFile="$CLASSIC_MEDIA_FILE" \
+  ETCO_classic_iftttFile="$CLASSIC_IFTTT_FILE" \
+  ETCO_classic_personFile="$CLASSIC_PERSON_FILE" \
+  ETCO_classic_jotFile="$CLASSIC_JOT_FILE" \
+  ETCO_classic_voiceTrainingFile="$CLASSIC_VOICE_TRAINING_FILE" \
+  ETCO_classic_keyFile="$CLASSIC_KEY_FILE" \
+  ETCO_classic_robotDir="$CLASSIC_ROBOT_DIR" \
+  ETCO_classic_keyBinaryDir="$CLASSIC_KEY_BINARY_DIR" \
+  ETCO_classic_pushFile="$CLASSIC_PUSH_FILE" \
     node packages/classic/src/index.js > "$LOG_DIR/phx-compose-classic.log"    2>&1 & JOB_PIDS[classic]=$!
   CLASSIC_NOTE=" · classic-entrypoint:$(p 9012)"
 fi
 
-echo "compose-contract stack: hub:$(p 9000) report:$(p 9003) chitchat:$(p 9004) parser:$(p 9005) history:$(p 9006) lasso:$(p 9007) color:$(p 9008) answer:$(p 9009) example:$(p 9013) template:$(p 9014)"
+echo "compose-contract stack: bind=${BIND_HOST} hub:$(p 9000) report:$(p 9003) chitchat:$(p 9004) parser:$(p 9005) history:$(p 9006) lasso:$(p 9007) color:$(p 9008) answer:$(p 9009) example:$(p 9013) template:$(p 9014)"
 echo "ext: ota:$(p 9010) (OTA update server)${ACCOUNT_URL:+ · account+portal:$(p 9011)}${CLASSIC_NOTE}"
 [ -n "$ACCOUNT_URL" ] && echo "portal: http://localhost:$(p 9011)  (admin at /#/admin — needs ADMIN_PASSWORD)"
 [ -n "$CLASSIC_NOTE" ] && echo "robot front door: http://localhost:$(p 9012)  (point the robot region here)"

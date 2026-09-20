@@ -304,7 +304,10 @@ export class Catalog {
   }
 
   /** Render an internal entry as the wire `Update` shape the robot expects. */
-  toUpdate(e, { baseUrl, fromVersion } = {}) {
+  toUpdate(e, { baseUrl, fromVersion, packageUrl } = {}) {
+    const url = typeof packageUrl === 'function'
+      ? packageUrl(e)
+      : packageUrl || `${baseUrl}/ota/package?id=${encodeURIComponent(e.id)}`;
     return {
       _id: e.id,
       created: e.created,
@@ -312,7 +315,7 @@ export class Catalog {
       fromVersion: e.fromVersion === '*' ? (fromVersion ?? e.fromVersion) : e.fromVersion,
       toVersion: e.toVersion,
       changes: e.changes,
-      url: `${baseUrl}/ota/package?id=${encodeURIComponent(e.id)}`,
+      url,
       shaHash: e.sha1,
       length: e.length,
       subsystem: e.subsystem,

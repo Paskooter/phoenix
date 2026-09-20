@@ -1,0 +1,43 @@
+[Unit]
+Description=Phoenix native service stack (private backends behind nginx)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=phoenix
+Group=phoenix
+WorkingDirectory=/srv/phoenix
+EnvironmentFile=/srv/phoenix/.env
+Environment=PHOENIX_ENV_FILE=/srv/phoenix/.env
+Environment=PHOENIX_BIND_HOST=127.0.0.1
+Environment=PHOENIX_REQUIRE_PRODUCTION_CONFIG=true
+Environment=PHOENIX_LOG_DIR=/var/log/phoenix
+ExecStartPre=/usr/bin/test -r /srv/phoenix/.env
+ExecStartPre=/usr/bin/test -d /srv/phoenix/packages/account/data
+ExecStartPre=/usr/bin/test -d /srv/phoenix/packages/account/data/classic
+ExecStart=/usr/bin/bash /srv/phoenix/scripts/run-compose-stack.sh
+Restart=on-failure
+RestartSec=5s
+KillMode=control-group
+TimeoutStopSec=120s
+UMask=0077
+
+# Keep the native process tree away from the host's privileged surfaces. Node
+# still needs network access to the configured private peers and outbound APIs.
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RemoveIPC=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+ReadWritePaths=/srv/phoenix/packages/account/data /srv/phoenix/packages/ota/data /var/log/phoenix
+
+[Install]
+WantedBy=multi-user.target

@@ -60,24 +60,31 @@ test('Account and Classic preserve signed binary photo bytes, validate headers a
       assert.equal(uploaded.status, 200, await uploaded.clone().text());
       const result = await uploaded.json();
       const url = result.members.find((member) => member.id === memberId).account.photoUrl;
+      // Account's direct object route is no longer a bearer API.  Public
+      // objects are retrieved through Classic's authenticated ingress; a
+      // direct backend URL must not disclose the bytes to an unauthenticated
+      // caller.
       const download = await fetch(url);
-      assert.equal(download.status, 200);
-      assert.deepEqual(Buffer.from(await download.arrayBuffer()), binary);
+      assert.equal(download.status, 401);
       const removed = await post('RemoveMemberPhoto', JSON.stringify({ loopId: loop._id, id: memberId }));
       assert.equal(removed.status, 200);
       assert.equal((await removed.json()).members.find((member) => member.id === memberId).account.photoUrl, null);
-      assert.equal((await fetch(url)).status, 404);
+      assert.equal((await fetch(url)).status, 401);
       const computedHashUpload = await post('UpdateMemberPhoto', binary, headers, owner.secretAccessKey, false);
       assert.equal(computedHashUpload.status, 200, await computedHashUpload.clone().text());
       const computedResult = await computedHashUpload.json();
       const computedUrl = computedResult.members.find((member) => member.id === memberId).account.photoUrl;
-      assert.deepEqual(Buffer.from(await (await fetch(computedUrl)).arrayBuffer()), binary);
+      assert.equal((await fetch(computedUrl)).status, 401);
       assert.equal((await post('UpdateMemberPhoto', binary, headers, 'synthetic-wrong-secret', false)).status, 401);
       assert.equal((await post('ListLoops', binary)).status, 400);
       assert.equal((await post('ListLoops', '{}')).status, 200);
       assert.equal((await post('RemoveMemberPhoto', 'null')).status, 422);
     }
   } finally {
+    // Undici intentionally retains HTTP/1.1 keep-alive connections.  Close
+    // them explicitly so this integration test does not leave its own local
+    // fixtures running after assertions complete.
+    for (const server of [account, classic]) server.closeAllConnections?.();
     await Promise.all([account, classic].map((server) => new Promise((resolve) => server.close(resolve))));
     if (previous === undefined) delete process.env.NET_account;
     else process.env.NET_account = previous;

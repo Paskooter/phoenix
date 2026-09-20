@@ -36,6 +36,7 @@ import { join } from 'node:path';
 import { DefaultPort } from '@phoenix/contracts';
 import { sendAmz, sendAmzError, ValidationException } from './awsJson.js';
 import { generateFriendlyId } from './serialNames.js';
+import { verifiedCallerFromRequest } from './caller.js';
 
 // ---------------------------------------------------------------------------
 // Source constants
@@ -63,6 +64,7 @@ export const ROBOT_ERRORS = {
   MANUFACTURING_ONLY: { code: 'MANUFACTURING_ONLY', statusCode: 403, message: 'Only manufacturing account can access this method' },
   MANUFACTURING_OR_OWNER_ONLY: { code: 'MANUFACTURING_OR_OWNER_ONLY', statusCode: 403, message: 'Only manufacturing or owner account can access this method' },
   ROBOT_OR_OWNER_ONLY: { code: 'ROBOT_OR_OWNER_ONLY', statusCode: 403, message: 'Only robot or owner account can access this method' },
+  ACCOUNT_SERVICE_UNAVAILABLE: { code: 'ACCOUNT_SERVICE_UNAVAILABLE', statusCode: 503, message: 'Account service not available' },
   SERIAL_NUMBER_NOT_SET: { code: 'SERIAL_NUMBER_NOT_SET', statusCode: 422, message: 'Serial number not set for the robot' },
   SERIAL_NUMBER_NOT_MATCH: { code: 'SERIAL_NUMBER_NOT_MATCH', statusCode: 422, message: 'Provided serial number does not match with stored one' },
   ROBOT_NOT_FOUND: { code: 'ROBOT_NOT_FOUND', statusCode: 404, message: 'Robot not found' },
@@ -193,7 +195,15 @@ export class RobotStore {
  * the same seam log.js/backup.js read is used here. `null` means "no identity was
  * forwarded" — the LAN-trusted path (the robot's SigV4 request is not verified).
  */
-export function credentialsFrom(req) {
+export function credentialsFrom(req, requireVerified = false) {
+  const verified = verifiedCallerFromRequest(req);
+  if (verified) return {
+    id: verified.accountId,
+    email: verified.email,
+    isAdmin: verified.isAdmin,
+    friendlyId: verified.friendlyId,
+  };
+  if (requireVerified) return null;
   try {
     const parsed = JSON.parse(req?.headers?.['x-amz-credentials'] || '');
     if (!parsed || typeof parsed !== 'object') return null;
@@ -217,22 +227,21 @@ function accountBase() {
 /**
  * Default ownership resolver: the source's `AccountClient.listRobots(ownerId, owned)` issues
  * `GET <account>/robots?ownerId=<id>[&owned=true]` and returns the owner's robot ids. Returns
- * an array when the account service answers, and `null` when it cannot be reached (no such
- * Phoenix route today, service down) so an unresolved ownership check does not fail a
- * legitimate robot request on an unrelated outage (same convention as backup.js).
+ * an array when the account service answers, and `undefined` when it cannot be reached or
+ * returns an invalid response. An unresolved ownership check must fail closed.
  */
 export async function accountOwnedRobots(ownerId, ownerEditable = false) {
-  if (!ownerId) return null;
+  if (!ownerId) return undefined;
   try {
     const query = new URLSearchParams({ ownerId: String(ownerId) });
     if (ownerEditable) query.set('owned', 'true');
     const res = await fetch(`${accountBase()}/robots?${query.toString()}`, { signal: AbortSignal.timeout(2000) });
-    if (!res.ok) return null;
+    if (!res.ok) return undefined;
     const body = await res.json();
-    if (!Array.isArray(body)) return null;
+    if (!Array.isArray(body)) return undefined;
     return body.map((entry) => (entry && typeof entry === 'object' ? String(entry.friendlyId ?? entry.id ?? entry) : String(entry)));
   } catch {
-    return null;
+    return undefined;
   }
 }
 
@@ -247,14 +256,16 @@ const validation = (res, message) => sendAmzError(res, ValidationException, mess
  * @param {object} [opts]
  * @param {RobotStore} [opts.store]            durable event log (default: file-backed)
  * @param {(req) => object|null} [opts.identity] caller identity resolver
- * @param {(ownerId: string, ownerEditable: boolean) => Promise<string[]|null>} [opts.ownedRobots]
- *        account ownership resolver (array of robot ids, or null when unresolved)
+ * @param {(ownerId: string, ownerEditable: boolean) => Promise<string[]|undefined>} [opts.ownedRobots]
+ *        account ownership resolver (array of robot ids, or undefined when unavailable)
  * @param {() => string} [opts.newFriendlyId]  friendly-id generator
  * @param {() => number} [opts.clock]          event timestamp source
  */
 export function makeRobotHandler(opts = {}) {
   const store = opts.store || new RobotStore();
-  const identity = opts.identity || credentialsFrom;
+  const identity = opts.identity
+    ? (req) => (opts.callerBoundary ? verifiedCallerFromRequest(req) && opts.identity(req) : opts.identity(req))
+    : (req) => credentialsFrom(req, !!opts.callerBoundary);
   const ownedRobots = opts.ownedRobots || accountOwnedRobots;
   const newFriendlyId = opts.newFriendlyId || generateFriendlyId;
   const clock = opts.clock || Date.now;
@@ -262,7 +273,7 @@ export function makeRobotHandler(opts = {}) {
   const now = () => Number(clock());
 
   return async function robotHandler({ req, res, op, body, log }) {
-    const credentials = identity({ headers: req?.headers });
+    const credentials = identity(req);
     const isManufacturing = !!credentials && credentials.email === MANUFACTURING_EMAIL;
     const isAdmin = !!credentials && credentials.isAdmin;
     const isManufacturingOrAdmin = isManufacturing || isAdmin;
@@ -331,12 +342,17 @@ export function makeRobotHandler(opts = {}) {
         if (!isPlainObject(b.payload)) return void validation(res, 'child "payload" fails because ["payload" is required]');
         const isOwnerEditable = RESTRICTED_TO_OWNER.some((prop) => b.payload[prop] !== undefined);
         const restrictedToManufacturing = RESTRICTED_TO_MANUFACTURING.some((prop) => b.payload[prop] !== undefined);
-        let owned = null;
-        if (!isManufacturing && credentials) owned = await ownedRobots(credentials.id, isOwnerEditable);
+        let owned;
+        if (!isManufacturing && credentials) {
+          try {
+            owned = await ownedRobots(credentials.id, isOwnerEditable);
+          } catch {
+            owned = undefined;
+          }
+          if (!Array.isArray(owned)) return void sendAmzError(res, ROBOT_ERRORS.ACCOUNT_SERVICE_UNAVAILABLE);
+        }
         if (!isManufacturing && restrictedToManufacturing) return void sendAmzError(res, ROBOT_ERRORS.MANUFACTURING_ONLY);
-        // `owned === null` is unresolved (no account route); an absent identity is the
-        // LAN-trusted path. Both allow, exactly like backup.js's ownership convention.
-        if (!isManufacturing && credentials && owned && !owned.includes(b.id)) {
+        if (!isManufacturing && credentials && !owned.includes(b.id)) {
           return void sendAmzError(res, ROBOT_ERRORS.ROBOT_OR_OWNER_ONLY);
         }
         const key = convertRobotId(b.id);
@@ -385,9 +401,16 @@ export function makeRobotHandler(opts = {}) {
     async function readOp(which) {
       // permission: source isManufacturingOrAdmin || hasRobot(credentials.id).
       if (!isManufacturingOrAdmin) {
-        let owned = null;
-        if (credentials) owned = await ownedRobots(credentials.id, false);
-        if (credentials && owned && !owned.includes(b.id)) {
+        let owned;
+        if (credentials) {
+          try {
+            owned = await ownedRobots(credentials.id, false);
+          } catch {
+            owned = undefined;
+          }
+          if (!Array.isArray(owned)) return void sendAmzError(res, ROBOT_ERRORS.ACCOUNT_SERVICE_UNAVAILABLE);
+        }
+        if (credentials && !owned.includes(b.id)) {
           return void sendAmzError(res, ROBOT_ERRORS.MANUFACTURING_OR_OWNER_ONLY);
         }
         // No identity: the robot's own unverified SigV4 boot read (LAN trust).

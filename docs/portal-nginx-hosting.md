@@ -4,12 +4,18 @@ This is the public-hosting runbook for the portal vhost. It deliberately does **
 robot-facing Classic API: that is a separate TLS service and hostname/surface. The portal is the
 account service's web UI plus its same-origin REST face.
 
+The hardened deployment baseline is loopback-only: Compose publishes Account on
+`127.0.0.1:9011`, while the native launcher sets `PHOENIX_BIND_HOST=127.0.0.1` by
+default. Nginx is the only public browser ingress; use a private/VPN bind address
+only with an explicit firewall policy.
+
 The guide is based on the code at the current Phoenix revision, not on an assumed framework:
 
 - `packages/account/src/static.js` — the explicit `GET` route inventory, MIME types, and no-cache
   behavior.
 - `packages/account/src/index.js` — the account service entrypoint and the three account faces.
-- `packages/common/src/service.js` — `server.listen(port)` with no host argument.
+- `packages/common/src/service.js` — `server.listen(port, host)` with the
+  `PHOENIX_BIND_HOST` production boundary.
 - `packages/contracts/src/constants.js` — `DefaultPort.account = 7016`.
 - `scripts/parity-robot/authenticated-stack.mjs` — the colocated stack's `basePort + 11` account
   port and loopback/LAN bind choice.
@@ -38,11 +44,12 @@ Choose one account deployment mode before editing the nginx upstream:
 
 | Mode | Account port | Bind behavior | nginx upstream |
 |---|---:|---|---|
-| Standalone account process | `7016` by default; `PORT` overrides it | `start()` calls `createAccountService().listen(port)`, and the common service calls Node `server.listen(port)` with no host. Node therefore chooses an unspecified/wildcard listener (the local probe reported `::`), not an intentional loopback-only bind. | `127.0.0.1:7016` in the template, with a host firewall, container/network namespace, or supervisor policy preventing direct remote access to the wildcard listener. nginx cannot change the bind after the process starts. |
+| Standalone account process | `7016` by default; `PORT` overrides it | `start()` calls `createAccountService().listen(port)`. Set `PHOENIX_BIND_HOST=127.0.0.1` (or a private/VPN address) before starting it; an unset host retains Node's wildcard behavior for legacy callers. | Change the template's upstream from the Compose default `127.0.0.1:9011` to the selected private port, and verify the listener with `ss`. nginx cannot change a bind after the process starts. |
 | `authenticated-stack.mjs` colocated development/robot stack | `basePort + 11`; the launcher default is `19000`, so the account port is `19011`. `basePort=0` makes it ephemeral and is not suitable for a fixed nginx upstream. | `accountHost` defaults to `127.0.0.1`. `PHOENIX_ROBOT_ACCOUNT_HOST=0.0.0.0` is an explicit opt-in for a trusted LAN. | Change the template to `127.0.0.1:19011` for the default stack, or to the actual `basePort + 11`. |
 
-Do not blur these ports. The template's `7016` is the standalone account default, not the default
-port of the colocated stack. The colocated launcher also defaults its **separate** Classic TLS
+Do not blur these ports. The template's `9011` is the hardened Compose edge default; standalone
+Account remains `7016` unless `PORT` overrides it, and the colocated launcher uses `basePort + 11`.
+The colocated launcher also defaults its **separate** Classic TLS
 entrypoint to `0.0.0.0:443`; nginx cannot bind the same address and port at the same time. Give the
 Classic entrypoint a different address/port or a separate TLS front door. Do not send robot Classic
 traffic to this portal vhost just because both services use TLS.
@@ -178,7 +185,8 @@ Start from the repository copy and edit these values before installation:
 - both `server_name` directives: the portal DNS name(s);
 - `root`: the absolute path to the **same** `packages/account/portal` directory the checkout uses;
 - `ssl_certificate` and `ssl_certificate_key`: the real certificate paths;
-- `upstream phoenix_account server`: `127.0.0.1:7016` for standalone, or the colocated
+- `upstream phoenix_account server`: `127.0.0.1:9011` for hardened Compose, `127.0.0.1:7016`
+  for standalone, or the colocated
   `127.0.0.1:(basePort + 11)` value;
 - the `allow`/`deny` admin network ranges if administrators come from a known network that is not
   already covered. Keep an allow-list; do not make the admin API public merely to make the page
@@ -301,11 +309,20 @@ trusted real-IP handling deliberately before changing the key; do not blindly tr
 `X-Forwarded-For` header. Tune the limits only with a reason and preserve a tighter bucket for
 password endpoints.
 
+The template also rejects unknown HTTP `Host` values and unknown TLS SNI names. The HTTP redirect is
+to the configured canonical hostname, never to `$host`; this avoids turning an unrecognized Host
+header into an open redirect. It overwrites `X-Forwarded-For` with the direct client address, sets
+short header/body/send timeouts, caps concurrent connections, and returns `429` when a limit trips.
+If a CDN or load balancer is added, define its trusted source range and real-IP policy before
+changing those settings.
+
 ## 7. Cache headers and keeping the two serving modes consistent
 
 The Node `serve()` helper reads each file once and caches it in memory. Every explicit static route
 and the branding response sends `Cache-Control: no-cache` and `X-Content-Type-Options: nosniff`.
-The nginx template matches the no-build/no-hash design:
+The nginx template matches the no-build/no-hash design while preserving the server-wide security
+headers (it uses `expires`, rather than a child `add_header`, so nginx header inheritance cannot
+silently drop CSP/HSTS/nosniff):
 
 - HTML, JSON, webmanifest, CSS, JS, and MJS: `Cache-Control: no-cache`;
 - SVG, PNG, JPEG, WebP, AVIF, ICO, and WOFF/WOFF2: `public, max-age=2592000` (30 days);
@@ -431,7 +448,8 @@ is JSON `404`, while the nginx vhost internally serves `404.html` as HTML.
 
 ### 502 Bad Gateway or an unreachable account upstream
 
-- Confirm which mode is running. Standalone is `7016` unless `PORT` overrides it. The colocated
+- Confirm which mode is running. Hardened Compose uses `127.0.0.1:9011`; standalone is `7016`
+  unless `PORT` overrides it. The colocated
   stack is `basePort + 11` (`19011` with its default base), not `7016`.
 - In the colocated stack, a browser on another machine cannot reach the default loopback account
   bind directly. Use the nginx HTTPS hostname. Only opt into `PHOENIX_ROBOT_ACCOUNT_HOST=0.0.0.0`
@@ -458,7 +476,8 @@ is JSON `404`, while the nginx vhost internally serves `404.html` as HTML.
 
 ### The console is stale after an upgrade
 
-- Inspect `/app`, `/branding.json`, and `/app.js` for `Cache-Control: no-cache`. Do not add
+- Inspect `/app`, `/branding.json`, and `/app.js` for `Cache-Control: no-cache`, and verify CSP,
+  HSTS, `X-Content-Type-Options`, and `X-Frame-Options` are present on those responses. Do not add
   `immutable` to these unhashed files.
 - Hard-refresh or clear the browser's site cache only after confirming the response header; a CDN or
   second proxy can override the origin policy.

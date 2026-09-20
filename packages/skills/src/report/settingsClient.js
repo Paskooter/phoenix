@@ -209,6 +209,12 @@ function requestSettings(peer, body, accountId, redirectCount = 0, method = 'POS
     Host: target.host,
     Connection: 'close',
   };
+  // The account Settings face accepts this legacy internal peer only when a
+  // deployment configured the shared secret.  Never put the secret in the
+  // user-controlled credentials envelope; it is an independent header.
+  if (process.env.ETCO_account_internalPeerToken) {
+    headers['x-phoenix-internal-token'] = process.env.ETCO_account_internalPeerToken;
+  }
 
   return new Promise((resolve, reject) => {
     const request = transport.request({

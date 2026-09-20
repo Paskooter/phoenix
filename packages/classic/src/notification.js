@@ -8,6 +8,7 @@
 import { WebSocketServer } from 'ws';
 import { SIGV4_ERRORS, SigV4Error, verifySigV4 } from '@phoenix/common';
 import { sendAmz, sendAmzError, accessKeyIdFromAuth, ValidationException } from './awsJson.js';
+import { verifiedCallerFromRequest } from './caller.js';
 import { NotificationStore } from './notificationStore.js';
 
 export { NotificationStore } from './notificationStore.js';
@@ -365,6 +366,7 @@ export function createVerifiedNotificationAccountResolver({ resolveCredentials, 
       body: req?.rawBody === undefined
         ? (body === null || body === undefined ? '' : JSON.stringify(body))
         : req.rawBody,
+      allowNativeClientPayloadHash: String(req?.headers?.['x-amz-target'] || '') === 'Notification_20150505.NewRobotToken',
       resolveCredentials: (accessKeyId) => {
         const credentials = resolveCredentials(accessKeyId);
         // Account.findByAccessKeyId excludes deleted records. Keep the same
@@ -450,10 +452,15 @@ function sendNotificationValidationError(res, message) {
 }
 
 /** AWS-JSON handler for Notification_20150505. */
-export function makeNotificationHandler(hub, { accountResolver } = {}) {
+export function makeNotificationHandler(hub, { accountResolver, callerBoundary } = {}) {
   return async function notificationHandler({ req, res, body, op, target }) {
     let accountId;
-    if (accountResolver === undefined) {
+    const verified = verifiedCallerFromRequest(req);
+    if (verified) {
+      accountId = verified.accountId;
+    } else if (callerBoundary) {
+      return void sendAmzError(res, SIGV4_ERRORS.ACCESS_KEY_NOT_FOUND);
+    } else if (accountResolver === undefined) {
       // This compatibility mode is used by the old standalone/LAN tests. It
       // is deliberately separate from the verified path below and must not be
       // used as a public security-gateway identity boundary.
@@ -477,6 +484,9 @@ export function makeNotificationHandler(hub, { accountResolver } = {}) {
         return void sendAmz(res, 200, { token: token.tokenKey });
       }
       case 'getstatus':
+        if (callerBoundary && body?.accountId !== accountId) {
+          return void sendAmzError(res, SIGV4_ERRORS.ACCESS_KEY_NOT_FOUND);
+        }
         return void sendAmz(res, 200, { connected: hub.isConnected((body && body.accountId) || accountId) });
       default:
         return void sendAmzError(res, ValidationException, `unknown Notification operation: ${op}`);

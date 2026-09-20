@@ -7,6 +7,7 @@ import { hashPassword } from '../model.js';
 // is the source pbkdf2 encoding, not the portal's scrypt.
 import { compareAccountPassword } from '../accountIdentity.js';
 import { requireUser, portalAccount } from './session.js';
+import { bumpAccountSessionVersion } from '../sessions.js';
 
 const GENDERS = ['male', 'female', 'other', 'they'];
 
@@ -69,6 +70,7 @@ export function portalProfileRoutes(store) {
         return sendJson(res, 400, { error: 'new password must differ from the current one' });
       }
       account.password = hashPassword(newPassword);
+      bumpAccountSessionVersion(account);
       account.updated = Date.now();
       store.flush();
       return { ok: true };
@@ -89,6 +91,7 @@ export function portalProfileRoutes(store) {
         return sendJson(res, 409, { error: 'An account with that email already exists' });
       }
       account.email = email.toLowerCase();
+      bumpAccountSessionVersion(account);
       account.updated = Date.now();
       store.flush();
       return { account: portalAccount(account) };

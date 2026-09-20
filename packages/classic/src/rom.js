@@ -30,6 +30,7 @@ import forge from 'node-forge';
 import selfsigned from 'selfsigned';
 import { DefaultPort } from '@phoenix/contracts';
 import { sendAmz, sendAmzError, accessKeyIdFromAuth, ValidationException, AMZ_JSON } from './awsJson.js';
+import { verifiedCallerFromRequest } from './caller.js';
 
 const generateAsync = promisify(selfsigned.generate);
 
@@ -296,7 +297,16 @@ export function makeRobotClient({ baseUrl = robotBaseUrl, fetchImpl = fetch } = 
 // ── AWS-JSON handler ─────────────────────────────────────────────────────────
 
 /** parseCredentials: x-amz-credentials JSON; SigV4 accessKeyId is a Phoenix LAN fallback. */
-function credentialsFrom(req) {
+function credentialsFrom(req, requireVerified = false) {
+  const verified = verifiedCallerFromRequest(req);
+  if (verified) return {
+    id: verified.accountId,
+    _id: verified.accountId,
+    email: verified.email,
+    friendlyId: verified.friendlyId,
+    isAdmin: verified.isAdmin,
+  };
+  if (requireVerified) return {};
   const raw = req && req.headers ? req.headers['x-amz-credentials'] : undefined;
   if (raw) {
     try {
@@ -336,7 +346,7 @@ export function makeRomHandler(options = {}) {
 
   return async function romHandler({ req, res, body, op }) {
     const b = body || {};
-    const credentials = credentialsFrom(req);
+    const credentials = credentialsFrom(req, !!options.callerBoundary);
     try {
       switch (op.toLowerCase()) {
         case 'create': {

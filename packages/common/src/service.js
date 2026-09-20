@@ -176,11 +176,21 @@ export function createService({
   return {
     server,
     app,
-    /** @param {number} port @returns {Promise<import('node:http').Server>} */
-    listen(port) {
+    /**
+     * Start the listener. Native deployments should set PHOENIX_BIND_HOST to a
+     * loopback or private address; leaving it unset retains the historical
+     * wildcard behavior for callers that deliberately manage their own network
+     * boundary (Docker's internal network is one such caller).
+     *
+     * @param {number} port
+     * @param {string} [host]
+     * @returns {Promise<import('node:http').Server>}
+     */
+    listen(port, host = process.env.PHOENIX_BIND_HOST || undefined) {
       return new Promise((resolve) => {
-        server.listen(port, () => {
-          log.info('listening', { port });
+        const options = host ? { port, host } : port;
+        server.listen(options, () => {
+          log.info('listening', { port, ...(host ? { host } : {}) });
           resolve(server);
         });
       });

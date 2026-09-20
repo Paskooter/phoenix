@@ -3,9 +3,11 @@
 // calls the app makes: List (/Get/Remove) plus a same-origin blob proxy so the browser can
 // render byte content without reaching the classic port directly.
 
-import { sendJson } from '@phoenix/common';
+import { sendJson, signSigV4 } from '@phoenix/common';
 import { pipeline } from 'node:stream/promises';
-import { classicCall, ClassicCallError } from './classicClient.js';
+import {
+  classicBaseUrl, classicCall, ClassicCallError, DEFAULT_REGION, DEFAULT_SERVICE,
+} from './classicClient.js';
 import { requireUser } from './session.js';
 
 const SAFE_PATH = /^[A-Za-z0-9_-]+$/;
@@ -31,6 +33,24 @@ export function portalMediaRoutes(store, options = {}) {
       return null;
     }
     return loop;
+  }
+
+  // Classic's Remove endpoint permits an owner to remove media from any of
+  // their loops when given a path.  The portal request also carries a
+  // user-controlled loopId, so validate every requested parent path against
+  // that exact loop before forwarding the destructive call.
+  async function pathsInLoop(account, loop, paths) {
+    const result = await classic({
+      base,
+      account,
+      target: 'Media_20160725.Get',
+      body: { paths },
+    });
+    const rows = Array.isArray(result.body) ? result.body : [];
+    const allowed = new Set(rows
+      .filter((row) => idsEqual(row?.loopId, loop._id) && paths.includes(String(row.path)))
+      .map((row) => String(row.path)));
+    return paths.every((path) => allowed.has(String(path)));
   }
 
   return {
@@ -70,6 +90,9 @@ export function portalMediaRoutes(store, options = {}) {
         return sendJson(res, 400, { error: 'paths must be a non-empty array of strings' });
       }
       try {
+        if (!(await pathsInLoop(account, loop, paths))) {
+          return sendJson(res, 403, { error: 'media does not belong to this loop', code: 'MEDIA_NOT_IN_LOOP' });
+        }
         const result = await classic({
           base,
           account,
@@ -92,9 +115,47 @@ export function portalMediaRoutes(store, options = {}) {
       if (!account) return;
       const path = String(req.params.path || '');
       if (!SAFE_PATH.test(path)) { res.writeHead(400); res.end(); return; }
+      // Blob URLs are bearer-like paths.  Do not let any logged-in account
+      // fetch an object merely because it can guess/learn its path; resolve it
+      // through Classic's ownership-aware Get operation first.
+      try {
+        const result = await classic({
+          base,
+          account,
+          target: 'Media_20160725.Get',
+          body: { paths: [path] },
+        });
+        const rows = Array.isArray(result.body) ? result.body : [];
+        if (!rows.some((row) => String(row?.path) === path)) {
+          return sendJson(res, 404, { error: 'media not found' });
+        }
+      } catch (error) {
+        if (error instanceof ClassicCallError) {
+          return sendJson(res, error.status, { error: error.message, code: error.code });
+        }
+        throw error;
+      }
       let upstream;
       try {
-        upstream = await fetch(`${String(base || '').replace(/\/+$/, '')}/media/blob/${path}`);
+        const classicBase = base || classicBaseUrl();
+        const blobPath = `/media/blob/${encodeURIComponent(path)}`;
+        // The blob route is a direct Classic route rather than AWS-JSON, but
+        // it is still an account-owned object.  Sign the empty GET just as we
+        // sign the preceding Media.Get authorization check; otherwise the
+        // portal would reintroduce an anonymous object-read bypass.
+        const signed = signSigV4({
+          method: 'GET',
+          path: blobPath,
+          headers: { host: new URL(classicBase).host },
+          body: '',
+          accessKeyId: account.accessKeyId,
+          secretAccessKey: account.secretAccessKey,
+          region: DEFAULT_REGION,
+          service: DEFAULT_SERVICE,
+        });
+        upstream = await fetch(`${String(classicBase).replace(/\/+$/, '')}${blobPath}`, {
+          headers: signed.headers,
+        });
       } catch (error) {
         sendJson(res, 502, { error: `classic unreachable: ${error.message}` });
         return;

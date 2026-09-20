@@ -26,7 +26,18 @@ const PORTAL_DIR = join(dirname(fileURLToPath(import.meta.url)), '../portal');
  */
 function siteUrl() {
   const raw = process.env.PHOENIX_SITE_URL || '';
-  return raw.replace(/\/+$/, '');
+  if (!raw) return '';
+  try {
+    const parsed = new URL(raw);
+    // The value is interpolated into HTML.  Accept only a normal origin so a
+    // malformed deployment setting cannot become markup, a javascript: URL,
+    // or a query/fragment injection sink.
+    if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password
+      || parsed.pathname !== '/' || parsed.search || parsed.hash) return '';
+    return parsed.origin;
+  } catch {
+    return '';
+  }
 }
 
 function applyPlaceholders(buffer) {

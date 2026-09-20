@@ -5,12 +5,21 @@ These are the steps used to bring up real robots; the capture records from those
 runs are under [`parity/evidence/`](parity/evidence/). For reference material rather
 than a procedure, see [Operations](OPERATIONS.md).
 
+> **Internet launch gate:** read [SECURITY.md](SECURITY.md) and
+> [DEPLOYMENT.md](DEPLOYMENT.md) before exposing a hostname. The commands in the
+> early sections are suitable for a private LAN only; the production baseline is
+> loopback-bound services behind an nginx TLS edge. Never publish ports 9000 or
+> 9003–9014 directly and never use the development auth/secret defaults.
+
 **What you need**
 
 - A Linux host to run Phoenix on. This guide calls it the *server*. Steps 1–9
   assume it shares a network with the robot; step 10 covers hosting it on the
   internet instead.
 - Node.js ≥ 20 on the server.
+- For an Internet deployment: Docker Compose, nginx, a host/cloud firewall, and
+  certificates for the portal, Classic, socket, and optional hub names. Do not
+  use a public reverse proxy as a substitute for the robot's private CA trust.
 - `root` SSH access to the robot, key-based. (Stock robots ship with `root:jibo`;
   copy your key over with `ssh-copy-id` so the scripts can run unattended.)
 - The robot powered on and on your WiFi.
@@ -25,7 +34,18 @@ Substitute your own.
 ```bash
 git clone <this repo> phoenix && cd phoenix
 npm install
+cp .env.example .env
+chmod 0600 .env
+# Fill HUB_TOKEN_SECRET, ETCO_account_internalPeerToken, OTA_PUBLIC_URL,
+# CLASSIC_PUBLIC_URL, and PHOTO_PUBLIC_URL. Generate the two secrets separately.
+# Keep DISABLE_AUTH=false, ETCO_account_secureCookies=true,
+# and PHOENIX_BIND_HOST=127.0.0.1.
 ```
+
+Generate the hub secret with `openssl rand -base64 48`; do not paste it into a
+ticket or commit it. The Compose launcher refuses to start when required values
+are missing. The native launcher also defaults to loopback and must be fronted by
+TLS for any browser or robot outside the host.
 
 ## 2. Learn what the robot expects
 
@@ -75,39 +95,44 @@ Certificates land in `~/.local/share/phoenix/tls` (override with
 use your own certificate instead, set `PHOENIX_ROBOT_TLS_CERT` and
 `PHOENIX_ROBOT_TLS_KEY`; explicit paths always win.
 
-## 4. Let the server bind port 443
+## 4. Choose the private service bind and TLS edge
 
-The robot hardcodes 443, and 443 is privileged. Lower the unprivileged port floor:
+The robot hardcodes 443, but the Phoenix services should not bind it directly in a
+public deployment. Use nginx as the single TLS edge and keep the native/Compose
+backends on loopback. `scripts/run-compose-stack.sh` now defaults to:
 
 ```bash
-sudo sysctl -w net.ipv4.ip_unprivileged_port_start=443
-echo 'net.ipv4.ip_unprivileged_port_start=443' | sudo tee /etc/sysctl.d/90-phoenix.conf
+PHOENIX_BIND_HOST=127.0.0.1
 ```
 
-Alternatively redirect 443 to an unprivileged port
-(`sudo iptables -t nat -A PREROUTING -p tcp --dport 443 -j REDIRECT --to-port 29443`)
-and set `PHOENIX_ROBOT_ENTRYPOINT_PORT` to match. Avoid `setcap` on the Node binary:
-it applies to every Node process and is lost on upgrade.
+For a private-LAN-only experiment, an operator may set `PHOENIX_BIND_HOST` to a
+specific private interface after adding a source firewall rule. Do not set it to
+`0.0.0.0` on an Internet host. The separate authenticated robot launcher can own
+443 directly only on a dedicated address and only with its own firewall/TLS policy;
+do not run it on the same address as nginx.
 
 ## 5. Start the server
 
-443 on all interfaces is the default, so the robot on your LAN can reach it.
+The native runner's listeners are loopback-only by default. Start it behind the
+nginx configuration from [DEPLOYMENT.md](DEPLOYMENT.md):
 
 ```bash
-bash scripts/run-compose-stack.sh
+PHOENIX_BIND_HOST=127.0.0.1 bash scripts/run-compose-stack.sh
 ```
 
 On the first start it creates the CA and certificate described in step 3 and
 logs that it did so.
 
-Confirm it is listening and answering:
+Confirm only the private backends are listening and answering:
 
 ```bash
-ss -ltn | grep ':443'
-curl -sk -o /dev/null -w '%{http_code}\n' https://192.168.1.182/healthcheck   # expect 200
+ss -ltn | grep -E ':(9000|9003|9004|9005|9006|9007|9008|9009|9010|9011|9012|9013|9014)'
+curl -sS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:9012/healthcheck   # expect 200
 ```
 
-If binding fails with a privileged-port error, step 4 did not take effect.
+If nginx is the edge, verify the public HTTPS name separately; do not use `curl
+-k` as proof of a trusted robot path. Keep TCP 80/443 as the only public
+application ports.
 
 ## 6. Point the robot at the server
 
@@ -136,9 +161,11 @@ and an exact backup using the original household IDs, refuses ambiguous or
 destructive merges, and leaves deployment to a guarded, stopped-backend
 replacement.
 
-Add `--classic-url http://<server>:9012` for a plain-HTTP deployment, which
-rewrites every `region_config.json`. A TLS deployment does not need it — the
-hosts entries already cover it — and rewriting would break it.
+Add `--classic-url https://<classic-host>` when the robot-facing Classic service
+is behind an nginx TLS vhost and the robot's region configuration must be updated.
+The `http://<server>:9012` form is for an isolated LAN test only and must never be
+used on the Internet. A TLS deployment with hosts entries already covering the
+region does not need this option — rewriting it unnecessarily can break it.
 
 Before writing anything it confirms that the CA it is about to install genuinely
 verifies the certificate the running server is presenting, under the hostname the
@@ -246,6 +273,11 @@ and verification checklist are maintained in
 [`docs/DEPLOYMENT.md`](DEPLOYMENT.md). Read that guide before exposing any
 Phoenix listener to the internet.
 
+The concise launch gate and common failure modes are in
+[`docs/SECURITY.md`](SECURITY.md). It is part of this runbook: use its external
+port scan, header checks, backup procedure, and rollback checklist before sharing
+the DNS names.
+
 The short version is:
 
 - The robot's native `<region>.jibo.com` and `<region>-socket.jibo.com` names
@@ -254,10 +286,10 @@ The short version is:
 - The portal and other names you own can use a public certificate behind nginx
   (and optionally Cloudflare). Cloudflare's normal proxy cannot proxy the
   stock `jibo.com` names because they are not in your zone.
-- TLS is not authentication. Classic robot requests currently have the
-  unauthenticated OOBE boundary documented in `DIVERGENCES.md`; restrict
-  source addresses where possible, keep internal ports private, set
-  `DISABLE_AUTH=false`, and use a real hub secret.
+- TLS is not authentication. Keep Classic on its dedicated TLS hostname and
+  source allow-list/VPN where possible, keep internal ports private, set
+  `DISABLE_AUTH=false`, use a real hub secret, and keep the portal admin path on
+  an operator network.
 
 Do not duplicate the deployment procedure here; update `docs/DEPLOYMENT.md`
 when the hosting topology or code contract changes.

@@ -22,7 +22,7 @@
 // Account_20151111.CreateHubToken is the bounded A-02 sensitive operation and
 // never uses the public x-amz-credentials header as its identity.
 
-import { randomUUID } from 'node:crypto';
+import { randomUUID, timingSafeEqual } from 'node:crypto';
 import { sendJson, SIGV4_ERRORS, SigV4Error, verifySigV4 } from '@phoenix/common';
 import { parse as parseQueryString } from 'node:querystring';
 import { gunzipSync, inflateSync } from 'node:zlib';
@@ -243,9 +243,15 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
   // LoopController snapshots this feature flag at construction; only literal
   // lowercase 'off' disables COPPA, matching the source configuration.
   const coppaEnabled = !loopConfig.features || loopConfig.features.coppa !== 'off';
+  // SetupRobot performs asynchronous robot-registry work before consuming its
+  // one-time token.  Serialize redemption in this process so two concurrent
+  // requests cannot both pass findToken() and create two loops/credentials.
+  // The persisted token deletion remains the authoritative one-time check for
+  // subsequent requests and for other workers.
+  const setupTokensInFlight = new Set();
   // oobe.handler.ts mapping keys (lowercased for the prefix-tolerant match).
   const ops = {
-    setuprobot: setupRobot,
+    setuprobot: setupRobotGuarded,
     preparerobot: prepareRobot,
     getstatus: getStatus,
     reconnectrobot: reconnectRobot,
@@ -292,6 +298,13 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
 
     // Settings_* — the report-skill's user-prefs source (NET_settings points here).
     if (/^settings/i.test(prefix)) {
+      // The old implementation trusted x-amz-credentials.id directly.  A
+      // public caller could therefore read or overwrite another account's
+      // settings by changing one JSON header.  Settings robot requests are
+      // signed just like the other account faces; only the verified account is
+      // forwarded to the compatibility dispatcher.
+      const caller = settingsCaller(store, req, res, body);
+      if (!caller) return;
       return settingsAwsDispatch(store, { req, res, body, op, prefix, log, providers: settingsProviders });
     }
 
@@ -312,7 +325,12 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
       ].includes(String(req.headers['x-amz-target'] || ''));
       if (!anonymousTarget || req.headers.authorization) {
         try {
-          if (isMemberPhotoUpload(req) && req.headers.authorization && !req.headers['x-amz-content-sha256']) await stagePhotoDigest(req);
+          // Stage every signed raw upload, including one that carries an
+          // explicit x-amz-content-sha256.  The staged digest is what proves
+          // that header matches the bytes we actually received; skipping this
+          // for explicit hashes both rejected valid binary requests and would
+          // leave the verifier unable to enforce body integrity.
+          if (isMemberPhotoUpload(req) && req.headers.authorization) await stagePhotoDigest(req);
           const verification = verifySigV4({
             method: req.method,
             path: req.originalUrl || req.url || '/',
@@ -439,6 +457,23 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
    *                                      different robot is LOOP_MUST_BE_SUSPENDED.
    *   getRobot / deleteToken           — ONE-TIME token, RobotCredentials.
    */
+  async function setupRobotGuarded(args) {
+    const body = args?.body;
+    const tokenId = body && typeof body === 'object' && !Array.isArray(body) && typeof body.token === 'string'
+      ? body.token
+      : null;
+    if (!tokenId) return setupRobot(args);
+    if (setupTokensInFlight.has(tokenId)) {
+      return void sendAmzError(args.res, Errors.TOKEN_NOT_FOUND);
+    }
+    setupTokensInFlight.add(tokenId);
+    try {
+      return await setupRobot(args);
+    } finally {
+      setupTokensInFlight.delete(tokenId);
+    }
+  }
+
   async function setupRobot({ res, body, log }) {
     const validationMessage = oobeTokenValidationMessage(body, { requiredId: true });
     if (validationMessage) return void sendValidationError(res, validationMessage);
@@ -542,9 +577,11 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
 
   /** oobe.handler.ts PrepareRobot — authed: accountId from the SigV4 Credential accessKeyId. */
   function prepareRobot({ req, res, body }) {
-    const accessKeyId = accessKeyIdFromAuth(req);
-    const account = accessKeyId ? store.accountByAccessKeyId(accessKeyId) : null;
-    if (!account) return void sendAmzError(res, Errors.CREDENTIALS_REQUIRED);
+    // Credential= is only an identifier, not proof.  Verify the complete
+    // signature before minting a setup token; otherwise anyone who learns an
+    // access-key id can mint tokens for that household.
+    const account = verifiedClassicCaller(store, req, res, body);
+    if (!account) return;
     // @parseCredentials({}) runs before @validatePayload({ loopId: Joi.string() }).
     const validationMessage = oobeLoopIdValidationMessage(body);
     if (validationMessage) return void sendValidationError(res, validationMessage);
@@ -584,7 +621,8 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
    * pair — the account differs every time.
    */
   function getServiceToken({ req, res, log }) {
-    const caller = accountForClassicRequest(req);
+    const caller = verifiedClassicCaller(store, req, res, null);
+    if (!caller) return;
     if (!caller || !caller.isAdmin) {
       return void sendAmzError(res, Errors.AUTHORIZED_UNDER_ADMIN);
     }
@@ -612,8 +650,8 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
    * source controller's token validation and one-time deletion.
    */
   function reconnectRobot({ req, res, body, log }) {
-    const caller = accountForClassicRequest(req);
-    if (!caller) return void sendAmzError(res, Errors.CREDENTIALS_REQUIRED);
+    const caller = verifiedClassicCaller(store, req, res, body);
+    if (!caller) return;
     // @parseCredentials({}) then @validatePayload({ id: Joi.string(), token: Joi.string().required() }).
     const validationMessage = oobeTokenValidationMessage(body, { optionalId: true });
     if (validationMessage) return void sendValidationError(res, validationMessage);
@@ -848,8 +886,36 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
   }
 
   function accountForClassicRequest(req) {
+    if (req?._phoenixVerifiedCredentials) return req._phoenixVerifiedCredentials;
     const accessKeyId = accessKeyIdFromAuth(req);
     return accessKeyId ? store.accountByAccessKeyId(accessKeyId) : null;
+  }
+
+  function settingsCaller(store, req, res, body) {
+    if (req?.headers?.authorization) return verifiedClassicCaller(store, req, res, body);
+    // The report-skill is an internal peer rather than an AWS signer.  It may
+    // use the explicitly configured shared service token, but the account id
+    // still has to resolve to a real account; a caller cannot choose an
+    // arbitrary identity with an unsigned header alone.
+    const expected = process.env.ETCO_account_internalPeerToken;
+    const presented = req?.headers?.['x-phoenix-internal-token'];
+    if (!expected || typeof presented !== 'string') {
+      return void sendAmzError(res, Errors.CREDENTIALS_REQUIRED);
+    }
+    const left = Buffer.from(String(expected));
+    const right = Buffer.from(presented);
+    if (left.length !== right.length || !timingSafeEqual(left, right)) {
+      return void sendAmzError(res, Errors.CREDENTIALS_REQUIRED);
+    }
+    let forwarded;
+    try { forwarded = JSON.parse(req.headers['x-amz-credentials'] || 'null'); } catch { forwarded = null; }
+    const accountId = forwarded && (forwarded.id || forwarded._id);
+    const account = accountId ? store.accounts.get(String(accountId)) : null;
+    if (!account || account.isDeleted === true || account.isActive === false) {
+      return void sendAmzError(res, Errors.CREDENTIALS_REQUIRED);
+    }
+    req._phoenixVerifiedCredentials = account;
+    return account;
   }
 
   /**
@@ -858,7 +924,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
    * is absent from the gateway anonymous/unsigned lists, so a missing or bad
    * signature is a hard rejection; returns undefined after sending the error.
    */
-  async function verifiedClassicCaller(store, req, res, body) {
+  function verifiedClassicCaller(store, req, res, body) {
     try {
       const verification = verifySigV4({
         method: req.method,

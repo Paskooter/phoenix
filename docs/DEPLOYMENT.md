@@ -104,14 +104,18 @@ started service set and one public TLS front door.
 - It starts the 13 services declared in `docker-compose.yml`.
 - Internal service discovery uses Compose names such as `account:8080`,
   `ota:8080`, `parser:8080`, and `lasso:8080`.
-- nginx owns host ports 80/443; the Compose host ports remain private behind a
-  firewall.
-- The account store and other durable files can remain on the host because the
-  Compose runtime bind-mounts `./packages` at `/phoenix/packages`
-  (`docker-compose.yml:29-42`). This is a bind mount, not an automatically
-  managed database volume; back it up explicitly.
-- The image is built from `scripts/Dockerfile`, which uses Node 20, ffmpeg, and
-  `npm ci` (`scripts/Dockerfile:1-19`).
+- nginx owns host ports 80/443; Compose publishes only the four required edge
+  backends on `127.0.0.1` and keeps every other service on the private Compose
+  network. A firewall still protects the host from Docker forwarding rules.
+- The account store and other durable files remain on the host through explicit
+  bind mounts: Account receives `./packages/account/data`, Classic receives
+  only `./packages/account/data/classic`, and OTA receives its reviewed package
+  tree read-only (`docker-compose.yml:29-42`, `201-270`). This is not an
+  automatically managed database volume; back it up explicitly.
+- The image is built from `scripts/Dockerfile`, which uses Node 20, ffmpeg,
+  dependency-lockfile `npm ci`, and an unprivileged `node` runtime
+  (`scripts/Dockerfile:1-28`). The root filesystem is read-only in Compose and
+  only the explicit data mounts are writable.
 
 ### Native process launcher
 
@@ -243,13 +247,18 @@ the container paths are stable:
 cd /srv/phoenix
 install -d -m 0700 \
   packages/account/data \
+  packages/account/data/classic \
   packages/account/data/member-photos \
-  packages/account/data/classic-backups \
-  packages/account/data/classic-media \
-  packages/account/data/classic-keys \
-  packages/account/data/classic-logs \
+  packages/account/data/classic/backups \
+  packages/account/data/classic/media \
+  packages/account/data/classic/key-binaries \
+  packages/account/data/classic/logs \
+  packages/account/data/classic/robots \
   packages/ota/data
 install -m 0600 /dev/null .env
+# The image runs as UID/GID 1000 (`node`); grant only the required state paths.
+sudo chown -R 1000:1000 packages/account/data packages/ota/data
+chmod 0700 packages/account/data packages/account/data/classic packages/ota/data
 ```
 
 Do not put a TLS private key or a copied account store below
@@ -603,9 +612,11 @@ transport match; do not silently fall back to an open plain-WS port.
 
 ## 8. Environment and public URL contract
 
-Copy `.env.example` and put secrets only in a root-owned, mode-0600 environment
-file. The following is a **template**; replace angle-bracket placeholders and
-never commit the file or print its contents:
+Copy `.env.example` and put secrets only in a mode-0600 environment file. For
+the Docker Compose unit it may be root-owned; for the native unit it must be
+readable by the dedicated `phoenix` service user (prefer `phoenix:phoenix` with
+mode `0600`, not a world-readable fallback). The following is a **template**;
+replace angle-bracket placeholders and never commit the file or print its contents:
 
 ```dotenv
 # Region/cookies
@@ -638,20 +649,21 @@ PHOTO_DIRECTORY=/phoenix/packages/account/data/member-photos
 ETCO_account_photoDirectory=/phoenix/packages/account/data/member-photos
 ETCO_ota_dataDir=/phoenix/packages/ota/data
 ETCO_ota_manifest=/phoenix/packages/ota/manifest.json
-ETCO_classic_notificationFile=/phoenix/packages/account/data/notifications.json
-ETCO_classic_backupDir=/phoenix/packages/account/data/classic-backups
-ETCO_classic_mediaDir=/phoenix/packages/account/data/classic-media
-ETCO_classic_mediaFile=/phoenix/packages/account/data/classic-media.json
-ETCO_classic_iftttFile=/phoenix/packages/account/data/ifttt.json
-ETCO_classic_jotFile=/phoenix/packages/account/data/jot.json
-ETCO_classic_voiceTrainingFile=/phoenix/packages/account/data/voice-training.json
-ETCO_classic_keyFile=/phoenix/packages/account/data/keys.json
-ETCO_classic_keyBinaryDir=/phoenix/packages/account/data/classic-keys
-ETCO_classic_robotDir=/phoenix/packages/account/data/robots
-ETCO_classic_personFile=/phoenix/packages/account/data/person.json
-ETCO_classic_pushFile=/phoenix/packages/account/data/push.json
-ETCO_classic_logDir=/phoenix/packages/account/data/classic-logs
-ETCO_gqa_attributionFile=/phoenix/packages/account/data/gqa-attribution.json
+PHOENIX_BIND_HOST=127.0.0.1
+ETCO_classic_notificationFile=/phoenix/packages/account/data/classic/notifications.json
+ETCO_classic_backupDir=/phoenix/packages/account/data/classic/backups
+ETCO_classic_mediaDir=/phoenix/packages/account/data/classic/media
+ETCO_classic_mediaFile=/phoenix/packages/account/data/classic/media.json
+ETCO_classic_iftttFile=/phoenix/packages/account/data/classic/ifttt.json
+ETCO_classic_jotFile=/phoenix/packages/account/data/classic/jot.json
+ETCO_classic_voiceTrainingFile=/phoenix/packages/account/data/classic/voice-training.json
+ETCO_classic_keyFile=/phoenix/packages/account/data/classic/keys.json
+ETCO_classic_keyBinaryDir=/phoenix/packages/account/data/classic/key-binaries
+ETCO_classic_robotDir=/phoenix/packages/account/data/classic/robots
+ETCO_classic_personFile=/phoenix/packages/account/data/classic/person.json
+ETCO_classic_pushFile=/phoenix/packages/account/data/classic/push.json
+ETCO_classic_logDir=/phoenix/packages/account/data/classic/logs
+ETCO_gqa_attributionFile=/phoenix/packages/account/data/classic/gqa-attribution.json
 ```
 
 Why these variables matter:
@@ -679,9 +691,9 @@ Why these variables matter:
 - `NET_settings=account:8080` is important for the report skill. The Compose
   report service otherwise falls back to the dead source hostname
   `settings.jibo.aws` (`docker-compose.yml:113-126`).
-- The default secret and auth values are development conveniences
-  (`docker-compose.yml:51-57`, `211-214`). Override both for the internet.
-  The symmetric secret can mint tokens for any identity if leaked
+- The production Compose and native-launcher defaults fail closed for auth and
+  require a real secret/public origin. Keep those values explicit even on a
+  private deployment; the symmetric secret can mint tokens for any identity if leaked
   (`DIVERGENCES.md:49-50`).
 
 The portal administrator is a per-account `isAdmin` flag, not a shared password.
@@ -778,7 +790,9 @@ Docker target is useful for API tests but cannot transcribe
 The following is a coherent template for the recommended Compose mode. Replace
 all example hostnames and paths before installation. It is written as one site
 file included from nginx's `http` context; `map`, `upstream`, and
-`limit_req_zone` must be in that context. The host ports are the Compose host
+`limit_req_zone` must be in that context. It assumes nginx >= 1.19.4 for
+`ssl_reject_handshake`, which prevents unknown-SNI requests from selecting the
+first TLS vhost. The host ports are the Compose host
 ports, not the container ports.
 
 This configuration exposes:
@@ -805,6 +819,7 @@ upstream phoenix_hub     { server 127.0.0.1:9000; keepalive 8;  }
 
 limit_req_zone $binary_remote_addr zone=phoenix_auth:10m rate=10r/m;
 limit_req_zone $binary_remote_addr zone=phoenix_api:10m  rate=60r/s;
+limit_conn_zone $binary_remote_addr zone=phoenix_connections:10m;
 
 # Owned names: ACME HTTP-01 and redirect. The robot jibo.com names are not
 # listed here because they are not public-DNS names you control.
@@ -816,7 +831,8 @@ server {
     location ^~ /.well-known/acme-challenge/ {
         root /var/www/certbot;
     }
-    location / { return 301 https://$host$request_uri; }
+    # All three names are explicit above; do not reflect an arbitrary Host.
+    location / { return 308 https://$host$request_uri; }
 }
 
 server {
@@ -828,9 +844,20 @@ server {
 
 # ------------------------------ portal.example.com -------------------------
 server {
+    # Reject unknown SNI names before a certificate/default site is selected.
+    listen 443 ssl default_server;
+    listen [::]:443 ssl default_server;
+    server_name _;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_reject_handshake on;
+}
+
+server {
     listen 443 ssl;
     listen [::]:443 ssl;
     server_name portal.example.com;
+
+    if ($host != $server_name) { return 444; }
 
     ssl_certificate     /etc/letsencrypt/live/phoenix-public/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/phoenix-public/privkey.pem;
@@ -843,22 +870,33 @@ server {
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-Frame-Options "DENY" always;
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.tile.openstreetmap.org; connect-src 'self' https://nominatim.openstreetmap.org; font-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" always;
+    add_header Permissions-Policy "geolocation=(self), microphone=(), camera=(), interest-cohort=()" always;
     server_tokens off;
 
     root /srv/phoenix/packages/account/portal;
     index index.html;
     charset utf-8;
     client_max_body_size 25m;
+    client_body_timeout 15s;
+    client_header_timeout 15s;
+    keepalive_timeout 30s;
+    send_timeout 30s;
+    limit_conn phoenix_connections 20;
+    limit_req_status 429;
+    limit_conn_status 429;
 
     proxy_http_version 1.1;
     proxy_set_header Connection "";
     proxy_set_header Host              $host;
     proxy_set_header X-Real-IP         $remote_addr;
-    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-For   $remote_addr;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-Forwarded-Host  $host;
+    proxy_set_header X-Forwarded-Port  $server_port;
     proxy_connect_timeout 10s;
     proxy_read_timeout 120s;
+    proxy_send_timeout 120s;
 
     # The account REST face and session cookie.
     location /api/ {
@@ -903,7 +941,6 @@ server {
         proxy_pass http://phoenix_account;
         proxy_buffering off;
         proxy_read_timeout 120s;
-        add_header X-Content-Type-Options "nosniff" always;
     }
 
     location = /        { try_files /index.html =404; }
@@ -913,12 +950,12 @@ server {
     location = /security { try_files /security.html =404; }
 
     location ~* \.(?:html|json|webmanifest|css|js|mjs)$ {
-        add_header Cache-Control "no-cache" always;
-        add_header X-Content-Type-Options "nosniff" always;
+        # `expires` does not create a child add_header scope, so the server-wide
+        # CSP/HSTS/nosniff/frame headers remain present on static responses.
+        expires -1;
     }
     location ~* \.(?:svg|png|jpg|jpeg|webp|avif|ico|woff2?)$ {
         expires 30d;
-        add_header Cache-Control "public, max-age=2592000" always;
     }
     location ~ /\. { deny all; }
     location ~ \.map$ { deny all; }
@@ -934,28 +971,44 @@ server {
     listen [::]:443 ssl;
     server_name classic.example.com;
 
+    if ($host != $server_name) { return 444; }
+
     ssl_certificate     /etc/letsencrypt/live/phoenix-public/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/phoenix-public/privkey.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_session_tickets off;
     add_header Strict-Transport-Security "max-age=31536000" always;
     add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "geolocation=(), microphone=(), camera=(), interest-cohort=()" always;
     server_tokens off;
     client_max_body_size 1g;
+    client_body_timeout 30s;
+    client_header_timeout 15s;
+    keepalive_timeout 30s;
+    send_timeout 60s;
+    limit_conn phoenix_connections 20;
+    limit_req zone=phoenix_api burst=120 nodelay;
+    limit_req_status 429;
+    limit_conn_status 429;
 
     proxy_http_version 1.1;
+    proxy_set_header Connection "";
     proxy_set_header Host              $host;
     proxy_set_header X-Real-IP         $remote_addr;
-    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-For   $remote_addr;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-Forwarded-Host  $host;
+    proxy_set_header X-Forwarded-Port  $server_port;
     proxy_connect_timeout 10s;
+    proxy_read_timeout 120s;
+    proxy_send_timeout 120s;
 
     # The OTA service returns this path in its Update JSON. It streams the
     # 249/326 MiB-class tarballs from disk; do not buffer them in nginx.
     location ^~ /ota/package {
         proxy_pass http://phoenix_ota;
-        proxy_set_header Connection "";
         proxy_buffering off;
         proxy_request_buffering off;
         proxy_max_temp_file_size 0;
@@ -968,7 +1021,6 @@ server {
     # public path. Direct Account routing avoids a second byte-stream hop.
     location ^~ /member-photos/ {
         proxy_pass http://phoenix_account;
-        proxy_set_header Connection "";
         proxy_buffering off;
         proxy_read_timeout 120s;
         proxy_send_timeout 120s;
@@ -997,13 +1049,26 @@ server {
     listen [::]:443 ssl;
     server_name api.jibo.com api-socket.jibo.com;
 
+    if ($host !~ ^(?:api\.jibo\.com|api-socket\.jibo\.com)$) { return 444; }
+
     ssl_certificate     /etc/phoenix/tls/server.crt;
     ssl_certificate_key /etc/phoenix/tls/server.key;
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_session_tickets off;
     add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "no-referrer" always;
+    add_header Permissions-Policy "geolocation=(), microphone=(), camera=(), interest-cohort=()" always;
     server_tokens off;
     client_max_body_size 1g;
+    client_body_timeout 30s;
+    client_header_timeout 15s;
+    keepalive_timeout 30s;
+    send_timeout 60s;
+    limit_conn phoenix_connections 20;
+    limit_req zone=phoenix_api burst=120 nodelay;
+    limit_req_status 429;
+    limit_conn_status 429;
 
     # If the robot has a stable public source address, add an allow/deny
     # policy here, for example:
@@ -1015,9 +1080,10 @@ server {
     proxy_http_version 1.1;
     proxy_set_header Host              $host;
     proxy_set_header X-Real-IP         $remote_addr;
-    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-For   $remote_addr;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-Forwarded-Host  $host;
+    proxy_set_header X-Forwarded-Port  $server_port;
     proxy_set_header Upgrade           $http_upgrade;
     proxy_set_header Connection        $phoenix_connection_upgrade;
     proxy_connect_timeout 10s;
@@ -1032,7 +1098,6 @@ server {
     # the private CA and the bytes remain behind the same robot-facing name.
     location ^~ /ota/package {
         proxy_pass http://phoenix_ota;
-        proxy_set_header Connection "";
         proxy_buffering off;
         proxy_request_buffering off;
         proxy_max_temp_file_size 0;
@@ -1043,7 +1108,6 @@ server {
 
     location ^~ /member-photos/ {
         proxy_pass http://phoenix_account;
-        proxy_set_header Connection "";
         proxy_buffering off;
         proxy_read_timeout 120s;
         proxy_send_timeout 120s;
@@ -1063,23 +1127,37 @@ server {
     listen [::]:443 ssl;
     server_name hub.example.com;
 
+    if ($host != $server_name) { return 444; }
+
     ssl_certificate     /etc/letsencrypt/live/phoenix-public/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/phoenix-public/privkey.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_session_tickets off;
     add_header Strict-Transport-Security "max-age=31536000" always;
     add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "no-referrer" always;
+    add_header Permissions-Policy "geolocation=(), microphone=(), camera=(), interest-cohort=()" always;
     server_tokens off;
+    client_body_timeout 30s;
+    client_header_timeout 15s;
+    keepalive_timeout 30s;
+    send_timeout 60s;
+    limit_conn phoenix_connections 20;
+    limit_req zone=phoenix_api burst=120 nodelay;
+    limit_req_status 429;
+    limit_conn_status 429;
 
     proxy_pass_request_headers on;
     proxy_http_version 1.1;
+    proxy_set_header Connection        $phoenix_connection_upgrade;
     proxy_set_header Host              $host;
     proxy_set_header X-Real-IP         $remote_addr;
-    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-For   $remote_addr;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-Forwarded-Host  $host;
+    proxy_set_header X-Forwarded-Port  $server_port;
     proxy_set_header Upgrade           $http_upgrade;
-    proxy_set_header Connection        $phoenix_connection_upgrade;
     proxy_buffering off;
     proxy_read_timeout 5m;
     proxy_send_timeout 5m;
@@ -1140,24 +1218,27 @@ docker compose --env-file .env build
 docker compose --env-file .env up -d
 ```
 
-The Compose file maps the complete host-port contract as follows
-(`docker-compose.yml:44-247`):
+The hardened Compose file exposes only loopback edge ports; all service-to-service
+traffic uses container port `8080` on `pegasus-nw` (`docker-compose.yml:30-260`):
 
-| Host port | Service | Container port | Internet role |
+| Host bind | Service | Container port | Internet role |
 |---:|---|---:|---|
-| 9000 | hub | 8080 | Private; optionally exposed only through `hub.example.com` nginx WS/HTTP |
-| 9003 | report-skill | 8080 | Private |
-| 9004 | chitchat-skill | 8080 | Private |
-| 9005 | parser/NLU | 8080 | Private |
-| 9006 | history | 8080 | Private |
-| 9007 | lasso/data | 8080 | Private |
-| 9008 | color-skill | 8080 | Private |
-| 9009 | answer-skill | 8080 | Private |
-| 9010 | OTA | 8080 | Private; only `/ota/package` is proxied by nginx |
-| 9011 | account + portal | 8080 | Private; portal and photo routes go through nginx |
-| 9012 | Classic entrypoint | 8080 | Private; Classic REST/socket go through nginx |
-| 9013 | example-skill | 8080 | Private |
-| 9014 | template-skill | 8080 | Private |
+| `127.0.0.1:9000` | hub | 8080 | Host-local only; nginx WebSocket vhost is the edge |
+| Compose network only | report-skill | 8080 | Private |
+| Compose network only | chitchat-skill | 8080 | Private |
+| Compose network only | parser/NLU | 8080 | Private |
+| Compose network only | history | 8080 | Private |
+| Compose network only | lasso/data | 8080 | Private |
+| Compose network only | color-skill | 8080 | Private |
+| Compose network only | answer-skill | 8080 | Private |
+| `127.0.0.1:9010` | OTA | 8080 | Host-local only; nginx/Classic private upstream |
+| `127.0.0.1:9011` | account + portal | 8080 | Host-local only; portal/photo routes through nginx |
+| `127.0.0.1:9012` | Classic entrypoint | 8080 | Host-local only; REST/socket through nginx |
+| Compose network only | example-skill | 8080 | Private |
+| Compose network only | template-skill | 8080 | Private |
+
+For isolated localhost contract testing, add `docker-compose.dev.yml`; it binds
+the reference ports to `127.0.0.1` only. It is not a public edge configuration.
 
 The ASR service at 6972 is intentionally absent from this table because it is
 external to Compose. The native runner uses the same service names/ports and
@@ -1209,8 +1290,26 @@ sudo journalctl -u phoenix-compose.service -n 200 --no-pager
 
 If you use the native launcher instead, use a separate unit with
 `ExecStart=/usr/bin/bash /srv/phoenix/scripts/run-compose-stack.sh`,
-`PHOENIX_LOG_DIR=/var/log/phoenix`, `KillMode=control-group`, and the same
-`Restart=on-failure` policy. Do not run both launchers against the same ports.
+`PHOENIX_LOG_DIR=/var/log/phoenix`, `PHOENIX_BIND_HOST=127.0.0.1`,
+`PHOENIX_REQUIRE_PRODUCTION_CONFIG=true`, `KillMode=control-group`, and the same
+`Restart=on-failure` policy. Run it as a dedicated unprivileged `phoenix` user,
+not root, and grant that user write access only to the private data/log paths.
+The repository includes a hardened template at
+[`deploy/systemd/phoenix-native.service`](../deploy/systemd/phoenix-native.service):
+
+```sh
+sudo install -o root -g root -m 0644 deploy/systemd/phoenix-native.service \
+  /etc/systemd/system/phoenix-native.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now phoenix-native.service
+```
+
+Before enabling it, create the `phoenix` user, `/var/log/phoenix`, and the data
+directories with private ownership and ensure `.env` is mode `0600`. The unit's
+`ProtectSystem`, `PrivateTmp`, `NoNewPrivileges`, capability restrictions, and
+`ReadWritePaths` are deliberate; do not remove them to work around a permissions
+error. Fix the ownership of the intended data directory instead. Do not run both
+launchers against the same ports.
 
 ## 12. Firewall and hardening
 
@@ -1251,8 +1350,9 @@ internal service ports.
 
 ### Application controls that are mandatory
 
-- Set `DISABLE_AUTH=false`. The Compose default is `true` for LAN convenience
-  (`docker-compose.yml:51-57`, `scripts/run-compose-stack.sh:134-143`).
+- Set `DISABLE_AUTH=false`. The hardened Compose/native defaults are already
+  authenticated, but keep the value explicit in the production environment
+  (`docker-compose.yml:51-57`, `scripts/run-compose-stack.sh:44-72`).
 - Set a long, unique `HUB_TOKEN_SECRET`, store it at mode 0600, and never put it
   in Git, shell history, tickets, or logs. It is an HS256 shared secret; anyone
   who obtains it can mint identities (`DIVERGENCES.md:49-50`).

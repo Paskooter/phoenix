@@ -147,6 +147,7 @@ export function createOwnerAccount(store, { email, password, firstName = '', las
     firstName, lastName,
     ...fillAccessKeys(),
     isActive: true,
+    sessionVersion: 0,
     created: Date.now(),
   };
   store.accounts.set(account._id, account);

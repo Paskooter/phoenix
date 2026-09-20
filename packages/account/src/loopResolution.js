@@ -6,6 +6,7 @@
 // excludes deleted/suspended loops, then includes only accepted memberships.
 
 import { MEMBER_STATUS, isAcceptedStatus } from './model.js';
+import { timingSafeEqual } from 'node:crypto';
 
 const hasOwn = (value, key) => Object.prototype.hasOwnProperty.call(value, key);
 
@@ -71,13 +72,34 @@ function validationMessage(body) {
   return null;
 }
 
+function internalPeerAuthorized(req, res) {
+  const expected = process.env.ETCO_account_internalPeerToken;
+  const presented = req?.headers?.['x-phoenix-internal-token'];
+  if (!expected) {
+    const payload = JSON.stringify({ error: 'internal peer authentication is not configured' });
+    res.writeHead(503, { 'content-type': 'application/json; charset=utf-8', 'content-length': Buffer.byteLength(payload) });
+    res.end(payload);
+    return false;
+  }
+  const left = Buffer.from(String(expected));
+  const right = Buffer.from(typeof presented === 'string' ? presented : '');
+  if (left.length !== right.length || !timingSafeEqual(left, right)) {
+    const payload = JSON.stringify({ error: 'internal peer authentication failed' });
+    res.writeHead(401, { 'content-type': 'application/json; charset=utf-8', 'content-length': Buffer.byteLength(payload) });
+    res.end(payload);
+    return false;
+  }
+  return true;
+}
+
 /**
  * Add the original trusted internal route to an Account service route map.
  * Authentication is intentionally owned by the private Account peer network,
  * matching srv-account-ws's route (which has no parseCredentials decorator).
  */
 export function listAssociatedLoopsRoute(store) {
-  const handler = ({ body, res }) => {
+  const handler = ({ req, body, res }) => {
+    if (!internalPeerAuthorized(req, res)) return undefined;
     const message = validationMessage(body);
     if (message) {
       const payload = { statusCode: 422, error: 'Unprocessable Entity', message };

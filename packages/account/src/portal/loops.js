@@ -107,10 +107,15 @@ function requireLoopMember(res, loop, id) {
 }
 
 /** Minimal identity-only account lookup the owner uses to pick a link target. */
-function accountSearch(store, term) {
+function accountSearch(store, term, ownerId) {
   const needle = String(term || '').trim().toLowerCase();
-  const all = [...store.accounts.values()].filter((a) => a.isActive !== false && !a.friendlyId);
-  if (!needle) return all;
+  if (needle.length < 3) return [];
+  const owned = new Set([...store.loops.values()]
+    .filter((loop) => loop.isDeleted !== true && idsEqual(loop.owner, ownerId))
+    .flatMap((loop) => (loop.members || []).map((member) => member.accountId).filter(Boolean))
+    .map(String));
+  const all = [...store.accounts.values()].filter((a) => a.isActive !== false && !a.friendlyId
+    && (owned.has(String(a._id)) || a.email?.toLowerCase() === needle));
   return all.filter((account) => (account.email && account.email.toLowerCase().includes(needle))
     || (account.firstName && account.firstName.toLowerCase().includes(needle))
     || (account.lastName && account.lastName.toLowerCase().includes(needle)));
@@ -229,7 +234,8 @@ export function portalLoopRoutes(store, options = {}) {
         return sendJson(res, 403, { error: 'Only owner can manipulate this loop', code: 'CAN_BE_ACCESSED_BY_OWNER' });
       }
       const target = (loop.members || []).find((member) =>
-        member.accountId && idsEqual(member.accountId, toAccountId));
+        member.accountId && idsEqual(member.accountId, toAccountId)
+          && String(member.status || '').toLowerCase() === 'accepted');
       if (!target) {
         return sendJson(res, 404, { error: 'Target account is not a member', code: 'MEMBER_NOT_FOUND' });
       }
@@ -387,7 +393,7 @@ export function portalLoopRoutes(store, options = {}) {
     'GET /api/accounts/search': ({ req, res, url }) => {
       const account = requireUser(store, req, res);
       if (!account) return;
-      const accounts = accountSearch(store, url.searchParams.get('email') || '').slice(0, 50)
+      const accounts = accountSearch(store, url.searchParams.get('email') || '', account._id).slice(0, 50)
         .map((a) => ({ id: a._id, email: a.email, firstName: a.firstName, lastName: a.lastName }));
       return { accounts };
     },

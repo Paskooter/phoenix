@@ -34,6 +34,7 @@ export function prepareInternalSettingsRequest({
   operation = 'GetSettings',
   body,
   apiVersion = SETTINGS_API_VERSION,
+  internalPeerToken = process.env.ETCO_account_internalPeerToken,
 } = {}) {
   if (!accountId) throw new TypeError('Settings internal transport requires accountId');
   if (!operation || typeof operation !== 'string') {
@@ -43,12 +44,14 @@ export function prepareInternalSettingsRequest({
     throw new TypeError('Settings internal transport requires apiVersion');
   }
 
+  const headers = {
+    'content-type': SETTINGS_INTERNAL_CONTENT_TYPE,
+    'x-amz-credentials': JSON.stringify({ id: accountId }),
+    'x-amz-target': `Settings_${apiVersion}.${operation}`,
+  };
+  if (internalPeerToken) headers['x-phoenix-internal-token'] = internalPeerToken;
   return {
-    headers: {
-      'content-type': SETTINGS_INTERNAL_CONTENT_TYPE,
-      'x-amz-credentials': JSON.stringify({ id: accountId }),
-      'x-amz-target': `Settings_${apiVersion}.${operation}`,
-    },
+    headers,
     // JSON.stringify preserves the caller's property order, which is the wire order
     // produced by Axios for the source client's data object.
     body: JSON.stringify(body),

@@ -7,6 +7,7 @@
 // New services (settings, notification, key, …) register here as they land in later iterations.
 
 import { createService, sendJson, logger } from '@phoenix/common';
+import { statSync } from 'node:fs';
 import { DefaultPort } from '@phoenix/contracts';
 import {
   createGqaFileAttributionStore,
@@ -37,6 +38,12 @@ import {
 } from './voiceTraining.js';
 import { stubRegistrations } from './stubs.js';
 import { proxyMemberPhoto } from './photoProxy.js';
+import { PublicOriginError, configuredPublicOrigin } from './publicOrigin.js';
+import {
+  cleanupVerifiedClassicRequest,
+  createVerifiedClassicCaller,
+  sendVerifiedCallerError,
+} from './caller.js';
 
 export { createClassicRouter } from './router.js';
 export * as awsJson from './awsJson.js';
@@ -44,10 +51,19 @@ export { LogStore, makeLogHandler, logHttpRoutes } from './log.js';
 export { makeRobotHandler, RobotStore } from './robot.js';
 export { NotificationHub, createVerifiedNotificationAccountResolver } from './notification.js';
 export { NotificationStore } from './notification.js';
-export { KeyStore, keyRoutes, KEY_ERRORS } from './key.js';
+export { KeyStore, keyRoutes, KEY_ERRORS, KEY_BINARY_MAX_BYTES } from './key.js';
 export { DeviceRegistry, makePushHandler, pushRoutes } from './push.js';
-export { BackupStore, credentialsAccountId, accountLoopRobot } from './backup.js';
-export { MediaStore, makeMediaHandler, mediaBlobRoutes, expandMedia, accessKeyAccountResolver, MEDIA_ERRORS, MEDIA_TYPES, AUTHORIZED_UNDER_ADMIN } from './media.js';
+export { BackupStore, credentialsAccountId, accountLoopRobot, BACKUP_MAX_BYTES, BACKUP_URL_EXPIRATION_MS } from './backup.js';
+export { MediaStore, makeMediaHandler, mediaBlobRoutes, expandMedia, accessKeyAccountResolver, MEDIA_ERRORS, MEDIA_TYPES, MEDIA_MAX_BYTES, AUTHORIZED_UNDER_ADMIN } from './media.js';
+export {
+  VERIFIED_CALLER,
+  createVerifiedClassicCaller,
+  verifiedCallerFromRequest,
+  cleanupVerifiedClassicRequest,
+  sendVerifiedCallerError,
+  DEFAULT_AUTH_BODY_MAX_BYTES,
+} from './caller.js';
+export { PublicOriginError, configuredPublicOrigin, canonicalPublicOrigin, requirePublicOrigin } from './publicOrigin.js';
 export {
   RomController, RomError, CertificateStore, ROM_ERRORS,
   makeRomHandler, makeAccountClient, makeRobotClient, generateCertificatePair,
@@ -87,6 +103,47 @@ const GQA_ACCOUNT_SERVICE_ENV = 'ETCO_server_accountService';
 const GQA_ATTRIBUTION_FILE_ENV = 'ETCO_gqa_attributionFile';
 
 const own = (value, key) => Object.prototype.hasOwnProperty.call(value, key);
+
+/** Apply the SigV4 caller boundary to a non-X-Amz-Target route. */
+function verifiedDirectRoute(handler, callerBoundary) {
+  const guarded = async (context) => {
+    if (!callerBoundary) return handler(context);
+    const { req, res, body, target, op, log } = context;
+    try {
+      // Express initializes an absent request body to `{}`.  For an entityless
+      // GET/HEAD that is not the wire representation (and would make a valid
+      // SigV4 empty-payload signature fail), so authenticate the actual empty
+      // entity instead.
+      const wireBody = req.rawBody !== undefined
+        ? req.rawBody
+        : ['GET', 'HEAD'].includes(String(req.method || '').toUpperCase())
+          ? ''
+          : body === undefined || body === null ? '' : body;
+      const caller = await callerBoundary({ req, res, body: wireBody, target, op, log });
+      if (!caller) throw new Error('verified caller boundary returned no identity');
+      return await handler({ ...context, caller });
+    } catch (error) {
+      if (!res.writableEnded) sendVerifiedCallerError(res, error);
+      return undefined;
+    } finally {
+      await cleanupVerifiedClassicRequest(req);
+    }
+  };
+  // createService inspects these handler properties before invoking the route. Preserve the
+  // raw-body/parser metadata across the auth wrapper so streamed uploads are never JSON parsed.
+  for (const property of ['rawBody', 'bodyLimit', 'parserError', 'jsonStrict', 'jsonTypes']) {
+    if (Object.prototype.hasOwnProperty.call(handler, property)) guarded[property] = handler[property];
+  }
+  return guarded;
+}
+
+function verifiedDirectRoutes(routes, callerBoundary) {
+  if (!callerBoundary) return routes;
+  return Object.fromEntries(Object.entries(routes).map(([route, handler]) => [
+    route,
+    verifiedDirectRoute(handler, callerBoundary),
+  ]));
+}
 
 function httpPeerUrl(value) {
   if (typeof value !== 'string' || value.length === 0) return value;
@@ -203,7 +260,7 @@ function isAccountTarget(req) {
 }
 
 /** Build the entrypoint's route table. `extra` registrations are prepended (later iterations). */
-export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor, media, keyStore, keyMembership, keyBinaryDir, rom, robotStore, key, ifttt, nlp, person, collision, gqa, jot, voiceTraining } = {}) {
+export function classicRoutes(hub, extra = [], { notificationAccountResolver, logStore, baseFor, callerBoundary, media, keyStore, keyMembership, keyBinaryDir, rom, robotStore, key, ifttt, nlp, person, collision, gqa, jot, voiceTraining } = {}) {
   const mediaStore = media?.store || new MediaStore();
   const personStore = person?.store || new PersonStore();
   const jotStore = jot?.store || new JotStore();
@@ -230,16 +287,17 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
   const keyMembershipSeam = keyMembership || accountMembership();
   const router = createClassicRouter([
     ...extra,
-    { match: /^log/i, handler: makeLogHandler(logStore || new LogStore(), baseFor) },
-    { match: /^robot/i, handler: makeRobotHandler({ store: robotStore || new RobotStore() }) },
-    { match: /^notification/i, handler: makeNotificationHandler(hub, { accountResolver: notificationAccountResolver }), preserveBody: true, bodyDefault: null },
+    { match: /^log/i, handler: makeLogHandler(logStore || new LogStore(), baseFor, { callerBoundary }) },
+    { match: /^robot/i, handler: makeRobotHandler({ store: robotStore || new RobotStore(), callerBoundary }) },
+    { match: /^notification/i, handler: makeNotificationHandler(hub, { accountResolver: notificationAccountResolver, callerBoundary }), preserveBody: true, bodyDefault: null },
     { match: /^key/i, handler: makeKeyHandler(keys, {
       membership: keyMembershipSeam, baseFor, binaryDir: keyBinaryDir,
       accountResolver: key?.accountResolver,
+      callerBoundary,
       // The robot's immediate wake-up on CreateRequest (source: SNS KeyNeeded to the siblings).
       notifyKeyNeeded: makeKeyNeededNotifier(hub, keyMembershipSeam),
     }) },
-    { match: /^push/i, handler: makePushHandler(pushRegistry) },
+    { match: /^push/i, handler: makePushHandler(pushRegistry, { callerBoundary }) },
     // Media_20160725 owns a real store: the app's Gallery reads it and the robot writes photos to
     // it. Registered before the tier-3 stubs so the media stub never answers for it.
     { match: /^media/i, handler: makeMediaHandler({
@@ -248,8 +306,9 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
       accountResolver: media?.accountResolver,
       loops: media?.loops,
       credentials: media?.credentials,
+      callerBoundary,
     }) },
-    { match: /^rom/i, handler: makeRomHandler(rom) }, // ROM_20171011 cert exchange (A-16)
+    { match: /^rom/i, handler: makeRomHandler({ ...(rom || {}), callerBoundary }) }, // ROM_20171011 cert exchange (A-16)
     // IFTTT_20170207 and NLP_20161031 are real handlers now (source-faithful contracts with
     // explicit dead-provider seams), registered before the tier-3 stubs so they win.
     { match: /^ifttt/i, handler: makeIftttHandler(ifttt || {}) },
@@ -258,7 +317,7 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
     // username collision) own real handlers now (A-15), registered ahead of the tier-3 stubs.
     { match: /^person/i, handler: makePersonHandler({
       store: personStore, account: person?.account, questions: person?.questions,
-      holidays: person?.holidays, now: person?.now,
+      holidays: person?.holidays, now: person?.now, callerBoundary,
     }) },
     { match: /^collision/i, handler: makeCollisionHandler(collision || {}) },
     // The source GQA API is a Classic AWS target whose security-gateway hop routes Question to
@@ -289,6 +348,7 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
       store: voiceTrainingStore,
       backup: voiceTraining?.backup,
       baseFor,
+      callerBoundary,
       maxBytes: voiceTraining?.maxBytes,
     }) },
     ...stubRegistrations(), // build-to-spec tier-3 stubs (none remain: person/collision/jot/voiceTraining graduated)
@@ -297,7 +357,7 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
     { match: /^loop/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^settings/i, proxyTo: () => netUrl('account', DefaultPort.account) },
     { match: /^update/i, proxyTo: () => netUrl('ota', DefaultPort.ota) },
-  ]);
+  ], { callerBoundary });
   return router;
 }
 
@@ -349,7 +409,11 @@ export function makeKeyNeededNotifier(hub, membership) {
  * socket (the wss push door) is attached to the same HTTP server — the robot reaches the REST
  * face and the socket on one host (path /socket/<token>).
  */
-export function createClassicEntrypoint({ extra = [], tls, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership, media, key, keyStore, keyMembership, keyBinaryDir, rom, robotStore, ifttt, nlp, person, collision, gqa, jot, voiceTraining } = {}) {
+export function createClassicEntrypoint({ extra = [], tls, publicUrl, publicOrigin, requirePublicUrl, callerBoundary, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership, backup, log, media, key, keyStore, keyMembership, keyBinaryDir, rom, robotStore, ifttt, nlp, person, collision, gqa, jot, voiceTraining } = {}) {
+  const configuredOrigin = configuredPublicOrigin({ publicUrl, publicOrigin });
+  if ((requirePublicUrl === true || (requirePublicUrl === undefined && !!callerBoundary)) && !configuredOrigin) {
+    throw new PublicOriginError('publicUrl is required for an authenticated Classic entrypoint');
+  }
   const classicGqa = createClassicGqa(gqa);
   const hub = new NotificationHub({
     file: notificationFile,
@@ -358,14 +422,29 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
     notificationTtlMs,
     pollIntervalMs: notificationPollIntervalMs,
   });
-  const backups = new BackupStore();
+  const backups = backup?.store || new BackupStore(backup?.dir, {
+    maxBytes: backup?.maxBytes,
+    bearerSecret: backup?.bearerSecret,
+    clock: backup?.clock,
+    urlExpirationMs: backup?.urlExpirationMs,
+  });
+  const loopbackBackupOptIn = backup?.allowLoopbackWithoutIdentity === true
+    || process.env.ETCO_classic_backupTrustedLoopback === 'true';
+  const effectiveBackupOwnership = (backupOwnership || loopbackBackupOptIn)
+    ? { ...(backupOwnership || {}), ...(loopbackBackupOptIn ? { allowLoopbackWithoutIdentity: true } : {}) }
+    : undefined;
   const keys = keyStore || new KeyStore();
   const robots = robotStore || new RobotStore();
-  // The Backup URLs (and OTA-style self-hosting) point back at whatever host the robot reached
-  // us on, so the blob upload/download land here too. ETCO_classic_publicUrl overrides.
-  const baseFor = (req) => process.env.ETCO_classic_publicUrl || `${req.socket?.encrypted ? 'https' : 'http'}://${(req.headers && req.headers.host) || 'localhost'}`;
-  const logStore = new LogStore();
-  const mediaStore = media?.store || new MediaStore();
+  // Never consult request Host for a bearer destination. Keep the legacy Host fallback only for
+  // unauthenticated standalone tests; an authenticated deployment must configure its origin.
+  const baseFor = (req) => {
+    if (configuredOrigin) return configuredOrigin;
+    if (callerBoundary) throw new PublicOriginError('publicUrl is required to emit an object URL');
+    return process.env.ETCO_classic_publicUrl
+      || `${req?.socket?.encrypted ? 'https' : 'http'}://${(req?.headers && req.headers.host) || 'localhost'}`;
+  };
+  const logStore = log?.store || new LogStore(log?.dir, { maxBytes: log?.maxBytes });
+  const mediaStore = media?.store || new MediaStore(media || {});
   const iftttStore = ifttt?.store || new IftttStore({
     // The original stored Identity/Trigger/Action/TriggerMedia in Mongo; the durable file keeps
     // that state across a restart (ETCO_classic_iftttFile, default $TMPDIR/phoenix-ifttt.json).
@@ -387,8 +466,9 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
     // intact to reject them before token mutation. Other routes stay strict.
     jsonStrict: (req) => !isCreateHubTokenTarget(req) && !isNotificationTarget(req) && !isLoopTarget(req) && !isAccountTarget(req),
     routes: {
-      ...classicRoutes(hub, [...extra, { match: /^backup/i, handler: makeBackupHandler(backups, baseFor, { ownership: backupOwnership }) }], {
+      ...classicRoutes(hub, [...extra, { match: /^backup/i, handler: makeBackupHandler(backups, baseFor, { ownership: effectiveBackupOwnership, callerBoundary }) }], {
         notificationAccountResolver,
+        callerBoundary,
         logStore,
         baseFor,
         media: { ...media, store: mediaStore },
@@ -407,38 +487,40 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
         voiceTraining: { ...voiceTraining, store: voiceTrainingStore },
       }),
       // Jot's direct, non-X-Amz-Target bulk unread-count route (srv-jot-ws-archived src/routes/route.js).
-      ...jotHttpRoutes({ store: jotStore, account: jot?.account, media: jotMedia, onEvent: jot?.onEvent }),
+      ...verifiedDirectRoutes(jotHttpRoutes({ store: jotStore, account: jot?.account, media: jotMedia, onEvent: jot?.onEvent }), callerBoundary),
       // Push's web-portal read sidecar (the AWS surface has no list op).
-      ...pushRoutes(pushRegistry),
+      ...verifiedDirectRoutes(pushRoutes(pushRegistry, { callerBoundary }), callerBoundary),
       // VoiceTraining's self-hosted blob route: the `url` virtual of the legacy Backup record
       // (schemes/backup.js) pointed at an S3 presigned GET; Phoenix serves the bytes itself.
-      ...voiceTrainingBlobRoutes(voiceTrainingStore),
+      ...verifiedDirectRoutes(voiceTrainingBlobRoutes(voiceTrainingStore, { callerBoundary }), callerBoundary),
       // Account owns the photo objects. Keep the URL on the same public
       // Classic/TLS origin that the robot already reaches.
-      'GET /member-photos/:key': ({ req, res, log }) => proxyMemberPhoto({
+      'GET /member-photos/:key': verifiedDirectRoute(({ req, res, log, caller }) => proxyMemberPhoto({
         baseUrl: netUrl('account', DefaultPort.account),
         key: req.params.key,
         req,
         res,
         log,
-      }),
+        caller,
+      }), callerBoundary),
       ...backupBlobRoutes(backups), // PUT/GET /backup/blob — the self-hosted store the URLs point at
-      ...keyRoutes(keys, { membership: keyMembership, baseFor, binaryDir: keyBinaryDir }), // POST /binaryRequest, /deleteBinaries, GET /key/binary
-      ...logHttpRoutes(logStore),  // PUT/GET /log/upload|blob — the log/ASR/binary sink the URLs point at
-      ...mediaBlobRoutes(mediaStore), // GET /media/blob/:path — the object bytes behind a Media url
+      ...keyRoutes(keys, { membership: keyMembership, baseFor, binaryDir: keyBinaryDir, callerBoundary }), // POST /binaryRequest, /deleteBinaries, GET /key/binary
+      ...verifiedDirectRoutes(logHttpRoutes(logStore, { callerBoundary }), callerBoundary),  // PUT/GET /log/upload|blob — the log/ASR/binary sink the URLs point at
+      ...verifiedDirectRoutes(mediaBlobRoutes(mediaStore, { callerBoundary }), callerBoundary), // GET /media/blob/:path — the object bytes behind a Media url
       // Internal enqueue: push a notification to a robot's account (portal/system/tests use this).
-      'POST /notify': ({ res, body }) => {
-        if (!body || !body.accountId) return sendJson(res, 400, { error: 'accountId required' });
-        const notification = Object.prototype.hasOwnProperty.call(body, 'notification')
+      'POST /notify': verifiedDirectRoute(({ res, body, caller }) => {
+        const accountId = caller?.accountId || body?.accountId;
+        if (!accountId) return sendJson(res, 400, { error: 'accountId required' });
+        const notification = Object.prototype.hasOwnProperty.call(body || {}, 'notification')
           ? body.notification
-          : Object.prototype.hasOwnProperty.call(body, 'payload') ? body.payload : {};
+          : Object.prototype.hasOwnProperty.call(body || {}, 'payload') ? body.payload : {};
         const n = hub.enqueueNotification({
-          accountId: body.accountId,
+          accountId,
           skillId: body.skillId === undefined ? '-1' : body.skillId,
           notification,
         });
         return { queued: n._id };
-      },
+      }, callerBoundary),
     },
   });
   const wss = attachNotificationSocket(service.server, hub);
@@ -460,8 +542,47 @@ export function createClassicEntrypoint({ extra = [], tls, notificationFile, not
   };
 }
 
-export function start(port = Number(process.env.PORT) || DefaultPort.classic) {
-  return createClassicEntrypoint().listen(port);
+/**
+ * The executable Classic service must never fall back to the historical LAN-trust entrypoint.
+ * A standalone process gets the Account snapshot through an explicit read-only path (the
+ * colocated parity launcher sets ETCO_account_dataFile); deployments that construct the
+ * entrypoint directly may inject createVerifiedClassicCaller themselves. Reload on atomic-file
+ * replacement so access-key rotation/revocation is visible without restarting Classic.
+ */
+async function productionCredentialResolver() {
+  const file = process.env.ETCO_classic_accountDataFile || process.env.ETCO_account_dataFile;
+  if (!file) throw new Error('ETCO_classic_accountDataFile or ETCO_account_dataFile is required for the public Classic service');
+  const { Store } = await import('../../account/src/store.js');
+  let store = new Store(file);
+  let mtime = accountStoreMtime(file);
+  return (accessKeyId) => {
+    const current = accountStoreMtime(file);
+    if (current !== mtime) {
+      store = new Store(file);
+      mtime = current;
+    }
+    return store.accountByAccessKeyId(accessKeyId);
+  };
+}
+
+function accountStoreMtime(file) {
+  try {
+    const stat = statSync(file);
+    return `${stat.mtimeNs ?? stat.mtimeMs}:${stat.size}:${stat.ino}`;
+  } catch { return 'missing'; }
+}
+
+export async function start(port = Number(process.env.PORT) || DefaultPort.classic) {
+  const resolveCredentials = await productionCredentialResolver();
+  const callerBoundary = createVerifiedClassicCaller({
+    resolveCredentials,
+    allowNativeClientPayloadHash: true,
+  });
+  return createClassicEntrypoint({
+    publicUrl: process.env.ETCO_classic_publicUrl || process.env.CLASSIC_PUBLIC_URL,
+    requirePublicUrl: true,
+    callerBoundary,
+  }).listen(port);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

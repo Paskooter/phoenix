@@ -4,7 +4,7 @@
 //
 //   POST /                                   Content-Type: application/x-amz-json-1.1
 //   X-Amz-Target: <Prefix>.<Operation>       e.g. Log_20150309.PutEvents
-//   Authorization: AWS4-HMAC-SHA256 …        (SigV4 — NOT verified; LAN trust like the hub)
+//   Authorization: AWS4-HMAC-SHA256 …        (verified by the production Classic caller boundary)
 //   body: JSON of the operation input members
 //
 //   success: 200, JSON of the output shape

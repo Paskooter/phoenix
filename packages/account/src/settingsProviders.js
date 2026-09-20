@@ -1303,19 +1303,23 @@ function localLasso(store) {
   };
 }
 
-function networkAccount(fetchImpl, base) {
+function networkAccount(fetchImpl, base, env = process.env) {
+  const internalToken = env.ETCO_account_internalPeerToken;
+  const peerHeaders = () => internalToken ? { 'x-phoenix-internal-token': internalToken } : {};
   return {
     async checkUserBelongsToLoop(context) {
       const url = new URL('isLoopMember', base);
       url.searchParams.set('accountId', context.userId);
       url.searchParams.set('loopId', context.loopId);
-      const response = await requestJson(fetchImpl, 'Account', base, `${url.pathname}${url.search}`);
+      const response = await requestJson(fetchImpl, 'Account', base, `${url.pathname}${url.search}`, {
+        headers: peerHeaders(),
+      });
       if (!response || !response.result) throw sourceLoopMemberError();
     },
     async getFriendlyId(context) {
       const url = new URL('loopPopulated', base);
       url.searchParams.set('loopId', context.loopId);
-      const response = await requestSourceJson(fetchImpl, 'Account', base, url);
+      const response = await requestSourceJson(fetchImpl, 'Account', base, url, peerHeaders());
       sourceNullPropertyError('robotFriendlyId', response);
       return response.robotFriendlyId;
     },
@@ -1436,7 +1440,7 @@ export function createSettingsProviders({ store, fetchImpl = globalThis.fetch, e
   // alias until the Classic registry route is proven equivalent.
   const personBase = configuredPeer(env, ['NET_settings_person', 'NET_person']);
   const dataBase = configuredPeer(env, ['NET_settings_lasso', 'NET_lasso', 'NET_data']);
-  const account = accountBase ? networkAccount(fetchImpl, accountBase) : localAccount(store);
+  const account = accountBase ? networkAccount(fetchImpl, accountBase, env) : localAccount(store);
   return {
     account,
     hub: hubBase ? networkHub(fetchImpl, hubBase, account) : localHub(store, account),

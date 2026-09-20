@@ -10,6 +10,7 @@ the index of everything under `docs/`.
 | [RUNBOOK.md](RUNBOOK.md) | Stand up a server and point a real robot at it, start to finish |
 | [OPERATIONS.md](OPERATIONS.md) | Running the stack (native and Docker), the extension services, public hosting, verification commands |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | The full public deployment: Compose behind nginx, DNS and certificates, firewall, backups, upgrades, troubleshooting |
+| [SECURITY.md](SECURITY.md) | Production launch gate, private-port topology, container/native hardening, proxy controls and pitfalls |
 | [portal-nginx-hosting.md](portal-nginx-hosting.md) | Hosting just the web portal behind nginx |
 
 ## Reference

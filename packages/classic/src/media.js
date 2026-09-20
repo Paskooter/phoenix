@@ -30,19 +30,77 @@
 // Phoenix has no S3 (the same divergence that made Backup and the OTA packages self-host), so the
 // answered `url` points back at this entrypoint and the bytes live on local disk.
 
-import { createWriteStream, createReadStream, readFileSync, writeFileSync, renameSync, existsSync, mkdirSync, openSync, closeSync, unlinkSync } from 'node:fs';
-import { mkdir, rename, rm } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import { createReadStream, readFileSync, writeFileSync, renameSync, existsSync, mkdirSync, openSync, closeSync, unlinkSync, lstatSync } from 'node:fs';
+import { lstat, mkdir, realpath } from 'node:fs/promises';
+import { dirname, join, relative, resolve, sep } from 'node:path';
 import { tmpdir } from 'node:os';
-import { randomUUID, randomBytes } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { pipeline } from 'node:stream/promises';
 import { sendAmz, sendAmzError, accessKeyIdFromAuth, ValidationException } from './awsJson.js';
+import { verifiedCallerFromRequest } from './caller.js';
+import { canonicalPublicOrigin } from './publicOrigin.js';
+import {
+  configuredMaxBytes,
+  declaredContentLength,
+  normalizeMaxBytes,
+  writeAtomicUpload,
+} from './rawUpload.js';
 
 export const MEDIA_TYPES = ['image', 'photo_booth', 'recording', 'thumb', 'thumb_robot', 'audio'];
 export const THUMB_TYPES = ['thumb', 'thumb_robot'];
 export const MEDIA_PAGE_DEFAULT = 50;
 export const MEDIA_PAGE_MAX = 200;
+export const MEDIA_MAX_BYTES = 1_000_000_000;
 const SAFE_PATH = /^[A-Za-z0-9_-]+$/;
+
+function assertSafeMediaComponent(value, name) {
+  if (typeof value !== 'string' || !SAFE_PATH.test(value)) throw new TypeError(`invalid media ${name}`);
+  return value;
+}
+
+function assertContainedPath(root, target) {
+  const rootPath = resolve(root);
+  const targetPath = resolve(target);
+  const rel = relative(rootPath, targetPath);
+  if (!rel || rel === '..' || rel.startsWith(`..${sep}`) || rel.startsWith(sep)) {
+    throw new Error('media path escapes configured directory');
+  }
+}
+
+/** Reject symlink components before a file operation can follow them outside the media root. */
+function assertNoSymlinkComponents(root, target) {
+  const rootPath = resolve(root);
+  const rel = relative(rootPath, resolve(target));
+  let current = rootPath;
+  for (const component of rel.split(sep)) {
+    current = join(current, component);
+    try {
+      if (lstatSync(current).isSymbolicLink()) throw new Error('media path contains symlink');
+    } catch (error) {
+      if (error?.code === 'ENOENT') return;
+      throw error;
+    }
+  }
+}
+
+/** Re-check the canonical parent after mkdir; lexical containment alone cannot see symlinks. */
+async function assertResolvedMediaPath(directory, file) {
+  let root;
+  let parent;
+  try {
+    root = await realpath(resolve(directory));
+    parent = await realpath(dirname(file));
+  } catch (error) {
+    throw new Error(`media path cannot be resolved: ${error.message}`);
+  }
+  assertContainedPath(root, parent);
+  try {
+    if ((await lstat(file)).isSymbolicLink()) throw new Error('media path contains symlink');
+  } catch (error) {
+    if (error?.code !== 'ENOENT') throw error;
+  }
+}
+
 
 // jiborobot/srv-media-ws src/errors/media.js
 export const MEDIA_ERRORS = {
@@ -50,6 +108,8 @@ export const MEDIA_ERRORS = {
   MEDIA_ALREADY_EXISTS: { code: 'MEDIA_ALREADY_EXISTS', statusCode: 409, message: 'Media already exists' },
   MEDIA_ONLY_OWNER_CAN_REMOVE: { code: 'MEDIA_ONLY_OWNER_CAN_REMOVE', statusCode: 403, message: 'Only owner can remove media' },
   MEDIA_MUST_BE_MEMBER: { code: 'MEDIA_MUST_BE_MEMBER', statusCode: 403, message: 'You must be a member of the loop to list or create media' },
+  ACCOUNT_SERVICE_UNAVAILABLE: { code: 'ACCOUNT_SERVICE_UNAVAILABLE', statusCode: 503, message: 'Account service not available' },
+  PAYLOAD_TOO_LARGE: { code: 'PAYLOAD_TOO_LARGE', statusCode: 413, message: 'Payload content length greater than maximum allowed' },
   REFERENCE_FOR_THUMB: { code: 'REFERENCE_FOR_THUMB', statusCode: 422, message: 'Reference should be present only for thumbnails' },
   REFERENCE_NOT_FOUND: { code: 'REFERENCE_NOT_FOUND', statusCode: 404, message: 'Referenced media not found' },
 };
@@ -113,10 +173,15 @@ export class MediaStore {
     directory = process.env.ETCO_classic_mediaDir || join(tmpdir(), 'phoenix-media'),
     file = process.env.ETCO_classic_mediaFile || join(tmpdir(), 'phoenix-media.json'),
     clock = Date.now,
+    maxBytes,
   } = {}) {
     this.directory = directory;
     this.file = file;
     this.clock = clock;
+    this.maxBytes = normalizeMaxBytes(
+      maxBytes,
+      configuredMaxBytes('ETCO_classic_mediaMaxBytes', MEDIA_MAX_BYTES),
+    );
     this.records = new Map(); // path -> record
     this._load();
   }
@@ -147,7 +212,17 @@ export class MediaStore {
   }
 
   fileFor(record) {
-    return join(this.directory, record.accountId || 'anonymous', mediaStorageName(record));
+    const accountId = record?.accountId || 'anonymous';
+    const path = assertSafeMediaComponent(record?.path, 'path');
+    assertSafeMediaComponent(accountId, 'accountId');
+    if (!MEDIA_TYPES.includes(record?.type)) throw new TypeError('invalid media type');
+    const root = resolve(this.directory);
+    const file = resolve(root, accountId, mediaStorageName({ path, type: record.type }));
+    // Keep this check even though SAFE_PATH currently makes it redundant: fileFor is the final
+    // storage boundary and must stay safe if the identity/path grammar changes later.
+    assertContainedPath(root, file);
+    assertNoSymlinkComponents(root, file);
+    return file;
   }
 
   objectFile(path) {
@@ -188,18 +263,12 @@ export class MediaStore {
     return [...this.records.values()].filter((record) => wanted.has(record.path));
   }
 
-  /** Stream one object's bytes to private disk. Does NOT register a media document. */
+  /** Stream one object's bytes to a same-directory temporary file. Does NOT register a media document. */
   async writeBlob(record, dataStream) {
     const file = this.fileFor(record);
     await mkdir(dirname(file), { recursive: true, mode: 0o700 });
-    const temporary = `${file}.${randomBytes(8).toString('hex')}.tmp`;
-    try {
-      await pipeline(dataStream, createWriteStream(temporary, { flags: 'wx', mode: 0o600 }));
-      await rename(temporary, file);
-    } catch (error) {
-      await rm(temporary, { force: true });
-      throw error;
-    }
+    await assertResolvedMediaPath(this.directory, file);
+    await writeAtomicUpload(dataStream, file, { maxBytes: this.maxBytes });
     return file;
   }
 
@@ -242,23 +311,13 @@ export class MediaStore {
   }
 }
 
-/**
- * `url` for an object key, pointed back at whatever host the caller reached us on (no S3).
- *
- * Order matters: the object URL is fetched by the DEVICE that made the request (Glide on the
- * phone, the robot's own downloader), so the host it addressed us with is the only one known to
- * work for it. `ETCO_classic_mediaBaseUrl` is the explicit override for the case where that host
- * is not resolvable by the other devices in the loop — e.g. a robot that reaches Phoenix as
- * `api.jibo.com` while the phone reaches it by LAN address. Classic's static public URL is a last
- * resort, not the default, because the deployed profile pins it to https://localhost.
- */
+/** Build an object URL from an explicit public origin, never from request Host. */
 function objectBaseUrl(baseFor, req) {
   const explicit = process.env.ETCO_classic_mediaBaseUrl;
-  if (explicit) return String(explicit).replace(/\/$/, '');
-  const host = req?.headers?.host;
-  if (host) return `${req?.socket?.encrypted ? 'https' : 'http'}://${host}`;
-  const base = typeof baseFor === 'function' ? baseFor(req) : null;
-  return String(base || 'http://localhost').replace(/\/$/, '');
+  if (explicit) return canonicalPublicOrigin(String(explicit), { name: 'ETCO_classic_mediaBaseUrl' });
+  const base = typeof baseFor === 'function' ? baseFor(req) : baseFor;
+  if (!base) throw new Error('publicUrl is required to emit a media object URL');
+  return canonicalPublicOrigin(String(base));
 }
 
 const mediaUrl = (base, path) => `${base}/media/blob/${path}`;
@@ -283,27 +342,73 @@ function credentialsFromHeader(req) {
  *
  * The source resolved both over HTTP to the account service (`accountClient.listMembers`,
  * `.getLoops`, `.listOwnerLoops`) and threw MEDIA_MUST_BE_MEMBER when the caller was not a member.
- * Phoenix's Classic entrypoint is LAN-trust and colocated with the account store, so the deployed
- * launcher injects the real functions. When they are not injected the membership gate is skipped —
- * the same documented divergence as Backup's dropped loop-ownership check — rather than being
- * silently replaced by a fake pass.
+ * Phoenix's Classic entrypoint injects the real functions in a deployed stack. An authenticated
+ * caller boundary fails closed with ACCOUNT_SERVICE_UNAVAILABLE when they are absent or cannot
+ * resolve; only an explicitly unguarded legacy in-process entrypoint keeps the old LAN-trust
+ * compatibility behavior.
  */
-export function makeMediaHandler({ store, baseFor, accountResolver, loops, credentials } = {}) {
+export function makeMediaHandler({ store, baseFor, accountResolver, loops, credentials, callerBoundary } = {}) {
   if (!store) throw new TypeError('media handler requires a MediaStore');
-  const credentialsOf = typeof credentials === 'function' ? credentials : credentialsFromHeader;
-  const accountIdOf = (req, body) => (typeof accountResolver === 'function'
-    ? accountResolver(req, body)
-    : accessKeyIdFromAuth(req)) || 'anon';
-  const loopMemberIds = async (loopId) => (loops && typeof loops.members === 'function'
-    ? (await loops.members(loopId)) || [] : null);
-  const accountLoopIds = async (accountId) => (loops && typeof loops.accountLoops === 'function'
-    ? (await loops.accountLoops(accountId)) || [] : null);
-  const ownerLoopIds = async (accountId) => (loops && typeof loops.ownedLoops === 'function'
-    ? (await loops.ownedLoops(accountId)) || [] : null);
+  const credentialsOf = (req) => {
+    const verified = verifiedCallerFromRequest(req);
+    if (verified) return {
+      id: verified.accountId,
+      _id: verified.accountId,
+      email: verified.email,
+      friendlyId: verified.friendlyId,
+      isAdmin: verified.isAdmin,
+    };
+    // A configured boundary is fail-closed if a handler is called outside the router. Never fall
+    // back to a forwarded identity after the application has opted into verified callers.
+    if (callerBoundary) return {};
+    if (typeof credentials === 'function') return credentials(req);
+    return credentialsFromHeader(req);
+  };
+  const accountIdOf = (req, body) => {
+    const verified = verifiedCallerFromRequest(req);
+    if (verified) return verified.accountId;
+    if (callerBoundary) return null;
+    return (typeof accountResolver === 'function' ? accountResolver(req, body) : accessKeyIdFromAuth(req)) || 'anon';
+  };
+  const loopMemberIds = async (loopId) => {
+    if (!loops || typeof loops.members !== 'function') return callerBoundary ? undefined : null;
+    try {
+      const ids = await loops.members(loopId);
+      return ids === undefined || ids === null ? undefined : ids;
+    } catch {
+      return undefined;
+    }
+  };
+  const accountLoopIds = async (accountId) => {
+    if (!loops || typeof loops.accountLoops !== 'function') return callerBoundary ? undefined : null;
+    try {
+      const ids = await loops.accountLoops(accountId);
+      return ids === undefined || ids === null ? undefined : ids;
+    } catch {
+      return undefined;
+    }
+  };
+  const ownerLoopIds = async (accountId) => {
+    if (!loops || typeof loops.ownedLoops !== 'function') return callerBoundary ? undefined : null;
+    try {
+      const ids = await loops.ownedLoops(accountId);
+      return ids === undefined || ids === null ? undefined : ids;
+    } catch {
+      return undefined;
+    }
+  };
 
   async function requireMembership(loopId, accountId) {
     const members = await loopMemberIds(loopId);
-    if (members === null) return; // no membership source wired (LAN trust)
+    if (members === undefined) {
+      if (callerBoundary) fail('ACCOUNT_SERVICE_UNAVAILABLE');
+      return; // configured source failed; an unguarded compatibility entrypoint may continue
+    }
+    // `null` is the deliberate unguarded-entrypoint sentinel from
+    // loopMemberIds(): old in-process users did not supply an Account
+    // membership seam. It is never returned by an authenticated deployment,
+    // which instead receives `undefined` and fails closed above.
+    if (members === null) return;
     if (!members.some((id) => sameId(id, accountId))) fail('MEDIA_MUST_BE_MEMBER');
   }
 
@@ -333,6 +438,9 @@ export function makeMediaHandler({ store, baseFor, accountResolver, loops, crede
 
   async function create({ req, res }) {
     const accountId = accountIdOf(req, null);
+    if (typeof accountId !== 'string' || !SAFE_PATH.test(accountId)) {
+      return void sendAmzError(res, ValidationException, 'Invalid caller identity');
+    }
     const loopId = header(req, 'x-loop-id');
     if (!loopId) return void sendAmzError(res, ValidationException, 'Invalid or missing x-loop-id');
     const type = header(req, 'x-type') ?? 'image';
@@ -345,6 +453,14 @@ export function makeMediaHandler({ store, baseFor, accountResolver, loops, crede
     const reference = header(req, 'x-reference') || null;
     const path = header(req, 'x-path') || randomUUID().replace(/-/g, '');
     if (!SAFE_PATH.test(path)) return void sendAmzError(res, ValidationException, 'Invalid or missing x-path');
+    const contentLength = declaredContentLength(req);
+    if (contentLength !== null && contentLength > store.maxBytes) {
+      req.resume?.();
+      return void sendAmzError(res, {
+        ...MEDIA_ERRORS.PAYLOAD_TOO_LARGE,
+        message: `Payload content length greater than maximum allowed: ${store.maxBytes}`,
+      });
+    }
     try {
       await requireMembership(loopId, accountId);
       if (store.find(path) || store.findByThumbPath(path)) fail('MEDIA_ALREADY_EXISTS');
@@ -354,7 +470,7 @@ export function makeMediaHandler({ store, baseFor, accountResolver, loops, crede
         const parent = store.find(reference);
         if (!parent) fail('REFERENCE_NOT_FOUND');
         const thumb = { path, type, url: mediaUrl(base, path), isEncrypted };
-        await store.writeBlob({ ...thumb, accountId: parent.accountId }, req);
+        await store.writeBlob({ ...thumb, accountId: parent.accountId }, req._phoenixBodyStream || req);
         // The source pushes the thumb onto the referenced document, saves it, and answers the
         // parent's JSON with the thumb's path/type/url plus the reference — not the thumb record.
         parent.thumbs = [...(parent.thumbs || []), thumb];
@@ -366,7 +482,7 @@ export function makeMediaHandler({ store, baseFor, accountResolver, loops, crede
         path, type, accountId, loopId, url: mediaUrl(base, path), created: store.created(),
         meta: metaFromHeaders(req), isEncrypted, isDeleted: false, thumbs: [],
       };
-      await store.putObject(record, req);
+      await store.putObject(record, req._phoenixBodyStream || req);
       return void sendAmz(res, 200, toJSON(record));
     } catch (error) {
       if (typeof req?.resume === 'function' && !req.readableEnded) req.resume();
@@ -410,6 +526,7 @@ export function makeMediaHandler({ store, baseFor, accountResolver, loops, crede
       const records = store.get(paths).filter((record) => record.isDeleted !== true);
       const mediaList = expandMedia(records);
       const loops = await accountLoopIds(accountId);
+      if (loops === undefined) fail('ACCOUNT_SERVICE_UNAVAILABLE');
       if (loops === null) return void sendAmz(res, 200, mediaList);
       const accessible = new Set(loops.map(String));
       const mediaListFiltered = mediaList.filter((media) => accessible.has(String(media.loopId)));
@@ -432,6 +549,7 @@ export function makeMediaHandler({ store, baseFor, accountResolver, loops, crede
     const accountId = accountIdOf(req, body);
     try {
       const owned = await ownerLoopIds(accountId);
+      if (owned === undefined) fail('ACCOUNT_SERVICE_UNAVAILABLE');
       const ownedSet = owned === null ? null : new Set(owned.map(String));
       // Source Remove query: `path: { $in: paths }` (parents only) + $or(accountId, owner loops).
       const candidates = store.getParents(paths).filter((record) => sameId(record.accountId, accountId)
@@ -479,11 +597,19 @@ export function makeMediaHandler({ store, baseFor, accountResolver, loops, crede
 }
 
 /** GET /media/blob/:path — the object bytes behind the `url` the app is handed (no S3). */
-export function mediaBlobRoutes(store) {
+export function mediaBlobRoutes(store, { callerBoundary = false } = {}) {
   return {
     'GET /media/blob/:path': async ({ req, res }) => {
       const path = String(req.params.path || '');
       if (!SAFE_PATH.test(path)) { res.writeHead(400); res.end(); return; }
+      if (callerBoundary) {
+        const caller = verifiedCallerFromRequest(req);
+        const record = store.find(path) || store.findByThumbPath(path)?.record;
+        if (!caller || !record || String(record.accountId) !== String(caller.accountId)) {
+          res.writeHead(403, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' });
+          return void res.end('forbidden');
+        }
+      }
       let stream;
       try {
         stream = store.openObject(path);
@@ -494,6 +620,7 @@ export function mediaBlobRoutes(store) {
       try {
         await new Promise((resolve, reject) => { stream.once('open', resolve); stream.once('error', reject); });
         res.setHeader('content-type', 'application/octet-stream');
+        res.setHeader('cache-control', 'private, no-store');
         await pipeline(stream, res);
       } catch (error) {
         if (!res.headersSent && !res.destroyed) { res.writeHead(404); res.end(); } else res.destroy(error);
@@ -521,7 +648,7 @@ export function accessKeyAccountResolver(accountByAccessKeyId) {
     const accessKeyId = accessKeyIdFromAuth(req);
     if (!accessKeyId) return null;
     const account = typeof accountByAccessKeyId === 'function' ? accountByAccessKeyId(accessKeyId) : null;
-    if (!account) return accessKeyId;
+    if (!account) return null;
     return String(account.id ?? account._id ?? accessKeyId);
   };
 }

@@ -29,7 +29,7 @@
 // already exists, never a duplicate account or an error that makes a working
 // setup look broken.
 
-import { randomBytes } from 'node:crypto';
+import { randomBytes, timingSafeEqual } from 'node:crypto';
 
 /** Mongo-style 24-hex id, matching the ids the original cloud issued. */
 function newId() {
@@ -38,6 +38,41 @@ function newId() {
 
 function badRequest(res, sendJson, message, details = {}) {
   return sendJson(res, 400, { error: message, ...details });
+}
+
+const ADOPTION_ACCESS_KEY_RE = /^[A-Za-z0-9]{20}$/;
+const ADOPTION_SECRET_RE = /^[A-Za-z0-9]{40}$/;
+const ADOPTION_FRIENDLY_ID_RE = /^[a-z0-9-]{3,80}$/i;
+
+function secretsEqual(left, right) {
+  const a = Buffer.from(String(left || ''));
+  const b = Buffer.from(String(right || ''));
+  return a.length > 0 && a.length === b.length && timingSafeEqual(a, b);
+}
+
+/** Small bounded in-process limiter for the unauthenticated adoption proof. */
+export function createAdoptionRateLimiter({ limit = 10, windowMs = 60 * 60 * 1000, maxKeys = 10000 } = {}) {
+  const entries = new Map();
+  return {
+    allow(key = 'unknown') {
+      const now = Date.now();
+      const normalized = String(key || 'unknown').slice(0, 200);
+      const current = entries.get(normalized);
+      if (!current || now - current.started >= windowMs) {
+        if (entries.size >= maxKeys) {
+          const oldest = entries.keys().next().value;
+          if (oldest !== undefined) entries.delete(oldest);
+        }
+        entries.set(normalized, { started: now, count: 1 });
+        return { allowed: true, retryAfterMs: 0 };
+      }
+      current.count += 1;
+      if (current.count > limit) {
+        return { allowed: false, retryAfterMs: Math.max(1, windowMs - (now - current.started)) };
+      }
+      return { allowed: true, retryAfterMs: 0 };
+    },
+  };
 }
 
 /**
@@ -69,7 +104,7 @@ export function adoptRobot(store, body, { loopName = null } = {}) {
     // The secret must match. A mismatch means this accessKeyId belongs to a
     // different robot (or the caller is guessing), and silently overwriting the
     // stored secret would lock the real robot out of its own account.
-    if (existing.secretAccessKey !== secretAccessKey) {
+    if (!secretsEqual(existing.secretAccessKey, secretAccessKey)) {
       return {
         status: 403,
         payload: { error: 'accessKeyId is already registered to a different secret' },
@@ -178,11 +213,34 @@ export function adoptRobot(store, body, { loopName = null } = {}) {
  * relies on. Requiring a portal session here would defeat the purpose — the
  * repoint script runs on a laptop next to the robot, not in a logged-in browser.
  */
-export function robotAdoptionRoutes(store, { sendJson, loopName = null } = {}) {
+export function robotAdoptionRoutes(store, {
+  sendJson,
+  loopName = null,
+  rateLimiter = createAdoptionRateLimiter(),
+} = {}) {
   return {
-    'POST /api/adopt-robot': async ({ res, body }) => {
+    'POST /api/adopt-robot': async ({ req, res, body }) => {
+      const key = req?.socket?.remoteAddress || req?.headers?.['x-forwarded-for']?.split(',')[0] || 'unknown';
+      const limited = rateLimiter?.allow?.(key);
+      if (limited && !limited.allowed) {
+        const seconds = Math.ceil(limited.retryAfterMs / 1000);
+        res.setHeader('retry-after', String(seconds));
+        return sendJson(res, 429, { error: 'too many adoption attempts; try again later' });
+      }
       if (!body || typeof body !== 'object') {
         return badRequest(res, sendJson, 'a JSON body is required');
+      }
+      // Native robot credentials are fixed-format random values.  Requiring
+      // those formats on the public bootstrap route makes low-entropy guesses
+      // and storage-filling attempts materially harder while leaving the pure
+      // adoptRobot() migration helper backwards-compatible for old snapshots.
+      if (typeof body.accessKeyId !== 'string' || !ADOPTION_ACCESS_KEY_RE.test(body.accessKeyId.trim())
+        || typeof body.secretAccessKey !== 'string' || !ADOPTION_SECRET_RE.test(body.secretAccessKey.trim())) {
+        return badRequest(res, sendJson, 'accessKeyId must be 20 alphanumeric characters and secretAccessKey must be 40 alphanumeric characters');
+      }
+      if (body.friendlyId !== undefined && body.friendlyId !== null
+        && (!ADOPTION_FRIENDLY_ID_RE.test(String(body.friendlyId).trim()))) {
+        return badRequest(res, sendJson, 'friendlyId must contain only letters, numbers, and hyphens (3-80 characters)');
       }
       const { status, payload } = adoptRobot(store, body, { loopName });
       return sendJson(res, status, payload);

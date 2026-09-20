@@ -29,6 +29,7 @@
 // POST /api/token (the original two-argument {accessKeyId, secretAccessKey} portal token).
 
 import { sendJson } from '@phoenix/common';
+import { randomBytes } from 'node:crypto';
 import { createOwnerAccount, createLoop, mintSetupToken, findToken, ACCESS_TOKEN_LIFETIME_MS, secretMatches, createHubToken } from './model.js';
 // Password comparison MUST be compareAccountPassword, not model.js's scrypt-only
 // verifyPassword. A household restored from the original cloud stores
@@ -83,6 +84,48 @@ function withCookie(res, cookie, status, body) {
   sendJson(res, status, body);
 }
 
+const portalAuthAttempts = new Map();
+const PORTAL_AUTH_WINDOW_MS = 15 * 60 * 1000;
+const PORTAL_AUTH_LIMIT = 10;
+
+function portalAuthKey(req, email) {
+  const address = req?.socket?.remoteAddress || req?.connection?.remoteAddress || 'unknown';
+  return `${address}:${String(email || '').trim().toLowerCase().slice(0, 320)}`;
+}
+
+function checkPortalAuthRate(req, email) {
+  const key = portalAuthKey(req, email);
+  const now = Date.now();
+  if (portalAuthAttempts.size > 10000) {
+    for (const [candidate, row] of portalAuthAttempts) {
+      if (now - row.started >= PORTAL_AUTH_WINDOW_MS) portalAuthAttempts.delete(candidate);
+      if (portalAuthAttempts.size <= 10000) break;
+    }
+  }
+  const row = portalAuthAttempts.get(key);
+  if (!row || now - row.started >= PORTAL_AUTH_WINDOW_MS) {
+    portalAuthAttempts.set(key, { started: now, count: 1 });
+    return { allowed: true, key };
+  }
+  row.count += 1;
+  return {
+    allowed: row.count <= PORTAL_AUTH_LIMIT,
+    key,
+    retryAfterMs: Math.max(1, PORTAL_AUTH_WINDOW_MS - (now - row.started)),
+  };
+}
+
+function clearPortalAuthRate(key) {
+  portalAuthAttempts.delete(key);
+}
+
+function tooManyPortalAuth(res, result) {
+  if (result.allowed) return false;
+  res.setHeader('retry-after', String(Math.ceil(result.retryAfterMs / 1000)));
+  sendJson(res, 429, { error: 'too many login attempts; try again later' });
+  return true;
+}
+
 export function userFromSession(store, req) {
   return sessionUser(store, req);
 }
@@ -129,10 +172,14 @@ export function portalRoutes(store, options = {}) {
     classicCall: options.classicCall,
   };
   return {
-    'POST /api/signup': ({ res, body }) => {
+    'POST /api/signup': ({ req, res, body }) => {
       const { email, password, firstName = '' } = body || {};
-      if (!email || !password || String(password).length < 8) {
-        return sendJson(res, 400, { error: 'email and a password of at least 8 characters are required' });
+      const rate = checkPortalAuthRate(req, email);
+      if (tooManyPortalAuth(res, rate)) return;
+      if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+        || email.length > 320 || typeof password !== 'string' || password.length < 8
+        || password.length > 1024 || typeof firstName !== 'string' || firstName.length > 200) {
+        return sendJson(res, 400, { error: 'a valid email and a password of 8-1024 characters are required' });
       }
       let account;
       try {
@@ -140,16 +187,21 @@ export function portalRoutes(store, options = {}) {
       } catch (err) {
         return sendJson(res, err.code === 'ACCOUNT_EXISTS' ? 409 : 500, { error: err.message });
       }
+      clearPortalAuthRate(rate.key);
       const session = createSession(store, { kind: 'user', accountId: account._id });
       return withCookie(res, sessionCookie(session), 200, { account: portalAccount(account) });
     },
 
-    'POST /api/login': ({ res, body }) => {
+    'POST /api/login': ({ req, res, body }) => {
       const { email, password } = body || {};
+      const rate = checkPortalAuthRate(req, email);
+      if (tooManyPortalAuth(res, rate)) return;
       const account = email ? store.accountByEmail(email) : null;
-      if (!account || !account.isActive || !compareAccountPassword(password, account.password)) {
+      if (!account || account.isDeleted === true || !account.isActive
+        || !compareAccountPassword(password, account.password)) {
         return sendJson(res, 401, { error: 'invalid email or password' });
       }
+      clearPortalAuthRate(rate.key);
       const session = createSession(store, { kind: 'user', accountId: account._id });
       return withCookie(res, sessionCookie(session), 200, { account: portalAccount(account) });
     },
@@ -197,6 +249,10 @@ export function portalRoutes(store, options = {}) {
       const tokenId = url.searchParams.get('token');
       if (!tokenId) return sendJson(res, 400, { error: 'token query param required' });
       const { token } = findToken(store, tokenId);
+      if (token && String(token.accountId) !== String(account._id)) {
+        // Do not turn a setup token into a cross-account completion oracle.
+        return sendJson(res, 404, { error: 'setup token not found' });
+      }
       return { complete: !token, expires: token ? token.created + ACCESS_TOKEN_LIFETIME_MS : null };
     },
 
@@ -205,14 +261,18 @@ export function portalRoutes(store, options = {}) {
     // A robot exchanges its long-lived AWS keys for a short-lived hub token. This is the
     // server-held-secret path: the HUB_TOKEN_SECRET never leaves the server (unlike the robot
     // signing locally). Mints exactly the IAuthDetails the gateway verifies — minus the secret.
-    'POST /api/token': ({ res, body }) => {
+    'POST /api/token': ({ req, res, body }) => {
       const secret = process.env.HUB_TOKEN_SECRET;
       if (!secret) return sendJson(res, 503, { error: 'token issuance disabled: HUB_TOKEN_SECRET is not set' });
       const { accessKeyId, secretAccessKey } = body || {};
+      const rate = checkPortalAuthRate(req, accessKeyId);
+      if (tooManyPortalAuth(res, rate)) return;
       const account = accessKeyId ? store.accountByAccessKeyId(accessKeyId) : null;
-      if (!account || !account.isActive || !secretMatches(secretAccessKey, account.secretAccessKey)) {
+      if (!account || account.isDeleted === true || !account.isActive
+        || !secretMatches(secretAccessKey, account.secretAccessKey)) {
         return sendJson(res, 401, { error: 'invalid credentials' });
       }
+      clearPortalAuthRate(rate.key);
       account.lastSeen = Date.now();
       store.flush();
       const { token, expires } = createHubToken(account, secret);
@@ -224,7 +284,7 @@ export function portalRoutes(store, options = {}) {
     'GET /api/verify': ({ res, url }) => {
       const accessKeyId = url.searchParams.get('accessKeyId');
       const account = accessKeyId ? store.accountByAccessKeyId(accessKeyId) : null;
-      if (!account || !account.isActive) return { valid: false };
+      if (!account || account.isDeleted === true || !account.isActive) return { valid: false };
       return { valid: true, id: account._id, friendlyId: account.friendlyId || null };
     },
 
@@ -296,5 +356,5 @@ export function portalRoutes(store, options = {}) {
 }
 
 function cryptoRandomPassword() {
-  return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+  return randomBytes(32).toString('base64url');
 }

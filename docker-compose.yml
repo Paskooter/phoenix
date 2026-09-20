@@ -1,31 +1,33 @@
 # Phoenix stack on the REFERENCE pegasus compose contract (pegasus/docker-compose.yml):
-# same host ports, same service names, same NET_*/ETCO_* wiring — so Phoenix services can be
-# substituted into a reference deployment one-for-one (substitution testing, atlas M9).
+# same service names and NET_*/ETCO_* wiring — so Phoenix services can be substituted into a
+# reference deployment one-for-one (substitution testing, atlas M9). Production host exposure is
+# intentionally loopback-only; docker-compose.dev.yml restores the localhost contract for tests.
 #
-#   hub            9000:8080   (gateway)
-#   report-skill   9003:8080
-#   chitchat-skill 9004:8080
-#   parser         9005:8080   (nlu)
-#   history        9006:8080
-#   lasso          9007:8080   (data)
-#   color-skill    9008:8080
-#   answer-skill   9009:8080
-#   example-skill  9013:8080   (Phoenix deployment adapter, not index-routed)
-#   template-skill 9014:8080   (Phoenix deployment adapter, not index-routed)
+#   hub            127.0.0.1:9000:8080   (gateway edge)
+#   report-skill   8080 (Compose network only)
+#   chitchat-skill 8080 (Compose network only)
+#   parser         8080 (Compose network only)
+#   history        8080 (Compose network only)
+#   lasso          8080 (Compose network only)
+#   color-skill    8080 (Compose network only)
+#   answer-skill   8080 (Compose network only)
+#   example-skill  8080 (Compose network only)
+#   template-skill 8080 (Compose network only)
 #
-# All services share the mounted packages on the node:20-slim-based runtime image.
-# Runtime dependencies and ffmpeg come from the rebuilt image. No redis/mongo: Phoenix stores are in-memory by design
-# (see DIVERGENCES.md). Each skill container selects its own skill at /v1/main; the hub's
-# Phoenix registry routes answer/report/chitchat to those per-skill containers.
+# Services share the node:20-slim-based runtime image. The image contains the
+# application code and dependencies; only the explicitly listed data directories
+# are writable host mounts. No redis/mongo: Phoenix stores are JSON files by design
+# (see DIVERGENCES.md). Each skill container selects its own skill at /v1/main; the
+# hub's Phoenix registry routes answer/report/chitchat to those per-skill containers.
 #
 # Optional LAN services (Parakeet ASR + LM Studio), as in the user's reference override:
 #   PARAKEET_URL=http://192.168.1.252:6972 LLM_URL=http://192.168.1.252:1234/v1 docker compose up
 
-# All host ports are parametrized with their reference value as the default, so an existing
-# `docker compose up` binds exactly the reference range. A parity/verification run supplies
-# explicit *_PORT values (e.g. HUB_PORT=9200 REPORT_SKILL_PORT=9203 …) to shift the host ports
-# away from an occupied reference port without changing the contract's shape; container-side
-# services keep talking to each other on :8080 either way.
+# The default deployment has no public service ports. The four robot/browser edge
+# services are published on loopback only so a host nginx can proxy them over TLS;
+# all other services are reachable only on the Compose network. Use the dedicated
+# docker-compose.dev.yml override for the old reference-port contract in an
+# isolated development/test environment.
 x-phoenix-defaults: &phoenix-defaults
   build:
     context: .
@@ -33,11 +35,17 @@ x-phoenix-defaults: &phoenix-defaults
   image: phoenix-runtime:local
   networks:
     - pegasus-nw
-  volumes:
-    - ./packages:/phoenix/packages:consistent
-  env_file:
-    - path: .env
-      required: false
+  user: "node"
+  init: true
+  read_only: true
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,nodev,size=64m
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  expose:
+    - "8080"
   environment:
     - PORT=8080
 
@@ -50,8 +58,10 @@ services:
     environment:
       - PORT=8080
       - ETCO_hub_skillsConfig=skills-phoenix.json
-      - ETCO_server_hubTokenSecret=${HUB_TOKEN_SECRET:-dev-hub-token-secret}
-      - ETCO_hub_disableAuth=${DISABLE_AUTH:-true}
+      # Compose refuses to start if a deployment forgot to provision the
+      # signing secret. Never fall back to a shared development key.
+      - ETCO_server_hubTokenSecret=${HUB_TOKEN_SECRET:?Set HUB_TOKEN_SECRET in .env before starting Phoenix}
+      - ETCO_hub_disableAuth=${DISABLE_AUTH:-false}
       # Per-robot auth (G.5): when DISABLE_AUTH=false, validate each token's accessKeyId
       # against the account service. Harmless when auth is disabled.
       - ETCO_hub_accountUrl=http://account:8080
@@ -66,7 +76,7 @@ services:
       - ETCO_server_parakeetUrl=${PARAKEET_URL:-}
       - PHOENIX_FFMPEG=/usr/bin/ffmpeg
     ports:
-      - ${HUB_PORT:-9000}:8080
+      - 127.0.0.1:${HUB_PORT:-9000}:8080
 
   parser:
     <<: *phoenix-defaults
@@ -77,24 +87,30 @@ services:
       - PORT=8080
       - ETCO_parser_llmUrl=${LLM_URL:-}
       - ETCO_parser_llmModel=${LLM_MODEL:-google/gemma-4-e4b}
-    ports:
-      - ${PARSER_PORT:-9005}:8080
 
   history:
     <<: *phoenix-defaults
     container_name: history
     working_dir: /phoenix
     command: node packages/history/src/index.js
-    ports:
-      - ${HISTORY_PORT:-9006}:8080
+    environment:
+      - PORT=8080
+      - ETCO_history_dataFile=${HISTORY_DATA_FILE:-/phoenix/packages/history/data/store.json}
+    volumes:
+      # History writes an atomic JSON snapshot; keep it private and durable.
+      - ./packages/history/data:/phoenix/packages/history/data:rw
 
   lasso:
     <<: *phoenix-defaults
     container_name: lasso
     working_dir: /phoenix
     command: node packages/data/src/index.js
-    ports:
-      - ${LASSO_PORT:-9007}:8080
+    environment:
+      - PORT=8080
+      - ETCO_data_credentialsFile=${LASSO_CREDENTIALS_FILE:-/phoenix/packages/data/data/credentials.json}
+    volumes:
+      # Calendar/OAuth credential material is state, not application source.
+      - ./packages/data/data:/phoenix/packages/data/data:rw
 
   answer-skill:
     <<: *phoenix-defaults
@@ -107,8 +123,6 @@ services:
       - NET_data=lasso:8080
       - ETCO_answer_llmUrl=${LLM_URL:-}
       - ETCO_answer_llmModel=${LLM_MODEL:-google/gemma-4-e4b}
-    ports:
-      - ${ANSWER_SKILL_PORT:-9009}:8080
 
   report-skill:
     <<: *phoenix-defaults
@@ -122,8 +136,9 @@ services:
       - NET_lasso=${NET_lasso:-lasso:8080}
       - NET_settings=${NET_settings:-${NET_SETTINGS:-settings.jibo.aws}}
       - prefsFromConfig=${prefsFromConfig:-${PREFS_FROM_CONFIG:-false}}
-    ports:
-      - ${REPORT_SKILL_PORT:-9003}:8080
+      # Settings and Account peer routes require an independent internal
+      # credential; this is not a client-supplied identity assertion.
+      - ETCO_account_internalPeerToken=${ETCO_account_internalPeerToken:?Set ETCO_account_internalPeerToken in .env before starting Phoenix}
 
   chitchat-skill:
     <<: *phoenix-defaults
@@ -134,8 +149,6 @@ services:
       - PORT=8080
       - PHOENIX_SKILL_ID=chitchat-skill
       - NET_data=lasso:8080
-    ports:
-      - ${CHITCHAT_SKILL_PORT:-9004}:8080
 
   # The remaining independently deployed cloud skills. Each container serves exactly one
   # skill at POST /v1/main (baseskill/SkillService.ts:12-18) and retains its
@@ -153,8 +166,6 @@ services:
     environment:
       - PORT=8080
       - PHOENIX_SKILL_ID=color-skill
-    ports:
-      - ${COLOR_SKILL_PORT:-9008}:8080
 
   example-skill:
     <<: *phoenix-defaults
@@ -164,8 +175,6 @@ services:
     environment:
       - PORT=8080
       - PHOENIX_SKILL_ID=example-skill
-    ports:
-      - ${EXAMPLE_SKILL_PORT:-9013}:8080
 
   template-skill:
     <<: *phoenix-defaults
@@ -175,8 +184,6 @@ services:
     environment:
       - PORT=8080
       - PHOENIX_SKILL_ID=template-skill
-    ports:
-      - ${TEMPLATE_SKILL_PORT:-9014}:8080
 
   # Phoenix extension — NOT part of the reference Pegasus conversational contract (the
   # verify-compose-contract check ignores it). The OTA update server: a robot points its
@@ -189,11 +196,20 @@ services:
     command: node packages/ota/src/index.js
     environment:
       - PORT=8080
-      # ETCO_ota_publicUrl: set to the externally-reachable base URL if a robot can't reach
-      # the public origin when using a reverse proxy. Default: derived from the request Host header.
-      - ETCO_ota_publicUrl=${OTA_PUBLIC_URL:-}
+      # Pin package URLs to an operator-owned HTTPS origin. An empty value would
+      # make the application derive URLs from an attacker-controlled Host header.
+      - ETCO_ota_publicUrl=${OTA_PUBLIC_URL:?Set OTA_PUBLIC_URL to an HTTPS package origin}
+      # Read-only current account snapshot used solely for SigV4 verification.
+      # Atomic Account writes are detected and reloaded by the OTA resolver.
+      - ETCO_ota_accountDataFile=/phoenix/packages/account/data/store.json
+      - ETCO_ota_packageBearerSecret=${HUB_TOKEN_SECRET:?Set HUB_TOKEN_SECRET in .env before starting Phoenix}
+    volumes:
+      # OTA serves reviewed artifacts; the update directory is never writable
+      # from the service container.
+      - ./packages/ota/data:/phoenix/packages/ota/data:ro
+      - ./packages/account/data:/phoenix/packages/account/data:ro
     ports:
-      - ${OTA_PORT:-9010}:8080
+      - 127.0.0.1:${OTA_PORT:-9010}:8080
 
   # Phoenix extension: the account service — web portal (signup/login, add-a-robot QR),
   # the OOBE pairing service the robot calls (OOBE.setupRobot), and per-robot hub-token
@@ -207,18 +223,27 @@ services:
     command: node packages/account/src/index.js
     env_file:
       - path: .env
-        required: false   # copy .env.example -> .env to set HUB_TOKEN_SECRET etc.
+        required: false   # secrets are still required by interpolation below; an
+                          # operator may provide them through systemd/environment
     environment:
       - PORT=8080
-      - HUB_TOKEN_SECRET=${HUB_TOKEN_SECRET:-dev-hub-token-secret}
+      - HUB_TOKEN_SECRET=${HUB_TOKEN_SECRET:?Set HUB_TOKEN_SECRET in .env before starting Phoenix}
+      # Containers are reachable by service name on the private network; the
+      # host edge is still loopback-only through the ports block below.
+      - PHOENIX_BIND_HOST=0.0.0.0
+      - ETCO_account_secureCookies=${ETCO_account_secureCookies:-true}
+      - ETCO_account_dataFile=${ETCO_account_dataFile:-/phoenix/packages/account/data/store.json}
       - NET_ota=ota:8080         # so the robot's single endpoint reaches Update_* via /
       # PHOTO_PUBLIC_URL must be the externally reachable Classic/TLS origin
       # (for example https://region.example), never account:8080 or localhost.
       # Classic forwards GET /member-photos/:key to this Account container.
       - ETCO_account_photoBaseUrl=${PHOTO_PUBLIC_URL:-${ETCO_account_photoBaseUrl:-${CLASSIC_PUBLIC_URL:-}}}
       - ETCO_account_photoDirectory=${PHOTO_DIRECTORY:-${ETCO_account_photoDirectory:-/phoenix/packages/account/data/member-photos}}
+    volumes:
+      # Only Account receives the writable household store and member-photo tree.
+      - ./packages/account/data:/phoenix/packages/account/data:rw
     ports:
-      - ${ACCOUNT_PORT:-9011}:8080
+      - 127.0.0.1:${ACCOUNT_PORT:-9011}:8080
 
   # Phoenix extension: the classic-service entrypoint — the robot's SINGLE front door for every
   # Classic Service (dispatch by X-Amz-Target prefix). In-process log/robot/notification/key/push
@@ -233,15 +258,41 @@ services:
       - PORT=8080
       - NET_account=account:8080
       - NET_ota=ota:8080
+      # Classic verifies every public request from the Account snapshot. It
+      # receives this tree read-only; the nested classic mount below is the
+      # only writable exception for Classic-owned state.
+      - ETCO_classic_accountDataFile=/phoenix/packages/account/data/store.json
+      - ETCO_account_internalPeerToken=${ETCO_account_internalPeerToken:?Set ETCO_account_internalPeerToken in .env before starting Phoenix}
       # Keep source GQA attribution across Classic restarts. This supported
       # stack has one Classic writer; replicas need distinct paths or Mongo.
-      - ETCO_gqa_attributionFile=${GQA_ATTRIBUTION_FILE:-/phoenix/packages/account/data/gqa-attribution.json}
-      - ETCO_classic_publicUrl=${CLASSIC_PUBLIC_URL:-}
+      - ETCO_gqa_attributionFile=${GQA_ATTRIBUTION_FILE:-/phoenix/packages/account/data/classic/gqa-attribution.json}
+      - ETCO_classic_publicUrl=${CLASSIC_PUBLIC_URL:?Set CLASSIC_PUBLIC_URL to an HTTPS Classic origin}
+      # Keep every Classic store under its one private writable mount. Without
+      # these paths the historical defaults fall back to /tmp and are both
+      # ephemeral and outside the intended backup boundary.
+      - ETCO_classic_notificationFile=${CLASSIC_NOTIFICATION_FILE:-/phoenix/packages/account/data/classic/notifications.json}
+      - ETCO_classic_backupDir=${CLASSIC_BACKUP_DIR:-/phoenix/packages/account/data/classic/backups}
+      - ETCO_classic_logDir=${CLASSIC_LOG_DIR:-/phoenix/packages/account/data/classic/logs}
+      - ETCO_classic_mediaDir=${CLASSIC_MEDIA_DIR:-/phoenix/packages/account/data/classic/media}
+      - ETCO_classic_mediaFile=${CLASSIC_MEDIA_FILE:-/phoenix/packages/account/data/classic/media.json}
+      - ETCO_classic_iftttFile=${CLASSIC_IFTTT_FILE:-/phoenix/packages/account/data/classic/ifttt.json}
+      - ETCO_classic_personFile=${CLASSIC_PERSON_FILE:-/phoenix/packages/account/data/classic/person.json}
+      - ETCO_classic_jotFile=${CLASSIC_JOT_FILE:-/phoenix/packages/account/data/classic/jot.json}
+      - ETCO_classic_voiceTrainingFile=${CLASSIC_VOICE_TRAINING_FILE:-/phoenix/packages/account/data/classic/voice-training.json}
+      - ETCO_classic_keyFile=${CLASSIC_KEY_FILE:-/phoenix/packages/account/data/classic/keys.json}
+      - ETCO_classic_robotDir=${CLASSIC_ROBOT_DIR:-/phoenix/packages/account/data/classic/robots}
+      - ETCO_classic_keyBinaryDir=${CLASSIC_KEY_BINARY_DIR:-/phoenix/packages/account/data/classic/key-binaries}
+      - ETCO_classic_pushFile=${CLASSIC_PUSH_FILE:-/phoenix/packages/account/data/classic/push.json}
+    volumes:
+      # Account state is read-only to Classic, while its own state root is a
+      # separate writable nested mount. Do not collapse these into one rw bind.
+      - ./packages/account/data:/phoenix/packages/account/data:ro
+      - ./packages/account/data/classic:/phoenix/packages/account/data/classic:rw
     depends_on:
       - account
       - ota
     ports:
-      - ${CLASSIC_PORT:-9012}:8080
+      - 127.0.0.1:${CLASSIC_PORT:-9012}:8080
 
 networks:
   pegasus-nw:

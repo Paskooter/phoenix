@@ -11,6 +11,7 @@
 
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { statSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { logger } from '@phoenix/common';
 import { Catalog } from './catalog.js';
@@ -25,6 +26,14 @@ export async function start(opts = {}) {
   const dataDir = opts.dataDir ?? process.env.ETCO_ota_dataDir ?? path.join(PKG_ROOT, 'data');
   const publicBaseUrl = opts.publicBaseUrl ?? process.env.ETCO_ota_publicUrl ?? null;
 
+  // The executable OTA service is a public credential boundary. Keep the resolver injectable for
+  // colocated launchers, but never let `node packages/ota/src/index.js` silently select the old
+  // x-amz-credentials/LAN-trust mode. A read-only Account snapshot is the minimum standalone
+  // deployment seam; reload it after the Account service atomically replaces the file so key
+  // rotation and revocation take effect without an OTA restart.
+  const resolveCredentials = opts.resolveCredentials || await productionCredentialResolver();
+  if (opts.requireAuth === false) throw new Error('OTA production start cannot disable request authentication');
+
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
   const catalog = await Catalog.load({ entries: manifest.updates || [], dataDir, log, serialOf: opts.serialOf ?? null });
   if (!catalog.entries.length) {
@@ -32,9 +41,39 @@ export async function start(opts = {}) {
   }
   log.info('ota: catalog loaded', { available: catalog.entries.length, manifestPath, dataDir });
 
-  const svc = createOtaService({ catalog, publicBaseUrl });
+  const svc = createOtaService({
+    catalog,
+    publicBaseUrl,
+    resolveCredentials,
+    requireAuth: true,
+    packageBearerSecret: opts.packageBearerSecret,
+  });
   await svc.listen(port);
   return { svc, catalog };
+}
+
+async function productionCredentialResolver() {
+  const file = process.env.ETCO_ota_accountDataFile
+    || process.env.ETCO_account_dataFile;
+  if (!file) throw new Error('ETCO_ota_accountDataFile or ETCO_account_dataFile is required for the public OTA service');
+  const { Store } = await import('../../account/src/store.js');
+  let store = new Store(file);
+  let mtime = accountStoreMtime(file);
+  return (accessKeyId) => {
+    const current = accountStoreMtime(file);
+    if (current !== mtime) {
+      store = new Store(file);
+      mtime = current;
+    }
+    return store.accountByAccessKeyId(accessKeyId);
+  };
+}
+
+function accountStoreMtime(file) {
+  try {
+    const stat = statSync(file);
+    return `${stat.mtimeNs ?? stat.mtimeMs}:${stat.size}:${stat.ino}`;
+  } catch { return 'missing'; }
 }
 
 export { Catalog } from './catalog.js';

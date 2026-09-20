@@ -9,4 +9,39 @@ npm-debug.log*
 .env.*
 !.env.example
 packages/account/data
+packages/data/data
+packages/history/data
 packages/ota/data
+
+# Deployment state and credentials must never be baked into an image, even if
+# an operator accidentally creates them outside the two primary data mounts.
+# Do not ignore every directory named `data`: packages/data is a runtime
+# service, not deployment state. The two host data roots above are ignored in
+# full, while these patterns catch common state files in other locations.
+**/data/*.json
+**/data/*.db
+**/data/*.sqlite
+**/data/*.sqlite3
+**/*.bak
+**/*.backup
+**/*.log
+**/*.tgz
+**/*.tar
+**/*.tar.gz
+**/*.pem
+**/*.key
+**/*.crt
+**/*credentials*.json
+**/*secrets*.json
+**/*store*.json
+**/member-photos
+**/classic-media
+**/classic-backups
+**/classic-keys
+**/classic-logs
+
+# Source-control metadata, local test receipts, and optional compiled profiles
+# are not runtime inputs and can contain sensitive or unreviewed material.
+.parity
+docs/parity/evidence
+runtime

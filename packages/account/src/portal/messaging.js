@@ -25,7 +25,8 @@ export function portalMessagingRoutes(store, options = {}) {
       return null;
     }
     if (!idsEqual(loop.owner, account._id)
-      && !(loop.members || []).some((m) => idsEqual(m.accountId, account._id))) {
+      && !(loop.members || []).some((m) => idsEqual(m.accountId, account._id)
+        && String(m.status || '').toLowerCase() === 'accepted')) {
       sendJson(res, 403, { error: 'You must be a member of the loop', code: 'JOT_MUST_BE_LOOP_MEMBER' });
       return null;
     }

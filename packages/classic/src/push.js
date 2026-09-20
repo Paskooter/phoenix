@@ -21,6 +21,7 @@ import {
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { sendAmz, sendAmzError, accessKeyIdFromAuth, ValidationException } from './awsJson.js';
+import { verifiedCallerFromRequest } from './caller.js';
 
 const DEFAULT_FILE = join(tmpdir(), 'phoenix-push-devices.json');
 
@@ -338,10 +339,11 @@ function sendPushValidationError(res, message) {
  * architecture already trusts an upstream gateway for signature verification — one
  * convention, one helper, one place to tighten later.
  */
-export function pushRoutes(registry = new DeviceRegistry()) {
+export function pushRoutes(registry = new DeviceRegistry(), { callerBoundary = false } = {}) {
   return {
     'GET /push/devices': ({ req, res }) => {
-      const accessKeyId = accessKeyIdFromAuth(req);
+      const verified = verifiedCallerFromRequest(req);
+      const accessKeyId = verified?.accountId || (!callerBoundary && accessKeyIdFromAuth(req));
       if (!accessKeyId) return void sendJson(res, 401, { error: 'missing credentials' });
       return { devices: registry.activeDevices(accessKeyId) };
     },
@@ -349,9 +351,11 @@ export function pushRoutes(registry = new DeviceRegistry()) {
 }
 
 /** AWS-JSON handler for Push_20160729 (CreateDevice / RemoveDevice). */
-export function makePushHandler(registry = new DeviceRegistry()) {
+export function makePushHandler(registry = new DeviceRegistry(), { callerBoundary = false } = {}) {
   return function pushHandler({ req, res, body, op, log }) {
-    const accountId = accessKeyIdFromAuth(req) || 'anon';
+    const verified = verifiedCallerFromRequest(req);
+    const accountId = verified?.accountId || (!callerBoundary && accessKeyIdFromAuth(req));
+    if (!accountId) return void sendAmzError(res, { code: 'MISSING_AUTH_HEADER', statusCode: 401, message: 'Request is not signed properly, missing authorization header' });
     const b = body || {};
     switch (op.toLowerCase()) {
       case 'createdevice': {

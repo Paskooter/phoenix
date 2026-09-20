@@ -20,6 +20,7 @@ import { createSettingsProviders, isPersonRequestFatal } from './settingsProvide
 import { getStore } from './store.js';
 import { SETTINGS_PUBLIC_CONTENT_TYPE } from './settingsTransport.js';
 import querystring from 'node:querystring';
+import { timingSafeEqual } from 'node:crypto';
 
 const AMZ_JSON = 'application/x-amz-json-1.1';
 const REPORT_SKILL = 'report-skill';
@@ -71,7 +72,20 @@ function validationError(res, field, detail, hapiHeaders = false) {
   sourceError(res, 422, 'Unprocessable Entity', `child "${field}" fails because ["${field}" ${detail}]`, undefined, hapiHeaders);
 }
 
+function internalPeerAuthenticated(req) {
+  const expected = process.env.ETCO_account_internalPeerToken;
+  const presented = req?.headers?.['x-phoenix-internal-token'];
+  if (!expected || typeof presented !== 'string') return false;
+  const left = Buffer.from(String(expected));
+  const right = Buffer.from(presented);
+  return left.length === right.length && timingSafeEqual(left, right);
+}
+
 function accountIdFromCreds(req) {
+  if (req?._phoenixVerifiedCredentials) {
+    const verified = req._phoenixVerifiedCredentials;
+    return verified._id ?? verified.id ?? null;
+  }
   const raw = req.headers && req.headers['x-amz-credentials'];
   if (raw) {
     try {
@@ -114,6 +128,9 @@ function credentialIdFromCreds(req) {
  * closed at the membership check (LOOP_MEMBER_ONLY), never a bypass.
  */
 function resolveSettingsCaller(req, store) {
+  if (req?._phoenixVerifiedCredentials) {
+    return req._phoenixVerifiedCredentials._id ?? req._phoenixVerifiedCredentials.id ?? null;
+  }
   const direct = accountIdFromCreds(req);
   if (direct) {
     // A forwarded gateway identity is already an account id. A SigV4 Credential
@@ -427,6 +444,14 @@ function dispatchWithProviders(res, req, body, providers, store = null) {
 export function settingsAwsDispatch(store, {
   req, res, body, op, prefix = DEFAULT_SETTINGS_PREFIX, log, providers = null,
 }) {
+  // Public AWS-JSON Settings requests must have passed the account service's
+  // verified SigV4 boundary.  The forwarded identity header remains accepted
+  // only for the separately selected internal JSON listener.
+  const publicRequest = String(req?.headers?.['content-type'] || '').split(';', 1)[0].toLowerCase() === AMZ_JSON;
+  if (publicRequest && !req?._phoenixVerifiedCredentials) {
+    amz(res, 401, { __type: 'CREDENTIALS_REQUIRED', message: 'verified authorization required' });
+    return true;
+  }
   const accountId = accountIdFromCreds(req);
   const effectiveProviders = providers || createSettingsProviders({ store });
   switch (op.toLowerCase()) {
@@ -518,6 +543,12 @@ export function settingsInternalDispatch(store, {
  */
 export function settingsInternalRoutes(store, { providers = null } = {}) {
   const dispatch = async ({ req, res, log }) => {
+    if (!internalPeerAuthenticated(req)) {
+      sourceError(res, process.env.ETCO_account_internalPeerToken ? 401 : 503,
+        'Unauthorized', 'internal peer authentication failed', undefined, true, false);
+      req.resume?.();
+      return true;
+    }
     const target = parseSettingsTarget(req);
     if (target.op === undefined || target.op === '') {
       // The original Server.lowerMethodName indexes methodName[0]. Missing or
@@ -969,8 +1000,21 @@ function readInternalPayload(req) {
  * LOOP_NOT_FOUND handling at the Settings boundary.
  */
 export function settingsPeerRoutes(store) {
+  function authorizedPeer(req, res) {
+    if (!process.env.ETCO_account_internalPeerToken) {
+      sendJson(res, 503, { error: 'internal peer authentication is not configured' });
+      return false;
+    }
+    if (!internalPeerAuthenticated(req)) {
+      sendJson(res, 401, { error: 'internal peer authentication failed' });
+      return false;
+    }
+    return true;
+  }
+
   return {
-    'GET /isLoopMember': ({ url }) => {
+    'GET /isLoopMember': ({ req, res, url }) => {
+      if (!authorizedPeer(req, res)) return;
       const accountId = url.searchParams.get('accountId');
       const loopId = url.searchParams.get('loopId');
       const loop = loopId ? store.loops.get(loopId) : null;
@@ -978,7 +1022,8 @@ export function settingsPeerRoutes(store) {
         && loop.members.some((item) => item.accountId === accountId && isAcceptedStatus(item.status)));
       return { result };
     },
-    'GET /loopPopulated': ({ url, res }) => {
+    'GET /loopPopulated': ({ req, res, url }) => {
+      if (!authorizedPeer(req, res)) return;
       const loopId = url.searchParams.get('loopId');
       const loop = loopId ? store.loops.get(loopId) : null;
       const robot = loop ? store.accounts.get(loop.robot) : null;
