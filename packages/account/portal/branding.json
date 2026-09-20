@@ -241,5 +241,11 @@
     "releases": "https://github.com/Paskooter/phoenix/releases",
     "issues": "https://github.com/Paskooter/phoenix/issues",
     "console": "/app"
+  },
+  "strip": {
+    "item1": "Runs on your hardware",
+    "item2": "No telemetry, no analytics",
+    "item3": "Open and inspectable",
+    "item4": "One external dependency"
   }
 }

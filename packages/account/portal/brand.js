@@ -59,6 +59,10 @@ export function applyText(root, brand) {
     const value = pick(brand, el.dataset.brand);
     if (typeof value === 'string' || typeof value === 'number') {
       el.textContent = String(value);
+      // An optional slot ships hidden and empty: the project has no page for it, but an
+      // instance that defines the string wants it shown. Without this an operator can
+      // set nav.guide and still see nothing, which reads as the config being ignored.
+      if (el.hasAttribute('data-brand-optional')) el.removeAttribute('hidden');
     }
   }
   for (const el of root.querySelectorAll('[data-brand-attr]')) {
