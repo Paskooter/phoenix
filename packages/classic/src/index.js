@@ -23,7 +23,7 @@ import { KeyStore, makeKeyHandler, keyRoutes, accountMembership } from './key.js
 import { DeviceRegistry, makePushHandler, pushRoutes } from './push.js';
 import { createJotMessageCreatedConsumer } from './jotPushConsumer.js';
 import { BackupStore, makeBackupHandler, backupBlobRoutes } from './backup.js';
-import { MediaStore, makeMediaHandler, mediaBlobRoutes, isMediaUpload } from './media.js';
+import { MediaStore, makeMediaHandler, mediaBlobRoutes, isMediaUpload, accountMediaLoops } from './media.js';
 import { makeRomHandler } from './rom.js';
 import { IftttStore, makeIftttHandler } from './ifttt.js';
 import { makeNlpHandler, nlpProviderFromEnv } from './nlp.js';
@@ -54,7 +54,7 @@ export { NotificationStore } from './notification.js';
 export { KeyStore, keyRoutes, KEY_ERRORS, KEY_BINARY_MAX_BYTES } from './key.js';
 export { DeviceRegistry, makePushHandler, pushRoutes } from './push.js';
 export { BackupStore, credentialsAccountId, accountLoopRobot, BACKUP_MAX_BYTES, BACKUP_URL_EXPIRATION_MS } from './backup.js';
-export { MediaStore, makeMediaHandler, mediaBlobRoutes, expandMedia, accessKeyAccountResolver, MEDIA_ERRORS, MEDIA_TYPES, MEDIA_MAX_BYTES, AUTHORIZED_UNDER_ADMIN } from './media.js';
+export { MediaStore, makeMediaHandler, mediaBlobRoutes, expandMedia, accessKeyAccountResolver, accountMediaLoops, MEDIA_ERRORS, MEDIA_TYPES, MEDIA_MAX_BYTES, AUTHORIZED_UNDER_ADMIN } from './media.js';
 export {
   VERIFIED_CALLER,
   createVerifiedClassicCaller,
@@ -445,6 +445,10 @@ export function createClassicEntrypoint({ extra = [], tls, publicUrl, publicOrig
   };
   const logStore = log?.store || new LogStore(log?.dir, { maxBytes: log?.maxBytes });
   const mediaStore = media?.store || new MediaStore(media || {});
+  // Authenticated Media must resolve memberships against Account.  Keep the
+  // historical unguarded entrypoint behaviour for isolated compatibility
+  // callers, but never let a production caller boundary run without it.
+  const mediaLoops = media?.loops || (callerBoundary ? accountMediaLoops() : undefined);
   const iftttStore = ifttt?.store || new IftttStore({
     // The original stored Identity/Trigger/Action/TriggerMedia in Mongo; the durable file keeps
     // that state across a restart (ETCO_classic_iftttFile, default $TMPDIR/phoenix-ifttt.json).
@@ -471,7 +475,7 @@ export function createClassicEntrypoint({ extra = [], tls, publicUrl, publicOrig
         callerBoundary,
         logStore,
         baseFor,
-        media: { ...media, store: mediaStore },
+        media: { ...media, store: mediaStore, loops: mediaLoops },
         key,
         keyStore: keys,
         keyMembership,

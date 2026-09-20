@@ -17,6 +17,7 @@ import { settingsPeerRoutes, settingsPortalRoutes } from './settingsFace.js';
 import { calendarPortalRoutes } from './calendarRoutes.js';
 import { backupPeerRoutes } from './backupPeerRoutes.js';
 import { keyPeerRoutes } from './keyPeerRoutes.js';
+import { mediaPeerRoutes } from './mediaPeerRoutes.js';
 import { staticRoutes } from './static.js';
 import { createSettingsProviders } from './settingsProviders.js';
 import { MemberPhotoStorage } from './memberPhotoStorage.js';
@@ -373,6 +374,7 @@ export function createAccountService({
     ...settingsPeerRoutes(store), // internal Account client seams used by source Settings
     ...backupPeerRoutes(store),   // internal Account client seam used by source Backup (getLoop)
     ...keyPeerRoutes(store),      // internal Account client seam used by source Key (loop members)
+    ...mediaPeerRoutes(store),    // internal Account client seam used by Media (owned loops)
     ...listAssociatedLoopsRoute(store), // trusted Account -> GQA loop resolution peer
     ...settingsPortalRoutes(store), // GET/PUT /api/settings (the report-settings editor)
     ...calendarPortalRoutes(store, {

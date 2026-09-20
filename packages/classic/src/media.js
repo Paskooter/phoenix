@@ -36,6 +36,7 @@ import { dirname, join, relative, resolve, sep } from 'node:path';
 import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { pipeline } from 'node:stream/promises';
+import { DefaultPort } from '@phoenix/contracts';
 import { sendAmz, sendAmzError, accessKeyIdFromAuth, ValidationException } from './awsJson.js';
 import { verifiedCallerFromRequest } from './caller.js';
 import { canonicalPublicOrigin } from './publicOrigin.js';
@@ -52,6 +53,73 @@ export const MEDIA_PAGE_DEFAULT = 50;
 export const MEDIA_PAGE_MAX = 200;
 export const MEDIA_MAX_BYTES = 1_000_000_000;
 const SAFE_PATH = /^[A-Za-z0-9_-]+$/;
+const ACCOUNT_TIMEOUT_MS = 2_000;
+
+function accountPeerBase(value = process.env.NET_account) {
+  const configured = value || `localhost:${DefaultPort.account}`;
+  return /^https?:\/\//i.test(configured) ? configured.replace(/\/+$/, '') : `http://${configured}`;
+}
+
+function accountPeerHeaders(token = process.env.ETCO_account_internalPeerToken) {
+  return token ? { 'x-phoenix-internal-token': token } : {};
+}
+
+/**
+ * The authenticated Media service needs Account's authoritative loop graph.
+ * These are private, peer-token-protected Account routes: a browser cannot
+ * reach them through the public Classic origin or choose their account id.
+ *
+ * An unavailable or malformed peer answer is deliberately `undefined`, which
+ * the Media handler maps to ACCOUNT_SERVICE_UNAVAILABLE and therefore fails
+ * closed instead of disclosing another household's media.
+ */
+export function accountMediaLoops({
+  base = accountPeerBase(),
+  fetcher = globalThis.fetch,
+  token = process.env.ETCO_account_internalPeerToken,
+  timeoutMs = ACCOUNT_TIMEOUT_MS,
+} = {}) {
+  const request = async (path, options = {}) => {
+    const url = new URL(path, `${String(base).replace(/\/+$/, '')}/`);
+    return fetcher(url, {
+      ...options,
+      headers: { ...accountPeerHeaders(token), ...(options.headers || {}) },
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+  };
+  const array = (value) => Array.isArray(value) ? value.map(String) : undefined;
+
+  return {
+    async members(loopId) {
+      try {
+        const res = await request(`/loopMembers?loopId=${encodeURIComponent(String(loopId))}`);
+        if (!res.ok) return undefined;
+        return array((await res.json())?.members);
+      } catch { return undefined; }
+    },
+    async accountLoops(accountId) {
+      try {
+        const id = String(accountId);
+        const res = await request('/listAssociatedLoops', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ accountsIds: [id] }),
+        });
+        if (!res.ok) return undefined;
+        const result = await res.json();
+        return result && typeof result === 'object' && !Array.isArray(result)
+          ? array(result[id]) : undefined;
+      } catch { return undefined; }
+    },
+    async ownedLoops(accountId) {
+      try {
+        const res = await request(`/ownedLoops?accountId=${encodeURIComponent(String(accountId))}`);
+        if (!res.ok) return undefined;
+        return array((await res.json())?.loops);
+      } catch { return undefined; }
+    },
+  };
+}
 
 function assertSafeMediaComponent(value, name) {
   if (typeof value !== 'string' || !SAFE_PATH.test(value)) throw new TypeError(`invalid media ${name}`);
