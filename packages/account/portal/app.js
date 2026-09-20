@@ -1,7 +1,8 @@
 // Phoenix console — vanilla SPA, no build step, no framework.
 //
 // Hash routes: #/, #/loop, #/settings, #/profile, #/robot, #/gallery,
-// #/messaging, #/people, #/system, plus #/add (QR pairing) and #/admin.
+// #/messaging, #/people, #/system, plus #/add (connection choice), #/add/new
+// (QR pairing), #/claim (existing-robot migration) and #/admin.
 //
 // Every call below goes to the same-origin REST face the portal has always
 // used, authenticated by the phx_session cookie. The request shapes are
@@ -1150,8 +1151,8 @@ async function renderRobot() {
   const robots = await api('GET', '/api/robots');
   const container = page('Robots', 'The robots paired with this server.');
   container.querySelector('.page-head').append(h('div', { class: 'row' },
-    h('a', { class: 'btn btn-primary', href: '#/add' }, icon('plus', 15), 'Add a robot'),
-    h('a', { class: 'btn btn-quiet', href: '#/claim' }, icon('link', 15), 'Claim an existing Jibo')));
+    h('a', { class: 'btn btn-primary', href: '#/add' }, icon('plus', 15), 'Connect a Jibo'),
+    h('a', { class: 'btn btn-quiet', href: '#/claim' }, icon('link', 15), 'Migrate an existing Jibo')));
 
   if (!robots.ok) { container.append(errorBox('Could not load robots.', robots.data.error)); return show(container); }
   const list = Array.isArray(robots.data) ? robots.data : [];
@@ -1159,7 +1160,7 @@ async function renderRobot() {
 
   if (!list.length) {
     container.append(empty('No robots paired yet',
-      'Pair one by showing it a setup code from the Add a robot screen.', 'robot'));
+      'Choose the setup or migration path from Connect a Jibo.', 'robot'));
     return show(container);
   }
 
@@ -1205,11 +1206,11 @@ async function renderRobot() {
    ========================================================================== */
 
 async function renderClaim() {
-  const container = page('Claim an existing Jibo',
-    'Link a robot that was paired with the original cloud to this new Phoenix account.');
+  const container = page('Migrate an existing Jibo',
+    'Repoint an already-set-up robot, safely link it to this account, then let it take its OTA update.');
   container.querySelector('.page-head').prepend(
-    h('a', { class: 'link', href: '#/robot', style: 'display:inline-flex;align-items:center;gap:.35rem;margin-bottom:.75rem' },
-      icon('back', 14), 'Back to robots'));
+    h('a', { class: 'link', href: '#/add', style: 'display:inline-flex;align-items:center;gap:.35rem;margin-bottom:.75rem' },
+      icon('back', 14), 'Choose a different path'));
 
   const result = h('div', { hidden: true });
   const request = h('button', { type: 'button', class: 'btn btn-primary' },
@@ -1229,13 +1230,12 @@ async function renderClaim() {
     // jibo.io uses the public-DNS/Let's Encrypt repointer, so a customer does
     // not need a copy of the server CA. Other deployments retain the generic
     // private-CA command and receive their configured public IP explicitly.
+    const scriptUrl = 'https://jibo.io/robot-ota-repoint.sh';
     const command = publicJiboIo
       ? [
-        'scripts/robot-ota-repoint.sh',
-        '--robot root@<robot-ip>',
-        `--claim-code ${res.data.code}`,
-        '--yes',
-      ].join(' ')
+        `curl --fail --remote-name ${scriptUrl}`,
+        `bash ./robot-ota-repoint.sh --robot root@<robot-ip> --claim-code ${res.data.code} --yes`,
+      ].join(' && ')
       : [
         'scripts/parity-robot/repoint-robot.sh',
         '--robot root@<robot-ip>',
@@ -1250,33 +1250,72 @@ async function renderClaim() {
         h('strong', {}, 'One use only.'), ' This command expires ', expiry,
         '. Do not share it; it links whichever robot proves possession to your account.'),
       h('p', { class: 'instruct' },
-        'Run this on a computer that can SSH to your Jibo. Replace only ',
+        'Run this on a computer that can SSH as root to your Jibo. Replace only ',
         h('code', {}, '<robot-ip>'), '. The command reads the existing robot credentials over SSH; do not copy those credentials into this site.'),
+      publicJiboIo ? h('p', { class: 'field-hint' },
+        'The command downloads the public script first. You can ',
+        h('a', { href: scriptUrl, download: 'robot-ota-repoint.sh' }, 'download and inspect it'),
+        ' before running this single command.') : null,
       h('div', { class: 'restart-cmd' },
         h('span', { class: 'prompt' }, '$'), h('code', { text: command }), copyButton(() => command)),
       !publicJiboIo && !res.data.repointHost ? h('p', { class: 'field-hint' },
         'This server has not published its robot-repoint IP, so replace ', h('code', {}, '<server-ip>'),
         ' with the public IP the robot should reach.') : null,
       h('p', { class: 'field-hint' },
-        'This does not import the former cloud account or its people. It preserves the robot’s existing keys and makes this Phoenix account its household owner.'));
+        'The command applies the displayed plan because it includes ', h('code', {}, '--yes'),
+        '. It does not import the former cloud account or its people. It preserves the robot’s existing keys and makes this Phoenix account its household owner.'),
+      h('ol', { class: 'field-hint' },
+        h('li', {}, 'Wait for the command to report that the robot was claimed, then keep Jibo powered and online.'),
+        h('li', {}, 'Jibo’s normal updater will see the jibo.io OTA catalog. Do not interrupt its download or reboot.'),
+        h('li', {}, 'Use ', h('a', { href: '#/system' }, 'System → Software updates'),
+          ' to see the catalog offered to robots. It is informational; updates are not pushed from the browser.')));
   });
 
-  container.append(card('Before you begin', {},
-    h('p', { class: 'instruct' }, 'Use this only for a Jibo that is already paired and still has its credentials.'),
-    h('p', { class: 'field-hint' }, 'For a factory-reset Jibo, use Add a robot instead; its normal QR setup creates and links the robot automatically.'),
+  container.append(card('Step 1 — Prepare', {},
+    h('p', { class: 'instruct' }, 'Use this only for a Jibo that was set up before and still has its robot credentials.'),
+    h('p', { class: 'field-hint' }, 'The robot must already have owner-authorized root SSH access and be reachable from this computer. Install and verify that local access before continuing; this migration tool does not bypass it.'),
+    h('p', { class: 'field-hint' }, 'For a new or factory-reset Jibo, use ', h('a', { href: '#/add/new' }, 'the QR setup path'),
+      ' instead. Its normal setup creates and links the robot automatically.')),
+    card('Step 2 — Create your private pairing command', {},
+      h('p', { class: 'instruct' }, 'Create a short-lived code only when you are ready to run the command. It is bound to your signed-in account.'),
     h('div', { class: 'row', style: 'margin-top:1.25rem' }, request),
     result));
   show(container);
 }
 
 /* ==========================================================================
-   Add a robot — QR pairing (carried over verbatim in behaviour)
+   Connect a robot — choose QR setup or existing-robot migration
    ========================================================================== */
 
 let pollTimer = null;
 function stopPoll() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }
 
-async function renderAdd() {
+function renderAdd() {
+  const container = page('Connect a Jibo', 'Choose the path that matches the robot in front of you.');
+  container.querySelector('.page-head').prepend(
+    h('a', { class: 'link', href: '#/robot', style: 'display:inline-flex;align-items:center;gap:.35rem;margin-bottom:.75rem' },
+      icon('back', 14), 'Back to robots'));
+  container.append(
+    card('My Jibo has been set up already', {},
+      h('p', { class: 'instruct' }, 'It previously connected to the original cloud or another server.'),
+      h('p', { class: 'field-hint' }, 'We will prepare SSH access, repoint it to jibo.io, create a one-use ownership link for this account, and then let its regular OTA updater finish the migration.'),
+      h('div', { class: 'row', style: 'margin-top:1.25rem' },
+        h('a', { class: 'btn btn-primary', href: '#/claim' }, icon('link', 15), 'Migrate this Jibo'))),
+    card('My Jibo is new or factory-reset', {},
+      h('p', { class: 'instruct' }, 'It is at the normal setup screen and does not need its former cloud credentials.'),
+      h('p', { class: 'field-hint' }, 'Enter Wi-Fi details and show the generated QR code to Jibo. Normal setup creates the robot credentials and links it to this account.'),
+      h('div', { class: 'row', style: 'margin-top:1.25rem' },
+        h('a', { class: 'btn btn-primary', href: '#/add/new' }, icon('plus', 15), 'Set up with a QR code'))),
+    h('p', { class: 'field-hint' }, 'Need the public, signed-out preparation steps? Read the ', h('a', { href: '/guide' }, 'migration guide'),
+      '. It explains how to repoint first and return here later to link the robot to an account.'));
+  show(container);
+}
+
+/* ==========================================================================
+   Add a new/factory-reset robot — QR pairing
+   ========================================================================== */
+
+async function renderAddNew() {
   const container = page('Set up a robot', 'Show the code to the robot and it will join your network.');
   container.querySelector('.page-head').prepend(
     h('a', { class: 'link', href: '#/robot', style: 'display:inline-flex;align-items:center;gap:.35rem;margin-bottom:.75rem' },
@@ -2441,6 +2480,7 @@ const ROUTES = {
   '#/people': renderPeople,
   '#/system': renderSystem,
   '#/add': renderAdd,
+  '#/add/new': renderAddNew,
 };
 
 /**

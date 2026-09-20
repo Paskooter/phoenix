@@ -203,12 +203,13 @@ from-scratch reimplementation of the robot's `oobe-config` format — see `packa
 
 Its existing robot credentials prove possession; they are not an old human
 account and are not imported as one. The customer creates and signs into a new
-Phoenix account, opens **Robots → Claim an existing Jibo**, and copies the
-one-time command the portal produces. It includes an expiring ownership code:
+Phoenix account, opens **Robots → Connect a Jibo → My Jibo has been set up
+already**, and copies the one-time command the portal produces. It includes an
+expiring ownership code:
 
 ```bash
-scripts/robot-ota-repoint.sh \
-  --robot root@<robot-ip> --claim-code <portal-code> --yes
+curl --fail --remote-name https://jibo.io/robot-ota-repoint.sh && \
+  bash ./robot-ota-repoint.sh --robot root@<robot-ip> --claim-code <portal-code> --yes
 ```
 
 The code is one use and survives server-side only as a hash. The SSH script
@@ -218,6 +219,11 @@ the robot identity and loop ID but replaces only the bootstrap membership with
 the new Phoenix account and robot. Existing legacy users/accounts are not
 copied. A real Phoenix-owned robot cannot be transferred by a claim code; an
 administrator can make that explicit transfer from the admin page.
+
+The signed-out public guide offers the same repoint helper without a claim
+code. That is intentionally not an account claim: it only registers an
+unclaimed bootstrap. The owner must create an account and re-run the
+portal-provided, code-bearing command to link it.
 
 The separate household-snapshot importer is an operator migration tool, not a
 step in ordinary customer claims: it can carry legacy member/profile data and

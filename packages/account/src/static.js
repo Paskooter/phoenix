@@ -12,7 +12,13 @@ import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { dirname, join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const PORTAL_DIR = join(dirname(fileURLToPath(import.meta.url)), '../portal');
+const SOURCE_DIR = dirname(fileURLToPath(import.meta.url));
+const PORTAL_DIR = join(SOURCE_DIR, '../portal');
+// A deliberately small, fixed set of installation helpers is published beside
+// the portal.  Keep this root derived from this module, rather than from the
+// current working directory, so a systemd service cannot accidentally serve a
+// different checkout after an operator changes WorkingDirectory.
+const PROJECT_DIR = join(SOURCE_DIR, '../../..');
 
 /**
  * The instance's own public origin, e.g. `https://jibo.io`.
@@ -92,7 +98,7 @@ function serve(file, type) {
  * substituted exactly as for built-in pages, so an operator page gets the same
  * `%SITE_URL%` treatment.
  */
-function serveExternal(absolutePath, type) {
+function serveExternal(absolutePath, type, extraHeaders = {}) {
   const contentType = type || MIME[extname(absolutePath)] || 'application/octet-stream';
   const substitute = SUBSTITUTED.has(extname(absolutePath));
   let cached = null;
@@ -106,6 +112,7 @@ function serveExternal(absolutePath, type) {
       'content-type': contentType,
       'cache-control': 'no-cache',
       'x-content-type-options': 'nosniff',
+      ...extraHeaders,
     });
     res.end(cached);
   };
@@ -201,6 +208,17 @@ export function staticRoutes() {
 
     // Operator-configurable branding.
     'GET /branding.json': serveBranding(),
+
+    // Public, fixed-path migration assets. These are not a directory mapping:
+    // adding a file under scripts/ never makes it Internet-visible by accident.
+    // The shell helper fetches these exact support files when it was downloaded
+    // by itself, instead of assuming the customer has a source checkout.
+    'GET /robot-ota-repoint.sh': serveExternal(
+      join(PROJECT_DIR, 'scripts/robot-ota-repoint.sh'), 'text/plain; charset=utf-8'),
+    'GET /robot-client/node.js': serveExternal(
+      join(PROJECT_DIR, 'scripts/robot-client/node.js'), 'text/plain; charset=utf-8'),
+    'GET /robot-client/isrg-root-x1.pem': serveExternal(
+      join(PROJECT_DIR, 'scripts/robot-client/isrg-root-x1.pem'), 'application/x-pem-file'),
   };
 
   for (const f of files) routes[`GET /${f}`] = serve(f);

@@ -601,12 +601,14 @@ scripts/parity-robot/repoint-robot.sh \
 The script maps both `<region>.jibo.com` and `<region>-socket.jibo.com` to the
 public address, installs the CA into the boot-persistent trust store, and keeps
 TLS verification enabled. For an already-paired robot, have the customer sign
-in to Phoenix and generate **Robots → Claim an existing Jibo** first; run the
-portal-provided command with `--claim-code` and `--adoption-url`. This links the
-robot's existing credentials to that new account without importing the former
-cloud account. A plain repoint with no claim code creates only an unclaimed
-bootstrap and is for recovery/migration, not customer onboarding. Re-run with
-`--revert` to remove the managed change; the script keeps timestamped backups.
+in to Phoenix and generate **Robots → Connect a Jibo → My Jibo has been set up
+already** first; run the portal-provided command with `--claim-code` and
+`--adoption-url`. This links the robot's existing credentials to that new
+account without importing the former cloud account. A public, signed-out
+repoint with no claim code creates only an unclaimed bootstrap; after creating
+an account, the owner must run the portal-provided command again to link it.
+Re-run with `--revert` to remove the managed change; the script keeps
+timestamped backups.
 
 The native Jetstream client hardcodes `wss://` for the hub. The repository
 includes a TLS proxy for the plain Phoenix hub and documents that the override
