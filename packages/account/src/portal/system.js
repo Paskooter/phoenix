@@ -9,6 +9,10 @@ import { sendJson } from '@phoenix/common';
 import { classicCall, ClassicCallError } from './classicClient.js';
 import { requireUser } from './session.js';
 
+// The subsystems a Jibo OTA package can target. `main` is the catalog's default for an
+// omitted subsystem, so it is queried too — a deployment that publishes under it still shows up.
+const UPDATE_SUBSYSTEMS = ['os', 'services', 'skills', 'main'];
+
 function reportError(res, error) {
   if (error instanceof ClassicCallError) {
     return sendJson(res, error.status, { error: error.message, code: error.code, classicUnreachable: true });
@@ -23,18 +27,27 @@ export function portalSystemRoutes(store, options = {}) {
 
   return {
     // Update_20160301.ListUpdates — the catalog of packages the OTA service would offer a robot.
+    // The source ALWAYS scopes a query to one subsystem and defaults an omitted one to "main"
+    // (catalog.js _matchSubsystem), which is never a match-all. Sending `{}` therefore asks for
+    // a subsystem no real package uses and always returns [] — the console shows "no updates
+    // available" while a robot updates fine, because the robot asks per subsystem. Query the
+    // real subsystems and concatenate.
     'GET /api/update/status': async ({ req, res }) => {
       const account = requireUser(store, req, res);
       if (!account) return;
       try {
-        const result = await classic({
+        const lists = await Promise.all(UPDATE_SUBSYSTEMS.map((subsystem) => classic({
           base,
           account,
           credentials: forwarded(account),
           target: 'Update_20160301.ListUpdates',
-          body: {},
-        });
-        return { updates: result.body };
+          body: { subsystem },
+        })));
+        const updates = [];
+        for (const result of lists) {
+          if (Array.isArray(result.body)) updates.push(...result.body);
+        }
+        return { updates };
       } catch (error) {
         return reportError(res, error);
       }

@@ -559,6 +559,79 @@ def patch_ota_downloader(rootfs: Path) -> dict[str, Any]:
         }
 
 
+SHIM_REMOTE_PATH = "/lib/libjibosslshim.so"
+SHIM_SERVICE_EXECUTABLE = "/usr/local/bin/jibo-server-service"
+SYSTEM_MANAGER_CONFIG = "/etc/jibo-system-manager.json"
+
+
+def install_ssl_shim(services: Path, shim_source: Path) -> dict[str, Any]:
+    """Bake the TLS shim and preload it into jibo-server-service.
+
+    jibo-server-service cannot talk to a modern server on its own. It builds its Poco
+    SSL context in code with no CA and ignores openSSL.client.* config, so every
+    certificate is rejected ("Unacceptable certificate") before any verify callback
+    runs; and it emits a stray NUL byte inside its request headers, which nginx rejects
+    with a hard 400 ("Could not receive robot token: Bad Request"). Neither is fixable
+    from configuration and the source is not available to rebuild.
+
+    The shim attaches the system trust store to every SSL_CTX, bypasses the Poco peer
+    check, and strips NULs from outgoing request heads. It is preloaded into ONLY this
+    one service, via the system manager's own per-mode `environment` map -- the
+    supervisor passes exactly what that map lists, so no wrapper script is involved.
+
+    Note the services image root is /usr/local on the robot, so the in-image /lib is the
+    robot's /usr/local/lib.
+    """
+    if not shim_source.is_file():
+        fail(f"SSL shim not found: {shim_source}")
+
+    replace_file(services, shim_source, SHIM_REMOTE_PATH, mode=0o100644, uid=0, gid=10)
+
+    preloaded: list[str] = []
+
+    def transform(value: Any) -> Any:
+        result = transform_strings(value)
+        if not isinstance(result, dict):
+            fail("System manager config is not an object")
+
+        def walk(node: Any) -> None:
+            if isinstance(node, list):
+                for item in node:
+                    walk(item)
+                return
+            if not isinstance(node, dict):
+                return
+            if node.get("executable") == SHIM_SERVICE_EXECUTABLE:
+                modes = node.get("modes")
+                if isinstance(modes, dict):
+                    for mode_name, mode_cfg in modes.items():
+                        if not isinstance(mode_cfg, dict):
+                            continue
+                        env = mode_cfg.get("environment")
+                        if not isinstance(env, dict):
+                            env = {}
+                            mode_cfg["environment"] = env
+                        env["LD_PRELOAD"] = "/usr/local/lib/libjibosslshim.so"
+                        preloaded.append(mode_name)
+            for item in node.values():
+                walk(item)
+
+        walk(result)
+        return result
+
+    config = patch_json(services, SYSTEM_MANAGER_CONFIG, transform, mode=CLIENT_READABLE)
+    if not preloaded:
+        fail(f"no {SHIM_SERVICE_EXECUTABLE} entry found in {SYSTEM_MANAGER_CONFIG}")
+
+    return {
+        "shim": SHIM_REMOTE_PATH,
+        "robot_path": "/usr/local/lib/libjibosslshim.so",
+        "bytes": shim_source.stat().st_size,
+        "preloaded_modes": preloaded,
+        "config": config.get("path", SYSTEM_MANAGER_CONFIG) if isinstance(config, dict) else SYSTEM_MANAGER_CONFIG,
+    }
+
+
 def copy_reference_images(reference_images: Path, output_images: Path) -> None:
     output_images.mkdir(parents=True, exist_ok=False)
     for item in sorted(reference_images.iterdir()):
@@ -673,6 +746,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--client-source", type=Path, required=True)
     parser.add_argument("--root-ca", type=Path, required=True)
     parser.add_argument("--public-url", default=DEFAULT_PUBLIC_URL)
+    parser.add_argument(
+        "--ssl-shim",
+        type=Path,
+        default=Path("/home/shell/work/hermes-be/tools/jibo/libjibosslshim.so"),
+        help="ARM libjibosslshim.so preloaded into jibo-server-service",
+    )
     parser.add_argument("--hub-host", default=DEFAULT_HUB_HOST)
     parser.add_argument("--hub-port", type=int, default=DEFAULT_HUB_PORT)
     parser.add_argument("--entrypoint-host", default=DEFAULT_ENTRYPOINT_HOST)
@@ -782,6 +861,7 @@ def main() -> int:
     server_config = patch_server_service_config(services)
     jetstream_config = patch_jetstream_config(services, args.hub_host, args.hub_port, args.entrypoint_host)
     asr_config = patch_asr_config(services)
+    ssl_shim = install_ssl_shim(services, args.ssl_shim)
     trust = add_trust_root(rootfs, args.root_ca)
     ota_downloader = patch_ota_downloader(rootfs)
 
@@ -811,6 +891,7 @@ def main() -> int:
         "hosts_intercept": {"present": False, "stock_rootfs_hosts_inode": {"mode": hosts_metadata[0], "uid": hosts_metadata[1], "gid": hosts_metadata[2], "target": "../var/etc/hosts"}},
         "private_ca": {"present": False, "kept_client_ca": BE_CA_PATH, "note": "holds the public ISRG Root X1, loaded by the CA-accepting client"},
         "trust": trust,
+        "ssl_shim": ssl_shim,
         "ota_downloader": ota_downloader,
         "native_binary_patches": [native_patch, asr_patch],
         "text_literal_patches": text_patches,
