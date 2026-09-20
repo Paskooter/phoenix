@@ -1,0 +1,16 @@
+[Unit]
+Description=Block Docker-published ports on Phoenix's public interface
+After=docker.service
+Wants=docker.service
+
+[Service]
+Type=oneshot
+# Docker can insert forwarding rules ahead of an otherwise-deny UFW policy.
+# This DOCKER-USER rule is evaluated before Docker's published-port accepts.
+# Replace eth0 with the host's Internet-facing interface before installing.
+Environment=PHOENIX_PUBLIC_INTERFACE=eth0
+ExecStart=/bin/sh -ec '/usr/sbin/iptables -C DOCKER-USER -i "$PHOENIX_PUBLIC_INTERFACE" -j DROP 2>/dev/null || /usr/sbin/iptables -I DOCKER-USER 1 -i "$PHOENIX_PUBLIC_INTERFACE" -j DROP; /usr/sbin/ip6tables -C DOCKER-USER -i "$PHOENIX_PUBLIC_INTERFACE" -j DROP 2>/dev/null || /usr/sbin/ip6tables -I DOCKER-USER 1 -i "$PHOENIX_PUBLIC_INTERFACE" -j DROP'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=docker.service

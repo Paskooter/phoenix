@@ -109,6 +109,26 @@ the Docker socket in a Phoenix container. If a local robot needs direct access, 
 address and a source firewall; never change the production edge binding to `0.0.0.0` just to make a
 test pass.
 
+### Docker forwarding guard
+
+Docker can install published-port forwarding rules ahead of a host firewall. If this host runs
+Docker at all, install the `DOCKER-USER` default-deny unit after replacing `eth0` with its public
+interface (find it with `ip route get 1.1.1.1`):
+
+```sh
+sudo install -o root -g root -m 0644 deploy/systemd/phoenix-docker-firewall.service \
+  /etc/systemd/system/phoenix-docker-firewall.service
+sudoedit /etc/systemd/system/phoenix-docker-firewall.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now phoenix-docker-firewall.service
+sudo iptables -S DOCKER-USER
+sudo ip6tables -S DOCKER-USER
+```
+
+This deliberately blocks every Docker-published port arriving from the public interface. Publish a
+container only on loopback, a private interface, or through the reviewed nginx edge; add an explicit
+allow rule above the drop only when a separately reviewed public container genuinely requires one.
+
 ## Native launcher hardening
 
 `scripts/run-compose-stack.sh` is suitable for a private host only when supervised and fronted by
