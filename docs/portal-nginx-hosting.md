@@ -260,7 +260,8 @@ The template maps the extensionless page paths explicitly and serves the portal 
 
 - `/api/` to `phoenix_account`, with the exact `/api/login` and `/api/signup` locations getting
   the tighter `phoenix_auth` bucket;
-- `/api/admin/` to the account service after the private-network allow-list;
+- `/api/admin/` to the account service after the private-network allow-list
+  (or, when deliberately configured, through the public application gate);
 - `/member-photos/` to the account service with buffering disabled for streamed bytes.
 
 Everything in the canonical table is static from the portal root **except the template's
@@ -294,10 +295,11 @@ read per request, revoking takes effect immediately with no stale admin session 
 
 The nginx template adds a second boundary: `/admin` and `/api/admin/` are restricted to loopback
 and RFC1918 IPv4 ranges by default. Adjust those ranges for the real administrator network,
-including any intentional IPv6 range, but keep the application gate even on a private LAN. Remember
-that the normal `/app` shell is the same `app.html`; protecting the `/admin` alias alone does not
-make the admin API public. The sensitive operations remain under `/api/admin/` and its per-account
-check.
+including any intentional IPv6 range, but keep the application gate even on a private LAN. If
+administrators must work from arbitrary networks, deliberately remove the allow/deny directives
+from the `/api/admin/` location and retain a tighter `phoenix_api` rate limit (for example,
+`burst=30 nodelay`). The sensitive operations remain under `/api/admin/` and retain their
+per-account, server-side `isAdmin` check.
 
 The application has no brute-force lockout of its own. The template therefore applies:
 
@@ -392,9 +394,10 @@ Expected results for the nginx vhost are:
 | `/api/admin/me` without an admin session, from an allowed source | `401` | `application/json` |
 | `/not-real` | `404` | the nginx `404.html` response, normally `text/html` |
 
-A public request to `/api/admin/*` from outside the configured allow-list should be `403` before
-it reaches the account service. That is expected. A `401` from an allowed source proves that the
-request reached the application and that no admin session was supplied.
+In private-admin mode, a public request to `/api/admin/*` from outside the configured allow-list
+should be `403` before it reaches the account service. In intentional public-admin mode, a `401`
+from any source proves that the request reached the application and that no admin session was
+supplied.
 
 Check the no-cache policy directly:
 

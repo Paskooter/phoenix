@@ -16,8 +16,9 @@ process-level details each step depends on are cited by file and line throughout
 > reject a replayed signature. This protection depends on a non-empty
 > `ETCO_account_internalPeerToken`, fixed HTTPS public origins, `DISABLE_AUTH=false`,
 > and the loopback-only topology below. Do not expose the stack with development
-> defaults, do not expose the admin surface without a management allowlist, and do
-> not treat a trusted certificate as permission to accept arbitrary requests.
+> defaults, do not expose the admin surface without either a management
+> allow-list or the deliberate public-admin configuration below, and do not
+> treat a trusted certificate as permission to accept arbitrary requests.
 
 ## 1. The plain answer about nginx
 
@@ -741,8 +742,23 @@ node scripts/portal-grant-admin.mjs \
   --email <your-account-email>
 ```
 
-Do not expose `/api/admin/` merely to make the page load. The nginx configuration
-below keeps it on a private allow-list as a second boundary.
+The nginx configuration below keeps `/api/admin/` on a private allow-list by
+default. If your administrators must sign in from arbitrary networks, replace
+that location with the following deliberately public, application-gated form:
+
+```nginx
+location ^~ /api/admin/ {
+    # Keep this lower than the ordinary API burst: admin pages are interactive.
+    limit_req zone=phoenix_api burst=30 nodelay;
+    proxy_pass http://phoenix_account;
+    proxy_buffering off;
+}
+```
+
+This does **not** grant administrative access to the Internet: every route still
+requires a valid HTTPS session and a server-side `isAdmin` account. It does make
+password theft more consequential, so use a unique strong administrator password,
+keep login rate limiting enabled, and remove stale administrator flags promptly.
 
 ## 9. Build OTA packages and provide ASR
 
@@ -1396,9 +1412,11 @@ internal service ports.
   a robot at the next upgrade (`docker-compose.yml:55-58`,
   `packages/gateway/src/index.js:56-77`).
 - Set `ETCO_account_secureCookies=true` and use HTTPS everywhere for the portal.
-- Keep `/admin` and `/api/admin/` on a VPN or an explicit source allow-list. The
-  application `isAdmin` check is still required; the nginx restriction is a
-  second boundary, not a replacement.
+- Prefer a VPN or an explicit source allow-list for `/admin` and
+  `/api/admin/`. If remote access from arbitrary networks is required, use the
+  deliberate public-admin nginx location in §8, retain the application
+  `isAdmin` check and API rate limit, and protect the administrator account as
+  a high-value credential.
 - Never expose 9011 directly. Standalone Account calls `server.listen(port)`
   without a host (`packages/common/src/service.js:173-182`,
   `packages/account/src/index.js:351-357`), so a direct standalone listener is
@@ -1738,9 +1756,10 @@ backup strategy. Keep the pre-upgrade copy off-host.
 - Confirm `docker compose ps account` and its logs.
 - Confirm the host firewall blocks remote 9011. A loopback nginx upstream does
   not stop a wildcard Node listener from being reached through another address.
-- If admin HTML is 403, the source address is outside the nginx allow-list. If
-  `/api/admin/me` is 401 from an allowed source, the application correctly has
-  no admin session. Grant the `isAdmin` flag against the correct store.
+- In private-admin mode, a 403 for the admin HTML/API can mean the source is
+  outside nginx's allow-list. In public-admin mode, `/api/admin/me` should be
+  401 when signed out and 403 for a signed-in non-admin. Grant the `isAdmin`
+  flag against the correct store.
 
 ### Robot says unknown CA, wrong hostname, or TLS failure
 

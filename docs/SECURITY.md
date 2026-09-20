@@ -159,8 +159,9 @@ The template:
   scheme, and does not trust arbitrary incoming forwarding chains;
 - applies body/header/send timeouts, a connection cap, a general API rate limit, and a tighter
   login/signup rate limit;
-- restricts `/admin` and `/api/admin/` to an explicit private administrator network in addition to
-  the application authorization check.
+- supports a private administrator-network allow-list by default. A deliberate
+  public-admin deployment may remove that network gate, but must retain HTTPS,
+  the application authorization check, CSRF protection, and API rate limiting.
 
 If a CDN or load balancer is placed before nginx, configure its trusted source ranges and real-IP
 module before changing rate-limit keys. Do not blindly switch to `X-Forwarded-For` supplied by the
@@ -176,8 +177,10 @@ Before announcing a hostname:
 2. Confirm certificates cover every portal, Classic, socket, and hub hostname actually used. A
    private robot CA provides trust only after it is installed on the robot; it is not authentication.
 3. Confirm `nginx -t`, reload, and check the security headers and canonical redirect with `curl -I`.
-4. Confirm `/api/me` is `401` without a session, login attempts are rate-limited, and admin paths
-   are `403` from an unapproved source network.
+4. Confirm `/api/me` is `401` without a session and login attempts are
+   rate-limited. In private-admin mode, confirm admin paths are `403` from an
+   unapproved source network; in intentional public-admin mode, confirm they
+   are `401` without a session and `403` for a signed-in non-admin.
 5. Confirm health checks succeed through the private upstreams, then verify the external port scan
    shows no `9000` or `9003–9014` listener.
 6. Back up the account store, Classic state, OTA manifest/artifacts, `.env`, TLS CA and private key
