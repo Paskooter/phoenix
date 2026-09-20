@@ -8,11 +8,30 @@
 // The same files are laid out to be served directly by a reverse proxy instead,
 // with only /api proxied back here; see deploy/nginx/.
 
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { dirname, join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const PORTAL_DIR = join(dirname(fileURLToPath(import.meta.url)), '../portal');
+
+/**
+ * The instance's own public origin, e.g. `https://jibo.io`.
+ *
+ * Open Graph and Twitter card scrapers do NOT resolve relative URLs: a root-relative
+ * `og:image` yields no preview at all on Discord, Facebook, Slack or iMessage. The pages
+ * therefore carry a `%SITE_URL%` placeholder that is substituted here at serve time, so
+ * one set of files works for any deployment without a build step. Unset (the self-hosted
+ * default) the placeholder collapses to a relative URL, which still renders correctly in
+ * a browser -- only the social preview needs the absolute form.
+ */
+function siteUrl() {
+  const raw = process.env.PHOENIX_SITE_URL || '';
+  return raw.replace(/\/+$/, '');
+}
+
+function applyPlaceholders(buffer) {
+  return Buffer.from(buffer.toString('utf8').split('%SITE_URL%').join(siteUrl()));
+}
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -22,22 +41,58 @@ const MIME = {
   '.webmanifest': 'application/manifest+json; charset=utf-8',
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.ico': 'image/x-icon',
   '.txt': 'text/plain; charset=utf-8',
   '.xml': 'application/xml; charset=utf-8',
   '.woff2': 'font/woff2',
 };
 
+/** Text types get placeholder substitution; binaries are served byte-for-byte. */
+const SUBSTITUTED = new Set(['.html', '.xml', '.webmanifest', '.txt']);
+
 function serve(file, type) {
   const path = join(PORTAL_DIR, file);
   const contentType = type || MIME[extname(file)] || 'application/octet-stream';
+  const substitute = SUBSTITUTED.has(extname(file));
   let cached = null;
   return ({ res }) => {
-    if (cached === null) cached = existsSync(path) ? readFileSync(path) : false;
+    if (cached === null) {
+      cached = existsSync(path) ? readFileSync(path) : false;
+      if (cached !== false && substitute) cached = applyPlaceholders(cached);
+    }
     if (cached === false) { res.writeHead(404, { 'content-type': 'text/plain' }); return void res.end('not found'); }
     res.writeHead(200, {
       'content-type': contentType,
       // Nothing here is content-hashed, so the browser must revalidate rather
       // than serve a stale console after an upgrade.
+      'cache-control': 'no-cache',
+      'x-content-type-options': 'nosniff',
+    });
+    res.end(cached);
+  };
+}
+
+/**
+ * Serve a file from OUTSIDE the portal directory (an operator's own page).
+ *
+ * Unlike serve(), the path is absolute and read fresh on a miss rather than assumed to
+ * exist at startup, so an operator can add a page without restarting. Placeholders are
+ * substituted exactly as for built-in pages, so an operator page gets the same
+ * `%SITE_URL%` treatment.
+ */
+function serveExternal(absolutePath, type) {
+  const contentType = type || MIME[extname(absolutePath)] || 'application/octet-stream';
+  const substitute = SUBSTITUTED.has(extname(absolutePath));
+  let cached = null;
+  return ({ res }) => {
+    if (cached === null) {
+      cached = existsSync(absolutePath) ? readFileSync(absolutePath) : false;
+      if (cached !== false && substitute) cached = applyPlaceholders(cached);
+    }
+    if (cached === false) { res.writeHead(404, { 'content-type': 'text/plain' }); return void res.end('not found'); }
+    res.writeHead(200, {
+      'content-type': contentType,
       'cache-control': 'no-cache',
       'x-content-type-options': 'nosniff',
     });
@@ -117,7 +172,7 @@ export function staticRoutes() {
     // vendored
     'vendor/leaflet.js', 'vendor/leaflet.css',
     // assets and metadata
-    'assets/favicon.svg', 'robots.txt', 'sitemap.xml', 'manifest.webmanifest',
+    'assets/favicon.svg', 'assets/og.png', 'robots.txt', 'sitemap.xml', 'manifest.webmanifest',
   ];
 
   const routes = {
@@ -138,5 +193,26 @@ export function staticRoutes() {
   };
 
   for (const f of files) routes[`GET /${f}`] = serve(f);
+
+  // Operator pages: extra HTML an instance serves that the project does not ship.
+  //
+  // A public instance needs content the generic project cannot carry -- a setup guide
+  // naming its own hostnames, legal text describing a service someone actually
+  // operates. Rather than fork the portal, point PHOENIX_PAGES_DIR at a directory of
+  // .html files; each becomes a route at its own basename, and one named the same as a
+  // built-in REPLACES it. Nothing is read from that directory unless it is configured,
+  // so the default install is unchanged.
+  const pagesDir = process.env.PHOENIX_PAGES_DIR;
+  if (pagesDir && existsSync(pagesDir)) {
+    for (const entry of readdirSync(pagesDir)) {
+      if (!entry.endsWith('.html')) continue;
+      const name = entry.slice(0, -'.html'.length);
+      const handler = serveExternal(join(pagesDir, entry));
+      routes[`GET /${name}`] = handler;
+      routes[`GET /${entry}`] = handler;
+      if (name === 'index') routes['GET /'] = handler;
+    }
+  }
+
   return routes;
 }
