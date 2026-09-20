@@ -157,6 +157,10 @@ then generate the private command. On the public `jibo.io` deployment it first
 downloads the public-DNS repoint script and includes a 15-minute, one-time
 claim code:
 
+The helper deliberately uses non-interactive, key-based `root` SSH. Verify
+`ssh root@<robot-ip> true` succeeds without a password prompt before minting a
+claim code; it does not install or bypass robot access.
+
 ```bash
 curl --fail --remote-name https://jibo.io/robot-ota-repoint.sh && \
   bash ./robot-ota-repoint.sh --robot root@<robot-ip> --claim-code <portal-code> --yes

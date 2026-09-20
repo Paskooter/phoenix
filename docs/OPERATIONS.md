@@ -212,6 +212,11 @@ curl --fail --remote-name https://jibo.io/robot-ota-repoint.sh && \
   bash ./robot-ota-repoint.sh --robot root@<robot-ip> --claim-code <portal-code> --yes
 ```
 
+It uses key-based, non-interactive `root` SSH. Have the customer confirm
+`ssh root@<robot-ip> true` works without a password prompt before they create a
+short-lived code in the portal; the migration tool does not install or bypass
+that local access.
+
 The code is one use and survives server-side only as a hash. The SSH script
 reads the existing `credentials.json` from the robot and sends it over HTTPS;
 it does not print it or create a replacement key. On success, Phoenix keeps

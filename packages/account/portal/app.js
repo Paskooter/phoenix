@@ -1274,6 +1274,8 @@ async function renderClaim() {
   container.append(card('Step 1 — Prepare', {},
     h('p', { class: 'instruct' }, 'Use this only for a Jibo that was set up before and still has its robot credentials.'),
     h('p', { class: 'field-hint' }, 'The robot must already have owner-authorized root SSH access and be reachable from this computer. Install and verify that local access before continuing; this migration tool does not bypass it.'),
+    h('p', { class: 'field-hint' }, 'The helper intentionally uses non-interactive SSH keys. Before creating a code, confirm ',
+      h('code', {}, 'ssh root@<robot-ip> true'), ' exits successfully without asking for a password.'),
     h('p', { class: 'field-hint' }, 'For a new or factory-reset Jibo, use ', h('a', { href: '#/add/new' }, 'the QR setup path'),
       ' instead. Its normal setup creates and links the robot automatically.')),
     card('Step 2 — Create your private pairing command', {},
