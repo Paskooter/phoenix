@@ -110,6 +110,54 @@
         "os": "13.0.4"
       },
       "file": "services-13.0.4.tar"
+    },
+    {
+      "id": "os-13.0.5",
+      "subsystem": "os",
+      "fromVersion": "*",
+      "toVersion": "13.0.5",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build v9. Everything in 13.0.4, plus the three fixes that let a freshly flashed or OTA'd robot come up working with nothing done by hand: file ownership is preserved (an unprivileged debugfs extract had handed the whole filesystem to uid 1000 = avahi, which broke sshd and every skill launch); setuid bits are restored (debugfs cannot create them, so /bin/busybox shipped 0755 and skills died with a bare 'Error launching app'); and an SSL shim is preloaded into jibo-server-service, which otherwise rejects every certificate and emits a NUL byte in its request headers that modern nginx 400s.",
+      "filter": "",
+      "dependencies": {},
+      "file": "os-13.0.5.tar"
+    },
+    {
+      "id": "os-13.0.5-fcs",
+      "subsystem": "os",
+      "fromVersion": "*",
+      "toVersion": "13.0.5",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build v9. Everything in 13.0.4, plus the three fixes that let a freshly flashed or OTA'd robot come up working with nothing done by hand: file ownership is preserved (an unprivileged debugfs extract had handed the whole filesystem to uid 1000 = avahi, which broke sshd and every skill launch); setuid bits are restored (debugfs cannot create them, so /bin/busybox shipped 0755 and skills died with a bare 'Error launching app'); and an SSL shim is preloaded into jibo-server-service, which otherwise rejects every certificate and emits a NUL byte in its request headers that modern nginx 400s.",
+      "filter": "fcs",
+      "dependencies": {},
+      "file": "os-13.0.5.tar"
+    },
+    {
+      "id": "services-13.0.5",
+      "subsystem": "services",
+      "fromVersion": "*",
+      "toVersion": "13.0.5",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build v9. Everything in 13.0.4, plus the three fixes that let a freshly flashed or OTA'd robot come up working with nothing done by hand: file ownership is preserved (an unprivileged debugfs extract had handed the whole filesystem to uid 1000 = avahi, which broke sshd and every skill launch); setuid bits are restored (debugfs cannot create them, so /bin/busybox shipped 0755 and skills died with a bare 'Error launching app'); and an SSL shim is preloaded into jibo-server-service, which otherwise rejects every certificate and emits a NUL byte in its request headers that modern nginx 400s.",
+      "filter": "",
+      "dependencies": {
+        "os": "13.0.5"
+      },
+      "file": "services-13.0.5.tar"
+    },
+    {
+      "id": "services-13.0.5-fcs",
+      "subsystem": "services",
+      "fromVersion": "*",
+      "toVersion": "13.0.5",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build v9. Everything in 13.0.4, plus the three fixes that let a freshly flashed or OTA'd robot come up working with nothing done by hand: file ownership is preserved (an unprivileged debugfs extract had handed the whole filesystem to uid 1000 = avahi, which broke sshd and every skill launch); setuid bits are restored (debugfs cannot create them, so /bin/busybox shipped 0755 and skills died with a bare 'Error launching app'); and an SSL shim is preloaded into jibo-server-service, which otherwise rejects every certificate and emits a NUL byte in its request headers that modern nginx 400s.",
+      "filter": "fcs",
+      "dependencies": {
+        "os": "13.0.5"
+      },
+      "file": "services-13.0.5.tar"
     }
   ]
 }
