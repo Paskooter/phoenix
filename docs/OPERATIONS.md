@@ -201,20 +201,29 @@ from-scratch reimplementation of the robot's `oobe-config` format — see `packa
 
 **2. Adopt an existing robot — one that paired with the original Jibo cloud years ago.**
 
-Its old credentials are worthless (that database is gone), so adoption *re-issues* them. Open the
-admin page (`/#/admin`, available to administrator accounts — see `scripts/portal-grant-admin.mjs`), enter the robot's 4-word name, and it returns
-the exact `credentials.json` to write plus the repoint command:
+Its existing robot credentials prove possession; they are not an old human
+account and are not imported as one. The customer creates and signs into a new
+Phoenix account, opens **Robots → Claim an existing Jibo**, and copies the
+one-time command the portal produces. It includes an expiring ownership code:
 
 ```bash
-ssh root@<robot> jibo-mount --rw
-# write the credentials.json the admin page shows to /var/jibo/credentials.json
-# repoint the robot (LAN): region_config -> classic entrypoint :9012, hub -> :9000
-#   args: <robot-ip> <phoenix-ip> [classic-port=9010] [hub-port=9000]  — pass 9012 for the entrypoint
-scripts/point-robot-at-phoenix.sh <robot-ip> <this-host> 9012 9000
+scripts/parity-robot/repoint-robot.sh \
+  --robot root@<robot-ip> --phoenix <public-server-ip> \
+  --claim-code <portal-code> \
+  --adoption-url https://<portal-origin>/api/adopt-robot --yes
 ```
 
-The admin page also lists **every adopted robot** across all accounts (name, owner, loop, access
-key, last-seen).
+The code is one use and survives server-side only as a hash. The SSH script
+reads the existing `credentials.json` from the robot and sends it over HTTPS;
+it does not print it or create a replacement key. On success, Phoenix keeps
+the robot identity and loop ID but replaces only the bootstrap membership with
+the new Phoenix account and robot. Existing legacy users/accounts are not
+copied. A real Phoenix-owned robot cannot be transferred by a claim code; an
+administrator can make that explicit transfer from the admin page.
+
+The separate household-snapshot importer is an operator migration tool, not a
+step in ordinary customer claims: it can carry legacy member/profile data and
+must be reviewed separately.
 
 ## Per-robot authentication
 

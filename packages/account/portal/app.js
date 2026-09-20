@@ -1150,7 +1150,8 @@ async function renderRobot() {
   const robots = await api('GET', '/api/robots');
   const container = page('Robots', 'The robots paired with this server.');
   container.querySelector('.page-head').append(h('div', { class: 'row' },
-    h('a', { class: 'btn btn-primary', href: '#/add' }, icon('plus', 15), 'Add a robot')));
+    h('a', { class: 'btn btn-primary', href: '#/add' }, icon('plus', 15), 'Add a robot'),
+    h('a', { class: 'btn btn-quiet', href: '#/claim' }, icon('link', 15), 'Claim an existing Jibo')));
 
   if (!robots.ok) { container.append(errorBox('Could not load robots.', robots.data.error)); return show(container); }
   const list = Array.isArray(robots.data) ? robots.data : [];
@@ -1197,6 +1198,64 @@ async function renderRobot() {
         : null,
       d.getRobot ? h('pre', { class: 'json', text: JSON.stringify(d.getRobot, null, 2) }) : null);
   }
+}
+
+/* ==========================================================================
+   Claim an already-paired robot
+   ========================================================================== */
+
+async function renderClaim() {
+  const container = page('Claim an existing Jibo',
+    'Link a robot that was paired with the original cloud to this new Phoenix account.');
+  container.querySelector('.page-head').prepend(
+    h('a', { class: 'link', href: '#/robot', style: 'display:inline-flex;align-items:center;gap:.35rem;margin-bottom:.75rem' },
+      icon('back', 14), 'Back to robots'));
+
+  const result = h('div', { hidden: true });
+  const request = h('button', { type: 'button', class: 'btn btn-primary' },
+    icon('link', 15), 'Create one-time claim command');
+  request.addEventListener('click', async () => {
+    request.disabled = true;
+    const res = await api('POST', '/api/robots/claim-code', {});
+    request.disabled = false;
+    result.hidden = false;
+    if (!res.ok) {
+      result.replaceChildren(errorBox('Could not create a claim command.', res.data?.error));
+      return;
+    }
+    const host = res.data.repointHost || '<server-ip>';
+    const adoptionUrl = `${location.origin}${res.data.adoptionPath || '/api/adopt-robot'}`;
+    const command = [
+      'scripts/parity-robot/repoint-robot.sh',
+      '--robot root@<robot-ip>',
+      `--phoenix ${host}`,
+      `--claim-code ${res.data.code}`,
+      `--adoption-url ${adoptionUrl}`,
+      '--yes',
+    ].join(' ');
+    const expiry = fmtDate(res.data.expires);
+    result.replaceChildren(
+      h('div', { class: 'notice notice-warn' },
+        h('strong', {}, 'One use only.'), ' This command expires ', expiry,
+        '. Do not share it; it links whichever robot proves possession to your account.'),
+      h('p', { class: 'instruct' },
+        'Run this on a computer that can SSH to your Jibo. Replace only ',
+        h('code', {}, '<robot-ip>'), '. The command reads the existing robot credentials over SSH; do not copy those credentials into this site.'),
+      h('div', { class: 'restart-cmd' },
+        h('span', { class: 'prompt' }, '$'), h('code', { text: command }), copyButton(() => command)),
+      !res.data.repointHost ? h('p', { class: 'field-hint' },
+        'This server has not published its robot-repoint IP, so replace ', h('code', {}, '<server-ip>'),
+        ' with the public IP the robot should reach.') : null,
+      h('p', { class: 'field-hint' },
+        'This does not import the former cloud account or its people. It preserves the robot’s existing keys and makes this Phoenix account its household owner.'));
+  });
+
+  container.append(card('Before you begin', {},
+    h('p', { class: 'instruct' }, 'Use this only for a Jibo that is already paired and still has its credentials.'),
+    h('p', { class: 'field-hint' }, 'For a factory-reset Jibo, use Add a robot instead; its normal QR setup creates and links the robot automatically.'),
+    h('div', { class: 'row', style: 'margin-top:1.25rem' }, request),
+    result));
+  show(container);
 }
 
 /* ==========================================================================
@@ -2122,6 +2181,9 @@ async function renderAdminRobots() {
       }), 'The four-word name the robot reports.'),
       field('Owner email', h('input', { name: 'ownerEmail', type: 'email', placeholder: 'optional' }),
         'An existing account. Leave blank to use the synthetic adopted owner.')),
+    h('label', { class: 'check-row' },
+      h('input', { name: 'transferExisting', type: 'checkbox' }),
+      h('span', {}, 'Transfer a robot already owned by another Phoenix account (administrator-confirmed).')),
     h('div', { class: 'row', style: 'margin-top:1.25rem' },
       h('button', { type: 'submit', class: 'btn btn-primary' }, 'Adopt robot')),
     result);
@@ -2131,6 +2193,7 @@ async function renderAdminRobots() {
     const fd = Object.fromEntries(new FormData(adoptForm));
     const res = await api('POST', '/api/admin/adopt', {
       friendlyId: fd.friendlyId, ownerEmail: fd.ownerEmail || undefined,
+      transferExisting: fd.transferExisting === 'on',
     });
     result.hidden = false;
     if (!res.ok) { result.textContent = `Error: ${res.data.error}`; return; }
@@ -2361,6 +2424,7 @@ const ROUTES = {
   '#/settings': renderSettings,
   '#/profile': renderProfile,
   '#/robot': renderRobot,
+  '#/claim': renderClaim,
   '#/gallery': renderGallery,
   '#/messaging': renderMessaging,
   '#/people': renderPeople,

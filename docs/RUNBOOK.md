@@ -145,21 +145,47 @@ One run does everything on the robot:
   its CA bundle, with backups and a guarded revert,
 * points Jetstream's conversation hub at the server and restarts it, so speech
   reaches Phoenix too (`--hub-port`, default 9000; `--no-hub` to skip),
-* registers the robot in the Phoenix account store using its own existing
-  credentials, so a robot that paired with the original Jibo cloud years ago
-  works here without re-running OOBE (`--no-adopt` to skip).
+* proves possession of an already-paired robot using the credentials in its
+  own `/var/jibo/credentials.json`, without importing an original-cloud user
+  account.
 
-The robot's secret key is streamed straight from the robot into the local
-adopter without being printed in a command line or log. The private account
-store retains the credentials needed for authentication. Adoption is idempotent:
-an existing loop is reused; an account missing its loop can be repaired.
+### Claim an already-paired robot into a new Phoenix account
 
-For a robot with an existing household, preserve its KB root/member snapshots
-and enrollment storage before enabling cloud sync against a newly adopted
-server account: `scripts/import-household-snapshot.mjs` stages a private store
-and an exact backup using the original household IDs, refuses ambiguous or
-destructive merges, and leaves deployment to a guarded, stopped-backend
-replacement.
+The customer must first create and sign into their Phoenix account. In the
+portal, open **Robots → Claim an existing Jibo**, then generate and copy its
+single command. It includes a 15-minute, one-time claim code, for example:
+
+```bash
+scripts/parity-robot/repoint-robot.sh \
+  --robot root@<robot-ip> --phoenix <public-server-ip> \
+  --claim-code <portal-code> \
+  --adoption-url https://<portal-origin>/api/adopt-robot --yes
+```
+
+The SSH script streams the robot secret directly to the HTTPS adoption request;
+it never prints or stores that secret locally. The code is stored server-side
+only as a hash, expires after 15 minutes, and is consumed only after the robot
+secret and ownership link both succeed. A retry with the same code is rejected.
+The resulting loop has exactly the new Phoenix account and robot as accepted
+members. It keeps the robot's existing credentials and loop ID, but does **not**
+import the former cloud account, people, passwords, sessions, or tokens.
+
+If an older repoint run registered the robot before ownership linking existed,
+run this claim command after the customer signs up: it idempotently converts
+that unclaimed bootstrap loop. A robot already linked to a different real
+Phoenix account is refused rather than silently transferred; an administrator
+must explicitly handle that case.
+
+Set `ETCO_account_repointHost` to the public IP the robot can reach before
+launch. The portal displays that value in the command. Do not derive it from an
+HTTP Host header or enter an internal/container address.
+
+`scripts/import-household-snapshot.mjs` is a separate, operator-only migration
+tool. It can stage a captured local KB root/member snapshot and public member
+profiles after extensive conflict checks, but it deliberately carries household
+identity data. Do **not** run it for the customer-account claim workflow above;
+use it only when an operator has separately chosen to migrate that legacy
+household and reviewed the staged snapshot.
 
 Add `--classic-url https://<classic-host>` when the robot-facing Classic service
 is behind an nginx TLS vhost and the robot's region configuration must be updated.
@@ -298,10 +324,10 @@ when the hosting topology or code contract changes.
 
 Getting the robot connected is not the same as a fully working robot.
 
-- **A robot that never paired with anything** has no credentials to adopt. Pair it
-  through the portal's QR flow first; the script adopts a robot that already has
-  `/var/jibo/credentials.json`, which includes any robot that paired with the
-  original Jibo cloud.
+- **A robot that never paired with anything** has no credentials to prove
+  possession. Pair it through the portal's QR/OOBE flow first. A robot that
+  paired with the original Jibo cloud instead uses the signed-in claim command
+  and its existing `/var/jibo/credentials.json`.
 - Microphone/wake-word behaviour and the physical ring are outside this
   procedure: it establishes the cloud connection. Step 7's checks are what
   confirm the robot is talking to your server.

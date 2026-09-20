@@ -26,8 +26,9 @@ system runs on Node with nothing to download.
   engine for language understanding, intent routing, and graph-based skills (chitchat, personal
   report, question answering) with redirects and proactive turns.
 - **Pairing, both kinds.** A factory-reset robot completes the real out-of-box QR handshake and
-  receives its credentials; a robot that paired with the original cloud years ago is adopted with
-  its existing identity. Both are driven from a bundled **web portal**.
+  receives its credentials; a robot that paired with the original cloud years ago is claimed by a
+  newly-created Phoenix account using a one-time portal code plus proof from its existing identity.
+  Both are driven from the bundled **web portal**.
 - **Per-robot authentication.** The robot signs an AWS-style token request with its own stored
   keys; the hub verifies a JWT issued from it. Exercised against real hardware.
 - **Firmware updates over the air.** The `Update` service serves OS and services packages built
@@ -83,6 +84,7 @@ which is loaded automatically by every service and launcher.
 | `DISABLE_AUTH` | `false` (the production default) requires robot tokens. `true` is for isolated local development only. |
 | `ETCO_account_internalPeerToken` | A separate random secret used only between trusted Phoenix services; it must never be sent by a browser or robot. |
 | `ETCO_account_region` | The `region` written into adopted robots' credentials. The robot builds `<region>.jibo.com` from it, so it must match the certificate. Defaults to `api`, the region a stock robot reports. |
+| `ETCO_account_repointHost` | Public IP displayed in the signed-in existing-robot claim command. It must be reachable from the robot; it is never derived from a request header. |
 | `PHOENIX_TLS_REGIONS`, `PHOENIX_TLS_EXTRA_NAMES`, `PHOENIX_TLS_HOME` | Which names the server's generated certificate covers, and where it is stored (`~/.local/share/phoenix/tls`). |
 | `PHOENIX_ROBOT_ENTRYPOINT_PORT` | Port for the robot-facing TLS listener when it should not be 443. |
 | `PHOENIX_PORT_OFFSET`, `PHOENIX_LOG_DIR` | Shift every service port, and choose where launcher logs go. |

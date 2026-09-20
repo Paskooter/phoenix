@@ -236,6 +236,8 @@ services:
       - PHOENIX_BIND_HOST=0.0.0.0
       - ETCO_account_secureCookies=${ETCO_account_secureCookies:-true}
       - ETCO_account_dataFile=${ETCO_account_dataFile:-/phoenix/packages/account/data/store.json}
+      # Display-only public IP used by the portal's physical-robot claim command.
+      - ETCO_account_repointHost=${ETCO_account_repointHost:-}
       - NET_ota=ota:8080         # so the robot's single endpoint reaches Update_* via /
       # PHOTO_PUBLIC_URL must be the externally reachable Classic/TLS origin
       # (for example https://region.example), never account:8080 or localhost.

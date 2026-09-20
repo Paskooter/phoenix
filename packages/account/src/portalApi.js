@@ -8,6 +8,7 @@
 //   GET  /api/robots                               -> [{friendlyId,loopName,loopId,created,lastSeen}]
 //   GET  /api/robots/detail …                      -> robot record + Robot_20160225 read
 //   POST /api/robots/setup …                       -> QR pairing payload (MUST be preserved)
+//   POST /api/robots/claim-code                    -> one-time existing-robot ownership code
 //   GET  /api/robots/setup/status?token=           -> pairing completion poll
 //   GET  /api/loop  / PUT /api/loop …              -> loops + members (see portal/loops.js)
 //   PUT /api/me  POST /api/me/password …           -> profile (see portal/profile.js)
@@ -51,7 +52,8 @@ import { portalSystemRoutes } from './portal/system.js';
 import { adminConfigRoutes } from './admin/configRoutes.js';
 import { adminOpsRoutes } from './admin/adminRoutes.js';
 import { adminLogRoutes } from './admin/logRoutes.js';
-import { robotAdoptionRoutes } from './robotAdoption.js';
+import { linkAdoptedRobotToOwner, robotAdoptionRoutes } from './robotAdoption.js';
+import { issueRobotClaim } from './robotClaim.js';
 
 // The region written into an adopted robot's credentials.json. A robot's native
 // client builds its service hostnames from this value — `<region>.jibo.com` for
@@ -171,6 +173,7 @@ export function portalRoutes(store, options = {}) {
     classicBase: options.classicBase || classicBaseUrl(),
     classicCall: options.classicCall,
   };
+  const repointHost = String(options.repointHost || process.env.ETCO_account_repointHost || '').trim();
   return {
     'POST /api/signup': ({ req, res, body }) => {
       const { email, password, firstName = '' } = body || {};
@@ -242,6 +245,26 @@ export function portalRoutes(store, options = {}) {
       };
     },
 
+    // Existing (non-reset) robots prove possession from the SSH repoint
+    // command by presenting the AWS key pair already on the device.  This
+    // endpoint supplies the other half of that proof: a one-time code bound to
+    // the signed-in *new* Phoenix account.  No original-cloud account data is
+    // read or imported.
+    'POST /api/robots/claim-code': ({ req, res }) => {
+      const account = userFromSession(store, req);
+      if (!account) return sendJson(res, 401, { error: 'not logged in' });
+      const claim = issueRobotClaim(store, account);
+      return {
+        code: claim.code,
+        expires: claim.expires,
+        // The host is deliberately deployment-configured: this address is
+        // written into a robot's /etc/hosts, so guessing from the browser Host
+        // header would allow a poisoned reverse-proxy request to repoint it.
+        repointHost: repointHost || null,
+        adoptionPath: '/api/adopt-robot',
+      };
+    },
+
     // Poll: complete once the robot has redeemed the token (setupRobot deletes it).
     'GET /api/robots/setup/status': ({ req, res, url }) => {
       const account = userFromSession(store, req);
@@ -305,10 +328,12 @@ export function portalRoutes(store, options = {}) {
      * Mints fresh keys + a loop, and returns exactly what to write to the robot
      * (/var/jibo/credentials.json) plus the repoint command. ownerEmail optional: defaults to
      * a synthetic "adopted@phoenix.local" owner account so admin-only setups need no signup.
+     * A real existing Phoenix household is never silently transferred: an
+     * administrator must set transferExisting=true after reviewing the owner.
      */
     'POST /api/admin/adopt': ({ req, res, body }) => {
       if (!requireAdmin(store, req, res)) return;
-      const { friendlyId, ownerEmail } = body || {};
+      const { friendlyId, ownerEmail, transferExisting = false } = body || {};
       if (!friendlyId || !/^[a-z0-9-]{3,80}$/i.test(friendlyId)) {
         return sendJson(res, 400, { error: 'friendlyId required (the robot\'s name, e.g. castle-cylinder-fig-quilt)' });
       }
@@ -316,6 +341,28 @@ export function portalRoutes(store, options = {}) {
       if (!owner) {
         if (ownerEmail) return sendJson(res, 404, { error: `no account with email ${ownerEmail}` });
         owner = createOwnerAccount(store, { email: 'adopted@phoenix.local', password: cryptoRandomPassword(), firstName: 'Adopted' });
+      }
+      const existingRobot = store.accountByFriendlyId(friendlyId);
+      if (existingRobot) {
+        const linked = linkAdoptedRobotToOwner(store, {
+          robot: existingRobot,
+          owner,
+          allowExistingOwnerTransfer: transferExisting === true,
+        });
+        if (linked.status !== 200) {
+          return sendJson(res, 409, {
+            ...linked.payload,
+            error: 'robot is already linked to another Phoenix account; resubmit with transferExisting=true only after confirming the transfer',
+          });
+        }
+        return {
+          robot: robotView({ robot: existingRobot, loop: linked.payload.loop, owner }),
+          existing: true,
+          transferred: linked.payload.linked,
+          instructions: [
+            'The existing robot credentials were retained. Do not overwrite /var/jibo/credentials.json.',
+          ],
+        };
       }
       const { loop, robot } = createLoop(store, { owner, robotId: friendlyId });
       const region = accountRegion();

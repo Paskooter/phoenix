@@ -14,6 +14,7 @@ import { join } from 'node:path';
 
 import { Store } from '../src/store.js';
 import { adoptRobot } from '../src/robotAdoption.js';
+import { createOwnerAccount } from '../src/model.js';
 
 function freshStore() {
   const dir = mkdtempSync(join(tmpdir(), 'phx-adopt-'));
@@ -148,6 +149,31 @@ test('a friendlyId already bound to other credentials is refused', () => {
     assert.match(payload.error, /already bound/);
     assert.equal(store.accountByAccessKeyId('AKIAFIRST').secretAccessKey, 's1');
     assert.equal(store.accountByAccessKeyId('AKIASECOND'), null);
+  } finally {
+    cleanup();
+  }
+});
+
+test('a public friendlyId cannot bind credentials onto a robot in another Phoenix household', () => {
+  const { store, cleanup } = freshStore();
+  try {
+    const owner = createOwnerAccount(store, {
+      email: 'real-owner@example.test', password: 'real-owner-password', firstName: 'Real',
+    });
+    store.accounts.set('foreign-robot', {
+      _id: 'foreign-robot', friendlyId: 'Protected-Robot', isActive: true,
+    });
+    store.loops.set('foreign-loop', {
+      _id: 'foreign-loop', name: 'Real household', owner: owner._id, robot: 'foreign-robot', members: [],
+    });
+    store.flush();
+
+    const result = adoptRobot(store, {
+      accessKeyId: 'ABCDEFGHIJKLMNOPQRST', secretAccessKey: 'a'.repeat(40), friendlyId: 'Protected-Robot',
+    });
+    assert.equal(result.status, 409);
+    assert.match(result.payload.error, /already linked/i);
+    assert.equal(store.accounts.get('foreign-robot').accessKeyId, undefined);
   } finally {
     cleanup();
   }

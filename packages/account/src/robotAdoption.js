@@ -1,6 +1,6 @@
 // Self-service adoption for a robot that already has credentials.
 //
-//   POST /api/adopt-robot  { accessKeyId, secretAccessKey, friendlyId? }
+//   POST /api/adopt-robot  { accessKeyId, secretAccessKey, friendlyId?, claimCode? }
 //     -> 200 { adopted: true, robotId, loopId, friendlyId, created: {...} }
 //
 // WHY THIS EXISTS. A robot that paired with the original Jibo cloud years ago
@@ -13,15 +13,18 @@
 // still rejected.
 //
 // The repoint script calls this endpoint so the operator does not have to hand
-// the server a store file out of band. The robot proves ownership of its own
-// credentials by presenting them, and the server records that identity.
+// the server a store file out of band. The robot proves possession with its own
+// credentials. When the signed-in portal also supplied a one-time claimCode,
+// the endpoint binds the resulting loop to that *new* Phoenix account.
 //
 // WHAT THIS IS NOT. This is deliberately NOT a way to claim a robot you do not
 // have. The caller must present the secretAccessKey, which only ever exists on
 // the robot itself and in a store that already knows it. Possession of the secret
 // IS the proof — the same proof the SigV4 signature on every other robot call
 // relies on. There is no path here that mints a NEW secret, so an attacker who
-// guesses a friendlyId learns nothing and gains nothing.
+// guesses a friendlyId learns nothing and gains nothing. A claim code cannot
+// transfer a robot already owned by another real Phoenix account; that remains
+// an explicit administrator operation.
 //
 // IDEMPOTENCE MATTERS. A repoint script is re-run — after a failed OTA, after a
 // reflash, by an operator who is not sure it worked the first time. Adopting a
@@ -29,13 +32,11 @@
 // already exists, never a duplicate account or an error that makes a working
 // setup look broken.
 
-import { randomBytes, timingSafeEqual } from 'node:crypto';
+import { timingSafeEqual } from 'node:crypto';
+import { newId } from './model.js';
+import { consumeRobotClaim, resolveRobotClaim } from './robotClaim.js';
 
 /** Mongo-style 24-hex id, matching the ids the original cloud issued. */
-function newId() {
-  return randomBytes(12).toString('hex');
-}
-
 function badRequest(res, sendJson, message, details = {}) {
   return sendJson(res, 400, { error: message, ...details });
 }
@@ -131,6 +132,18 @@ export function adoptRobot(store, body, { loopName = null } = {}) {
   if (friendlyId) {
     const byFriendly = store.accountByFriendlyId(friendlyId);
     if (byFriendly) {
+      const existingLoop = [...store.loops.values()].find((l) => idsEqual(l.robot, byFriendly._id)) || null;
+      const existingOwner = existingLoop ? store.accounts.get(existingLoop.owner) || null : null;
+      // A friendly ID is public/device-visible, not a credential.  Never let
+      // it alone bind a new key pair onto a robot in somebody else's real
+      // Phoenix household.  An operator can perform that exceptional recovery
+      // through the explicit administrator transfer flow.
+      if (existingLoop && !isBootstrapOwner(existingOwner, byFriendly)) {
+        return {
+          status: 409,
+          payload: { error: 'friendlyId is already linked to a Phoenix household', robotId: byFriendly._id },
+        };
+      }
       if (byFriendly.accessKeyId && byFriendly.accessKeyId !== accessKeyId) {
         return {
           status: 409,
@@ -207,6 +220,76 @@ export function adoptRobot(store, body, { loopName = null } = {}) {
   };
 }
 
+function idsEqual(left, right) {
+  return left != null && right != null && String(left) === String(right);
+}
+
+function isBootstrapOwner(owner, robot) {
+  // These are the only ownership records that a possession-backed claim may
+  // move automatically.  A robot that is already owned by another real
+  // Phoenix account must be transferred by an administrator, rather than
+  // turning disclosure of a long-lived robot key into account takeover.
+  return !owner
+    || idsEqual(owner._id, robot._id)
+    || /^(?:owner|adopted)@phoenix\.local$/i.test(String(owner.email || ''));
+}
+
+function acceptedMember(accountId) {
+  return {
+    _id: newId(),
+    accountId,
+    status: 'accepted',
+    enrolled: { face: false, voice: false },
+    created: Date.now(),
+  };
+}
+
+/**
+ * Bind an adopted robot to a real Phoenix account.  This intentionally does
+ * not import the original cloud's people/accounts: a claim replaces the
+ * bootstrap placeholder membership with exactly the new Phoenix owner and
+ * the robot.  The loop ID and robot credentials survive, so local robot state
+ * and subsequent signed requests continue to resolve.
+ */
+export function linkAdoptedRobotToOwner(store, { robot, owner, allowExistingOwnerTransfer = false }) {
+  let loop = [...store.loops.values()].find((entry) => idsEqual(entry.robot, robot._id)) || null;
+  if (loop) {
+    const currentOwner = store.accounts.get(loop.owner) || null;
+    if (!idsEqual(loop.owner, owner._id) && !isBootstrapOwner(currentOwner, robot) && !allowExistingOwnerTransfer) {
+      return {
+        status: 409,
+        payload: { error: 'robot is already linked to another Phoenix account; an administrator must transfer it' },
+      };
+    }
+    const alreadyLinked = idsEqual(loop.owner, owner._id)
+      && (loop.members || []).some((member) => idsEqual(member.accountId, owner._id));
+    if (!alreadyLinked) {
+      loop.owner = owner._id;
+      loop.members = [acceptedMember(owner._id), acceptedMember(robot._id)];
+      loop.updated = Date.now();
+      store.loops.set(loop._id, loop);
+      store.flush();
+    }
+    return {
+      status: 200,
+      payload: { loop, linked: !alreadyLinked, alreadyLinked },
+    };
+  }
+
+  loop = {
+    _id: newId(),
+    name: `${owner.firstName || owner.email || 'My'}'s Jibo`,
+    owner: owner._id,
+    robot: robot._id,
+    members: [acceptedMember(owner._id), acceptedMember(robot._id)],
+    isSuspended: false,
+    created: Date.now(),
+  };
+  store.loops.set(loop._id, loop);
+  store.flush();
+  return { status: 200, payload: { loop, linked: true, alreadyLinked: false } };
+}
+
 /**
  * Route table. Unauthenticated BY DESIGN: the caller's proof is the robot secret
  * in the body, which is the same secret every signed robot request already
@@ -249,8 +332,35 @@ export function robotAdoptionRoutes(store, {
         && (!ADOPTION_FRIENDLY_ID_RE.test(String(body.friendlyId).trim()))) {
         return badRequest(res, sendJson, 'friendlyId must contain only letters, numbers, and hyphens (3-80 characters)');
       }
+      const hasClaimCode = body.claimCode !== undefined && body.claimCode !== null && body.claimCode !== '';
+      // Validate the code before mutating the store.  In particular, an
+      // attacker cannot turn a mistyped/expired claim into an unowned robot
+      // record merely by presenting a credential pair of their own choosing.
+      const claim = hasClaimCode ? resolveRobotClaim(store, String(body.claimCode)) : null;
+      if (hasClaimCode && !claim) return sendJson(res, 403, { error: 'claim code is invalid or expired' });
       const { status, payload } = adoptRobot(store, body, { loopName });
-      return sendJson(res, status, payload);
+      if (status !== 200) return sendJson(res, status, payload);
+
+      // A regular adoption only establishes the robot identity and its
+      // bootstrap loop.  A claim code, issued only to a signed-in Phoenix
+      // account, adds the missing human ownership link.  Resolve the claim
+      // after verifying the robot secret and consume it only after the link
+      // has committed, so a transient failure is safely retryable.
+      if (!claim) {
+        return sendJson(res, status, payload);
+      }
+      const robot = store.accounts.get(payload.robotId);
+      if (!robot) return sendJson(res, 500, { error: 'adoption did not persist the robot identity' });
+      const linked = linkAdoptedRobotToOwner(store, { robot, owner: claim.account });
+      if (linked.status !== 200) return sendJson(res, linked.status, linked.payload);
+      consumeRobotClaim(store, claim.token);
+      return sendJson(res, 200, {
+        ...payload,
+        loopId: linked.payload.loop._id,
+        ownerEmail: claim.account.email,
+        linked: linked.payload.linked,
+        alreadyLinked: linked.payload.alreadyLinked,
+      });
     },
   };
 }
