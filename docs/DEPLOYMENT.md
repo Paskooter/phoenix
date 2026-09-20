@@ -620,6 +620,9 @@ ETCO_account_secureCookies=true
 
 # Required for any internet deployment; use a password-manager-generated value.
 HUB_TOKEN_SECRET=<long-random-secret-kept-only-on-the-server>
+# A different random secret for Account's trusted service-to-service routes.
+# Never send this to a browser, robot, or public reverse proxy client.
+ETCO_account_internalPeerToken=<different-long-random-secret-kept-only-on-the-server>
 DISABLE_AUTH=false
 
 # Owned public origin used by Classic-generated URLs and browser-safe photos/OTA.
@@ -1287,7 +1290,8 @@ sudo journalctl -u phoenix-compose.service -n 200 --no-pager
 If you use the native launcher instead, use a separate unit with
 `ExecStart=/usr/bin/bash /srv/phoenix/scripts/run-compose-stack.sh`,
 `PHOENIX_LOG_DIR=/var/log/phoenix`, `PHOENIX_BIND_HOST=127.0.0.1`,
-`PHOENIX_REQUIRE_PRODUCTION_CONFIG=true`, `KillMode=control-group`, and the same
+`PHOENIX_REQUIRE_PRODUCTION_CONFIG=true`, a non-empty `ETCO_account_internalPeerToken`,
+`KillMode=control-group`, and the same
 `Restart=on-failure` policy. Run it as a dedicated unprivileged `phoenix` user,
 not root, and grant that user write access only to the private data/log paths.
 The repository includes a hardened template at
