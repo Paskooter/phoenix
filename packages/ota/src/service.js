@@ -20,14 +20,10 @@
 // `Update_20160301`, exactly as Account/AccountAdmin share one under A-03 — so a single
 // entrypoint answers all eight by operation name.
 //
-// Auth is the gateway's two-layer model: the handler decorators parse the injected
-// `x-amz-credentials` and apply their own admin/ownership checks, while the gateway's
-// allow-lists decide admissibility. NONE of the eight Update operations appear in the pinned
-// gateway's unauthorizedMethods or its (empty) unsignedMethods, and only
-// Account_20151111.Remove is in unactiveMethods (srv-security-gw src/controllers/auth.ctrl.ts)
-// — so every one of them requires a signed, active account at the gateway. SigV4 on the
-// inbound request is not re-verified here; Phoenix trusts the LAN like the hub's DISABLE_AUTH
-// and enforces the decorator layer (this is the same posture as the other Classic faces).
+// Auth is the gateway's two-layer model: every Update operation requires an
+// active SigV4 account, and admin/ownership checks run after authentication.
+// Phoenix has no separate security gateway, so this public entrypoint verifies
+// the inbound signature itself before dispatching a handler.
 //
 // The `url` we hand back points at THIS server (derived from the request Host, or
 // ETCO_ota_publicUrl) instead of the source's S3/CloudFront object, so the robot downloads

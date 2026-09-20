@@ -83,9 +83,9 @@ export function sourceTruthy(value) {
 /**
  * Read the identity that srv-security-gw injects before forwarding to Flask.
  *
- * The direct Classic face is LAN-trusted: this code does not verify the SigV4 signature. When the
- * gateway did not inject x-amz-credentials, the access key is used only as the source account
- * identity fallback needed by the downstream Flask call.
+ * The public Classic router authenticates before this handler runs. When a
+ * compatibility fixture has no gateway-injected credentials, the access key is
+ * retained only as the source-shaped downstream identity fallback.
  */
 export function gqaCredentials(req, { required = false } = {}) {
   const raw = header(req, 'x-amz-credentials');
@@ -99,8 +99,8 @@ export function gqaCredentials(req, { required = false } = {}) {
   try {
     parsed = JSON.parse(Array.isArray(raw) ? raw[0] : raw);
   } catch (error) {
-    // Classic is the LAN-trusted combined gateway. Existing Classic handlers use the
-    // SigV4 access key when the security gateway's injected header is absent or unusable.
+    // A source-shaped fallback for unguarded compatibility fixtures; production
+    // requests have already passed the Classic caller boundary.
     const accessKeyId = accessKeyIdFromAuth(req);
     if (accessKeyId) {
       const credentials = { id: accessKeyId, accessKeyId };

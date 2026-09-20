@@ -11,18 +11,13 @@ are operator steps: run them on your own host and check the results before going
 process-level details each step depends on are cited by file and line throughout.
 
 > **SECURITY WARNING — read before exposing Phoenix.** TLS is transport encryption,
-> not authentication. The Classic robot-facing requests are not SigV4-verified;
-> anyone who can reach its `POST /` can call the robot-facing OOBE operations.
-> The hub's `DISABLE_AUTH` setting and the per-account/per-robot gates are the
-> meaningful controls. Do not expose the stack with the development defaults, do
-> not expose the admin surface, and do not assume that a trusted certificate
-> makes an operation authorized. Prefer a VPN or a source-address firewall for
-> robot traffic. If a public deployment is unavoidable, restrict every surface
-> as described below: the container hosts are single-tenant by design, not a
-> hardened multi-tenant cloud.
-> The trust boundaries are code-backed, not a generic nginx disclaimer:
-> `DIVERGENCES.md` (the "Phase G — classic services" entries, starting with `G-sigv4`),
-> `packages/classic/src/robot.js:194` and `packages/ota/src/service.js:28-30`.
+> not authorization. The production Classic and OTA executables verify each SigV4
+> request against the Account store, bind verification to the received body, and
+> reject a replayed signature. This protection depends on a non-empty
+> `ETCO_account_internalPeerToken`, fixed HTTPS public origins, `DISABLE_AUTH=false`,
+> and the loopback-only topology below. Do not expose the stack with development
+> defaults, do not expose the admin surface without a management allowlist, and do
+> not treat a trusted certificate as permission to accept arbitrary requests.
 
 ## 1. The plain answer about nginx
 
@@ -1017,10 +1012,11 @@ server {
         send_timeout 1h;
     }
 
-    # Account owns the object; Classic also has a proxy route for the same
-    # public path. Direct Account routing avoids a second byte-stream hop.
+    # Object reads are authorized by Classic's verified SigV4 caller boundary.
+    # Do not send this public path directly to Account: its direct route is for
+    # an owning portal session or an authenticated internal peer only.
     location ^~ /member-photos/ {
-        proxy_pass http://phoenix_account;
+        proxy_pass http://phoenix_classic;
         proxy_buffering off;
         proxy_read_timeout 120s;
         proxy_send_timeout 120s;
@@ -1074,8 +1070,8 @@ server {
     # policy here, for example:
     #   allow <robot-public-ip>;
     #   deny all;
-    # Do not enable a broad allow-list by accident; this block is the
-    # unauthenticated Classic/OOBE boundary described at the top of this guide.
+    # Do not enable a broad allow-list by accident; this is the authenticated
+    # Classic/OOBE boundary, and a source allowlist is useful defence in depth.
 
     proxy_http_version 1.1;
     proxy_set_header Host              $host;
@@ -1107,7 +1103,7 @@ server {
     }
 
     location ^~ /member-photos/ {
-        proxy_pass http://phoenix_account;
+        proxy_pass http://phoenix_classic;
         proxy_buffering off;
         proxy_read_timeout 120s;
         proxy_send_timeout 120s;

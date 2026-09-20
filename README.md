@@ -81,6 +81,7 @@ which is loaded automatically by every service and launcher.
 | `LLM_URL`, `LLM_MODEL` | OpenAI-compatible endpoint (for example LM Studio) used by the answer skill and as the parser's fallback. |
 | `HUB_TOKEN_SECRET` | Required signing secret for hub/account robot tokens. Generate a unique random value; the hardened launchers refuse an empty secret in production. |
 | `DISABLE_AUTH` | `false` (the production default) requires robot tokens. `true` is for isolated local development only. |
+| `ETCO_account_internalPeerToken` | A separate random secret used only between trusted Phoenix services; it must never be sent by a browser or robot. |
 | `ETCO_account_region` | The `region` written into adopted robots' credentials. The robot builds `<region>.jibo.com` from it, so it must match the certificate. Defaults to `api`, the region a stock robot reports. |
 | `PHOENIX_TLS_REGIONS`, `PHOENIX_TLS_EXTRA_NAMES`, `PHOENIX_TLS_HOME` | Which names the server's generated certificate covers, and where it is stored (`~/.local/share/phoenix/tls`). |
 | `PHOENIX_ROBOT_ENTRYPOINT_PORT` | Port for the robot-facing TLS listener when it should not be 443. |
@@ -94,10 +95,11 @@ Three things worth knowing before pointing hardware at it:
   names to your host and installing a CA it trusts. Phoenix generates its own CA and serving
   certificate on first start; the [runbook](docs/RUNBOOK.md) covers the redirect, the trust
   install, and how to verify it from the robot's own logs.
-- **Robot Classic requests are not signature-verified.** The original per-account signing keys
-  are unrecoverable, so the Classic front door must be kept behind the TLS edge plus a VPN/source
-  firewall. Keep the loopback `:9012` backend private; the
-  [deployment guide](docs/DEPLOYMENT.md) shows the public topology and hardening steps.
+- **Robot Classic requests are signature-verified at the public entrypoint.** The production
+  Classic and OTA launchers resolve the signing key from the Account store, validate the exact
+  request body and reject signature replay. Keep the loopback `:9012` backend private anyway;
+  the [deployment guide](docs/DEPLOYMENT.md) shows the required TLS edge, firewall, and rate
+  limits.
 - **OTA packages are built locally, not shipped.** `scripts/build-ota-packages.sh` turns a stock
   firmware buildroot into OTA packages; they are large, machine-specific artifacts and are not in
   the repository.

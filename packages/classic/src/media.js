@@ -635,13 +635,9 @@ export function isMediaUpload(req) {
 }
 
 /**
- * The LAN-trust account identity used by the deployed launcher: the SigV4 Credential accessKeyId
- * mapped to the owning account's `_id` so it can be compared against `loop.members[].accountId`.
- *
- * Signature verification is deliberately NOT used here: Media.Create carries the media bytes as
- * the raw request entity, so a body-over-signature check (like Classic's notification resolver)
- * cannot see those bytes. This matches the posture the other Classic stores already document —
- * "the account identity comes from the SigV4 Credential accessKeyId (LAN-trust, like the rest)".
+ * Legacy compatibility resolver for an in-process entrypoint that explicitly
+ * omits the public caller boundary. Production Media.Create stages the raw
+ * entity, verifies its SigV4 digest, and supplies the verified account ID.
  */
 export function accessKeyAccountResolver(accountByAccessKeyId) {
   return (req) => {

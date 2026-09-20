@@ -191,9 +191,9 @@ export class RobotStore {
 
 /**
  * The security gateway forwarded the authenticated identity to service handlers as the
- * `x-amz-credentials` header (srv-server parseCredentials.ts); Phoenix runs no gateway, so
- * the same seam log.js/backup.js read is used here. `null` means "no identity was
- * forwarded" — the LAN-trusted path (the robot's SigV4 request is not verified).
+ * `x-amz-credentials` header (srv-server parseCredentials.ts). The public
+ * Phoenix entrypoint creates a verified caller before any handler runs; the
+ * header fallback remains only for explicitly unguarded compatibility fixtures.
  */
 export function credentialsFrom(req, requireVerified = false) {
   const verified = verifiedCallerFromRequest(req);
@@ -413,7 +413,8 @@ export function makeRobotHandler(opts = {}) {
         if (credentials && !owned.includes(b.id)) {
           return void sendAmzError(res, ROBOT_ERRORS.MANUFACTURING_OR_OWNER_ONLY);
         }
-        // No identity: the robot's own unverified SigV4 boot read (LAN trust).
+        // This branch is retained for unguarded compatibility fixtures only;
+        // production Classic requests always carry the verified caller.
       }
 
       const aggregate = store.aggregate(b.id);

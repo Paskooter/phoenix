@@ -105,8 +105,10 @@ GET  /ota/package?id=<id>     the package tarball, streamed with Content-Length 
 GET  /healthcheck
 ```
 
-The robot's `jibo-server-client` signs these (SigV4); like the hub's `DISABLE_AUTH`, the OTA
-server does not verify the signature — it trusts the LAN.
+The robot's `jibo-server-client` signs these with SigV4. In production the OTA
+entrypoint resolves the key from the Account store, verifies the exact request
+and rejects replay; direct package downloads additionally require a short-lived
+signed URL.
 
 **1. Build the packages** from a flash buildroot (defaults to **13.0.0 "Last Dance"**, the final
 production firmware; pass `--buildroot`/`--version` for 12.10.0 or any other build):

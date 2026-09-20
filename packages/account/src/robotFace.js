@@ -666,11 +666,10 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
   }
 
   /**
-   * Account_20151111.CreateHubToken is the first sensitive robot-face
-   * operation that requires a verified AWS V4 identity. Existing OOBE/Loop
-   * operations intentionally retain their LAN-trust behavior until their
-   * source gateway path is implemented; this operation never falls back to a
-   * Credential= substring or the public x-amz-credentials forwarding header.
+   * Account_20151111.CreateHubToken independently verifies AWS V4 at the
+   * Account proxy boundary as defence in depth. Public Classic requests have
+   * already passed the entrypoint caller boundary; this operation never falls
+   * back to a Credential= substring or a public x-amz-credentials assertion.
    */
   function issueHubToken({ req, res, body }) {
     let verification;
