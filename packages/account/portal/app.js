@@ -1223,16 +1223,27 @@ async function renderClaim() {
       result.replaceChildren(errorBox('Could not create a claim command.', res.data?.error));
       return;
     }
+    const publicJiboIo = /(^|\.)jibo\.io$/i.test(location.hostname);
     const host = res.data.repointHost || '<server-ip>';
     const adoptionUrl = `${location.origin}${res.data.adoptionPath || '/api/adopt-robot'}`;
-    const command = [
-      'scripts/parity-robot/repoint-robot.sh',
-      '--robot root@<robot-ip>',
-      `--phoenix ${host}`,
-      `--claim-code ${res.data.code}`,
-      `--adoption-url ${adoptionUrl}`,
-      '--yes',
-    ].join(' ');
+    // jibo.io uses the public-DNS/Let's Encrypt repointer, so a customer does
+    // not need a copy of the server CA. Other deployments retain the generic
+    // private-CA command and receive their configured public IP explicitly.
+    const command = publicJiboIo
+      ? [
+        'scripts/robot-ota-repoint.sh',
+        '--robot root@<robot-ip>',
+        `--claim-code ${res.data.code}`,
+        '--yes',
+      ].join(' ')
+      : [
+        'scripts/parity-robot/repoint-robot.sh',
+        '--robot root@<robot-ip>',
+        `--phoenix ${host}`,
+        `--claim-code ${res.data.code}`,
+        `--adoption-url ${adoptionUrl}`,
+        '--yes',
+      ].join(' ');
     const expiry = fmtDate(res.data.expires);
     result.replaceChildren(
       h('div', { class: 'notice notice-warn' },
@@ -1243,7 +1254,7 @@ async function renderClaim() {
         h('code', {}, '<robot-ip>'), '. The command reads the existing robot credentials over SSH; do not copy those credentials into this site.'),
       h('div', { class: 'restart-cmd' },
         h('span', { class: 'prompt' }, '$'), h('code', { text: command }), copyButton(() => command)),
-      !res.data.repointHost ? h('p', { class: 'field-hint' },
+      !publicJiboIo && !res.data.repointHost ? h('p', { class: 'field-hint' },
         'This server has not published its robot-repoint IP, so replace ', h('code', {}, '<server-ip>'),
         ' with the public IP the robot should reach.') : null,
       h('p', { class: 'field-hint' },

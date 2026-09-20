@@ -24,7 +24,8 @@
 # Deliberately NOT done by default:
 #   * no /etc/hosts intercept
 #   * no private certificate authority
-#   * no account adoption / loop claim
+#   * no account adoption / loop claim, unless a signed-in portal claim code is
+#     explicitly supplied
 #   * no hub port or binding changes
 #   * no server-side certificate generation
 #
@@ -39,7 +40,7 @@
 #
 # Usage:
 #   robot-ota-repoint.sh --robot root@<ip> [--region <r>] [--region-ca <pem>]
-#                        [--dry-run] [--yes] [--verify] [--revert]
+#                        [--claim-code <portal-code>] [--dry-run] [--yes] [--verify] [--revert]
 #   robot-ota-repoint.sh --robot root@<ip> --full --phoenix https://... --yes
 #
 # Nothing is changed without showing a plan first. Every file edited is backed up
@@ -49,7 +50,7 @@ set -uo pipefail
 
 ROBOT=""; REGION=""; REGION_CA=""; DRY=0; ASSUME_YES=0; VERIFY=0; REVERT=0
 PUBLIC_SUFFIX="jibo.io"
-FULL=0; FULL_ARGS=()
+FULL=0; FULL_ARGS=(); CLAIM_CODE=""
 
 # The robot's own trust store. `bundle` is what OpenSSL reads; the individual PEM
 # plus the subject-hash symlink are how a cert is normally installed alongside it.
@@ -67,6 +68,7 @@ while [ $# -gt 0 ]; do
     --region)    REGION="${2:-}"; shift 2 ;;
     --region-ca) REGION_CA="${2:-}"; shift 2 ;;
     --suffix)    PUBLIC_SUFFIX="${2:-}"; shift 2 ;;
+    --claim-code) CLAIM_CODE="${2:-}"; shift 2 ;;
     --dry-run)   DRY=1; shift ;;
     --yes)       ASSUME_YES=1; shift ;;
     --verify)    VERIFY=1; shift ;;
@@ -95,6 +97,9 @@ if [ "$FULL" -eq 1 ]; then
 fi
 
 [ -n "$ROBOT" ] || die "--robot root@<ip> is required (or --full for the complete repoint)"
+if [ -n "$CLAIM_CODE" ] && [[ ! "$CLAIM_CODE" =~ ^[A-Za-z0-9_-]{43}$ ]]; then
+  die "--claim-code must be the exact one-time code shown by the portal"
+fi
 
 SSH=(ssh -o BatchMode=yes -o ConnectTimeout=10 "$ROBOT")
 rsh() { "${SSH[@]}" "$@"; }
@@ -205,7 +210,11 @@ say "  4. link /etc/ssl/cert.pem -> ${TRUST_BUNDLE} (OpenSSL's default CAfile, w
 say "     stock image never shipped; without it the NATIVE hub client verifies nothing)"
 say "  5. point the jetstream hub override at ${REGION%-entrypoint}-hub.${PUBLIC_SUFFIX}:443, so audio"
 say "     turns go to this server instead of wherever it was pointed before"
-say "  6. hand the robot's existing credentials to https://${REGION}.${PUBLIC_SUFFIX}/api/adopt-robot (idempotent)"
+if [ -n "$CLAIM_CODE" ]; then
+  say "  6. prove possession with the robot's existing credentials and link it to the signed-in Phoenix account"
+else
+  say "  6. register the robot's existing credentials as an unclaimed bootstrap (idempotent)"
+fi
 say "  7. write a receipt to ${RECEIPT}"
 say ""
 say "  NOT touched: /etc/hosts, any private CA, server certs, the robot's own credentials."
@@ -457,15 +466,26 @@ if [ -z "$AKID" ] || [ -z "$ASEC" ]; then
   say "  the robot has no credentials to adopt (unpaired); skipping adoption"
 else
   # The secret is passed on stdin, never on a command line or in the log.
-  ADOPT_BODY="$(printf '{"accessKeyId":"%s","secretAccessKey":"%s","friendlyId":"%s"}' "$AKID" "$ASEC" "$FRIENDLY")"
+  if [ -n "$CLAIM_CODE" ]; then
+    ADOPT_BODY="$(printf '{"accessKeyId":"%s","secretAccessKey":"%s","friendlyId":"%s","claimCode":"%s"}' "$AKID" "$ASEC" "$FRIENDLY" "$CLAIM_CODE")"
+  else
+    ADOPT_BODY="$(printf '{"accessKeyId":"%s","secretAccessKey":"%s","friendlyId":"%s"}' "$AKID" "$ASEC" "$FRIENDLY")"
+  fi
   ADOPT_OUT="$(printf '%s' "$ADOPT_BODY" | curl -sS --max-time 30 -X POST "$ADOPT_URL" \
-      -H 'content-type: application/json' --data-binary @- 2>&1)" || true
+      -H 'content-type: application/json' -H 'x-phoenix-api-client: robot-ota-repoint' --data-binary @- 2>&1)" || true
   case "$ADOPT_OUT" in
     *'"adopted":true'*)
-      case "$ADOPT_OUT" in
-        *'"alreadyAdopted":true'*) say "  adoption: already known to the server (no change)" ;;
-        *) say "  adoption: registered with the server" ;;
-      esac
+      if [ -n "$CLAIM_CODE" ]; then
+        case "$ADOPT_OUT" in
+          *'"linked":true'*|*'"alreadyLinked":true'*) say "  adoption: robot claimed for the signed-in Phoenix account" ;;
+          *) say "  adoption: identity registered but account claim did not complete" ;;
+        esac
+      else
+        case "$ADOPT_OUT" in
+          *'"alreadyAdopted":true'*) say "  adoption: already known to the server (no change)" ;;
+          *) say "  adoption: registered as an unclaimed bootstrap" ;;
+        esac
+      fi
       APPLIED+=("server adoption for ${AKID}")
       ;;
     *)

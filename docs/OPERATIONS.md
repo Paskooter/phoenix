@@ -207,10 +207,8 @@ Phoenix account, opens **Robots → Claim an existing Jibo**, and copies the
 one-time command the portal produces. It includes an expiring ownership code:
 
 ```bash
-scripts/parity-robot/repoint-robot.sh \
-  --robot root@<robot-ip> --phoenix <public-server-ip> \
-  --claim-code <portal-code> \
-  --adoption-url https://<portal-origin>/api/adopt-robot --yes
+scripts/robot-ota-repoint.sh \
+  --robot root@<robot-ip> --claim-code <portal-code> --yes
 ```
 
 The code is one use and survives server-side only as a hash. The SSH script

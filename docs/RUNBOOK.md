@@ -153,14 +153,17 @@ One run does everything on the robot:
 
 The customer must first create and sign into their Phoenix account. In the
 portal, open **Robots → Claim an existing Jibo**, then generate and copy its
-single command. It includes a 15-minute, one-time claim code, for example:
+single command. On the public `jibo.io` deployment it uses the public-DNS
+repoint script and includes a 15-minute, one-time claim code:
 
 ```bash
-scripts/parity-robot/repoint-robot.sh \
-  --robot root@<robot-ip> --phoenix <public-server-ip> \
-  --claim-code <portal-code> \
-  --adoption-url https://<portal-origin>/api/adopt-robot --yes
+scripts/robot-ota-repoint.sh \
+  --robot root@<robot-ip> --claim-code <portal-code> --yes
 ```
+
+For a self-hosted deployment with a private CA, the portal instead produces the
+equivalent `parity-robot/repoint-robot.sh` command including the configured
+public server IP and Account HTTPS URL.
 
 The SSH script streams the robot secret directly to the HTTPS adoption request;
 it never prints or stores that secret locally. The code is stored server-side
