@@ -145,6 +145,39 @@ function replayKey(req, verification) {
   return signature ? `${verification.accessKeyId}:${signature}` : null;
 }
 
+function loopbackPeer(req) {
+  const address = String(req?.socket?.remoteAddress || '').toLowerCase();
+  return address === '127.0.0.1' || address === '::1' || address === '::ffff:127.0.0.1';
+}
+
+/**
+ * Classic has already authenticated public SigV4 at the robot front door. Its
+ * local OTA proxy cannot retain the caller's public Host (the portal uses
+ * loopback and robots use region aliases), so accept only a separately
+ * authenticated loopback assertion.  The request headers are never trusted
+ * on their own: both the private token and the peer transport are required.
+ */
+function trustedClassicCaller(req, expectedToken) {
+  if (!expectedToken || !loopbackPeer(req)) return null;
+  const supplied = req?.headers?.['x-phoenix-ota-peer-token'];
+  if (typeof supplied !== 'string') return null;
+  const expected = Buffer.from(String(expectedToken));
+  const presented = Buffer.from(supplied);
+  if (expected.length !== presented.length || !timingSafeEqual(expected, presented)) return null;
+  try {
+    const source = JSON.parse(String(req.headers?.['x-phoenix-verified-account'] || ''));
+    const id = accountIdOf(source);
+    if (!id) return null;
+    return {
+      id,
+      _id: id,
+      email: typeof source.email === 'string' ? source.email : null,
+      friendlyId: typeof source.friendlyId === 'string' ? source.friendlyId : null,
+      isAdmin: source.isAdmin === true,
+    };
+  } catch { return null; }
+}
+
 function packagePayload(secret, id, expires) {
   return ['phoenix-ota-v1', 'GET', String(id), String(expires)].join('\n');
 }
@@ -231,6 +264,7 @@ export function createOtaService({
   requireAuth = (typeof resolveCredentials === 'function' || process.env.ETCO_ota_requireAuth === 'true'),
   maxUploadBytes = OTA_MAX_UPLOAD_BYTES,
   packageBearerSecret = process.env.ETCO_ota_packageBearerSecret || process.env.ETCO_server_hubTokenSecret || process.env.HUB_TOKEN_SECRET,
+  internalPeerToken = process.env.ETCO_ota_internalPeerToken,
   replayGuard = new ReplayGuard(),
   now = Date.now,
 } = {}) {
@@ -255,6 +289,8 @@ export function createOtaService({
 
   async function authenticateRequest(req, body, op) {
     if (!requireAuth) return credentialsFrom(req);
+    const trustedCaller = trustedClassicCaller(req, internalPeerToken);
+    if (trustedCaller) return trustedCaller;
     if (!hostMatches(req)) {
       const error = new SigV4Error({ code: 'SIGNATURE_MISMATCH', message: 'Request host does not match configured public origin', statusCode: 401 });
       throw error;

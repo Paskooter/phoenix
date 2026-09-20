@@ -85,7 +85,7 @@ export function createClassicRouter(registrations, { callerBoundary } = {}) {
         return void sendAmzError(res, UnknownOperation, `no classic service for target ${target || '(none)'}`);
       }
       if (reg.handler) return await reg.handler({ req, res, body: reg.preserveBody ? body : (body || {}), target, op, log, caller });
-      return await proxy(reg.proxyTo(), req, res, body, log);
+      return await proxy(reg.proxyTo(), req, res, body, log, caller);
     } finally {
       if (callerBoundary) await cleanupVerifiedClassicRequest(req);
     }
@@ -162,7 +162,27 @@ function sendFrameworkBoom(res, statusCode, message) {
   res.end(body);
 }
 
-async function proxy(baseUrl, req, res, body, log) {
+/**
+ * The Classic boundary has already verified a public caller.  An internal OTA
+ * hop cannot preserve that caller's public Host header: portal traffic reaches
+ * Classic on loopback, while robot traffic can use a region alias.  Instead,
+ * carry only the verified identity across a token-authenticated loopback hop.
+ */
+function trustedOtaPeerHeaders(caller) {
+  const token = process.env.ETCO_ota_internalPeerToken;
+  if (!token || !caller?.accountId) return null;
+  return {
+    'x-phoenix-ota-peer-token': token,
+    'x-phoenix-verified-account': JSON.stringify({
+      id: String(caller.accountId),
+      email: caller.email ?? null,
+      friendlyId: caller.friendlyId ?? null,
+      isAdmin: caller.isAdmin === true,
+    }),
+  };
+}
+
+async function proxy(baseUrl, req, res, body, log, caller) {
   if (!baseUrl) return void sendJson(res, 502, { error: 'classic: upstream not configured' });
   const base = /^https?:\/\//.test(baseUrl) ? baseUrl : `http://${baseUrl}`;
   try {
@@ -181,7 +201,20 @@ async function proxy(baseUrl, req, res, body, log) {
     // rewrites the Host header to the upstream URL. The original gateway
     // verifier signs the entrypoint host; retaining it across this direct
     // Phoenix hop lets the account service verify the same signature.
-    const upstream = await requestUpstream(`${base.replace(/\/$/, '')}/`, requestBody, forwardHeaders(req.headers));
+    const upstreamHeaders = forwardHeaders(req.headers);
+    if (caller && /^update/i.test(String(req.headers?.['x-amz-target'] || ''))) {
+      const trusted = trustedOtaPeerHeaders(caller);
+      if (!trusted) {
+        return void sendAmzError(res, {
+          code: 'ACCOUNT_SERVICE_UNAVAILABLE',
+          statusCode: 503,
+          message: 'classic-to-ota peer authentication is not configured',
+        });
+      }
+      // Overwrite, rather than forward, any client-supplied privileged headers.
+      Object.assign(upstreamHeaders, trusted);
+    }
+    const upstream = await requestUpstream(`${base.replace(/\/$/, '')}/`, requestBody, upstreamHeaders);
     const text = upstream.body.toString('utf8');
     const headers = { 'content-type': upstream.headers['content-type'] || AMZ_JSON, 'content-length': Buffer.byteLength(text) };
     if (requestBody === req && upstream.headers.connection === 'close') headers.connection = 'close';

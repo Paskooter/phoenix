@@ -77,6 +77,7 @@ DISABLE_AUTH="${DISABLE_AUTH:-false}"
 OTA_PUBLIC_URL="${OTA_PUBLIC_URL:-${ETCO_ota_publicUrl:-}}"
 CLASSIC_PUBLIC_URL="${CLASSIC_PUBLIC_URL:-${ETCO_classic_publicUrl:-}}"
 ACCOUNT_INTERNAL_PEER_TOKEN="${ETCO_account_internalPeerToken:-}"
+OTA_INTERNAL_PEER_TOKEN="${ETCO_ota_internalPeerToken:-}"
 if [ "${PHOENIX_REQUIRE_PRODUCTION_CONFIG:-false}" = "true" ]; then
   [ -n "$HUB_TOKEN_SECRET" ] || { echo "refusing production start: HUB_TOKEN_SECRET is empty" >&2; exit 2; }
   [ "$DISABLE_AUTH" = "false" ] || { echo "refusing production start: DISABLE_AUTH must be false" >&2; exit 2; }
@@ -89,6 +90,7 @@ if [ "${PHOENIX_REQUIRE_PRODUCTION_CONFIG:-false}" = "true" ]; then
     *) echo "refusing production start: CLASSIC_PUBLIC_URL must be a fixed HTTPS origin" >&2; exit 2 ;;
   esac
   [ -n "$ACCOUNT_INTERNAL_PEER_TOKEN" ] || { echo "refusing production start: ETCO_account_internalPeerToken is empty" >&2; exit 2; }
+  [ -n "$OTA_INTERNAL_PEER_TOKEN" ] || { echo "refusing production start: ETCO_ota_internalPeerToken is empty" >&2; exit 2; }
 fi
 
 OFFSET="${PHOENIX_PORT_OFFSET:-0}"
@@ -198,7 +200,7 @@ PORT=$(p 9014) ETCO_server_port=$(p 9014) PHOENIX_SKILL_ID=template-skill \
 # its Update endpoint here to pull firmware in place. Serves packages/ota/data (build them
 # with scripts/build-ota-packages.sh). Disable with OTA=0.
 if [ "${OTA:-1}" != "0" ]; then
-  PORT=$(p 9010) ETCO_ota_publicUrl="${OTA_PUBLIC_URL:-}" \
+  PORT=$(p 9010) ETCO_ota_publicUrl="${OTA_PUBLIC_URL:-}" ETCO_ota_internalPeerToken="$OTA_INTERNAL_PEER_TOKEN" \
     node packages/ota/src/index.js    > "$LOG_DIR/phx-compose-ota.log"        2>&1 & JOB_PIDS[ota]=$!
 fi
 
@@ -245,6 +247,7 @@ if [ "${CLASSIC:-1}" != "0" ]; then
   PORT=$(p 9012) \
   NET_account=localhost:$(p 9011) \
   NET_ota=localhost:$(p 9010) \
+  ETCO_ota_internalPeerToken="$OTA_INTERNAL_PEER_TOKEN" \
   ETCO_gqa_attributionFile="$GQA_ATTRIBUTION_FILE" \
   ETCO_classic_publicUrl="$CLASSIC_PUBLIC_URL" \
   ETCO_classic_notificationFile="$CLASSIC_NOTIFICATION_FILE" \

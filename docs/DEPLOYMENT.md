@@ -655,6 +655,9 @@ DISABLE_AUTH=false
 CLASSIC_PUBLIC_URL=https://classic.example.com
 PHOTO_PUBLIC_URL=https://classic.example.com
 OTA_PUBLIC_URL=https://classic.example.com
+# A distinct 256-bit secret for Classic's authenticated local OTA hop.
+# Generate with `openssl rand -hex 32`; do not reuse HUB_TOKEN_SECRET.
+ETCO_ota_internalPeerToken=replace-with-a-unique-random-value
 
 # Compose-internal peers. These are not public URLs.
 NET_lasso=lasso:8080
@@ -700,6 +703,12 @@ Why these variables matter:
   URLs do not point at an internal container address
   (`docker-compose.yml:223-244`). Classic's URL builder otherwise derives an
   origin from the request (`packages/classic/src/index.js:364-366`).
+- `ETCO_ota_internalPeerToken` is required by the supported launchers. Classic
+  verifies the public SigV4 request, then passes only that verified identity to
+  loopback-only OTA with this distinct token. Without it, portal traffic signed
+  for the private Classic hop and robot region aliases will fail OTA's public
+  host check. Never expose or reuse this value as a browser, hub, or Account
+  peer secret.
 - In `authenticated-stack.mjs`, use
   `PHOENIX_ROBOT_PUBLIC_URL=https://classic.example.com`; the launcher maps it
   to `ETCO_classic_publicUrl` and accepts `ETCO_server_parakeetUrl`

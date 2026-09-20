@@ -84,6 +84,36 @@ test('load computes real length + sha1 from the file', () => {
   assert.equal(e.sha1, sha1(FILES['os-12.10.0.tar']));
 });
 
+test('a token-authenticated loopback Classic peer can carry a verified caller without a public Host match', async () => {
+  const peer = await createOtaService({
+    catalog,
+    publicBaseUrl: 'https://ota.fixture.test',
+    packageBearerSecret: 'fixture-package-secret',
+    resolveCredentials: () => null,
+    internalPeerToken: 'fixture-classic-ota-token',
+  }).listen(0);
+  const peerBase = `http://127.0.0.1:${peer.address().port}`;
+  const headers = {
+    'content-type': 'application/x-amz-json-1.1',
+    'x-amz-target': 'Update_20160301.ListUpdates',
+    'x-phoenix-ota-peer-token': 'fixture-classic-ota-token',
+    'x-phoenix-verified-account': JSON.stringify({ id: 'fixture-account' }),
+  };
+  try {
+    const trusted = await fetch(`${peerBase}/`, { method: 'POST', headers, body: JSON.stringify({ subsystem: 'os' }) });
+    assert.equal(trusted.status, 200);
+
+    const forged = await fetch(`${peerBase}/`, {
+      method: 'POST',
+      headers: { ...headers, 'x-phoenix-ota-peer-token': 'wrong-token' },
+      body: JSON.stringify({ subsystem: 'os' }),
+    });
+    assert.equal(forged.status, 401);
+  } finally {
+    await new Promise((resolve) => peer.close(resolve));
+  }
+});
+
 test('listUpdatesFrom: wildcard applies to any lower version', () => {
   assert.equal(catalog.listUpdatesFrom({ fromVersion: '3.3.4', subsystem: 'os' }).length, 2);
 });

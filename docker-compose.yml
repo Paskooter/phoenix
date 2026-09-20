@@ -203,6 +203,9 @@ services:
       # Atomic Account writes are detected and reloaded by the OTA resolver.
       - ETCO_ota_accountDataFile=/phoenix/packages/account/data/store.json
       - ETCO_ota_packageBearerSecret=${HUB_TOKEN_SECRET:?Set HUB_TOKEN_SECRET in .env before starting Phoenix}
+      # A separate Classic -> OTA token carries only an already-verified caller
+      # across the private network; never reuse a browser or hub secret here.
+      - ETCO_ota_internalPeerToken=${ETCO_ota_internalPeerToken:?Set ETCO_ota_internalPeerToken in .env before starting Phoenix}
     volumes:
       # OTA serves reviewed artifacts; the update directory is never writable
       # from the service container.
@@ -263,6 +266,7 @@ services:
       # only writable exception for Classic-owned state.
       - ETCO_classic_accountDataFile=/phoenix/packages/account/data/store.json
       - ETCO_account_internalPeerToken=${ETCO_account_internalPeerToken:?Set ETCO_account_internalPeerToken in .env before starting Phoenix}
+      - ETCO_ota_internalPeerToken=${ETCO_ota_internalPeerToken:?Set ETCO_ota_internalPeerToken in .env before starting Phoenix}
       # Keep source GQA attribution across Classic restarts. This supported
       # stack has one Classic writer; replicas need distinct paths or Mongo.
       - ETCO_gqa_attributionFile=${GQA_ATTRIBUTION_FILE:-/phoenix/packages/account/data/classic/gqa-attribution.json}
