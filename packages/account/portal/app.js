@@ -443,7 +443,8 @@ async function renderLoop() {
     return show(container);
   }
 
-  container.append(householdSwitcher(context));
+  const switcher = householdSwitcher(context);
+  if (switcher) container.append(switcher);
 
   const isOwner = active.owner === me?.id;
 
@@ -1442,7 +1443,8 @@ async function renderGallery() {
   const loop = context.active;
   const container = page('Gallery', 'Photographs and media the robot captured.');
   if (!context.ok) { container.append(errorBox('Could not load your household.', context.error)); return show(container); }
-  container.append(householdSwitcher(context));
+  const switcher = householdSwitcher(context);
+  if (switcher) container.append(switcher);
   if (!loop) { container.append(empty('No household', 'Pair a robot first.', 'image')); return show(container); }
 
   const r = await api('GET', `/api/media?loopId=${encodeURIComponent(loop.id)}`);
@@ -1531,7 +1533,10 @@ async function renderMessaging() {
   const loop = context.active;
   const container = page('Messages', 'Household messages, push registrations and the notification socket.');
   if (!context.ok) container.append(errorBox('Could not load your household.', context.error));
-  else container.append(householdSwitcher(context));
+  else {
+    const switcher = householdSwitcher(context);
+    if (switcher) container.append(switcher);
+  }
 
   /* -- Jot ------------------------------------------------------------- */
   if (loop) {
@@ -1633,7 +1638,8 @@ async function renderPeople() {
   const loop = context.active;
   const container = page('People', 'The person catalogue, as the robot sees it.');
   if (!context.ok) { container.append(errorBox('Could not load your household.', context.error)); return show(container); }
-  container.append(householdSwitcher(context));
+  const switcher = householdSwitcher(context);
+  if (switcher) container.append(switcher);
   if (!loop) { container.append(empty('No household', 'Pair a robot first.', 'users')); return show(container); }
 
   container.append(h('div', { class: 'notice' }, icon('alert', 15),
