@@ -205,6 +205,12 @@ export function staticRoutes() {
     // lived.
     'GET /app': serve('app.html'),
     'GET /admin': serve('app.html'),
+    // Mail actions intentionally enter the same static console shell. The
+    // browser exchanges the single-use code with the same-origin API, so a
+    // reverse proxy never needs to expose a token-bearing dynamic GET route.
+    'GET /activate': serve('app.html'),
+    'GET /reset': serve('app.html'),
+    'GET /confirmemailreset': serve('app.html'),
 
     // Operator-configurable branding.
     'GET /branding.json': serveBranding(),

@@ -648,6 +648,19 @@ replace angle-bracket placeholders and never commit the file or print its conten
 # Region/cookies
 ETCO_account_region=api
 ETCO_account_secureCookies=true
+# Use one canonical public HTTPS origin for all browser/mail links.
+ETCO_account_portalUrl=https://portal.example.com
+PHOENIX_SITE_URL=https://portal.example.com
+# Required for a public portal: activation, recovery, invitations, and account
+# security notices. Keep the password only in the private environment file.
+ETCO_account_mailSmtpHost=smtp.example.com
+ETCO_account_mailSmtpPort=587
+ETCO_account_mailSmtpSecure=false
+ETCO_account_mailSmtpRequireTLS=true
+ETCO_account_mailSmtpUser=<relay-user>
+ETCO_account_mailSmtpPassword=<relay-password>
+ETCO_account_mailSmtpAuthMethod=LOGIN
+ETCO_account_mailFrom=no-reply@portal.example.com
 
 # Required for any internet deployment; use a password-manager-generated value.
 HUB_TOKEN_SECRET=<long-random-secret-kept-only-on-the-server>

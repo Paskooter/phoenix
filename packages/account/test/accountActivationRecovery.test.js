@@ -502,7 +502,7 @@ test('PasswordResetByCode writes pbkdf2, activates, is single-use, and keeps acc
   assert.equal(got.body[0].id, after._id);
 });
 
-test('PasswordResetByCode of a deleted account with a leftover code follows source (no isDeleted check)', async () => {
+test('PasswordResetByCode rejects a deleted account even when a reset code remains', async () => {
   const account = await createInactive('deleted-reset@synthetic.invalid');
   await post(accountBase, 'Account_20151111.SendPasswordReset', { email: 'deleted-reset@synthetic.invalid' });
   const code = store.accountByEmail('deleted-reset@synthetic.invalid').passwordResetCode;
@@ -512,11 +512,11 @@ test('PasswordResetByCode of a deleted account with a leftover code follows sour
     code,
     password: OTHER_PASSWORD,
   });
-  assert.equal(reset.status, 200, reset.rawBody);
+  assertAmzError(reset, ACCOUNT_ERRORS.PASSWORD_CODE_WRONG);
   const stored = store.accountByEmail('deleted-reset@synthetic.invalid');
   assert.equal(stored.isDeleted, true);
-  assert.equal(stored.isActive, true);
-  assert.equal(compareAccountPassword(OTHER_PASSWORD, stored.password), true);
+  assert.equal(stored.isActive, false);
+  assert.equal(compareAccountPassword(PASSWORD, stored.password), true);
 });
 
 test('rejected activation and reset writes do not persist; mail rejection is contained', async () => {

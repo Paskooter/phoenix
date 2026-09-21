@@ -5,7 +5,12 @@ import { sendJson } from '@phoenix/common';
 import { hashPassword } from '../model.js';
 // Both formats, same reason as the login route: an imported household's password
 // is the source pbkdf2 encoding, not the portal's scrypt.
-import { compareAccountPassword } from '../accountIdentity.js';
+import {
+  changeEmail,
+  compareAccountPassword,
+  confirmEmailReset,
+  notifyPasswordChanged,
+} from '../accountIdentity.js';
 import { requireUser, portalAccount } from './session.js';
 import { bumpAccountSessionVersion } from '../sessions.js';
 
@@ -15,7 +20,7 @@ function badRequest(res, message) {
   return sendJson(res, 400, { error: message });
 }
 
-export function portalProfileRoutes(store) {
+export function portalProfileRoutes(store, { identityProviders = undefined } = {}) {
   return {
     'PUT /api/me': ({ req, res, body }) => {
       const account = requireUser(store, req, res);
@@ -73,6 +78,7 @@ export function portalProfileRoutes(store) {
       bumpAccountSessionVersion(account);
       account.updated = Date.now();
       store.flush();
+      notifyPasswordChanged(identityProviders, account);
       return { ok: true };
     },
 
@@ -83,18 +89,45 @@ export function portalProfileRoutes(store) {
       if (typeof currentPassword !== 'string' || !compareAccountPassword(currentPassword, account.password)) {
         return sendJson(res, 401, { error: 'current password is incorrect' });
       }
-      if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      const nextEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nextEmail) || nextEmail.length > 320) {
         return badRequest(res, 'email must be a valid address');
       }
-      const existing = store.accountByEmail(email);
-      if (existing && existing._id !== account._id) {
-        return sendJson(res, 409, { error: 'An account with that email already exists' });
+      if (!identityProviders?.emailReset) {
+        // Do not replace an address until the user proves control of it. If an
+        // operator has not configured mail, failing closed is safer than
+        // silently applying an unverified profile edit.
+        return sendJson(res, 503, { error: 'email confirmation is not configured on this server' });
       }
-      account.email = email.toLowerCase();
-      bumpAccountSessionVersion(account);
-      account.updated = Date.now();
-      store.flush();
-      return { account: portalAccount(account) };
+      try {
+        changeEmail(store, {
+          id: account._id,
+          password: currentPassword,
+          email: nextEmail,
+        }, identityProviders);
+        return { pending: true, email: nextEmail };
+      } catch (error) {
+        if (error?.code === 'EMAIL_ALREADY_EXISTS') {
+          return sendJson(res, 409, { error: 'An account with that email already exists' });
+        }
+        if (error?.code === 'EMAIL_WAS_NOT_CHANGED') {
+          return sendJson(res, 400, { error: 'new email must differ from the current email' });
+        }
+        return sendJson(res, 400, { error: 'could not start email change' });
+      }
+    },
+
+    // The code is delivered only to the proposed new mailbox. It is not tied
+    // to the old session so it remains usable after a browser restart, and the
+    // shared identity operation invalidates every existing session on success.
+    'POST /api/me/email/confirm': ({ res, body }) => {
+      const code = typeof body?.code === 'string' ? body.code : '';
+      try {
+        confirmEmailReset(store, code, identityProviders);
+        return { ok: true };
+      } catch {
+        return sendJson(res, 400, { error: 'This email-change link is invalid or has expired' });
+      }
     },
   };
 }

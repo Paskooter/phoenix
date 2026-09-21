@@ -1173,10 +1173,12 @@ async function renderProfile() {
   mailForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const res = await api('POST', '/api/me/email', Object.fromEntries(new FormData(mailForm)));
-    notify(res.ok ? 'Email changed' : (res.data.error || 'Could not change email'), res.ok ? 'ok' : 'error');
-    if (res.ok) { await refreshMe(); await renderProfile(); }
+    notify(res.ok ? 'Check the new email address to confirm the change.' : (res.data.error || 'Could not change email'), res.ok ? 'ok' : 'error');
+    if (res.ok) mailForm.reset();
   });
-  container.append(card('Change email address', {}, mailForm));
+  container.append(card('Change email address', {
+    sub: 'Your address stays unchanged until you confirm the link sent to the new inbox.',
+  }, mailForm));
 
   show(container);
 }
@@ -2397,6 +2399,44 @@ async function renderAdminAdmins() {
    Auth screen
    ========================================================================== */
 
+let authNotice = '';
+let pendingActivationEmail = '';
+let publicMailAction = null;
+
+function clearPublicMailUrl() {
+  // Keep a user-selected hash route, but remove the bearer code from history
+  // and from anything they might copy from the address bar.
+  history.replaceState(null, '', `/${location.hash || ''}`);
+}
+
+async function consumePublicMailAction() {
+  const params = new URLSearchParams(location.search);
+  const code = params.get('code') || '';
+  if (location.pathname === '/activate') {
+    clearPublicMailUrl();
+    if (!code) { authNotice = 'This confirmation link is incomplete.'; return; }
+    const res = await api('POST', '/api/signup/verify', { code });
+    authNotice = res.ok
+      ? 'Your email is confirmed. You can sign in now.'
+      : (res.data.error || 'This confirmation link is invalid or has expired.');
+    return;
+  }
+  if (location.pathname === '/confirmemailreset') {
+    clearPublicMailUrl();
+    if (!code) { authNotice = 'This email-change link is incomplete.'; return; }
+    const res = await api('POST', '/api/me/email/confirm', { code });
+    authNotice = res.ok
+      ? 'Your email address has been changed. Please sign in again.'
+      : (res.data.error || 'This email-change link is invalid or has expired.');
+    return;
+  }
+  if (location.pathname === '/reset') {
+    clearPublicMailUrl();
+    if (!code) { authNotice = 'This password-reset link is incomplete.'; return; }
+    publicMailAction = { type: 'reset', code };
+  }
+}
+
 function renderAuth() {
   shell.hidden = true;
   authRoot.hidden = false;
@@ -2413,50 +2453,103 @@ function renderAuth() {
   const title = authRoot.querySelector('#auth-title');
   const sub = authRoot.querySelector('#auth-sub');
   const signupOnly = authRoot.querySelector('.signup-only');
+  const email = form.querySelector('[name="email"]');
   const password = form.querySelector('[name="password"]');
+  const emailField = email.closest('.field');
+  const passwordField = password.closest('.field');
+  const forgot = authRoot.querySelector('#auth-forgot');
+  const resend = authRoot.querySelector('#auth-resend');
 
-  let mode = 'login';
+  let mode = publicMailAction?.type === 'reset' ? 'reset' : 'login';
   const COPY = {
     login: { title: 'Welcome back', sub: 'Use the same account you sign into the robot app with.', cta: 'Sign in' },
-    signup: { title: 'Create an account', sub: 'This account lives on this server only.', cta: 'Create account' },
+    signup: { title: 'Create an account', sub: 'We will send a confirmation link before the account can sign in.', cta: 'Create account' },
+    recovery: { title: 'Reset your password', sub: 'Enter your email and we will send a reset link if an account exists.', cta: 'Send reset link' },
+    reset: { title: 'Choose a new password', sub: 'Use at least 8 characters with an uppercase letter, lowercase letter, and number.', cta: 'Set new password' },
+  };
+
+  const setMessage = (message, isError = false) => {
+    err.hidden = !message;
+    err.textContent = message || '';
+    err.classList.toggle('error', isError);
+  };
+
+  const setMode = (next) => {
+    mode = next;
+    segment.hidden = next === 'recovery' || next === 'reset';
+    segment.dataset.active = next === 'signup' ? 'signup' : 'login';
+    for (const t of segment.querySelectorAll('.tab')) {
+      const on = t.dataset.tab === next;
+      t.classList.toggle('active', on);
+      t.setAttribute('aria-selected', String(on));
+    }
+    if (signupOnly) signupOnly.hidden = next !== 'signup';
+    emailField.hidden = next === 'reset';
+    passwordField.hidden = next === 'recovery';
+    email.required = next !== 'reset';
+    password.required = next !== 'recovery';
+    forgot.hidden = next !== 'login';
+    resend.hidden = !(pendingActivationEmail && (next === 'login' || next === 'signup'));
+    title.textContent = COPY[next].title;
+    sub.textContent = COPY[next].sub;
+    submit.textContent = COPY[next].cta;
+    password.setAttribute('autocomplete', next === 'signup' || next === 'reset' ? 'new-password' : 'current-password');
+    setMessage(authNotice, false);
   };
 
   for (const tab of segment.querySelectorAll('.tab')) {
-    tab.addEventListener('click', () => {
-      mode = tab.dataset.tab;
-      segment.dataset.active = mode;
-      for (const t of segment.querySelectorAll('.tab')) {
-        const on = t.dataset.tab === mode;
-        t.classList.toggle('active', on);
-        t.setAttribute('aria-selected', String(on));
-      }
-      if (signupOnly) signupOnly.hidden = mode !== 'signup';
-      title.textContent = COPY[mode].title;
-      sub.textContent = COPY[mode].sub;
-      submit.textContent = COPY[mode].cta;
-      password.setAttribute('autocomplete', mode === 'signup' ? 'new-password' : 'current-password');
-      err.hidden = true;
-    });
+    tab.addEventListener('click', () => { authNotice = ''; setMode(tab.dataset.tab); });
   }
+  forgot.addEventListener('click', () => { authNotice = ''; setMode('recovery'); });
+  resend.addEventListener('click', async () => {
+    resend.disabled = true;
+    const res = await api('POST', '/api/signup/resend', { email: pendingActivationEmail });
+    resend.disabled = false;
+    setMessage(res.ok ? 'If that address has a pending account, a new confirmation link was sent.'
+      : (res.data.error || 'Could not resend the confirmation email.'), !res.ok);
+  });
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!form.reportValidity()) return;
     submit.disabled = true;
-    submit.textContent = mode === 'signup' ? 'Creating…' : 'Signing in…';
+    submit.textContent = mode === 'signup' ? 'Creating…'
+      : (mode === 'recovery' ? 'Sending…' : (mode === 'reset' ? 'Updating…' : 'Signing in…'));
     const fd = Object.fromEntries(new FormData(form));
-    const res = await api('POST', mode === 'signup' ? '/api/signup' : '/api/login', fd);
+    const endpoint = mode === 'signup' ? '/api/signup'
+      : (mode === 'recovery' ? '/api/password/reset/request'
+        : (mode === 'reset' ? '/api/password/reset/confirm' : '/api/login'));
+    const payload = mode === 'reset' ? { code: publicMailAction?.code, password: fd.password } : fd;
+    const res = await api('POST', endpoint, payload);
     submit.disabled = false;
     submit.textContent = COPY[mode].cta;
     if (!res.ok) {
-      err.hidden = false;
-      err.textContent = res.data.error || 'That did not work. Check your details and try again.';
+      setMessage(res.data.error || 'That did not work. Check your details and try again.', true);
+      return;
+    }
+    if (mode === 'signup' && res.data.verificationRequired) {
+      pendingActivationEmail = fd.email;
+      authNotice = 'Check your inbox and follow the confirmation link before signing in.';
+      setMode('login');
+      return;
+    }
+    if (mode === 'recovery') {
+      authNotice = 'If that address has an account, a password-reset link was sent.';
+      setMode('login');
+      return;
+    }
+    if (mode === 'reset') {
+      publicMailAction = null;
+      authNotice = 'Your password has been updated. You can sign in now.';
+      setMode('login');
       return;
     }
     await refreshMe();
     if (!location.hash || location.hash === '#/') location.hash = '#/';
     route();
   });
+
+  setMode(mode);
 }
 
 /* ==========================================================================
@@ -2691,6 +2784,7 @@ const ADMIN_ROUTES = {
 
 async function route() {
   stopPoll();
+  await consumePublicMailAction();
   // `/admin` is served by the same shell; treat the path as the route so the
   // bare URL works rather than silently landing on the overview.
   const hash = (location.pathname === '/admin' && !location.hash) ? '#/admin' : (location.hash || '#/');

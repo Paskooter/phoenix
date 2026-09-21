@@ -202,6 +202,7 @@ function createConfiguredIdentityProviders({
     });
     if (!own(options, 'emailReset')) normalized.emailReset = mail.emailReset;
     if (!own(options, 'emailResetComplete')) normalized.emailResetComplete = mail.emailResetComplete;
+    if (!own(options, 'passwordChanged')) normalized.passwordChanged = mail.passwordChanged;
   }
   if (!own(options, 'sms') && !own(options, 'smsProvider')) {
     const url = firstDefined(options.smsUrl, smsUrl, process.env.ETCO_account_smsUrl);
@@ -304,6 +305,7 @@ export function createAccountService({
   calendarFetcher,
   calendarFetchTimeoutMs,
   repointHost,
+  portalRequireEmailVerification,
 } = {}) {
   // The source Settings controller is always the production algorithm. Explicit provider
   // injection is reserved for tests; normal construction uses Phoenix storage/NET seams.
@@ -371,6 +373,9 @@ export function createAccountService({
     ...portalRoutes(store, {
       loopUpdatedOutbox,
       invitationProviders: effectiveInvitationProviders,
+      identityProviders: effectiveIdentityProviders,
+      mailProviders: effectiveInvitationProviders,
+      requireEmailVerification: portalRequireEmailVerification,
       repointHost,
     }), // REST /api/* (sessions)
     ...settingsPeerRoutes(store), // internal Account client seams used by source Settings

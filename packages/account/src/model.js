@@ -137,7 +137,9 @@ export function verifyWebToken(token, secret) {
 // -- accounts -----------------------------------------------------------------
 
 /** A human owner account. */
-export function createOwnerAccount(store, { email, password, firstName = '', lastName = '' }) {
+export function createOwnerAccount(store, {
+  email, password, firstName = '', lastName = '', isActive = true,
+}) {
   if (store.accountByEmail(email)) throw Object.assign(new Error('An account with that email already exists'), { code: 'ACCOUNT_EXISTS' });
   const account = {
     _id: newId(),
@@ -146,7 +148,7 @@ export function createOwnerAccount(store, { email, password, firstName = '', las
     friendlyId: null,
     firstName, lastName,
     ...fillAccessKeys(),
-    isActive: true,
+    isActive: !!isActive,
     sessionVersion: 0,
     created: Date.now(),
   };

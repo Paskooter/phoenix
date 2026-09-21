@@ -18,6 +18,7 @@ export const MAIL_SUBJECTS = Object.freeze({
   emailResetComplete: 'Your email has changed',
   invitation: 'Invitation',
   invitationExistingUser: 'Invitation',
+  passwordChanged: 'Your password was changed',
   passwordReset: 'Password Reset',
   robotNotFound: 'Your robot is not found',
 });
@@ -636,6 +637,7 @@ export function createSmtpMailProviders({ smtp, fromAddress, templateDir } = {})
     invitationExistingUser: new SmtpMailProvider({ template: 'invitationExistingUser', smtp: config, fromAddress, templateDir }),
     activation: new SmtpMailProvider({ template: 'activation', smtp: config, fromAddress, templateDir }),
     passwordReset: new SmtpMailProvider({ template: 'passwordReset', smtp: config, fromAddress, templateDir }),
+    passwordChanged: new SmtpMailProvider({ template: 'passwordChanged', smtp: config, fromAddress, templateDir }),
   };
 }
 

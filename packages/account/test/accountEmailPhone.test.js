@@ -191,14 +191,13 @@ test('ChangeEmail writes a pending reset row, keeps the old email live, and retu
   });
   assertAmzError(pendingLogin, ACCOUNT_ERRORS.ACCOUNT_EMAIL_CHANGE_INCOMPLETE);
 
-  assert.equal(mail.length, 2);
+  assert.equal(mail.length, 1);
   assert.equal(mail[0].template, 'emailReset');
   assert.equal(mail[0].to, 'new.owner@synthetic.invalid');
   assert.match(mail[0].options.url, /http:\/\/portal\.synthetic\.invalid\/confirmemailreset\?/);
   assert.match(mail[0].options.url, new RegExp(`code=${reset.code}`));
-  assert.equal(mail[1].template, 'emailResetComplete');
-  assert.equal(mail[1].to, 'owner@synthetic.invalid');
-  assert.equal(mail[1].options.newEmailAddress, 'new.owner@synthetic.invalid');
+  assert.equal(mail.some((entry) => entry.template === 'emailResetComplete'), false,
+    'the old address must not be told a requested change has already completed');
 });
 
 test('ChangeEmail rejects unsigned, forged, inactive, wrong-password, unchanged, taken, and invalid payloads', async () => {
@@ -261,6 +260,7 @@ test('ChangeEmail rejects unsigned, forged, inactive, wrong-password, unchanged,
 });
 
 test('ConfirmEmailReset is public, rotates keys, stamps USED/CANCELED, and rejects reuse/expiry', async () => {
+  mail.length = 0;
   const first = await post(accountBase, 'Account_20151111.ChangeEmail', {
     email: 'owner-confirm-a@synthetic.invalid',
     password: PASSWORD,
@@ -287,6 +287,10 @@ test('ConfirmEmailReset is public, rotates keys, stamps USED/CANCELED, and rejec
   assert.notEqual(live(owner).secretAccessKey, oldKeys.secretAccessKey);
   assert.equal(store.emailResets.get(first.body.id).status, EMAIL_RESET_STATUS.USED);
   assert.equal(store.emailResets.get(second.body.id).status, EMAIL_RESET_STATUS.CANCELED);
+  const completion = mail.find((entry) => entry.template === 'emailResetComplete');
+  assert.ok(completion, 'the old mailbox receives the security notice after confirmation');
+  assert.equal(completion.to, 'owner@synthetic.invalid');
+  assert.equal(completion.options.newEmailAddress, 'owner-confirm-a@synthetic.invalid');
 
   const oldLogin = await post(accountBase, 'Account_20151111.Login', {
     email: 'owner@synthetic.invalid',

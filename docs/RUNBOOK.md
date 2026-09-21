@@ -47,6 +47,28 @@ ticket or commit it. The Compose launcher refuses to start when required values
 are missing. The native launcher also defaults to loopback and must be fronted by
 TLS for any browser or robot outside the host.
 
+### Configure account email before inviting people
+
+An Internet-facing portal needs a real SMTP relay. Set `ETCO_account_portalUrl`
+and `PHOENIX_SITE_URL` to the same public HTTPS origin, then configure
+`ETCO_account_mailSmtpHost`, `...Port`, `...User`, `...Password`, and
+`ETCO_account_mailFrom` in the private `.env` file (the commented example lists
+the complete set). For a submission relay on port 587, use
+`ETCO_account_mailSmtpSecure=false` and `ETCO_account_mailSmtpRequireTLS=true`.
+
+With SMTP configured, new portal accounts receive an activation link and cannot
+sign in until they confirm it. The same relay delivers household invitations,
+password-reset links, email-change confirmation, and password/email-change
+security notices. The confirmation and reset links are single-use; reset links
+expire after one hour and email-change links after 24 hours.
+
+Verify the relay's sender identity/domain first, then make one disposable test
+account and complete the activation link. Check spam/junk as well as the inbox.
+An SMTP authentication test is not a delivery test: an unverified `From` address
+can authenticate successfully and still be rejected or quarantined later. Keep
+the SMTP password only in a mode-0600 environment file or a secret manager, and
+restart the Account service after changing it.
+
 ## 2. Learn what the robot expects
 
 This is the step people skip, and it determines everything that follows. The robot

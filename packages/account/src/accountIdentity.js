@@ -255,6 +255,7 @@ function fail(err) {
 const identityRateState = new WeakMap();
 const IDENTITY_RATE_WINDOW_MS = 15 * 60 * 1000;
 const IDENTITY_CREATE_LIMIT = 5;
+const IDENTITY_CREATE_IP_LIMIT = 20;
 const IDENTITY_LOGIN_LIMIT = 10;
 const IDENTITY_RECOVERY_LIMIT = 5;
 
@@ -374,6 +375,7 @@ export function normalizeIdentityProviders(input = undefined) {
     campaign: options.campaign && typeof options.campaign === 'object' ? options.campaign : {},
     emailReset: options.emailReset || null,
     emailResetComplete: options.emailResetComplete || null,
+    passwordChanged: options.passwordChanged || null,
     sms: options.sms || options.smsProvider || null,
     onError: options.onError,
   };
@@ -987,13 +989,26 @@ function checkEmail(store, email) {
   return { exists: !!account && !account.isDeleted };
 }
 
-function changePassword(store, { id, oldPassword, newPassword }) {
+function sendPasswordChangedNotice(providers, account) {
+  const context = normalizeIdentityProviders(providers);
+  observeMailRejection(sendMethod(context.passwordChanged, [account.email, {
+    firstName: account.firstName || 'there',
+    portalUrl: context.portalUrl || '',
+  }]), context, 'password-changed');
+}
+
+export function notifyPasswordChanged(providers, account) {
+  sendPasswordChangedNotice(providers, account);
+}
+
+function changePassword(store, { id, oldPassword, newPassword }, providers = undefined) {
   const account = findById(store, id);
   if (!compareAccountPassword(oldPassword, account.password)) fail(ACCOUNT_ERRORS.WRONG_PASSWORD);
   const previous = snapshotAccount(account);
   const next = { ...account, password: hashAccountPassword(newPassword), updated: Date.now() };
   bumpAccountSessionVersion(next);
   persistAccount(store, next, previous);
+  sendPasswordChangedNotice(providers, next);
   return next;
 }
 
@@ -1012,6 +1027,13 @@ function sendResetEmail(providers, { email, originalEmail, code, campaign }) {
     providers,
     'email-reset',
   );
+}
+
+// This is a security notification, not part of the confirmation challenge.
+// Sending it when a change is merely requested made the old address report a
+// successful change that had not happened yet. Send it only after the bearer
+// of the link delivered to the new address has completed the change.
+function sendEmailResetComplete(providers, { email, originalEmail }) {
   observeMailRejection(
     sendMethod(providers.emailResetComplete, [originalEmail, { newEmailAddress: email, originalEmail }]),
     providers,
@@ -1075,13 +1097,13 @@ function resetEmail(store, accountId, email, campaign, providers) {
   return { id: emailReset._id };
 }
 
-function changeEmail(store, { id, password, email, campaign }, providers) {
+export function changeEmail(store, { id, password, email, campaign }, providers) {
   const account = findById(store, id);
   if (!compareAccountPassword(password, account.password)) fail(ACCOUNT_ERRORS.WRONG_PASSWORD);
   return resetEmail(store, id, email, campaign, providers);
 }
 
-function confirmEmailReset(store, code) {
+export function confirmEmailReset(store, code, providers = undefined) {
   const emailReset = [...store.emailResets.values()].find((row) => row.code === code);
   if (!emailReset) fail(TOKEN_ERRORS.EMAIL_RESET_TOKEN_NOT_FOUND);
   if (emailReset.status !== EMAIL_RESET_NEW) fail(TOKEN_ERRORS.EMAIL_RESET_TOKEN_EXPIRED);
@@ -1109,6 +1131,10 @@ function confirmEmailReset(store, code) {
     for (const row of previousResets) store.emailResets.set(row._id, row);
     throw error;
   }
+  sendEmailResetComplete(normalizeIdentityProviders(providers), {
+    email: emailReset.email,
+    originalEmail: emailReset.originalEmail,
+  });
 }
 
 async function sendPhoneVerificationCode(store, accountId, phoneNumber, providers) {
@@ -1254,7 +1280,12 @@ const OPS = {
     auth: 'none',
     validate: validateCreate,
     run({ store, body, mail, req }) {
-      enforceIdentityRateLimit(store, req, 'account-create', 'account-create', IDENTITY_CREATE_LIMIT);
+      // Bound both repeated abuse of one address and bulk sign-up from one
+      // source. A single global five-request bucket made unrelated customers
+      // behind one NAT block one another before they could receive activation
+      // mail, while an address-only bucket would permit unlimited bulk abuse.
+      enforceIdentityRateLimit(store, req, body.email, 'account-create-email', IDENTITY_CREATE_LIMIT);
+      enforceIdentityRateLimit(store, req, 'all', 'account-create-ip', IDENTITY_CREATE_IP_LIMIT);
       if (!joiEmail(body.email)) fail(ACCOUNT_ERRORS.EMAIL_NOT_VALID);
       if (String(body.password).length < 8) fail(ACCOUNT_ERRORS.PASSWORD_NOT_VALID_LENGTH);
       if (!ACCOUNT_PASSWORD_REGEX.test(String(body.password))) fail(ACCOUNT_ERRORS.PASSWORD_NOT_VALID_STRING);
@@ -1312,14 +1343,14 @@ const OPS = {
   changePassword: {
     auth: 'parseCredentials',
     validate: validateChangePassword,
-    run({ store, body, credentials }) {
+    run({ store, body, credentials, providers }) {
       if (!ACCOUNT_PASSWORD_REGEX.test(String(body.newPassword))) fail(ACCOUNT_ERRORS.PASSWORD_NOT_VALID_STRING);
       return {
         value: accountToSourceJson(changePassword(store, {
           id: credentials._id,
           newPassword: body.newPassword,
           oldPassword: body.oldPassword,
-        }), { unsafe: false }),
+        }, providers), { unsafe: false }),
       };
     },
   },
@@ -1350,9 +1381,13 @@ const OPS = {
   confirmEmailReset: {
     auth: 'none',
     validate: validateConfirmEmailReset,
-    run({ store, body, req }) {
-      enforceIdentityRateLimit(store, req, 'email-reset-confirm', 'email-reset-confirm', IDENTITY_RECOVERY_LIMIT);
-      confirmEmailReset(store, body.code);
+    run({ store, body, req, providers }) {
+      // The confirmation code is an unguessable bearer value. Rate-limit
+      // retries against that specific code rather than letting unauthenticated
+      // junk submissions from one shared NAT exhaust every user's legitimate
+      // email-change confirmation attempt.
+      enforceIdentityRateLimit(store, req, body.code, 'email-reset-confirm', IDENTITY_RECOVERY_LIMIT);
+      confirmEmailReset(store, body.code, providers);
       return { empty: true };
     },
   },
@@ -1403,11 +1438,11 @@ const OPS = {
   passwordResetByCode: {
     auth: 'none',
     validate: validatePasswordResetByCode,
-    run({ store, body, req }) {
+    run({ store, body, req, providers }) {
       enforceIdentityRateLimit(store, req, body.code, 'password-reset', IDENTITY_RECOVERY_LIMIT);
       if (!ACCOUNT_PASSWORD_REGEX.test(String(body.password))) fail(ACCOUNT_ERRORS.PASSWORD_NOT_VALID_STRING);
       return {
-        value: accountToSourceJson(passwordReset(store, body.code, body.password), { unsafe: true }),
+        value: accountToSourceJson(passwordReset(store, body.code, body.password, providers), { unsafe: true }),
       };
     },
   },
@@ -1585,7 +1620,7 @@ export async function handleAccountIdentity({ store, req, res, body, log, mailPr
   }
 }
 
-function activateByCode(store, activationCode) {
+export function activateByCode(store, activationCode) {
   if (!activationCode) fail(ACCOUNT_ERRORS.ACTIVATION_CODE_NOT_FOUND);
   const account = [...store.accounts.values()].find((row) => row.activationCode === activationCode);
   if (!account) fail(ACCOUNT_ERRORS.ACTIVATION_CODE_NOT_FOUND);
@@ -1603,7 +1638,7 @@ function activateById(store, accountId) {
   return account;
 }
 
-function sendPasswordReset(store, email, campaign, mail) {
+export function sendPasswordReset(store, email, campaign, mail) {
   const account = findByEmail(store, email);
   const previous = snapshotAccount(account);
   account.passwordResetCode = dashlessUuid();
@@ -1633,7 +1668,7 @@ function campaignLandingUrl(mail, campaign, kind, fallbackPath, query) {
   return `${baseUrl}?${querystring.stringify(query)}`;
 }
 
-function passwordReset(store, code, password) {
+export function passwordReset(store, code, password, providers = undefined) {
   if (!code) fail(ACCOUNT_ERRORS.PASSWORD_CODE_WRONG);
   const account = [...store.accounts.values()].find((row) => row.passwordResetCode === code);
   if (!account) fail(ACCOUNT_ERRORS.PASSWORD_CODE_WRONG);
@@ -1656,6 +1691,7 @@ function passwordReset(store, code, password) {
   account.updated = Date.now();
   bumpAccountSessionVersion(account);
   persistAccount(store, account, previous);
+  sendPasswordChangedNotice(providers, account);
   return account;
 }
 
@@ -1832,7 +1868,7 @@ function removeById(store, ownerId, accountId, loopUpdatedOutbox) {
   return next;
 }
 
-function sendActivation(store, account, campaign, mail) {
+export function sendActivation(store, account, campaign, mail) {
   if (account.isActive) fail(ACCOUNT_ERRORS.ACCOUNT_ACTIVATED);
   const previous = snapshotAccount(account);
   account.activationCode = dashlessUuid();

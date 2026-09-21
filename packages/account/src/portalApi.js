@@ -37,7 +37,14 @@ import { createOwnerAccount, createLoop, mintSetupToken, findToken, ACCESS_TOKEN
 // `sha512$512$10000$<salt>$<hash>` (the source utils/password.ts pbkdf2 encoding);
 // verifyPassword returns false for anything that is not `scrypt:`, so the real
 // account -- the one the owner signs into on the phone -- could never log in here.
-import { compareAccountPassword } from './accountIdentity.js';
+import {
+  activateByCode,
+  compareAccountPassword,
+  confirmEmailReset,
+  passwordReset,
+  sendActivation,
+  sendPasswordReset,
+} from './accountIdentity.js';
 import { createSession, destroySession, getSession, sessionCookie, clearCookie } from './sessions.js';
 import { buildQrCodes } from './qrPayload.js';
 import { userFromSession as sessionUser, portalAccount } from './portal/session.js';
@@ -128,6 +135,22 @@ function tooManyPortalAuth(res, result) {
   return true;
 }
 
+function normalizedPortalEmail(value) {
+  return typeof value === 'string' ? value.trim().toLowerCase() : '';
+}
+
+function validPortalEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && value.length <= 320;
+}
+
+function publicRecoveryError(res, error, fallback = 'This link is invalid or has expired') {
+  // Recovery codes are bearer credentials. Do not turn their failures into an
+  // account- or token-existence oracle for a caller who did not receive mail.
+  const status = error?.statusCode;
+  if (status === 409) return sendJson(res, 409, { error: fallback });
+  return sendJson(res, 400, { error: fallback });
+}
+
 export function userFromSession(store, req) {
   return sessionUser(store, req);
 }
@@ -170,6 +193,14 @@ export function portalRoutes(store, options = {}) {
   const portal = {
     loopUpdatedOutbox: options.loopUpdatedOutbox,
     invitationProviders: options.invitationProviders,
+    identityProviders: options.identityProviders,
+    mailProviders: options.mailProviders,
+    // Existing self-hosted test/LAN installs without any mail transport keep
+    // their prior local-only sign-up behavior. A normal deployment with a real
+    // activation provider requires proof of control of the mailbox.
+    requireEmailVerification: options.requireEmailVerification === undefined
+      ? !!options.mailProviders?.activation
+      : options.requireEmailVerification === true,
     classicBase: options.classicBase || classicBaseUrl(),
     classicCall: options.classicCall,
   };
@@ -179,20 +210,90 @@ export function portalRoutes(store, options = {}) {
       const { email, password, firstName = '' } = body || {};
       const rate = checkPortalAuthRate(req, email);
       if (tooManyPortalAuth(res, rate)) return;
-      if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-        || email.length > 320 || typeof password !== 'string' || password.length < 8
+      const normalizedEmail = normalizedPortalEmail(email);
+      if (!validPortalEmail(normalizedEmail) || typeof password !== 'string' || password.length < 8
         || password.length > 1024 || typeof firstName !== 'string' || firstName.length > 200) {
         return sendJson(res, 400, { error: 'a valid email and a password of 8-1024 characters are required' });
       }
       let account;
       try {
-        account = createOwnerAccount(store, { email, password, firstName });
+        account = createOwnerAccount(store, {
+          email: normalizedEmail,
+          password,
+          firstName: firstName.trim(),
+          isActive: !portal.requireEmailVerification,
+        });
+        if (portal.requireEmailVerification) sendActivation(store, account, undefined, portal.mailProviders);
       } catch (err) {
         return sendJson(res, err.code === 'ACCOUNT_EXISTS' ? 409 : 500, { error: err.message });
       }
       clearPortalAuthRate(rate.key);
+      if (portal.requireEmailVerification) {
+        return sendJson(res, 202, {
+          verificationRequired: true,
+          email: account.email,
+        });
+      }
       const session = createSession(store, { kind: 'user', accountId: account._id });
       return withCookie(res, sessionCookie(session), 200, { account: portalAccount(account) });
+    },
+
+    // Deliberately returns the same result whether an address is unknown,
+    // active, deleted, or pending. It is safe to expose from the auth screen
+    // without becoming an account-enumeration endpoint.
+    'POST /api/signup/resend': ({ req, res, body }) => {
+      const email = normalizedPortalEmail(body?.email);
+      const rate = checkPortalAuthRate(req, email);
+      if (tooManyPortalAuth(res, rate)) return;
+      if (!validPortalEmail(email)) return sendJson(res, 400, { error: 'a valid email is required' });
+      const account = store.accountByEmail(email);
+      if (portal.requireEmailVerification && account && account.isDeleted !== true && !account.isActive) {
+        try { sendActivation(store, account, undefined, portal.mailProviders); } catch { /* generic reply */ }
+      }
+      return sendJson(res, 202, { ok: true });
+    },
+
+    'POST /api/signup/verify': ({ req, res, body }) => {
+      const code = typeof body?.code === 'string' ? body.code : '';
+      const rate = checkPortalAuthRate(req, code);
+      if (tooManyPortalAuth(res, rate)) return;
+      try {
+        activateByCode(store, code);
+        clearPortalAuthRate(rate.key);
+        return sendJson(res, 200, { ok: true });
+      } catch (error) {
+        return publicRecoveryError(res, error);
+      }
+    },
+
+    // Mailbox recovery is intentionally non-enumerating. A valid mailbox will
+    // receive a one-hour, single-use code; all callers receive 202.
+    'POST /api/password/reset/request': ({ req, res, body }) => {
+      const email = normalizedPortalEmail(body?.email);
+      const rate = checkPortalAuthRate(req, email);
+      if (tooManyPortalAuth(res, rate)) return;
+      if (!validPortalEmail(email)) return sendJson(res, 400, { error: 'a valid email is required' });
+      const account = store.accountByEmail(email);
+      if (account && account.isDeleted !== true && portal.mailProviders?.passwordReset) {
+        try { sendPasswordReset(store, email, undefined, portal.mailProviders); } catch { /* generic reply */ }
+      }
+      return sendJson(res, 202, { ok: true });
+    },
+
+    'POST /api/password/reset/confirm': ({ req, res, body }) => {
+      const code = typeof body?.code === 'string' ? body.code : '';
+      const password = typeof body?.password === 'string' ? body.password : '';
+      const rate = checkPortalAuthRate(req, code);
+      if (tooManyPortalAuth(res, rate)) return;
+      try {
+        // The shared identity routine enforces the stronger public Account
+        // password policy and expires/consumes the code atomically.
+        passwordReset(store, code, password, portal.identityProviders);
+        clearPortalAuthRate(rate.key);
+        return sendJson(res, 200, { ok: true });
+      } catch (error) {
+        return publicRecoveryError(res, error, 'The password-reset link is invalid, expired, or the password is not accepted');
+      }
     },
 
     'POST /api/login': ({ req, res, body }) => {
@@ -383,7 +484,7 @@ export function portalRoutes(store, options = {}) {
 
     // -- the rest of the mobile-app surface ------------------------------------
     ...portalLoopRoutes(store, portal),
-    ...portalProfileRoutes(store),
+    ...portalProfileRoutes(store, { identityProviders: portal.identityProviders }),
     ...portalRobotRoutes(store, portal),
     ...portalMediaRoutes(store, portal),
     ...portalPeopleRoutes(store, portal),
