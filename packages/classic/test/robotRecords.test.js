@@ -15,10 +15,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createClassicEntrypoint } from '../src/index.js';
 import {
-  makeRobotHandler, RobotStore, convertRobotId, ROBOT_ERRORS,
+  accountOwnedRobots, makeRobotHandler, RobotStore, convertRobotId, ROBOT_ERRORS,
   COMMAND_ACCEPTED_RESPONSE, MANUFACTURING_EMAIL,
 } from '../src/robot.js';
 import { generateFriendlyId, randomlyGenerateCombos, WORD_COUNTS } from '../src/serialNames.js';
+import { Store as AccountStore } from '../../account/src/store.js';
+import { createLoop, createOwnerAccount } from '../../account/src/model.js';
 
 // An unroutable account base so the default ownership resolver returns "unresolved" fast
 // (connection refused, not a 2s timeout) — the LAN-trust path.
@@ -227,6 +229,27 @@ test('an administrator only gets an adopted empty projection for a robot they ow
   const missing = await call(h, 'GetRobot', { id: 'zz-zz-zz-zz' }, ADMIN());
   assert.equal(missing.status, 404);
   assert.equal(missing.body.__type, 'ROBOT_NOT_FOUND');
+});
+
+test('account ownership uses the configured local Account snapshot, not a public lookup route', async () => {
+  const file = join(dir, 'account-snapshot.json');
+  const accounts = new AccountStore(file);
+  const owner = createOwnerAccount(accounts, { email: 'snapshot-owner@example.test', password: 'snapshot-pass-1' });
+  const member = createOwnerAccount(accounts, { email: 'snapshot-member@example.test', password: 'snapshot-pass-2' });
+  const { loop, robot } = createLoop(accounts, { owner, robotId: 'snapshot-robot' });
+  loop.members.push({ _id: 'snapshot-member-link', accountId: member._id, status: 'ACCEPTED' });
+  accounts.flush();
+
+  const prior = process.env.ETCO_classic_accountDataFile;
+  process.env.ETCO_classic_accountDataFile = file;
+  try {
+    assert.deepEqual(await accountOwnedRobots(owner._id), [robot.friendlyId]);
+    assert.deepEqual(await accountOwnedRobots(member._id), [robot.friendlyId]);
+    assert.deepEqual(await accountOwnedRobots(member._id, true), []);
+  } finally {
+    if (prior === undefined) delete process.env.ETCO_classic_accountDataFile;
+    else process.env.ETCO_classic_accountDataFile = prior;
+  }
 });
 
 test('UpdateRobot: owner may update, non-owner is refused, suspended is manufacturing-only', async () => {

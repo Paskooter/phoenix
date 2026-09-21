@@ -34,6 +34,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DefaultPort } from '@phoenix/contracts';
+import { Store as AccountStore } from '../../account/src/store.js';
 import { sendAmz, sendAmzError, ValidationException } from './awsJson.js';
 import { generateFriendlyId } from './serialNames.js';
 import { verifiedCallerFromRequest } from './caller.js';
@@ -225,13 +226,26 @@ function accountBase() {
 }
 
 /**
- * Default ownership resolver: the source's `AccountClient.listRobots(ownerId, owned)` issues
- * `GET <account>/robots?ownerId=<id>[&owned=true]` and returns the owner's robot ids. Returns
- * an array when the account service answers, and `undefined` when it cannot be reached or
- * returns an invalid response. An unresolved ownership check must fail closed.
+ * Default ownership resolver.  The source's `AccountClient.listRobots(ownerId, owned)` issues
+ * `GET <account>/robots?ownerId=<id>[&owned=true]`; Phoenix first resolves the same answer from
+ * the configured read-only Account snapshot, because that legacy internal route is deliberately
+ * not public here. Returns an array when the trusted source answers, and `undefined` when it
+ * cannot be reached or parsed. An unresolved ownership check must fail closed.
  */
 export async function accountOwnedRobots(ownerId, ownerEditable = false) {
   if (!ownerId) return undefined;
+
+  // Phoenix's public Account face intentionally does not expose the original
+  // service-to-service GET /robots?ownerId=... route.  The Classic process is
+  // already configured with the Account's read-only durable snapshot for its
+  // SigV4 credential verifier; use that same local-only seam for this
+  // ownership check.  It avoids both an unavailable internal HTTP dependency
+  // and an accidental public owner/robot enumeration endpoint.
+  const fromSnapshot = accountOwnedRobotsFromSnapshot(ownerId, ownerEditable);
+  if (fromSnapshot !== undefined) return fromSnapshot;
+
+  // Retain the source-shaped HTTP lookup for deployments that intentionally
+  // provide it, but fail closed if neither trusted route is available.
   try {
     const query = new URLSearchParams({ ownerId: String(ownerId) });
     if (ownerEditable) query.set('owned', 'true');
@@ -240,6 +254,35 @@ export async function accountOwnedRobots(ownerId, ownerEditable = false) {
     const body = await res.json();
     if (!Array.isArray(body)) return undefined;
     return body.map((entry) => (entry && typeof entry === 'object' ? String(entry.friendlyId ?? entry.id ?? entry) : String(entry)));
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Resolve readable/owner-editable robot ids from the local Account snapshot.
+ * `undefined` means the trusted snapshot cannot be read; `[]` is a valid
+ * answer for an account with no matching active household.  This distinction
+ * is important because callers must fail closed on an unavailable account
+ * service rather than treating it as an empty account.
+ */
+function accountOwnedRobotsFromSnapshot(ownerId, ownerEditable) {
+  const file = process.env.ETCO_classic_accountDataFile || process.env.ETCO_account_dataFile;
+  if (!file) return undefined;
+  try {
+    const store = new AccountStore(file);
+    const accountId = String(ownerId);
+    const visible = [...store.loops.values()].filter((loop) => {
+      if (!loop || loop.isDeleted === true) return false;
+      if (String(loop.owner) === accountId) return true;
+      if (ownerEditable) return false;
+      return (loop.members || []).some((member) => String(member?.accountId) === accountId
+        && ['accepted', 'invited'].includes(String(member?.status || '').toLowerCase()));
+    });
+    return visible.flatMap((loop) => {
+      const robot = loop.robot ? store.accounts.get(String(loop.robot)) : null;
+      return robot?.friendlyId ? [String(robot.friendlyId)] : [];
+    });
   } catch {
     return undefined;
   }
