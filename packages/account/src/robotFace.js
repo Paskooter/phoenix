@@ -684,6 +684,14 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
           ? (body === null || body === undefined ? '' : JSON.stringify(body))
           : req.rawBody,
         resolveCredentials: (accessKeyId) => store.accountByAccessKeyId(accessKeyId),
+        // The native Jetstream client signs the empty entity before it attaches
+        // its required `{}` CreateHubToken body.  Classic has already accepted
+        // that deliberately narrow compatibility rule at its public boundary;
+        // apply the same rule to this defence-in-depth verification or every
+        // native token refresh fails after Classic proxies the request here.
+        // verifySigV4 restricts the exception to this target, POST, the empty
+        // payload hash, and an unsigned x-amz-target.
+        allowNativeClientPayloadHash: true,
       });
     } catch (error) {
       if (error instanceof SigV4Error && SIGV4_ERRORS[error.code]) {

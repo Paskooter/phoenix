@@ -46,6 +46,37 @@ function makeSigned(host, body, overrides = {}) {
   return { ...result, body };
 }
 
+// Authentication.cpp signs an empty entity, then attaches `{}` immediately
+// before transmitting the native CreateHubToken request.  This differs from
+// the ordinary JS signer and must survive both the public Classic verifier and
+// Account's defence-in-depth verification after proxying.
+function makeNativeCreateHubToken(host) {
+  // The native signer runs before Content-Type, X-Amz-Target, and the entity
+  // are attached.  In particular, X-Amz-Target must not be in SignedHeaders
+  // for verifySigV4's compatibility exception to apply.
+  const signed = signSigV4({
+    method: 'POST',
+    path: '/',
+    body: '',
+    headers: { Host: host },
+    accessKeyId: robot.accessKeyId,
+    secretAccessKey: robot.secretAccessKey,
+    region: 'global',
+    service: 'jibo',
+  });
+  return {
+    ...signed,
+    headers: {
+      ...signed.headers,
+      'Content-Type': 'application/x-amz-json-1.1',
+      'X-Amz-Target': 'Account_20151111.CreateHubToken',
+      'X-Amz-Content-Sha256': 'e3b0c44298fc1c149afbf4c8996fb924'
+        + '27ae41e4649b934ca495991b7852b855',
+    },
+    body: '{}',
+  };
+}
+
 async function post(base, signed, { mutateBody, mutateHeaders } = {}) {
   const headers = { ...signed.headers, ...(mutateHeaders || {}) };
   const body = mutateBody === undefined ? signed.body : mutateBody;
@@ -132,6 +163,18 @@ test('Classic forwards the exact signed body and auth headers to Account', async
   assert.equal(claims.payload, 'whitespace survives');
   assert.equal(claims.id, robot._id, 'public x-amz-credentials cannot replace the signed caller');
   assert.equal(claims.secretAccessKey, robot.secretAccessKey);
+});
+
+test('native empty-entity CreateHubToken signatures remain valid through Classic and Account', async () => {
+  // This is the wire ordering used by the physical robot: sign empty, then
+  // send `{}`.  A second verification that does not opt into the native
+  // exception returns SIGNATURE_MISMATCH and leaves the robot unable to open
+  // its authenticated Hub socket.
+  const response = await post(classicBase, makeNativeCreateHubToken(`localhost:${classicService.address().port}`));
+  assert.equal(response.status, 200);
+  const claims = jwt.verify(response.body.token, 'a02-local-hub-secret');
+  assert.equal(claims.id, robot._id);
+  assert.equal(claims.payload, null);
 });
 
 test('CreateHubToken uses null for an omitted payload and exact source 422 validation', async () => {
