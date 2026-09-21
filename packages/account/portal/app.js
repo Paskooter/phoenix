@@ -285,10 +285,48 @@ function paintAccount() {
   if (adminNav) adminNav.hidden = !me.isAdmin;
 }
 
-/** The first loop, which for essentially every household is the only one. */
-async function firstLoop() {
+// Household-scoped surfaces must never silently pick an arbitrary household.
+// Remember the user's explicit choice locally, then fall back safely if that
+// household is no longer visible (for example after an invitation is removed).
+const ACTIVE_LOOP_STORAGE_KEY = 'phoenix.activeLoopId';
+let activeLoopId = (() => {
+  try { return localStorage.getItem(ACTIVE_LOOP_STORAGE_KEY) || ''; } catch { return ''; }
+})();
+
+function rememberActiveLoop(id) {
+  activeLoopId = String(id || '');
+  try {
+    if (activeLoopId) localStorage.setItem(ACTIVE_LOOP_STORAGE_KEY, activeLoopId);
+    else localStorage.removeItem(ACTIVE_LOOP_STORAGE_KEY);
+  } catch {
+    // Browsing with storage disabled is still supported for this session.
+  }
+}
+
+async function householdContext() {
   const r = await api('GET', '/api/loop');
-  return r.ok && Array.isArray(r.data.loops) && r.data.loops.length ? r.data.loops[0] : null;
+  const loops = r.ok && Array.isArray(r.data.loops) ? r.data.loops : [];
+  const active = loops.find((loop) => String(loop.id) === activeLoopId) || loops[0] || null;
+  if (active && String(active.id) !== activeLoopId) rememberActiveLoop(active.id);
+  if (!active && activeLoopId) rememberActiveLoop('');
+  return { ok: r.ok, error: r.data?.error, loops, active };
+}
+
+function householdSwitcher(context) {
+  if (!context.active || context.loops.length < 2) return null;
+  const select = h('select', {
+    'aria-label': 'Active household',
+    on: {
+      change: (event) => {
+        rememberActiveLoop(event.target.value);
+        route();
+      },
+    },
+  }, ...context.loops.map((loop) => h('option', { value: loop.id }, loop.name || 'Unnamed household')));
+  select.value = String(context.active.id);
+  return h('div', { class: 'household-switcher' },
+    h('span', { class: 'field-label' }, 'Viewing household'),
+    select);
 }
 
 /* ==========================================================================
@@ -395,16 +433,17 @@ function setBadge(id, count) {
 async function renderLoop() {
   show(page('Household', 'Members, their account links, and the household itself.', loading(5)));
 
-  const r = await api('GET', '/api/loop');
+  const context = await householdContext();
   const container = page('Household', 'Members, their account links, and the household itself.');
 
-  if (!r.ok) { container.append(errorBox('Could not load your household.', r.data.error)); return show(container); }
-  const loops = Array.isArray(r.data.loops) ? r.data.loops : [];
-  const active = loops[0] || null;
+  if (!context.ok) { container.append(errorBox('Could not load your household.', context.error)); return show(container); }
+  const active = context.active;
   if (!active) {
     container.append(empty('No household yet', 'A household is created when your first robot is paired.', 'users'));
     return show(container);
   }
+
+  container.append(householdSwitcher(context));
 
   const isOwner = active.owner === me?.id;
 
@@ -1399,8 +1438,11 @@ async function renderAddNew() {
 async function renderGallery() {
   show(page('Gallery', 'Photographs and media the robot captured.', loading(3)));
 
-  const loop = await firstLoop();
+  const context = await householdContext();
+  const loop = context.active;
   const container = page('Gallery', 'Photographs and media the robot captured.');
+  if (!context.ok) { container.append(errorBox('Could not load your household.', context.error)); return show(container); }
+  container.append(householdSwitcher(context));
   if (!loop) { container.append(empty('No household', 'Pair a robot first.', 'image')); return show(container); }
 
   const r = await api('GET', `/api/media?loopId=${encodeURIComponent(loop.id)}`);
@@ -1485,8 +1527,11 @@ async function renderGallery() {
 async function renderMessaging() {
   show(page('Messages', 'Household messages, push registrations and the notification socket.', loading(4)));
 
-  const loop = await firstLoop();
+  const context = await householdContext();
+  const loop = context.active;
   const container = page('Messages', 'Household messages, push registrations and the notification socket.');
+  if (!context.ok) container.append(errorBox('Could not load your household.', context.error));
+  else container.append(householdSwitcher(context));
 
   /* -- Jot ------------------------------------------------------------- */
   if (loop) {
@@ -1584,8 +1629,11 @@ async function renderMessaging() {
 async function renderPeople() {
   show(page('People', 'The person catalogue, as the robot sees it.', loading(4)));
 
-  const loop = await firstLoop();
+  const context = await householdContext();
+  const loop = context.active;
   const container = page('People', 'The person catalogue, as the robot sees it.');
+  if (!context.ok) { container.append(errorBox('Could not load your household.', context.error)); return show(container); }
+  container.append(householdSwitcher(context));
   if (!loop) { container.append(empty('No household', 'Pair a robot first.', 'users')); return show(container); }
 
   container.append(h('div', { class: 'notice' }, icon('alert', 15),

@@ -193,6 +193,28 @@ test('reads enforce manufacturing-or-owner when an identity is present', async (
   }
 });
 
+test('an owner can read the empty bootstrap projection of an adopted robot with no lifecycle history', async () => {
+  const h = makeRobotHandler({
+    store: storeFor('perm-adopted-read'),
+    ownedRobots: async (ownerId) => (ownerId === 'owner-account' ? [ID] : []),
+  });
+
+  // Legacy adoption creates the Account/loop and proves possession, but does
+  // not invent a manufacturing RobotCreated event.  The owner gets only the
+  // same bounded empty data a booting robot receives.
+  const robot = await call(h, 'GetRobot', { id: ID }, OWNER());
+  assert.equal(robot.status, 200);
+  assert.deepEqual(robot.body, { id: CID, payload: {} });
+  assert.deepEqual((await call(h, 'GetRobotHistory', { id: ID }, OWNER())).body, []);
+  assert.deepEqual((await call(h, 'GetCalibrationData', { id: ID }, OWNER())).body,
+    { id: CID, calibrationPayload: {} });
+
+  // Ownership remains mandatory; the fallback is not an existence oracle.
+  const denied = await call(h, 'GetRobot', { id: ID }, OTHER());
+  assert.equal(denied.status, 403);
+  assert.equal(denied.body.__type, 'MANUFACTURING_OR_OWNER_ONLY');
+});
+
 test('UpdateRobot: owner may update, non-owner is refused, suspended is manufacturing-only', async () => {
   const store = storeFor('perm-update');
   const owned = async (ownerId) => (ownerId === 'owner-account' ? [ID] : []);

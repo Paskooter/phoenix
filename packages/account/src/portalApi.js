@@ -42,7 +42,7 @@ import { createSession, destroySession, getSession, sessionCookie, clearCookie }
 import { buildQrCodes } from './qrPayload.js';
 import { userFromSession as sessionUser, portalAccount } from './portal/session.js';
 import { classicBaseUrl } from './portal/classicClient.js';
-import { portalLoopRoutes } from './portal/loops.js';
+import { portalLoopRoutes, visibleLoops } from './portal/loops.js';
 import { portalProfileRoutes } from './portal/profile.js';
 import { portalRobotRoutes } from './portal/robots.js';
 import { portalMediaRoutes } from './portal/media.js';
@@ -224,7 +224,11 @@ export function portalRoutes(store, options = {}) {
     'GET /api/robots': ({ req, res }) => {
       const account = userFromSession(store, req);
       if (!account) return sendJson(res, 401, { error: 'not logged in' });
-      const robots = store.allRobots().filter(({ loop }) => loop && loop.owner === account._id);
+      // A person can participate in more than one household.  Keep each
+      // household's data separate, but list robots from every household the
+      // current account is actually allowed to see (owned or accepted invite).
+      const visible = new Set(visibleLoops(store, account._id).map((loop) => String(loop._id)));
+      const robots = store.allRobots().filter(({ loop }) => loop && visible.has(String(loop._id)));
       return robots.map(robotView);
     },
 

@@ -117,9 +117,13 @@ test('admin: only an administrator ACCOUNT reaches the admin face; adopt returns
   assert.ok(robots.body.some((r) => r.friendlyId === 'castle-cylinder-fig-quilt'));
   assert.ok(!JSON.stringify(robots.body).includes(adopt.body.secretAccessKey), 'secret only shown at adoption');
 
-  // adopting the same robot again reuses the account/loop (idempotent), keys unchanged
+  // A repeat is idempotent, but never reveals long-lived credentials a second
+  // time.  The existing robot's file remains authoritative.
   const again = await call('POST', '/api/admin/adopt', { friendlyId: 'castle-cylinder-fig-quilt' }, 'j2');
-  assert.equal(again.body.credentialsJson.accessKeyId, adopt.body.credentialsJson.accessKeyId);
+  assert.equal(again.status, 200);
+  assert.equal(again.body.existing, true);
+  assert.equal(again.body.robot.friendlyId, adopt.body.robot.friendlyId);
+  assert.equal(again.body.credentialsJson, undefined);
 
   // Revoking takes access away from the live session immediately: the flag is
   // read per request, so there is no stale admin session to wait out.
@@ -135,6 +139,23 @@ test('owner /api/robots: 401 anonymous; owner sees only their loops', async () =
   const mine = await call('GET', '/api/robots', null, 'j2'); // george, owns nothing
   assert.equal(mine.status, 200);
   assert.deepEqual(mine.body, []);
+});
+
+test('member /api/robots: an accepted household member sees that household robot', async () => {
+  const george = store.accountByEmail('george@jetson.test');
+  const owner = createOwnerAccount(store, { email: 'owner@jetson.test', password: 'owner-password-1' });
+  const { loop, robot } = createLoop(store, { owner, robotId: 'shared-household-robot' });
+  loop.members.push({
+    _id: 'shared-household-member', accountId: george._id, status: 'ACCEPTED',
+    enrolled: { face: false, voice: false }, created: Date.now(),
+  });
+  store.flush();
+
+  const mine = await call('GET', '/api/robots', null, 'j2');
+  assert.equal(mine.status, 200);
+  const visible = mine.body.find((entry) => entry.friendlyId === robot.friendlyId);
+  assert.equal(visible.loopId, loop._id);
+  assert.equal(visible.loopName, loop.name);
 });
 
 test('store persists across instances (robot creds survive restart)', () => {

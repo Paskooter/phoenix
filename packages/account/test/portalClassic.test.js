@@ -101,8 +101,11 @@ test('signature travel: the portal uses the account credentials, never forges id
   const robot = await call('GET', `/api/robot?loopId=${encodeURIComponent(loop._id)}`);
   assert.equal(robot.status, 200);
   assert.equal(robot.body.robot.friendlyId, 'classic-fixture-robot');
-  // LAN-trust read state: exists when the robot store has a record, else empty
-  assert.ok(robot.body.getRobot !== undefined);
+  // Legacy/adopted Account robots may not have a manufacturing lifecycle
+  // record. Their verified owner gets the bounded empty bootstrap projection,
+  // rather than a misleading Robot_20160225 404 in the console.
+  assert.deepEqual(robot.body.getRobot, { id: 'classic-fixture-robot', payload: {} });
+  assert.equal(robot.body.diagnostics, undefined);
 });
 
 test('gallery: list seeded media through Classic Media_20160725, serve its bytes, then delete', async () => {

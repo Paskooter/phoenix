@@ -400,6 +400,12 @@ export function makeRobotHandler(opts = {}) {
     // ---- read handlers -----------------------------------------------------
     async function readOp(which) {
       // permission: source isManufacturingOrAdmin || hasRobot(credentials.id).
+      // Keep this separate from the event-log projection below.  An adopted
+      // legacy robot is a real Account/loop record, but it predates Phoenix's
+      // RobotCreated event log and therefore has no Classic lifecycle history.
+      // A successful ownership lookup is the authority for its empty bootstrap
+      // read; it is never a blanket exception for arbitrary missing ids.
+      let ownsRequestedRobot = false;
       if (!isManufacturingOrAdmin) {
         let owned;
         if (credentials) {
@@ -409,8 +415,9 @@ export function makeRobotHandler(opts = {}) {
             owned = undefined;
           }
           if (!Array.isArray(owned)) return void sendAmzError(res, ROBOT_ERRORS.ACCOUNT_SERVICE_UNAVAILABLE);
+          ownsRequestedRobot = owned.includes(b.id);
         }
-        if (credentials && !owned.includes(b.id)) {
+        if (credentials && !ownsRequestedRobot) {
           return void sendAmzError(res, ROBOT_ERRORS.MANUFACTURING_OR_OWNER_ONLY);
         }
         // This branch is retained for unguarded compatibility fixtures only;
@@ -420,7 +427,15 @@ export function makeRobotHandler(opts = {}) {
       const aggregate = store.aggregate(b.id);
       const found = aggregate.exists && !aggregate.deleted; // a deleted robot is gone from the read projection
 
-      if (!found && credentials) return void sendAmzError(res, ROBOT_ERRORS.ROBOT_NOT_FOUND);
+      // An Account-adopted robot that has never gone through the manufacturing
+      // lifecycle has no events at all.  Its verified owner may still read the
+      // deliberately empty bootstrap projection (matching the robot's boot
+      // fallback).  Do not apply this to a deleted aggregate: a deletion is
+      // meaningful lifecycle state and must remain a 404.
+      const accountAdoptedWithoutHistory = !!credentials && ownsRequestedRobot && !aggregate.exists;
+      if (!found && credentials && !accountAdoptedWithoutHistory) {
+        return void sendAmzError(res, ROBOT_ERRORS.ROBOT_NOT_FOUND);
+      }
 
       if (found && b.serialNumber !== undefined) {
         const serial = (aggregate.payload || {}).serialNumber;
