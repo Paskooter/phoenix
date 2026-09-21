@@ -215,6 +215,20 @@ test('an owner can read the empty bootstrap projection of an adopted robot with 
   assert.equal(denied.body.__type, 'MANUFACTURING_OR_OWNER_ONLY');
 });
 
+test('an administrator only gets an adopted empty projection for a robot they own', async () => {
+  const owned = async (accountId) => (accountId === 'admin-account' ? [ID] : []);
+  const h = makeRobotHandler({ store: storeFor('perm-admin-adopted-read'), ownedRobots: owned });
+  const ownBootstrap = await call(h, 'GetRobot', { id: ID }, ADMIN());
+  assert.equal(ownBootstrap.status, 200);
+  assert.deepEqual(ownBootstrap.body, { id: CID, payload: {} });
+
+  // Admin access to a real Robot record stays unrestricted, but a no-history
+  // id must not be converted into a synthetic record merely by admin status.
+  const missing = await call(h, 'GetRobot', { id: 'zz-zz-zz-zz' }, ADMIN());
+  assert.equal(missing.status, 404);
+  assert.equal(missing.body.__type, 'ROBOT_NOT_FOUND');
+});
+
 test('UpdateRobot: owner may update, non-owner is refused, suspended is manufacturing-only', async () => {
   const store = storeFor('perm-update');
   const owned = async (ownerId) => (ownerId === 'owner-account' ? [ID] : []);

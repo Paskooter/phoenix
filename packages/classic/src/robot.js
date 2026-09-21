@@ -427,6 +427,19 @@ export function makeRobotHandler(opts = {}) {
       const aggregate = store.aggregate(b.id);
       const found = aggregate.exists && !aggregate.deleted; // a deleted robot is gone from the read projection
 
+      // Administrators may read any existing lifecycle record without an
+      // ownership lookup.  For a *missing* record, however, retain the same
+      // ownership proof before treating it as an Account-adopted bootstrap
+      // record.  This matters when the household owner is also an admin.
+      if (!aggregate.exists && credentials && isAdmin) {
+        try {
+          const owned = await ownedRobots(credentials.id, false);
+          ownsRequestedRobot = Array.isArray(owned) && owned.includes(b.id);
+        } catch {
+          ownsRequestedRobot = false;
+        }
+      }
+
       // An Account-adopted robot that has never gone through the manufacturing
       // lifecycle has no events at all.  Its verified owner may still read the
       // deliberately empty bootstrap projection (matching the robot's boot
