@@ -1363,7 +1363,7 @@ pre.json {
 .ical-add-grid .field { min-width: 0; }
 .ical-add-actions { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
 .ical-add-status { min-height: 1.2em; margin: 0; }
-.ical-subscription-list { display: grid; gap: .65rem; }
+.ical-subscription-list { display: grid; gap: .65rem; min-width: 0; max-width: 100%; }
 .ical-subscription {
   display: flex;
   align-items: flex-start;
@@ -1374,13 +1374,24 @@ pre.json {
   border-radius: var(--radius-sm);
   background: var(--panel-2);
   box-shadow: var(--edge);
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
-@media (max-width: 650px) { .ical-subscription { flex-direction: column; } }
-.ical-subscription-main { min-width: 0; flex: 1; }
+@media (max-width: 650px) {
+  .ical-subscription { flex-direction: column; }
+  .ical-subscription-main { width: 100%; }
+}
+.ical-subscription-main { min-width: 0; flex: 1 1 0; }
 .ical-subscription-title { display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; }
 .ical-subscription-title strong { font-weight: 620; color: var(--fg); }
 .ical-enabled input { accent-color: var(--accent); }
 .ical-subscription-url {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   margin-top: .25rem;
   color: var(--muted);
   font-family: var(--font-mono);

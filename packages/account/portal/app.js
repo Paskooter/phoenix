@@ -795,7 +795,14 @@ function calendarMonthWindow(cursor) {
 function maskedCalendarUrl(value) {
   try {
     const url = new URL(value);
-    return `${url.protocol}//${url.host}${url.pathname}${url.search ? ' · query hidden' : ''}`;
+    // Subscription paths often contain an opaque provider token. They are
+    // useful to distinguish two calendars, but never useful at full length in
+    // a compact account row (and an unbroken path must not set the page width).
+    const path = url.pathname.length > 56
+      ? `${url.pathname.slice(0, 38)}…${url.pathname.slice(-14)}`
+      : url.pathname;
+    const label = `${url.protocol}//${url.host}${path}${url.search ? ' · query hidden' : ''}`;
+    return label.length > 96 ? `${label.slice(0, 78)}…${label.slice(-16)}` : label;
   } catch {
     return 'Saved calendar link';
   }
