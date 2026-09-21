@@ -170,6 +170,28 @@ function own(object, key) {
   return Object.prototype.hasOwnProperty.call(object, key);
 }
 
+function isMailProvider(provider) {
+  return typeof provider === 'function' || !!(provider && typeof provider.send === 'function');
+}
+
+function requireProductionMail({ invitationProviders, identityProviders }) {
+  if (process.env.PHOENIX_REQUIRE_PRODUCTION_CONFIG !== 'true') return;
+  const missing = [];
+  for (const [name, provider] of [
+    ['activation', invitationProviders?.activation],
+    ['password reset', invitationProviders?.passwordReset],
+    ['invitation', invitationProviders?.invitation],
+    ['email-change confirmation', identityProviders?.emailReset],
+    ['email-change notice', identityProviders?.emailResetComplete],
+    ['password-change notice', identityProviders?.passwordChanged],
+  ]) {
+    if (!isMailProvider(provider)) missing.push(name);
+  }
+  if (missing.length) {
+    throw new Error(`production Account service requires configured mail providers: ${missing.join(', ')}`);
+  }
+}
+
 function createConfiguredIdentityProviders({
   identityProviders,
   invitationProviders,
@@ -340,6 +362,13 @@ export function createAccountService({
     smsUrl,
     smsTimeoutMs,
     smsHeaders,
+  });
+  // A public service must not appear healthy while registration/recovery
+  // silently falls back to no-op delivery. Local development remains usable
+  // without SMTP; hardened production explicitly opts into this startup gate.
+  requireProductionMail({
+    invitationProviders: effectiveInvitationProviders,
+    identityProviders: effectiveIdentityProviders,
   });
   const photo = memberPhotoProvider ? null : photoConfiguration(loopConfig, store);
   const photoProvider = memberPhotoProvider || (photo.publicBaseUrl
