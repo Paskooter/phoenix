@@ -237,7 +237,7 @@
         <path d="M12 3 4.5 6v6c0 4.5 3.2 7.8 7.5 9 4.3-1.2 7.5-4.5 7.5-9V6L12 3Z"
               stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
       </svg>
-      <span data-brand="strip.item2">No telemetry, no analytics</span>
+      <span data-brand="strip.item2">No project telemetry</span>
     </span>
     <span class="strip-item">
       <svg viewBox="0 0 24 24" width="15" height="15" fill="none" aria-hidden="true">
@@ -541,9 +541,11 @@
             <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.8"
                   stroke-linecap="round" stroke-linejoin="round" /></svg>
         </summary>
-        <div class="answer"><p>Onto the machine you installed Phoenix on, and nowhere else. There is
-          no Phoenix-operated server, no telemetry and no analytics. Map tiles are the one optional
-          exception, and the location picker degrades to manual entry without them.</p></div>
+        <div class="answer"><p>Phoenix never sends robot data to the project or its contributors. A
+          self-hosted instance keeps it with its operator; the public jibo.io service explains its
+          data handling in its Privacy page and may use opt-in aggregate website analytics. Map tiles
+          are the one optional feature exception, and the location picker degrades to manual entry
+          without them.</p></div>
       </details>
       <details data-reveal>
         <summary><span>Does my robot need to be modified?</span>
@@ -685,6 +687,7 @@
   </div>
 </footer>
 
+<script src="/analytics.js" defer></script>
 <script type="module" src="/site.js"></script>
 </body>
 </html>

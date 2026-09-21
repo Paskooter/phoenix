@@ -141,9 +141,11 @@
       <p>Phoenix does not send your data anywhere. There is no Phoenix server to send it to. Your
         robot talks to a machine you control, and everything it produces — recordings, transcripts,
         photographs, messages, settings — stays on that machine.</p>
-      <p>Nobody who wrote this software can see any of it. There is no analytics, no telemetry, no
-        crash reporting and no tracking of any kind. The only things that reach the outside world
-        are the external data services the person running the instance chooses to switch on.</p>
+      <p>Nobody who wrote this software can see your robot or household data. Phoenix has no robot
+        telemetry or crash reporting. The public jibo.io website has an optional, consent-gated
+        Google Analytics service for aggregate website usage; self-hosted instances do not load it.
+        The other things that reach the outside world are the external data services the person
+        running an instance chooses to switch on.</p>
     </div>
 
     <h2 id="model">1. Who holds your data</h2>
@@ -198,8 +200,12 @@
       or tracking across sites, and there is nowhere for it to be shared to. Signing out clears it.</p>
     <p>The site stores one preference in your browser's local storage — your choice of light or dark
       theme. It never leaves your browser.</p>
-    <p>There are no third-party cookies, no advertising pixels, and no consent banner, because there
-      is nothing to consent to.</p>
+    <p>On <strong>jibo.io</strong>, the public deployment optionally uses Google Analytics 4 after
+      you choose “Allow analytics” in the consent prompt. It stores an anonymous consent choice in
+      local storage and may set Google Analytics cookies when you opt in. You can change that choice
+      at any time:
+      <button type="button" class="link" data-analytics-preferences hidden>manage analytics preference</button>.
+      Other self-hosted Phoenix instances do not load this integration.</p>
 
     <h2 id="outside">4. What leaves the machine</h2>
     <p>Phoenix is built to keep everything local. The exceptions are the outside data sources the
@@ -214,15 +220,24 @@
         a personal report that includes them. A request to such a provider necessarily reveals what
         was asked for — for example, the coordinates of a journey.</li>
       <li><strong>Push-notification services</strong>, if you register a device for them.</li>
+      <li><strong>Google Analytics 4</strong>, only on jibo.io and only after you opt in. It receives
+        aggregate page-view and basic usage events from the website and console. Query strings and
+        hash fragments are removed before the event is sent, and account, robot and household data
+        are not included.</li>
     </ul>
     <p>Each of these is operated by a third party under its own privacy policy. Turning a feature off
       in the console stops the corresponding requests.</p>
 
-    <h2 id="no-telemetry">5. No telemetry</h2>
-    <p>Phoenix contains no analytics, no telemetry, no crash or error reporting, no usage metrics, no
-      fingerprinting, no A/B testing and no beacons. This website loads no third-party scripts, no
-      third-party fonts and no tracking of any kind. Everything it needs is served from the instance
-      you are looking at.</p>
+    <h2 id="no-telemetry">5. No robot telemetry</h2>
+    <p>Phoenix does not collect robot audio, transcripts, photographs, messages, household records or
+      account contents for analytics. It contains no crash reporting, fingerprinting, A/B testing or
+      advertising beacons.</p>
+    <p>The public <strong>jibo.io</strong> website and console have one separate, opt-in exception:
+      Google Analytics 4 receives aggregate page-view and basic usage events only after consent. The
+      integration is disabled on self-hosted domains, sends a sanitized origin and path without query
+      strings or hash fragments, and disables Google signals and ad personalization. You can decline
+      or revoke consent from the prompt or the control above. Everything else the portal needs is
+      served from the instance you are looking at.</p>
     <p>This is verifiable rather than promised: the source is available, and the network tab of your
       browser is the shortest audit.</p>
 
@@ -238,15 +253,18 @@
     <h2 id="children">7. Children</h2>
     <p>This robot was widely used in family homes, and children frequently interacted with it. A
       Phoenix instance may therefore process children's voices, faces and photographs.</p>
-    <p>The Phoenix project does not knowingly collect anything from anyone, since it collects nothing
-      at all. But if you operate an instance in a household with children, you are the one handling
-      children's personal data, and the responsibility for doing so lawfully and carefully is
-      yours.</p>
+    <p>The Phoenix project does not knowingly collect robot or household data. On jibo.io, a visitor
+      may separately opt in to aggregate website analytics; do not grant that consent for a child
+      unless the applicable rules permit it. If you operate an instance in a household with
+      children, you are the one handling their robot data, and the responsibility for doing so
+      lawfully and carefully is yours.</p>
 
     <h2 id="retention">8. Retention and deletion</h2>
-    <p>Data stays on the instance until it is deleted there. The console can delete media and remove
-      members, push registrations and robots. Nothing is retained anywhere else, because there is
-      nowhere else.</p>
+    <p>Robot and household data stays on the instance until it is deleted there. The console can
+      delete media and remove members, push registrations and robots. If you opt in to jibo.io
+      analytics, aggregate website events are processed by Google under Google's retention and
+      privacy terms; revoking consent stops future events and clears locally stored analytics
+      cookies where the browser allows it.</p>
     <p>Deleting the instance's data directory removes everything. There is no backup you do not
       control, which also means there is no recovery if you delete something by mistake.</p>
 
@@ -303,6 +321,7 @@
   </div>
 </footer>
 
+<script src="/analytics.js" defer></script>
 <script type="module" src="/site.js"></script>
 </body>
 </html>

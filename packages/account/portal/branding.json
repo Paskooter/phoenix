@@ -159,7 +159,7 @@
       },
       {
         "q": "Where does my data go?",
-        "a": "Onto the machine you installed Phoenix on, and nowhere else. There is no Phoenix-operated server, no telemetry and no analytics. Map tiles are the one optional exception, and the location picker degrades to manual entry without them."
+        "a": "Phoenix never sends robot data to the project or its contributors. A self-hosted instance keeps it with its operator; the public jibo.io service explains its data handling in its Privacy page and may use opt-in aggregate website analytics. Map tiles are the one optional feature exception, and the location picker degrades to manual entry without them."
       },
       {
         "q": "Does my robot need to be modified?",
@@ -244,7 +244,7 @@
   },
   "strip": {
     "item1": "Runs on your hardware",
-    "item2": "No telemetry, no analytics",
+    "item2": "No project telemetry",
     "item3": "Open and inspectable",
     "item4": "One external dependency"
   }
