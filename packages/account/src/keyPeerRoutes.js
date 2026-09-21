@@ -16,10 +16,28 @@
 // filtered — ListLoopMembers is called with an empty payload, which selects every status.
 
 import { sendJson } from '@phoenix/common';
+import { timingSafeEqual } from 'node:crypto';
+
+function internalPeerAuthorized(req, res) {
+  const expected = process.env.ETCO_account_internalPeerToken;
+  const presented = req?.headers?.['x-phoenix-internal-token'];
+  if (!expected) {
+    sendJson(res, 503, { error: 'internal peer authentication is not configured' });
+    return false;
+  }
+  const left = Buffer.from(String(expected));
+  const right = Buffer.from(typeof presented === 'string' ? presented : '');
+  if (left.length !== right.length || !timingSafeEqual(left, right)) {
+    sendJson(res, 401, { error: 'internal peer authentication failed' });
+    return false;
+  }
+  return true;
+}
 
 export function keyPeerRoutes(store) {
   return {
-    'GET /loopMembers': ({ url, res }) => {
+    'GET /loopMembers': ({ req, url, res }) => {
+      if (!internalPeerAuthorized(req, res)) return;
       const loopId = url.searchParams.get('loopId');
       const loop = loopId ? store.loops.get(loopId) : null;
       if (!loop || loop.isDeleted === true) {

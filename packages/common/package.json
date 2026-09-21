@@ -9,8 +9,8 @@
   },
   "dependencies": {
     "@phoenix/contracts": "*",
-    "body-parser": "1.18.2",
-    "express": "4.16.2"
+    "body-parser": "1.20.8",
+    "express": "4.22.3"
   },
   "license": "UNLICENSED"
 }

@@ -1,7 +1,11 @@
-// One-off: adopt an ALREADY-CREDENTIALED robot into Phoenix's account store, binding a loop to the
-// robot's EXISTING accessKeyId (from its /var/jibo/credentials.json) so Loop.List returns exactly
-// one loop for it — the precondition jibo-system-backup.js needs before Backup.New. Unlike OOBE,
-// this does NOT mint new keys; it reuses the robot's current ones (LAN trust, SigV4 unverified).
+// One-off: register an ALREADY-CREDENTIALED robot into Phoenix's account store, binding a loop to
+// the robot's EXISTING accessKeyId (from its /var/jibo/credentials.json) so Loop.List returns
+// exactly one loop for it — the precondition jibo-system-backup.js needs before Backup.New. Unlike
+// OOBE, this does NOT mint new keys; it reuses the robot's current ones.
+//
+// This intentionally creates only an *unclaimed bootstrap* loop. It must not create a fake human
+// owner (and especially not one with a guessable password). Customer ownership is established by
+// the one-time, signed-in portal claim consumed by repoint-robot.sh --claim-code.
 //
 // Usage: node scripts/adopt-existing-robot.mjs <accessKeyId> <secretAccessKey> <friendlyId>
 //    or: node scripts/adopt-existing-robot.mjs --stdin   with the robot's own
@@ -12,7 +16,7 @@
 // access key must not appear there.
 import { readFileSync } from 'node:fs';
 import { getStore } from '../packages/account/src/store.js';
-import { createOwnerAccount, createLoop } from '../packages/account/src/model.js';
+import { adoptRobot } from '../packages/account/src/robotAdoption.js';
 
 let accessKeyId; let secretAccessKey; let friendlyId;
 if (process.argv[2] === '--stdin') {
@@ -55,17 +59,13 @@ if (existing) {
   if (!friendlyId) friendlyId = existing.friendlyId;
 }
 
-const owner = store.accountByEmail('owner@phoenix.local')
-  || createOwnerAccount(store, { email: 'owner@phoenix.local', password: 'phoenix-local-owner', firstName: 'Phoenix' });
-
-const { loop, robot } = createLoop(store, { owner, robotId: friendlyId });
-// Override the freshly-minted keys with the robot's existing ones so its signed calls resolve here.
-robot.accessKeyId = accessKeyId;
-robot.secretAccessKey = secretAccessKey;
-store.accounts.set(robot._id, robot);
-store.flush();
+const { status, payload } = adoptRobot(store, { accessKeyId, secretAccessKey, friendlyId });
+if (status !== 200) {
+  console.error(JSON.stringify({ ok: false, ...payload }, null, 2));
+  process.exit(status === 409 ? 3 : 1);
+}
 
 console.log(JSON.stringify({
-  ok: true, loopId: loop._id, loopName: loop.name,
-  robotAccountId: robot._id, friendlyId: robot.friendlyId, accessKeyId: robot.accessKeyId,
+  ok: true, unclaimed: true, loopId: payload.loopId,
+  robotAccountId: payload.robotId, friendlyId: payload.friendlyId, accessKeyId,
 }, null, 2));

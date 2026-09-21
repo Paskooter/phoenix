@@ -26,6 +26,11 @@ export const GQA_ACCOUNT_SERVICE_ENV = 'ETCO_server_accountService';
 export const PHOENIX_ACCOUNT_LOOP_PATH = '/listAssociatedLoops';
 export const PHOENIX_ACCOUNT_VERIFY_PATH = '/api/verify';
 
+function accountPeerHeaders() {
+  const token = process.env.ETCO_account_internalPeerToken;
+  return token ? { 'x-phoenix-internal-token': token } : {};
+}
+
 // gqa/attribute.py creates this index after every insert.  The object form is
 // the native Node Mongo representation of the same ordered source keys.
 export const GQA_ATTRIBUTE_INDEX = Object.freeze({
@@ -266,7 +271,7 @@ export function createPhoenixGqaAccountLookup({
     try {
       const response = await fetchImpl(accountEndpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...accountPeerHeaders() },
         body: sourceJsonDumps({ accountsIds: [accountId] }),
       });
       accountServiceOutput = await responseJson(response, 'GQA account');

@@ -84,6 +84,36 @@ test('load computes real length + sha1 from the file', () => {
   assert.equal(e.sha1, sha1(FILES['os-12.10.0.tar']));
 });
 
+test('a token-authenticated loopback Classic peer can carry a verified caller without a public Host match', async () => {
+  const peer = await createOtaService({
+    catalog,
+    publicBaseUrl: 'https://ota.fixture.test',
+    packageBearerSecret: 'fixture-package-secret',
+    resolveCredentials: () => null,
+    internalPeerToken: 'fixture-classic-ota-token',
+  }).listen(0);
+  const peerBase = `http://127.0.0.1:${peer.address().port}`;
+  const headers = {
+    'content-type': 'application/x-amz-json-1.1',
+    'x-amz-target': 'Update_20160301.ListUpdates',
+    'x-phoenix-ota-peer-token': 'fixture-classic-ota-token',
+    'x-phoenix-verified-account': JSON.stringify({ id: 'fixture-account' }),
+  };
+  try {
+    const trusted = await fetch(`${peerBase}/`, { method: 'POST', headers, body: JSON.stringify({ subsystem: 'os' }) });
+    assert.equal(trusted.status, 200);
+
+    const forged = await fetch(`${peerBase}/`, {
+      method: 'POST',
+      headers: { ...headers, 'x-phoenix-ota-peer-token': 'wrong-token' },
+      body: JSON.stringify({ subsystem: 'os' }),
+    });
+    assert.equal(forged.status, 401);
+  } finally {
+    await new Promise((resolve) => peer.close(resolve));
+  }
+});
+
 test('listUpdatesFrom: wildcard applies to any lower version', () => {
   assert.equal(catalog.listUpdatesFrom({ fromVersion: '3.3.4', subsystem: 'os' }).length, 2);
 });
@@ -145,6 +175,20 @@ test('filter: prefix when asked for, empty-string-exact when not', () => {
   assert.equal(catalog.listUpdates({ subsystem: 'be', filter: '' }).length, 0, 'a filterless request must not see the "green" entry');
   assert.equal(catalog.listUpdates({ subsystem: 'os', filter: '' }).length, 2, 'unfiltered entries are served to a filterless request');
   assert.equal(catalog.listUpdates({ subsystem: 'os', filter: 'gr' }).length, 0, 'an unfiltered entry must not be served to a filtered request');
+});
+
+test('a filterless catalog entry is invisible to a stock robot (filter is not a wildcard)', () => {
+  // A stock robot sends otaFilter "fcs", baked into its jibo-ssm-normal.json. An
+  // entry published with filter '' is NOT a wildcard: the source rule prefix-matches
+  // the ENTRY's filter against the REQUEST's, so '' never matches 'fcs'. Publishing
+  // only filterless entries makes a correct, fully-populated catalog report "already
+  // up to date" to every real robot, which is exactly what happened on jibo.io.
+  assert.equal(filterMatches('', 'fcs'), false, "'' must not serve an fcs robot");
+  assert.equal(filterMatches('fcs', 'fcs'), true);
+  // ...and the converse: an fcs entry must not leak to a robot that sends no filter,
+  // which is why a catalog has to carry BOTH forms of each version.
+  assert.equal(filterMatches('fcs', ''), false);
+  assert.equal(filterMatches('', ''), true);
 });
 
 test('filterMatches is the source rule in both directions', () => {

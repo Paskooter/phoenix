@@ -59,6 +59,10 @@ export function applyText(root, brand) {
     const value = pick(brand, el.dataset.brand);
     if (typeof value === 'string' || typeof value === 'number') {
       el.textContent = String(value);
+      // An optional slot ships hidden and empty: the project has no page for it, but an
+      // instance that defines the string wants it shown. Without this an operator can
+      // set nav.guide and still see nothing, which reads as the config being ignored.
+      if (el.hasAttribute('data-brand-optional')) el.removeAttribute('hidden');
     }
   }
   for (const el of root.querySelectorAll('[data-brand-attr]')) {
@@ -67,7 +71,15 @@ export function applyText(root, brand) {
       if (idx < 0) continue;
       const attr = pair.slice(0, idx).trim();
       const value = pick(brand, pair.slice(idx + 1).trim());
-      if (typeof value === 'string' && value) el.setAttribute(attr, value);
+      if (typeof value !== 'string' || !value) continue;
+      // Branding is operator-controlled, but it is still deployment input and
+      // must not turn a navigation/logo slot into `javascript:` or an event
+      // handler. Keep the small documented attribute surface explicit.
+      if ((attr === 'href' || attr === 'src') && safeBrandUrl(value)) {
+        el.setAttribute(attr, value);
+      } else if (attr === 'aria-label') {
+        el.setAttribute(attr, value.slice(0, 500));
+      }
     }
   }
 }
@@ -106,13 +118,26 @@ function withAlpha(hex, alpha) {
  * script into every page that reads it.
  */
 export function applyLogo(brand) {
-  if (!brand || typeof brand.logo !== 'string' || !brand.logo) return;
+  if (!brand || typeof brand.logo !== 'string' || !safeBrandUrl(brand.logo)) return;
   for (const slot of document.querySelectorAll('[data-brand-logo]')) {
     const img = document.createElement('img');
     img.src = brand.logo;
     img.alt = brand.name || 'Logo';
     img.className = 'brand-logo-img';
     slot.replaceChildren(img);
+  }
+}
+
+/** Allow normal http(s) URLs and root-relative/page-fragment portal links. */
+export function safeBrandUrl(value) {
+  if (typeof value !== 'string' || value.length === 0 || value.length > 2048) return false;
+  if (value.startsWith('/') && !value.startsWith('//')) return true;
+  if (value.startsWith('#')) return true;
+  try {
+    const url = new URL(value);
+    return ['http:', 'https:'].includes(url.protocol) && !url.username && !url.password;
+  } catch {
+    return false;
   }
 }
 

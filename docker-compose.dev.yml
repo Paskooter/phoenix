@@ -1,0 +1,47 @@
+# Development/contract-test override.
+#
+# The production compose file publishes only its loopback edge ports. This
+# override restores the reference-shaped localhost ports so
+# scripts/verify-compose-contract.mjs can exercise every service. Nothing here
+# binds a wildcard/public host address; use an explicit, separately reviewed
+# override if a robot or another LAN client must connect directly.
+services:
+  hub:
+    ports:
+      - 127.0.0.1:${HUB_PORT:-9000}:8080
+  parser:
+    ports:
+      - 127.0.0.1:${PARSER_PORT:-9005}:8080
+  history:
+    ports:
+      - 127.0.0.1:${HISTORY_PORT:-9006}:8080
+  lasso:
+    ports:
+      - 127.0.0.1:${LASSO_PORT:-9007}:8080
+  answer-skill:
+    ports:
+      - 127.0.0.1:${ANSWER_SKILL_PORT:-9009}:8080
+  report-skill:
+    ports:
+      - 127.0.0.1:${REPORT_SKILL_PORT:-9003}:8080
+  chitchat-skill:
+    ports:
+      - 127.0.0.1:${CHITCHAT_SKILL_PORT:-9004}:8080
+  color-skill:
+    ports:
+      - 127.0.0.1:${COLOR_SKILL_PORT:-9008}:8080
+  example-skill:
+    ports:
+      - 127.0.0.1:${EXAMPLE_SKILL_PORT:-9013}:8080
+  template-skill:
+    ports:
+      - 127.0.0.1:${TEMPLATE_SKILL_PORT:-9014}:8080
+  ota:
+    ports:
+      - 127.0.0.1:${OTA_PORT:-9010}:8080
+  account:
+    ports:
+      - 127.0.0.1:${ACCOUNT_PORT:-9011}:8080
+  classic:
+    ports:
+      - 127.0.0.1:${CLASSIC_PORT:-9012}:8080

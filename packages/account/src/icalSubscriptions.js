@@ -1,4 +1,6 @@
 import { randomUUID } from 'node:crypto';
+import { lookup } from 'node:dns/promises';
+import net from 'node:net';
 import { getSettingsData, setSettingsData } from './settingsData.js';
 import { ical } from '@phoenix/common';
 
@@ -9,6 +11,7 @@ export const ICAL_FETCH_TIMEOUT_MS = 8000;
 export const ICAL_MAX_REDIRECTS = 3;
 export const ICAL_CACHE_BEFORE_MS = 2 * 24 * 60 * 60 * 1000;
 export const ICAL_CACHE_AFTER_MS = 370 * 24 * 60 * 60 * 1000;
+export const ICAL_ALLOW_PRIVATE_ENV = 'ETCO_account_allowPrivateCalendarHosts';
 const SUBSCRIPTIONS_KEY = 'icalSubscriptions';
 const TIME_ZONE_KEY = 'calendarTimeZone';
 const ALLOWED_PROTOCOLS = new Set(['http:', 'https:', 'webcal:']);
@@ -36,14 +39,43 @@ export function accountTimeZone(data) {
   return validTimeZone(data?.[TIME_ZONE_KEY]?.value);
 }
 
+function privateIpv4(value) {
+  const parts = value.split('.').map(Number);
+  if (parts.length !== 4 || parts.some((part) => !Number.isInteger(part) || part < 0 || part > 255)) return false;
+  const [a, b] = parts;
+  return a === 0 || a === 10 || a === 127 || (a === 100 && b >= 64 && b <= 127)
+    || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31)
+    || (a === 192 && (b === 0 || b === 168)) || (a === 198 && b >= 18 && b <= 19)
+    || a >= 224;
+}
+
+function privateHostLiteral(hostname) {
+  const normalized = String(hostname || '').replace(/^\[|\]$/g, '').toLowerCase();
+  if (!normalized || normalized === 'localhost' || normalized.endsWith('.localhost')
+    || normalized === 'metadata.google.internal' || normalized === 'instance-data') return true;
+  const kind = net.isIP(normalized);
+  if (kind === 4) return privateIpv4(normalized);
+  if (kind === 6) {
+    // IPv6 loopback, unspecified, link-local, ULA and IPv4-mapped private
+    // addresses.  URL.hostname retains brackets on some Node versions.
+    if (normalized === '::1' || normalized === '::' || normalized.startsWith('fc')
+      || normalized.startsWith('fd') || normalized.startsWith('fe8')
+      || normalized.startsWith('fe9') || normalized.startsWith('fea')
+      || normalized.startsWith('feb') || normalized.startsWith('2001:db8:')) return true;
+    const mapped = normalized.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
+    return Boolean(mapped && privateIpv4(mapped[1]));
+  }
+  return false;
+}
+
 /**
- * Validate the scheme only; Phoenix is deliberately a LAN product, so private and
- * loopback hosts remain allowed. A household may publish an iCal feed on its NAS or
- * another device on the same network, and rejecting RFC-1918 targets would make that
- * supported deployment impossible. The fetch is still bounded by timeout, redirects,
- * and a response-size cap, and URL/userinfo values are never logged.
+ * Validate an iCal URL before any outbound request.  Private/loopback/link-local
+ * destinations are blocked by default because this endpoint is Internet-facing
+ * and otherwise becomes an authenticated SSRF primitive.  A deliberate LAN
+ * deployment may opt in with `ETCO_account_allowPrivateCalendarHosts=true` (and
+ * should firewall the service accordingly).
  */
-export function validateIcalUrl(input) {
+export function validateIcalUrl(input, { allowPrivateHosts = false } = {}) {
   if (typeof input !== 'string' || !input.trim()) throw genericError('calendar URL is required');
   let parsed;
   try {
@@ -55,13 +87,32 @@ export function validateIcalUrl(input) {
     throw genericError('calendar URL scheme is not allowed (use http, https, or webcal)');
   }
   if (!parsed.hostname) throw genericError('calendar URL must include a host');
+  if (parsed.username || parsed.password) throw genericError('calendar URL userinfo is not allowed');
+  if (!allowPrivateHosts && privateHostLiteral(parsed.hostname)) {
+    throw genericError('calendar URL host is not allowed');
+  }
   return parsed;
 }
 
-function fetchURL(url) {
-  const parsed = validateIcalUrl(url);
+function fetchURL(url, options) {
+  const parsed = validateIcalUrl(url, options);
   if (parsed.protocol === 'webcal:') parsed.protocol = 'http:';
   return parsed.toString();
+}
+
+async function assertSafeResolvedHost(parsed, { allowPrivateHosts, resolveHost = true } = {}) {
+  if (allowPrivateHosts || !resolveHost || privateHostLiteral(parsed.hostname)) return;
+  let records;
+  try {
+    records = await lookup(parsed.hostname, { all: true, verbatim: true });
+  } catch {
+    // Fail closed.  Letting fetch resolve after our resolver failed would
+    // re-open the DNS-rebinding/metadata path we are trying to prevent.
+    throw genericError('calendar URL host could not be resolved');
+  }
+  if (records.some((record) => privateHostLiteral(record.address))) {
+    throw genericError('calendar URL host is not allowed');
+  }
 }
 
 function abortError() {
@@ -126,14 +177,23 @@ export async function fetchIcalText(input, {
   timeoutMs = Number(process.env.ETCO_account_icalTimeoutMs) || ICAL_FETCH_TIMEOUT_MS,
   maxBytes = ICAL_MAX_BYTES,
   maxRedirects = ICAL_MAX_REDIRECTS,
+  allowPrivateHosts = process.env[ICAL_ALLOW_PRIVATE_ENV] === 'true',
 } = {}) {
   if (typeof fetchImpl !== 'function') throw genericError('calendar fetch is unavailable');
-  let current = validateIcalUrl(input);
+  let current = validateIcalUrl(input, { allowPrivateHosts });
   for (let redirect = 0; redirect <= maxRedirects; redirect += 1) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const response = await fetchImpl(fetchURL(current.toString()), {
+      // Resolve every hop before fetching so DNS names cannot be used to reach
+      // RFC-1918, loopback, link-local, or cloud-metadata services.  Test and
+      // custom fetchers can opt out of DNS resolution while literal private
+      // addresses remain blocked by validateIcalUrl.
+      await assertSafeResolvedHost(current, {
+        allowPrivateHosts,
+        resolveHost: fetchImpl === globalThis.fetch,
+      });
+      const response = await fetchImpl(fetchURL(current.toString(), { allowPrivateHosts }), {
         method: 'GET',
         redirect: 'manual',
         signal: controller.signal,
@@ -146,7 +206,7 @@ export async function fetchIcalText(input, {
         if (!location) throw genericError('calendar redirect has no location');
         try {
           current = new URL(location, current);
-          validateIcalUrl(current.toString());
+          validateIcalUrl(current.toString(), { allowPrivateHosts });
         } catch (error) {
           if (error.message.startsWith('calendar URL')) throw error;
           throw genericError('calendar redirect URL is invalid');

@@ -24,7 +24,8 @@
 # Deliberately NOT done by default:
 #   * no /etc/hosts intercept
 #   * no private certificate authority
-#   * no account adoption / loop claim
+#   * no account adoption / loop claim, unless a signed-in portal claim code is
+#     explicitly supplied
 #   * no hub port or binding changes
 #   * no server-side certificate generation
 #
@@ -39,7 +40,7 @@
 #
 # Usage:
 #   robot-ota-repoint.sh --robot root@<ip> [--region <r>] [--region-ca <pem>]
-#                        [--dry-run] [--yes] [--verify] [--revert]
+#                        [--claim-code <portal-code>] [--dry-run] [--yes] [--verify] [--revert]
 #   robot-ota-repoint.sh --robot root@<ip> --full --phoenix https://... --yes
 #
 # Nothing is changed without showing a plan first. Every file edited is backed up
@@ -49,7 +50,7 @@ set -uo pipefail
 
 ROBOT=""; REGION=""; REGION_CA=""; DRY=0; ASSUME_YES=0; VERIFY=0; REVERT=0
 PUBLIC_SUFFIX="jibo.io"
-FULL=0; FULL_ARGS=()
+FULL=0; FULL_ARGS=(); CLAIM_CODE=""
 
 # The robot's own trust store. `bundle` is what OpenSSL reads; the individual PEM
 # plus the subject-hash symlink are how a cert is normally installed alongside it.
@@ -67,6 +68,7 @@ while [ $# -gt 0 ]; do
     --region)    REGION="${2:-}"; shift 2 ;;
     --region-ca) REGION_CA="${2:-}"; shift 2 ;;
     --suffix)    PUBLIC_SUFFIX="${2:-}"; shift 2 ;;
+    --claim-code) CLAIM_CODE="${2:-}"; shift 2 ;;
     --dry-run)   DRY=1; shift ;;
     --yes)       ASSUME_YES=1; shift ;;
     --verify)    VERIFY=1; shift ;;
@@ -81,6 +83,63 @@ while [ $# -gt 0 ]; do
 done
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# The portal publishes this script as a single download. A source checkout has
+# robot-client/ beside it, but a downloaded script does not. Fetch only the two
+# fixed support assets that the script needs, pin them by SHA-256, and keep them
+# in a temporary local directory. This is deliberately not a curl|shell path.
+PUBLIC_ASSET_ORIGIN="${PHOENIX_REPOINT_ASSET_ORIGIN:-https://jibo.io}"
+CLIENT_SOURCE="${SCRIPT_DIR}/robot-client/node.js"
+ROOT_PEM_SRC="${REGION_CA}"
+SUPPORT_DIR=""
+CLIENT_SOURCE_SHA256="29686ca0aec6b93b8b716b94fca443ce25e6e7e55e01e798be56bce920c66bac"
+ROOT_PEM_SOURCE_SHA256="22b557a27055b33606b6559f37703928d3e4ad79f110b407d04986e1843543d1"
+
+cleanup_support() {
+  [ -z "$SUPPORT_DIR" ] || rm -rf "$SUPPORT_DIR"
+}
+
+sha256_of() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | awk '{print $1}'
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$1" | awk '{print $1}'
+  else
+    die "need sha256sum or shasum to verify the public support files"
+  fi
+}
+
+fetch_support_asset() {
+  local path="$1" dest="$2" expected="$3" actual=""
+  command -v curl >/dev/null 2>&1 || die "curl is required to fetch ${path}; download it beside this script instead"
+  curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+    --connect-timeout 10 --max-time 60 "${PUBLIC_ASSET_ORIGIN}${path}" -o "$dest" \
+    || die "could not fetch ${PUBLIC_ASSET_ORIGIN}${path}"
+  actual="$(sha256_of "$dest")"
+  [ "$actual" = "$expected" ] || { rm -f "$dest"; die "downloaded ${path} failed its SHA-256 check"; }
+}
+
+ensure_support_assets() {
+  # A checked-out copy has both support files already. A standalone download
+  # receives only the missing file(s), never overwrites a supplied custom CA.
+  if [ ! -r "$CLIENT_SOURCE" ] || { [ -z "$ROOT_PEM_SRC" ] && [ ! -r "${SCRIPT_DIR}/robot-client/isrg-root-x1.pem" ]; }; then
+    SUPPORT_DIR="$(mktemp -d "${TMPDIR:-/tmp}/phoenix-repoint.XXXXXX")" || die "could not create a temporary support directory"
+  fi
+  if [ ! -r "$CLIENT_SOURCE" ]; then
+    mkdir -p "$SUPPORT_DIR/robot-client"
+    CLIENT_SOURCE="$SUPPORT_DIR/robot-client/node.js"
+    fetch_support_asset '/robot-client/node.js' "$CLIENT_SOURCE" "$CLIENT_SOURCE_SHA256"
+  fi
+  if [ ! -r "$ROOT_PEM_SRC" ]; then
+    ROOT_PEM_SRC="${SCRIPT_DIR}/robot-client/isrg-root-x1.pem"
+    if [ ! -r "$ROOT_PEM_SRC" ]; then
+      mkdir -p "$SUPPORT_DIR/robot-client"
+      ROOT_PEM_SRC="$SUPPORT_DIR/robot-client/isrg-root-x1.pem"
+      fetch_support_asset '/robot-client/isrg-root-x1.pem' "$ROOT_PEM_SRC" "$ROOT_PEM_SOURCE_SHA256"
+    fi
+  fi
+}
+
+trap cleanup_support EXIT
 say()  { printf '%s\n' "$*"; }
 step() { printf '\n== %s\n' "$*"; }
 die()  { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
@@ -95,6 +154,9 @@ if [ "$FULL" -eq 1 ]; then
 fi
 
 [ -n "$ROBOT" ] || die "--robot root@<ip> is required (or --full for the complete repoint)"
+if [ -n "$CLAIM_CODE" ] && [[ ! "$CLAIM_CODE" =~ ^[A-Za-z0-9_-]{43}$ ]]; then
+  die "--claim-code must be the exact one-time code shown by the portal"
+fi
 
 SSH=(ssh -o BatchMode=yes -o ConnectTimeout=10 "$ROBOT")
 rsh() { "${SSH[@]}" "$@"; }
@@ -205,12 +267,21 @@ say "  4. link /etc/ssl/cert.pem -> ${TRUST_BUNDLE} (OpenSSL's default CAfile, w
 say "     stock image never shipped; without it the NATIVE hub client verifies nothing)"
 say "  5. point the jetstream hub override at ${REGION%-entrypoint}-hub.${PUBLIC_SUFFIX}:443, so audio"
 say "     turns go to this server instead of wherever it was pointed before"
-say "  6. hand the robot's existing credentials to https://${REGION}.${PUBLIC_SUFFIX}/api/adopt-robot (idempotent)"
+if [ -n "$CLAIM_CODE" ]; then
+  say "  6. prove possession with the robot's existing credentials and link it to the signed-in Phoenix account"
+else
+  say "  6. register the robot's existing credentials as an unclaimed bootstrap (idempotent)"
+fi
 say "  7. write a receipt to ${RECEIPT}"
 say ""
 say "  NOT touched: /etc/hosts, any private CA, server certs, the robot's own credentials."
 say "  After this the robot can reach ${REST_URL}, stream audio to the hub, and take an OTA"
 say "  update from it. A reboot is needed for the native services to reload their config."
+
+# Do this after the plan is printed: downloaded public scripts must be complete
+# before they touch a robot, and the digest check makes a broken publication a
+# clean failure rather than a half-repointed machine.
+ensure_support_assets
 
 if [ "$DRY" -eq 1 ]; then
   say ""
@@ -240,7 +311,7 @@ restore_root_ro() {
   [ "$ROOT_WAS_RO" -eq 1 ] || return 0
   rsh 'mount -o remount,ro / 2>/dev/null || true' >/dev/null 2>&1 || true
 }
-trap restore_root_ro EXIT
+trap 'restore_root_ro; cleanup_support' EXIT
 
 if [ "$ROOT_WAS_RO" -eq 1 ]; then
   say "  remounting / read-write (it was read-only)"
@@ -286,7 +357,6 @@ done
 # and hands it to its https.Agent, so each copy needs both files. Install into EVERY copy:
 # the log client, the OTA updater and the skills each carry their own, and the OTA updater
 # is one of them -- miss it and the robot can never fetch the update that would fix it.
-CLIENT_SOURCE="${SCRIPT_DIR}/robot-client/node.js"
 if [ -r "$CLIENT_SOURCE" ]; then
   CLIENT_HTTP_DIRS=""
   for c in "${PRESENT[@]}"; do
@@ -332,15 +402,13 @@ if [ -r "$CLIENT_SOURCE" ]; then
   printf '%s\n' "$out"
   APPLIED+=("${CLIENT_DIRS_NOTE:-client node.js + phoenix-ca.pem (all copies)}")
 else
-  say "  ${CLIENT_SOURCE} not found; the client cannot be given a CA and TLS will fail"
+  die "the CA-accepting client support file is unavailable"
 fi
 
 # 7c. Trust root.
 # openssl does NOT exist on the robot, so the subject-hash symlink name is computed
 # here, from the certificate, and shipped with the file.
 if [ "$HAVE_ROOT" -eq 0 ]; then
-  ROOT_PEM_SRC="${REGION_CA}"
-  [ -f "$ROOT_PEM_SRC" ] || ROOT_PEM_SRC="/home/shell/work/phoenix/scripts/robot-client/isrg-root-x1.pem"
   if [ ! -f "$ROOT_PEM_SRC" ]; then
     say "  no ISRG Root X1 available locally (pass --region-ca <pem>); trust step SKIPPED."
   else
@@ -457,15 +525,26 @@ if [ -z "$AKID" ] || [ -z "$ASEC" ]; then
   say "  the robot has no credentials to adopt (unpaired); skipping adoption"
 else
   # The secret is passed on stdin, never on a command line or in the log.
-  ADOPT_BODY="$(printf '{"accessKeyId":"%s","secretAccessKey":"%s","friendlyId":"%s"}' "$AKID" "$ASEC" "$FRIENDLY")"
+  if [ -n "$CLAIM_CODE" ]; then
+    ADOPT_BODY="$(printf '{"accessKeyId":"%s","secretAccessKey":"%s","friendlyId":"%s","claimCode":"%s"}' "$AKID" "$ASEC" "$FRIENDLY" "$CLAIM_CODE")"
+  else
+    ADOPT_BODY="$(printf '{"accessKeyId":"%s","secretAccessKey":"%s","friendlyId":"%s"}' "$AKID" "$ASEC" "$FRIENDLY")"
+  fi
   ADOPT_OUT="$(printf '%s' "$ADOPT_BODY" | curl -sS --max-time 30 -X POST "$ADOPT_URL" \
-      -H 'content-type: application/json' --data-binary @- 2>&1)" || true
+      -H 'content-type: application/json' -H 'x-phoenix-api-client: robot-ota-repoint' --data-binary @- 2>&1)" || true
   case "$ADOPT_OUT" in
     *'"adopted":true'*)
-      case "$ADOPT_OUT" in
-        *'"alreadyAdopted":true'*) say "  adoption: already known to the server (no change)" ;;
-        *) say "  adoption: registered with the server" ;;
-      esac
+      if [ -n "$CLAIM_CODE" ]; then
+        case "$ADOPT_OUT" in
+          *'"linked":true'*|*'"alreadyLinked":true'*) say "  adoption: robot claimed for the signed-in Phoenix account" ;;
+          *) say "  adoption: identity registered but account claim did not complete" ;;
+        esac
+      else
+        case "$ADOPT_OUT" in
+          *'"alreadyAdopted":true'*) say "  adoption: already known to the server (no change)" ;;
+          *) say "  adoption: registered as an unclaimed bootstrap" ;;
+        esac
+      fi
       APPLIED+=("server adoption for ${AKID}")
       ;;
     *)

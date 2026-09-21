@@ -8,6 +8,7 @@
 //   GET  /api/robots                               -> [{friendlyId,loopName,loopId,created,lastSeen}]
 //   GET  /api/robots/detail …                      -> robot record + Robot_20160225 read
 //   POST /api/robots/setup …                       -> QR pairing payload (MUST be preserved)
+//   POST /api/robots/claim-code                    -> one-time existing-robot ownership code
 //   GET  /api/robots/setup/status?token=           -> pairing completion poll
 //   GET  /api/loop  / PUT /api/loop …              -> loops + members (see portal/loops.js)
 //   PUT /api/me  POST /api/me/password …           -> profile (see portal/profile.js)
@@ -29,18 +30,26 @@
 // POST /api/token (the original two-argument {accessKeyId, secretAccessKey} portal token).
 
 import { sendJson } from '@phoenix/common';
+import { randomBytes } from 'node:crypto';
 import { createOwnerAccount, createLoop, mintSetupToken, findToken, ACCESS_TOKEN_LIFETIME_MS, secretMatches, createHubToken } from './model.js';
 // Password comparison MUST be compareAccountPassword, not model.js's scrypt-only
 // verifyPassword. A household restored from the original cloud stores
 // `sha512$512$10000$<salt>$<hash>` (the source utils/password.ts pbkdf2 encoding);
 // verifyPassword returns false for anything that is not `scrypt:`, so the real
 // account -- the one the owner signs into on the phone -- could never log in here.
-import { compareAccountPassword } from './accountIdentity.js';
+import {
+  activateByCode,
+  compareAccountPassword,
+  confirmEmailReset,
+  passwordReset,
+  sendActivation,
+  sendPasswordReset,
+} from './accountIdentity.js';
 import { createSession, destroySession, getSession, sessionCookie, clearCookie } from './sessions.js';
 import { buildQrCodes } from './qrPayload.js';
 import { userFromSession as sessionUser, portalAccount } from './portal/session.js';
 import { classicBaseUrl } from './portal/classicClient.js';
-import { portalLoopRoutes } from './portal/loops.js';
+import { portalLoopRoutes, visibleLoops } from './portal/loops.js';
 import { portalProfileRoutes } from './portal/profile.js';
 import { portalRobotRoutes } from './portal/robots.js';
 import { portalMediaRoutes } from './portal/media.js';
@@ -50,7 +59,8 @@ import { portalSystemRoutes } from './portal/system.js';
 import { adminConfigRoutes } from './admin/configRoutes.js';
 import { adminOpsRoutes } from './admin/adminRoutes.js';
 import { adminLogRoutes } from './admin/logRoutes.js';
-import { robotAdoptionRoutes } from './robotAdoption.js';
+import { linkAdoptedRobotToOwner, robotAdoptionRoutes } from './robotAdoption.js';
+import { issueRobotClaim } from './robotClaim.js';
 
 // The region written into an adopted robot's credentials.json. A robot's native
 // client builds its service hostnames from this value — `<region>.jibo.com` for
@@ -81,6 +91,64 @@ const robotView = ({ robot, loop, owner }) => ({
 function withCookie(res, cookie, status, body) {
   res.setHeader('Set-Cookie', cookie);
   sendJson(res, status, body);
+}
+
+const portalAuthAttempts = new Map();
+const PORTAL_AUTH_WINDOW_MS = 15 * 60 * 1000;
+const PORTAL_AUTH_LIMIT = 10;
+
+function portalAuthKey(req, email) {
+  const address = req?.socket?.remoteAddress || req?.connection?.remoteAddress || 'unknown';
+  return `${address}:${String(email || '').trim().toLowerCase().slice(0, 320)}`;
+}
+
+function checkPortalAuthRate(req, email) {
+  const key = portalAuthKey(req, email);
+  const now = Date.now();
+  if (portalAuthAttempts.size > 10000) {
+    for (const [candidate, row] of portalAuthAttempts) {
+      if (now - row.started >= PORTAL_AUTH_WINDOW_MS) portalAuthAttempts.delete(candidate);
+      if (portalAuthAttempts.size <= 10000) break;
+    }
+  }
+  const row = portalAuthAttempts.get(key);
+  if (!row || now - row.started >= PORTAL_AUTH_WINDOW_MS) {
+    portalAuthAttempts.set(key, { started: now, count: 1 });
+    return { allowed: true, key };
+  }
+  row.count += 1;
+  return {
+    allowed: row.count <= PORTAL_AUTH_LIMIT,
+    key,
+    retryAfterMs: Math.max(1, PORTAL_AUTH_WINDOW_MS - (now - row.started)),
+  };
+}
+
+function clearPortalAuthRate(key) {
+  portalAuthAttempts.delete(key);
+}
+
+function tooManyPortalAuth(res, result) {
+  if (result.allowed) return false;
+  res.setHeader('retry-after', String(Math.ceil(result.retryAfterMs / 1000)));
+  sendJson(res, 429, { error: 'too many login attempts; try again later' });
+  return true;
+}
+
+function normalizedPortalEmail(value) {
+  return typeof value === 'string' ? value.trim().toLowerCase() : '';
+}
+
+function validPortalEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && value.length <= 320;
+}
+
+function publicRecoveryError(res, error, fallback = 'This link is invalid or has expired') {
+  // Recovery codes are bearer credentials. Do not turn their failures into an
+  // account- or token-existence oracle for a caller who did not receive mail.
+  const status = error?.statusCode;
+  if (status === 409) return sendJson(res, 409, { error: fallback });
+  return sendJson(res, 400, { error: fallback });
 }
 
 export function userFromSession(store, req) {
@@ -125,31 +193,119 @@ export function portalRoutes(store, options = {}) {
   const portal = {
     loopUpdatedOutbox: options.loopUpdatedOutbox,
     invitationProviders: options.invitationProviders,
+    identityProviders: options.identityProviders,
+    mailProviders: options.mailProviders,
+    // Existing self-hosted test/LAN installs without any mail transport keep
+    // their prior local-only sign-up behavior. A normal deployment with a real
+    // activation provider requires proof of control of the mailbox.
+    requireEmailVerification: options.requireEmailVerification === undefined
+      ? !!options.mailProviders?.activation
+      : options.requireEmailVerification === true,
     classicBase: options.classicBase || classicBaseUrl(),
     classicCall: options.classicCall,
   };
+  const repointHost = String(options.repointHost || process.env.ETCO_account_repointHost || '').trim();
   return {
-    'POST /api/signup': ({ res, body }) => {
+    'POST /api/signup': ({ req, res, body }) => {
       const { email, password, firstName = '' } = body || {};
-      if (!email || !password || String(password).length < 8) {
-        return sendJson(res, 400, { error: 'email and a password of at least 8 characters are required' });
+      const rate = checkPortalAuthRate(req, email);
+      if (tooManyPortalAuth(res, rate)) return;
+      const normalizedEmail = normalizedPortalEmail(email);
+      if (!validPortalEmail(normalizedEmail) || typeof password !== 'string' || password.length < 8
+        || password.length > 1024 || typeof firstName !== 'string' || firstName.length > 200) {
+        return sendJson(res, 400, { error: 'a valid email and a password of 8-1024 characters are required' });
       }
       let account;
       try {
-        account = createOwnerAccount(store, { email, password, firstName });
+        account = createOwnerAccount(store, {
+          email: normalizedEmail,
+          password,
+          firstName: firstName.trim(),
+          isActive: !portal.requireEmailVerification,
+        });
+        if (portal.requireEmailVerification) sendActivation(store, account, undefined, portal.mailProviders);
       } catch (err) {
         return sendJson(res, err.code === 'ACCOUNT_EXISTS' ? 409 : 500, { error: err.message });
+      }
+      clearPortalAuthRate(rate.key);
+      if (portal.requireEmailVerification) {
+        return sendJson(res, 202, {
+          verificationRequired: true,
+          email: account.email,
+        });
       }
       const session = createSession(store, { kind: 'user', accountId: account._id });
       return withCookie(res, sessionCookie(session), 200, { account: portalAccount(account) });
     },
 
-    'POST /api/login': ({ res, body }) => {
+    // Deliberately returns the same result whether an address is unknown,
+    // active, deleted, or pending. It is safe to expose from the auth screen
+    // without becoming an account-enumeration endpoint.
+    'POST /api/signup/resend': ({ req, res, body }) => {
+      const email = normalizedPortalEmail(body?.email);
+      const rate = checkPortalAuthRate(req, email);
+      if (tooManyPortalAuth(res, rate)) return;
+      if (!validPortalEmail(email)) return sendJson(res, 400, { error: 'a valid email is required' });
+      const account = store.accountByEmail(email);
+      if (portal.requireEmailVerification && account && account.isDeleted !== true && !account.isActive) {
+        try { sendActivation(store, account, undefined, portal.mailProviders); } catch { /* generic reply */ }
+      }
+      return sendJson(res, 202, { ok: true });
+    },
+
+    'POST /api/signup/verify': ({ req, res, body }) => {
+      const code = typeof body?.code === 'string' ? body.code : '';
+      const rate = checkPortalAuthRate(req, code);
+      if (tooManyPortalAuth(res, rate)) return;
+      try {
+        activateByCode(store, code);
+        clearPortalAuthRate(rate.key);
+        return sendJson(res, 200, { ok: true });
+      } catch (error) {
+        return publicRecoveryError(res, error);
+      }
+    },
+
+    // Mailbox recovery is intentionally non-enumerating. A valid mailbox will
+    // receive a one-hour, single-use code; all callers receive 202.
+    'POST /api/password/reset/request': ({ req, res, body }) => {
+      const email = normalizedPortalEmail(body?.email);
+      const rate = checkPortalAuthRate(req, email);
+      if (tooManyPortalAuth(res, rate)) return;
+      if (!validPortalEmail(email)) return sendJson(res, 400, { error: 'a valid email is required' });
+      const account = store.accountByEmail(email);
+      if (account && account.isDeleted !== true && portal.mailProviders?.passwordReset) {
+        try { sendPasswordReset(store, email, undefined, portal.mailProviders); } catch { /* generic reply */ }
+      }
+      return sendJson(res, 202, { ok: true });
+    },
+
+    'POST /api/password/reset/confirm': ({ req, res, body }) => {
+      const code = typeof body?.code === 'string' ? body.code : '';
+      const password = typeof body?.password === 'string' ? body.password : '';
+      const rate = checkPortalAuthRate(req, code);
+      if (tooManyPortalAuth(res, rate)) return;
+      try {
+        // The shared identity routine enforces the stronger public Account
+        // password policy and expires/consumes the code atomically.
+        passwordReset(store, code, password, portal.identityProviders);
+        clearPortalAuthRate(rate.key);
+        return sendJson(res, 200, { ok: true });
+      } catch (error) {
+        return publicRecoveryError(res, error, 'The password-reset link is invalid, expired, or the password is not accepted');
+      }
+    },
+
+    'POST /api/login': ({ req, res, body }) => {
       const { email, password } = body || {};
+      const rate = checkPortalAuthRate(req, email);
+      if (tooManyPortalAuth(res, rate)) return;
       const account = email ? store.accountByEmail(email) : null;
-      if (!account || !account.isActive || !compareAccountPassword(password, account.password)) {
+      if (!account || account.isDeleted === true || !account.isActive
+        || !compareAccountPassword(password, account.password)) {
         return sendJson(res, 401, { error: 'invalid email or password' });
       }
+      clearPortalAuthRate(rate.key);
       const session = createSession(store, { kind: 'user', accountId: account._id });
       return withCookie(res, sessionCookie(session), 200, { account: portalAccount(account) });
     },
@@ -169,7 +325,11 @@ export function portalRoutes(store, options = {}) {
     'GET /api/robots': ({ req, res }) => {
       const account = userFromSession(store, req);
       if (!account) return sendJson(res, 401, { error: 'not logged in' });
-      const robots = store.allRobots().filter(({ loop }) => loop && loop.owner === account._id);
+      // A person can participate in more than one household.  Keep each
+      // household's data separate, but list robots from every household the
+      // current account is actually allowed to see (owned or accepted invite).
+      const visible = new Set(visibleLoops(store, account._id).map((loop) => String(loop._id)));
+      const robots = store.allRobots().filter(({ loop }) => loop && visible.has(String(loop._id)));
       return robots.map(robotView);
     },
 
@@ -190,6 +350,26 @@ export function portalRoutes(store, options = {}) {
       };
     },
 
+    // Existing (non-reset) robots prove possession from the SSH repoint
+    // command by presenting the AWS key pair already on the device.  This
+    // endpoint supplies the other half of that proof: a one-time code bound to
+    // the signed-in *new* Phoenix account.  No original-cloud account data is
+    // read or imported.
+    'POST /api/robots/claim-code': ({ req, res }) => {
+      const account = userFromSession(store, req);
+      if (!account) return sendJson(res, 401, { error: 'not logged in' });
+      const claim = issueRobotClaim(store, account);
+      return {
+        code: claim.code,
+        expires: claim.expires,
+        // The host is deliberately deployment-configured: this address is
+        // written into a robot's /etc/hosts, so guessing from the browser Host
+        // header would allow a poisoned reverse-proxy request to repoint it.
+        repointHost: repointHost || null,
+        adoptionPath: '/api/adopt-robot',
+      };
+    },
+
     // Poll: complete once the robot has redeemed the token (setupRobot deletes it).
     'GET /api/robots/setup/status': ({ req, res, url }) => {
       const account = userFromSession(store, req);
@@ -197,6 +377,10 @@ export function portalRoutes(store, options = {}) {
       const tokenId = url.searchParams.get('token');
       if (!tokenId) return sendJson(res, 400, { error: 'token query param required' });
       const { token } = findToken(store, tokenId);
+      if (token && String(token.accountId) !== String(account._id)) {
+        // Do not turn a setup token into a cross-account completion oracle.
+        return sendJson(res, 404, { error: 'setup token not found' });
+      }
       return { complete: !token, expires: token ? token.created + ACCESS_TOKEN_LIFETIME_MS : null };
     },
 
@@ -205,14 +389,18 @@ export function portalRoutes(store, options = {}) {
     // A robot exchanges its long-lived AWS keys for a short-lived hub token. This is the
     // server-held-secret path: the HUB_TOKEN_SECRET never leaves the server (unlike the robot
     // signing locally). Mints exactly the IAuthDetails the gateway verifies — minus the secret.
-    'POST /api/token': ({ res, body }) => {
+    'POST /api/token': ({ req, res, body }) => {
       const secret = process.env.HUB_TOKEN_SECRET;
       if (!secret) return sendJson(res, 503, { error: 'token issuance disabled: HUB_TOKEN_SECRET is not set' });
       const { accessKeyId, secretAccessKey } = body || {};
+      const rate = checkPortalAuthRate(req, accessKeyId);
+      if (tooManyPortalAuth(res, rate)) return;
       const account = accessKeyId ? store.accountByAccessKeyId(accessKeyId) : null;
-      if (!account || !account.isActive || !secretMatches(secretAccessKey, account.secretAccessKey)) {
+      if (!account || account.isDeleted === true || !account.isActive
+        || !secretMatches(secretAccessKey, account.secretAccessKey)) {
         return sendJson(res, 401, { error: 'invalid credentials' });
       }
+      clearPortalAuthRate(rate.key);
       account.lastSeen = Date.now();
       store.flush();
       const { token, expires } = createHubToken(account, secret);
@@ -224,7 +412,7 @@ export function portalRoutes(store, options = {}) {
     'GET /api/verify': ({ res, url }) => {
       const accessKeyId = url.searchParams.get('accessKeyId');
       const account = accessKeyId ? store.accountByAccessKeyId(accessKeyId) : null;
-      if (!account || !account.isActive) return { valid: false };
+      if (!account || account.isDeleted === true || !account.isActive) return { valid: false };
       return { valid: true, id: account._id, friendlyId: account.friendlyId || null };
     },
 
@@ -245,10 +433,12 @@ export function portalRoutes(store, options = {}) {
      * Mints fresh keys + a loop, and returns exactly what to write to the robot
      * (/var/jibo/credentials.json) plus the repoint command. ownerEmail optional: defaults to
      * a synthetic "adopted@phoenix.local" owner account so admin-only setups need no signup.
+     * A real existing Phoenix household is never silently transferred: an
+     * administrator must set transferExisting=true after reviewing the owner.
      */
     'POST /api/admin/adopt': ({ req, res, body }) => {
       if (!requireAdmin(store, req, res)) return;
-      const { friendlyId, ownerEmail } = body || {};
+      const { friendlyId, ownerEmail, transferExisting = false } = body || {};
       if (!friendlyId || !/^[a-z0-9-]{3,80}$/i.test(friendlyId)) {
         return sendJson(res, 400, { error: 'friendlyId required (the robot\'s name, e.g. castle-cylinder-fig-quilt)' });
       }
@@ -256,6 +446,28 @@ export function portalRoutes(store, options = {}) {
       if (!owner) {
         if (ownerEmail) return sendJson(res, 404, { error: `no account with email ${ownerEmail}` });
         owner = createOwnerAccount(store, { email: 'adopted@phoenix.local', password: cryptoRandomPassword(), firstName: 'Adopted' });
+      }
+      const existingRobot = store.accountByFriendlyId(friendlyId);
+      if (existingRobot) {
+        const linked = linkAdoptedRobotToOwner(store, {
+          robot: existingRobot,
+          owner,
+          allowExistingOwnerTransfer: transferExisting === true,
+        });
+        if (linked.status !== 200) {
+          return sendJson(res, 409, {
+            ...linked.payload,
+            error: 'robot is already linked to another Phoenix account; resubmit with transferExisting=true only after confirming the transfer',
+          });
+        }
+        return {
+          robot: robotView({ robot: existingRobot, loop: linked.payload.loop, owner }),
+          existing: true,
+          transferred: linked.payload.linked,
+          instructions: [
+            'The existing robot credentials were retained. Do not overwrite /var/jibo/credentials.json.',
+          ],
+        };
       }
       const { loop, robot } = createLoop(store, { owner, robotId: friendlyId });
       const region = accountRegion();
@@ -272,7 +484,7 @@ export function portalRoutes(store, options = {}) {
 
     // -- the rest of the mobile-app surface ------------------------------------
     ...portalLoopRoutes(store, portal),
-    ...portalProfileRoutes(store),
+    ...portalProfileRoutes(store, { identityProviders: portal.identityProviders }),
     ...portalRobotRoutes(store, portal),
     ...portalMediaRoutes(store, portal),
     ...portalPeopleRoutes(store, portal),
@@ -296,5 +508,5 @@ export function portalRoutes(store, options = {}) {
 }
 
 function cryptoRandomPassword() {
-  return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+  return randomBytes(32).toString('base64url');
 }

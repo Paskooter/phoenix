@@ -15,10 +15,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createClassicEntrypoint } from '../src/index.js';
 import {
-  makeRobotHandler, RobotStore, convertRobotId, ROBOT_ERRORS,
+  accountOwnedRobots, makeRobotHandler, RobotStore, convertRobotId, ROBOT_ERRORS,
   COMMAND_ACCEPTED_RESPONSE, MANUFACTURING_EMAIL,
 } from '../src/robot.js';
 import { generateFriendlyId, randomlyGenerateCombos, WORD_COUNTS } from '../src/serialNames.js';
+import { Store as AccountStore } from '../../account/src/store.js';
+import { createLoop, createOwnerAccount } from '../../account/src/model.js';
 
 // An unroutable account base so the default ownership resolver returns "unresolved" fast
 // (connection refused, not a 2s timeout) — the LAN-trust path.
@@ -190,6 +192,63 @@ test('reads enforce manufacturing-or-owner when an identity is present', async (
     const denied = await call(h, op, { id: ID }, OTHER());
     assert.equal(denied.status, 403, `${op} non-owner`);
     assert.equal(denied.body.__type, 'MANUFACTURING_OR_OWNER_ONLY');
+  }
+});
+
+test('an owner can read the empty bootstrap projection of an adopted robot with no lifecycle history', async () => {
+  const h = makeRobotHandler({
+    store: storeFor('perm-adopted-read'),
+    ownedRobots: async (ownerId) => (ownerId === 'owner-account' ? [ID] : []),
+  });
+
+  // Legacy adoption creates the Account/loop and proves possession, but does
+  // not invent a manufacturing RobotCreated event.  The owner gets only the
+  // same bounded empty data a booting robot receives.
+  const robot = await call(h, 'GetRobot', { id: ID }, OWNER());
+  assert.equal(robot.status, 200);
+  assert.deepEqual(robot.body, { id: CID, payload: {} });
+  assert.deepEqual((await call(h, 'GetRobotHistory', { id: ID }, OWNER())).body, []);
+  assert.deepEqual((await call(h, 'GetCalibrationData', { id: ID }, OWNER())).body,
+    { id: CID, calibrationPayload: {} });
+
+  // Ownership remains mandatory; the fallback is not an existence oracle.
+  const denied = await call(h, 'GetRobot', { id: ID }, OTHER());
+  assert.equal(denied.status, 403);
+  assert.equal(denied.body.__type, 'MANUFACTURING_OR_OWNER_ONLY');
+});
+
+test('an administrator only gets an adopted empty projection for a robot they own', async () => {
+  const owned = async (accountId) => (accountId === 'admin-account' ? [ID] : []);
+  const h = makeRobotHandler({ store: storeFor('perm-admin-adopted-read'), ownedRobots: owned });
+  const ownBootstrap = await call(h, 'GetRobot', { id: ID }, ADMIN());
+  assert.equal(ownBootstrap.status, 200);
+  assert.deepEqual(ownBootstrap.body, { id: CID, payload: {} });
+
+  // Admin access to a real Robot record stays unrestricted, but a no-history
+  // id must not be converted into a synthetic record merely by admin status.
+  const missing = await call(h, 'GetRobot', { id: 'zz-zz-zz-zz' }, ADMIN());
+  assert.equal(missing.status, 404);
+  assert.equal(missing.body.__type, 'ROBOT_NOT_FOUND');
+});
+
+test('account ownership uses the configured local Account snapshot, not a public lookup route', async () => {
+  const file = join(dir, 'account-snapshot.json');
+  const accounts = new AccountStore(file);
+  const owner = createOwnerAccount(accounts, { email: 'snapshot-owner@example.test', password: 'snapshot-pass-1' });
+  const member = createOwnerAccount(accounts, { email: 'snapshot-member@example.test', password: 'snapshot-pass-2' });
+  const { loop, robot } = createLoop(accounts, { owner, robotId: 'snapshot-robot' });
+  loop.members.push({ _id: 'snapshot-member-link', accountId: member._id, status: 'ACCEPTED' });
+  accounts.flush();
+
+  const prior = process.env.ETCO_classic_accountDataFile;
+  process.env.ETCO_classic_accountDataFile = file;
+  try {
+    assert.deepEqual(await accountOwnedRobots(owner._id), [robot.friendlyId]);
+    assert.deepEqual(await accountOwnedRobots(member._id), [robot.friendlyId]);
+    assert.deepEqual(await accountOwnedRobots(member._id, true), []);
+  } finally {
+    if (prior === undefined) delete process.env.ETCO_classic_accountDataFile;
+    else process.env.ETCO_classic_accountDataFile = prior;
   }
 });
 

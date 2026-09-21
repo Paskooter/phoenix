@@ -105,8 +105,10 @@ GET  /ota/package?id=<id>     the package tarball, streamed with Content-Length 
 GET  /healthcheck
 ```
 
-The robot's `jibo-server-client` signs these (SigV4); like the hub's `DISABLE_AUTH`, the OTA
-server does not verify the signature — it trusts the LAN.
+The robot's `jibo-server-client` signs these with SigV4. In production the OTA
+entrypoint resolves the key from the Account store, verifies the exact request
+and rejects replay; direct package downloads additionally require a short-lived
+signed URL.
 
 **1. Build the packages** from a flash buildroot (defaults to **13.0.0 "Last Dance"**, the final
 production firmware; pass `--buildroot`/`--version` for 12.10.0 or any other build):
@@ -199,20 +201,38 @@ from-scratch reimplementation of the robot's `oobe-config` format — see `packa
 
 **2. Adopt an existing robot — one that paired with the original Jibo cloud years ago.**
 
-Its old credentials are worthless (that database is gone), so adoption *re-issues* them. Open the
-admin page (`/#/admin`, available to administrator accounts — see `scripts/portal-grant-admin.mjs`), enter the robot's 4-word name, and it returns
-the exact `credentials.json` to write plus the repoint command:
+Its existing robot credentials prove possession; they are not an old human
+account and are not imported as one. The customer creates and signs into a new
+Phoenix account, opens **Robots → Connect a Jibo → My Jibo has been set up
+already**, and copies the one-time command the portal produces. It includes an
+expiring ownership code:
 
 ```bash
-ssh root@<robot> jibo-mount --rw
-# write the credentials.json the admin page shows to /var/jibo/credentials.json
-# repoint the robot (LAN): region_config -> classic entrypoint :9012, hub -> :9000
-#   args: <robot-ip> <phoenix-ip> [classic-port=9010] [hub-port=9000]  — pass 9012 for the entrypoint
-scripts/point-robot-at-phoenix.sh <robot-ip> <this-host> 9012 9000
+curl --fail --remote-name https://jibo.io/robot-ota-repoint.sh && \
+  bash ./robot-ota-repoint.sh --robot root@<robot-ip> --claim-code <portal-code> --yes
 ```
 
-The admin page also lists **every adopted robot** across all accounts (name, owner, loop, access
-key, last-seen).
+It uses key-based, non-interactive `root` SSH. Have the customer confirm
+`ssh root@<robot-ip> true` works without a password prompt before they create a
+short-lived code in the portal; the migration tool does not install or bypass
+that local access.
+
+The code is one use and survives server-side only as a hash. The SSH script
+reads the existing `credentials.json` from the robot and sends it over HTTPS;
+it does not print it or create a replacement key. On success, Phoenix keeps
+the robot identity and loop ID but replaces only the bootstrap membership with
+the new Phoenix account and robot. Existing legacy users/accounts are not
+copied. A real Phoenix-owned robot cannot be transferred by a claim code; an
+administrator can make that explicit transfer from the admin page.
+
+The signed-out public guide offers the same repoint helper without a claim
+code. That is intentionally not an account claim: it only registers an
+unclaimed bootstrap. The owner must create an account and re-run the
+portal-provided, code-bearing command to link it.
+
+The separate household-snapshot importer is an operator migration tool, not a
+step in ordinary customer claims: it can carry legacy member/profile data and
+must be reviewed separately.
 
 ## Per-robot authentication
 

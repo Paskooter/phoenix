@@ -11,6 +11,11 @@ function idsEqual(a, b) {
   return a != null && b != null && String(a) === String(b);
 }
 
+function acceptedMember(loop, accountId) {
+  return (loop.members || []).some((member) => idsEqual(member.accountId, accountId)
+    && String(member.status || '').toLowerCase() === 'accepted');
+}
+
 export function portalPeopleRoutes(store, options = {}) {
   const classic = options.classicCall || classicCall;
   const base = options.classicBase;
@@ -23,6 +28,12 @@ export function portalPeopleRoutes(store, options = {}) {
       const loop = loopId ? store.loops.get(loopId) : null;
       if (!loop || loop.isDeleted === true) {
         return sendJson(res, 404, { error: 'Loop does not exist', code: 'LOOP_NOT_FOUND' });
+      }
+      // The loop id is user-controlled.  Person/voice-training data is
+      // household-private, so an authenticated account must own the loop or
+      // be an accepted member before any Classic call is made.
+      if (!idsEqual(loop.owner, account._id) && !acceptedMember(loop, account._id)) {
+        return sendJson(res, 403, { error: 'You must be a member of the loop', code: 'PERSON_MUST_BE_MEMBER' });
       }
       const out = { loopId: loop._id, answers: [], accountProperties: {}, loopProperties: {}, holidays: [], voiceTraining: [] };
       const diagnostics = [];

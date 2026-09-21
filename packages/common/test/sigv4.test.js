@@ -210,10 +210,14 @@ test('an explicit x-amz-content-sha256 follows the native source signer path onl
     },
   });
   const nativeHeaders = { ...result.headers, 'X-Amz-Target': 'Account_20151111.CreateHubToken' };
-  // The archived gateway takes this explicit value as the canonical payload
-  // hash. This is the bounded native-client compatibility path; requests
-  // without the header hash the exact received body (tested above).
-  assert.equal(verify(nativeHeaders, { body: '{"attachedAfterSigning":true}' }).accessKeyId, ACCESS_KEY);
+  // A caller-controlled payload hash must not be trusted by default: otherwise an attacker can
+  // sign an empty body and attach an arbitrary entity after signing. Only the two documented
+  // native operations may opt into this legacy wire ordering.
+  assert.equal(errorCode(() => verify(nativeHeaders, { body: '{"attachedAfterSigning":true}' })), 'SIGNATURE_MISMATCH');
+  assert.equal(verify(nativeHeaders, {
+    body: '{"attachedAfterSigning":true}',
+    allowNativeClientPayloadHash: true,
+  }).accessKeyId, ACCESS_KEY);
 });
 
 test('accepts the shipped Android client\'s empty service segment', () => {

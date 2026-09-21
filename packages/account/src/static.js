@@ -8,11 +8,47 @@
 // The same files are laid out to be served directly by a reverse proxy instead,
 // with only /api proxied back here; see deploy/nginx/.
 
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { dirname, join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const PORTAL_DIR = join(dirname(fileURLToPath(import.meta.url)), '../portal');
+const SOURCE_DIR = dirname(fileURLToPath(import.meta.url));
+const PORTAL_DIR = join(SOURCE_DIR, '../portal');
+// A deliberately small, fixed set of installation helpers is published beside
+// the portal.  Keep this root derived from this module, rather than from the
+// current working directory, so a systemd service cannot accidentally serve a
+// different checkout after an operator changes WorkingDirectory.
+const PROJECT_DIR = join(SOURCE_DIR, '../../..');
+
+/**
+ * The instance's own public origin, e.g. `https://jibo.io`.
+ *
+ * Open Graph and Twitter card scrapers do NOT resolve relative URLs: a root-relative
+ * `og:image` yields no preview at all on Discord, Facebook, Slack or iMessage. The pages
+ * therefore carry a `%SITE_URL%` placeholder that is substituted here at serve time, so
+ * one set of files works for any deployment without a build step. Unset (the self-hosted
+ * default) the placeholder collapses to a relative URL, which still renders correctly in
+ * a browser -- only the social preview needs the absolute form.
+ */
+function siteUrl() {
+  const raw = process.env.PHOENIX_SITE_URL || '';
+  if (!raw) return '';
+  try {
+    const parsed = new URL(raw);
+    // The value is interpolated into HTML.  Accept only a normal origin so a
+    // malformed deployment setting cannot become markup, a javascript: URL,
+    // or a query/fragment injection sink.
+    if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password
+      || parsed.pathname !== '/' || parsed.search || parsed.hash) return '';
+    return parsed.origin;
+  } catch {
+    return '';
+  }
+}
+
+function applyPlaceholders(buffer) {
+  return Buffer.from(buffer.toString('utf8').split('%SITE_URL%').join(siteUrl()));
+}
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -22,17 +58,26 @@ const MIME = {
   '.webmanifest': 'application/manifest+json; charset=utf-8',
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.ico': 'image/x-icon',
   '.txt': 'text/plain; charset=utf-8',
   '.xml': 'application/xml; charset=utf-8',
   '.woff2': 'font/woff2',
 };
 
+/** Text types get placeholder substitution; binaries are served byte-for-byte. */
+const SUBSTITUTED = new Set(['.html', '.xml', '.webmanifest', '.txt']);
+
 function serve(file, type) {
   const path = join(PORTAL_DIR, file);
   const contentType = type || MIME[extname(file)] || 'application/octet-stream';
+  const substitute = SUBSTITUTED.has(extname(file));
   let cached = null;
   return ({ res }) => {
-    if (cached === null) cached = existsSync(path) ? readFileSync(path) : false;
+    if (cached === null) {
+      cached = existsSync(path) ? readFileSync(path) : false;
+      if (cached !== false && substitute) cached = applyPlaceholders(cached);
+    }
     if (cached === false) { res.writeHead(404, { 'content-type': 'text/plain' }); return void res.end('not found'); }
     res.writeHead(200, {
       'content-type': contentType,
@@ -40,6 +85,34 @@ function serve(file, type) {
       // than serve a stale console after an upgrade.
       'cache-control': 'no-cache',
       'x-content-type-options': 'nosniff',
+    });
+    res.end(cached);
+  };
+}
+
+/**
+ * Serve a file from OUTSIDE the portal directory (an operator's own page).
+ *
+ * Unlike serve(), the path is absolute and read fresh on a miss rather than assumed to
+ * exist at startup, so an operator can add a page without restarting. Placeholders are
+ * substituted exactly as for built-in pages, so an operator page gets the same
+ * `%SITE_URL%` treatment.
+ */
+function serveExternal(absolutePath, type, extraHeaders = {}) {
+  const contentType = type || MIME[extname(absolutePath)] || 'application/octet-stream';
+  const substitute = SUBSTITUTED.has(extname(absolutePath));
+  let cached = null;
+  return ({ res }) => {
+    if (cached === null) {
+      cached = existsSync(absolutePath) ? readFileSync(absolutePath) : false;
+      if (cached !== false && substitute) cached = applyPlaceholders(cached);
+    }
+    if (cached === false) { res.writeHead(404, { 'content-type': 'text/plain' }); return void res.end('not found'); }
+    res.writeHead(200, {
+      'content-type': contentType,
+      'cache-control': 'no-cache',
+      'x-content-type-options': 'nosniff',
+      ...extraHeaders,
     });
     res.end(cached);
   };
@@ -117,7 +190,7 @@ export function staticRoutes() {
     // vendored
     'vendor/leaflet.js', 'vendor/leaflet.css',
     // assets and metadata
-    'assets/favicon.svg', 'robots.txt', 'sitemap.xml', 'manifest.webmanifest',
+    'assets/favicon.svg', 'assets/og.png', 'robots.txt', 'sitemap.xml', 'manifest.webmanifest',
   ];
 
   const routes = {
@@ -132,11 +205,49 @@ export function staticRoutes() {
     // lived.
     'GET /app': serve('app.html'),
     'GET /admin': serve('app.html'),
+    // Mail actions intentionally enter the same static console shell. The
+    // browser exchanges the single-use code with the same-origin API, so a
+    // reverse proxy never needs to expose a token-bearing dynamic GET route.
+    'GET /activate': serve('app.html'),
+    'GET /reset': serve('app.html'),
+    'GET /confirmemailreset': serve('app.html'),
 
     // Operator-configurable branding.
     'GET /branding.json': serveBranding(),
+
+    // Public, fixed-path migration assets. These are not a directory mapping:
+    // adding a file under scripts/ never makes it Internet-visible by accident.
+    // The shell helper fetches these exact support files when it was downloaded
+    // by itself, instead of assuming the customer has a source checkout.
+    'GET /robot-ota-repoint.sh': serveExternal(
+      join(PROJECT_DIR, 'scripts/robot-ota-repoint.sh'), 'text/plain; charset=utf-8'),
+    'GET /robot-client/node.js': serveExternal(
+      join(PROJECT_DIR, 'scripts/robot-client/node.js'), 'text/plain; charset=utf-8'),
+    'GET /robot-client/isrg-root-x1.pem': serveExternal(
+      join(PROJECT_DIR, 'scripts/robot-client/isrg-root-x1.pem'), 'application/x-pem-file'),
   };
 
   for (const f of files) routes[`GET /${f}`] = serve(f);
+
+  // Operator pages: extra HTML an instance serves that the project does not ship.
+  //
+  // A public instance needs content the generic project cannot carry -- a setup guide
+  // naming its own hostnames, legal text describing a service someone actually
+  // operates. Rather than fork the portal, point PHOENIX_PAGES_DIR at a directory of
+  // .html files; each becomes a route at its own basename, and one named the same as a
+  // built-in REPLACES it. Nothing is read from that directory unless it is configured,
+  // so the default install is unchanged.
+  const pagesDir = process.env.PHOENIX_PAGES_DIR;
+  if (pagesDir && existsSync(pagesDir)) {
+    for (const entry of readdirSync(pagesDir)) {
+      if (!entry.endsWith('.html')) continue;
+      const name = entry.slice(0, -'.html'.length);
+      const handler = serveExternal(join(pagesDir, entry));
+      routes[`GET /${name}`] = handler;
+      routes[`GET /${entry}`] = handler;
+      if (name === 'index') routes['GET /'] = handler;
+    }
+  }
+
   return routes;
 }

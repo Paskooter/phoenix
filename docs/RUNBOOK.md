@@ -5,12 +5,21 @@ These are the steps used to bring up real robots; the capture records from those
 runs are under [`parity/evidence/`](parity/evidence/). For reference material rather
 than a procedure, see [Operations](OPERATIONS.md).
 
+> **Internet launch gate:** read [SECURITY.md](SECURITY.md) and
+> [DEPLOYMENT.md](DEPLOYMENT.md) before exposing a hostname. The commands in the
+> early sections are suitable for a private LAN only; the production baseline is
+> loopback-bound services behind an nginx TLS edge. Never publish ports 9000 or
+> 9003–9014 directly and never use the development auth/secret defaults.
+
 **What you need**
 
 - A Linux host to run Phoenix on. This guide calls it the *server*. Steps 1–9
   assume it shares a network with the robot; step 10 covers hosting it on the
   internet instead.
 - Node.js ≥ 20 on the server.
+- For an Internet deployment: Docker Compose, nginx, a host/cloud firewall, and
+  certificates for the portal, Classic, socket, and optional hub names. Do not
+  use a public reverse proxy as a substitute for the robot's private CA trust.
 - `root` SSH access to the robot, key-based. (Stock robots ship with `root:jibo`;
   copy your key over with `ssh-copy-id` so the scripts can run unattended.)
 - The robot powered on and on your WiFi.
@@ -25,7 +34,40 @@ Substitute your own.
 ```bash
 git clone <this repo> phoenix && cd phoenix
 npm install
+cp .env.example .env
+chmod 0600 .env
+# Fill HUB_TOKEN_SECRET, ETCO_account_internalPeerToken, OTA_PUBLIC_URL,
+# CLASSIC_PUBLIC_URL, and PHOTO_PUBLIC_URL. Generate the two secrets separately.
+# Keep DISABLE_AUTH=false, ETCO_account_secureCookies=true,
+# and PHOENIX_BIND_HOST=127.0.0.1.
 ```
+
+Generate the hub secret with `openssl rand -base64 48`; do not paste it into a
+ticket or commit it. The Compose launcher refuses to start when required values
+are missing. The native launcher also defaults to loopback and must be fronted by
+TLS for any browser or robot outside the host.
+
+### Configure account email before inviting people
+
+An Internet-facing portal needs a real SMTP relay. Set `ETCO_account_portalUrl`
+and `PHOENIX_SITE_URL` to the same public HTTPS origin, then configure
+`ETCO_account_mailSmtpHost`, `...Port`, `...User`, `...Password`, and
+`ETCO_account_mailFrom` in the private `.env` file (the commented example lists
+the complete set). For a submission relay on port 587, use
+`ETCO_account_mailSmtpSecure=false` and `ETCO_account_mailSmtpRequireTLS=true`.
+
+With SMTP configured, new portal accounts receive an activation link and cannot
+sign in until they confirm it. The same relay delivers household invitations,
+password-reset links, email-change confirmation, and password/email-change
+security notices. The confirmation and reset links are single-use; reset links
+expire after one hour and email-change links after 24 hours.
+
+Verify the relay's sender identity/domain first, then make one disposable test
+account and complete the activation link. Check spam/junk as well as the inbox.
+An SMTP authentication test is not a delivery test: an unverified `From` address
+can authenticate successfully and still be rejected or quarantined later. Keep
+the SMTP password only in a mode-0600 environment file or a secret manager, and
+restart the Account service after changing it.
 
 ## 2. Learn what the robot expects
 
@@ -75,39 +117,44 @@ Certificates land in `~/.local/share/phoenix/tls` (override with
 use your own certificate instead, set `PHOENIX_ROBOT_TLS_CERT` and
 `PHOENIX_ROBOT_TLS_KEY`; explicit paths always win.
 
-## 4. Let the server bind port 443
+## 4. Choose the private service bind and TLS edge
 
-The robot hardcodes 443, and 443 is privileged. Lower the unprivileged port floor:
+The robot hardcodes 443, but the Phoenix services should not bind it directly in a
+public deployment. Use nginx as the single TLS edge and keep the native/Compose
+backends on loopback. `scripts/run-compose-stack.sh` now defaults to:
 
 ```bash
-sudo sysctl -w net.ipv4.ip_unprivileged_port_start=443
-echo 'net.ipv4.ip_unprivileged_port_start=443' | sudo tee /etc/sysctl.d/90-phoenix.conf
+PHOENIX_BIND_HOST=127.0.0.1
 ```
 
-Alternatively redirect 443 to an unprivileged port
-(`sudo iptables -t nat -A PREROUTING -p tcp --dport 443 -j REDIRECT --to-port 29443`)
-and set `PHOENIX_ROBOT_ENTRYPOINT_PORT` to match. Avoid `setcap` on the Node binary:
-it applies to every Node process and is lost on upgrade.
+For a private-LAN-only experiment, an operator may set `PHOENIX_BIND_HOST` to a
+specific private interface after adding a source firewall rule. Do not set it to
+`0.0.0.0` on an Internet host. The separate authenticated robot launcher can own
+443 directly only on a dedicated address and only with its own firewall/TLS policy;
+do not run it on the same address as nginx.
 
 ## 5. Start the server
 
-443 on all interfaces is the default, so the robot on your LAN can reach it.
+The native runner's listeners are loopback-only by default. Start it behind the
+nginx configuration from [DEPLOYMENT.md](DEPLOYMENT.md):
 
 ```bash
-bash scripts/run-compose-stack.sh
+PHOENIX_BIND_HOST=127.0.0.1 bash scripts/run-compose-stack.sh
 ```
 
 On the first start it creates the CA and certificate described in step 3 and
 logs that it did so.
 
-Confirm it is listening and answering:
+Confirm only the private backends are listening and answering:
 
 ```bash
-ss -ltn | grep ':443'
-curl -sk -o /dev/null -w '%{http_code}\n' https://192.168.1.182/healthcheck   # expect 200
+ss -ltn | grep -E ':(9000|9003|9004|9005|9006|9007|9008|9009|9010|9011|9012|9013|9014)'
+curl -sS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:9012/healthcheck   # expect 200
 ```
 
-If binding fails with a privileged-port error, step 4 did not take effect.
+If nginx is the edge, verify the public HTTPS name separately; do not use `curl
+-k` as proof of a trusted robot path. Keep TCP 80/443 as the only public
+application ports.
 
 ## 6. Point the robot at the server
 
@@ -120,25 +167,66 @@ One run does everything on the robot:
   its CA bundle, with backups and a guarded revert,
 * points Jetstream's conversation hub at the server and restarts it, so speech
   reaches Phoenix too (`--hub-port`, default 9000; `--no-hub` to skip),
-* registers the robot in the Phoenix account store using its own existing
-  credentials, so a robot that paired with the original Jibo cloud years ago
-  works here without re-running OOBE (`--no-adopt` to skip).
+* proves possession of an already-paired robot using the credentials in its
+  own `/var/jibo/credentials.json`, without importing an original-cloud user
+  account.
 
-The robot's secret key is streamed straight from the robot into the local
-adopter without being printed in a command line or log. The private account
-store retains the credentials needed for authentication. Adoption is idempotent:
-an existing loop is reused; an account missing its loop can be repaired.
+### Claim an already-paired robot into a new Phoenix account
 
-For a robot with an existing household, preserve its KB root/member snapshots
-and enrollment storage before enabling cloud sync against a newly adopted
-server account: `scripts/import-household-snapshot.mjs` stages a private store
-and an exact backup using the original household IDs, refuses ambiguous or
-destructive merges, and leaves deployment to a guarded, stopped-backend
-replacement.
+The customer must first create and sign into their Phoenix account. In the
+portal, open **Robots → Connect a Jibo → My Jibo has been set up already**,
+then generate the private command. On the public `jibo.io` deployment it first
+downloads the public-DNS repoint script and includes a 15-minute, one-time
+claim code:
 
-Add `--classic-url http://<server>:9012` for a plain-HTTP deployment, which
-rewrites every `region_config.json`. A TLS deployment does not need it — the
-hosts entries already cover it — and rewriting would break it.
+The helper deliberately uses non-interactive, key-based `root` SSH. Verify
+`ssh root@<robot-ip> true` succeeds without a password prompt before minting a
+claim code; it does not install or bypass robot access.
+
+```bash
+curl --fail --remote-name https://jibo.io/robot-ota-repoint.sh && \
+  bash ./robot-ota-repoint.sh --robot root@<robot-ip> --claim-code <portal-code> --yes
+```
+
+For a self-hosted deployment with a private CA, the portal instead produces the
+equivalent `parity-robot/repoint-robot.sh` command including the configured
+public server IP and Account HTTPS URL.
+
+The public guide deliberately has no claim code: an unauthenticated visitor can
+run the same public repoint helper without `--claim-code`, which creates only an
+unclaimed, idempotent robot bootstrap. They must create an account and run the
+portal-provided claim command later to associate that robot with the account.
+
+The SSH script streams the robot secret directly to the HTTPS adoption request;
+it never prints or stores that secret locally. The code is stored server-side
+only as a hash, expires after 15 minutes, and is consumed only after the robot
+secret and ownership link both succeed. A retry with the same code is rejected.
+The resulting loop has exactly the new Phoenix account and robot as accepted
+members. It keeps the robot's existing credentials and loop ID, but does **not**
+import the former cloud account, people, passwords, sessions, or tokens.
+
+If an older repoint run registered the robot before ownership linking existed,
+run this claim command after the customer signs up: it idempotently converts
+that unclaimed bootstrap loop. A robot already linked to a different real
+Phoenix account is refused rather than silently transferred; an administrator
+must explicitly handle that case.
+
+Set `ETCO_account_repointHost` to the public IP the robot can reach before
+launch. The portal displays that value in the command. Do not derive it from an
+HTTP Host header or enter an internal/container address.
+
+`scripts/import-household-snapshot.mjs` is a separate, operator-only migration
+tool. It can stage a captured local KB root/member snapshot and public member
+profiles after extensive conflict checks, but it deliberately carries household
+identity data. Do **not** run it for the customer-account claim workflow above;
+use it only when an operator has separately chosen to migrate that legacy
+household and reviewed the staged snapshot.
+
+Add `--classic-url https://<classic-host>` when the robot-facing Classic service
+is behind an nginx TLS vhost and the robot's region configuration must be updated.
+The `http://<server>:9012` form is for an isolated LAN test only and must never be
+used on the Internet. A TLS deployment with hosts entries already covering the
+region does not need this option — rewriting it unnecessarily can break it.
 
 Before writing anything it confirms that the CA it is about to install genuinely
 verifies the certificate the running server is presenting, under the hostname the
@@ -246,6 +334,11 @@ and verification checklist are maintained in
 [`docs/DEPLOYMENT.md`](DEPLOYMENT.md). Read that guide before exposing any
 Phoenix listener to the internet.
 
+The concise launch gate and common failure modes are in
+[`docs/SECURITY.md`](SECURITY.md). It is part of this runbook: use its external
+port scan, header checks, backup procedure, and rollback checklist before sharing
+the DNS names.
+
 The short version is:
 
 - The robot's native `<region>.jibo.com` and `<region>-socket.jibo.com` names
@@ -254,10 +347,10 @@ The short version is:
 - The portal and other names you own can use a public certificate behind nginx
   (and optionally Cloudflare). Cloudflare's normal proxy cannot proxy the
   stock `jibo.com` names because they are not in your zone.
-- TLS is not authentication. Classic robot requests currently have the
-  unauthenticated OOBE boundary documented in `DIVERGENCES.md`; restrict
-  source addresses where possible, keep internal ports private, set
-  `DISABLE_AUTH=false`, and use a real hub secret.
+- TLS is not authentication. Keep Classic on its dedicated TLS hostname and
+  source allow-list/VPN where possible, keep internal ports private, set
+  `DISABLE_AUTH=false`, use a real hub secret, and keep the portal admin path on
+  an operator network.
 
 Do not duplicate the deployment procedure here; update `docs/DEPLOYMENT.md`
 when the hosting topology or code contract changes.
@@ -266,10 +359,10 @@ when the hosting topology or code contract changes.
 
 Getting the robot connected is not the same as a fully working robot.
 
-- **A robot that never paired with anything** has no credentials to adopt. Pair it
-  through the portal's QR flow first; the script adopts a robot that already has
-  `/var/jibo/credentials.json`, which includes any robot that paired with the
-  original Jibo cloud.
+- **A robot that never paired with anything** has no credentials to prove
+  possession. Pair it through the portal's QR/OOBE flow first. A robot that
+  paired with the original Jibo cloud instead uses the signed-in claim command
+  and its existing `/var/jibo/credentials.json`.
 - Microphone/wake-word behaviour and the physical ring are outside this
   procedure: it establishes the cloud connection. Step 7's checks are what
   confirm the robot is talking to your server.

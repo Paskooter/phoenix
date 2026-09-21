@@ -432,7 +432,9 @@ hr { border: 0; border-top: 1px solid var(--border-soft); margin: 2rem 0; }
               transform var(--fast) var(--ease), box-shadow var(--step) var(--ease),
               color var(--fast) var(--ease), opacity var(--fast) var(--ease);
 }
-.btn:hover { border-color: var(--panel-3); background: var(--panel-3); }
+/* Do not use the background shorthand here: it erases .btn-primary's brand
+   gradient because .btn:hover is more specific than .btn-primary. */
+.btn:hover { border-color: var(--panel-3); background-color: var(--panel-3); }
 .btn:active { transform: translateY(1px); }
 .btn[disabled], .btn[aria-disabled="true"] {
   opacity: .5;
@@ -556,7 +558,23 @@ hr { border: 0; border-top: 1px solid var(--border-soft); margin: 2rem 0; }
 }
 .field-hint { font-size: var(--t-xs); color: var(--muted); line-height: 1.5; }
 
-input[type="text"], input[type="email"], input[type="password"], input[type="search"],
+.household-switcher {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  margin: 0 0 1rem;
+  padding: .55rem .7rem;
+  width: fit-content;
+  max-width: 100%;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+}
+.household-switcher select { width: auto; min-width: min(18rem, 58vw); }
+
+/* An input with no type attribute is a text input per HTML.  The portal's DOM
+   builder has a few of those, and they should share the same field treatment. */
+input:not([type]), input[type="text"], input[type="email"], input[type="password"], input[type="search"],
 input[type="date"], input[type="time"], input[type="tel"], input[type="number"],
 input[type="url"], select, textarea {
   width: 100%;

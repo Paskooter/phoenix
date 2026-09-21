@@ -1,0 +1,163 @@
+{
+  "version": 1,
+  "notes": [
+    "Catalog of OTA subsystem packages this server offers. The loader reads only `updates`.",
+    "Each entry's `file` is resolved under the data dir (ETCO_ota_dataDir); length + sha1 are",
+    "computed from the real file at startup, so an entry whose file is absent is skipped.",
+    "fromVersion '*' matches any installed version, with a loop-guard: a package is never offered",
+    "once the robot already runs toVersion. GetUpdateFrom serves the highest toVersion.",
+    "filter '' is a wildcard (matches whatever otaFilter the robot sends).",
+    "13.0.1 is the jibo.io repoint build of platform 13.0.0. It exists as a distinct, higher",
+    "version because a robot already running 13.0.0 would never be offered 13.0.0 again \u2014 the",
+    "loop-guard would suppress exactly the update that performs the repoint.",
+    "Not yet published: a skills package. The behaviour engine's own client copy lives in the",
+    "skills partition, so a complete repoint eventually needs one.",
+    "A stock robot sends otaFilter fcs (baked into jibo-ssm-normal.json). The source filter rule is a PREFIX match when the request carries a filter and an EXACT empty-string match when it does not, so ONE entry cannot serve both: filter  is NOT a wildcard. Every version is therefore published twice, once filterless and once as fcs, pointing at the same file."
+  ],
+  "updates": [
+    {
+      "id": "os-13.0.3",
+      "subsystem": "os",
+      "fromVersion": "*",
+      "toVersion": "13.0.3",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build v7. Everything in 13.0.2, plus /etc/ssl/cert.pem -> certs/ca-certificates.crt: OpenSSL's compiled-in default CAfile, which the stock image never shipped. Without it the native Poco client in jibo-jetstream-service verifies against no roots at all and every hub connection fails (\"certificate verify failed\"), so the robot reaches Classic but cannot stream a single audio turn. Also: the CA-accepting jibo-server-client in all six copies with its CA beside each, and client configs world-readable so the unprivileged skill user can read them.",
+      "filter": "",
+      "dependencies": {},
+      "file": "os-13.0.3.tar"
+    },
+    {
+      "id": "os-13.0.3-fcs",
+      "subsystem": "os",
+      "fromVersion": "*",
+      "toVersion": "13.0.3",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build v7. Everything in 13.0.2, plus /etc/ssl/cert.pem -> certs/ca-certificates.crt: OpenSSL's compiled-in default CAfile, which the stock image never shipped. Without it the native Poco client in jibo-jetstream-service verifies against no roots at all and every hub connection fails (\"certificate verify failed\"), so the robot reaches Classic but cannot stream a single audio turn. Also: the CA-accepting jibo-server-client in all six copies with its CA beside each, and client configs world-readable so the unprivileged skill user can read them.",
+      "filter": "fcs",
+      "dependencies": {},
+      "file": "os-13.0.3.tar"
+    },
+    {
+      "id": "services-13.0.3",
+      "subsystem": "services",
+      "fromVersion": "*",
+      "toVersion": "13.0.3",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build v7. Everything in 13.0.2, plus /etc/ssl/cert.pem -> certs/ca-certificates.crt: OpenSSL's compiled-in default CAfile, which the stock image never shipped. Without it the native Poco client in jibo-jetstream-service verifies against no roots at all and every hub connection fails (\"certificate verify failed\"), so the robot reaches Classic but cannot stream a single audio turn. Also: the CA-accepting jibo-server-client in all six copies with its CA beside each, and client configs world-readable so the unprivileged skill user can read them.",
+      "filter": "",
+      "dependencies": {
+        "os": "13.0.3"
+      },
+      "file": "services-13.0.3.tar"
+    },
+    {
+      "id": "services-13.0.3-fcs",
+      "subsystem": "services",
+      "fromVersion": "*",
+      "toVersion": "13.0.3",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build v7. Everything in 13.0.2, plus /etc/ssl/cert.pem -> certs/ca-certificates.crt: OpenSSL's compiled-in default CAfile, which the stock image never shipped. Without it the native Poco client in jibo-jetstream-service verifies against no roots at all and every hub connection fails (\"certificate verify failed\"), so the robot reaches Classic but cannot stream a single audio turn. Also: the CA-accepting jibo-server-client in all six copies with its CA beside each, and client configs world-readable so the unprivileged skill user can read them.",
+      "filter": "fcs",
+      "dependencies": {
+        "os": "13.0.3"
+      },
+      "file": "services-13.0.3.tar"
+    },
+    {
+      "id": "os-13.0.4",
+      "subsystem": "os",
+      "fromVersion": "*",
+      "toVersion": "13.0.4",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build v8. Everything in 13.0.3, plus two fixes a real OTA attempt exposed: (1) the OTA downloader (a separate Node 6 script from jibo-server-client) now passes an explicit CA, without which every update download failed instantly with UNABLE_TO_GET_ISSUER_CERT_LOCALLY and a 0-byte file; (2) no HubClient.override is baked, because it wins over region-settings and forced every robot onto api.jibo.io -- the Classic entrypoint, not a hub -- so audio turns went to the wrong service. Each robot now resolves the hub for its own region.",
+      "filter": "",
+      "dependencies": {},
+      "file": "os-13.0.4.tar"
+    },
+    {
+      "id": "os-13.0.4-fcs",
+      "subsystem": "os",
+      "fromVersion": "*",
+      "toVersion": "13.0.4",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build v8. Everything in 13.0.3, plus two fixes a real OTA attempt exposed: (1) the OTA downloader (a separate Node 6 script from jibo-server-client) now passes an explicit CA, without which every update download failed instantly with UNABLE_TO_GET_ISSUER_CERT_LOCALLY and a 0-byte file; (2) no HubClient.override is baked, because it wins over region-settings and forced every robot onto api.jibo.io -- the Classic entrypoint, not a hub -- so audio turns went to the wrong service. Each robot now resolves the hub for its own region.",
+      "filter": "fcs",
+      "dependencies": {},
+      "file": "os-13.0.4.tar"
+    },
+    {
+      "id": "services-13.0.4",
+      "subsystem": "services",
+      "fromVersion": "*",
+      "toVersion": "13.0.4",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build v8. Everything in 13.0.3, plus two fixes a real OTA attempt exposed: (1) the OTA downloader (a separate Node 6 script from jibo-server-client) now passes an explicit CA, without which every update download failed instantly with UNABLE_TO_GET_ISSUER_CERT_LOCALLY and a 0-byte file; (2) no HubClient.override is baked, because it wins over region-settings and forced every robot onto api.jibo.io -- the Classic entrypoint, not a hub -- so audio turns went to the wrong service. Each robot now resolves the hub for its own region.",
+      "filter": "",
+      "dependencies": {
+        "os": "13.0.4"
+      },
+      "file": "services-13.0.4.tar"
+    },
+    {
+      "id": "services-13.0.4-fcs",
+      "subsystem": "services",
+      "fromVersion": "*",
+      "toVersion": "13.0.4",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build v8. Everything in 13.0.3, plus two fixes a real OTA attempt exposed: (1) the OTA downloader (a separate Node 6 script from jibo-server-client) now passes an explicit CA, without which every update download failed instantly with UNABLE_TO_GET_ISSUER_CERT_LOCALLY and a 0-byte file; (2) no HubClient.override is baked, because it wins over region-settings and forced every robot onto api.jibo.io -- the Classic entrypoint, not a hub -- so audio turns went to the wrong service. Each robot now resolves the hub for its own region.",
+      "filter": "fcs",
+      "dependencies": {
+        "os": "13.0.4"
+      },
+      "file": "services-13.0.4.tar"
+    },
+    {
+      "id": "os-13.0.5",
+      "subsystem": "os",
+      "fromVersion": "*",
+      "toVersion": "13.0.5",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build v9. Everything in 13.0.4, plus the three fixes that let a freshly flashed or OTA'd robot come up working with nothing done by hand: file ownership is preserved (an unprivileged debugfs extract had handed the whole filesystem to uid 1000 = avahi, which broke sshd and every skill launch); setuid bits are restored (debugfs cannot create them, so /bin/busybox shipped 0755 and skills died with a bare 'Error launching app'); and an SSL shim is preloaded into jibo-server-service, which otherwise rejects every certificate and emits a NUL byte in its request headers that modern nginx 400s.",
+      "filter": "",
+      "dependencies": {},
+      "file": "os-13.0.5.tar"
+    },
+    {
+      "id": "os-13.0.5-fcs",
+      "subsystem": "os",
+      "fromVersion": "*",
+      "toVersion": "13.0.5",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build v9. Everything in 13.0.4, plus the three fixes that let a freshly flashed or OTA'd robot come up working with nothing done by hand: file ownership is preserved (an unprivileged debugfs extract had handed the whole filesystem to uid 1000 = avahi, which broke sshd and every skill launch); setuid bits are restored (debugfs cannot create them, so /bin/busybox shipped 0755 and skills died with a bare 'Error launching app'); and an SSL shim is preloaded into jibo-server-service, which otherwise rejects every certificate and emits a NUL byte in its request headers that modern nginx 400s.",
+      "filter": "fcs",
+      "dependencies": {},
+      "file": "os-13.0.5.tar"
+    },
+    {
+      "id": "services-13.0.5",
+      "subsystem": "services",
+      "fromVersion": "*",
+      "toVersion": "13.0.5",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build v9. Everything in 13.0.4, plus the three fixes that let a freshly flashed or OTA'd robot come up working with nothing done by hand: file ownership is preserved (an unprivileged debugfs extract had handed the whole filesystem to uid 1000 = avahi, which broke sshd and every skill launch); setuid bits are restored (debugfs cannot create them, so /bin/busybox shipped 0755 and skills died with a bare 'Error launching app'); and an SSL shim is preloaded into jibo-server-service, which otherwise rejects every certificate and emits a NUL byte in its request headers that modern nginx 400s.",
+      "filter": "",
+      "dependencies": {
+        "os": "13.0.5"
+      },
+      "file": "services-13.0.5.tar"
+    },
+    {
+      "id": "services-13.0.5-fcs",
+      "subsystem": "services",
+      "fromVersion": "*",
+      "toVersion": "13.0.5",
+      "created": 1789000000000,
+      "changes": "jibo.io repoint build v9. Everything in 13.0.4, plus the three fixes that let a freshly flashed or OTA'd robot come up working with nothing done by hand: file ownership is preserved (an unprivileged debugfs extract had handed the whole filesystem to uid 1000 = avahi, which broke sshd and every skill launch); setuid bits are restored (debugfs cannot create them, so /bin/busybox shipped 0755 and skills died with a bare 'Error launching app'); and an SSL shim is preloaded into jibo-server-service, which otherwise rejects every certificate and emits a NUL byte in its request headers that modern nginx 400s.",
+      "filter": "fcs",
+      "dependencies": {
+        "os": "13.0.5"
+      },
+      "file": "services-13.0.5.tar"
+    }
+  ]
+}

@@ -31,15 +31,23 @@
 // had no server-side retention (S3 lifecycle owned it); Phoenix likewise never deletes.
 // (DIVERGENCES: self-hosted upload sink, no SNS fan-out on SetLevel, dead Kinesis.)
 
-import { createReadStream, createWriteStream, appendFileSync, mkdirSync, closeSync, openSync, readSync, statSync } from 'node:fs';
+import { createReadStream, appendFileSync, mkdirSync, closeSync, openSync, readSync, statSync } from 'node:fs';
 import { mkdir } from 'node:fs/promises';
 import { createHash, randomUUID } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { STATUS_CODES } from 'node:http';
-import { Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { sendAmz, sendAmzError, AMZ_JSON } from './awsJson.js';
+import {
+  UploadTooLargeError,
+  configuredMaxBytes,
+  declaredContentLength,
+  normalizeMaxBytes,
+  writeAtomicUpload,
+} from './rawUpload.js';
+import { verifiedCallerFromRequest } from './caller.js';
+import { canonicalPublicOrigin } from './publicOrigin.js';
 
 const NPM_LEVELS = ['error', 'warn', 'info', 'verbose', 'debug', 'silly'];
 const KINDS = ['HEALTH', 'LOG'];
@@ -48,12 +56,18 @@ const ASR_BUCKET_PATH = 'asr-binary';
 const ASYNC_EVENTS_BUCKET_PATH = 'log-async';
 const VIRTUAL_BUCKET = 'log'; // replacement for the dead S3 bucket name in path/bucketName
 const HUNDRED_PERCENT = 10000;
+export const LOG_MAX_BYTES = 1_000_000_000;
 
 // The source hands these out from src/errors/log.ts + server errors.ts (via createWithCode).
 const REQUEST_THROTTLED = { code: 'REQUEST_THROTTLED', message: 'Request throttled due to server rules.', statusCode: 429 };
 const ROBOT_ONLY = { code: 'ROBOT_ONLY', message: 'Request forbidden. Only robotd are allowed.', statusCode: 403 };
 const AUTHORIZED_UNDER_ADMIN = { code: 'AUTHORIZED_UNDER_ADMIN', message: 'Must be authorized under admin account', statusCode: 401 };
 const INTERNAL = { code: 'INTERNAL', message: 'Internal server error', statusCode: 500 };
+const payloadTooLarge = (limit) => ({
+  code: 'PAYLOAD_TOO_LARGE',
+  message: `Payload content length greater than maximum allowed: ${limit}`,
+  statusCode: 413,
+});
 
 const boomBadData = (message) => ({ boom: true, statusCode: 422, message });
 const boomNotFound = (op) => ({ boom: true, statusCode: 404, message: `Method ${op} not found.` });
@@ -98,7 +112,15 @@ const stringMemberError = (name, v, required = false) => {
   return clause ? boomBadData(`child "${name}" fails because ["${name}" ${clause}]`) : null;
 };
 
-function credentialsFrom(req) {
+function credentialsFrom(req, requireVerified = false) {
+  const verified = verifiedCallerFromRequest(req);
+  if (verified) return {
+    id: verified.accountId,
+    _id: verified.accountId,
+    friendlyId: verified.friendlyId,
+    isAdmin: verified.isAdmin,
+  };
+  if (requireVerified) return {};
   try {
     const parsed = JSON.parse(req?.headers?.['x-amz-credentials'] || '');
     return parsed && typeof parsed === 'object' ? parsed : {};
@@ -117,23 +139,30 @@ function credentialsFrom(req) {
  * on disk, so objects survive a process restart (the source's S3 objects did too).
  */
 export class LogStore {
-  constructor(dir = process.env.ETCO_classic_logDir || join(tmpdir(), 'phx-logs')) {
-    this.dir = dir;
+  constructor(dir = process.env.ETCO_classic_logDir || join(tmpdir(), 'phx-logs'), options = {}) {
+    if (dir && typeof dir === 'object') {
+      options = dir;
+      dir = options.dir;
+    }
+    this.dir = dir || process.env.ETCO_classic_logDir || join(tmpdir(), 'phx-logs');
+    this.maxBytes = normalizeMaxBytes(
+      options.maxBytes,
+      configuredMaxBytes('ETCO_classic_logMaxBytes', LOG_MAX_BYTES),
+    );
     this.index = new Map(); // key -> { key, size, etag, file, modified }
   }
 
-  /** Stream an upload to disk under a source-shaped key; record and return the entry. */
+  /** Stream an upload to a same-directory temporary file; record only after EOF. */
   async put(key, reqStream) {
     const safe = safeKey(key);
     const file = join(this.dir, safe);
     await mkdir(dirname(file), { recursive: true });
     const hash = createHash('md5');
-    let size = 0;
-    const tap = new Transform({
-      transform(chunk, _enc, cb) { hash.update(chunk); size += chunk.length; cb(null, chunk); },
+    const result = await writeAtomicUpload(reqStream, file, {
+      maxBytes: this.maxBytes,
+      onChunk: (chunk) => hash.update(chunk),
     });
-    await pipeline(reqStream, tap, createWriteStream(file));
-    const entry = { key: safe, size, etag: `"${hash.digest('hex')}"`, file, modified: Date.now() };
+    const entry = { key: safe, size: result.size, etag: `"${hash.digest('hex')}"`, file, modified: Date.now() };
     this.index.set(safe, entry);
     return entry;
   }
@@ -208,8 +237,12 @@ function safeKey(key) {
  * @param {LogStore} store
  * @param {(req) => string} [baseFn] public URL of this entrypoint (like Backup's baseFor)
  */
-export function makeLogHandler(store, baseFn) {
-  const baseFor = (req) => (baseFn ? baseFn(req) : fallbackBase(req));
+export function makeLogHandler(store, baseFn, { callerBoundary } = {}) {
+  const baseFor = (req) => {
+    const candidate = baseFn ? baseFn(req) : process.env.ETCO_classic_publicUrl;
+    if (!candidate) throw new Error('publicUrl is required to emit a log object URL');
+    return canonicalPublicOrigin(String(candidate));
+  };
   const putUrl = (req, key) => `${baseFor(req)}/log/upload?key=${encodeURIComponent(key)}`;
   const blobUrl = (req, key) => `${baseFor(req)}/log/blob?key=${encodeURIComponent(key)}`;
 
@@ -228,17 +261,21 @@ export function makeLogHandler(store, baseFn) {
         if (badDevice) return void sendLogError(res, badDevice);
         const badTracking = stringMemberError('trackingId', b.trackingId);
         if (badTracking) return void sendLogError(res, badTracking);
-        const { id: accountId, friendlyId: robotId } = credentialsFrom(req);
-        for (const event of b.events) {
+        const { id: accountId, friendlyId: robotId } = credentialsFrom(req, !!callerBoundary);
+        for (const input of b.events) {
+          const event = { ...(input || {}) };
           if (b.deviceId) event.deviceId = b.deviceId;
           if (robotId) event.robotId = robotId;
           if (b.trackingId) event.trackingId = b.trackingId;
-          if (accountId) event.accountId = accountId;
           if (!event.level || !NPM_LEVELS.includes(event.level)) {
             // srv-log-ws: a message mentioning "error" -> error, otherwise info
             event.level = event.message && event.message.includes('error') ? 'error' : 'info';
           }
-          store.logEvent({ level: event.level, message: event.message, ...event });
+          const stored = { level: event.level, message: event.message, ...event };
+          // Caller identity is authoritative even when the payload contains forged attribution.
+          if (accountId) stored.accountId = accountId;
+          if (robotId) stored.robotId = robotId;
+          store.logEvent(stored);
         }
         return void sendAmz(res, 200, { result: 'Successfully added events' });
       }
@@ -250,7 +287,7 @@ export function makeLogHandler(store, baseFn) {
         const badSerial = stringMemberError('serial', b.serial, true);
         if (badSerial) return void sendLogError(res, badSerial);
         if (!selected()) return void sendAmzError(res, REQUEST_THROTTLED);
-        const { id: accountId, friendlyId: robotId } = credentialsFrom(req);
+        const { id: accountId, friendlyId: robotId } = credentialsFrom(req, !!callerBoundary);
         const date = new Date();
         const day = `year=${date.getFullYear()}/month=${date.getMonth()}/day=${date.getDate()}`;
         const robot = `robot=${robotId || ''}/serial=${b.serial}`;
@@ -259,7 +296,7 @@ export function makeLogHandler(store, baseFn) {
       }
 
       case 'newkinesiscredentials': {
-        const { friendlyId } = credentialsFrom(req);
+        const { friendlyId } = credentialsFrom(req, !!callerBoundary);
         if (!friendlyId) return void sendAmzError(res, ROBOT_ONLY);
         // Kinesis is dead and Phoenix has no AWS STS. Hand back the documented shape
         // with an already-expired timestamp so the robot's telemetry degrades cleanly
@@ -284,13 +321,24 @@ export function makeLogHandler(store, baseFn) {
         if (badHeader) return void sendLogError(res, badHeader);
         const trackingId = req?.headers?.['x-tracking-id'] || '';
         if (!selected()) return sendAmzError(res, REQUEST_THROTTLED);
-        const { id: accountId } = credentialsFrom(req);
+        const { id: accountId } = credentialsFrom(req, !!callerBoundary);
         const binaryPath = `${accountId || ''}/${trackingId}/${randomUUID()}`;
-        return store.put(`${BUCKET_PATH}/${binaryPath}`, req)
+        const contentLength = declaredContentLength(req);
+        if (contentLength !== null && contentLength > store.maxBytes) {
+          req.resume?.();
+          return void sendAmzError(res, payloadTooLarge(store.maxBytes));
+        }
+        return store.put(`${BUCKET_PATH}/${binaryPath}`, req._phoenixBodyStream || req)
           .then((entry) => sendAmz(res, 200, { path: `/${VIRTUAL_BUCKET}/${entry.key}`, url: blobUrl(req, entry.key) }))
           .catch((err) => {
             log?.warn?.('log binary store failed', { error: err.message });
-            if (!res.writableEnded) sendAmzError(res, INTERNAL);
+            if (!res.writableEnded) {
+              if (err instanceof UploadTooLargeError || err?.statusCode === 413) {
+                sendAmzError(res, payloadTooLarge(store.maxBytes));
+              } else {
+                sendAmzError(res, INTERNAL);
+              }
+            }
           });
       }
 
@@ -298,7 +346,7 @@ export function makeLogHandler(store, baseFn) {
         const badTrackingId = stringMemberError('trackingId', b.trackingId);
         if (badTrackingId) return void sendLogError(res, badTrackingId);
         if (!selected()) return void sendAmzError(res, REQUEST_THROTTLED);
-        const { id: accountId } = credentialsFrom(req);
+        const { id: accountId } = credentialsFrom(req, !!callerBoundary);
         const trackingIdPart = b.trackingId ? `${b.trackingId}/` : '';
         const key = `${BUCKET_PATH}/${accountId || ''}/${trackingIdPart}${randomUUID()}`;
         return void sendAmz(res, 200, { path: `/${VIRTUAL_BUCKET}/${key}`, url: blobUrl(req, key), uploadUrl: putUrl(req, key) });
@@ -311,7 +359,7 @@ export function makeLogHandler(store, baseFn) {
           return void sendLogError(res, boomBadData('child "metadata" fails because ["metadata" must be an object]'));
         }
         if (!selectForAsr(b.trackingId)) return void sendAmzError(res, REQUEST_THROTTLED);
-        const { id: accountId } = credentialsFrom(req);
+        const { id: accountId } = credentialsFrom(req, !!callerBoundary);
         const date = new Date();
         const day = `year=${date.getFullYear()}/month=${date.getMonth()}/day=${date.getDate()}`;
         const key = `${ASR_BUCKET_PATH}/${day}/accountId=${accountId || ''}/trackingId=${b.trackingId}/${date.getTime()}.bin`;
@@ -324,7 +372,7 @@ export function makeLogHandler(store, baseFn) {
       }
 
       case 'setlevel': {
-        const { isAdmin } = credentialsFrom(req);
+        const { isAdmin } = credentialsFrom(req, !!callerBoundary);
         if (!isAdmin) return void sendAmzError(res, AUTHORIZED_UNDER_ADMIN);
         if (!Array.isArray(b.friendlyIds)) return void sendLogError(res, boomBadData('child "friendlyIds" fails because ["friendlyIds" is required]'));
         if (!Array.isArray(b.namespaces)) return void sendLogError(res, boomBadData('child "namespaces" fails because ["namespaces" is required]'));
@@ -364,10 +412,28 @@ export function makeLogHandler(store, baseFn) {
  * The PUT/GET endpoints the uploadUrl/blob URL fields point at. PUT stores the raw
  * upload (opts out of the common runner's JSON parsing), GET streams it back.
  */
-export function logHttpRoutes(store) {
+export function logHttpRoutes(store, { callerBoundary = false } = {}) {
+  const callerOwnsKey = (req, key) => {
+    if (!callerBoundary) return true;
+    const caller = verifiedCallerFromRequest(req);
+    if (!caller) return false;
+    const account = String(caller.accountId);
+    return key.startsWith(`${BUCKET_PATH}/${account}/`)
+      || key.includes(`/account=${account}/`)
+      || key.includes(`/accountId=${account}/`);
+  };
   const putBlob = async ({ req, res, url, log }) => {
     const key = keyFromUrl(url, 'key');
     if (!key) { res.writeHead(400, { 'content-type': 'text/plain; charset=utf-8' }); return void res.end('bad key'); }
+    if (!callerOwnsKey(req, key)) {
+      req.resume?.();
+      return void sendAmzError(res, { code: 'ACCESS_DENIED', statusCode: 403, message: 'Log object belongs to another account' });
+    }
+    const contentLength = declaredContentLength(req);
+    if (contentLength !== null && contentLength > store.maxBytes) {
+      req.resume?.();
+      return void sendAmzError(res, payloadTooLarge(store.maxBytes));
+    }
     try {
       const entry = await store.put(key, req);
       log?.info?.('log object stored', { key: entry.key, size: entry.size, etag: entry.etag });
@@ -375,16 +441,33 @@ export function logHttpRoutes(store) {
       res.end();
     } catch (err) {
       log?.warn?.('log object store failed', { error: err.message });
-      if (!res.writableEnded) { res.writeHead(400, { 'content-type': 'text/plain; charset=utf-8' }); res.end('bad key'); }
+      if (!res.writableEnded) {
+        if (err instanceof UploadTooLargeError || err?.statusCode === 413) {
+          sendAmzError(res, payloadTooLarge(store.maxBytes));
+        } else {
+          res.writeHead(400, { 'content-type': 'text/plain; charset=utf-8' });
+          res.end('bad key');
+        }
+      }
     }
   };
   putBlob.rawBody = true; // do not JSON-parse the binary upload
 
-  const getBlob = async ({ res, url, log }) => {
+  const getBlob = async ({ req, res, url, log }) => {
     const key = keyFromUrl(url, 'key');
+    // GET requests are authenticated by the direct-route wrapper before this handler runs.
+    // Keep the check here too so a direct unit invocation cannot bypass object ownership.
+    if (key && !callerOwnsKey(req, key)) {
+      res.writeHead(403, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' });
+      return void res.end('forbidden');
+    }
     const entry = key && store.find(key);
     if (!entry) { res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' }); return void res.end('no such log object'); }
-    res.writeHead(200, { 'content-type': 'application/octet-stream', 'content-length': entry.size });
+    res.writeHead(200, {
+      'content-type': 'application/octet-stream',
+      'content-length': entry.size,
+      'cache-control': 'private, no-store',
+    });
     try {
       await pipeline(createReadStream(entry.file), res);
     } catch (err) {
@@ -401,11 +484,6 @@ function keyFromUrl(url, name) {
   } catch {
     return '';
   }
-}
-
-function fallbackBase(req) {
-  return process.env.ETCO_classic_publicUrl
-    || `${req?.socket?.encrypted ? 'https' : 'http'}://${(req?.headers && req.headers.host) || 'localhost'}`;
 }
 
 function clampProbability(value) {

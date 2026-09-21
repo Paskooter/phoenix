@@ -13,6 +13,7 @@ const dir = mkdtempSync(join(tmpdir(), 'phx-portal-profile-'));
 const store = new Store(join(dir, 'store.json'));
 let server; let base;
 let owner;
+const mail = [];
 const jars = new Map();
 
 async function call(method, path, body, jar = 'owner') {
@@ -28,7 +29,15 @@ async function call(method, path, body, jar = 'owner') {
 
 before(async () => {
   owner = createOwnerAccount(store, { email: 'profile-owner@fixture.test', password: 'profile-pass-1', firstName: 'Guy' });
-  server = await createAccountService({ store }).listen(0);
+  server = await createAccountService({
+    store,
+    identityProviders: {
+      portalUrl: 'http://portal.fixture.test',
+      emailReset: { send(to, options) { mail.push({ template: 'emailReset', to, options }); } },
+      emailResetComplete: { send(to, options) { mail.push({ template: 'emailResetComplete', to, options }); } },
+      passwordChanged: { send(to, options) { mail.push({ template: 'passwordChanged', to, options }); } },
+    },
+  }).listen(0);
   base = `http://127.0.0.1:${server.address().port}`;
   const login = await call('POST', '/api/login', { email: owner.email, password: 'profile-pass-1' }, 'owner');
   assert.equal(login.status, 200);
@@ -71,12 +80,14 @@ test('invalid profile values are rejected without mutating', async () => {
 });
 
 test('change password: wrong current 401, success keeps the new credential', async () => {
+  mail.length = 0;
   const wrong = await call('POST', '/api/me/password', { currentPassword: 'wrong-pass', newPassword: 'brand-new-pass-1' });
   assert.equal(wrong.status, 401);
 
   const ok = await call('POST', '/api/me/password', { currentPassword: 'profile-pass-1', newPassword: 'brand-new-pass-1' });
   assert.equal(ok.status, 200);
   assert.equal(verifyPassword('brand-new-pass-1', store.accounts.get(owner._id).password), true);
+  assert.equal(mail.filter((entry) => entry.template === 'passwordChanged').length, 1);
 
   // old password no longer logs in, new one does
   const oldLogin = await call('POST', '/api/login', { email: owner.email, password: 'profile-pass-1' }, 'old');
@@ -85,18 +96,27 @@ test('change password: wrong current 401, success keeps the new credential', asy
   assert.equal(newLogin.status, 200);
 });
 
-test('change email: wrong password 401, duplicate 409, success relinks login', async () => {
+test('change email: wrong password 401, duplicate 409, then confirmation relinks login and invalidates sessions', async () => {
+  mail.length = 0;
   const dup = createOwnerAccount(store, { email: 'taken@fixture.test', password: 'taken-pass-1' });
   void dup;
-  const wrong = await call('POST', '/api/me/email', { currentPassword: 'brand-new-pass-1', email: 'new@fixture.test' }, 'fresh');
-  assert.equal(0, 0);
   const wrongPw = await call('POST', '/api/me/email', { currentPassword: 'nope', email: 'new@fixture.test' }, 'fresh');
   assert.equal(wrongPw.status, 401);
   const conflict = await call('POST', '/api/me/email', { currentPassword: 'brand-new-pass-1', email: 'taken@fixture.test' }, 'fresh');
   assert.equal(conflict.status, 409);
   const ok = await call('POST', '/api/me/email', { currentPassword: 'brand-new-pass-1', email: 'new@fixture.test' }, 'fresh');
   assert.equal(ok.status, 200);
+  assert.equal(ok.body.pending, true);
+  assert.equal(store.accounts.get(owner._id).email, 'profile-owner@fixture.test');
+  const pending = [...store.emailResets.values()].find((row) => row.accountId === owner._id && row.email === 'new@fixture.test');
+  assert.ok(pending);
+  assert.equal(mail.filter((entry) => entry.template === 'emailReset').length, 1);
+  const confirmed = await call('POST', '/api/me/email/confirm', { code: pending.code }, 'confirm');
+  assert.equal(confirmed.status, 200);
   assert.equal(store.accounts.get(owner._id).email, 'new@fixture.test');
+  assert.equal(mail.filter((entry) => entry.template === 'emailResetComplete').length, 1);
+  const stale = await call('GET', '/api/me', undefined, 'fresh');
+  assert.equal(stale.status, 401);
   const reLogin = await call('POST', '/api/login', { email: 'new@fixture.test', password: 'brand-new-pass-1' }, 'relogin');
   assert.equal(reLogin.status, 200);
 });

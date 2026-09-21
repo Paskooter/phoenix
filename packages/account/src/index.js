@@ -17,10 +17,12 @@ import { settingsPeerRoutes, settingsPortalRoutes } from './settingsFace.js';
 import { calendarPortalRoutes } from './calendarRoutes.js';
 import { backupPeerRoutes } from './backupPeerRoutes.js';
 import { keyPeerRoutes } from './keyPeerRoutes.js';
+import { mediaPeerRoutes } from './mediaPeerRoutes.js';
 import { staticRoutes } from './static.js';
 import { createSettingsProviders } from './settingsProviders.js';
 import { MemberPhotoStorage } from './memberPhotoStorage.js';
 import { pipeline } from 'node:stream/promises';
+import { timingSafeEqual } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { LoopUpdatedOutbox } from './loopUpdatedOutbox.js';
 import { createConfiguredInvitationProviders } from './invitationDeployment.js';
@@ -31,6 +33,8 @@ import {
 import { createLpsStsProvider } from './lps.js';
 import { createSmtpAccountMailProviders, smtpConfigFromEnv } from './smtpMail.js';
 import { listAssociatedLoopsRoute } from './loopResolution.js';
+import { protectPortalRoutes } from './portalCsrf.js';
+import { userFromSession } from './portal/session.js';
 
 export { Store, getStore, resetStore } from './store.js';
 export * as model from './model.js';
@@ -41,6 +45,7 @@ export {
   ACCOUNT_ERRORS,
   ACCOUNT_IDENTITY_METHODS,
   ACCOUNT_PASSWORD_REGEX,
+  IDENTITY_RATE_LIMITED,
   EMAIL_RESET_STATUS,
   TOKEN_ERRORS,
   accountMethodName,
@@ -59,6 +64,7 @@ export {
 } from './accountIdentity.js';
 export * as sessions from './sessions.js';
 export { portalRoutes } from './portalApi.js';
+export { adoptRobot, createAdoptionRateLimiter, robotAdoptionRoutes } from './robotAdoption.js';
 export { calendarPortalRoutes } from './calendarRoutes.js';
 export { robotFaceRoutes } from './robotFace.js';
 export {
@@ -164,6 +170,28 @@ function own(object, key) {
   return Object.prototype.hasOwnProperty.call(object, key);
 }
 
+function isMailProvider(provider) {
+  return typeof provider === 'function' || !!(provider && typeof provider.send === 'function');
+}
+
+function requireProductionMail({ invitationProviders, identityProviders }) {
+  if (process.env.PHOENIX_REQUIRE_PRODUCTION_CONFIG !== 'true') return;
+  const missing = [];
+  for (const [name, provider] of [
+    ['activation', invitationProviders?.activation],
+    ['password reset', invitationProviders?.passwordReset],
+    ['invitation', invitationProviders?.invitation],
+    ['email-change confirmation', identityProviders?.emailReset],
+    ['email-change notice', identityProviders?.emailResetComplete],
+    ['password-change notice', identityProviders?.passwordChanged],
+  ]) {
+    if (!isMailProvider(provider)) missing.push(name);
+  }
+  if (missing.length) {
+    throw new Error(`production Account service requires configured mail providers: ${missing.join(', ')}`);
+  }
+}
+
 function createConfiguredIdentityProviders({
   identityProviders,
   invitationProviders,
@@ -196,6 +224,7 @@ function createConfiguredIdentityProviders({
     });
     if (!own(options, 'emailReset')) normalized.emailReset = mail.emailReset;
     if (!own(options, 'emailResetComplete')) normalized.emailResetComplete = mail.emailResetComplete;
+    if (!own(options, 'passwordChanged')) normalized.passwordChanged = mail.passwordChanged;
   }
   if (!own(options, 'sms') && !own(options, 'smsProvider')) {
     const url = firstDefined(options.smsUrl, smsUrl, process.env.ETCO_account_smsUrl);
@@ -226,6 +255,49 @@ function photoConfiguration(loopConfig, store) {
   };
 }
 
+function photoKey(photoUrl) {
+  if (typeof photoUrl !== 'string' || photoUrl === '') return null;
+  const value = photoUrl.split('/').pop();
+  return /^[a-zA-Z0-9_-]+$/.test(value || '') ? value : null;
+}
+
+/** True when the signed-in account owns or belongs to the loop containing a photo key. */
+export function photoKeyOwnedByAccount(store, account, key) {
+  if (!account || typeof key !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(key)) return false;
+  if (photoKey(account.photoUrl) === key) return true;
+  for (const loop of store.loops.values()) {
+    const ownsLoop = String(loop.owner) === String(account._id);
+    const acceptedMember = (loop.members || []).some((member) => String(member.accountId) === String(account._id)
+      && String(member.status || '').toLowerCase() === 'accepted');
+    if (!ownsLoop && !acceptedMember) continue;
+    for (const member of loop.members || []) {
+      if (photoKey(member.memberProperties?.photoUrl) === key) return true;
+      if (member.accountId && photoKey(store.accounts.get(member.accountId)?.photoUrl) === key) return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Classic has already verified the public SigV4 request before it fetches the
+ * bytes from Account.  This narrow internal hop is intentionally distinct
+ * from a browser session: it requires a secret peer token and transports only
+ * the verified account id, which is still checked against the photo's loop
+ * membership below.  Account never trusts that identity header on its own.
+ */
+function verifiedClassicPhotoCaller(store, req) {
+  const expected = process.env.ETCO_account_internalPeerToken;
+  const supplied = req?.headers?.['x-phoenix-internal-token'];
+  const accountId = req?.headers?.['x-phoenix-verified-account-id'];
+  if (!expected || typeof supplied !== 'string' || typeof accountId !== 'string') return null;
+  const left = Buffer.from(expected);
+  const right = Buffer.from(supplied);
+  if (left.length !== right.length || !timingSafeEqual(left, right)) return null;
+  const account = store.accounts.get(accountId);
+  if (!account || account.isDeleted === true || account.isActive === false) return null;
+  return account;
+}
+
 export function createAccountService({
   store = getStore(),
   settingsProviders,
@@ -254,6 +326,8 @@ export function createAccountService({
   lpsStsProvider,
   calendarFetcher,
   calendarFetchTimeoutMs,
+  repointHost,
+  portalRequireEmailVerification,
 } = {}) {
   // The source Settings controller is always the production algorithm. Explicit provider
   // injection is reserved for tests; normal construction uses Phoenix storage/NET seams.
@@ -289,10 +363,75 @@ export function createAccountService({
     smsTimeoutMs,
     smsHeaders,
   });
+  // A public service must not appear healthy while registration/recovery
+  // silently falls back to no-op delivery. Local development remains usable
+  // without SMTP; hardened production explicitly opts into this startup gate.
+  requireProductionMail({
+    invitationProviders: effectiveInvitationProviders,
+    identityProviders: effectiveIdentityProviders,
+  });
   const photo = memberPhotoProvider ? null : photoConfiguration(loopConfig, store);
   const photoProvider = memberPhotoProvider || (photo.publicBaseUrl
     ? new MemberPhotoStorage({ directory: photo.directory, publicBaseUrl: photo.publicBaseUrl }) : null);
   const loopUpdatedOutbox = new LoopUpdatedOutbox(store, { publisher: notificationPublisher });
+  const routes = {
+    // The direct Account photo ingress is intentionally session-bound. Public
+    // photo URLs should point at Classic's signed proxy; an accidental
+    // account-origin URL must not turn the object directory into a bearer API.
+    'GET /member-photos/:key': async ({ req, res }) => {
+      const account = userFromSession(store, req) || verifiedClassicPhotoCaller(store, req);
+      if (!account) {
+        res.writeHead(401, { 'content-type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ error: 'not logged in' }));
+        return;
+      }
+      if (!photoProvider?.open || !photoKeyOwnedByAccount(store, account, req.params.key)) {
+        res.writeHead(404); res.end(); return;
+      }
+      try {
+        const stream = photoProvider.open(req.params.key);
+        await new Promise((resolve, reject) => { stream.once('open', resolve); stream.once('error', reject); });
+        res.setHeader('content-type', 'application/octet-stream');
+        await pipeline(stream, res);
+      } catch (error) {
+        if (!res.headersSent && !res.destroyed) { res.writeHead(404); res.end(); }
+        else res.destroy(error);
+      }
+    },
+    ...staticRoutes(),         // the portal UI (GET /, /admin, assets)
+    ...portalRoutes(store, {
+      loopUpdatedOutbox,
+      invitationProviders: effectiveInvitationProviders,
+      identityProviders: effectiveIdentityProviders,
+      mailProviders: effectiveInvitationProviders,
+      requireEmailVerification: portalRequireEmailVerification,
+      repointHost,
+    }), // REST /api/* (sessions)
+    ...settingsPeerRoutes(store), // internal Account client seams used by source Settings
+    ...backupPeerRoutes(store),   // internal Account client seam used by source Backup (getLoop)
+    ...keyPeerRoutes(store),      // internal Account client seam used by source Key (loop members)
+    ...mediaPeerRoutes(store),    // internal Account client seam used by Media (owned loops)
+    ...listAssociatedLoopsRoute(store), // trusted Account -> GQA loop resolution peer
+    ...settingsPortalRoutes(store), // GET/PUT /api/settings (the report-settings editor)
+    ...calendarPortalRoutes(store, {
+      fetcher: calendarFetcher,
+      fetchOptions: calendarFetchTimeoutMs === undefined ? {} : { timeoutMs: calendarFetchTimeoutMs },
+    }), // owner-scoped iCal subscriptions and cached events
+    ...robotFaceRoutes(store, {
+      settingsProviders: effectiveSettingsProviders,
+      loopUpdatedOutbox,
+      loopConfig,
+      agreementProvider,
+      invitationProviders: effectiveInvitationProviders,
+      identityProviders: effectiveIdentityProviders,
+      robotReadClient,
+      memberPhotoProvider: photoProvider,
+      // LPS issues credentials through the injected STS provider; an
+      // unconfigured default throws a clear unavailable error.
+      stsProvider: lpsStsProvider === undefined
+        ? createLpsStsProvider({ config: loopConfig }) : lpsStsProvider,
+    }), // AWS-JSON POST / (OOBE ops + Update_* proxy to OTA + OAuthClients/LPS)
+  };
   const service = createService({
     name: 'account',
     // Hapi/Joi validates JSON primitives at the CreateHubToken handler.
@@ -300,48 +439,7 @@ export function createAccountService({
     // top-level primitives with the source "value must be an object" error.
     // Keep the common strict parser for every other route.
     jsonStrict: (req) => !isCreateHubTokenTarget(req) && !isSettingsTarget(req) && !isLoopTarget(req) && !isAccountTarget(req),
-    routes: {
-      'GET /member-photos/:key': async ({ req, res }) => {
-        if (!photoProvider?.open) { res.writeHead(404); res.end(); return; }
-        try {
-          const stream = photoProvider.open(req.params.key);
-          await new Promise((resolve, reject) => { stream.once('open', resolve); stream.once('error', reject); });
-          res.setHeader('content-type', 'application/octet-stream');
-          await pipeline(stream, res);
-        } catch (error) {
-          if (!res.headersSent && !res.destroyed) { res.writeHead(404); res.end(); }
-          else res.destroy(error);
-        }
-      },
-      ...staticRoutes(),         // the portal UI (GET /, /admin, assets)
-      ...portalRoutes(store, {
-        loopUpdatedOutbox,
-        invitationProviders: effectiveInvitationProviders,
-      }), // REST /api/* (sessions)
-      ...settingsPeerRoutes(store), // internal Account client seams used by source Settings
-      ...backupPeerRoutes(store),   // internal Account client seam used by source Backup (getLoop)
-      ...keyPeerRoutes(store),      // internal Account client seam used by source Key (loop members)
-      ...listAssociatedLoopsRoute(store), // trusted Account -> GQA loop resolution peer
-      ...settingsPortalRoutes(store), // GET/PUT /api/settings (the report-settings editor)
-      ...calendarPortalRoutes(store, {
-        fetcher: calendarFetcher,
-        fetchOptions: calendarFetchTimeoutMs === undefined ? {} : { timeoutMs: calendarFetchTimeoutMs },
-      }), // owner-scoped iCal subscriptions and cached events
-      ...robotFaceRoutes(store, {
-        settingsProviders: effectiveSettingsProviders,
-        loopUpdatedOutbox,
-        loopConfig,
-        agreementProvider,
-        invitationProviders: effectiveInvitationProviders,
-        identityProviders: effectiveIdentityProviders,
-        robotReadClient,
-        memberPhotoProvider: photoProvider,
-        // LPS issues credentials through the injected STS provider; an
-        // unconfigured default throws a clear unavailable error.
-        stsProvider: lpsStsProvider === undefined
-          ? createLpsStsProvider({ config: loopConfig }) : lpsStsProvider,
-      }), // AWS-JSON POST / (OOBE ops + Update_* proxy to OTA + OAuthClients/LPS)
-    },
+    routes: protectPortalRoutes(routes),
   });
   // An injected publisher is the explicit Account -> notification boundary;
   // recover rows left by a prior process after construction.

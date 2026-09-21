@@ -5,9 +5,10 @@
 // the classic entrypoint's identity seam: its handlers resolve the caller to an account by the
 // Credential scope, exactly like the app's own signed requests.
 //
-// Signature is NOT verified upstream (Phoenix trusts the LAN, like the hub's DISABLE_AUTH), but
-// the portal still signs identically to the app so identity resolution and server behaviour are
-// the same, and a future stricter deployment needs no client change.
+// The production Classic entrypoint verifies this signature against the Account
+// credential snapshot. Keeping the portal on the same signing path therefore
+// binds every Classic operation to the logged-in account rather than trusting a
+// forwarded identity assertion.
 
 import { signSigV4 } from '@phoenix/common';
 

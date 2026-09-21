@@ -36,7 +36,7 @@ function sendFailure(res, status, message) {
  * the object bytes. The public URL is supplied by Account's configured photo
  * base URL; this hop deliberately does not forward caller authorization.
  */
-export function proxyMemberPhoto({ baseUrl, key, req, res, log }) {
+export function proxyMemberPhoto({ baseUrl, key, req, res, log, caller }) {
   const base = upstreamBaseUrl(baseUrl);
   if (!base) {
     sendFailure(res, 502, 'classic: photo upstream not configured');
@@ -91,13 +91,24 @@ export function proxyMemberPhoto({ baseUrl, key, req, res, log }) {
     });
     deadline = setTimeout(() => fail(new Error(`photo upstream deadline exceeded after ${timeout}ms`)), timeout);
     try {
+      // The public Classic route has already verified the robot/browser's
+      // SigV4 request.  Account deliberately does not accept an anonymous
+      // object request, so communicate only that verified identity across the
+      // private hop.  The independently configured peer token prevents a
+      // client from forging this header by reaching Account directly.
+      const headers = { accept: req.headers.accept || '*/*' };
+      const peerToken = process.env.ETCO_account_internalPeerToken;
+      if (peerToken && caller?.accountId) {
+        headers['x-phoenix-internal-token'] = peerToken;
+        headers['x-phoenix-verified-account-id'] = String(caller.accountId);
+      }
       upstreamRequest = transport.request({
         protocol: target.protocol,
         hostname: target.hostname,
         port: target.port || undefined,
         method: 'GET',
         path: `${target.pathname}${target.search}`,
-        headers: { accept: req.headers.accept || '*/*' },
+        headers,
       }, (response) => {
         upstreamResponse = response;
         const headers = {};

@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createAccountService, resetStore, Store, start as startAccount } from '../src/index.js';
 import { createOwnerAccount, createLoop, newId } from '../src/model.js';
-import { createClassicEntrypoint } from '../../classic/src/index.js';
+import { createClassicEntrypoint, createVerifiedClassicCaller } from '../../classic/src/index.js';
 import { signSigV4 } from '@phoenix/common';
 
 function signedPhotoRequest(base, owner, loopId, memberId, bytes) {
@@ -32,6 +32,20 @@ function signedPhotoRequest(base, owner, loopId, memberId, bytes) {
   return { headers: signed.headers, body };
 }
 
+function signedPhotoGet(url, owner) {
+  const target = new URL(url);
+  return signSigV4({
+    method: 'GET',
+    path: `${target.pathname}${target.search}`,
+    body: '',
+    headers: { host: target.host },
+    accessKeyId: owner.accessKeyId,
+    secretAccessKey: owner.secretAccessKey,
+    region: 'global',
+    service: 'jibo',
+  }).headers;
+}
+
 async function closeServer(server) {
   if (!server?.listening) return;
   await new Promise((resolve) => {
@@ -53,6 +67,7 @@ test('normal Account start exposes configured photos through the Classic public 
     'PHOTO_DIRECTORY',
     'NET_account',
     'ETCO_classic_publicUrl',
+    'ETCO_account_internalPeerToken',
   ];
   const prior = new Map(envKeys.map((key) => [key, process.env[key]]));
   let accountServer;
@@ -81,12 +96,17 @@ test('normal Account start exposes configured photos through the Classic public 
     });
     store.flush();
     resetStore();
+    process.env.ETCO_account_internalPeerToken = 'test-classic-photo-peer-token';
 
     // Account's returned URL is deliberately the Classic listener, while
     // Classic's NET_account remains an internal backend address.
     classicServer = await createClassicEntrypoint({
       notificationFile,
       notificationPollIntervalMs: 60_000,
+      requirePublicUrl: false,
+      callerBoundary: createVerifiedClassicCaller({
+        resolveCredentials: (accessKeyId) => store.accountByAccessKeyId(accessKeyId),
+      }),
     }).listen(0);
     const classicBase = `http://127.0.0.1:${classicServer.address().port}`;
     process.env.ETCO_account_photoBaseUrl = classicBase;
@@ -112,11 +132,14 @@ test('normal Account start exposes configured photos through the Classic public 
 
     // Follow the URL exactly as a robot would: GET enters the Classic public
     // listener and is proxied to Account's local object store.
-    const download = await fetch(member.account.photoUrl);
-    assert.equal(download.status, 200);
+    const download = await fetch(member.account.photoUrl, {
+      headers: signedPhotoGet(member.account.photoUrl, owner),
+    });
+    assert.equal(download.status, 200, await download.clone().text());
     assert.equal(download.headers.get('content-type'), 'application/octet-stream');
     assert.deepEqual(Buffer.from(await download.arrayBuffer()), bytes);
-    const missing = await fetch(`${classicBase}/member-photos/missing-synthetic-key`);
+    const missingUrl = `${classicBase}/member-photos/missing-synthetic-key`;
+    const missing = await fetch(missingUrl, { headers: signedPhotoGet(missingUrl, owner) });
     assert.equal(missing.status, 404, 'Classic preserves Account missing-object status');
 
     const persisted = new Store(accountFile);

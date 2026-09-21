@@ -34,8 +34,10 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DefaultPort } from '@phoenix/contracts';
+import { Store as AccountStore } from '../../account/src/store.js';
 import { sendAmz, sendAmzError, ValidationException } from './awsJson.js';
 import { generateFriendlyId } from './serialNames.js';
+import { verifiedCallerFromRequest } from './caller.js';
 
 // ---------------------------------------------------------------------------
 // Source constants
@@ -63,6 +65,7 @@ export const ROBOT_ERRORS = {
   MANUFACTURING_ONLY: { code: 'MANUFACTURING_ONLY', statusCode: 403, message: 'Only manufacturing account can access this method' },
   MANUFACTURING_OR_OWNER_ONLY: { code: 'MANUFACTURING_OR_OWNER_ONLY', statusCode: 403, message: 'Only manufacturing or owner account can access this method' },
   ROBOT_OR_OWNER_ONLY: { code: 'ROBOT_OR_OWNER_ONLY', statusCode: 403, message: 'Only robot or owner account can access this method' },
+  ACCOUNT_SERVICE_UNAVAILABLE: { code: 'ACCOUNT_SERVICE_UNAVAILABLE', statusCode: 503, message: 'Account service not available' },
   SERIAL_NUMBER_NOT_SET: { code: 'SERIAL_NUMBER_NOT_SET', statusCode: 422, message: 'Serial number not set for the robot' },
   SERIAL_NUMBER_NOT_MATCH: { code: 'SERIAL_NUMBER_NOT_MATCH', statusCode: 422, message: 'Provided serial number does not match with stored one' },
   ROBOT_NOT_FOUND: { code: 'ROBOT_NOT_FOUND', statusCode: 404, message: 'Robot not found' },
@@ -189,11 +192,19 @@ export class RobotStore {
 
 /**
  * The security gateway forwarded the authenticated identity to service handlers as the
- * `x-amz-credentials` header (srv-server parseCredentials.ts); Phoenix runs no gateway, so
- * the same seam log.js/backup.js read is used here. `null` means "no identity was
- * forwarded" — the LAN-trusted path (the robot's SigV4 request is not verified).
+ * `x-amz-credentials` header (srv-server parseCredentials.ts). The public
+ * Phoenix entrypoint creates a verified caller before any handler runs; the
+ * header fallback remains only for explicitly unguarded compatibility fixtures.
  */
-export function credentialsFrom(req) {
+export function credentialsFrom(req, requireVerified = false) {
+  const verified = verifiedCallerFromRequest(req);
+  if (verified) return {
+    id: verified.accountId,
+    email: verified.email,
+    isAdmin: verified.isAdmin,
+    friendlyId: verified.friendlyId,
+  };
+  if (requireVerified) return null;
   try {
     const parsed = JSON.parse(req?.headers?.['x-amz-credentials'] || '');
     if (!parsed || typeof parsed !== 'object') return null;
@@ -215,24 +226,65 @@ function accountBase() {
 }
 
 /**
- * Default ownership resolver: the source's `AccountClient.listRobots(ownerId, owned)` issues
- * `GET <account>/robots?ownerId=<id>[&owned=true]` and returns the owner's robot ids. Returns
- * an array when the account service answers, and `null` when it cannot be reached (no such
- * Phoenix route today, service down) so an unresolved ownership check does not fail a
- * legitimate robot request on an unrelated outage (same convention as backup.js).
+ * Default ownership resolver.  The source's `AccountClient.listRobots(ownerId, owned)` issues
+ * `GET <account>/robots?ownerId=<id>[&owned=true]`; Phoenix first resolves the same answer from
+ * the configured read-only Account snapshot, because that legacy internal route is deliberately
+ * not public here. Returns an array when the trusted source answers, and `undefined` when it
+ * cannot be reached or parsed. An unresolved ownership check must fail closed.
  */
 export async function accountOwnedRobots(ownerId, ownerEditable = false) {
-  if (!ownerId) return null;
+  if (!ownerId) return undefined;
+
+  // Phoenix's public Account face intentionally does not expose the original
+  // service-to-service GET /robots?ownerId=... route.  The Classic process is
+  // already configured with the Account's read-only durable snapshot for its
+  // SigV4 credential verifier; use that same local-only seam for this
+  // ownership check.  It avoids both an unavailable internal HTTP dependency
+  // and an accidental public owner/robot enumeration endpoint.
+  const fromSnapshot = accountOwnedRobotsFromSnapshot(ownerId, ownerEditable);
+  if (fromSnapshot !== undefined) return fromSnapshot;
+
+  // Retain the source-shaped HTTP lookup for deployments that intentionally
+  // provide it, but fail closed if neither trusted route is available.
   try {
     const query = new URLSearchParams({ ownerId: String(ownerId) });
     if (ownerEditable) query.set('owned', 'true');
     const res = await fetch(`${accountBase()}/robots?${query.toString()}`, { signal: AbortSignal.timeout(2000) });
-    if (!res.ok) return null;
+    if (!res.ok) return undefined;
     const body = await res.json();
-    if (!Array.isArray(body)) return null;
+    if (!Array.isArray(body)) return undefined;
     return body.map((entry) => (entry && typeof entry === 'object' ? String(entry.friendlyId ?? entry.id ?? entry) : String(entry)));
   } catch {
-    return null;
+    return undefined;
+  }
+}
+
+/**
+ * Resolve readable/owner-editable robot ids from the local Account snapshot.
+ * `undefined` means the trusted snapshot cannot be read; `[]` is a valid
+ * answer for an account with no matching active household.  This distinction
+ * is important because callers must fail closed on an unavailable account
+ * service rather than treating it as an empty account.
+ */
+function accountOwnedRobotsFromSnapshot(ownerId, ownerEditable) {
+  const file = process.env.ETCO_classic_accountDataFile || process.env.ETCO_account_dataFile;
+  if (!file) return undefined;
+  try {
+    const store = new AccountStore(file);
+    const accountId = String(ownerId);
+    const visible = [...store.loops.values()].filter((loop) => {
+      if (!loop || loop.isDeleted === true) return false;
+      if (String(loop.owner) === accountId) return true;
+      if (ownerEditable) return false;
+      return (loop.members || []).some((member) => String(member?.accountId) === accountId
+        && ['accepted', 'invited'].includes(String(member?.status || '').toLowerCase()));
+    });
+    return visible.flatMap((loop) => {
+      const robot = loop.robot ? store.accounts.get(String(loop.robot)) : null;
+      return robot?.friendlyId ? [String(robot.friendlyId)] : [];
+    });
+  } catch {
+    return undefined;
   }
 }
 
@@ -247,14 +299,16 @@ const validation = (res, message) => sendAmzError(res, ValidationException, mess
  * @param {object} [opts]
  * @param {RobotStore} [opts.store]            durable event log (default: file-backed)
  * @param {(req) => object|null} [opts.identity] caller identity resolver
- * @param {(ownerId: string, ownerEditable: boolean) => Promise<string[]|null>} [opts.ownedRobots]
- *        account ownership resolver (array of robot ids, or null when unresolved)
+ * @param {(ownerId: string, ownerEditable: boolean) => Promise<string[]|undefined>} [opts.ownedRobots]
+ *        account ownership resolver (array of robot ids, or undefined when unavailable)
  * @param {() => string} [opts.newFriendlyId]  friendly-id generator
  * @param {() => number} [opts.clock]          event timestamp source
  */
 export function makeRobotHandler(opts = {}) {
   const store = opts.store || new RobotStore();
-  const identity = opts.identity || credentialsFrom;
+  const identity = opts.identity
+    ? (req) => (opts.callerBoundary ? verifiedCallerFromRequest(req) && opts.identity(req) : opts.identity(req))
+    : (req) => credentialsFrom(req, !!opts.callerBoundary);
   const ownedRobots = opts.ownedRobots || accountOwnedRobots;
   const newFriendlyId = opts.newFriendlyId || generateFriendlyId;
   const clock = opts.clock || Date.now;
@@ -262,7 +316,7 @@ export function makeRobotHandler(opts = {}) {
   const now = () => Number(clock());
 
   return async function robotHandler({ req, res, op, body, log }) {
-    const credentials = identity({ headers: req?.headers });
+    const credentials = identity(req);
     const isManufacturing = !!credentials && credentials.email === MANUFACTURING_EMAIL;
     const isAdmin = !!credentials && credentials.isAdmin;
     const isManufacturingOrAdmin = isManufacturing || isAdmin;
@@ -331,12 +385,17 @@ export function makeRobotHandler(opts = {}) {
         if (!isPlainObject(b.payload)) return void validation(res, 'child "payload" fails because ["payload" is required]');
         const isOwnerEditable = RESTRICTED_TO_OWNER.some((prop) => b.payload[prop] !== undefined);
         const restrictedToManufacturing = RESTRICTED_TO_MANUFACTURING.some((prop) => b.payload[prop] !== undefined);
-        let owned = null;
-        if (!isManufacturing && credentials) owned = await ownedRobots(credentials.id, isOwnerEditable);
+        let owned;
+        if (!isManufacturing && credentials) {
+          try {
+            owned = await ownedRobots(credentials.id, isOwnerEditable);
+          } catch {
+            owned = undefined;
+          }
+          if (!Array.isArray(owned)) return void sendAmzError(res, ROBOT_ERRORS.ACCOUNT_SERVICE_UNAVAILABLE);
+        }
         if (!isManufacturing && restrictedToManufacturing) return void sendAmzError(res, ROBOT_ERRORS.MANUFACTURING_ONLY);
-        // `owned === null` is unresolved (no account route); an absent identity is the
-        // LAN-trusted path. Both allow, exactly like backup.js's ownership convention.
-        if (!isManufacturing && credentials && owned && !owned.includes(b.id)) {
+        if (!isManufacturing && credentials && !owned.includes(b.id)) {
           return void sendAmzError(res, ROBOT_ERRORS.ROBOT_OR_OWNER_ONLY);
         }
         const key = convertRobotId(b.id);
@@ -384,19 +443,55 @@ export function makeRobotHandler(opts = {}) {
     // ---- read handlers -----------------------------------------------------
     async function readOp(which) {
       // permission: source isManufacturingOrAdmin || hasRobot(credentials.id).
+      // Keep this separate from the event-log projection below.  An adopted
+      // legacy robot is a real Account/loop record, but it predates Phoenix's
+      // RobotCreated event log and therefore has no Classic lifecycle history.
+      // A successful ownership lookup is the authority for its empty bootstrap
+      // read; it is never a blanket exception for arbitrary missing ids.
+      let ownsRequestedRobot = false;
       if (!isManufacturingOrAdmin) {
-        let owned = null;
-        if (credentials) owned = await ownedRobots(credentials.id, false);
-        if (credentials && owned && !owned.includes(b.id)) {
+        let owned;
+        if (credentials) {
+          try {
+            owned = await ownedRobots(credentials.id, false);
+          } catch {
+            owned = undefined;
+          }
+          if (!Array.isArray(owned)) return void sendAmzError(res, ROBOT_ERRORS.ACCOUNT_SERVICE_UNAVAILABLE);
+          ownsRequestedRobot = owned.includes(b.id);
+        }
+        if (credentials && !ownsRequestedRobot) {
           return void sendAmzError(res, ROBOT_ERRORS.MANUFACTURING_OR_OWNER_ONLY);
         }
-        // No identity: the robot's own unverified SigV4 boot read (LAN trust).
+        // This branch is retained for unguarded compatibility fixtures only;
+        // production Classic requests always carry the verified caller.
       }
 
       const aggregate = store.aggregate(b.id);
       const found = aggregate.exists && !aggregate.deleted; // a deleted robot is gone from the read projection
 
-      if (!found && credentials) return void sendAmzError(res, ROBOT_ERRORS.ROBOT_NOT_FOUND);
+      // Administrators may read any existing lifecycle record without an
+      // ownership lookup.  For a *missing* record, however, retain the same
+      // ownership proof before treating it as an Account-adopted bootstrap
+      // record.  This matters when the household owner is also an admin.
+      if (!aggregate.exists && credentials && isAdmin) {
+        try {
+          const owned = await ownedRobots(credentials.id, false);
+          ownsRequestedRobot = Array.isArray(owned) && owned.includes(b.id);
+        } catch {
+          ownsRequestedRobot = false;
+        }
+      }
+
+      // An Account-adopted robot that has never gone through the manufacturing
+      // lifecycle has no events at all.  Its verified owner may still read the
+      // deliberately empty bootstrap projection (matching the robot's boot
+      // fallback).  Do not apply this to a deleted aggregate: a deletion is
+      // meaningful lifecycle state and must remain a 404.
+      const accountAdoptedWithoutHistory = !!credentials && ownsRequestedRobot && !aggregate.exists;
+      if (!found && credentials && !accountAdoptedWithoutHistory) {
+        return void sendAmzError(res, ROBOT_ERRORS.ROBOT_NOT_FOUND);
+      }
 
       if (found && b.serialNumber !== undefined) {
         const serial = (aggregate.payload || {}).serialNumber;

@@ -1,7 +1,8 @@
 // Phoenix console — vanilla SPA, no build step, no framework.
 //
 // Hash routes: #/, #/loop, #/settings, #/profile, #/robot, #/gallery,
-// #/messaging, #/people, #/system, plus #/add (QR pairing) and #/admin.
+// #/messaging, #/people, #/system, plus #/add (connection choice), #/add/new
+// (QR pairing), #/claim (existing-robot migration) and #/admin.
 //
 // Every call below goes to the same-origin REST face the portal has always
 // used, authenticated by the phx_session cookie. The request shapes are
@@ -284,10 +285,48 @@ function paintAccount() {
   if (adminNav) adminNav.hidden = !me.isAdmin;
 }
 
-/** The first loop, which for essentially every household is the only one. */
-async function firstLoop() {
+// Household-scoped surfaces must never silently pick an arbitrary household.
+// Remember the user's explicit choice locally, then fall back safely if that
+// household is no longer visible (for example after an invitation is removed).
+const ACTIVE_LOOP_STORAGE_KEY = 'phoenix.activeLoopId';
+let activeLoopId = (() => {
+  try { return localStorage.getItem(ACTIVE_LOOP_STORAGE_KEY) || ''; } catch { return ''; }
+})();
+
+function rememberActiveLoop(id) {
+  activeLoopId = String(id || '');
+  try {
+    if (activeLoopId) localStorage.setItem(ACTIVE_LOOP_STORAGE_KEY, activeLoopId);
+    else localStorage.removeItem(ACTIVE_LOOP_STORAGE_KEY);
+  } catch {
+    // Browsing with storage disabled is still supported for this session.
+  }
+}
+
+async function householdContext() {
   const r = await api('GET', '/api/loop');
-  return r.ok && Array.isArray(r.data.loops) && r.data.loops.length ? r.data.loops[0] : null;
+  const loops = r.ok && Array.isArray(r.data.loops) ? r.data.loops : [];
+  const active = loops.find((loop) => String(loop.id) === activeLoopId) || loops[0] || null;
+  if (active && String(active.id) !== activeLoopId) rememberActiveLoop(active.id);
+  if (!active && activeLoopId) rememberActiveLoop('');
+  return { ok: r.ok, error: r.data?.error, loops, active };
+}
+
+function householdSwitcher(context) {
+  if (!context.active || context.loops.length < 2) return null;
+  const select = h('select', {
+    'aria-label': 'Active household',
+    on: {
+      change: (event) => {
+        rememberActiveLoop(event.target.value);
+        route();
+      },
+    },
+  }, ...context.loops.map((loop) => h('option', { value: loop.id }, loop.name || 'Unnamed household')));
+  select.value = String(context.active.id);
+  return h('div', { class: 'household-switcher' },
+    h('span', { class: 'field-label' }, 'Viewing household'),
+    select);
 }
 
 /* ==========================================================================
@@ -394,16 +433,18 @@ function setBadge(id, count) {
 async function renderLoop() {
   show(page('Household', 'Members, their account links, and the household itself.', loading(5)));
 
-  const r = await api('GET', '/api/loop');
+  const context = await householdContext();
   const container = page('Household', 'Members, their account links, and the household itself.');
 
-  if (!r.ok) { container.append(errorBox('Could not load your household.', r.data.error)); return show(container); }
-  const loops = Array.isArray(r.data.loops) ? r.data.loops : [];
-  const active = loops[0] || null;
+  if (!context.ok) { container.append(errorBox('Could not load your household.', context.error)); return show(container); }
+  const active = context.active;
   if (!active) {
     container.append(empty('No household yet', 'A household is created when your first robot is paired.', 'users'));
     return show(container);
   }
+
+  const switcher = householdSwitcher(context);
+  if (switcher) container.append(switcher);
 
   const isOwner = active.owner === me?.id;
 
@@ -1132,10 +1173,12 @@ async function renderProfile() {
   mailForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const res = await api('POST', '/api/me/email', Object.fromEntries(new FormData(mailForm)));
-    notify(res.ok ? 'Email changed' : (res.data.error || 'Could not change email'), res.ok ? 'ok' : 'error');
-    if (res.ok) { await refreshMe(); await renderProfile(); }
+    notify(res.ok ? 'Check the new email address to confirm the change.' : (res.data.error || 'Could not change email'), res.ok ? 'ok' : 'error');
+    if (res.ok) mailForm.reset();
   });
-  container.append(card('Change email address', {}, mailForm));
+  container.append(card('Change email address', {
+    sub: 'Your address stays unchanged until you confirm the link sent to the new inbox.',
+  }, mailForm));
 
   show(container);
 }
@@ -1150,7 +1193,8 @@ async function renderRobot() {
   const robots = await api('GET', '/api/robots');
   const container = page('Robots', 'The robots paired with this server.');
   container.querySelector('.page-head').append(h('div', { class: 'row' },
-    h('a', { class: 'btn btn-primary', href: '#/add' }, icon('plus', 15), 'Add a robot')));
+    h('a', { class: 'btn btn-primary', href: '#/add' }, icon('plus', 15), 'Connect a Jibo'),
+    h('a', { class: 'btn btn-quiet', href: '#/claim' }, icon('link', 15), 'Migrate an existing Jibo')));
 
   if (!robots.ok) { container.append(errorBox('Could not load robots.', robots.data.error)); return show(container); }
   const list = Array.isArray(robots.data) ? robots.data : [];
@@ -1158,7 +1202,7 @@ async function renderRobot() {
 
   if (!list.length) {
     container.append(empty('No robots paired yet',
-      'Pair one by showing it a setup code from the Add a robot screen.', 'robot'));
+      'Choose the setup or migration path from Connect a Jibo.', 'robot'));
     return show(container);
   }
 
@@ -1200,13 +1244,122 @@ async function renderRobot() {
 }
 
 /* ==========================================================================
-   Add a robot — QR pairing (carried over verbatim in behaviour)
+   Claim an already-paired robot
+   ========================================================================== */
+
+async function renderClaim() {
+  const container = page('Migrate an existing Jibo',
+    'Repoint an already-set-up robot, safely link it to this account, then let it take its OTA update.');
+  container.querySelector('.page-head').prepend(
+    h('a', { class: 'link', href: '#/add', style: 'display:inline-flex;align-items:center;gap:.35rem;margin-bottom:.75rem' },
+      icon('back', 14), 'Choose a different path'));
+
+  const result = h('div', { hidden: true });
+  const request = h('button', { type: 'button', class: 'btn btn-primary' },
+    icon('link', 15), 'Create one-time claim command');
+  request.addEventListener('click', async () => {
+    request.disabled = true;
+    const res = await api('POST', '/api/robots/claim-code', {});
+    request.disabled = false;
+    result.hidden = false;
+    if (!res.ok) {
+      result.replaceChildren(errorBox('Could not create a claim command.', res.data?.error));
+      return;
+    }
+    const publicJiboIo = /(^|\.)jibo\.io$/i.test(location.hostname);
+    const host = res.data.repointHost || '<server-ip>';
+    const adoptionUrl = `${location.origin}${res.data.adoptionPath || '/api/adopt-robot'}`;
+    // jibo.io uses the public-DNS/Let's Encrypt repointer, so a customer does
+    // not need a copy of the server CA. Other deployments retain the generic
+    // private-CA command and receive their configured public IP explicitly.
+    const scriptUrl = 'https://jibo.io/robot-ota-repoint.sh';
+    const command = publicJiboIo
+      ? [
+        `curl --fail --remote-name ${scriptUrl}`,
+        `bash ./robot-ota-repoint.sh --robot root@<robot-ip> --claim-code ${res.data.code} --yes`,
+      ].join(' && ')
+      : [
+        'scripts/parity-robot/repoint-robot.sh',
+        '--robot root@<robot-ip>',
+        `--phoenix ${host}`,
+        `--claim-code ${res.data.code}`,
+        `--adoption-url ${adoptionUrl}`,
+        '--yes',
+      ].join(' ');
+    const expiry = fmtDate(res.data.expires);
+    result.replaceChildren(
+      h('div', { class: 'notice notice-warn' },
+        h('strong', {}, 'One use only.'), ' This command expires ', expiry,
+        '. Do not share it; it links whichever robot proves possession to your account.'),
+      h('p', { class: 'instruct' },
+        'Run this on a computer that can SSH as root to your Jibo. Replace only ',
+        h('code', {}, '<robot-ip>'), '. The command reads the existing robot credentials over SSH; do not copy those credentials into this site.'),
+      publicJiboIo ? h('p', { class: 'field-hint' },
+        'The command downloads the public script first. You can ',
+        h('a', { href: scriptUrl, download: 'robot-ota-repoint.sh' }, 'download and inspect it'),
+        ' before running this single command.') : null,
+      h('div', { class: 'restart-cmd' },
+        h('span', { class: 'prompt' }, '$'), h('code', { text: command }), copyButton(() => command)),
+      !publicJiboIo && !res.data.repointHost ? h('p', { class: 'field-hint' },
+        'This server has not published its robot-repoint IP, so replace ', h('code', {}, '<server-ip>'),
+        ' with the public IP the robot should reach.') : null,
+      h('p', { class: 'field-hint' },
+        'The command applies the displayed plan because it includes ', h('code', {}, '--yes'),
+        '. It does not import the former cloud account or its people. It preserves the robot’s existing keys and makes this Phoenix account its household owner.'),
+      h('ol', { class: 'field-hint' },
+        h('li', {}, 'Wait for the command to report that the robot was claimed, then keep Jibo powered and online.'),
+        h('li', {}, 'Jibo’s normal updater will see the jibo.io OTA catalog. Do not interrupt its download or reboot.'),
+        h('li', {}, 'Use ', h('a', { href: '#/system' }, 'System → Software updates'),
+          ' to see the catalog offered to robots. It is informational; updates are not pushed from the browser.')));
+  });
+
+  container.append(card('Step 1 — Prepare', {},
+    h('p', { class: 'instruct' }, 'Use this only for a Jibo that was set up before and still has its robot credentials.'),
+    h('p', { class: 'field-hint' }, 'The robot must already have owner-authorized root SSH access and be reachable from this computer. Install and verify that local access before continuing; this migration tool does not bypass it.'),
+    h('p', { class: 'field-hint' }, 'The helper intentionally uses non-interactive SSH keys. Before creating a code, confirm ',
+      h('code', {}, 'ssh root@<robot-ip> true'), ' exits successfully without asking for a password.'),
+    h('p', { class: 'field-hint' }, 'For a new or factory-reset Jibo, use ', h('a', { href: '#/add/new' }, 'the QR setup path'),
+      ' instead. Its normal setup creates and links the robot automatically.')),
+    card('Step 2 — Create your private pairing command', {},
+      h('p', { class: 'instruct' }, 'Create a short-lived code only when you are ready to run the command. It is bound to your signed-in account.'),
+    h('div', { class: 'row', style: 'margin-top:1.25rem' }, request),
+    result));
+  show(container);
+}
+
+/* ==========================================================================
+   Connect a robot — choose QR setup or existing-robot migration
    ========================================================================== */
 
 let pollTimer = null;
 function stopPoll() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }
 
-async function renderAdd() {
+function renderAdd() {
+  const container = page('Connect a Jibo', 'Choose the path that matches the robot in front of you.');
+  container.querySelector('.page-head').prepend(
+    h('a', { class: 'link', href: '#/robot', style: 'display:inline-flex;align-items:center;gap:.35rem;margin-bottom:.75rem' },
+      icon('back', 14), 'Back to robots'));
+  container.append(
+    card('My Jibo has been set up already', {},
+      h('p', { class: 'instruct' }, 'It previously connected to the original cloud or another server.'),
+      h('p', { class: 'field-hint' }, 'We will prepare SSH access, repoint it to jibo.io, create a one-use ownership link for this account, and then let its regular OTA updater finish the migration.'),
+      h('div', { class: 'row', style: 'margin-top:1.25rem' },
+        h('a', { class: 'btn btn-primary', href: '#/claim' }, icon('link', 15), 'Migrate this Jibo'))),
+    card('My Jibo is new or factory-reset', {},
+      h('p', { class: 'instruct' }, 'It is at the normal setup screen and does not need its former cloud credentials.'),
+      h('p', { class: 'field-hint' }, 'Enter Wi-Fi details and show the generated QR code to Jibo. Normal setup creates the robot credentials and links it to this account.'),
+      h('div', { class: 'row', style: 'margin-top:1.25rem' },
+        h('a', { class: 'btn btn-primary', href: '#/add/new' }, icon('plus', 15), 'Set up with a QR code'))),
+    h('p', { class: 'field-hint' }, 'Need the public, signed-out preparation steps? Read the ', h('a', { href: '/guide' }, 'migration guide'),
+      '. It explains how to repoint first and return here later to link the robot to an account.'));
+  show(container);
+}
+
+/* ==========================================================================
+   Add a new/factory-reset robot — QR pairing
+   ========================================================================== */
+
+async function renderAddNew() {
   const container = page('Set up a robot', 'Show the code to the robot and it will join your network.');
   container.querySelector('.page-head').prepend(
     h('a', { class: 'link', href: '#/robot', style: 'display:inline-flex;align-items:center;gap:.35rem;margin-bottom:.75rem' },
@@ -1288,8 +1441,12 @@ async function renderAdd() {
 async function renderGallery() {
   show(page('Gallery', 'Photographs and media the robot captured.', loading(3)));
 
-  const loop = await firstLoop();
+  const context = await householdContext();
+  const loop = context.active;
   const container = page('Gallery', 'Photographs and media the robot captured.');
+  if (!context.ok) { container.append(errorBox('Could not load your household.', context.error)); return show(container); }
+  const switcher = householdSwitcher(context);
+  if (switcher) container.append(switcher);
   if (!loop) { container.append(empty('No household', 'Pair a robot first.', 'image')); return show(container); }
 
   const r = await api('GET', `/api/media?loopId=${encodeURIComponent(loop.id)}`);
@@ -1374,8 +1531,14 @@ async function renderGallery() {
 async function renderMessaging() {
   show(page('Messages', 'Household messages, push registrations and the notification socket.', loading(4)));
 
-  const loop = await firstLoop();
+  const context = await householdContext();
+  const loop = context.active;
   const container = page('Messages', 'Household messages, push registrations and the notification socket.');
+  if (!context.ok) container.append(errorBox('Could not load your household.', context.error));
+  else {
+    const switcher = householdSwitcher(context);
+    if (switcher) container.append(switcher);
+  }
 
   /* -- Jot ------------------------------------------------------------- */
   if (loop) {
@@ -1473,8 +1636,12 @@ async function renderMessaging() {
 async function renderPeople() {
   show(page('People', 'The person catalogue, as the robot sees it.', loading(4)));
 
-  const loop = await firstLoop();
+  const context = await householdContext();
+  const loop = context.active;
   const container = page('People', 'The person catalogue, as the robot sees it.');
+  if (!context.ok) { container.append(errorBox('Could not load your household.', context.error)); return show(container); }
+  const switcher = householdSwitcher(context);
+  if (switcher) container.append(switcher);
   if (!loop) { container.append(empty('No household', 'Pair a robot first.', 'users')); return show(container); }
 
   container.append(h('div', { class: 'notice' }, icon('alert', 15),
@@ -2122,6 +2289,9 @@ async function renderAdminRobots() {
       }), 'The four-word name the robot reports.'),
       field('Owner email', h('input', { name: 'ownerEmail', type: 'email', placeholder: 'optional' }),
         'An existing account. Leave blank to use the synthetic adopted owner.')),
+    h('label', { class: 'check-row' },
+      h('input', { name: 'transferExisting', type: 'checkbox' }),
+      h('span', {}, 'Transfer a robot already owned by another Phoenix account (administrator-confirmed).')),
     h('div', { class: 'row', style: 'margin-top:1.25rem' },
       h('button', { type: 'submit', class: 'btn btn-primary' }, 'Adopt robot')),
     result);
@@ -2131,6 +2301,7 @@ async function renderAdminRobots() {
     const fd = Object.fromEntries(new FormData(adoptForm));
     const res = await api('POST', '/api/admin/adopt', {
       friendlyId: fd.friendlyId, ownerEmail: fd.ownerEmail || undefined,
+      transferExisting: fd.transferExisting === 'on',
     });
     result.hidden = false;
     if (!res.ok) { result.textContent = `Error: ${res.data.error}`; return; }
@@ -2228,6 +2399,44 @@ async function renderAdminAdmins() {
    Auth screen
    ========================================================================== */
 
+let authNotice = '';
+let pendingActivationEmail = '';
+let publicMailAction = null;
+
+function clearPublicMailUrl() {
+  // Keep a user-selected hash route, but remove the bearer code from history
+  // and from anything they might copy from the address bar.
+  history.replaceState(null, '', `/${location.hash || ''}`);
+}
+
+async function consumePublicMailAction() {
+  const params = new URLSearchParams(location.search);
+  const code = params.get('code') || '';
+  if (location.pathname === '/activate') {
+    clearPublicMailUrl();
+    if (!code) { authNotice = 'This confirmation link is incomplete.'; return; }
+    const res = await api('POST', '/api/signup/verify', { code });
+    authNotice = res.ok
+      ? 'Your email is confirmed. You can sign in now.'
+      : (res.data.error || 'This confirmation link is invalid or has expired.');
+    return;
+  }
+  if (location.pathname === '/confirmemailreset') {
+    clearPublicMailUrl();
+    if (!code) { authNotice = 'This email-change link is incomplete.'; return; }
+    const res = await api('POST', '/api/me/email/confirm', { code });
+    authNotice = res.ok
+      ? 'Your email address has been changed. Please sign in again.'
+      : (res.data.error || 'This email-change link is invalid or has expired.');
+    return;
+  }
+  if (location.pathname === '/reset') {
+    clearPublicMailUrl();
+    if (!code) { authNotice = 'This password-reset link is incomplete.'; return; }
+    publicMailAction = { type: 'reset', code };
+  }
+}
+
 function renderAuth() {
   shell.hidden = true;
   authRoot.hidden = false;
@@ -2244,50 +2453,103 @@ function renderAuth() {
   const title = authRoot.querySelector('#auth-title');
   const sub = authRoot.querySelector('#auth-sub');
   const signupOnly = authRoot.querySelector('.signup-only');
+  const email = form.querySelector('[name="email"]');
   const password = form.querySelector('[name="password"]');
+  const emailField = email.closest('.field');
+  const passwordField = password.closest('.field');
+  const forgot = authRoot.querySelector('#auth-forgot');
+  const resend = authRoot.querySelector('#auth-resend');
 
-  let mode = 'login';
+  let mode = publicMailAction?.type === 'reset' ? 'reset' : 'login';
   const COPY = {
     login: { title: 'Welcome back', sub: 'Use the same account you sign into the robot app with.', cta: 'Sign in' },
-    signup: { title: 'Create an account', sub: 'This account lives on this server only.', cta: 'Create account' },
+    signup: { title: 'Create an account', sub: 'We will send a confirmation link before the account can sign in.', cta: 'Create account' },
+    recovery: { title: 'Reset your password', sub: 'Enter your email and we will send a reset link if an account exists.', cta: 'Send reset link' },
+    reset: { title: 'Choose a new password', sub: 'Use at least 8 characters with an uppercase letter, lowercase letter, and number.', cta: 'Set new password' },
+  };
+
+  const setMessage = (message, isError = false) => {
+    err.hidden = !message;
+    err.textContent = message || '';
+    err.classList.toggle('error', isError);
+  };
+
+  const setMode = (next) => {
+    mode = next;
+    segment.hidden = next === 'recovery' || next === 'reset';
+    segment.dataset.active = next === 'signup' ? 'signup' : 'login';
+    for (const t of segment.querySelectorAll('.tab')) {
+      const on = t.dataset.tab === next;
+      t.classList.toggle('active', on);
+      t.setAttribute('aria-selected', String(on));
+    }
+    if (signupOnly) signupOnly.hidden = next !== 'signup';
+    emailField.hidden = next === 'reset';
+    passwordField.hidden = next === 'recovery';
+    email.required = next !== 'reset';
+    password.required = next !== 'recovery';
+    forgot.hidden = next !== 'login';
+    resend.hidden = !(pendingActivationEmail && (next === 'login' || next === 'signup'));
+    title.textContent = COPY[next].title;
+    sub.textContent = COPY[next].sub;
+    submit.textContent = COPY[next].cta;
+    password.setAttribute('autocomplete', next === 'signup' || next === 'reset' ? 'new-password' : 'current-password');
+    setMessage(authNotice, false);
   };
 
   for (const tab of segment.querySelectorAll('.tab')) {
-    tab.addEventListener('click', () => {
-      mode = tab.dataset.tab;
-      segment.dataset.active = mode;
-      for (const t of segment.querySelectorAll('.tab')) {
-        const on = t.dataset.tab === mode;
-        t.classList.toggle('active', on);
-        t.setAttribute('aria-selected', String(on));
-      }
-      if (signupOnly) signupOnly.hidden = mode !== 'signup';
-      title.textContent = COPY[mode].title;
-      sub.textContent = COPY[mode].sub;
-      submit.textContent = COPY[mode].cta;
-      password.setAttribute('autocomplete', mode === 'signup' ? 'new-password' : 'current-password');
-      err.hidden = true;
-    });
+    tab.addEventListener('click', () => { authNotice = ''; setMode(tab.dataset.tab); });
   }
+  forgot.addEventListener('click', () => { authNotice = ''; setMode('recovery'); });
+  resend.addEventListener('click', async () => {
+    resend.disabled = true;
+    const res = await api('POST', '/api/signup/resend', { email: pendingActivationEmail });
+    resend.disabled = false;
+    setMessage(res.ok ? 'If that address has a pending account, a new confirmation link was sent.'
+      : (res.data.error || 'Could not resend the confirmation email.'), !res.ok);
+  });
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!form.reportValidity()) return;
     submit.disabled = true;
-    submit.textContent = mode === 'signup' ? 'Creating…' : 'Signing in…';
+    submit.textContent = mode === 'signup' ? 'Creating…'
+      : (mode === 'recovery' ? 'Sending…' : (mode === 'reset' ? 'Updating…' : 'Signing in…'));
     const fd = Object.fromEntries(new FormData(form));
-    const res = await api('POST', mode === 'signup' ? '/api/signup' : '/api/login', fd);
+    const endpoint = mode === 'signup' ? '/api/signup'
+      : (mode === 'recovery' ? '/api/password/reset/request'
+        : (mode === 'reset' ? '/api/password/reset/confirm' : '/api/login'));
+    const payload = mode === 'reset' ? { code: publicMailAction?.code, password: fd.password } : fd;
+    const res = await api('POST', endpoint, payload);
     submit.disabled = false;
     submit.textContent = COPY[mode].cta;
     if (!res.ok) {
-      err.hidden = false;
-      err.textContent = res.data.error || 'That did not work. Check your details and try again.';
+      setMessage(res.data.error || 'That did not work. Check your details and try again.', true);
+      return;
+    }
+    if (mode === 'signup' && res.data.verificationRequired) {
+      pendingActivationEmail = fd.email;
+      authNotice = 'Check your inbox and follow the confirmation link before signing in.';
+      setMode('login');
+      return;
+    }
+    if (mode === 'recovery') {
+      authNotice = 'If that address has an account, a password-reset link was sent.';
+      setMode('login');
+      return;
+    }
+    if (mode === 'reset') {
+      publicMailAction = null;
+      authNotice = 'Your password has been updated. You can sign in now.';
+      setMode('login');
       return;
     }
     await refreshMe();
     if (!location.hash || location.hash === '#/') location.hash = '#/';
     route();
   });
+
+  setMode(mode);
 }
 
 /* ==========================================================================
@@ -2361,11 +2623,13 @@ const ROUTES = {
   '#/settings': renderSettings,
   '#/profile': renderProfile,
   '#/robot': renderRobot,
+  '#/claim': renderClaim,
   '#/gallery': renderGallery,
   '#/messaging': renderMessaging,
   '#/people': renderPeople,
   '#/system': renderSystem,
   '#/add': renderAdd,
+  '#/add/new': renderAddNew,
 };
 
 /**
@@ -2520,6 +2784,7 @@ const ADMIN_ROUTES = {
 
 async function route() {
   stopPoll();
+  await consumePublicMailAction();
   // `/admin` is served by the same shell; treat the path as the route so the
   // bare URL works rather than silently landing on the overview.
   const hash = (location.pathname === '/admin' && !location.hash) ? '#/admin' : (location.hash || '#/');

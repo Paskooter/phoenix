@@ -26,8 +26,9 @@ system runs on Node with nothing to download.
   engine for language understanding, intent routing, and graph-based skills (chitchat, personal
   report, question answering) with redirects and proactive turns.
 - **Pairing, both kinds.** A factory-reset robot completes the real out-of-box QR handshake and
-  receives its credentials; a robot that paired with the original cloud years ago is adopted with
-  its existing identity. Both are driven from a bundled **web portal**.
+  receives its credentials; a robot that paired with the original cloud years ago is claimed by a
+  newly-created Phoenix account using a one-time portal code plus proof from its existing identity.
+  Both are driven from the bundled **web portal**.
 - **Per-robot authentication.** The robot signs an AWS-style token request with its own stored
   keys; the hub verifies a JWT issued from it. Exercised against real hardware.
 - **Firmware updates over the air.** The `Update` service serves OS and services packages built
@@ -79,9 +80,11 @@ which is loaded automatically by every service and launcher.
 |---|---|
 | `PARAKEET_URL` | Address of a Parakeet ASR server (`POST /transcribe`). Speech is only transcribed when this is reachable; the built-in default points at `192.168.1.252:6972`. |
 | `LLM_URL`, `LLM_MODEL` | OpenAI-compatible endpoint (for example LM Studio) used by the answer skill and as the parser's fallback. |
-| `HUB_TOKEN_SECRET` | Secret the hub and account service sign robot tokens with. **Change it** for any deployment beyond a trusted LAN. |
-| `DISABLE_AUTH` | `true` (the default) accepts unauthenticated robots on a trusted network; `false` requires robot tokens. |
+| `HUB_TOKEN_SECRET` | Required signing secret for hub/account robot tokens. Generate a unique random value; the hardened launchers refuse an empty secret in production. |
+| `DISABLE_AUTH` | `false` (the production default) requires robot tokens. `true` is for isolated local development only. |
+| `ETCO_account_internalPeerToken` | A separate random secret used only between trusted Phoenix services; it must never be sent by a browser or robot. |
 | `ETCO_account_region` | The `region` written into adopted robots' credentials. The robot builds `<region>.jibo.com` from it, so it must match the certificate. Defaults to `api`, the region a stock robot reports. |
+| `ETCO_account_repointHost` | Public IP displayed in the signed-in existing-robot claim command. It must be reachable from the robot; it is never derived from a request header. |
 | `PHOENIX_TLS_REGIONS`, `PHOENIX_TLS_EXTRA_NAMES`, `PHOENIX_TLS_HOME` | Which names the server's generated certificate covers, and where it is stored (`~/.local/share/phoenix/tls`). |
 | `PHOENIX_ROBOT_ENTRYPOINT_PORT` | Port for the robot-facing TLS listener when it should not be 443. |
 | `PHOENIX_PORT_OFFSET`, `PHOENIX_LOG_DIR` | Shift every service port, and choose where launcher logs go. |
@@ -94,10 +97,11 @@ Three things worth knowing before pointing hardware at it:
   names to your host and installing a CA it trusts. Phoenix generates its own CA and serving
   certificate on first start; the [runbook](docs/RUNBOOK.md) covers the redirect, the trust
   install, and how to verify it from the robot's own logs.
-- **Robot Classic requests are not signature-verified.** The original per-account signing keys
-  are unrecoverable, so the Classic front door trusts its network, exactly like the hub's
-  `DISABLE_AUTH`. Keep `:9012` on a LAN or behind a firewall/VPN; the
-  [deployment guide](docs/DEPLOYMENT.md) shows the public topology and hardening steps.
+- **Robot Classic requests are signature-verified at the public entrypoint.** The production
+  Classic and OTA launchers resolve the signing key from the Account store, validate the exact
+  request body and reject signature replay. Keep the loopback `:9012` backend private anyway;
+  the [deployment guide](docs/DEPLOYMENT.md) shows the required TLS edge, firewall, and rate
+  limits.
 - **OTA packages are built locally, not shipped.** `scripts/build-ota-packages.sh` turns a stock
   firmware buildroot into OTA packages; they are large, machine-specific artifacts and are not in
   the repository.
@@ -161,6 +165,8 @@ compatibility; see [packages/harness/README.md](packages/harness/README.md).
   extension services, public hosting, and the verification commands.
 - **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** — the full VPS/home-server deployment: Docker
   Compose behind nginx, DNS and certificates, firewall, backups, upgrades and troubleshooting.
+- **[docs/SECURITY.md](docs/SECURITY.md)** — the production launch gate, private-port topology,
+  container/native hardening, reverse-proxy controls and common deployment pitfalls.
 - **[docs/portal-nginx-hosting.md](docs/portal-nginx-hosting.md)** — hosting just the web portal
   behind nginx.
 
@@ -206,6 +212,7 @@ wants to check the work rather than take the summary's word for it.
 | [docs/RUNBOOK.md](docs/RUNBOOK.md) | First-time setup ending with a talking robot |
 | [docs/OPERATIONS.md](docs/OPERATIONS.md) | Running, configuring and exposing the stack |
 | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Full public deployment (Compose + nginx) |
+| [docs/SECURITY.md](docs/SECURITY.md) | Production security baseline and launch checklist |
 | [docs/portal-nginx-hosting.md](docs/portal-nginx-hosting.md) | Portal-only hosting behind nginx |
 | [docs/CLASSIC-SERVICES.md](docs/CLASSIC-SERVICES.md) | The robot's cloud API surface and what is implemented |
 | [docs/DIVERGENCES.md](docs/DIVERGENCES.md) | Where Phoenix deliberately behaves differently from the original cloud |

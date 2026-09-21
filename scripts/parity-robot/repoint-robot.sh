@@ -50,6 +50,11 @@
 #   --hub-port <n>      conversation hub port to point Jetstream at (default 9000)
 #   --no-hub            leave the conversation hub target alone
 #   --no-adopt          do not register the robot in the Phoenix account store
+#   --claim-code <code> one-time code from the signed-in Phoenix portal. With
+#                       --adoption-url, atomically links this existing robot to
+#                       that new account while preserving its existing keys.
+#   --adoption-url <url> HTTPS Account URL ending in /api/adopt-robot; required
+#                       with --claim-code (for example https://jibo.io/api/adopt-robot)
 #   --account-store <p> the account store the SERVER reads, so adoption lands where
 #                       the server will look. Defaults to $ETCO_account_dataFile or
 #                       $PHOENIX_ROBOT_STORE_FILE.
@@ -70,7 +75,7 @@ set -euo pipefail
 ROBOT=""; PHOENIX=""; CERT_DIR="${PHOENIX_TLS_HOME:-${XDG_DATA_HOME:-${HOME}/.local/share}/phoenix/tls}"; CA=""
 SERVER_CRT=""; SERVER_KEY=""; EXTRA_NAMES=""; REGEN=0
 EXTRA_REGIONS="api"; DRY=0; ASSUME_YES=0; DROP_BIND=0; VERIFY=0; REVERT=0; CERT_ONLY=0; TRUST_FIRST=0
-HUB_PORT=9000; DO_HUB=1; DO_ADOPT=1; CLASSIC_URL=""; ACCOUNT_STORE=""
+HUB_PORT=9000; DO_HUB=1; DO_ADOPT=1; CLASSIC_URL=""; ACCOUNT_STORE=""; CLAIM_CODE=""; ADOPTION_URL=""
 CLIENT_CA_RECEIPT="/var/lib/phoenix/jibo-server-client-ca.json"
 MARK_BEGIN="# >>> phoenix-repoint >>>"
 MARK_END="# <<< phoenix-repoint <<<"
@@ -88,6 +93,8 @@ while [ $# -gt 0 ]; do
     --hub-port) HUB_PORT="${2:-}"; shift 2 ;;
     --no-hub) DO_HUB=0; shift ;;
     --no-adopt) DO_ADOPT=0; shift ;;
+    --claim-code) CLAIM_CODE="${2:-}"; shift 2 ;;
+    --adoption-url) ADOPTION_URL="${2:-}"; shift 2 ;;
     --classic-url) CLASSIC_URL="${2:-}"; shift 2 ;;
     --account-store) ACCOUNT_STORE="${2:-}"; shift 2 ;;
     --regions) EXTRA_REGIONS="${2:-}"; shift 2 ;;
@@ -117,6 +124,17 @@ die()  { printf '\033[31m[repoint] ERROR:\033[0m %s\n' "$*" >&2; exit 1; }
 ok()   { printf '\033[32m[repoint] OK:\033[0m %s\n' "$*" >&2; }
 
 [ -n "$ROBOT" ] || die "--robot is required"
+[ -z "$CLAIM_CODE" ] || [ -n "$ADOPTION_URL" ] || die "--claim-code requires --adoption-url"
+[ -z "$CLAIM_CODE" ] || [ "$DO_ADOPT" -eq 1 ] || die "--claim-code cannot be combined with --no-adopt"
+if [ -n "$CLAIM_CODE" ] && [[ ! "$CLAIM_CODE" =~ ^[A-Za-z0-9_-]{43}$ ]]; then
+  die "--claim-code must be the exact one-time code shown by the portal"
+fi
+if [ -n "$ADOPTION_URL" ]; then
+  case "$ADOPTION_URL" in
+    https://*/api/adopt-robot) ;;
+    *) die "--adoption-url must be an HTTPS URL ending in /api/adopt-robot" ;;
+  esac
+fi
 [ -r "$PATCHER" ] || die "Node client patch utility is missing or unreadable: $PATCHER"
 SSH=(ssh -o BatchMode=yes -o ConnectTimeout=10 "$ROBOT")
 rsh() { timeout 90 "${SSH[@]}" "$@"; }
@@ -370,7 +388,11 @@ else
   [ "$DO_HUB" -eq 1 ] && echo "  - point Jetstream's conversation hub at ${PHOENIX}:${HUB_PORT} and restart it"
   echo "  - patch every supported Node client copy and install the robot's full CA bundle beside it (receipt: $CLIENT_CA_RECEIPT)"
   [ -n "$CLASSIC_URL" ] && echo "  - rewrite every region_config.json to $CLASSIC_URL"
-  [ "$DO_ADOPT" -eq 1 ] && echo "  - register this robot in the Phoenix account store using its existing credentials"
+  if [ "$DO_ADOPT" -eq 1 ] && [ -n "$CLAIM_CODE" ]; then
+    echo "  - prove possession with the robot's existing credentials and link it to the signed-in Phoenix account"
+  elif [ "$DO_ADOPT" -eq 1 ]; then
+    echo "  - register this robot in the Phoenix account store using its existing credentials (unclaimed bootstrap only)"
+  fi
   [ "$BIND_PRESENT" -eq 1 ] && [ "$DROP_BIND" -eq 1 ] && echo "  - unmount the /etc/ssl/certs bind afterwards"
   [ "$BIND_PRESENT" -eq 1 ] && [ "$DROP_BIND" -eq 0 ] && echo "  - LEAVE the existing bind mounted (pass --drop-bind to remove it)"
 fi
@@ -599,7 +621,36 @@ if [ -n "$CLASSIC_URL" ]; then
 fi
 
 if [ "$DO_ADOPT" -eq 1 ]; then
-  say "registering the robot in the Phoenix account store"
+  if [ -n "$CLAIM_CODE" ]; then
+    say "claiming the robot for the signed-in Phoenix account"
+    # The robot's long-lived secret is streamed directly from SSH into the
+    # HTTPS request.  It is never saved locally, printed, or supplied as a
+    # command-line argument.  The claim code is intentionally an argument: it
+    # is the short-lived value copied from the portal command and is consumed
+    # only after the server has verified the robot credentials and linked it.
+    CLAIM_OUT="$({
+      rsh "cat /var/jibo/credentials.json" 2>/dev/null \
+        | node -e '
+          var fs=require("fs"), code=process.argv[1], fallback=process.argv[2];
+          var c=JSON.parse(fs.readFileSync(0,"utf8"));
+          if(!c.accessKeyId || !c.secretAccessKey) process.exit(2);
+          process.stdout.write(JSON.stringify({accessKeyId:c.accessKeyId,secretAccessKey:c.secretAccessKey,friendlyId:c.friendlyId||fallback,claimCode:code}));
+        ' "$CLAIM_CODE" "${IDENTITY_NAME:-$ROBOT}" \
+        | curl --globoff --fail-with-body --silent --show-error --max-time 30 -X POST "$ADOPTION_URL" \
+          -H 'content-type: application/json' -H 'x-phoenix-api-client: repoint-robot' --data-binary @-
+    } 2>&1)" || true
+    case "$CLAIM_OUT" in
+      *'"linked":true'*|*'"alreadyLinked":true'*)
+        ok "robot claimed and linked to the new Phoenix account"
+        ;;
+      *)
+        warn "account claim did not complete; no retry code was consumed on a failed ownership check"
+        warn "server said: $(printf '%s' "$CLAIM_OUT" | head -c 300)"
+        warn "the robot may be registered but will not appear in the new account until this claim succeeds"
+        ;;
+    esac
+  else
+    say "registering the robot in the Phoenix account store as an unclaimed bootstrap"
   ADOPTER="$(cd "$(dirname "$0")/../.." && pwd)/scripts/adopt-existing-robot.mjs"
   if [ ! -r "$ADOPTER" ]; then
     warn "adopter not found at $ADOPTER; skipping adoption"
@@ -626,6 +677,7 @@ if [ "$DO_ADOPT" -eq 1 ]; then
       warn "adoption did not complete. The robot may already be registered, or it may have no"
       warn "/var/jibo/credentials.json yet (a never-paired robot pairs through the portal instead)."
     fi
+  fi
   fi
 fi
 

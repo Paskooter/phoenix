@@ -25,8 +25,9 @@
 // OWNERSHIP / MEMBERSHIP: the source consulted the Account service for loop membership
 // (Loop_2016.ListLoopMembers / ListLoops via AccountClient). Phoenix injects that seam
 // (`membership`) and the default implementation calls the internal Account peer routes over the
-// trusted hop; an unresolvable lookup leaves the LAN-trust path (same policy as the Backup
-// service — see DIVERGENCES).
+// trusted hop. Authenticated public requests fail closed with ACCOUNT_SERVICE_UNAVAILABLE when
+// that lookup cannot be resolved; only an explicitly unguarded legacy in-process entrypoint keeps
+// the historical LAN-trust fallback.
 //
 // The cloud's SNS machine wake-up IS reproduced on CreateRequest, by the transport the robot
 // already holds open: `KeyNeeded` is enqueued to the loop's robot account through the
@@ -51,6 +52,18 @@ import { pipeline } from 'node:stream/promises';
 import { DefaultPort } from '@phoenix/contracts';
 import { sendAmz, sendAmzError, accessKeyIdFromAuth } from './awsJson.js';
 import { credentialsAccountId } from './backup.js';
+import {
+  cleanupVerifiedClassicRequest,
+  sendVerifiedCallerError,
+  verifiedCallerFromRequest,
+} from './caller.js';
+import { canonicalPublicOrigin } from './publicOrigin.js';
+import {
+  configuredMaxBytes,
+  normalizeMaxBytes,
+  UploadTooLargeError,
+  writeAtomicUpload,
+} from './rawUpload.js';
 
 /** Source: srv-key-ws src/errors/key.ts — exact codes and status codes. */
 export const KEY_ERRORS = Object.freeze({
@@ -76,6 +89,9 @@ export const KEY_ERRORS = Object.freeze({
   BINARY_NOT_PART_OF_LOOP: {
     code: 'BINARY_NOT_PART_OF_LOOP', message: 'Only loop members can list binaries', statusCode: 403,
   },
+  ACCOUNT_SERVICE_UNAVAILABLE: {
+    code: 'ACCOUNT_SERVICE_UNAVAILABLE', message: 'Account service not available', statusCode: 503,
+  },
   KEY_HASH_DOESNT_MATCH: {
     code: 'KEY_HASH_DOESNT_MATCH', message: 'Key hash doesn\'t match for the loop', statusCode: 409,
   },
@@ -89,6 +105,7 @@ const DEFAULT_FILE = join(tmpdir(), 'phoenix-key.json');
 const DEFAULT_BINARY_DIR = join(tmpdir(), 'phx-key-binaries');
 const ACCOUNT_TIMEOUT_MS = Number(process.env.ETCO_classic_keyAccountTimeoutMS) || 3000;
 const SAFE = /^[A-Za-z0-9_-]+$/; // ids land in file paths / URLs — no traversal
+export const KEY_BINARY_MAX_BYTES = 1_000_000_000;
 
 const DEFAULT_PERSISTENCE = {
   chmod: chmodSync, exists: existsSync, mkdir: mkdirSync,
@@ -332,7 +349,10 @@ export class KeyStore {
  * missed it because their fixture used the account id AS the access key. Media already resolves
  * the access key this way (`accessKeyAccountResolver`); key now does too.
  */
-export function keyCallerAccountId(req, resolveAccount) {
+export function keyCallerAccountId(req, resolveAccount, { requireVerified = false } = {}) {
+  const verified = verifiedCallerFromRequest(req);
+  if (verified) return verified.accountId;
+  if (requireVerified) return null;
   const forwarded = credentialsAccountId(req);
   if (forwarded) return forwarded;
   const accessKeyId = accessKeyIdFromAuth(req);
@@ -351,18 +371,24 @@ function accountBase() {
   return /^https?:\/\//.test(v) ? v : `http://${v}`;
 }
 
+function accountPeerHeaders() {
+  const token = process.env.ETCO_account_internalPeerToken;
+  return token ? { 'x-phoenix-internal-token': token } : {};
+}
+
 /**
  * Default membership seam: the internal Account peer routes.
  *   GET /loop?loopId=        -> { id, robot, owner, isSuspended } (404 when unknown)
  *   GET /loopMembers?loopId= -> { members: [accountId, …] }
- * `undefined` means "could not resolve" (service down / route absent) and callers keep the
- * documented LAN-trust path rather than refusing a legitimate call on an unrelated outage.
+ * `undefined` means "could not resolve" (service down / route absent); the authenticated caller
+ * boundary maps that to ACCOUNT_SERVICE_UNAVAILABLE rather than an authorization pass.
  */
 export function accountMembership() {
   return {
     async memberIds(loopId) {
       try {
         const res = await fetch(`${accountBase()}/loopMembers?loopId=${encodeURIComponent(loopId)}`, {
+          headers: accountPeerHeaders(),
           signal: AbortSignal.timeout(ACCOUNT_TIMEOUT_MS),
         });
         if (!res.ok) return undefined;
@@ -373,6 +399,7 @@ export function accountMembership() {
     async loop(loopId) {
       try {
         const res = await fetch(`${accountBase()}/loop?loopId=${encodeURIComponent(loopId)}`, {
+          headers: accountPeerHeaders(),
           signal: AbortSignal.timeout(ACCOUNT_TIMEOUT_MS),
         });
         if (res.status === 404) return null;   // the account service answered: no such loop
@@ -437,12 +464,6 @@ function binaryView(binary) {
 function notFound(res, code) { sendAmzError(res, KEY_ERRORS[code]); }
 function refuse(res, code) { sendAmzError(res, KEY_ERRORS[code]); }
 
-async function readBody(req) {
-  const chunks = [];
-  for await (const chunk of req) chunks.push(chunk);
-  return Buffer.concat(chunks);
-}
-
 // ---- handler -------------------------------------------------------------------------------
 
 /**
@@ -460,21 +481,33 @@ async function readBody(req) {
  */
 export function makeKeyHandler(store = new KeyStore(), {
   membership = accountMembership(), baseFor, binaryDir = process.env.ETCO_classic_keyBinaryDir || DEFAULT_BINARY_DIR,
-  keyShareTimeoutMs = KEY_SHARE_TIMEOUT_MS, accountResolver, notifyKeyNeeded,
+  keyShareTimeoutMs = KEY_SHARE_TIMEOUT_MS, accountResolver, notifyKeyNeeded, callerBoundary,
+  maxBytes = configuredMaxBytes('ETCO_classic_keyBinaryMaxBytes', KEY_BINARY_MAX_BYTES),
 } = {}) {
-  const urlBase = baseFor || ((req) => `http://${(req?.headers && req.headers.host) || 'localhost'}`);
+  const binaryMaxBytes = normalizeMaxBytes(maxBytes, KEY_BINARY_MAX_BYTES);
+  const urlBase = (req) => canonicalPublicOrigin(
+    typeof baseFor === 'function' ? baseFor(req) : baseFor || process.env.ETCO_classic_publicUrl,
+    { name: 'publicUrl' },
+  );
   const binaryDirOf = binaryDir;
 
   /**
    * Source getSiblingIds/getMemberIds: consult the Account service for the loop's members.
-   * Returns `undefined` when membership cannot be resolved (LAN-trust path), else the member id
+   * Returns `undefined` when membership cannot be resolved, else the member id
    * list. `forAccountId` mirrors the source's `listMembers(accountId)` — the account whose own
    * membership list is consulted; a non-member is refused KEY_NOT_PART_OF_LOOP.
    */
   async function members(loopId, forAccountId) {
     let ids;
     try { ids = await membership.memberIds(loopId); } catch { ids = undefined; }
-    if (ids === undefined || ids === null) return undefined;
+    if (ids === undefined || ids === null) {
+      // An authenticated public request cannot fall back to LAN trust when the Account
+      // membership source is unavailable. That would turn an outage into a cross-account key
+      // read/share authorization bypass. The legacy standalone path retains its compatibility
+      // behavior because it is not an exposed caller boundary.
+      if (callerBoundary) throw KEY_ERRORS.ACCOUNT_SERVICE_UNAVAILABLE;
+      return undefined;
+    }
     const list = ids.map(String);
     if (forAccountId && !list.includes(String(forAccountId))) throw KEY_ERRORS.KEY_NOT_PART_OF_LOOP;
     return list;
@@ -482,8 +515,18 @@ export function makeKeyHandler(store = new KeyStore(), {
 
   /** Source checkOwnership (Backup) / checkOwnerOrRobot (Restore) against Loop_2016.ListLoops. */
   async function loopOf(loopId) {
-    if (typeof membership.loop !== 'function') return undefined;
-    try { return await membership.loop(loopId); } catch { return undefined; }
+    if (typeof membership.loop !== 'function') {
+      if (callerBoundary) throw KEY_ERRORS.ACCOUNT_SERVICE_UNAVAILABLE;
+      return undefined;
+    }
+    try {
+      const loop = await membership.loop(loopId);
+      if (loop === undefined && callerBoundary) throw KEY_ERRORS.ACCOUNT_SERVICE_UNAVAILABLE;
+      return loop;
+    } catch (error) {
+      if (callerBoundary) throw error?.code ? error : KEY_ERRORS.ACCOUNT_SERVICE_UNAVAILABLE;
+      return undefined;
+    }
   }
 
   function binaryPath(accountId, id, encryptedUrl) {
@@ -496,7 +539,7 @@ export function makeKeyHandler(store = new KeyStore(), {
   }
 
   return async function keyHandler({ req, res, body, op, log }) {
-    const caller = keyCallerAccountId(req, accountResolver);
+    const caller = keyCallerAccountId(req, accountResolver, { requireVerified: !!callerBoundary });
     const accountId = caller || 'anon';
     const b = body || {};
     switch (String(op || '').toLowerCase()) {
@@ -560,7 +603,8 @@ export function makeKeyHandler(store = new KeyStore(), {
       case 'shouldcreate': {
         const invalid = requiredString(b, 'loopId');
         if (invalid) return void sendBadData(res, invalid);
-        const loop = await loopOf(b.loopId);
+        let loop;
+        try { loop = await loopOf(b.loopId); } catch (error) { return void sendAmzError(res, error); }
         if (loop === null) return void refuse(res, 'KEY_NOT_PART_OF_LOOP'); // source: loops.length < 1
         return void sendAmz(res, 200, { shouldCreate: store.shouldCreate(b.loopId) });
       }
@@ -582,7 +626,8 @@ export function makeKeyHandler(store = new KeyStore(), {
       case 'backup': {
         const invalid = requiredString(b, 'loopId') || requiredString(b, 'encryptedKey') || optionalString(b, 'passwordHash');
         if (invalid) return void sendBadData(res, invalid);
-        const loop = await loopOf(b.loopId);
+        let loop;
+        try { loop = await loopOf(b.loopId); } catch (error) { return void sendAmzError(res, error); }
         if (loop === null) return void refuse(res, 'ONLY_OWNER_CAN_BACKUP_RESTORE');
         if (loop && caller && String(loop.owner) !== String(caller)) {
           return void refuse(res, 'ONLY_OWNER_CAN_BACKUP_RESTORE');
@@ -595,7 +640,8 @@ export function makeKeyHandler(store = new KeyStore(), {
       case 'restore': {
         const invalid = requiredString(b, 'loopId') || optionalString(b, 'passwordHash');
         if (invalid) return void sendBadData(res, invalid);
-        const loop = await loopOf(b.loopId);
+        let loop;
+        try { loop = await loopOf(b.loopId); } catch (error) { return void sendAmzError(res, error); }
         if (loop === null) return void refuse(res, 'ONLY_OWNER_OR_ROBOT_CAN_RESTORE');
         if (loop && caller && String(loop.owner) !== String(caller) && String(loop.robot) !== String(caller)) {
           return void refuse(res, 'ONLY_OWNER_OR_ROBOT_CAN_RESTORE');
@@ -642,10 +688,12 @@ export function makeKeyHandler(store = new KeyStore(), {
         const path = binaryPath(caller || binary.accountId, binary.id, binary.encryptedUrl);
         try {
           await mkdir(binaryFile(dirname(path)), { recursive: true });
-          const bytes = await readBody(req);
-          if (bytes.length) await writeFileAtomic(binaryFile(path), bytes);
+          await writeAtomicUpload(req._phoenixBodyStream || req, binaryFile(path), { maxBytes: binaryMaxBytes });
         } catch (error) {
           log?.error?.('key binary store failed', { error: error.message });
+          if (error instanceof UploadTooLargeError || error?.statusCode === 413) {
+            return void sendAmzError(res, { code: 'PAYLOAD_TOO_LARGE', statusCode: 413, message: error.message });
+          }
           return void sendAmzError(res, { code: 'INTERNAL_ERROR', statusCode: 500, message: 'Binary store failed' });
         }
         // The source uploaded to S3 (BinaryController.createPublic) and returned its public url.
@@ -667,19 +715,6 @@ export function makeKeyHandler(store = new KeyStore(), {
   function scheduleKeyTimeout() { /* no-op: SNS events are out of scope (see header) */ }
 }
 
-/** Write the uploaded binary atomically so a crash cannot leave a half-written object. */
-async function writeFileAtomic(file, bytes) {
-  const temporary = `${file}.tmp`;
-  mkdirSync(dirname(file), { recursive: true });
-  const sink = createWriteStream(temporary, { mode: 0o600 });
-  await new Promise((resolve, reject) => {
-    sink.on('error', reject);
-    sink.on('finish', resolve);
-    sink.end(bytes);
-  });
-  renameSync(temporary, file);
-}
-
 // ---- non-AWS-JSON routes of the source service (src/routes/binary.route.ts) ----------------
 
 /**
@@ -692,34 +727,81 @@ async function writeFileAtomic(file, bytes) {
  * these two routes in the live deployment is UNKNOWN (the mobile app is dead) — they are built to
  * the pinned route contract.
  */
-export function keyRoutes(store, { membership = accountMembership(), baseFor, binaryDir = process.env.ETCO_classic_keyBinaryDir || DEFAULT_BINARY_DIR } = {}) {
-  const urlBase = baseFor || ((req) => `http://${(req?.headers && req.headers.host) || 'localhost'}`);
+export function keyRoutes(store, {
+  membership = accountMembership(),
+  baseFor,
+  binaryDir = process.env.ETCO_classic_keyBinaryDir || DEFAULT_BINARY_DIR,
+  callerBoundary,
+} = {}) {
+  const urlBase = (req) => canonicalPublicOrigin(
+    typeof baseFor === 'function' ? baseFor(req) : baseFor || process.env.ETCO_classic_publicUrl,
+    { name: 'publicUrl' },
+  );
+
+  /** Direct Key routes are exposed beside POST /, so they need the same verified identity seam. */
+  const guarded = (handler) => async (context) => {
+    if (!callerBoundary) return handler(context);
+    const { req, res, body, target, op, log } = context;
+    try {
+      const wireBody = req.rawBody !== undefined
+        ? req.rawBody
+        : body === undefined || body === null ? '' : body;
+      const caller = await callerBoundary({ req, res, body: wireBody, target, op, log });
+      if (!caller) throw new Error('verified caller boundary returned no identity');
+      return await handler(context);
+    } catch (error) {
+      await cleanupVerifiedClassicRequest(req);
+      if (!res.writableEnded) sendVerifiedCallerError(res, error);
+      return undefined;
+    } finally {
+      await cleanupVerifiedClassicRequest(req);
+    }
+  };
 
   const createBinaryRequest = async ({ req, res, body, log }) => {
     const b = body || {};
-    const invalid = requiredString(b, 'loopId') || requiredString(b, 'accountId') || requiredString(b, 'encryptedUrl');
+    const verified = verifiedCallerFromRequest(req);
+    const invalid = requiredString(b, 'loopId')
+      || (!verified && requiredString(b, 'accountId'))
+      || requiredString(b, 'encryptedUrl');
     if (invalid) return void sendBadData(res, invalid);
+    const accountId = verified?.accountId || b.accountId;
     let ids;
     try {
       ids = await membership.memberIds(b.loopId);
-      if (ids && !ids.map(String).includes(String(b.accountId))) {
+      if ((ids === undefined || ids === null) && callerBoundary) {
+        return void sendAmzError(res, KEY_ERRORS.ACCOUNT_SERVICE_UNAVAILABLE);
+      }
+      if (ids && !ids.map(String).includes(String(accountId))) {
         return void sendHapiError(res, KEY_ERRORS.KEY_NOT_PART_OF_LOOP);
       }
     } catch (error) {
       return void sendHapiError(res, { code: error.code || 'INTERNAL_ERROR', statusCode: error.statusCode || 500, message: error.message });
     }
-    const binary = store.createBinary({ accountId: b.accountId, loopId: b.loopId, encryptedUrl: b.encryptedUrl });
+    const binary = store.createBinary({ accountId, loopId: b.loopId, encryptedUrl: b.encryptedUrl });
     log?.info?.('key binary request created', { id: binary.id, loopId: binary.loopId });
     return void sendExpress(res, 200, binaryView(binary));
   };
 
-  const deleteBinaries = ({ res, body }) => {
+  const deleteBinaries = ({ req, res, body }) => {
     const b = body || {};
     if (!Array.isArray(b.encryptedUrls)) {
       return void sendBadData(res, 'child "encryptedUrls" fails because ["encryptedUrls" is required]');
     }
+    const verified = verifiedCallerFromRequest(req);
+    if (callerBoundary && !verified) {
+      return void sendVerifiedCallerError(res, { code: 'MISSING_AUTH_HEADER', statusCode: 401, message: 'Request is not signed properly, missing authorization header' });
+    }
+    const wanted = new Set(b.encryptedUrls.map(String));
+    if (callerBoundary && verified && !verified.isAdmin) {
+      const foreign = [...store.binaries.values()].some((binary) => wanted.has(String(binary.encryptedUrl))
+        && String(binary.accountId) !== String(verified.accountId));
+      if (foreign) return void sendAmzError(res, { code: 'BINARY_NOT_PART_OF_LOOP', statusCode: 403, message: 'Only loop members can list binaries' });
+    }
     for (const binary of [...store.binaries.values()]) {
-      if (!b.encryptedUrls.map(String).includes(String(binary.encryptedUrl))) continue;
+      if (!wanted.has(String(binary.encryptedUrl))) continue;
+      if (callerBoundary && verified && !verified.isAdmin
+        && String(binary.accountId) !== String(verified.accountId)) continue;
       for (const candidate of [binaryPathOf(binary, false), binaryPathOf(binary, true)]) {
         try { rmSync(join(binaryDir, candidate), { force: true }); } catch { /* best effort */ }
       }
@@ -728,8 +810,10 @@ export function keyRoutes(store, { membership = accountMembership(), baseFor, bi
     return void sendExpress(res, 200, { result: 'Command accepted' });
   };
 
-  const getBinary = async ({ res, url, log }) => {
-    const accountId = url.searchParams.get('accountId');
+  const getBinary = async ({ req, res, url, log }) => {
+    const verified = verifiedCallerFromRequest(req);
+    const requestedAccountId = url.searchParams.get('accountId');
+    const accountId = verified?.accountId || requestedAccountId;
     const id = url.searchParams.get('id');
     if (!accountId || !id || !SAFE.test(accountId) || !SAFE.test(id)) {
       res.writeHead(400, { 'content-type': 'text/plain; charset=utf-8' });
@@ -740,10 +824,19 @@ export function keyRoutes(store, { membership = accountMembership(), baseFor, bi
       res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
       return void res.end('no such binary');
     }
+    if (callerBoundary && verified && !verified.isAdmin
+      && String(binary.accountId) !== String(verified.accountId)) {
+      res.writeHead(403, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' });
+      return void res.end('forbidden');
+    }
     const path = binaryPathOf(binary, String(binary.encryptedUrl || '').endsWith('.jpg'), accountId);
     try {
       const stat = statSync(join(binaryDir, path));
-      res.writeHead(200, { 'content-type': 'application/octet-stream', 'content-length': stat.size });
+      res.writeHead(200, {
+        'content-type': 'application/octet-stream',
+        'content-length': stat.size,
+        'cache-control': 'private, no-store',
+      });
       await pipeline(createReadStream(join(binaryDir, path)), res);
     } catch (error) {
       log?.warn?.('key binary stream failed', { error: error.message });
@@ -753,7 +846,11 @@ export function keyRoutes(store, { membership = accountMembership(), baseFor, bi
   };
   getBinary.rawBody = true;
 
-  return { 'POST /binaryRequest': createBinaryRequest, 'POST /deleteBinaries': deleteBinaries, 'GET /key/binary': getBinary };
+  return {
+    'POST /binaryRequest': guarded(createBinaryRequest),
+    'POST /deleteBinaries': guarded(deleteBinaries),
+    'GET /key/binary': guarded(getBinary),
+  };
 }
 
 function binaryPathOf(binary, isImage, accountId = binary.accountId) {

@@ -14,6 +14,7 @@ import https from 'node:https';
 import { sendJson } from '@phoenix/common';
 import { DefaultPort } from '@phoenix/contracts';
 import { parseTarget, sendAmzError, UnknownOperation, AMZ_JSON } from './awsJson.js';
+import { cleanupVerifiedClassicRequest, sendVerifiedCallerError } from './caller.js';
 
 // The OAuth-client admin and LPS services own no in-process store; they proxy to the
 // account service, the process that owns identity and persistent state (A-18). These
@@ -38,7 +39,7 @@ function alreadyRegistered(registrations, prefix) {
   ).test(prefix));
 }
 
-export function createClassicRouter(registrations) {
+export function createClassicRouter(registrations, { callerBoundary } = {}) {
   const defaults = DEFAULT_ADMIN_PROXIES
     .filter((d) => !alreadyRegistered(registrations, d.match.source.slice(1, -1)));
   const regs = [...registrations, ...defaults].map((r) => ({
@@ -48,24 +49,46 @@ export function createClassicRouter(registrations) {
 
   const dispatch = async ({ req, res, body, log }) => {
     const { target, prefix, op } = parseTarget(req);
-    // @jibo/server's lowerMethodName unconditionally evaluates target.split('.')[1]. A Jot
-    // target without a dot therefore reaches Hapi's generic 500 before auth or method lookup.
-    // Keep this compatibility branch scoped to the known Jot prefix; other Classic services
-    // retain their existing UnknownOperation envelope for malformed targets.
-    if (target && /^jot/i.test(target) && !target.includes('.')) {
-      log.warn('classic: dotless Jot target', { target });
-      return void sendFrameworkBoom(res, 500, 'An internal server error occurred');
+    let caller;
+    if (callerBoundary) {
+      try {
+        // JSON routes carry the exact body-parser capture. A raw route is staged by the boundary,
+        // which supplies a digest and a replay stream instead of hashing a reconstructed object.
+        const wireBody = req.rawBody !== undefined
+          ? req.rawBody
+          : req._phoenixBodyDigest !== undefined
+            ? undefined
+            : requestHasEntity(req) ? body : '';
+        caller = await callerBoundary({ req, res, body: wireBody, target, prefix, op, log });
+        if (!caller) throw new Error('verified caller boundary returned no identity');
+      } catch (error) {
+        await cleanupVerifiedClassicRequest(req);
+        sendVerifiedCallerError(res, error);
+        return;
+      }
     }
-    const reg = regs.find((r) => r.re.test(prefix));
-    // Log every inbound classic call (handlers are otherwise silent on success) so a robot's
-    // wipe/backup traffic is visible: what target it sent and whether we route it.
-    log.info('classic request', { target: target || '(none)', op, matched: reg ? (reg.handler ? 'in-process' : 'proxy') : 'NONE' });
-    if (!reg) {
-      log.warn('classic: no service for target', { target: target || '(none)' });
-      return void sendAmzError(res, UnknownOperation, `no classic service for target ${target || '(none)'}`);
+    try {
+      // @jibo/server's lowerMethodName unconditionally evaluates target.split('.')[1]. A Jot
+      // target without a dot therefore reaches Hapi's generic 500 before auth or method lookup.
+      // Keep this compatibility branch scoped to the known Jot prefix; other Classic services
+      // retain their existing UnknownOperation envelope for malformed targets.
+      if (target && /^jot/i.test(target) && !target.includes('.')) {
+        log.warn('classic: dotless Jot target', { target });
+        return void sendFrameworkBoom(res, 500, 'An internal server error occurred');
+      }
+      const reg = regs.find((r) => r.re.test(prefix));
+      // Log every inbound classic call (handlers are otherwise silent on success) so a robot's
+      // wipe/backup traffic is visible: what target it sent and whether we route it.
+      log.info('classic request', { target: target || '(none)', op, matched: reg ? (reg.handler ? 'in-process' : 'proxy') : 'NONE', authenticated: !!caller });
+      if (!reg) {
+        log.warn('classic: no service for target', { target: target || '(none)' });
+        return void sendAmzError(res, UnknownOperation, `no classic service for target ${target || '(none)'}`);
+      }
+      if (reg.handler) return await reg.handler({ req, res, body: reg.preserveBody ? body : (body || {}), target, op, log, caller });
+      return await proxy(reg.proxyTo(), req, res, body, log, caller);
+    } finally {
+      if (callerBoundary) await cleanupVerifiedClassicRequest(req);
     }
-    if (reg.handler) return reg.handler({ req, res, body: reg.preserveBody ? body : (body || {}), target, op, log });
-    return proxy(reg.proxyTo(), req, res, body, log);
   };
   // A registration may opt into the source parser boundary for one target family. The shared
   // service runner accepts this as a function so Classic's other services retain their existing
@@ -93,6 +116,22 @@ export function createClassicRouter(registrations) {
   // The Hapi-backed Account CreateHubToken route validates an omitted payload
   // as null; preserve the historical object default for other Classic routes.
   dispatch.rawBody = isClassicRawBodyTarget;
+  dispatch.bodyLimit = (req) => {
+    const { prefix } = parseTarget(req);
+    const reg = regs.find((entry) => entry.re.test(prefix));
+    const limit = reg?.handler?.bodyLimit;
+    return typeof limit === 'function' ? limit(req) : limit;
+  };
+  dispatch.parserError = ({ req, res, error }) => {
+    const { prefix } = parseTarget(req);
+    const reg = regs.find((entry) => entry.re.test(prefix));
+    // `undefined` means the route did not handle this parser failure and
+    // lets the shared service emit its standard error response. Returning
+    // `false` is itself a handled value to the service adapter, which used to
+    // leave malformed JSON connections open indefinitely.
+    if (typeof reg?.handler?.parserError !== 'function') return undefined;
+    return reg.handler.parserError({ req, res, error });
+  };
   dispatch.bodyDefault = (req) => {
     const { prefix, op } = parseTarget(req);
     const reg = regs.find((entry) => entry.re.test(prefix));
@@ -123,7 +162,27 @@ function sendFrameworkBoom(res, statusCode, message) {
   res.end(body);
 }
 
-async function proxy(baseUrl, req, res, body, log) {
+/**
+ * The Classic boundary has already verified a public caller.  An internal OTA
+ * hop cannot preserve that caller's public Host header: portal traffic reaches
+ * Classic on loopback, while robot traffic can use a region alias.  Instead,
+ * carry only the verified identity across a token-authenticated loopback hop.
+ */
+function trustedOtaPeerHeaders(caller) {
+  const token = process.env.ETCO_ota_internalPeerToken;
+  if (!token || !caller?.accountId) return null;
+  return {
+    'x-phoenix-ota-peer-token': token,
+    'x-phoenix-verified-account': JSON.stringify({
+      id: String(caller.accountId),
+      email: caller.email ?? null,
+      friendlyId: caller.friendlyId ?? null,
+      isAdmin: caller.isAdmin === true,
+    }),
+  };
+}
+
+async function proxy(baseUrl, req, res, body, log, caller) {
   if (!baseUrl) return void sendJson(res, 502, { error: 'classic: upstream not configured' });
   const base = /^https?:\/\//.test(baseUrl) ? baseUrl : `http://${baseUrl}`;
   try {
@@ -135,14 +194,27 @@ async function proxy(baseUrl, req, res, body, log) {
         statusCode: 415,
       });
     }
-    const requestBody = isClassicStreamedUpload(req) ? req : req.rawBody === undefined
+    const requestBody = isClassicStreamedUpload(req) ? (req._phoenixBodyStream || req) : req.rawBody === undefined
       ? (body === null || body === undefined ? '' : JSON.stringify(body))
       : req.rawBody;
     // Native http.request is used here because undici/fetch deliberately
     // rewrites the Host header to the upstream URL. The original gateway
     // verifier signs the entrypoint host; retaining it across this direct
     // Phoenix hop lets the account service verify the same signature.
-    const upstream = await requestUpstream(`${base.replace(/\/$/, '')}/`, requestBody, forwardHeaders(req.headers));
+    const upstreamHeaders = forwardHeaders(req.headers);
+    if (caller && /^update/i.test(String(req.headers?.['x-amz-target'] || ''))) {
+      const trusted = trustedOtaPeerHeaders(caller);
+      if (!trusted) {
+        return void sendAmzError(res, {
+          code: 'ACCOUNT_SERVICE_UNAVAILABLE',
+          statusCode: 503,
+          message: 'classic-to-ota peer authentication is not configured',
+        });
+      }
+      // Overwrite, rather than forward, any client-supplied privileged headers.
+      Object.assign(upstreamHeaders, trusted);
+    }
+    const upstream = await requestUpstream(`${base.replace(/\/$/, '')}/`, requestBody, upstreamHeaders);
     const text = upstream.body.toString('utf8');
     const headers = { 'content-type': upstream.headers['content-type'] || AMZ_JSON, 'content-length': Buffer.byteLength(text) };
     if (requestBody === req && upstream.headers.connection === 'close') headers.connection = 'close';
@@ -251,7 +323,10 @@ function isClassicBinaryPhotoUpload(req) {
     // Media_20160725.Create is the robot's photo/recording upload: the aws-sdk sends the media
     // bytes as the raw request entity (see packages/classic/src/media.js). It must bypass the
     // JSON parser for the same reason the two photo uploads above do.
-    || /^Media[^.]*\.Create$/i.test(target);
+    || /^Media[^.]*\.Create$/i.test(target)
+    // Log_20150309.PutBinary is the synchronous raw log sink; the async variants return a
+    // self-hosted PUT URL instead of carrying bytes in the AWS-JSON request.
+    || /^Log[^.]*\.PutBinary$/i.test(target);
 }
 
 /**
@@ -278,6 +353,16 @@ function isClassicStreamedUpload(req) {
 function isClassicRawBodyTarget(req) {
   if (isClassicStreamedUpload(req)) return true;
   return /^Key[^.]*\.ShareBinary$/i.test(String(req?.headers?.['x-amz-target'] || ''));
+}
+
+function requestHasEntity(req) {
+  const raw = req?.headers?.['content-length'];
+  if (raw !== undefined && raw !== null) {
+    const value = Array.isArray(raw) ? raw[0] : raw;
+    const length = Number(value);
+    if (Number.isSafeInteger(length) && length >= 0) return length > 0;
+  }
+  return req?.headers?.['transfer-encoding'] !== undefined;
 }
 
 function unsupportedContentEncoding(headers = {}) {

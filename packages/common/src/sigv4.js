@@ -185,13 +185,40 @@ function parseQuery(path) {
 }
 
 function bodyHash(headers, body, bodyDigest) {
-  // This is intentional source compatibility. srv-security-gw/v4.js trusts an
-  // explicit x-amz-content-sha256 value and, in particular, supports the native
-  // client which signs an empty StandardHttpRequest before it attaches `{}`.
-  // Requests without the explicit header always hash the exact received bytes.
+  // canonicalRequest remains capable of reproducing the archived signer when it was explicitly
+  // handed a payload hash. verifySigV4 performs the security check against received bytes before
+  // using this canonical representation.
   const explicit = headerValue(headers, 'x-amz-content-sha256');
   if (bodyDigest !== undefined && !/^[a-f0-9]{64}$/.test(bodyDigest)) throw new TypeError('Invalid precomputed body digest');
   return explicit || bodyDigest || hash(asBodyBuffer(body));
+}
+
+const EMPTY_BODY_SHA256 = hash(Buffer.alloc(0));
+const NATIVE_CLIENT_BODY_HASH_TARGETS = new Set([
+  'Account_20151111.CreateHubToken',
+  'Notification_20150505.NewRobotToken',
+]);
+
+function verifyReceivedBodyHash({ headers, parsed, body, bodyDigest, method, allowNativeClientPayloadHash }) {
+  const explicit = headerValue(headers, 'x-amz-content-sha256');
+  if (explicit === undefined) return;
+  if (bodyDigest !== undefined && !/^[a-f0-9]{64}$/.test(bodyDigest)) fail('SIGNATURE_MISMATCH');
+  if (bodyDigest !== undefined && body !== undefined && body !== null
+    && !(typeof body === 'string' && body.length === 0)
+    && !equalText(bodyDigest, hash(asBodyBuffer(body)))) fail('SIGNATURE_MISMATCH');
+  const received = bodyDigest || hash(asBodyBuffer(body));
+  if (equalText(explicit, received)) return;
+  // Authentication.cpp signs an empty request and attaches the JSON entity afterwards for these
+  // two native operations. Keep that compatibility exception explicit and narrow: only the empty
+  // hash, an exact documented target, POST, and a target omitted from SignedHeaders qualify.
+  const target = headerValue(headers, 'x-amz-target');
+  const signed = new Set(String(parsed.signedHeaders).split(';').map((name) => name.trim().toLowerCase()));
+  if (allowNativeClientPayloadHash
+    && String(method).toUpperCase() === 'POST'
+    && explicit === EMPTY_BODY_SHA256
+    && NATIVE_CLIENT_BODY_HASH_TARGETS.has(String(target))
+    && !signed.has('x-amz-target')) return;
+  fail('SIGNATURE_MISMATCH');
 }
 
 export function canonicalRequest({ method = 'POST', path = '/', headers = {}, body = '', bodyDigest, signedHeaders, service = 'jibo' } = {}) {
@@ -364,6 +391,7 @@ export function verifySigV4({
   bodyDigest,
   now = new Date(),
   resolveCredentials,
+  allowNativeClientPayloadHash = false,
 } = {}) {
   const normalized = normalizeHeaders(headers);
   const authorization = headerValue(normalized, 'authorization');
@@ -395,6 +423,14 @@ export function verifySigV4({
   if (!credentials.isActive) fail('ACCOUNT_NOT_ACTIVE');
   if (!credentials.secretAccessKey) fail('ACCESS_KEY_NOT_FOUND');
 
+  verifyReceivedBodyHash({
+    headers: normalized,
+    parsed,
+    body,
+    bodyDigest,
+    method,
+    allowNativeClientPayloadHash,
+  });
   const request = canonicalRequest({
     method,
     path,
