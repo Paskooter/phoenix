@@ -11,6 +11,14 @@
 import { qrSvg } from '/qr.js';
 import { createLocationPicker } from '/map.js';
 import { initBrand, initTheme } from '/brand.js';
+import {
+  browserPushState,
+  disableBrowserPush,
+  enableBrowserPush,
+  promptInstall,
+  registerPortalServiceWorker,
+  syncBrowserPush,
+} from '/pwa.js';
 
 /* ==========================================================================
    Elements
@@ -266,6 +274,10 @@ async function refreshMe() {
   const r = await api('GET', '/api/me');
   me = r.ok ? r.data.account : null;
   paintAccount();
+  if (me) {
+    void registerPortalServiceWorker();
+    void syncBrowserPush(api, me.id);
+  }
   return me;
 }
 
@@ -1180,7 +1192,86 @@ async function renderProfile() {
     sub: 'Your address stays unchanged until you confirm the link sent to the new inbox.',
   }, mailForm));
 
+  // The PWA remains optional: all console functionality still works in the
+  // mobile browser. This card is the explicit, user-controlled place to
+  // install it or grant notification permission.
+  const pwaCard = card('Jibo app and notifications', {
+    sub: 'Install the console, then choose whether this browser may alert you.',
+  }, loading(3));
+  container.append(pwaCard);
+
   show(container);
+
+  const pwaBody = pwaCard.querySelector('.card-body');
+  const state = await browserPushState(api);
+  const capabilities = state.capabilities;
+  const installDetail = capabilities.installed
+    ? 'Installed on this device.'
+    : capabilities.canPromptInstall
+      ? 'Add the console to this device for a full-screen app experience.'
+      : capabilities.ios
+        ? 'In Safari, use Share → Add to Home Screen to install the Jibo app.'
+        : 'Use your browser’s Install app option to add the console to this device.';
+  const installButton = capabilities.canPromptInstall
+    ? h('button', {
+      type: 'button', class: 'btn btn-secondary',
+      on: { click: async () => {
+        const result = await promptInstall();
+        notify(result.accepted ? 'The app is being installed.' : 'Install was not completed.', result.accepted ? 'ok' : 'error');
+        await renderProfile();
+      } },
+    }, 'Install app')
+    : null;
+  const rows = [
+    row('App', h('span', { class: capabilities.installed ? 'pill pill-ok' : 'pill' },
+      capabilities.installed ? 'Installed' : 'Browser version')),
+    h('p', { class: 'field-hint' }, installDetail),
+    installButton,
+  ];
+
+  if (!capabilities.push) {
+    rows.push(h('div', { class: 'notice notice-error' }, icon('alert', 16),
+      h('div', {}, 'Browser notifications are unavailable here.',
+        h('div', { class: 'field-hint', style: 'margin-top:.3rem' },
+          capabilities.secure ? 'This browser does not provide the Web Push APIs.' : 'Open the console over HTTPS to use notifications.'))));
+  } else if (!state.server.ok || !state.server.data.available) {
+    rows.push(row('Notifications', h('span', { class: 'pill pill-warn' }, 'Not configured')),
+      h('p', { class: 'field-hint' }, state.server.data?.reason || state.server.data?.error
+        || 'This server has not enabled browser notifications yet.'));
+  } else if (state.permission === 'denied') {
+    rows.push(row('Notifications', h('span', { class: 'pill pill-warn' }, 'Blocked')),
+      h('p', { class: 'field-hint' }, 'Allow notifications for this site in your browser settings, then return here.'));
+  } else if (state.subscription) {
+    const actions = h('div', { class: 'row', style: 'margin-top:.9rem;gap:.65rem;flex-wrap:wrap' },
+      h('button', { type: 'button', class: 'btn btn-secondary', on: { click: async () => {
+        const result = await api('POST', '/api/web-push/test');
+        notify(result.ok ? 'Test notification requested.' : (result.data.error || 'Could not send a test notification.'), result.ok ? 'ok' : 'error');
+      } } }, 'Send test'),
+      h('button', { type: 'button', class: 'btn btn-danger', on: { click: async () => {
+        try {
+          await disableBrowserPush(api);
+          notify('Notifications disabled on this browser.');
+          await renderProfile();
+        } catch (error) { notify(error.message || 'Could not disable notifications.', 'error'); }
+      } } }, 'Disable here'));
+    rows.push(row('Notifications', h('span', { class: 'pill pill-ok' }, h('span', { class: 'dot dot-live' }), 'Enabled on this browser')),
+      h('p', { class: 'field-hint' }, 'New household messages can alert this device. Notification previews never include message text.'), actions);
+  } else {
+    rows.push(row('Notifications', h('span', { class: 'pill pill-warn' }, 'Off')),
+      h('p', { class: 'field-hint' }, capabilities.ios && !capabilities.installed
+        ? 'Install the app from Safari’s Share menu first, then enable notifications here.'
+        : 'Enable only if this is a device you trust.'),
+      h('button', { type: 'button', class: 'btn btn-primary', disabled: capabilities.ios && !capabilities.installed,
+        on: { click: async () => {
+          try {
+            await enableBrowserPush(api);
+            notify('Notifications enabled on this browser.');
+            await renderProfile();
+          } catch (error) { notify(error.message || 'Could not enable notifications.', 'error'); }
+        } },
+      }, 'Enable notifications'));
+  }
+  pwaBody.replaceChildren(...rows.filter(Boolean));
 }
 
 /* ==========================================================================
@@ -2595,6 +2686,9 @@ function initChrome() {
   });
 
   document.getElementById('logout')?.addEventListener('click', async () => {
+    // A sign-out is a reasonable expectation of privacy on a shared device.
+    // Remove the browser's subscription before invalidating the session.
+    try { await disableBrowserPush(api); } catch { /* no subscription or offline */ }
     await api('POST', '/api/logout');
     me = null;
     location.hash = '#/';

@@ -69,6 +69,34 @@ can authenticate successfully and still be rejected or quarantined later. Keep
 the SMTP password only in a mode-0600 environment file or a secret manager, and
 restart the Account service after changing it.
 
+### Optional: installable console and browser notifications
+
+The existing `/app` console is also a Progressive Web App. It remains a normal,
+responsive browser page when it is not installed. To let a user opt into browser
+notifications, create one VAPID key pair **on the target server** and paste the
+three resulting settings into its private mode-0600 `.env` file:
+
+```bash
+cd /srv/phoenix
+node scripts/generate-web-push-vapid.mjs --subject mailto:ops@example.com
+```
+
+Set `ETCO_account_webPushSubject`, `ETCO_account_webPushPublicKey`, and
+`ETCO_account_webPushPrivateKey` from that output, then restart Account. Do not
+commit, paste into an issue, or put the private key into browser-side settings.
+VAPID is an installation identity, not a user credential; use a different key
+pair for each deployment. If it is replaced, existing browser subscriptions must
+be enabled again from **Account → Jibo app and notifications**.
+
+The server accepts only the normal Apple, Mozilla, and FCM browser-push endpoint
+hosts by default. Do not loosen `ETCO_account_webPushEndpointHosts` unless the
+additional hostname is a reviewed public push provider—an arbitrary endpoint
+would turn later notifications into outbound requests chosen by a signed-in user.
+The notification payload contains only a generic household alert, never a Jot
+message's text. Users can send a test, disable the current browser, or sign out;
+signing out removes that browser's subscription. On iPhone and iPad, install from
+Safari using **Share → Add to Home Screen** before enabling notifications.
+
 ## 2. Learn what the robot expects
 
 This is the step people skip, and it determines everything that follows. The robot

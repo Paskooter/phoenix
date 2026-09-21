@@ -203,6 +203,7 @@ export function portalRoutes(store, options = {}) {
       : options.requireEmailVerification === true,
     classicBase: options.classicBase || classicBaseUrl(),
     classicCall: options.classicCall,
+    webPush: options.webPush,
   };
   const repointHost = String(options.repointHost || process.env.ETCO_account_repointHost || '').trim();
   return {

@@ -6,7 +6,12 @@ the account service — same process, same port, same origin, same session cooki
 files behind a reverse proxy with `/api` (and, when photo storage is enabled, `/member-photos/`)
 proxied back (see `deploy/nginx/`).
 
-There is no build step, no framework and no npm dependency. Plain HTML, CSS and ES modules.
+There is no front-end build step or framework. The browser UI is plain HTML, CSS and ES modules.
+
+The signed-in console is also an installable PWA. Its service worker caches only
+the static console shell for an offline-safe fallback; it never caches `/api`, a
+session, branding, household data, or media. The ordinary mobile-browser console
+continues to work whether or not it is installed.
 
 ## URLs
 
@@ -108,6 +113,29 @@ also why Leaflet is vendored here rather than pulled from a CDN. Map **tiles** d
 OpenStreetMap; the picker degrades to manual latitude/longitude entry when they cannot be
 reached.
 
+### Browser notifications
+
+Browser notifications are opt-in per browser from **Account → Jibo app and notifications**.
+They require HTTPS, a service worker, and VAPID keys configured only on the server. Generate the
+keys on that server with:
+
+```sh
+node scripts/generate-web-push-vapid.mjs --subject mailto:ops@example.com
+```
+
+Place the generated `ETCO_account_webPushSubject`, `...PublicKey`, and `...PrivateKey` in the
+deployment's private mode-0600 `.env` or secret manager, then restart Account. Do not commit the
+private key. The server sends standard encrypted Web Push directly to the browser's provider—no
+Firebase SDK or external analytics dependency is added. Endpoint URLs and their encryption keys
+are stored only in the Account store and are never returned to the browser. To prevent a
+subscription from becoming an SSRF input, Account accepts only Apple, Mozilla, and FCM endpoint
+hosts unless an operator explicitly adds a reviewed public provider hostname.
+
+New Jot messages sent through the console notify other accepted household members who opted in;
+the notification does not contain the message text. A user can send a test or disable the current
+browser. Signing out removes this browser's subscription. iPhone/iPad users must first add the
+site to the Home Screen from Safari.
+
 ## How auth works
 
 - Login/signup uses the **existing account store** — the same account the owner signs into on
@@ -182,7 +210,7 @@ node scripts/portal-grant-admin.mjs --email you@example.com
 | 5 | **Household record** — rename, suspend/unsuspend, invite + remove members | **Complete** | account store via `loopMembership.js` |
 | 6 | **Gallery** — list/view/delete media | **Complete** | `Media_20160725.List/Get/Remove` + blob proxy to Classic |
 | 7 | **People** — person-catalog answers, account/loop properties, holidays, voice-training state | **Partial** (read-only) | `Person_20160801.*`, `VoiceTraining_20151020.ListVoiceTrainings` |
-| 8 | **Messages** — Jot messages, notification socket status, push registrations | **Partial** (Jot + push + status read) | `Jot_20160512.List/Create`, `Notification_20150505.GetStatus`, `Push_20160729.RemoveDevice` |
+| 8 | **Messages** — Jot messages, notification socket status, push registrations | **Partial** (Jot + push + status read); browser Push is opt-in from Account | `Jot_20160512.List/Create`, `Notification_20150505.GetStatus`, `Push_20160729.RemoveDevice`, Account Web Push |
 | 9 | **System** — OTA update catalog, IFTTT identity/applets, OAuth clients | **Partial** | `Update_20160301.ListUpdates`, `IFTTT_20170207.*`, account `oauthClients` |
 
 Every partial surface is labelled **partial in the UI**, not only here.
@@ -222,8 +250,11 @@ directly, but nginx is the recommended public front door for static delivery.
 - **Person catalogue** is read-only (list answers, properties, holidays, voice-training state).
   Answering the "this or that" questions is a phone-side flow; no handler is stubbed.
 - **Notifications** shows socket status; the robot's push socket and delivery are robot-side.
+  Browser Push is a separate, opt-in console capability and currently alerts on new console Jot
+  messages only; it does not claim to mirror every robot notification.
 - **OTA** shows the catalog a robot would be offered; it does not push firmware from the browser.
 - **IFTTT** shows identity and applet rows, and reports an explicit diagnostic when the IFTTT
   realtime API is dead (it is).
 - **OAuth clients** are listed read-only from the account store registry.
-- Push **delivery** (APNs/FCM) has no live provider — registrations are shown and removable.
+- Legacy native push delivery (APNs/FCM) has no live provider — those registrations are shown and
+  removable. Browser Web Push uses the browser's standard provider with the server's VAPID key.

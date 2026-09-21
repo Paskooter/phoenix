@@ -186,7 +186,7 @@ export function staticRoutes() {
     // styles
     'theme.css', 'site.css', 'console.css',
     // scripts
-    'app.js', 'site.js', 'brand.js', 'qr.js', 'map.js',
+    'app.js', 'pwa.js', 'site.js', 'brand.js', 'qr.js', 'map.js',
     // vendored
     'vendor/leaflet.js', 'vendor/leaflet.css',
     // assets and metadata
@@ -204,6 +204,9 @@ export function staticRoutes() {
     // hash; /admin is kept because it is where the admin surface has always
     // lived.
     'GET /app': serve('app.html'),
+    // Root scope is intentional: the worker owns only the console app shell,
+    // but its Push click handler must be able to open /app from any page.
+    'GET /sw.js': serve('sw.js'),
     'GET /admin': serve('app.html'),
     // Mail actions intentionally enter the same static console shell. The
     // browser exchanges the single-use code with the same-origin API, so a

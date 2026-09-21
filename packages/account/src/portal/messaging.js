@@ -8,6 +8,7 @@ import { DEFAULT_REGION, DEFAULT_SERVICE } from './classicClient.js';
 import { sendJson } from '@phoenix/common';
 import { classicCall, ClassicCallError } from './classicClient.js';
 import { requireUser } from './session.js';
+import { WebPushError } from '../webPush.js';
 
 function idsEqual(a, b) {
   return a != null && b != null && String(a) === String(b);
@@ -17,6 +18,25 @@ export function portalMessagingRoutes(store, options = {}) {
   const classic = options.classicCall || classicCall;
   const base = options.classicBase;
   const blobBase = options.classicBase;
+  const webPush = options.webPush;
+
+  function webPushError(res, error) {
+    if (error instanceof WebPushError) return sendJson(res, error.statusCode, { error: error.message });
+    throw error;
+  }
+
+  function householdRecipients(loop, senderId) {
+    const accountIds = new Set([loop.owner, ...(loop.members || [])
+      .filter((member) => String(member.status || '').toLowerCase() === 'accepted')
+      .map((member) => member.accountId)]
+      .filter(Boolean)
+      .map((id) => String(id)));
+    accountIds.delete(String(senderId));
+    return [...accountIds].filter((id) => {
+      const account = store.accounts.get(id);
+      return account && account.isDeleted !== true && account.isActive !== false && account.messagingAllowed !== false;
+    });
+  }
 
   async function loopOf(res, account, loopId) {
     const loop = loopId ? store.loops.get(loopId) : null;
@@ -73,10 +93,63 @@ export function portalMessagingRoutes(store, options = {}) {
           target: 'Jot_20160512.CreateMessage',
           body: { loopId: loop._id, content, parts },
         });
+        // Web Push is supplementary: Classic is still the source of truth for
+        // the message and a failed browser provider must never turn a sent
+        // household message into an API error. Do not include message text in
+        // the payload; the recipient opens the authenticated console to read it.
+        const recipients = householdRecipients(loop, account._id);
+        if (webPush && recipients.length) {
+          void webPush.notifyAccounts(recipients, {
+            title: 'New household message',
+            body: `There is a new message in ${loop.name || 'your household'}.`,
+            url: '/app#/messaging',
+            tag: `jot-${loop._id}`,
+          }).catch(() => {});
+        }
         return { message: result.body };
       } catch (error) {
         if (error instanceof ClassicCallError) return sendJson(res, error.status, { error: error.message, code: error.code, classicUnreachable: true });
         throw error;
+      }
+    },
+
+    // -- browser Web Push -----------------------------------------------------
+
+    'GET /api/web-push': ({ req, res }) => {
+      const account = requireUser(store, req, res);
+      if (!account) return;
+      if (!webPush) return { available: false, reason: 'not configured', subscriptions: [] };
+      return webPush.status(account._id);
+    },
+
+    'POST /api/web-push/subscribe': ({ req, res, body }) => {
+      const account = requireUser(store, req, res);
+      if (!account) return;
+      try {
+        const subscription = webPush?.subscribe(account._id, body?.subscription, body?.label);
+        return { subscription };
+      } catch (error) {
+        return webPushError(res, error);
+      }
+    },
+
+    'POST /api/web-push/unsubscribe': ({ req, res, body }) => {
+      const account = requireUser(store, req, res);
+      if (!account) return;
+      try {
+        return webPush?.unsubscribe(account._id, body?.subscription) || { removed: false };
+      } catch (error) {
+        return webPushError(res, error);
+      }
+    },
+
+    'POST /api/web-push/test': async ({ req, res }) => {
+      const account = requireUser(store, req, res);
+      if (!account) return;
+      try {
+        return await webPush?.sendTest(account._id) || { delivered: 0, skipped: true };
+      } catch (error) {
+        return webPushError(res, error);
       }
     },
 

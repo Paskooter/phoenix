@@ -1,4 +1,5 @@
 {
+  "id": "/app",
   "name": "Phoenix",
   "short_name": "Phoenix",
   "description": "The cloud your robot can talk to again.",
@@ -9,6 +10,6 @@
   "theme_color": "#08090d",
   "orientation": "any",
   "icons": [
-    { "src": "/assets/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+    { "src": "/assets/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
   ]
 }

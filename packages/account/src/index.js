@@ -35,6 +35,7 @@ import { createSmtpAccountMailProviders, smtpConfigFromEnv } from './smtpMail.js
 import { listAssociatedLoopsRoute } from './loopResolution.js';
 import { protectPortalRoutes } from './portalCsrf.js';
 import { userFromSession } from './portal/session.js';
+import { WebPushService, webPushConfigFromEnv } from './webPush.js';
 
 export { Store, getStore, resetStore } from './store.js';
 export * as model from './model.js';
@@ -111,6 +112,7 @@ export {
   smtpConfigFromEnv,
 } from './smtpMail.js';
 export { staticRoutes } from './static.js';
+export { WebPushError, WebPushService, generateVapidKeys, webPushConfigFromEnv } from './webPush.js';
 export {
   accountIdentityKey,
   hasAssociatedLoopKey,
@@ -328,6 +330,9 @@ export function createAccountService({
   calendarFetchTimeoutMs,
   repointHost,
   portalRequireEmailVerification,
+  webPushService,
+  webPushConfig,
+  webPushSender,
 } = {}) {
   // The source Settings controller is always the production algorithm. Explicit provider
   // injection is reserved for tests; normal construction uses Phoenix storage/NET seams.
@@ -374,6 +379,14 @@ export function createAccountService({
   const photoProvider = memberPhotoProvider || (photo.publicBaseUrl
     ? new MemberPhotoStorage({ directory: photo.directory, publicBaseUrl: photo.publicBaseUrl }) : null);
   const loopUpdatedOutbox = new LoopUpdatedOutbox(store, { publisher: notificationPublisher });
+  // Browser Web Push is deliberately optional: a LAN/self-hosted setup can run
+  // without VAPID keys, while a public service has an explicit, account-scoped
+  // notification capability once its private environment is configured.
+  const effectiveWebPush = webPushService || new WebPushService({
+    store,
+    config: webPushConfig === undefined ? webPushConfigFromEnv() : webPushConfig,
+    sender: webPushSender,
+  });
   const routes = {
     // The direct Account photo ingress is intentionally session-bound. Public
     // photo URLs should point at Classic's signed proxy; an accidental
@@ -406,6 +419,7 @@ export function createAccountService({
       mailProviders: effectiveInvitationProviders,
       requireEmailVerification: portalRequireEmailVerification,
       repointHost,
+      webPush: effectiveWebPush,
     }), // REST /api/* (sessions)
     ...settingsPeerRoutes(store), // internal Account client seams used by source Settings
     ...backupPeerRoutes(store),   // internal Account client seam used by source Backup (getLoop)
@@ -444,6 +458,7 @@ export function createAccountService({
   // An injected publisher is the explicit Account -> notification boundary;
   // recover rows left by a prior process after construction.
   service.loopUpdatedOutbox = loopUpdatedOutbox;
+  service.webPush = effectiveWebPush;
   service.invitationProviders = effectiveInvitationProviders;
   service.identityProviders = effectiveIdentityProviders;
   void loopUpdatedOutbox.recover();

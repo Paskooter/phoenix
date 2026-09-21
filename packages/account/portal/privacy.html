@@ -184,7 +184,8 @@
 
       <dt>Messages and notifications</dt>
       <dd>Messages sent within the household, and push-notification registrations for devices that
-        asked to receive them.</dd>
+        asked to receive them. A browser registration contains its provider endpoint and public
+        encryption keys; it is kept in the instance's private account store.</dd>
 
       <dt>Speech</dt>
       <dd>Audio streamed from the robot is processed by the recognition service on your own machine
@@ -213,7 +214,10 @@
       <li><strong>Weather, news, traffic and calendar providers</strong>, contacted when you ask for
         a personal report that includes them. A request to such a provider necessarily reveals what
         was asked for — for example, the coordinates of a journey.</li>
-      <li><strong>Push-notification services</strong>, if you register a device for them.</li>
+      <li><strong>Push-notification services</strong>, if you register a device for them. Browser
+        Push payloads are encrypted for that browser; the provider still necessarily receives
+        delivery metadata such as the endpoint and timing. Phoenix sends generic household alerts,
+        not Jot message text, in browser notification previews.</li>
     </ul>
     <p>Each of these is operated by a third party under its own privacy policy. Turning a feature off
       in the console stops the corresponding requests.</p>
@@ -245,7 +249,7 @@
 
     <h2 id="retention">8. Retention and deletion</h2>
     <p>Data stays on the instance until it is deleted there. The console can delete media and remove
-      members, push registrations and robots. Nothing is retained anywhere else, because there is
+      members, browser push registrations and robots. Nothing is retained anywhere else, because there is
       nowhere else.</p>
     <p>Deleting the instance's data directory removes everything. There is no backup you do not
       control, which also means there is no recovery if you delete something by mistake.</p>

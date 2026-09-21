@@ -37,8 +37,10 @@ path while preserving the same-origin `phx_session` cookie for `/api/*`.
 
 The supplied vhost also proxies `/member-photos/` because the account service owns that streamed
 endpoint when member-photo storage is configured. It is the only non-`/api` exception in the portal
-vhost. The robot-facing Classic entrypoint is not an exception to add here: its AWS-JSON `POST /`
-and robot notification socket are a separate TLS surface.
+vhost. It also serves `/sw.js` with revalidation so the installable console can update safely; the
+worker caches only its static shell and never proxies or caches API data. The robot-facing Classic
+entrypoint is not an exception to add here: its AWS-JSON `POST /` and robot notification socket are
+a separate TLS surface.
 
 Choose one account deployment mode before editing the nginx upstream:
 
