@@ -7,7 +7,7 @@
 // third-party tracking and lets a visitor decline without a network request to
 // Google.
 
-const MEASUREMENT_ID = 'G-3CNE9E61X0j';
+const MEASUREMENT_ID = 'G-3CNE9E61X0';
 const CONSENT_KEY = 'phoenix.analyticsConsent';
 const PUBLIC_HOSTS = new Set(['jibo.io', 'www.jibo.io', 'portal.jibo.io']);
 

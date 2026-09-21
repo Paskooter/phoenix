@@ -55,7 +55,7 @@ function runAnalytics({ href = 'https://jibo.io/app?code=single-use#/%2Floop', c
 test('portal analytics is consent-gated, production-host restricted, and URL-safe', () => {
   const analytics = read('analytics.js');
 
-  assert.match(analytics, /G-3CNE9E61X0j/);
+  assert.match(analytics, /G-3CNE9E61X0/);
   assert.match(analytics, /PUBLIC_HOSTS = new Set\(\['jibo\.io', 'www\.jibo\.io', 'portal\.jibo\.io'\]\)/);
   assert.match(analytics, /consent === 'granted'/);
   assert.match(analytics, /send_page_view: false/);
