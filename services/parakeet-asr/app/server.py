@@ -46,7 +46,11 @@ INTERIM_MS = int(os.environ.get("PARAKEET_INTERIM_MS", "300"))
 # Below this RMS a chunk is silence and not worth a decode pass.
 SILENCE_RMS = float(os.environ.get("PARAKEET_SILENCE_RMS", "200"))
 
-API_VERSION = "0.2.0"
+# CPU Whisper is intentionally batch-only.  Advertising 0.1 keeps existing
+# Hub clients on the mature POST /transcribe fallback, avoiding the repeated
+# partial-buffer inference that streaming requires from a GPU-sized backend.
+BACKEND = os.environ.get("PARAKEET_BACKEND", "nemo").strip().lower()
+API_VERSION = "0.1.0" if BACKEND == "faster-whisper" else "0.2.0"
 
 _recognizer: Optional[Recognizer] = None
 
@@ -60,8 +64,12 @@ def set_recognizer(recognizer: Recognizer) -> None:
 def get_recognizer() -> Recognizer:
     global _recognizer
     if _recognizer is None:
-        from .recognizer import NemoRecognizer
-        _recognizer = NemoRecognizer()
+        if BACKEND == "faster-whisper":
+            from .recognizer import FasterWhisperRecognizer
+            _recognizer = FasterWhisperRecognizer()
+        else:
+            from .recognizer import NemoRecognizer
+            _recognizer = NemoRecognizer()
     return _recognizer
 
 
@@ -76,8 +84,7 @@ async def lifespan(_app: FastAPI):
     """
     recognizer = _recognizer
     if recognizer is None:
-        from .recognizer import NemoRecognizer
-        recognizer = NemoRecognizer()
+        recognizer = get_recognizer()
         set_recognizer(recognizer)
     loader = getattr(recognizer, "load", None)
     if callable(loader):

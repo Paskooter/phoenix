@@ -222,6 +222,64 @@ class NemoRecognizer:
                 os.remove(path)
 
 
+class FasterWhisperRecognizer:
+    """CPU-safe compatibility recognizer for hosts without a CUDA-capable GPU.
+
+    The Hub only needs the stable ``/transcribe`` response shape.  This backend
+    deliberately reports no invented confidence and is advertised as API 0.1
+    by the HTTP layer, causing the Hub to use its established batch fallback
+    rather than repeatedly decoding a growing buffer on a small CPU host.
+    """
+
+    DEFAULT_MODEL = "base.en"
+
+    def __init__(self, model_name: Optional[str] = None) -> None:
+        self.model_name = model_name or os.environ.get("PARAKEET_CPU_MODEL", self.DEFAULT_MODEL)
+        self.cpu_threads = int(os.environ.get("PARAKEET_CPU_THREADS", "2"))
+        self._model = None
+
+    def load(self):
+        if self._model is not None:
+            return self._model
+        from faster_whisper import WhisperModel
+        self._model = WhisperModel(
+            self.model_name,
+            device="cpu",
+            compute_type="int8",
+            cpu_threads=self.cpu_threads,
+            num_workers=1,
+        )
+        return self._model
+
+    def transcribe_wav(self, path: str) -> Transcript:
+        segments, _info = self.load().transcribe(
+            path,
+            language="en",
+            beam_size=1,
+            vad_filter=True,
+            condition_on_previous_text=False,
+        )
+        # `segments` is lazy: consume it while the model is retained, but do
+        # not convert its score into a fake probability.  The Hub's historical
+        # fallback for a provider without confidence remains authoritative.
+        return Transcript(text=" ".join(segment.text.strip() for segment in segments).strip())
+
+    def transcribe_pcm(self, pcm: bytes, sample_rate: int) -> Transcript:
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+            path = tmp.name
+        try:
+            with wave.open(path, "wb") as w:
+                w.setnchannels(1)
+                w.setsampwidth(2)
+                w.setframerate(sample_rate)
+                w.writeframes(pcm)
+            return self.transcribe_wav(path)
+        finally:
+            if os.path.exists(path):
+                os.remove(path)
+
+
 def rms(pcm: bytes) -> float:
     """Frame energy, used to avoid decoding pure silence during streaming."""
     if len(pcm) < 2:

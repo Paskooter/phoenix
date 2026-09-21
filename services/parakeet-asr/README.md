@@ -106,6 +106,30 @@ docker build --target contract -t parakeet-asr:contract .
 docker run --rm parakeet-asr:contract python -m pytest tests/ -q
 ```
 
+### CPU-only fallback
+
+The production Parakeet/NeMo model is GPU-oriented.  A small VPS must not
+attempt to run it just because `PARAKEET_URL` is configured: model loading can
+exhaust RAM and take the entire robot cloud down.  The same server includes a
+batch-compatible CPU fallback using Faster-Whisper.  It preserves the private
+`/healthz` and `POST /transcribe` contract, but intentionally advertises API
+0.1 so the Hub uses batch recognition instead of expensive streaming partial
+decodes.  It is a practical availability fallback, not a claim of acoustic
+parity with the Parakeet model.
+
+```bash
+python3 -m venv /opt/phoenix-asr/venv
+/opt/phoenix-asr/venv/bin/pip install -r requirements-cpu.txt
+PARAKEET_BACKEND=faster-whisper \
+  /opt/phoenix-asr/venv/bin/uvicorn app.server:app --host 127.0.0.1 --port 6972
+```
+
+It downloads the selected model on first start.  `PARAKEET_CPU_MODEL=base.en`
+is the memory-safe default; use `small.en` only after measuring memory and
+latency on the target.  Bind only to loopback and set Phoenix's
+`PARAKEET_URL=http://127.0.0.1:6972`; never expose this microphone-input API to
+the Internet.
+
 The original built on `nvcr.io/nvidia/nemo:26.02`. That image needs an NGC
 login to pull, so this installs NeMo from pip on a plain `python:3.10-slim`
 base instead. Do not switch the base back without checking that the pull still

@@ -1,0 +1,4 @@
+-r requirements.txt
+# CPU-only compatibility backend for hosts that cannot safely run the 0.6B
+# CUDA/NeMo Parakeet model.  It retains the same private REST wire contract.
+faster-whisper>=1.1,<2

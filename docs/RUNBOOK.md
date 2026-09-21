@@ -383,6 +383,32 @@ The short version is:
 Do not duplicate the deployment procedure here; update `docs/DEPLOYMENT.md`
 when the hosting topology or code contract changes.
 
+## 11. Speech recognition availability
+
+Wake-word detection happens on the robot, but spoken local/global turns need
+the Hub's private ASR provider.  Before asking users to test speech, verify the
+configured provider *from the Phoenix host*:
+
+```bash
+curl --fail --max-time 8 "$PARAKEET_URL/healthz"
+```
+
+An unreachable provider produces a robot that wakes but immediately fails to
+understand speech.  Do not point `PARAKEET_URL` at a LAN address unless that
+address is routable from the Hub host.  The ASR API receives microphone audio,
+so it must bind to loopback or a private authenticated network only—never add a
+public nginx route for port 6972.
+
+For a GPU-capable deployment, use the Parakeet/NeMo service in
+[`services/parakeet-asr`](../services/parakeet-asr).  For a small CPU-only VPS,
+the documented Faster-Whisper compatibility backend is safer.  Run it under a
+dedicated unprivileged systemd service, configure
+`PARAKEET_URL=http://127.0.0.1:6972` in Phoenix's private `.env`, then restart
+both the ASR and Phoenix services.  Its model download is an operational
+dependency: verify `/healthz`, a real short WAV transcription, memory use, and
+one physical robot turn before launch.  It preserves the provider wire shape
+but is batch-only and is not acoustic parity with GPU Parakeet.
+
 ## What this does not do
 
 Getting the robot connected is not the same as a fully working robot.
