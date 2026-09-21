@@ -402,7 +402,8 @@ public nginx route for port 6972.
 For a GPU-capable deployment, use the Parakeet/NeMo service in
 [`services/parakeet-asr`](../services/parakeet-asr).  For a small CPU-only VPS,
 the documented Faster-Whisper compatibility backend is safer.  Run it under a
-dedicated unprivileged systemd service, configure
+dedicated unprivileged systemd service (the hardened template is
+[`deploy/systemd/phoenix-asr.service`](../deploy/systemd/phoenix-asr.service)), configure
 `PARAKEET_URL=http://127.0.0.1:6972` in Phoenix's private `.env`, then restart
 both the ASR and Phoenix services.  Its model download is an operational
 dependency: verify `/healthz`, a real short WAV transcription, memory use, and

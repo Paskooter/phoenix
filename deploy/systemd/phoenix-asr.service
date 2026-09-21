@@ -1,0 +1,37 @@
+[Unit]
+Description=Phoenix private CPU speech recognition
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=pasketti
+Group=pasketti
+WorkingDirectory=/opt/phoenix/services/parakeet-asr
+Environment=PARAKEET_BACKEND=faster-whisper
+Environment=PARAKEET_CPU_MODEL=base.en
+Environment=PARAKEET_CPU_THREADS=2
+Environment=HF_HOME=/opt/phoenix-asr/cache
+Environment=XDG_CACHE_HOME=/opt/phoenix-asr/cache
+ExecStart=/opt/phoenix-asr/venv/bin/uvicorn app.server:app --host 127.0.0.1 --port 6972
+Restart=on-failure
+RestartSec=5s
+TimeoutStartSec=180s
+TimeoutStopSec=30s
+UMask=0077
+MemoryMax=2G
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectHome=true
+ProtectSystem=full
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+LockPersonality=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+ReadWritePaths=/opt/phoenix-asr/cache
+
+[Install]
+WantedBy=multi-user.target
