@@ -5,7 +5,10 @@
    Shell
    ========================================================================== */
 
-body.console { background: var(--bg); }
+body.console {
+  background: var(--bg);
+  -webkit-tap-highlight-color: transparent;
+}
 
 .shell {
   display: grid;
@@ -30,6 +33,11 @@ body.console { background: var(--bg); }
   background: var(--bg-soft);
   border-right: 1px solid var(--border-soft);
   z-index: 40;
+}
+.sidebar > nav {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .sidebar-brand {
@@ -70,6 +78,9 @@ body.console { background: var(--bg); }
   font-size: var(--t-base);
   font-weight: 520;
   color: var(--fg-dim);
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  user-select: none;
   transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
 }
 .nav-item svg { flex: none; opacity: .75; transition: opacity var(--fast) var(--ease); }
@@ -202,8 +213,10 @@ body.console { background: var(--bg); }
   .sidebar {
     position: fixed;
     inset: 0 auto 0 0;
-    width: 272px;
+    width: 304px;
     max-width: 84vw;
+    padding-top: max(1rem, env(safe-area-inset-top));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
     transform: translateX(-100%);
     box-shadow: var(--shadow-lg);
     transition: transform var(--step) var(--ease-out);
@@ -211,6 +224,8 @@ body.console { background: var(--bg); }
   body.nav-open .sidebar { transform: none; }
   body.nav-open .scrim { opacity: 1; visibility: visible; }
   body.nav-open { overflow: hidden; }
+  .sidebar > nav { flex: 1 1 auto; }
+  .nav-item { min-height: 48px; padding: .7rem .75rem; }
 }
 
 /* ==========================================================================
@@ -240,10 +255,51 @@ body.console { background: var(--bg); }
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 .topbar .spacer { margin-inline-start: auto; }
+.icon-btn {
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--fg-dim);
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  user-select: none;
+  transition: background var(--fast) var(--ease), color var(--fast) var(--ease), border-color var(--fast) var(--ease);
+}
+.icon-btn:hover { background: var(--panel-2); color: var(--fg); border-color: var(--border-soft); }
 .menu-btn { display: none; }
-@media (max-width: 900px) { .menu-btn { display: grid; } }
+.menu-btn-label { display: none; }
+
+@media (max-width: 900px) {
+  .topbar {
+    height: calc(3.75rem + env(safe-area-inset-top));
+    padding: max(.35rem, env(safe-area-inset-top)) .75rem .35rem;
+    gap: .35rem;
+  }
+  .menu-btn {
+    width: auto;
+    min-width: 5.25rem;
+    height: 48px;
+    display: inline-flex;
+    gap: .35rem;
+    justify-content: center;
+    font-size: var(--t-sm);
+    font-weight: 600;
+  }
+  .menu-btn-label { display: inline; }
+  .topbar h1 { padding-inline: .35rem; }
+  .topbar-source { display: none; }
+  .topbar-theme { width: 48px; min-width: 48px; height: 48px; }
+}
 
 /* ==========================================================================
    Page
@@ -253,6 +309,80 @@ body.console { background: var(--bg); }
   padding: clamp(1.5rem, 1rem + 2vw, 2.5rem) clamp(1rem, .7rem + 1.2vw, 1.75rem)
            clamp(3rem, 2rem + 3vw, 4.5rem);
   max-width: 1080px;
+}
+@media (max-width: 900px) {
+  .page {
+    padding: 1.15rem 1rem calc(5.75rem + env(safe-area-inset-bottom));
+    max-width: none;
+  }
+  .page-head { margin-bottom: 1.25rem; }
+  .page-head h2 { font-size: var(--t-xl); }
+  .card-head { padding: 1rem; }
+  .card-body { padding: 1rem; }
+  .card-foot { padding: .85rem 1rem; }
+  .stat { padding: 1rem; }
+  .quick { min-height: 56px; padding: .8rem .9rem; }
+  .btn { min-height: 44px; }
+  input:not([type]), input[type="text"], input[type="email"], input[type="password"], input[type="search"],
+  input[type="date"], input[type="time"], input[type="tel"], input[type="number"], input[type="url"], select { min-height: 44px; }
+}
+
+/* App-style primary navigation on phones. It supplements rather than replaces
+   the full drawer, so every existing console surface remains reachable. */
+.mobile-tabbar { display: none; }
+@media (max-width: 900px) {
+  .mobile-tabbar {
+    position: fixed;
+    z-index: 35;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    min-height: calc(3.9rem + env(safe-area-inset-bottom));
+    padding: .3rem max(.3rem, env(safe-area-inset-right)) max(.3rem, env(safe-area-inset-bottom)) max(.3rem, env(safe-area-inset-left));
+    background: color-mix(in srgb, var(--bg-soft) 94%, transparent);
+    border-top: 1px solid var(--border-soft);
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, .12);
+    backdrop-filter: saturate(150%) blur(16px);
+    -webkit-backdrop-filter: saturate(150%) blur(16px);
+  }
+  .mobile-tab {
+    position: relative;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: .18rem;
+    min-width: 0;
+    min-height: 52px;
+    padding: .25rem .15rem;
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    font-size: .68rem;
+    font-weight: 590;
+    line-height: 1;
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .mobile-tab svg { width: 21px; height: 21px; }
+  .mobile-tab::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    width: 18px;
+    height: 3px;
+    border-radius: 0 0 4px 4px;
+    background: transparent;
+  }
+  .mobile-tab.active { color: var(--accent); background: var(--accent-soft); }
+  .mobile-tab.active::before { background: var(--accent); }
+  .mobile-tab:active { background: var(--panel-2); }
+}
+
+@media (hover: none) {
+  .card-click:hover, .quick:hover { transform: none; }
 }
 .js .page { animation: page-in .3s var(--ease-out); }
 @keyframes page-in {

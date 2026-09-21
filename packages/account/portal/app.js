@@ -2649,20 +2649,24 @@ function renderAuth() {
 
 function initChrome() {
   const menuBtn = document.getElementById('menu-btn');
-  const closeNav = () => {
-    document.body.classList.remove('nav-open');
-    menuBtn?.setAttribute('aria-expanded', 'false');
-    scrim.hidden = true;
-  };
-  menuBtn?.addEventListener('click', () => {
-    const open = document.body.classList.toggle('nav-open');
-    menuBtn.setAttribute('aria-expanded', String(open));
+  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+  const menuControls = [menuBtn, mobileMenuBtn].filter(Boolean);
+  const setNavOpen = (open) => {
+    document.body.classList.toggle('nav-open', open);
+    for (const control of menuControls) control.setAttribute('aria-expanded', String(open));
     scrim.hidden = !open;
-  });
+  };
+  const closeNav = () => {
+    setNavOpen(false);
+  };
+  for (const control of menuControls) {
+    control.addEventListener('click', () => setNavOpen(!document.body.classList.contains('nav-open')));
+  }
   scrim.addEventListener('click', closeNav);
   document.getElementById('nav')?.addEventListener('click', (e) => {
     if (e.target.closest('a')) closeNav();
   });
+  document.querySelector('.sidebar-brand')?.addEventListener('click', closeNav);
 
   // Account menu.
   const chipBtn = document.getElementById('account-chip');
@@ -2704,7 +2708,18 @@ function paintNav(hash) {
     const active = route === hash
       || (route === '#/admin' && hash.startsWith('#/admin'));
     a.classList.toggle('active', active);
+    if (active) a.setAttribute('aria-current', 'page');
+    else a.removeAttribute('aria-current');
   }
+  let primaryActive = false;
+  for (const a of document.querySelectorAll('#mobile-tabbar [data-route]')) {
+    const active = a.dataset.route === hash;
+    a.classList.toggle('active', active);
+    if (active) a.setAttribute('aria-current', 'page');
+    else a.removeAttribute('aria-current');
+    primaryActive ||= active;
+  }
+  document.getElementById('mobile-menu-btn')?.classList.toggle('active', !primaryActive);
 }
 
 /* ==========================================================================
@@ -2914,7 +2929,12 @@ async function route() {
   }
 }
 
-addEventListener('hashchange', route);
+addEventListener('hashchange', () => {
+  // A tab change in an installed app should start at the top of the next
+  // destination, rather than preserve a deep scroll position from the last.
+  scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  route();
+});
 
 initChrome();
 initTheme();

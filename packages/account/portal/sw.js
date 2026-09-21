@@ -1,7 +1,7 @@
 // Phoenix console service worker. It caches only the static console shell; API
 // data, sessions, branding, and all account content stay network-only.
 
-const CACHE_NAME = 'phoenix-console-shell-v1';
+const CACHE_NAME = 'phoenix-console-shell-v2';
 const APP_SHELL = [
   '/app', '/app.html', '/theme.css', '/console.css', '/app.js', '/pwa.js',
   '/brand.js', '/qr.js', '/map.js', '/manifest.webmanifest', '/assets/favicon.svg',

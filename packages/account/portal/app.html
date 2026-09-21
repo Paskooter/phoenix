@@ -63,7 +63,7 @@
 <!-- ==================================================================== -->
 <div class="shell" id="shell" hidden>
   <aside class="sidebar" id="sidebar">
-    <a class="sidebar-brand" href="/">
+    <a class="sidebar-brand" href="#/" aria-label="Phoenix Console overview">
       <span class="brand-mark" data-brand-logo>
         <svg viewBox="0 0 32 32" aria-hidden="true">
           <defs>
@@ -197,18 +197,19 @@
 
   <div>
     <header class="topbar">
-      <button class="icon-btn menu-btn" id="menu-btn" type="button" aria-label="Menu"
+      <button class="icon-btn menu-btn" id="menu-btn" type="button" aria-label="Open menu"
               aria-controls="sidebar" aria-expanded="false">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
           <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" /></svg>
+        <span class="menu-btn-label">Menu</span>
       </button>
       <h1 id="page-title">Overview</h1>
       <div class="spacer"></div>
-      <a class="icon-btn" href="https://github.com/Paskooter/phoenix" target="_blank" rel="noopener"
+      <a class="icon-btn topbar-source" href="https://github.com/Paskooter/phoenix" target="_blank" rel="noopener"
          data-brand-attr="href:links.github" aria-label="Source on GitHub" title="Source on GitHub">
         <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.11.79-.25.79-.56v-2c-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.12 3.05.74.81 1.18 1.84 1.18 3.1 0 4.43-2.69 5.41-5.25 5.69.41.36.78 1.06.78 2.14v3.17c0 .31.21.68.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
       </a>
-      <button class="icon-btn" data-theme-toggle type="button" aria-label="Theme">
+      <button class="icon-btn topbar-theme" data-theme-toggle type="button" aria-label="Theme">
         <svg viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true">
           <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z" stroke="currentColor"
                 stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
@@ -216,6 +217,41 @@
     </header>
 
     <main id="app" class="page" tabindex="-1"></main>
+
+    <!-- The primary destinations stay within thumb reach on a phone. The
+         complete console remains available through the labelled Menu drawer. -->
+    <nav class="mobile-tabbar" id="mobile-tabbar" aria-label="Primary console navigation">
+      <a class="mobile-tab" href="#/" data-route="#/" aria-label="Overview">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M3.5 10.5 12 3.5l8.5 7M5.5 9.5V20h13V9.5" stroke="currentColor"
+                stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        <span>Home</span>
+      </a>
+      <a class="mobile-tab" href="#/robot" data-route="#/robot" aria-label="Robots">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M8 4h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8a4 4 0 0 1 4-4ZM9.5 10.5h.01M14.5 10.5h.01M9 15h6"
+                stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        <span>Robots</span>
+      </a>
+      <a class="mobile-tab" href="#/loop" data-route="#/loop" aria-label="Household">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20M10 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM20 20v-1.5a3.5 3.5 0 0 0-2.6-3.4"
+                stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        <span>Household</span>
+      </a>
+      <a class="mobile-tab" href="#/messaging" data-route="#/messaging" aria-label="Messages">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M20 11.5a7.6 7.6 0 0 1-8.2 7.6 8.2 8.2 0 0 1-3.4-.8L4 19.5l1.4-4a7.6 7.6 0 0 1-1-3.9 7.6 7.6 0 0 1 8.2-7.6A7.6 7.6 0 0 1 20 11.5Z"
+                stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /></svg>
+        <span>Messages</span>
+      </a>
+      <button class="mobile-tab" id="mobile-menu-btn" type="button" aria-label="Open more destinations"
+              aria-controls="sidebar" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 7h14M5 12h14M5 17h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+        <span>More</span>
+      </button>
+    </nav>
   </div>
 </div>
 
