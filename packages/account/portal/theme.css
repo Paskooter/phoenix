@@ -498,55 +498,6 @@ hr { border: 0; border-top: 1px solid var(--border-soft); margin: 2rem 0; }
 .link:hover { text-decoration: underline; }
 .link.danger { color: var(--error); }
 
-/* The public deployment's optional analytics prompt. It is injected only on
-   jibo.io after the page has loaded, and is shared by the marketing, legal and
-   console shells. */
-.analytics-consent {
-  position: fixed;
-  z-index: 180;
-  inset-inline: var(--gutter);
-  inset-block-end: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.25rem;
-  max-width: 980px;
-  margin-inline: auto;
-  padding: .9rem 1rem;
-  background: var(--overlay);
-  border: 1px solid var(--accent-line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-lg), var(--edge);
-}
-.analytics-consent-copy { min-width: 0; }
-.analytics-consent h2 {
-  margin: 0 0 .2rem;
-  font-size: var(--t-md);
-  color: var(--fg);
-}
-.analytics-consent p {
-  max-width: 62ch;
-  margin: 0;
-  color: var(--fg-dim);
-  font-size: var(--t-sm);
-  line-height: 1.45;
-}
-.analytics-consent-actions {
-  display: flex;
-  align-items: center;
-  gap: .45rem;
-  flex: none;
-}
-@media (max-width: 640px) {
-  .analytics-consent {
-    align-items: stretch;
-    flex-direction: column;
-    gap: .7rem;
-    inset-block-end: .75rem;
-  }
-  .analytics-consent-actions { justify-content: flex-end; }
-}
-
 /* ==========================================================================
    Surfaces
    ========================================================================== */

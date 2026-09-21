@@ -186,7 +186,7 @@ export function staticRoutes() {
     // styles
     'theme.css', 'site.css', 'console.css',
     // scripts
-    'app.js', 'site.js', 'brand.js', 'analytics.js', 'qr.js', 'map.js',
+    'app.js', 'site.js', 'brand.js', 'qr.js', 'map.js',
     // vendored
     'vendor/leaflet.js', 'vendor/leaflet.css',
     // assets and metadata

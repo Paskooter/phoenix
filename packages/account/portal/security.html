@@ -215,9 +215,7 @@
       small enough to reason about.</p>
     <p>Front-end libraries are vendored into the repository and served from your own instance rather
       than loaded from a CDN, so no outside host can inject code into a page that has access to your
-      session. The public jibo.io deployment has one documented, consent-gated exception: its
-      optional Google Analytics tag loads from Google only after a visitor opts in. Self-hosted
-      domains never load it.</p>
+      session. This website loads no third-party scripts, styles or fonts at all.</p>
 
     <h2 id="report">7. Reporting a vulnerability</h2>
     <p>If you believe you have found a security problem, please report it <strong>privately
@@ -262,7 +260,6 @@
   </div>
 </footer>
 
-<script src="/analytics.js" defer></script>
 <script type="module" src="/site.js"></script>
 </body>
 </html>

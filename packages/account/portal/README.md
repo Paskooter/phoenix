@@ -102,12 +102,11 @@ in `deploy/nginx/phoenix.conf`).
 Dark is the product's own look; light follows the system and can be forced from the theme
 switch (stored in `localStorage`, applied before first paint so there is no flash).
 
-No webfont is loaded and no third-party script, style or font is fetched by a self-hosted page. The
-portal runs on a LAN beside the robot and must render with no outside host reachable, which is also
-why Leaflet is vendored here rather than pulled from a CDN. The public `jibo.io` deployment has an
-explicit, consent-gated Google Analytics 4 integration; it is restricted to that host and is a
-no-op on every other domain. Map **tiles** do come from OpenStreetMap; the picker degrades to
-manual latitude/longitude entry when they cannot be reached.
+No webfont is loaded and no third-party script, style or font is fetched by any page. The
+portal runs on a LAN beside the robot and must render with no outside host reachable, which is
+also why Leaflet is vendored here rather than pulled from a CDN. Map **tiles** do come from
+OpenStreetMap; the picker degrades to manual latitude/longitude entry when they cannot be
+reached.
 
 ## How auth works
 
