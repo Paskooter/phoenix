@@ -192,6 +192,16 @@ fi
 LLM_URL="${LLM_URL:-}"
 LLM_MODEL="${LLM_MODEL:-google/gemma-4-e4b}"
 PARAKEET_URL="${PARAKEET_URL:-}"
+# Laya is a private, bounded intent fallback.  It is separate from the answer
+# skill's LLM and must remain explicitly disabled unless a tokenized LAN/VPN
+# endpoint has passed replay validation.
+PARSER_LAYA_ENABLED="${ETCO_parser_layaEnabled:-${LAYA_ENABLED:-false}}"
+PARSER_LAYA_URL="${ETCO_parser_layaUrl:-${LAYA_URL:-}}"
+PARSER_LAYA_TOKEN="${ETCO_parser_layaToken:-${LAYA_TOKEN:-}}"
+PARSER_LAYA_PROFILE="${ETCO_parser_layaProfile:-${LAYA_PROFILE:-phoenix-core}}"
+PARSER_LAYA_TIMEOUT_MS="${ETCO_parser_layaTimeoutMs:-${LAYA_TIMEOUT_MS:-700}}"
+PARSER_LAYA_MIN_CONFIDENCE="${ETCO_parser_layaMinConfidence:-${LAYA_MIN_CONFIDENCE:-0.85}}"
+PARSER_LAYA_SECONDARY_FALLBACK="${ETCO_parser_layaSecondaryFallback:-${LAYA_SECONDARY_FALLBACK:-none}}"
 REPORT_PREFS_FROM_CONFIG="${prefsFromConfig:-${PREFS_FROM_CONFIG:-false}}"
 REPORT_LASSO="${NET_lasso:-localhost:$(p 9007)}"
 REPORT_SETTINGS="${NET_settings:-${NET_SETTINGS:-settings.jibo.aws}}"
@@ -212,6 +222,10 @@ CLASSIC_KEY_BINARY_DIR="${CLASSIC_KEY_BINARY_DIR:-${ETCO_classic_keyBinaryDir:-$
 CLASSIC_PUSH_FILE="${CLASSIC_PUSH_FILE:-${ETCO_classic_pushFile:-$CLASSIC_DATA_DIR/push.json}}"
 
 PORT=$(p 9005) ETCO_parser_llmUrl="$LLM_URL" ETCO_parser_llmModel="$LLM_MODEL" \
+  ETCO_parser_layaEnabled="$PARSER_LAYA_ENABLED" ETCO_parser_layaUrl="$PARSER_LAYA_URL" \
+  ETCO_parser_layaToken="$PARSER_LAYA_TOKEN" ETCO_parser_layaProfile="$PARSER_LAYA_PROFILE" \
+  ETCO_parser_layaTimeoutMs="$PARSER_LAYA_TIMEOUT_MS" ETCO_parser_layaMinConfidence="$PARSER_LAYA_MIN_CONFIDENCE" \
+  ETCO_parser_layaSecondaryFallback="$PARSER_LAYA_SECONDARY_FALLBACK" \
   node packages/nlu/src/index.js      > "$LOG_DIR/phx-compose-parser.log"   2>&1 & JOB_PIDS[parser]=$!
 PORT=$(p 9006) ETCO_history_dataFile="$HISTORY_DATA_FILE" \
   node packages/history/src/index.js  > "$LOG_DIR/phx-compose-history.log" 2>&1 & JOB_PIDS[history]=$!

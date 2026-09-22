@@ -80,6 +80,7 @@ which is loaded automatically by every service and launcher.
 |---|---|
 | `PARAKEET_URL` | Address of a Parakeet ASR server (`POST /transcribe`). Speech is only transcribed when this is reachable; the built-in default points at `192.168.1.252:6972`. |
 | `LLM_URL`, `LLM_MODEL` | OpenAI-compatible endpoint (for example LM Studio) used by the answer skill and as the parser's fallback. |
+| `LAYA_URL`, `LAYA_TOKEN`, `LAYA_ENABLED` | Optional private Laya intent fallback. It is disabled by default, requires an authenticated LAN/VPN endpoint, and initially accepts only entityless intents. See [Laya deployment](docs/LAYA-INTENT.md). |
 | `HUB_TOKEN_SECRET` | Required signing secret for hub/account robot tokens. Generate a unique random value; the hardened launchers refuse an empty secret in production. |
 | `DISABLE_AUTH` | `false` (the production default) requires robot tokens. `true` is for isolated local development only. |
 | `ETCO_account_internalPeerToken` | A separate random secret used only between trusted Phoenix services; it must never be sent by a browser or robot. |

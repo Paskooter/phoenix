@@ -1,0 +1,80 @@
+# Run this file on the private Blackwell host (.252):
+#   cp .env.example .env && chmod 600 .env
+#   docker compose --env-file .env --profile bootstrap run --rm laya-model-fetch
+#   docker compose --env-file .env up -d --build laya-intent
+#
+# The port is bound to the host's LAN address, not all interfaces. Keep the
+# host firewall restricted to the Phoenix VPS/private network as well.
+services:
+  laya-intent:
+    build:
+      context: .
+      target: model
+    image: phoenix-laya-intent:local
+    container_name: phoenix-laya-intent
+    init: true
+    restart: unless-stopped
+    user: "10001:10001"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    gpus: all
+    environment:
+      LAYA_AUTH_TOKEN: ${LAYA_AUTH_TOKEN:?Set LAYA_AUTH_TOKEN in .env}
+      LAYA_BACKEND: laya
+      LAYA_DEVICE: cuda
+      LAYA_REQUIRE_CUDA: "true"
+      LAYA_DEFAULT_PROFILE: ${LAYA_DEFAULT_PROFILE:-phoenix-core}
+      LAYA_MODEL_PATH: /models/laya
+      LAYA_PROFILE_FILE: /srv/profiles/phoenix.json
+      LAYA_MAX_CONCURRENCY: ${LAYA_MAX_CONCURRENCY:-2}
+      LAYA_QUEUE_TIMEOUT_MS: ${LAYA_QUEUE_TIMEOUT_MS:-50}
+      LAYA_INFERENCE_TIMEOUT_MS: ${LAYA_INFERENCE_TIMEOUT_MS:-750}
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+      USE_TF: "0"
+    ports:
+      - "${LAYA_BIND_ADDRESS:-192.168.1.252}:${LAYA_PORT:-6973}:6973"
+    volumes:
+      - laya-models:/models:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:6973/readyz', timeout=2)"]
+      interval: 15s
+      timeout: 3s
+      retries: 20
+      start_period: 2m
+
+  # This opt-in job is the only component allowed to fetch a model. It writes
+  # a revision-pinned local checkpoint and file-hash manifest for the serving
+  # container, which has no model-download path at runtime.
+  laya-model-fetch:
+    profiles: ["bootstrap"]
+    build:
+      context: .
+      target: model
+    image: phoenix-laya-intent:local
+    user: "10001:10001"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    environment:
+      LAYA_MODEL_REPO: ${LAYA_MODEL_REPO:-convaiinnovations/laya}
+      LAYA_MODEL_REVISION: ${LAYA_MODEL_REVISION:-1c5edc17a7acd8701df6fc341c0d179f1c62c982}
+      LAYA_MODEL_PATH: /models/laya
+      HF_HOME: /tmp/huggingface
+      USE_TF: "0"
+    volumes:
+      - laya-models:/models:rw
+    command: ["python", "-m", "app.fetch_model"]
+
+volumes:
+  laya-models:
+    name: phoenix-laya-models

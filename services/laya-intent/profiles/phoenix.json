@@ -1,0 +1,69 @@
+{
+  "schema": "phoenix.laya.intent-profiles.v1",
+  "source": "Phoenix generated intent catalog (server-owned bounded launch profile)",
+  "profiles": {
+    "phoenix-core": {
+      "instructions": "Which broad group best fits this Jibo request? Choose unknown when it is not clearly one of these groups.",
+      "min_confidence": 0.80,
+      "min_margin": 0.12,
+      "candidates": [
+        {"id": "unknown", "description": "none of the listed Jibo request groups clearly matches"},
+        {"id": "information", "description": "ask for the time, calendar, news, commute, or personal report"},
+        {"id": "home", "description": "control smart lights or open the photo gallery"},
+        {"id": "play", "description": "ask Jibo to draw, dance, tell a knock knock joke, or say goodbye"},
+        {"id": "system", "description": "tell Jibo to stop, restart, or report Wi-Fi status"}
+      ],
+      "children": {
+        "information": "phoenix-information",
+        "home": "phoenix-home",
+        "play": "phoenix-play",
+        "system": "phoenix-system"
+      }
+    },
+    "phoenix-information": {
+      "instructions": "Which one slotless Jibo information intent best matches the request? Choose unknown if it needs a location, date, name, duration, or another entity.",
+      "min_confidence": 0.85,
+      "min_margin": 0.12,
+      "candidates": [
+        {"id": "unknown", "description": "none of the listed entity-free information intents clearly matches"},
+        {"id": "requestCalendar", "description": "ask about calendar events or schedule"},
+        {"id": "requestCommute", "description": "ask about commute conditions"},
+        {"id": "launchPersonalReport", "description": "ask Jibo for a personal report"}
+      ]
+    },
+    "phoenix-home": {
+      "instructions": "Which one slotless Jibo home intent best matches the request? Choose unknown if it names a room, light group, brightness value, or other entity.",
+      "min_confidence": 0.85,
+      "min_margin": 0.12,
+      "candidates": [
+        {"id": "unknown", "description": "none of the listed entity-free home intents clearly matches"},
+        {"id": "lightsUp", "description": "make lights brighter"},
+        {"id": "lightsDown", "description": "make lights dimmer"},
+        {"id": "galleryOpen", "description": "open or show the photo gallery"}
+      ]
+    },
+    "phoenix-play": {
+      "instructions": "Which one slotless Jibo play or social intent best matches the request? Choose unknown if it names a song, person, topic, or other entity.",
+      "min_confidence": 0.85,
+      "min_margin": 0.12,
+      "candidates": [
+        {"id": "unknown", "description": "none of the listed entity-free play intents clearly matches"},
+        {"id": "requestDrawPicture", "description": "ask Jibo to draw a picture"},
+        {"id": "requestDance", "description": "ask Jibo to dance"},
+        {"id": "jokeKnockKnock", "description": "ask for a knock knock joke"},
+        {"id": "goodBye", "description": "say goodbye or end the interaction"}
+      ]
+    },
+    "phoenix-system": {
+      "instructions": "Which one slotless Jibo system intent best matches the request? Choose unknown when it is not clearly one of these commands.",
+      "min_confidence": 0.85,
+      "min_margin": 0.12,
+      "candidates": [
+        {"id": "unknown", "description": "none of the listed system intents clearly matches"},
+        {"id": "stop", "description": "tell Jibo to stop or cancel the current action"},
+        {"id": "restart", "description": "ask Jibo to restart"},
+        {"id": "wifiStatus", "description": "ask about Wi-Fi or network status"}
+      ]
+    }
+  }
+}

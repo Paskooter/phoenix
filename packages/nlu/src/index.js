@@ -5,8 +5,9 @@
 //
 // Two-stage pipeline mirroring the reference (ParseRequestHandler.ts):
 //   1. grammar match (deterministic). A confident match short-circuits.
-//   2. LLM fallback (phoenix: LM Studio + Gemma tool-calling) when grammar misses AND
-//      ETCO_parser_llmUrl is configured. Off by default -> a miss returns the no-match NLUResult.
+//   2. optional statistical fallback after a non-HIGH grammar result.  Laya is
+//      the private, bounded intent classifier; the legacy LLM remains a
+//      separately configured compatibility fallback.
 
 import { createService, parseServiceArgs, serviceCliPort, serviceHelp, runService } from '@phoenix/common';
 import { message, ResponseType, DefaultPort } from '@phoenix/contracts';
@@ -14,8 +15,9 @@ import { grammarParse } from './grammar.js';
 import { launchParse } from './launchRules.js';
 import { fullParse } from './fullGrammar.js';
 import { llmFallback, getLLMClient } from './llmFallback.js';
+import { envLayaConfig, getLayaClient, layaFallback } from './layaFallback.js';
 import { selectValidResult, isFallbackResultValid, isParserResultValid, resolveHybridNLU } from './fallbackArbitration.js';
-import { parseRequestAsync } from './requestParser.js';
+import { parseRequestDetailedAsync } from './requestParser.js';
 import { getCompiledFstRuntime } from './compiledFstRuntime.js';
 
 /**
@@ -32,7 +34,7 @@ import { getCompiledFstRuntime } from './compiledFstRuntime.js';
  *   A SKIP-priority parse is discarded (isParserResultValid). A HIGH-priority
  *   parse short-circuits — the LLM is never consulted.
  *
- *   Stage 2 — LLM fallback (off unless ETCO_parser_llmUrl is set), consulted when
+ *   Stage 2 — statistical fallback, consulted when
  *   the grammar missed OR came back non-HIGH. Per selectValidResult, a valid LLM
  *   result BEATS a LOW/non-HIGH grammar parse; the grammar parse is returned only
  *   when the LLM produced nothing.
@@ -84,15 +86,15 @@ export async function parse(text, options = {}) {
   // (isParserResultValid) would reject that. Preserve the convenience, then run
   // the source-exact hybrid selection for every intent-bearing parser result.
   if (parserResult && !isParserResultValid(parserResult) && parser.entities && parser.entities.skill) {
-    const llmOnly = await llmFallback(text);
-    return isFallbackResultValid(llmOnly) ? llmOnly : parser;
+    const fallbackOnly = await parserFallback({ text, rules: [] }, { legacyLlm: true });
+    return isFallbackResultValid(fallbackOnly) ? fallbackOnly : parser;
   }
 
   // Stage 2: LLM (only on miss or non-HIGH). Valid LLM beats a non-HIGH parse;
   // a HIGH parse never reaches the LLM round-trip (resolveHybridNLU).
   return resolveHybridNLU(
     parserResult,
-    () => llmFallback(text),
+    () => parserFallback({ text, rules: [] }, { legacyLlm: true }),
     { rules: [], intent: null, entities: {} },
   );
 }
@@ -150,10 +152,16 @@ export function start(port = Number(process.env.PORT) || DefaultPort.nlu) {
           error.statusCode = 400;
           throw error;
         }
-        // Async because the external-agent provider may be a live service
-        // standing in for the dead Dialogflow (PHOENIX_NLU_EXTERNAL=llm). With
-        // the default disabled provider this is the same parse as before.
-        const nlu = await parseRequestAsync(body.data);
+        const parsed = await parseRequestDetailedAsync(body.data);
+        // A live-era `external` request has its own Dialogflow attachment
+        // contract, including its deliberately preserved error boundary.  It
+        // is not a safe place to substitute an intent-only Laya result.
+        const nlu = body.data.external
+          ? parsed.nlu
+          : await resolveHybridNLU(
+            { nlu: parsed.nlu, priority: parsed.priority },
+            () => parserFallback(body.data),
+          );
         return message(ResponseType.NLU, nlu); // { type:'NLU', msgID, ts, data: NLUResult }
       },
       // Reference StateRequestHandler: GET /state -> ServiceStateData. Phoenix's
@@ -165,10 +173,23 @@ export function start(port = Number(process.env.PORT) || DefaultPort.nlu) {
         robustParserClient: 'CONNECTED',
         dialogflowClient: 'CLOSED',
         llmClient: getLLMClient().state,
+        layaClient: getLayaClient().enabled ? 'READY' : 'DISABLED',
       }),
     },
   });
   return svc.listen(port);
+}
+
+// Laya is the local, bounded fallback.  It is deliberately off by default;
+// enabling it requires a private URL and bearer token.  The optional LLM
+// secondary is opt-in too, so operators can fully remove language-model
+// classification from the intent path after replay validation.
+async function parserFallback(request, { legacyLlm = false } = {}) {
+  const config = envLayaConfig();
+  const laya = await layaFallback(request.text, request);
+  if (laya) return laya;
+  if (config.secondaryFallback === 'llm' || (!config.enabled && legacyLlm)) return llmFallback(request.text, request);
+  return null;
 }
 
 // Executable boundary: source Parser cli/start.ts resolves the port from

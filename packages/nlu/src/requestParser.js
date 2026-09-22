@@ -349,7 +349,7 @@ function planParse(request, options) {
   }
   const result = { entities, intent: winner.intent, rules: [winner.requestedName || winner.rule] };
   void options;
-  return { attach: true, result, text, detect: true };
+  return { attach: true, result, text, detect: true, priority: winner.priority };
 }
 
 /**
@@ -399,11 +399,26 @@ export function parseRequest(request, options = {}) {
  * service — the NLU HTTP handler does.
  */
 export async function parseRequestAsync(request, options = {}) {
+  return (await parseRequestDetailedAsync(request, options)).nlu;
+}
+
+/**
+ * Parse an NLU request and retain the robust-parser priority as an internal
+ * side channel.  The public NLU result deliberately still strips `priority`;
+ * callers that need a statistical fallback use this helper so HIGH results
+ * preserve the Pegasus short-circuit rule without leaking parser metadata.
+ *
+ * @returns {Promise<{nlu:object,priority?:string}>}
+ */
+export async function parseRequestDetailedAsync(request, options = {}) {
   const provider = options.externalProvider || resolveExternalAgentProvider();
   const plan = planParse(request, options);
-  if (!plan.attach) return plan.value;
-  return finishParse(request, plan,
-    await attachExternalResultAsync(request, plan.result, provider, options.externalAttachmentRevision));
+  if (!plan.attach) return { nlu: plan.value, priority: plan.priority };
+  return {
+    nlu: finishParse(request, plan,
+      await attachExternalResultAsync(request, plan.result, provider, options.externalAttachmentRevision)),
+    priority: plan.priority,
+  };
 }
 
 export function ruleInventory() {

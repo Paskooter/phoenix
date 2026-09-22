@@ -1,0 +1,8 @@
+# Laya 0.3.5 is the official open-weight release reviewed for this service.
+# PyTorch is installed from the CUDA 12.8 wheel index in the model Docker stage
+# so Blackwell hosts do not silently receive a CPU-only wheel.
+laya==0.3.5
+transformers>=4.48,<5
+safetensors>=0.4,<1
+huggingface_hub>=0.20,<1
+numpy>=1.26,<3
