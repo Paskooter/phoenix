@@ -1463,7 +1463,7 @@ Create the first active release from the clean manager checkout:
 
 ```sh
 cd /srv/phoenix
-git fetch origin
+git pull --ff-only origin main
 sudo PHOENIX_RELEASE_ROOT=/srv/phoenix/releases \
   PHOENIX_CURRENT_LINK=/srv/phoenix/current \
   PHOENIX_SERVICE=phoenix-native.service \

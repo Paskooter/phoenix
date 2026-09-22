@@ -10,7 +10,7 @@
 #
 # Typical production use:
 #   cd /opt/phoenix
-#   git fetch origin
+#   git pull --ff-only origin main
 #   sudo PHOENIX_RELEASE_ROOT=/opt/phoenix/releases \
 #     PHOENIX_CURRENT_LINK=/opt/phoenix/current \
 #     PHOENIX_SERVICE=phoenix \
