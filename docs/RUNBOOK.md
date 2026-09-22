@@ -367,6 +367,12 @@ The concise launch gate and common failure modes are in
 port scan, header checks, backup procedure, and rollback checklist before sharing
 the DNS names.
 
+For a native systemd deployment, use the immutable-release layout in
+[`docs/DEPLOYMENT.md`](DEPLOYMENT.md#native-immutable-releases): release source
+under `current`, mutable state under `/var/lib/phoenix`, and secrets/branding
+under `/etc/phoenix`. Do not edit a running checkout or store account/media/OTA
+data beside it; that makes upgrades fragile and can overwrite production state.
+
 The short version is:
 
 - The robot's native `<region>.jibo.com` and `<region>-socket.jibo.com` names

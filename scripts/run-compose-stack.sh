@@ -15,8 +15,11 @@ cd "$(dirname "$0")/.."
 #   PHOENIX_ENV_FILE    source this file instead of ./.env (PHOENIX_ENV_FILE=/dev/null = none)
 #   PHOENIX_PORT_OFFSET shift every reference host port and localhost peer by N
 #   PHOENIX_LOG_DIR     write the per-service logs here instead of /tmp
+#   PHOENIX_DATA_DIR    private durable root outside an immutable release. When
+#                       set, Account, Classic, OTA, History, and Lasso state
+#                       live below it instead of the checkout.
 #   CLASSIC_DATA_DIR    private durable root for Classic stores (defaults to
-#                       packages/account/data/classic)
+#                       PHOENIX_DATA_DIR/classic, or packages/account/data/classic)
 #   PHOENIX_BIND_HOST   listener address (default 127.0.0.1; use a private/LAN
 #                       address only with an explicit firewall/VPN policy)
 #   PHOENIX_REQUIRE_PRODUCTION_CONFIG=true
@@ -120,8 +123,44 @@ fi
 export PHOENIX_BIND_HOST="$BIND_HOST"
 LOG_DIR="${PHOENIX_LOG_DIR:-/tmp}"
 mkdir -p "$LOG_DIR"
-CLASSIC_DATA_DIR="${CLASSIC_DATA_DIR:-$PWD/packages/account/data/classic}"
-mkdir -p "$CLASSIC_DATA_DIR"
+
+# A release checkout must be disposable: changing it atomically must not move
+# account records, photos, robot media, OTA packages, or calendar state with it.
+# Local development remains convenient because an unset PHOENIX_DATA_DIR keeps
+# the historical checkout-relative locations.
+if [ -n "${PHOENIX_DATA_DIR:-}" ]; then
+  case "$PHOENIX_DATA_DIR" in
+    /*) DATA_ROOT="${PHOENIX_DATA_DIR%/}" ;;
+    *) echo "PHOENIX_DATA_DIR must be an absolute path" >&2; exit 2 ;;
+  esac
+  DEFAULT_ACCOUNT_DATA_FILE="$DATA_ROOT/account/store.json"
+  DEFAULT_CLASSIC_DATA_DIR="$DATA_ROOT/classic"
+  DEFAULT_PHOTO_DIRECTORY="$DATA_ROOT/account/member-photos"
+  DEFAULT_OTA_MANIFEST="$DATA_ROOT/ota/manifest.json"
+  DEFAULT_OTA_DATA_DIR="$DATA_ROOT/ota/packages"
+  DEFAULT_HISTORY_DATA_FILE="$DATA_ROOT/history/store.json"
+  DEFAULT_LASSO_CREDENTIALS_FILE="$DATA_ROOT/data/credentials.json"
+else
+  DEFAULT_ACCOUNT_DATA_FILE="$PWD/packages/account/data/store.json"
+  DEFAULT_CLASSIC_DATA_DIR="$PWD/packages/account/data/classic"
+  DEFAULT_PHOTO_DIRECTORY="$PWD/packages/account/data/member-photos"
+  DEFAULT_OTA_MANIFEST="$PWD/packages/ota/manifest.json"
+  DEFAULT_OTA_DATA_DIR="$PWD/packages/ota/data"
+  DEFAULT_HISTORY_DATA_FILE="$PWD/packages/history/data/store.json"
+  DEFAULT_LASSO_CREDENTIALS_FILE="$PWD/packages/data/data/credentials.json"
+fi
+
+ACCOUNT_DATA_FILE="${ETCO_account_dataFile:-$DEFAULT_ACCOUNT_DATA_FILE}"
+CLASSIC_DATA_DIR="${CLASSIC_DATA_DIR:-$DEFAULT_CLASSIC_DATA_DIR}"
+PHOTO_DIRECTORY="${PHOTO_DIRECTORY:-${ETCO_account_photoDirectory:-$DEFAULT_PHOTO_DIRECTORY}}"
+OTA_MANIFEST="${ETCO_ota_manifest:-$DEFAULT_OTA_MANIFEST}"
+OTA_DATA_DIR="${ETCO_ota_dataDir:-$DEFAULT_OTA_DATA_DIR}"
+HISTORY_DATA_FILE="${ETCO_history_dataFile:-$DEFAULT_HISTORY_DATA_FILE}"
+LASSO_CREDENTIALS_FILE="${ETCO_data_credentialsFile:-$DEFAULT_LASSO_CREDENTIALS_FILE}"
+
+mkdir -p "$(dirname "$ACCOUNT_DATA_FILE")" "$CLASSIC_DATA_DIR" "$PHOTO_DIRECTORY" \
+  "$(dirname "$OTA_MANIFEST")" "$OTA_DATA_DIR" "$(dirname "$HISTORY_DATA_FILE")" \
+  "$(dirname "$LASSO_CREDENTIALS_FILE")"
 chmod 700 "$CLASSIC_DATA_DIR"
 # Every backgrounded service pid is registered so the final wait can report each process's real
 # exit status (used by the R-02 shutdown check). Declared before use to satisfy `set -u`.
@@ -157,7 +196,6 @@ REPORT_PREFS_FROM_CONFIG="${prefsFromConfig:-${PREFS_FROM_CONFIG:-false}}"
 REPORT_LASSO="${NET_lasso:-localhost:$(p 9007)}"
 REPORT_SETTINGS="${NET_settings:-${NET_SETTINGS:-settings.jibo.aws}}"
 PHOTO_PUBLIC_URL="${PHOTO_PUBLIC_URL:-${ETCO_account_photoBaseUrl:-$CLASSIC_PUBLIC_URL}}"
-PHOTO_DIRECTORY="${PHOTO_DIRECTORY:-${ETCO_account_photoDirectory:-$PWD/packages/account/data/member-photos}}"
 GQA_ATTRIBUTION_FILE="${GQA_ATTRIBUTION_FILE:-${ETCO_gqa_attributionFile:-$CLASSIC_DATA_DIR/gqa-attribution.json}}"
 CLASSIC_NOTIFICATION_FILE="${CLASSIC_NOTIFICATION_FILE:-${ETCO_classic_notificationFile:-$CLASSIC_DATA_DIR/notifications.json}}"
 CLASSIC_BACKUP_DIR="${CLASSIC_BACKUP_DIR:-${ETCO_classic_backupDir:-$CLASSIC_DATA_DIR/backups}}"
@@ -175,8 +213,10 @@ CLASSIC_PUSH_FILE="${CLASSIC_PUSH_FILE:-${ETCO_classic_pushFile:-$CLASSIC_DATA_D
 
 PORT=$(p 9005) ETCO_parser_llmUrl="$LLM_URL" ETCO_parser_llmModel="$LLM_MODEL" \
   node packages/nlu/src/index.js      > "$LOG_DIR/phx-compose-parser.log"   2>&1 & JOB_PIDS[parser]=$!
-PORT=$(p 9006) node packages/history/src/index.js  > "$LOG_DIR/phx-compose-history.log"  2>&1 & JOB_PIDS[history]=$!
-PORT=$(p 9007) node packages/data/src/index.js     > "$LOG_DIR/phx-compose-lasso.log"    2>&1 & JOB_PIDS[lasso]=$!
+PORT=$(p 9006) ETCO_history_dataFile="$HISTORY_DATA_FILE" \
+  node packages/history/src/index.js  > "$LOG_DIR/phx-compose-history.log" 2>&1 & JOB_PIDS[history]=$!
+PORT=$(p 9007) ETCO_data_credentialsFile="$LASSO_CREDENTIALS_FILE" \
+  node packages/data/src/index.js     > "$LOG_DIR/phx-compose-lasso.log"   2>&1 & JOB_PIDS[lasso]=$!
 
 # Skill services select one skill at /v1/main. The shared NET_skills profile still uses the
 # combined host when no PHOENIX_SKILL_ID is supplied.
@@ -201,6 +241,8 @@ PORT=$(p 9014) ETCO_server_port=$(p 9014) PHOENIX_SKILL_ID=template-skill \
 # with scripts/build-ota-packages.sh). Disable with OTA=0.
 if [ "${OTA:-1}" != "0" ]; then
   PORT=$(p 9010) ETCO_ota_publicUrl="${OTA_PUBLIC_URL:-}" ETCO_ota_internalPeerToken="$OTA_INTERNAL_PEER_TOKEN" \
+  ETCO_ota_manifest="$OTA_MANIFEST" ETCO_ota_dataDir="$OTA_DATA_DIR" \
+  ETCO_ota_accountDataFile="$ACCOUNT_DATA_FILE" \
     node packages/ota/src/index.js    > "$LOG_DIR/phx-compose-ota.log"        2>&1 & JOB_PIDS[ota]=$!
 fi
 
@@ -217,6 +259,7 @@ if [ "${ACCOUNT:-1}" != "0" ]; then
   PORT=$(p 9011) \
   HUB_TOKEN_SECRET="$HUB_TOKEN_SECRET" \
   ADMIN_PASSWORD="${ADMIN_PASSWORD:-}" \
+  ETCO_account_dataFile="$ACCOUNT_DATA_FILE" \
   ETCO_account_region="${ETCO_account_region:-}" \
   ETCO_account_secureCookies="${ETCO_account_secureCookies:-true}" \
   ETCO_account_photoBaseUrl="$PHOTO_PUBLIC_URL" \
@@ -249,6 +292,7 @@ if [ "${CLASSIC:-1}" != "0" ]; then
   NET_ota=localhost:$(p 9010) \
   ETCO_ota_internalPeerToken="$OTA_INTERNAL_PEER_TOKEN" \
   ETCO_gqa_attributionFile="$GQA_ATTRIBUTION_FILE" \
+  ETCO_classic_accountDataFile="$ACCOUNT_DATA_FILE" \
   ETCO_classic_publicUrl="$CLASSIC_PUBLIC_URL" \
   ETCO_classic_notificationFile="$CLASSIC_NOTIFICATION_FILE" \
   ETCO_classic_backupDir="$CLASSIC_BACKUP_DIR" \

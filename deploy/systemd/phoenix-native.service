@@ -7,16 +7,21 @@ After=network-online.target
 Type=simple
 User=phoenix
 Group=phoenix
-WorkingDirectory=/srv/phoenix
-EnvironmentFile=/srv/phoenix/.env
-Environment=PHOENIX_ENV_FILE=/srv/phoenix/.env
+# `/srv/phoenix/current` is an atomic symlink to a detached, clean Git
+# worktree.  Never run production from the repository used to create releases.
+WorkingDirectory=/srv/phoenix/current
+EnvironmentFile=/etc/phoenix/phoenix.env
+Environment=PHOENIX_ENV_FILE=/etc/phoenix/phoenix.env
 Environment=PHOENIX_BIND_HOST=127.0.0.1
 Environment=PHOENIX_REQUIRE_PRODUCTION_CONFIG=true
 Environment=PHOENIX_LOG_DIR=/var/log/phoenix
-ExecStartPre=/usr/bin/test -r /srv/phoenix/.env
-ExecStartPre=/usr/bin/test -d /srv/phoenix/packages/account/data
-ExecStartPre=/usr/bin/test -d /srv/phoenix/packages/account/data/classic
-ExecStart=/usr/bin/bash /srv/phoenix/scripts/run-compose-stack.sh
+Environment=PHOENIX_DATA_DIR=/var/lib/phoenix
+ExecStartPre=/usr/bin/test -L /srv/phoenix/current
+ExecStartPre=/usr/bin/test -r /etc/phoenix/phoenix.env
+ExecStartPre=/usr/bin/test -d /var/lib/phoenix/account
+ExecStartPre=/usr/bin/test -d /var/lib/phoenix/classic
+ExecStartPre=/usr/bin/test -d /var/lib/phoenix/ota
+ExecStart=/usr/bin/bash /srv/phoenix/current/scripts/run-compose-stack.sh
 Restart=on-failure
 RestartSec=5s
 KillMode=control-group
@@ -37,7 +42,7 @@ RestrictSUIDSGID=true
 LockPersonality=true
 RemoveIPC=true
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
-ReadWritePaths=/srv/phoenix/packages/account/data /srv/phoenix/packages/ota/data /var/log/phoenix
+ReadWritePaths=/var/lib/phoenix /var/log/phoenix
 
 [Install]
 WantedBy=multi-user.target

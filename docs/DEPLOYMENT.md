@@ -134,6 +134,12 @@ omitted, Account falls back to development port `7017`; the portal shell still
 loads, but those authenticated pages fail because production Classic is on
 `9012` (or its configured offset).
 
+For a native Internet deployment, use the immutable-release layout in
+[Native immutable releases](#native-immutable-releases) below. Its
+`PHOENIX_DATA_DIR` setting moves all mutable state outside the disposable
+checkout, and its release tool switches the service only to a detached Git
+worktree that has passed local health checks.
+
 ### Separate mode: `authenticated-stack.mjs`
 
 `scripts/parity-robot/authenticated-stack.mjs` is a **different deployment mode**,
@@ -1373,11 +1379,101 @@ sudo systemctl enable --now phoenix-native.service
 ```
 
 Before enabling it, create the `phoenix` user, `/var/log/phoenix`, and the data
-directories with private ownership and ensure `.env` is mode `0600`. The unit's
+directories with private ownership and ensure the external environment file is
+mode `0640` and readable only by `root` and the service group. The unit's
 `ProtectSystem`, `PrivateTmp`, `NoNewPrivileges`, capability restrictions, and
 `ReadWritePaths` are deliberate; do not remove them to work around a permissions
 error. Fix the ownership of the intended data directory instead. Do not run both
 launchers against the same ports.
+
+### Native immutable releases
+
+Do not run a public native service from a working tree that an operator edits in
+place. Keep a **clean manager checkout**, make one detached worktree per release,
+and run only the `current` symlink. The repository's
+[`scripts/deploy-native-release.sh`](../scripts/deploy-native-release.sh) does
+the worktree creation, lockfile-only production dependency install, atomic
+symlink switch, service restart, and loopback health sweep. It restores the
+previous symlink automatically if restart or health checks fail.
+
+This is the recommended native layout (replace `/srv/phoenix` with the stable
+host path chosen for the installation):
+
+```text
+/srv/phoenix/                  clean Git manager checkout; never the running service
+/srv/phoenix/releases/<sha>/   detached, immutable release worktrees
+/srv/phoenix/current -> ...    only path systemd/nginx may use for application source
+/var/lib/phoenix/              account, Classic, OTA, History, and Lasso state
+/etc/phoenix/phoenix.env       secrets and instance-specific settings (root:phoenix 0640)
+/etc/phoenix/branding.json     optional instance branding override
+/etc/phoenix/pages/            optional public instance pages such as a setup guide
+```
+
+For a new installation, create the private paths before installing the native
+unit. The service user is `phoenix` in the supplied template; use the actual
+unprivileged service account if it has a different name.
+
+```sh
+sudo install -d -o phoenix -g phoenix -m 0700 \
+  /var/lib/phoenix/account /var/lib/phoenix/classic /var/lib/phoenix/ota \
+  /var/lib/phoenix/history /var/lib/phoenix/data /var/log/phoenix
+sudo install -d -o root -g phoenix -m 0750 /etc/phoenix
+sudo install -o root -g phoenix -m 0640 .env /etc/phoenix/phoenix.env
+sudo install -o root -g root -m 0644 deploy/systemd/phoenix-native.service \
+  /etc/systemd/system/phoenix-native.service
+```
+
+Set `PHOENIX_BRANDING_FILE=/etc/phoenix/branding.json` and, if used,
+`PHOENIX_PAGES_DIR=/etc/phoenix/pages` in `/etc/phoenix/phoenix.env`. Branding
+and public pages remain operator-owned overlays; they are never copied into a
+release. `PHOENIX_DATA_DIR=/var/lib/phoenix` is set by the supplied unit. Do not
+also leave explicit `ETCO_*dataFile`, `PHOTO_DIRECTORY`, or OTA paths pointing
+into the old checkout: either remove those overrides or change each to the
+matching `/var/lib/phoenix` path.
+
+To migrate an existing native installation, first take the encrypted backup in
+[Persistence and backups](#13-persistence-and-backups), stop the service, then
+copy data rather than move it. Keeping the old tree intact gives a recovery
+point while the new layout is proven.
+
+```sh
+sudo systemctl stop phoenix-native.service
+sudo rsync -a --exclude=classic --exclude=member-photos \
+  /srv/phoenix/packages/account/data/ /var/lib/phoenix/account/
+sudo rsync -a /srv/phoenix/packages/account/data/classic/ /var/lib/phoenix/classic/
+sudo rsync -a /srv/phoenix/packages/account/data/member-photos/ \
+  /var/lib/phoenix/account/member-photos/
+sudo rsync -a /srv/phoenix/packages/history/data/ /var/lib/phoenix/history/
+sudo rsync -a /srv/phoenix/packages/data/data/ /var/lib/phoenix/data/
+sudo install -d -o phoenix -g phoenix -m 0700 /var/lib/phoenix/ota/packages
+sudo install -o phoenix -g phoenix -m 0600 /srv/phoenix/packages/ota/manifest.json \
+  /var/lib/phoenix/ota/manifest.json
+sudo rsync -a /srv/phoenix/packages/ota/data/ /var/lib/phoenix/ota/packages/
+sudo chown -R phoenix:phoenix /var/lib/phoenix
+```
+
+If a legacy setup kept `notifications.json` or `gqa-attribution.json` directly
+under `packages/account/data`, preserve those files under
+`/var/lib/phoenix/classic/` and update their explicit `ETCO_classic_*File`
+values. Do not use `git clean`, `git reset --hard`, or a blind recursive copy
+over the old checkout: doing so can erase real robot media, account records, or
+the instance's guide/branding overlay.
+
+Create the first active release from the clean manager checkout:
+
+```sh
+cd /srv/phoenix
+git fetch origin
+sudo PHOENIX_RELEASE_ROOT=/srv/phoenix/releases \
+  PHOENIX_CURRENT_LINK=/srv/phoenix/current \
+  PHOENIX_SERVICE=phoenix-native.service \
+  scripts/deploy-native-release.sh origin/main
+```
+
+If nginx serves portal files directly rather than proxying them through Account,
+its `root` must point at `/srv/phoenix/current/packages/account/portal`, never a
+specific release. Run `nginx -t` and reload nginx after that one-time path
+change. A proxy-only portal configuration needs no nginx source-path change.
 
 ## 12. Firewall and hardening
 
@@ -1725,7 +1821,18 @@ robot trust path, remains an operator acceptance test.
    ```
 
 3. Stage the new reviewed checkout separately. Do not replace the live checkout
-   while nginx or Docker is reading it.
+   while nginx or Docker is reading it. For the native immutable-release layout,
+   fetch the reviewed revision into the manager checkout and run:
+
+   ```sh
+   sudo PHOENIX_SERVICE=phoenix-native.service \
+     /srv/phoenix/scripts/deploy-native-release.sh <reviewed-commit-or-origin/main>
+   ```
+
+   The script installs dependencies only in the new detached worktree, switches
+   `current` atomically, and reverts that switch if any local `9000`, `9010`,
+   `9011`, or `9012` health endpoint does not recover. It never modifies
+   `/var/lib/phoenix` or `/etc/phoenix`.
 4. Validate `.env`, all public URL values, the region/SAN list, and OTA package
    paths. Never change `HUB_TOKEN_SECRET` casually; doing so invalidates existing
    hub tokens and must be coordinated with robot reauthentication.
@@ -1742,6 +1849,9 @@ robot trust path, remains an operator acceptance test.
 
 - Restore the previous reviewed checkout/image and run the same `config --quiet`,
   health, and nginx syntax gates.
+- For an immutable native release, deploy the previous release SHA with the same
+  script. This is a code rollback only; retain the current `/var/lib/phoenix`
+  snapshot unless there is evidence of a data-format problem.
 - Restore the previous nginx file or symlink, run `sudo nginx -t`, then reload.
 - Do not delete `/etc/phoenix/tls`, the CA key, or the public certificate during
   a code rollback.
