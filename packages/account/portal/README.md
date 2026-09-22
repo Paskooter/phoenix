@@ -131,7 +131,8 @@ are stored only in the Account store and are never returned to the browser. To p
 subscription from becoming an SSRF input, Account accepts only Apple, Mozilla, and FCM endpoint
 hosts unless an operator explicitly adds a reviewed public provider hostname.
 
-New Jot messages sent through the console notify other accepted household members who opted in;
+New Jot messages sent through the console notify selected accepted loop members who opted in (or
+all other accepted members when none are selected);
 the notification does not contain the message text. A user can send a test or disable the current
 browser. Signing out removes this browser's subscription. iPhone/iPad users must first add the
 site to the Home Screen from Safari.
@@ -203,14 +204,14 @@ node scripts/portal-grant-admin.mjs --email you@example.com
 
 | # | Surface | State | Backend call |
 |---|---------|-------|--------------|
-| 1 | **Household** — every member, nickname/phonetic name/status, **link/unlink a member to an account**, enrolment | **Complete** | account store, in-process (`portal/loops.js`) |
+| 1 | **Loops** — every member, nickname/phonetic name/status, **link/unlink a member to an account**, enrolment | **Complete** | account store, in-process (`portal/loops.js`) |
 | 2 | **Personal report** — weather (units), news categories, commute (home/work/mode/departure), calendar flags | **Complete** | account store (`GET/PUT /api/settings`) |
 | 3 | **Account** — first/last name, birthday, gender, phone, `messagingAllowed`; change password; change email | **Complete** | account store, in-process (`portal/profile.js`) |
 | 4 | **Robots** — loop robot record, `Robot_20160225` read state, add-a-robot QR pairing | **Complete** | account store + `Robot_20160225.GetRobot` via Classic |
-| 5 | **Household record** — rename, suspend/unsuspend, invite + remove members | **Complete** | account store via `loopMembership.js` |
+| 5 | **Loop details** — rename, suspend/unsuspend, invite + remove members | **Complete** | account store via `loopMembership.js` |
 | 6 | **Gallery** — list/view/delete media | **Complete** | `Media_20160725.List/Get/Remove` + blob proxy to Classic |
-| 7 | **People** — person-catalog answers, account/loop properties, holidays, voice-training state | **Partial** (read-only) | `Person_20160801.*`, `VoiceTraining_20151020.ListVoiceTrainings` |
-| 8 | **Messages** — Jot messages, notification socket status, push registrations | **Partial** (Jot + push + status read); browser Push is opt-in from Account | `Jot_20160512.List/Create`, `Notification_20150505.GetStatus`, `Push_20160729.RemoveDevice`, Account Web Push |
+| 7 | **Loops** — people and account links are consolidated into the selected loop; legacy Person-service data is not presented as user profile data | **Complete** | account store, in-process (`portal/loops.js`) |
+| 8 | **Jibo inbox** — Jot history and recipient-aware text compose; browser Push is opt-in from Account | **Partial** (no attachment composer, scheduling, or delivery status) | `Jot_20160512.List/Create`, Account Web Push |
 | 9 | **System** — OTA update catalog, IFTTT identity/applets, OAuth clients | **Partial** | `Update_20160301.ListUpdates`, `IFTTT_20170207.*`, account `oauthClients` |
 
 Every partial surface is labelled **partial in the UI**, not only here.
@@ -230,7 +231,7 @@ Every partial surface is labelled **partial in the UI**, not only here.
 
 The motivating failure — *"Missing creds for Settings request. Got accountID: false | loopID:
 true"* — is fixed by the **member→account link**. The report skill resolves a speaker's settings
-through `member.accountId`; of the loop's 20 members only 4 had one. On the **Household** page
+through `member.accountId`; of the loop's 20 members only 4 had one. On the **Loops** page
 the owner can search the account store and **Link** any member to any account (and unlink).
 Unlinked members sort first and are visibly flagged, and the Overview counts them. Verified in
 `test/portalMembers.test.js`.
@@ -247,11 +248,9 @@ directly, but nginx is the recommended public front door for static delivery.
 
 - **Media upload / photo_booth.** Media `Create` is a streaming binary upload; the app's Gallery
   write path is robot/device-driven. The console implements the read/delete side.
-- **Person catalogue** is read-only (list answers, properties, holidays, voice-training state).
-  Answering the "this or that" questions is a phone-side flow; no handler is stubbed.
-- **Notifications** shows socket status; the robot's push socket and delivery are robot-side.
-  Browser Push is a separate, opt-in console capability and currently alerts on new console Jot
-  messages only; it does not claim to mirror every robot notification.
+- **Jibo inbox** preserves Jot's loop-wide visibility: recipients are intended recipients and alert
+  targets, not a private audience. Browser Push is a separate, opt-in console capability and does
+  not claim to mirror every robot notification.
 - **OTA** shows the catalog a robot would be offered; it does not push firmware from the browser.
 - **IFTTT** shows identity and applet rows, and reports an explicit diagnostic when the IFTTT
   realtime API is dead (it is).

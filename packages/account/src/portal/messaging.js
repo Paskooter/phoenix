@@ -1,4 +1,4 @@
-// Portal REST: Jot loop messaging + notifications + push registrations (surface 8).
+// Portal REST: Jot loop inbox + browser notifications + legacy push registrations (surface 8).
 // All three live in the Classic entrypoint; the portal calls them with the account's signed
 // identity. Push registration listing needs a thin read sidecar on the classic push handler
 // (its AWS surface only has Create/Remove), added there as GET /push/devices.
@@ -25,12 +25,25 @@ export function portalMessagingRoutes(store, options = {}) {
     throw error;
   }
 
-  function householdRecipients(loop, senderId) {
-    const accountIds = new Set([loop.owner, ...(loop.members || [])
-      .filter((member) => String(member.status || '').toLowerCase() === 'accepted')
-      .map((member) => member.accountId)]
+  function acceptedPeople(loop) {
+    return (loop.members || []).filter((member) => String(member.status || '').toLowerCase() === 'accepted'
+      && member.accountId && !idsEqual(member.accountId, loop.robot));
+  }
+
+  // Jot's `tags` are Account member ids (the `memberId` field in the original
+  // populated-loop payload), not a private audience. Every accepted loop
+  // member can list the loop's Jots; a tag says who the message is for and who
+  // gets a prominent notification. Do not let a portal caller tag an account
+  // outside this loop.
+  function acceptedRecipientIds(loop) {
+    return new Set([loop.owner, ...acceptedPeople(loop).map((member) => member.accountId)]
       .filter(Boolean)
       .map((id) => String(id)));
+  }
+
+  function loopRecipients(loop, senderId, tags = []) {
+    const selected = tags.length ? new Set(tags.map(String)) : null;
+    const accountIds = new Set(selected || acceptedRecipientIds(loop));
     accountIds.delete(String(senderId));
     return [...accountIds].filter((id) => {
       const account = store.accounts.get(id);
@@ -83,26 +96,37 @@ export function portalMessagingRoutes(store, options = {}) {
       if (!loop) return;
       const content = body && body.content;
       const parts = body && body.parts;
-      if (typeof content !== 'string' && !Array.isArray(parts)) {
-        return sendJson(res, 400, { error: 'content is required' });
+      const text = typeof content === 'string' ? content.trim() : content;
+      if (!text && !Array.isArray(parts)) {
+        return sendJson(res, 400, { error: 'A message or attachment is required', code: 'JOT_CONTENT_OR_PARTS_REQUIRED' });
+      }
+      const rawTags = body && body.tags;
+      if (rawTags !== undefined && (!Array.isArray(rawTags)
+        || rawTags.some((tag) => typeof tag !== 'string' || !tag || tag.length > 128))) {
+        return sendJson(res, 400, { error: 'Recipients must be a list of member ids', code: 'JOT_INVALID_RECIPIENT' });
+      }
+      const tags = [...new Set(rawTags || [])];
+      const allowedRecipients = acceptedRecipientIds(loop);
+      if (tags.some((tag) => !allowedRecipients.has(tag))) {
+        return sendJson(res, 400, { error: 'Recipients must be accepted people in this loop', code: 'JOT_INVALID_RECIPIENT' });
       }
       try {
         const result = await classic({
           base,
           account,
           target: 'Jot_20160512.CreateMessage',
-          body: { loopId: loop._id, content, parts },
+          body: { loopId: loop._id, content: text, parts, tags },
         });
         // Web Push is supplementary: Classic is still the source of truth for
         // the message and a failed browser provider must never turn a sent
-        // household message into an API error. Do not include message text in
+        // loop message into an API error. Do not include message text in
         // the payload; the recipient opens the authenticated console to read it.
-        const recipients = householdRecipients(loop, account._id);
+        const recipients = loopRecipients(loop, account._id, tags);
         if (webPush && recipients.length) {
           void webPush.notifyAccounts(recipients, {
-            title: 'New household message',
-            body: `There is a new message in ${loop.name || 'your household'}.`,
-            url: '/app#/messaging',
+            title: 'New Jibo message',
+            body: `There is a new Jibo message in ${loop.name || 'your loop'}.`,
+            url: '/app#/inbox',
             tag: `jot-${loop._id}`,
           }).catch(() => {});
         }

@@ -1,7 +1,7 @@
 // Phoenix console — vanilla SPA, no build step, no framework.
 //
 // Hash routes: #/, #/loop, #/settings, #/profile, #/robot, #/gallery,
-// #/messaging, #/system, plus #/add (connection choice), #/add/new
+// #/inbox, #/system, plus #/add (connection choice), #/add/new
 // (QR pairing), #/claim (existing-robot migration) and #/admin.
 //
 // Every call below goes to the same-origin REST face the portal has always
@@ -215,8 +215,8 @@ const toggle = (name, checked, label, hint) => {
   return el;
 };
 
-const chip = (name, checked, label) => h('label', { class: 'chip' },
-  h('input', { type: 'checkbox', name, checked: !!checked }),
+const chip = (name, checked, label, value) => h('label', { class: 'chip' },
+  h('input', { type: 'checkbox', name, checked: !!checked, value }),
   h('span', { class: 'chip-mark' }),
   h('span', {}, label));
 
@@ -1633,108 +1633,108 @@ async function renderGallery() {
 }
 
 /* ==========================================================================
-   Messages
+   Jibo inbox
    ========================================================================== */
 
-async function renderMessaging() {
-  show(page('Messages', 'Loop messages, push registrations and the notification socket.', loading(4)));
+function inboxPeople(loop) {
+  const people = new Map();
+  for (const member of loop.members || []) {
+    if (String(member.status || '').toLowerCase() !== 'accepted'
+      || !member.accountId || String(member.accountId) === String(loop.robot)) continue;
+    const account = member.account || {};
+    const label = String(member.accountId) === String(me?.id)
+      ? 'You'
+      : member.nickname
+        || [account.firstName, account.lastName].filter(Boolean).join(' ')
+        || [member.memberProperties?.firstName, member.memberProperties?.lastName].filter(Boolean).join(' ')
+        || 'A loop member';
+    people.set(String(member.accountId), { id: String(member.accountId), label });
+  }
+  if (loop.owner && String(loop.owner) !== String(loop.robot) && !people.has(String(loop.owner))) {
+    people.set(String(loop.owner), {
+      id: String(loop.owner),
+      label: String(loop.owner) === String(me?.id) ? 'You' : 'Loop owner',
+    });
+  }
+  return [...people.values()];
+}
+
+function inboxPersonLabel(loop, accountId) {
+  if (String(accountId) === String(loop.robot)) return loop.robotFriendlyId || 'Jibo';
+  return inboxPeople(loop).find((person) => person.id === String(accountId))?.label || 'A loop member';
+}
+
+function inboxMessageContent(message) {
+  if (message.isEncrypted) return 'This protected message can only be opened by a device with this loop key.';
+  if (typeof message.content === 'string' && message.content) return message.content;
+  if (Array.isArray(message.parts) && message.parts.length) return 'This message includes an attachment.';
+  return 'This message has no text.';
+}
+
+async function renderInbox() {
+  show(page('Jibo inbox', 'Messages saved in the selected loop.', loading(3)));
 
   const context = await householdContext();
   const loop = context.active;
-  const container = page('Messages', 'Loop messages, push registrations and the notification socket.');
+  const container = page('Jibo inbox', 'Messages saved in the selected loop.');
   if (!context.ok) container.append(errorBox('Could not load your loops.', context.error));
   else {
     const switcher = householdSwitcher(context);
     if (switcher) container.append(switcher);
   }
 
-  /* -- Jot ------------------------------------------------------------- */
   if (loop) {
     const r = await api('GET', `/api/jot?loopId=${encodeURIComponent(loop.id)}`);
     const list = h('div', { class: 'jot-list' });
     if (r.ok) {
       const msgs = r.data.messages || [];
-      list.replaceChildren(...msgs.slice().reverse().map((m) => h('div', { class: 'jot-msg' },
-        h('div', { class: 'jot-meta' },
-          `${fmtDate(m.created)} · ${m.sender || '—'}${m.isEncrypted ? ' · encrypted' : ''}`),
-        h('div', { text: m.content || '(media)' }))));
-      if (!msgs.length) list.replaceChildren(empty('No messages yet', 'Send one below.', 'message'));
+      list.replaceChildren(...msgs.slice().reverse().map((message) => {
+        const tags = [...new Set((message.tags || []).map(String))];
+        const intendedFor = tags.length
+          ? `For: ${tags.map((tag) => inboxPersonLabel(loop, tag)).join(', ')}`
+          : 'For the loop';
+        return h('article', { class: 'jot-msg' },
+          h('div', { class: 'jot-meta' },
+            h('span', { class: 'jot-sender', text: inboxPersonLabel(loop, message.sender) }),
+            h('span', { text: fmtDate(message.created) })),
+          h('div', { class: 'jot-recipient', text: intendedFor }),
+          h('div', { class: 'jot-content', text: inboxMessageContent(message) }));
+      }));
+      if (!msgs.length) list.replaceChildren(empty('No Jibo messages yet', 'Messages you send here stay with this loop.', 'message'));
     } else {
-      list.replaceChildren(errorBox('Could not load messages.', r.data.error));
+      list.replaceChildren(errorBox('Could not load the Jibo inbox.', r.data.error));
     }
 
-    const compose = h('form', { class: 'compose' },
-      h('input', { name: 'content', placeholder: 'Message your loop…', required: true, 'aria-label': 'Message' }),
-      h('button', { type: 'submit', class: 'btn btn-primary' }, 'Send'));
+    const people = inboxPeople(loop);
+    const recipients = people.length ? h('fieldset', { class: 'jot-recipient-picker' },
+      h('legend', { text: 'Who is this for?' }),
+      h('p', { class: 'field-hint', text: 'Optional. Everyone in the loop can view its message history; selecting people sends them an alert when notifications are enabled.' }),
+      h('div', { class: 'chips' }, ...people.map((person) => chip('tags', false, person.label, person.id)))) : null;
+
+    const compose = h('form', { class: 'jot-compose' },
+      field('Message', h('textarea', {
+        name: 'content', rows: 3, placeholder: 'Write a short message…', required: true, 'aria-label': 'Message',
+      }), 'Text messages are available here today. Attachments, scheduled delivery, and delivery status are not yet available in the console.'),
+      recipients,
+      h('div', { class: 'compose' },
+        h('span', { class: 'field-hint', text: `Saved to ${loop.name || 'this loop'}.` }),
+        h('button', { type: 'submit', class: 'btn btn-primary' }, 'Send message')));
     compose.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const content = new FormData(compose).get('content');
-      const res = await api('POST', '/api/jot/message', { loopId: loop.id, content });
-      notify(res.ok ? 'Sent' : (res.data.error || 'Could not send'), res.ok ? 'ok' : 'error');
-      if (res.ok) await renderMessaging();
+      const data = new FormData(compose);
+      const content = data.get('content');
+      const tags = data.getAll('tags');
+      const res = await api('POST', '/api/jot/message', { loopId: loop.id, content, tags });
+      notify(res.ok ? 'Message sent' : (res.data.error || 'Could not send message'), res.ok ? 'ok' : 'error');
+      if (res.ok) await renderInbox();
     });
 
-    container.append(card('Loop messages', { sub: loop.name }, list, compose));
+    container.append(card('Jibo messages', { sub: loop.name }, list));
+    container.append(card('Send a Jibo message', {}, compose));
   } else {
-    container.append(card('Loop messages', {}, empty('No loop', 'Pair a robot first.', 'message')));
+    container.append(card('Jibo messages', {}, empty('No loop', 'Pair a robot first.', 'message')));
   }
-
-  /* -- Push ------------------------------------------------------------ */
-  const pushCard = card('Push registrations', { sub: 'Devices registered for notifications' }, loading(2));
-  container.append(pushCard);
-
-  /* -- Notification socket --------------------------------------------- */
-  const notifCard = card('Notification socket', {}, loading(1));
-  container.append(notifCard);
-
   show(container);
-
-  const [pushRes, notifRes] = await Promise.all([
-    api('GET', '/api/push'),
-    api('GET', '/api/notifications'),
-  ]);
-
-  const pushBody = pushCard.querySelector('.card-body');
-  if (pushRes.ok) {
-    const devices = pushRes.data.devices || [];
-    pushBody.replaceChildren(devices.length
-      ? h('div', {}, ...devices.map((d) => h('div', { class: 'kv' },
-        h('span', { class: 'k' }, d.name),
-        h('span', { class: 'v' },
-          h('code', { text: `${d.type} · ${d.pushToken}` }),
-          h('button', {
-            class: 'link danger', type: 'button',
-            on: {
-              click: async () => {
-                const yes = await confirmDialog({
-                  title: `Remove ${d.name}?`,
-                  body: 'That device will stop receiving notifications.',
-                  confirmLabel: 'Remove',
-                });
-                if (!yes) return;
-                const res = await api('POST', '/api/push/remove', { name: d.name });
-                notify(res.ok ? 'Device removed' : (res.data.error || 'Could not remove'), res.ok ? 'ok' : 'error');
-                if (res.ok) await renderMessaging();
-              },
-            },
-          }, 'Remove')))))
-      : empty('No devices registered', 'Devices appear here once they register for push.', 'bell'));
-  } else {
-    pushBody.replaceChildren(errorBox('Could not load push devices.', pushRes.data.error));
-  }
-
-  const notifBody = notifCard.querySelector('.card-body');
-  if (notifRes.ok) {
-    const connected = notifRes.data.status && notifRes.data.status.connected;
-    notifBody.replaceChildren(
-      row('Connected', connected
-        ? h('span', { class: 'pill pill-ok' }, h('span', { class: 'dot dot-live' }), 'Yes')
-        : h('span', { class: 'pill pill-warn' }, 'No')),
-      h('p', { class: 'field-hint' },
-        'Delivery over the socket is robot-side; this reports the status the service knows about.'));
-  } else {
-    notifBody.replaceChildren(errorBox('Could not load notification status.', notifRes.data.error));
-  }
 }
 
 /* ==========================================================================
@@ -2685,7 +2685,7 @@ const ROUTES = {
   '#/robot': renderRobot,
   '#/claim': renderClaim,
   '#/gallery': renderGallery,
-  '#/messaging': renderMessaging,
+  '#/inbox': renderInbox,
   '#/system': renderSystem,
   '#/add': renderAdd,
   '#/add/new': renderAddNew,
@@ -2847,11 +2847,11 @@ async function route() {
   // `/admin` is served by the same shell; treat the path as the route so the
   // bare URL works rather than silently landing on the overview.
   const requestedHash = (location.pathname === '/admin' && !location.hash) ? '#/admin' : (location.hash || '#/');
-  // The former People page duplicated the selected loop's member/profile view
-  // and mislabeled an old Person-service prompt list as saved answers. Preserve
-  // old bookmarks, but take them to the single source of truth.
-  const hash = requestedHash === '#/people' ? '#/loop' : requestedHash;
-  if (requestedHash === '#/people') history.replaceState(null, '', '#/loop');
+  // Preserve bookmarks for the former People and technical Messages pages.
+  // Both now have a single, user-facing destination.
+  const legacyRoute = { '#/people': '#/loop', '#/messaging': '#/inbox' }[requestedHash];
+  const hash = legacyRoute || requestedHash;
+  if (legacyRoute) history.replaceState(null, '', legacyRoute);
 
   await refreshMe();
 

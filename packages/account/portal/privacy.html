@@ -164,8 +164,8 @@
       <dd>Email address, a hashed password, first and last name, and optionally birthday, gender and
         phone number. These exist so a person can sign in and so the robot can address them.</dd>
 
-      <dt>Household ("loop") records</dt>
-      <dd>The household, its members, nicknames and phonetic names, invitation and membership state,
+      <dt>Loop records</dt>
+      <dd>The loop, its members, nicknames and phonetic names, invitation and membership state,
         the link between a member and an account, and whether each member has completed face or
         voice enrolment.</dd>
 
@@ -183,7 +183,7 @@
       <dd>Photographs and other media the robot captures, along with their timestamps.</dd>
 
       <dt>Messages and notifications</dt>
-      <dd>Messages sent within the household, and push-notification registrations for devices that
+      <dd>Messages sent within a loop, and push-notification registrations for devices that
         asked to receive them. A browser registration contains its provider endpoint and public
         encryption keys; it is kept in the instance's private account store.</dd>
 
@@ -216,7 +216,7 @@
         was asked for — for example, the coordinates of a journey.</li>
       <li><strong>Push-notification services</strong>, if you register a device for them. Browser
         Push payloads are encrypted for that browser; the provider still necessarily receives
-        delivery metadata such as the endpoint and timing. Phoenix sends generic household alerts,
+        delivery metadata such as the endpoint and timing. Phoenix sends generic loop alerts,
         not Jot message text, in browser notification previews.</li>
     </ul>
     <p>Each of these is operated by a third party under its own privacy policy. Turning a feature off

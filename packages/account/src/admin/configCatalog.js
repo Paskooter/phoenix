@@ -687,7 +687,7 @@ export const SETTINGS = [
     type: 'path',
     default: null,
     services: ['classic'],
-    help: 'Where household messages persist.',
+    help: 'Where Jibo loop messages persist.',
   },
   {
     key: 'ETCO_classic_personFile',

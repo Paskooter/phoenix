@@ -921,7 +921,7 @@ button.ghost:hover { background: var(--panel-2); border-color: var(--accent-line
 .overlay p { color: #cfd4e0; font-size: var(--t-sm); text-align: center; }
 
 /* ==========================================================================
-   Messaging
+   Jibo inbox
    ========================================================================== */
 
 .jot-list {
@@ -938,15 +938,32 @@ button.ghost:hover { background: var(--panel-2); border-color: var(--accent-line
   border: 1px solid var(--border-soft);
 }
 .jot-meta {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: .2rem .55rem;
   font-size: var(--t-xs);
   color: var(--muted);
   margin-bottom: .35rem;
   font-variant-numeric: tabular-nums;
 }
-.jot-msg > div:last-child { font-size: var(--t-sm); color: var(--fg-dim); line-height: 1.55; overflow-wrap: anywhere; }
+.jot-sender { color: var(--fg); font-weight: 620; }
+.jot-recipient { font-size: var(--t-xs); color: var(--muted); margin-bottom: .45rem; }
+.jot-content { font-size: var(--t-sm); color: var(--fg-dim); line-height: 1.55; overflow-wrap: anywhere; }
 
 .compose { display: flex; gap: .6rem; align-items: stretch; }
 .compose input { flex: 1; }
+.jot-compose { display: grid; gap: 1rem; }
+.jot-compose textarea { min-height: 5.5rem; resize: vertical; }
+.jot-recipient-picker { display: grid; gap: .45rem; min-width: 0; margin: 0; padding: 0; border: 0; }
+.jot-recipient-picker legend { padding: 0; font-size: var(--t-sm); font-weight: 620; color: var(--fg); }
+.jot-recipient-picker .field-hint { margin: 0; }
+.jot-compose .compose { align-items: center; justify-content: space-between; }
+.jot-compose .compose .field-hint { margin: 0; }
+@media (max-width: 600px) {
+  .jot-compose .compose { align-items: stretch; flex-direction: column; }
+  .jot-compose .compose .btn { width: 100%; }
+}
 
 /* ==========================================================================
    Robot / QR pairing

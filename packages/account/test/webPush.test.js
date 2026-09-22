@@ -1,5 +1,5 @@
 // Browser Web Push: VAPID stays server-side, subscriptions stay account-scoped,
-// and a household message can safely fan out without exposing its content.
+// and a loop message can safely fan out without exposing its content.
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
@@ -99,7 +99,7 @@ test('expired subscriptions are removed and test delivery is rate limited', asyn
   clock += (60 * 60 * 1000) + 1;
 });
 
-test('Jot fans out a content-free browser notification only to accepted household members', async () => {
+test('Jot forwards intended recipients and sends a content-free browser notification only to them', async () => {
   webPush.unsubscribe(recipient._id, browserSubscription());
   webPush.subscribe(recipient._id, browserSubscription('recipient'), 'Recipient phone');
   delivered.length = 0;
@@ -107,20 +107,37 @@ test('Jot fans out a content-free browser notification only to accepted househol
     webPush,
     classicCall: async ({ target, body }) => {
       assert.equal(target, 'Jot_20160512.CreateMessage');
+      assert.deepEqual(body.tags, [recipient._id]);
       return { body: { loopId: body.loopId, content: body.content } };
     },
   });
   const res = response();
   const created = await routes['POST /api/jot/message']({
-    req: sessionRequest(owner), res, body: { loopId: loop._id, content: 'private household message' },
+    req: sessionRequest(owner), res, body: { loopId: loop._id, content: 'private loop message', tags: [recipient._id] },
   });
-  assert.equal(created.message.content, 'private household message');
+  assert.equal(created.message.content, 'private loop message');
   await new Promise((resolve) => setImmediate(resolve));
   assert.equal(delivered.length, 1);
-  assert.equal(delivered[0].payload.title, 'New household message');
-  assert.equal(delivered[0].payload.body.includes('private household message'), false);
-  assert.equal(delivered[0].payload.url, '/app#/messaging');
+  assert.equal(delivered[0].payload.title, 'New Jibo message');
+  assert.equal(delivered[0].payload.body.includes('private loop message'), false);
+  assert.equal(delivered[0].payload.url, '/app#/inbox');
   assert.equal(delivered[0].subscription.endpoint.endsWith('/recipient'), true);
+});
+
+test('Jot rejects recipient tags that are not accepted people in the loop', async () => {
+  let classicCalls = 0;
+  const routes = portalMessagingRoutes(store, {
+    webPush,
+    classicCall: async () => { classicCalls += 1; return { body: {} }; },
+  });
+  const res = response();
+  await routes['POST /api/jot/message']({
+    req: sessionRequest(owner), res,
+    body: { loopId: loop._id, content: 'Do not send this', tags: ['not-a-loop-member'] },
+  });
+  assert.equal(res.statusCode, 400);
+  assert.equal(res.body.code, 'JOT_INVALID_RECIPIENT');
+  assert.equal(classicCalls, 0);
 });
 
 test('the browser API requires a session and never serializes endpoint capabilities', async () => {

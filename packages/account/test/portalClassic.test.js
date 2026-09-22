@@ -125,18 +125,22 @@ test('gallery: list seeded media through Classic Media_20160725, serve its bytes
   assert.ok(!after.body.media.some((m) => m.path === 'alpha123' && !m.isDeleted));
 });
 
-test('jot: list (empty), create a message, list has it', async () => {
+test('jot: list (empty), create a recipient-tagged message, list has it', async () => {
   const beforeJot = await call('GET', `/api/jot?loopId=${encodeURIComponent(loop._id)}`);
   assert.equal(beforeJot.status, 200);
   assert.deepEqual(beforeJot.body.messages, []);
 
-  const created = await call('POST', '/api/jot/message', { loopId: loop._id, content: 'Hi from the portal' });
+  const created = await call('POST', '/api/jot/message', {
+    loopId: loop._id, content: 'Hi from the portal', tags: [owner._id],
+  });
   assert.equal(created.status, 200);
   assert.equal(created.body.message.content, 'Hi from the portal');
+  assert.deepEqual(created.body.message.tags, [owner._id]);
 
   const afterJot = await call('GET', `/api/jot?loopId=${encodeURIComponent(loop._id)}`);
   assert.equal(afterJot.body.messages.length, 1);
   assert.equal(afterJot.body.messages[0].content, 'Hi from the portal');
+  assert.deepEqual(afterJot.body.messages[0].tags, [owner._id]);
 });
 
 test('people: person catalog + voice-training enrolment surface answers cleanly', async () => {
