@@ -57,6 +57,11 @@ services:
       context: .
       target: model
     image: phoenix-laya-intent:local
+    # `docker compose run` otherwise reuses an existing locally tagged image
+    # without noticing source changes. This one-shot job must include the
+    # checked-out bootstrap helper, so make its ordinary command rebuild the
+    # image (BuildKit still reuses unchanged dependency layers).
+    pull_policy: build
     # Docker creates a new named volume as root-owned. This bootstrap-only
     # initializer needs three setup capabilities to create /models/laya, then
     # app.bootstrap_model permanently drops to phoenix (10001) before it

@@ -35,8 +35,10 @@ chmod 600 /etc/phoenix/laya.env
 # Explicit one-time/upgrade preparation job. It first creates the root-owned
 # Docker volume's `/models/laya` directory, then permanently drops to the
 # unprivileged `phoenix` account before fetching the pinned model and writing
-# file hashes. Normal serving has no model-download path.
-docker compose --env-file /etc/phoenix/laya.env --profile bootstrap run --rm --build laya-model-fetch
+# file hashes. Normal serving has no model-download path. The bootstrap service
+# rebuilds itself from the checked-out source, so this ordinary command cannot
+# accidentally reuse a stale helper image.
+docker compose --env-file /etc/phoenix/laya.env --profile bootstrap run --rm laya-model-fetch
 
 # Start the single-worker, GPU-required, read-only serving container.
 docker compose --env-file /etc/phoenix/laya.env up -d --build laya-intent
