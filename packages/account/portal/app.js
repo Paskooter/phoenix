@@ -1,7 +1,7 @@
 // Phoenix console — vanilla SPA, no build step, no framework.
 //
 // Hash routes: #/, #/loop, #/settings, #/profile, #/robot, #/gallery,
-// #/messaging, #/people, #/system, plus #/add (connection choice), #/add/new
+// #/messaging, #/system, plus #/add (connection choice), #/add/new
 // (QR pairing), #/claim (existing-robot migration) and #/admin.
 //
 // Every call below goes to the same-origin REST face the portal has always
@@ -297,9 +297,9 @@ function paintAccount() {
   if (adminNav) adminNav.hidden = !me.isAdmin;
 }
 
-// Household-scoped surfaces must never silently pick an arbitrary household.
+// Loop-scoped surfaces must never silently pick an arbitrary loop.
 // Remember the user's explicit choice locally, then fall back safely if that
-// household is no longer visible (for example after an invitation is removed).
+// loop is no longer visible (for example after an invitation is removed).
 const ACTIVE_LOOP_STORAGE_KEY = 'phoenix.activeLoopId';
 let activeLoopId = (() => {
   try { return localStorage.getItem(ACTIVE_LOOP_STORAGE_KEY) || ''; } catch { return ''; }
@@ -327,17 +327,17 @@ async function householdContext() {
 function householdSwitcher(context) {
   if (!context.active || context.loops.length < 2) return null;
   const select = h('select', {
-    'aria-label': 'Active household',
+    'aria-label': 'Active loop',
     on: {
       change: (event) => {
         rememberActiveLoop(event.target.value);
         route();
       },
     },
-  }, ...context.loops.map((loop) => h('option', { value: loop.id }, loop.name || 'Unnamed household')));
+  }, ...context.loops.map((loop) => h('option', { value: loop.id }, loop.name || 'Unnamed loop')));
   select.value = String(context.active.id);
   return h('div', { class: 'household-switcher' },
-    h('span', { class: 'field-label' }, 'Viewing household'),
+    h('span', { class: 'field-label' }, 'Viewing loop'),
     select);
 }
 
@@ -346,7 +346,7 @@ function householdSwitcher(context) {
    ========================================================================== */
 
 async function renderHome() {
-  const container = page('Overview', 'Your household at a glance.', loading(3));
+  const container = page('Overview', 'Your loops at a glance.', loading(3));
   show(container);
 
   const [loops, robots] = await Promise.all([
@@ -370,7 +370,7 @@ async function renderHome() {
     h('article', { class: 'stat' },
       h('div', { class: 'label' }, icon('users', 14), 'Members'),
       h('div', { class: 'value', text: String(members) }),
-      h('div', { class: 'note', text: `across ${loopList.length} household${loopList.length === 1 ? '' : 's'}` })),
+      h('div', { class: 'note', text: `across ${loopList.length} loop${loopList.length === 1 ? '' : 's'}` })),
     h('article', { class: 'stat' },
       h('div', { class: 'label' }, icon('robot', 14), 'Robots'),
       h('div', { class: 'value', text: String(robotList.length) }),
@@ -401,16 +401,16 @@ async function renderHome() {
       note ? h('div', { class: 'field-hint', text: note }) : null),
     icon('arrow', 15, 'arrow'));
   body.append(h('div', { class: 'quick-grid' },
-    quick('#/loop', 'Household', 'users', 'Members and account links'),
+    quick('#/loop', 'Loops', 'users', 'Members and account links'),
     quick('#/settings', 'Personal report', 'sliders', 'Weather, news, commute'),
     quick('#/robot', 'Robots', 'robot', 'Pairing and status'),
     quick('#/gallery', 'Gallery', 'image', 'What the robot captured')));
 
-  if (!loops.ok) body.append(h('div', { style: 'margin-top:1.5rem' }, errorBox('Could not load your household.', loops.data.error)));
+  if (!loops.ok) body.append(h('div', { style: 'margin-top:1.5rem' }, errorBox('Could not load your loops.', loops.data.error)));
   if (!robots.ok) body.append(h('div', { style: 'margin-top:1rem' }, errorBox('Could not load robots.', robots.data.error)));
 
   if (loopList.length) {
-    const loopCard = card('Your household', {});
+    const loopCard = card('Your loops', {});
     for (const l of loopList) {
       const n = peopleOf(l).length;
       loopCard.querySelector('.card-body').append(row(
@@ -439,19 +439,19 @@ function setBadge(id, count) {
 }
 
 /* ==========================================================================
-   Household (loop and members)
+   Loops and members
    ========================================================================== */
 
 async function renderLoop() {
-  show(page('Household', 'Members, their account links, and the household itself.', loading(5)));
+  show(page('Loops', 'Members, account links, and the selected loop.', loading(5)));
 
   const context = await householdContext();
-  const container = page('Household', 'Members, their account links, and the household itself.');
+  const container = page('Loops', 'Members, account links, and the selected loop.');
 
-  if (!context.ok) { container.append(errorBox('Could not load your household.', context.error)); return show(container); }
+  if (!context.ok) { container.append(errorBox('Could not load your loops.', context.error)); return show(container); }
   const active = context.active;
   if (!active) {
-    container.append(empty('No household yet', 'A household is created when your first robot is paired.', 'users'));
+    container.append(empty('No loops yet', 'A loop is created when your first robot is paired.', 'users'));
     return show(container);
   }
 
@@ -460,10 +460,10 @@ async function renderLoop() {
 
   const isOwner = active.owner === me?.id;
 
-  /* -- the household record ------------------------------------------- */
+  /* -- the loop record ------------------------------------------------ */
 
   const renameForm = h('form', { class: 'row', on: { submit: renameLoop } },
-    h('input', { name: 'name', value: active.name, required: true, 'aria-label': 'Household name', style: 'flex:1;min-width:12rem' }),
+    h('input', { name: 'name', value: active.name, required: true, 'aria-label': 'Loop name', style: 'flex:1;min-width:12rem' }),
     h('button', { type: 'submit', class: 'btn' }, 'Rename'));
 
   const loopCard = card(active.name, {
@@ -476,9 +476,9 @@ async function renderLoop() {
   },
     active.isSuspended
       ? h('div', { class: 'notice notice-warn' }, icon('alert', 16),
-        h('div', {}, 'This household is suspended. Member edits are blocked while it is.'))
+        h('div', {}, 'This loop is suspended. Member edits are blocked while it is.'))
       : null,
-    row('Household ID', h('code', { text: active.id })),
+    row('Loop ID', h('code', { text: active.id })),
     row('Owner', isOwner ? h('span', {}, 'You ', h('span', { class: 'pill pill-accent' }, 'owner')) : active.owner),
     row('Robot', active.robotFriendlyId || 'none paired'),
     row('Status', active.isSuspended
@@ -538,7 +538,7 @@ async function renderLoop() {
           h('span', { class: 'pill pill-accent' }, 'robot')),
         row('Joined', fmtDay(m.created)),
         h('p', { class: 'field-hint' },
-          'This is the robot’s own place in the household, not a person. '
+          'This is the robot’s own place in the loop, not a person. '
           + 'It is managed from the Robots page.'));
     }
 
@@ -689,7 +689,7 @@ async function renderLoop() {
   async function removeMember(m, name) {
     const yes = await confirmDialog({
       title: `Remove ${name}?`,
-      body: 'They will be removed from the household. The robot will stop recognising them as a member.',
+      body: 'They will be removed from the loop. The robot will stop recognising them as a member.',
       confirmLabel: 'Remove',
     });
     if (!yes) return;
@@ -709,8 +709,8 @@ async function renderLoop() {
   async function suspendLoop() {
     if (!active.isSuspended) {
       const yes = await confirmDialog({
-        title: 'Suspend this household?',
-        body: 'Member edits are blocked while a household is suspended. You can un-suspend it again at any time.',
+        title: 'Suspend this loop?',
+        body: 'Member edits are blocked while a loop is suspended. You can un-suspend it again at any time.',
         confirmLabel: 'Suspend',
       });
       if (!yes) return;
@@ -1148,7 +1148,7 @@ async function renderProfile() {
           h('option', { value: g, selected: a.gender === g }, g ? prettyLabel(g) : '(not set)'))))),
     field('Phone number', h('input', { name: 'phoneNumber', type: 'tel', value: a.phoneNumber || '', autocomplete: 'tel' })),
     toggle('messagingAllowed', a.messagingAllowed ?? true, 'Allow messaging',
-      'Let other people in the household send you messages through the robot.'),
+      'Let other people in your loops send you messages through the robot.'),
     h('div', { class: 'row', style: 'margin-top:1.25rem' },
       h('button', { type: 'submit', class: 'btn btn-primary' }, 'Save changes')));
 
@@ -1262,7 +1262,7 @@ async function renderProfile() {
         } catch (error) { notify(error.message || 'Could not disable notifications.', 'error'); }
       } } }, 'Disable here'));
     rows.push(row('Notifications', h('span', { class: 'pill pill-ok' }, h('span', { class: 'dot dot-live' }), 'Enabled on this browser')),
-      h('p', { class: 'field-hint' }, 'New household messages can alert this device. Notification previews never include message text.'), actions);
+      h('p', { class: 'field-hint' }, 'New loop messages can alert this device. Notification previews never include message text.'), actions);
   } else {
     rows.push(row('Notifications', h('span', { class: 'pill pill-warn' }, 'Off')),
       h('p', { class: 'field-hint' }, capabilities.ios && !capabilities.installed
@@ -1313,7 +1313,7 @@ async function renderRobot() {
         on: { click: (e) => loadDetail(e.currentTarget, robot, detail) },
       }, 'Details')],
     },
-      row('Household', robot.loopName || '—'),
+      row('Loop', robot.loopName || '—'),
       row('Created', fmtDate(robot.created)),
       row('Last seen', fmtDate(robot.lastSeen)),
       detail);
@@ -1329,7 +1329,7 @@ async function renderRobot() {
     if (!r.ok) { host.replaceChildren(errorBox('Could not load robot detail.', r.data.error)); return; }
     const d = r.data;
     host.replaceChildren(
-      row('Household', d.loop ? `${d.loop.name} (${d.loop.id})` : '—'),
+      row('Loop', d.loop ? `${d.loop.name} (${d.loop.id})` : '—'),
       row('Status', d.loop?.isSuspended
         ? h('span', { class: 'pill pill-error' }, 'Suspended')
         : h('span', { class: 'pill pill-ok' }, h('span', { class: 'dot' }), 'Active')),
@@ -1403,7 +1403,7 @@ async function renderClaim() {
         ' with the public IP the robot should reach.') : null,
       h('p', { class: 'field-hint' },
         'The command applies the displayed plan because it includes ', h('code', {}, '--yes'),
-        '. It does not import the former cloud account or its people. It preserves the robot’s existing keys and makes this Phoenix account its household owner.'),
+        '. It does not import the former cloud account or its people. It preserves the robot’s existing keys and makes this Phoenix account its loop owner.'),
       h('ol', { class: 'field-hint' },
         h('li', {}, 'Wait for the command to report that the robot was claimed, then keep Jibo powered and online.'),
         h('li', {}, 'Jibo’s normal updater will see the jibo.io OTA catalog. Do not interrupt its download or reboot.'),
@@ -1542,10 +1542,10 @@ async function renderGallery() {
   const context = await householdContext();
   const loop = context.active;
   const container = page('Gallery', 'Photographs and media the robot captured.');
-  if (!context.ok) { container.append(errorBox('Could not load your household.', context.error)); return show(container); }
+  if (!context.ok) { container.append(errorBox('Could not load your loops.', context.error)); return show(container); }
   const switcher = householdSwitcher(context);
   if (switcher) container.append(switcher);
-  if (!loop) { container.append(empty('No household', 'Pair a robot first.', 'image')); return show(container); }
+  if (!loop) { container.append(empty('No loop', 'Pair a robot first.', 'image')); return show(container); }
 
   const r = await api('GET', `/api/media?loopId=${encodeURIComponent(loop.id)}`);
   if (!r.ok) { container.append(errorBox('Could not load the gallery.', r.data.error)); return show(container); }
@@ -1627,12 +1627,12 @@ async function renderGallery() {
    ========================================================================== */
 
 async function renderMessaging() {
-  show(page('Messages', 'Household messages, push registrations and the notification socket.', loading(4)));
+  show(page('Messages', 'Loop messages, push registrations and the notification socket.', loading(4)));
 
   const context = await householdContext();
   const loop = context.active;
-  const container = page('Messages', 'Household messages, push registrations and the notification socket.');
-  if (!context.ok) container.append(errorBox('Could not load your household.', context.error));
+  const container = page('Messages', 'Loop messages, push registrations and the notification socket.');
+  if (!context.ok) container.append(errorBox('Could not load your loops.', context.error));
   else {
     const switcher = householdSwitcher(context);
     if (switcher) container.append(switcher);
@@ -1654,7 +1654,7 @@ async function renderMessaging() {
     }
 
     const compose = h('form', { class: 'compose' },
-      h('input', { name: 'content', placeholder: 'Message your household…', required: true, 'aria-label': 'Message' }),
+      h('input', { name: 'content', placeholder: 'Message your loop…', required: true, 'aria-label': 'Message' }),
       h('button', { type: 'submit', class: 'btn btn-primary' }, 'Send'));
     compose.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -1664,9 +1664,9 @@ async function renderMessaging() {
       if (res.ok) await renderMessaging();
     });
 
-    container.append(card('Household messages', { sub: loop.name }, list, compose));
+    container.append(card('Loop messages', { sub: loop.name }, list, compose));
   } else {
-    container.append(card('Household messages', {}, empty('No household', 'Pair a robot first.', 'message')));
+    container.append(card('Loop messages', {}, empty('No loop', 'Pair a robot first.', 'message')));
   }
 
   /* -- Push ------------------------------------------------------------ */
@@ -1725,72 +1725,6 @@ async function renderMessaging() {
   } else {
     notifBody.replaceChildren(errorBox('Could not load notification status.', notifRes.data.error));
   }
-}
-
-/* ==========================================================================
-   People — person catalogue (read-only)
-   ========================================================================== */
-
-async function renderPeople() {
-  show(page('People', 'The person catalogue, as the robot sees it.', loading(4)));
-
-  const context = await householdContext();
-  const loop = context.active;
-  const container = page('People', 'The person catalogue, as the robot sees it.');
-  if (!context.ok) { container.append(errorBox('Could not load your household.', context.error)); return show(container); }
-  const switcher = householdSwitcher(context);
-  if (switcher) container.append(switcher);
-  if (!loop) { container.append(empty('No household', 'Pair a robot first.', 'users')); return show(container); }
-
-  container.append(h('div', { class: 'notice' }, icon('alert', 15),
-    h('div', {}, 'This surface is read-only. Answering the robot’s questions is a phone-side flow; '
-      + 'nothing here is stubbed — these are the real values it holds.')));
-
-  const r = await api('GET', `/api/people?loopId=${encodeURIComponent(loop.id)}`);
-  if (!r.ok) { container.append(errorBox('Could not load the person catalogue.', r.data.error)); return show(container); }
-  const d = r.data;
-
-  if (d.diagnostics) {
-    container.append(errorBox('Some sources could not be reached.',
-      d.diagnostics.map((x) => x.message || x.code).join(' · ')));
-  }
-
-  const answers = Array.isArray(d.answers) ? d.answers : [];
-  container.append(card('Answers', { sub: `${answers.length} recorded` },
-    answers.length
-      ? h('div', {}, ...answers.slice(0, 60).map((a) =>
-        row(prettyLabel(a.key || a.id || 'answer'), String(a.value ?? a.answer ?? '—'))))
-      : empty('No answers yet', 'These accumulate as the robot asks its questions.', 'message')));
-
-  const propRows = (label, obj) => {
-    const entries = Object.entries(obj || {});
-    return card(label, { sub: `${entries.length} propert${entries.length === 1 ? 'y' : 'ies'}` },
-      entries.length
-        ? h('div', {}, ...entries.map(([k, v]) =>
-          row(prettyLabel(k), typeof v === 'object' ? JSON.stringify(v) : String(v))))
-        : empty('Nothing set', '', 'inbox'));
-  };
-  container.append(propRows('Account properties', d.accountProperties));
-  container.append(propRows('Household properties', d.loopProperties));
-
-  const holidays = Array.isArray(d.holidays) ? d.holidays : [];
-  container.append(card('Birthdays and holidays', { sub: `${holidays.length}` },
-    holidays.length
-      ? h('div', {}, ...holidays.map((x) => row(x.name || x.type || 'entry', x.date ? fmtDay(x.date) : '—')))
-      : empty('None recorded', '', 'clock')));
-
-  const voice = Array.isArray(d.voiceTraining) ? d.voiceTraining : [];
-  container.append(card('Voice enrolment', { sub: `${voice.length} record${voice.length === 1 ? '' : 's'}` },
-    d.enrolment
-      ? row('Robot enrolled', d.enrolment.robot
-        ? h('span', { class: 'pill pill-ok' }, 'Yes')
-        : h('span', { class: 'pill pill-warn' }, 'No'))
-      : null,
-    voice.length
-      ? h('div', {}, ...voice.map((v) => row(v.accountId || v.key || 'record', v.created ? fmtDate(v.created) : '—')))
-      : empty('No voice training records', '', 'message')));
-
-  show(container);
 }
 
 /* ==========================================================================
@@ -1948,7 +1882,7 @@ async function renderAdminStatus() {
     h('article', { class: 'stat' },
       h('div', { class: 'label' }, icon('users', 14), 'Accounts'),
       h('div', { class: 'value', text: String(d.store.accounts) }),
-      h('div', { class: 'note', text: `${d.store.loops ?? 0} household${d.store.loops === 1 ? '' : 's'}` })),
+      h('div', { class: 'note', text: `${d.store.loops ?? 0} loop${d.store.loops === 1 ? '' : 's'}` })),
     h('article', { class: 'stat' },
       h('div', { class: 'label' }, icon('robot', 14), 'Robots'),
       h('div', { class: 'value', text: String(d.store.robots ?? 0) }),
@@ -2349,7 +2283,7 @@ async function renderAdminConfig() {
 
 async function renderAdminRobots() {
   const container = adminPage('#/admin/robots', 'Robots',
-    'Every robot adopted on this server, across all households.');
+    'Every robot adopted on this server, across all loops.');
   show(container);
   if (!(await adminGate(container))) return;
 
@@ -2367,7 +2301,7 @@ async function renderAdminRobots() {
   } else {
     body.replaceChildren(...list.map((rb) => h('div', { class: 'member-block' },
       h('div', { class: 'member-name' }, icon('robot', 15), rb.friendlyId),
-      row('Household', rb.loopName || '—'),
+      row('Loop', rb.loopName || '—'),
       row('Owner', rb.ownerEmail || '—'),
       row('Access key', h('code', { text: rb.accessKeyId })),
       row('Last seen', fmtDate(rb.lastSeen)))));
@@ -2379,7 +2313,7 @@ async function renderAdminRobots() {
   const adoptForm = h('form', {},
     h('p', { class: 'field-hint' },
       'For a robot that completed setup against the original cloud years ago. This mints fresh '
-      + 'credentials and a household, and shows you exactly what to write to the robot.'),
+      + 'credentials and a loop, and shows you exactly what to write to the robot.'),
     h('div', { class: 'grid2' },
       field('Robot name', h('input', {
         name: 'friendlyId', placeholder: 'castle-cylinder-fig-quilt', required: true,
@@ -2742,7 +2676,6 @@ const ROUTES = {
   '#/claim': renderClaim,
   '#/gallery': renderGallery,
   '#/messaging': renderMessaging,
-  '#/people': renderPeople,
   '#/system': renderSystem,
   '#/add': renderAdd,
   '#/add/new': renderAddNew,
@@ -2903,7 +2836,12 @@ async function route() {
   await consumePublicMailAction();
   // `/admin` is served by the same shell; treat the path as the route so the
   // bare URL works rather than silently landing on the overview.
-  const hash = (location.pathname === '/admin' && !location.hash) ? '#/admin' : (location.hash || '#/');
+  const requestedHash = (location.pathname === '/admin' && !location.hash) ? '#/admin' : (location.hash || '#/');
+  // The former People page duplicated the selected loop's member/profile view
+  // and mislabeled an old Person-service prompt list as saved answers. Preserve
+  // old bookmarks, but take them to the single source of truth.
+  const hash = requestedHash === '#/people' ? '#/loop' : requestedHash;
+  if (requestedHash === '#/people') history.replaceState(null, '', '#/loop');
 
   await refreshMe();
 
