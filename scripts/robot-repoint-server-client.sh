@@ -30,6 +30,8 @@
 #      the certificate against these names, so for the socket (and for a TLS REST
 #      deployment) the *names* — not a bare IP — must resolve to Phoenix. This
 #      strengthens/refreshes the existing block; unrelated entries are never removed.
+#   6. `/var/jibo/keys` — create the real, private 0700 directory that STS uses
+#      for its pair/loop key, preserving any existing key material.
 #
 # The robot's region is read from /var/jibo/credentials.json (here: `api`). It is
 # never assumed to be `phx`; `--region` overrides only if that file is missing.
@@ -112,6 +114,36 @@ if [ -z "$REGION" ]; then
     exit 1
   fi
 fi
+
+# STS creates its pair/loop key below this directory. A missing directory makes
+# an otherwise correctly repointed robot fail its first cloud bootstrap/backup.
+# Refuse a symlink or non-directory rather than allowing key material to be
+# redirected outside the robot's intended private store.
+prepare_loop_key_dir() {
+  if [ "$MODE" = revert ]; then
+    return 0
+  fi
+  if [ "$MODE" = dryrun ]; then
+    if [ -d /var/jibo/keys ] && [ ! -L /var/jibo/keys ]; then
+      echo "[robot] /var/jibo/keys exists (dry run; mode not changed)"
+    else
+      echo "[robot] would create /var/jibo/keys with mode 0700"
+    fi
+    return 0
+  fi
+  if [ -L /var/jibo/keys ] || { [ -e /var/jibo/keys ] && [ ! -d /var/jibo/keys ]; }; then
+    echo "[robot] refusing unsafe /var/jibo/keys (must be a real directory)" >&2
+    return 1
+  fi
+  old_umask="$(umask)"
+  umask 077
+  mkdir -p -m 700 /var/jibo/keys || { umask "$old_umask"; return 1; }
+  chmod 700 /var/jibo/keys || { umask "$old_umask"; return 1; }
+  umask "$old_umask"
+  [ -d /var/jibo/keys ] && [ ! -L /var/jibo/keys ] || return 1
+  echo "[robot] /var/jibo/keys ready (mode 0700; existing key material preserved)"
+}
+prepare_loop_key_dir || exit 1
 
 # ---- derive the Phoenix host and the default socket URL -----------------------------
 host_of() { # strip scheme, path and port

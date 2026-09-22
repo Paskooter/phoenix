@@ -7,6 +7,8 @@
 #   • Conversation hub  — jibo-jetstream-service.json HubClient.override -> <phoenix>:<hub-port> (default 9000)
 # so the robot's cloud calls AND "Hey Jibo" both reach Phoenix. Every file it changes is backed up
 # (*.phx-bak), and the Jetstream service is restarted so it re-reads its config.
+# It also prepares the robot's private `/var/jibo/keys` directory (mode 0700),
+# preserving existing key material so STS can create/load its pair and loop key.
 #
 # NOTE: scripts/robot-repoint-server-client.sh is the robot-side equivalent — run it ON the robot
 # (no SSH) to do the same complete repoint: every region_config `endpoint` AND `wsendpoint`,
@@ -105,6 +107,19 @@ echo "[robot] mode=$MODE ota=$OTA_ENDPOINT hub=$HUB_HOST:$HUB_PORT node=$NODE"
 # make platform partitions writable
 if command -v jibo-mount >/dev/null 2>&1; then jibo-mount --rw >/dev/null 2>&1 || true
 else mount -o remount,rw /usr/local 2>/dev/null || true; mount -o remount,rw / 2>/dev/null || true; fi
+
+# STS creates its pair/loop key below this directory. Refuse a symlink or other
+# non-directory rather than allowing key material to be redirected elsewhere.
+if [ "$MODE" != reset ]; then
+  if [ -L /var/jibo/keys ] || { [ -e /var/jibo/keys ] && [ ! -d /var/jibo/keys ]; }; then
+    echo "[robot] refusing unsafe /var/jibo/keys (must be a real directory)" >&2
+    exit 1
+  fi
+  ( umask 077; mkdir -p -m 700 /var/jibo/keys ) || { echo "[robot] could not create /var/jibo/keys" >&2; exit 1; }
+  chmod 700 /var/jibo/keys || { echo "[robot] could not set /var/jibo/keys mode 0700" >&2; exit 1; }
+  [ -d /var/jibo/keys ] && [ ! -L /var/jibo/keys ] || { echo "[robot] unsafe /var/jibo/keys after creation" >&2; exit 1; }
+  echo "[robot] /var/jibo/keys ready (mode 0700; existing key material preserved)"
+fi
 
 # 1) every region_config.json (the OTA / server-client endpoint) ------------------------------
 find / -path /proc -prune -o -path /sys -prune -o -path /dev -prune -o \

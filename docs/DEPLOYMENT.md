@@ -605,8 +605,12 @@ scripts/parity-robot/repoint-robot.sh \
 ```
 
 The script maps both `<region>.jibo.com` and `<region>-socket.jibo.com` to the
-public address, installs the CA into the boot-persistent trust store, and keeps
-TLS verification enabled. For an already-paired robot, have the customer sign
+public address, installs the CA into the boot-persistent trust store, ensures
+`/var/jibo/keys` is a real mode-0700 directory, and keeps TLS verification
+enabled. This directory is the robot-local STS storage for its pair/loop key;
+the preflight refuses symlinks/non-directories and never replaces existing key
+files. A missing directory can make the first cloud backup fail even when the
+Classic/TLS checks pass. For an already-paired robot, have the customer sign
 in to Phoenix and generate **Robots → Connect a Jibo → My Jibo has been set up
 already** first; run the portal-provided command with `--claim-code` and
 `--adoption-url`. This links the robot's existing credentials to that new
@@ -637,8 +641,9 @@ sh scripts/robot-repoint-server-client.sh \
 ```
 
 The first script handles the private CA and `/etc/hosts`; the second writes the
-native server-client endpoint/socket and the Jetstream hub override. Keep the
-backups both scripts create. If the robot cannot resolve `hub.example.com`, use
+native server-client endpoint/socket and the Jetstream hub override; both also
+prepare the same private `/var/jibo/keys` prerequisite. Keep the backups both
+scripts create. If the robot cannot resolve `hub.example.com`, use
 a name/IP plan that the robot can resolve and ensure the certificate SAN and
 transport match; do not silently fall back to an open plain-WS port.
 
@@ -1934,6 +1939,10 @@ must route to the Classic server block, not `portal.example.com`.
   timeouts. A normal nginx proxy does not add Range support to the current OTA
   application.
 - Check that the package directory and the backup disk have enough free space.
+- If the failure is immediately after repointing, inspect the robot's STS logs
+  and verify `/var/jibo/keys` is a real directory with mode `0700`; do not copy
+  key material from another robot. The supported repoint scripts perform this
+  check/create step before changing endpoints.
 
 ### Photos are broken or URLs point at `account:8080`
 

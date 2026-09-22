@@ -21,6 +21,9 @@
 //   * Missing/invalid `loopId` fails Joi (`Joi.string().required()`,
 //     handler.js:15,26) -> Boom.badData, i.e. HTTP 422 with the Hapi payload
 //     {statusCode, error:"Unprocessable Entity", message} and no `code`.
+//   * `Backup.List`'s optional `max` is Joi.number().integer().min(1).max(1000);
+//     an invalid supplied value is also Boom.badData/422 (it is not silently
+//     clamped to the nearest store cap).
 //   * An unknown operation is `Boom.notFound("Method <op> not found.")` -> 404
 //     (srv-server server.ts:182-183), where <op> is the target's second segment
 //     with its first character lowercased.
@@ -414,6 +417,34 @@ function loopIdValidationMessage(loopId) {
   return null;
 }
 
+/**
+ * `Backup.List` also validates its optional `max` with
+ * `Joi.number().integer().min(1).max(1000)`. Keep this at the public handler
+ * boundary: the store's defensive cap is useful for internal callers, but
+ * silently clamping an invalid wire value changes the source's 422 contract
+ * (and can hide a broken robot/client request).
+ */
+export function backupListMaxValidation(max) {
+  if (max === undefined) return { value: undefined, message: null };
+
+  // Joi's default conversion accepts numeric strings. Empty strings are not a
+  // number, and keeping the explicit check avoids Number('') becoming 0.
+  const value = typeof max === 'string' && max.trim() !== '' ? Number(max) : max;
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return { value: undefined, message: 'child "max" fails because ["max" must be a number]' };
+  }
+  if (!Number.isInteger(value)) {
+    return { value: undefined, message: 'child "max" fails because ["max" must be an integer]' };
+  }
+  if (value < 1) {
+    return { value: undefined, message: 'child "max" fails because ["max" must be larger than or equal to 1]' };
+  }
+  if (value > 1000) {
+    return { value: undefined, message: 'child "max" fails because ["max" must be less than or equal to 1000]' };
+  }
+  return { value, message: null };
+}
+
 // ---- caller identity + ownership -------------------------------------------
 
 /**
@@ -524,9 +555,11 @@ export function makeBackupHandler(store, baseFor, { ownership, callerBoundary } 
       case 'list': {
         const invalid = loopIdValidationMessage(loopId);
         if (invalid) return void sendBoom(res, 422, invalid);
+        const max = backupListMaxValidation(b.max);
+        if (max.message) return void sendBoom(res, 422, max.message);
         const refusal = await ownershipRefusal(req, loopId, log);
         if (refusal) return void sendBoom(res, refusal.statusCode, refusal.message, refusal.code);
-        const entries = store.list(loopId, b.max).map((e) => {
+        const entries = store.list(loopId, max.value).map((e) => {
           const location = store.signedBlobUrl(baseFor(req), 'GET', loopId, e.key);
           return {
             modified: new Date(e.modified).toISOString(),

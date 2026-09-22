@@ -190,17 +190,17 @@ function packageBearer(secret, url, now) {
   const ids = url.searchParams.getAll('id');
   const expiresValues = url.searchParams.getAll('expires');
   const signatures = url.searchParams.getAll('signature');
-  if (ids.length !== 1 || expiresValues.length !== 1 || signatures.length !== 1) return null;
+  if (ids.length !== 1 || expiresValues.length !== 1 || signatures.length !== 1) return { id: null, reason: 'query-cardinality' };
   const id = ids[0];
   const expiryText = expiresValues[0];
   const signature = signatures[0];
-  if (!id || !/^[0-9A-Za-z_-]+$/.test(id) || !/^\d+$/.test(expiryText)) return null;
+  if (!id || !/^[0-9A-Za-z_-]+$/.test(id) || !/^\d+$/.test(expiryText)) return { id: null, reason: 'query-shape' };
   const expires = Number(expiryText);
-  if (!Number.isSafeInteger(expires) || expires <= now || String(expires) !== expiryText || !/^[a-f0-9]{64}$/i.test(signature)) return null;
+  if (!Number.isSafeInteger(expires) || expires <= now || String(expires) !== expiryText || !/^[a-f0-9]{64}$/i.test(signature)) return { id: null, reason: 'expired-or-invalid' };
   const expected = Buffer.from(packageSignature(secret, id, expires), 'hex');
   const supplied = Buffer.from(signature, 'hex');
-  if (expected.length !== supplied.length || !timingSafeEqual(expected, supplied)) return null;
-  return id;
+  if (expected.length !== supplied.length || !timingSafeEqual(expected, supplied)) return { id: null, reason: 'signature-mismatch' };
+  return { id, reason: null };
 }
 
 class ReplayGuard {
@@ -454,14 +454,19 @@ export function createOtaService({
 
     'GET /ota/package': async ({ req, res, url, log }) => {
       if (requireAuth && !hostMatches(req)) {
+        log.warn?.('ota package URL rejected', { reason: 'host-mismatch', host: String(req.headers?.host || '').slice(0, 256) });
         res.writeHead(403, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' });
         return void res.end('forbidden');
       }
       const id = url.searchParams.get('id');
-      const bearerId = requireAuth
+      const bearer = requireAuth
         ? packageBearer(packageSecret, url, clockMillis(now))
-        : id;
-      if (requireAuth && bearerId !== id) {
+        : { id, reason: null };
+      if (requireAuth && bearer.id !== id) {
+        // Do not log the opaque bearer itself; its HMAC is a credential.  The
+        // reason is enough to distinguish an expired/replayed client URL from
+        // an edge or deployment-secret mismatch.
+        log.warn?.('ota package URL rejected', { reason: bearer.reason });
         res.writeHead(403, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' });
         return void res.end('forbidden');
       }

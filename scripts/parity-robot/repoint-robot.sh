@@ -388,6 +388,7 @@ else
   [ "$DO_HUB" -eq 1 ] && echo "  - point Jetstream's conversation hub at ${PHOENIX}:${HUB_PORT} and restart it"
   echo "  - patch every supported Node client copy and install the robot's full CA bundle beside it (receipt: $CLIENT_CA_RECEIPT)"
   [ -n "$CLASSIC_URL" ] && echo "  - rewrite every region_config.json to $CLASSIC_URL"
+  echo "  - ensure /var/jibo/keys exists on the robot as a real 0700 directory (preserve existing key material)"
   if [ "$DO_ADOPT" -eq 1 ] && [ -n "$CLAIM_CODE" ]; then
     echo "  - prove possession with the robot's existing credentials and link it to the signed-in Phoenix account"
   elif [ "$DO_ADOPT" -eq 1 ]; then
@@ -417,6 +418,25 @@ if [ "$DRY" -eq 1 ]; then say "--dry-run: no deployment files changed"; exit 0; 
 if [ "$ASSUME_YES" -eq 0 ]; then
   printf 'Proceed? [y/N] ' >&2; read -r reply </dev/tty
   case "$reply" in y|Y|yes|YES) ;; *) say "aborted; nothing changed"; exit 1 ;; esac
+fi
+
+# STS creates its pair/loop key below this directory. A missing directory makes
+# a correctly repointed robot fail its first cloud bootstrap/backup. Prepare it
+# before changing any robot endpoint and refuse a symlink/non-directory so a
+# bad filesystem state cannot redirect key material elsewhere.
+if [ "$REVERT" -eq 0 ]; then
+  say "preparing the robot loop-key directory"
+  rsh 'set -eu
+    if [ -L /var/jibo/keys ] || { [ -e /var/jibo/keys ] && [ ! -d /var/jibo/keys ]; }; then
+      echo "refusing unsafe /var/jibo/keys (must be a real directory)" >&2
+      exit 1
+    fi
+    umask 077
+    mkdir -p -m 700 /var/jibo/keys
+    chmod 700 /var/jibo/keys
+    [ -d /var/jibo/keys ] && [ ! -L /var/jibo/keys ]
+  ' || die "could not prepare /var/jibo/keys as a private directory"
+  ok "/var/jibo/keys ready (mode 0700; existing key material preserved)"
 fi
 
 # ---------------------------------------------------------------- apply

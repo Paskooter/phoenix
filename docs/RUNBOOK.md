@@ -200,6 +200,8 @@ One run does everything on the robot:
   redirect is actually accepted,
 * patches every installed Node `jibo-server-client` HTTP transport and installs
   its CA bundle, with backups and a guarded revert,
+* ensures `/var/jibo/keys` is a real mode-0700 directory before STS/backup/OTA
+  work begins, while preserving any existing key material,
 * points Jetstream's conversation hub at the server and restarts it, so speech
   reaches Phoenix too (`--hub-port`, default 9000; `--no-hub` to skip),
 * proves possession of an already-paired robot using the credentials in its
@@ -296,6 +298,23 @@ patch hash are checked for every nested copy before installation; an unknown
 version stops the patch operation. API and BE logic remain those of the original
 client. The deployment records this qualification in its hardware evidence.
 
+The repoint preflight also checks `/var/jibo/keys`. This directory is where the
+robot's STS creates or loads its pair/loop key, and a missing directory can make
+the first authenticated backup fail even when the server and TLS checks pass.
+The supported scripts create it idempotently with mode `0700`; they refuse a
+symlink or non-directory and never replace existing key files. If it must be
+prepared manually, run as `root`:
+
+```bash
+test ! -L /var/jibo/keys && { test ! -e /var/jibo/keys || test -d /var/jibo/keys; } || exit 1
+install -d -m 0700 /var/jibo/keys
+```
+
+Do not delete or copy `/var/jibo/keys` between robots: its contents are
+robot-specific UGC/key material. A backup/OTA error immediately after repointing
+should therefore be checked against both this directory and the robot's STS
+logs before changing server data.
+
 ## 7. Verify
 
 The robot's own log is the authority. The native client retries every 15 seconds,
@@ -326,6 +345,7 @@ not establish a connection.
 | `Could not establish connection to server` | Hostname resolves somewhere wrong, or no server there | `ssh root@<robot> 'ping -c1 <region>-socket.jibo.com'` should show your server |
 | Nothing at all about notifications | Logs may have rotated, or the service may not be running | `ssh root@<robot> 'ps | grep jibo-server-service'` |
 | Connects, then reconnects every ~2 minutes | Server is not answering the client's pings | The client disconnects after 120s without traffic |
+| OTA/backup fails immediately after repointing, or STS cannot create its pair/loop key | `/var/jibo/keys` is missing, a symlink, or not private | Re-run the supported repoint preflight; it creates a real `0700` directory and preserves existing keys |
 
 The Node clients have a separate trust path. The repoint installer patches every
 nested `jibo-server-client` copy to load `lib/http/phoenix-ca.pem`, using the robot's

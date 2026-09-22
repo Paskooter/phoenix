@@ -267,12 +267,13 @@ say "  4. link /etc/ssl/cert.pem -> ${TRUST_BUNDLE} (OpenSSL's default CAfile, w
 say "     stock image never shipped; without it the NATIVE hub client verifies nothing)"
 say "  5. point the jetstream hub override at ${REGION%-entrypoint}-hub.${PUBLIC_SUFFIX}:443, so audio"
 say "     turns go to this server instead of wherever it was pointed before"
+say "  6. ensure /var/jibo/keys exists as a private directory (mode 0700; preserve existing keys)"
 if [ -n "$CLAIM_CODE" ]; then
-  say "  6. prove possession with the robot's existing credentials and link it to the signed-in Phoenix account"
+  say "  7. prove possession with the robot's existing credentials and link it to the signed-in Phoenix account"
 else
-  say "  6. register the robot's existing credentials as an unclaimed bootstrap (idempotent)"
+  say "  7. register the robot's existing credentials as an unclaimed bootstrap (idempotent)"
 fi
-say "  7. write a receipt to ${RECEIPT}"
+say "  8. write a receipt to ${RECEIPT}"
 say ""
 say "  NOT touched: /etc/hosts, any private CA, server certs, the robot's own credentials."
 say "  After this the robot can reach ${REST_URL}, stream audio to the hub, and take an OTA"
@@ -318,7 +319,23 @@ if [ "$ROOT_WAS_RO" -eq 1 ]; then
   rsh 'mount -o remount,rw /' >/dev/null 2>&1 || die "could not remount / read-write"
 fi
 
-# 7a. region_config rewrite, in place, preserving mode and ownership.
+# 7a. STS creates its pair/loop key below this directory. A missing directory
+# makes a correctly repointed robot fail its first cloud bootstrap/backup, so
+# make the prerequisite explicit and idempotent. Refuse a symlink or non-
+# directory instead of allowing a path redirect into another tree.
+rsh 'set -eu
+  if [ -L /var/jibo/keys ] || { [ -e /var/jibo/keys ] && [ ! -d /var/jibo/keys ]; }; then
+    echo "refusing unsafe /var/jibo/keys (must be a real directory)" >&2
+    exit 1
+  fi
+  umask 077
+  mkdir -p -m 700 /var/jibo/keys
+  chmod 700 /var/jibo/keys
+  [ -d /var/jibo/keys ] && [ ! -L /var/jibo/keys ]
+' >/dev/null 2>&1 || die "could not prepare /var/jibo/keys as a private directory"
+say "  /var/jibo/keys ready (mode 0700; existing key material preserved)"
+
+# 7b. region_config rewrite, in place, preserving mode and ownership.
 # `stat` does not exist on the robot (busybox has no such applet), so the mode and
 # owner are read from `ls -ln` instead and re-applied with chmod/chown.
 for p in "${PRESENT[@]}"; do
