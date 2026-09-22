@@ -32,9 +32,11 @@ chmod 600 /etc/phoenix/laya.env
 # Edit only the protected file and set a unique token:
 # LAYA_AUTH_TOKEN=<openssl rand -hex 32 output>
 
-# Explicit one-time/upgrade preparation job. It fetches the pinned model,
-# writes file hashes, and exits. Normal serving has no model-download path.
-docker compose --env-file /etc/phoenix/laya.env --profile bootstrap run --rm laya-model-fetch
+# Explicit one-time/upgrade preparation job. It first creates the root-owned
+# Docker volume's `/models/laya` directory, then permanently drops to the
+# unprivileged `phoenix` account before fetching the pinned model and writing
+# file hashes. Normal serving has no model-download path.
+docker compose --env-file /etc/phoenix/laya.env --profile bootstrap run --rm --build laya-model-fetch
 
 # Start the single-worker, GPU-required, read-only serving container.
 docker compose --env-file /etc/phoenix/laya.env up -d --build laya-intent
@@ -44,9 +46,13 @@ curl -fsS http://127.0.0.1:6973/readyz
 
 The compose file binds `192.168.1.252:6973` by default, requires CUDA, runs as
 an unprivileged user with no capabilities, and mounts the pinned model volume
-read-only. If the GPU, model manifest, or warm-up prediction fails, `/readyz`
-does not report ready. Run exactly one Uvicorn worker; multiple workers would
-load multiple copies of the model into VRAM.
+read-only. Docker initially owns a named volume as root, so the explicit
+one-shot bootstrap job has only `CHOWN`, `SETGID`, and `SETUID` long enough to
+create that one directory; it then permanently becomes the same unprivileged
+account before downloading anything. The serving container never receives
+those capabilities. If the GPU, model manifest, or warm-up prediction fails,
+`/readyz` does not report ready. Run exactly one Uvicorn worker; multiple
+workers would load multiple copies of the model into VRAM.
 
 Allow TCP/6973 only from the Phoenix VPS over an authenticated private route.
 Keep the bearer token in `/etc/phoenix/laya.env` on the GPU host and the

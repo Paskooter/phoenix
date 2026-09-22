@@ -57,7 +57,12 @@ services:
       context: .
       target: model
     image: phoenix-laya-intent:local
-    user: "10001:10001"
+    # Docker creates a new named volume as root-owned. This bootstrap-only
+    # initializer needs three setup capabilities to create /models/laya, then
+    # app.bootstrap_model permanently drops to phoenix (10001) before it
+    # imports the downloader or makes a network request. The serving service
+    # above remains unprivileged with every capability dropped.
+    user: "0:0"
     read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,nodev,size=64m
@@ -65,6 +70,10 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
     environment:
       LAYA_MODEL_REPO: ${LAYA_MODEL_REPO:-convaiinnovations/laya}
       LAYA_MODEL_REVISION: ${LAYA_MODEL_REVISION:-1c5edc17a7acd8701df6fc341c0d179f1c62c982}
@@ -73,7 +82,7 @@ services:
       USE_TF: "0"
     volumes:
       - laya-models:/models:rw
-    command: ["python", "-m", "app.fetch_model"]
+    command: ["python", "-m", "app.bootstrap_model"]
 
 volumes:
   laya-models:
