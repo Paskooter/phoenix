@@ -18,7 +18,6 @@ import {
   inviteMember,
   removeMember,
   saveLoop,
-  setEnrollment,
   updateLoop,
   updateNickname,
   updatePhoneticName,
@@ -359,26 +358,6 @@ export function portalLoopRoutes(store, options = {}) {
       }
       try {
         updatePhoneticName(store, { ownerId: account._id, loopId, id, phoneticName: phoneticName ?? null }, loopUpdatedOutbox);
-      } catch (error) {
-        if (error instanceof LoopError) return fail(res, error);
-        throw error;
-      }
-      return { loop: loopView(store, activeLoop(store, loopId), account._id) };
-    },
-
-    'POST /api/loop/members/enrollment': ({ req, res, body }) => {
-      const account = requireUser(store, req, res);
-      if (!account) return;
-      const { loopId, id } = body || {};
-      if (!loopId || !id) return sendJson(res, 400, { error: 'loopId and id are required' });
-      if (body.face !== undefined && typeof body.face !== 'boolean') {
-        return sendJson(res, 400, { error: 'face must be a boolean' });
-      }
-      if (body.voice !== undefined && typeof body.voice !== 'boolean') {
-        return sendJson(res, 400, { error: 'voice must be a boolean' });
-      }
-      try {
-        setEnrollment(store, { ownerId: account._id, loopId, id, face: body.face, voice: body.voice }, loopUpdatedOutbox);
       } catch (error) {
         if (error instanceof LoopError) return fail(res, error);
         throw error;

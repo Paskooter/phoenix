@@ -650,22 +650,6 @@ async function renderLoop() {
       children.push(form);
     }
 
-    const enrolChip = (kind, label) => h('label', { class: 'chip' },
-      h('input', {
-        type: 'checkbox',
-        checked: !!m.enrolled?.[kind],
-        on: {
-          change: async (e) => {
-            const res = await api('POST', '/api/loop/members/enrollment', {
-              loopId: active.id, id: m.id, [kind]: e.target.checked,
-            });
-            if (res.ok) { notify('Enrolment saved'); await renderLoop(); }
-            else { e.target.checked = !e.target.checked; notify(res.data.error || 'Could not save', 'error'); }
-          },
-        },
-      }),
-      h('span', { class: 'chip-mark' }), h('span', {}, label));
-
     const actions = [];
     if (isOwner) {
       actions.push(h('button', {
@@ -691,10 +675,11 @@ async function renderLoop() {
       h('div', { class: 'member-name' }, name,
         h('span', { class: `status status-${m.status || 'invited'}`, text: m.status || 'invited' })),
       row('Account', accountLabel),
-      row('Enrolled', `face ${fmtBool(m.enrolled?.face)} · voice ${fmtBool(m.enrolled?.voice)}`),
+      row('Recognition record', `Face: ${m.enrolled?.face ? 'recorded' : 'not recorded'} · Voice: ${m.enrolled?.voice ? 'recorded' : 'not recorded'}`),
       isOwner && !linked ? h('div', { class: 'member-unlinked-note' }, icon('alert', 13),
         h('span', {}, 'No account linked — the robot cannot load their personal report.')) : null,
-      isOwner ? h('div', { class: 'enroll' }, enrolChip('face', 'Face'), enrolChip('voice', 'Voice')) : null,
+      isOwner ? h('p', { class: 'field-hint' },
+        'Face and voice recognition are trained on Jibo. This console cannot start, complete, or mark a training session.') : null,
       actions.length ? h('div', { class: 'member-actions' }, ...actions) : null);
 
     return h('div', {
@@ -1926,8 +1911,10 @@ async function renderSystem() {
   const iftttBody = iftttCard.querySelector('.card-body');
   if (ifttt.ok) {
     const id = ifttt.data.identity;
-    iftttBody.append(row('Identity', id && id.id ? String(id.id) : '—'));
+    iftttBody.append(row('Identity', id && id.id ? String(id.id) : 'Not connected'));
     for (const t of (ifttt.data.applets || [])) iftttBody.append(row('Trigger', t.text || t.id));
+    iftttBody.append(h('p', { class: 'field-hint' },
+      'IFTTT establishes and manages its own connection. This page reports the identity and triggers it has made available to Jibo.'));
     if (ifttt.data.diagnostics) {
       iftttBody.append(h('div', { class: 'notice notice-warn' }, icon('alert', 15),
         h('div', { text: ifttt.data.diagnostics.message })));

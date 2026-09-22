@@ -1,4 +1,4 @@
-// Portal surface 1: loop members — list, edit nickname/phonetic/status, enrollment, and the
+// Portal surface 1: loop members — list, edit nickname/phonetic/status, recognition status, and the
 // account LINK/UNLINK that fixes the report-skill's "Missing creds for Settings request" bug
 // (members without an accountId). All fixture accounts/secrets are invented.
 import { test, before, after } from 'node:test';
@@ -134,12 +134,14 @@ test('status can be flipped among the member statuses', async () => {
   assert.equal(ok.body.loop.members[0].status, 'invited');
 });
 
-test('enrollment toggles persist', async () => {
+test('recognition enrollment is reported by Jibo and cannot be changed in the browser', async () => {
   const r = await call('GET', '/api/loop');
   const id = getFirst(r.body).members.find((m) => m.accountId === owner._id).id;
-  const enrolled = await call('POST', '/api/loop/members/enrollment', { loopId: loop._id, id, voice: true });
-  assert.equal(enrolled.status, 200);
-  assert.deepEqual(enrolled.body.loop.members.find((m) => m.id === id).enrolled, { face: false, voice: true });
+  const member = store.loops.get(loop._id).members.find((item) => item._id === id);
+  const before = structuredClone(member.enrolled);
+  const response = await call('POST', '/api/loop/members/enrollment', { loopId: loop._id, id, voice: true });
+  assert.equal(response.status, 404);
+  assert.deepEqual(member.enrolled, before, 'a portal request must not manufacture a recognition result');
 });
 
 test('account search returns identity-only matches', async () => {
