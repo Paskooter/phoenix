@@ -128,6 +128,10 @@ export const TraceHeaders = Object.freeze({
   transId: 'x-jibo-transid',
   robotId: 'x-jibo-robotid',
   loggingConfig: 'x-jibo-logging-config',
+  // Phoenix-only correlation key. Unlike the Jibo headers above this is not a
+  // robot protocol field; the gateway mints it once and forwards it only to
+  // its internal parser, skill, and history peers.
+  turnId: 'x-phoenix-turn-id',
 });
 
 // Default listen ports per service. The reference ran every service on 8080 in-container

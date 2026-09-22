@@ -58,7 +58,7 @@ function bufferLog(line) {
 
 /**
  * @param {string} namespace e.g. 'gateway', 'gateway.listen'
- * @param {{ transId?: string, loggingConfig?: string }} [trace]
+ * @param {{ transId?: string, turnId?: string, loggingConfig?: string }} [trace]
  */
 export function logger(namespace, trace = {}) {
   let perRequest = {};
@@ -75,6 +75,7 @@ export function logger(namespace, trace = {}) {
     if (LEVELS[level] > threshold) return;
     const line = { t: new Date().toISOString(), level, ns: namespace, msg };
     if (trace.transId) line.transId = trace.transId;
+    if (trace.turnId) line.turnId = trace.turnId;
     if (fields) Object.assign(line, fields);
     bufferLog(line);
     const sink = level === 'error' || level === 'warn' ? process.stderr : process.stdout;

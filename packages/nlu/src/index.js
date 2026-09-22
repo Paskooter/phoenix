@@ -148,7 +148,10 @@ export function start(port = Number(process.env.PORT) || DefaultPort.nlu) {
         // Reference ParseRequestHandler.ts:28-30 — 400 on a malformed request
         // (data.text must be a string), not a silent coercion to ''.
         if (!body || !body.data || typeof body.data.text !== 'string') {
+          // Keep the source-compatible caller-facing error, but hand the shared
+          // error logger a content-free summary: the body can be an utterance.
           const error = new Error(`Bad request: ${JSON.stringify(body)}`);
+          error.safeLogMessage = 'Bad request: malformed NLU envelope';
           error.statusCode = 400;
           throw error;
         }

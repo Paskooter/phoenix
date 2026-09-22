@@ -39,7 +39,7 @@ class FakeASRSession {
   fail(error) { this._settle.reject(error); }
 }
 
-function harness(t, { asrProvider, parser, intentRouter, auth = { id: 'acct-h02', friendlyId: 'robot-h02' } } = {}) {
+function harness(t, { asrProvider, parser, intentRouter, auth = { id: 'acct-h02', friendlyId: 'robot-h02' }, transactionLog = log } = {}) {
   const frames = [];
   const tx = new ListenTransaction(
     { _jiboHeaders: {}, _auth: auth, _remoteAddress: '127.0.0.1' },
@@ -51,7 +51,7 @@ function harness(t, { asrProvider, parser, intentRouter, auth = { id: 'acct-h02'
       skillConfigManager: { isOnRobotSkill: () => false },
     },
     { write: (frame) => frames.push(frame) },
-    log,
+    transactionLog,
   );
   // index.js writes the failing transaction's ERROR frame (port of
   // ListenHandler.ts:46-60); mirror it so failure codes are observable here.
@@ -109,6 +109,33 @@ test('server ASR: SOS then EOS then the single terminal LISTEN frame', async (t)
   assert.equal(frames[2].data.match, null);
   assert.deepEqual(parsed.map((request) => request.text), ['do you like dogs']);
   assert.equal(session.stopped, true, 'the ASR session is stopped when the phase settles (stopASR in the finally)');
+});
+
+test('ASR provider breakdown receives the generated turn ID without replacing its logger', async (t) => {
+  const session = new FakeASRSession();
+  const lines = [];
+  const transactionLog = {
+    debug() {}, warn() {}, error() {},
+    info(message, fields) { lines.push({ message, fields }); },
+  };
+  const { tx } = harness(t, {
+    transactionLog,
+    asrProvider: (_config, asrLog) => {
+      asrLog.info('ASR turn', { audioMs: 1000, silenceWaitMs: 400, recognizeMs: 42, chars: 99 });
+      return session;
+    },
+  });
+  tx.handleMessage({ json: listenNoMode() });
+  await tick();
+  const breakdown = lines.find((line) => line.message === 'ASR turn');
+  assert.equal(breakdown.fields.turnId, tx.trace.turnId);
+  assert.deepEqual(
+    Object.keys(breakdown.fields).sort(),
+    ['audioMs', 'chars', 'recognizeMs', 'silenceWaitMs', 'turnId'],
+  );
+  // Preserve the ordinary provider contract: the transaction still owns the
+  // original log object and no wrapper is stored on it.
+  assert.equal(tx.log, transactionLog);
 });
 
 test('CLIENT_ASR cancels the in-flight server ASR phase and keeps the client transcript', async (t) => {

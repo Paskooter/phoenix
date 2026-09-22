@@ -4,23 +4,29 @@
 
 import { TraceHeaders } from '@phoenix/contracts';
 
+// Do not let an arbitrary caller turn an internal correlation header into a
+// log field. Gateway-generated IDs are UUIDs; anything else is ignored.
+const TURN_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 /**
  * Extract the Jibo trace headers from an incoming request.
  * @param {import('node:http').IncomingMessage} req
- * @returns {{ transId?: string, robotId?: string, loggingConfig?: string }}
+ * @returns {{ transId?: string, robotId?: string, loggingConfig?: string, turnId?: string }}
  */
 export function readTrace(req) {
   const h = req.headers || {};
+  const turnId = h[TraceHeaders.turnId];
   return {
     transId: h[TraceHeaders.transId],
     robotId: h[TraceHeaders.robotId],
     loggingConfig: h[TraceHeaders.loggingConfig],
+    turnId: typeof turnId === 'string' && TURN_ID.test(turnId) ? turnId : undefined,
   };
 }
 
 /**
  * Render a trace object back into outbound HTTP headers for a downstream call.
- * @param {{ transId?: string, robotId?: string, loggingConfig?: string }} trace
+ * @param {{ transId?: string, robotId?: string, loggingConfig?: string, turnId?: string }} trace
  * @returns {Record<string,string>}
  */
 export function writeTrace(trace = {}) {
@@ -28,5 +34,6 @@ export function writeTrace(trace = {}) {
   if (trace.transId) out[TraceHeaders.transId] = trace.transId;
   if (trace.robotId) out[TraceHeaders.robotId] = trace.robotId;
   if (trace.loggingConfig) out[TraceHeaders.loggingConfig] = trace.loggingConfig;
+  if (typeof trace.turnId === 'string' && TURN_ID.test(trace.turnId)) out[TraceHeaders.turnId] = trace.turnId;
   return out;
 }

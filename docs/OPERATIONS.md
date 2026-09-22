@@ -28,6 +28,9 @@ Robots and clients connect to the hub at `ws://<host>:9000/listen` (HTTP API on 
 port: `GET /healthcheck`, `GET /v1/skills`); a robot's Classic Services (OOBE, update, log, …)
 go to the classic entrypoint on `:9012`. Logs land in `/tmp/phx-compose-*.log`.
 
+For privacy-safe per-turn latency spans (ASR, parser, routing, skill, history,
+and response-ready), see [VOICE-TURN-OBSERVABILITY.md](VOICE-TURN-OBSERVABILITY.md).
+
 An optional **compiled parser profile** can be installed from a reviewed bundle and selected for
 either launcher:
 

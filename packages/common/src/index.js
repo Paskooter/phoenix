@@ -15,6 +15,7 @@ export {
 } from './cli.js';
 export { readTrace, writeTrace } from './headers.js';
 export { logger, recentLogs } from './log.js';
+export { createVoiceTurnId, logVoiceTurnSpan, logVoiceTurnComplete } from './voiceTurnObservability.js';
 export { createService, sendText, sendJson, readJson, legacyJsonError } from './service.js';
 export * as jwt from './jwt.js';
 export * as ical from './ical.js';

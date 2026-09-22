@@ -71,7 +71,7 @@ async function withPeer(answers, run) {
   finally { await new Promise(resolve => server.close(resolve)); }
 }
 
-async function runTurn(url, { headers = {}, skill = {}, intent, entities = {} } = {}, responses, requests) {
+async function runTurn(url, { headers = {}, skill = {}, intent, entities = {}, transactionLog = log } = {}, responses, requests) {
   const manager = new SkillConfigManager([
     { id: 'source', URL: url, intents: [] },
     { id: 'destination', URL: url, intents: [] },
@@ -87,7 +87,7 @@ async function runTurn(url, { headers = {}, skill = {}, intent, entities = {} } 
       intentRouter: { getSkillIDFromNLU(value) { return value.intent === 'launch-intent' ? { skillID: 'source' } : null; } },
     },
     { write(frame) { emitted.push(frame); } },
-    log,
+    transactionLog,
   );
   tx.handleMessage({ json: listen() });
   await new Promise(resolve => setImmediate(resolve));
@@ -101,12 +101,16 @@ async function runTurn(url, { headers = {}, skill = {}, intent, entities = {} } 
 test('listen launch supplies source Jibo trace defaults and preserves action fields', async () => {
   await withPeer({ source: [{ body: action('source', 'launch-session', { fireAndForget: true, analytics: { marker: 'kept' } }) }], destination: [] }, async (url, requests) => {
     const result = await runTurn(url, { headers: {}, intent: 'launch-intent' }, null, requests);
-    assert.deepEqual(result.trace, { transId: 'unknown', robotId: 'unknown', loggingConfig: '{}' });
+    assert.equal(result.trace.transId, 'unknown');
+    assert.equal(result.trace.robotId, 'unknown');
+    assert.equal(result.trace.loggingConfig, '{}');
+    assert.match(result.trace.turnId, /^[0-9a-f-]{36}$/i);
     assert.deepEqual(
       Object.fromEntries(['x-jibo-transid', 'x-jibo-robotid', 'x-jibo-logging-config'].map(key => [key, requests[0].headers[key]])),
       { 'x-jibo-transid': 'unknown', 'x-jibo-robotid': 'unknown', 'x-jibo-logging-config': '{}' },
     );
     assert.equal(requests[0].body.type, 'LISTEN_LAUNCH');
+    assert.equal(requests[0].headers['x-phoenix-turn-id'], result.trace.turnId);
     assert.equal(requests[0].body.data.result.memo, null);
     assert.equal(result.emitted.at(-1).data.fireAndForget, true);
     assert.deepEqual(result.emitted.at(-1).data.analytics, { marker: 'kept' });
@@ -133,10 +137,39 @@ test('continued update redirects with the opaque session and keeps redirect/acti
         Object.fromEntries(['x-jibo-transid', 'x-jibo-robotid', 'x-jibo-logging-config'].map(key => [key, request.headers[key]])),
         { 'x-jibo-transid': 'trace-update', 'x-jibo-robotid': 'unknown', 'x-jibo-logging-config': '{}' },
       );
+      assert.equal(request.headers['x-phoenix-turn-id'], result.trace.turnId);
     }
     assert.deepEqual(result.emitted.map(frame => frame.type), ['SOS', 'EOS', 'LISTEN', 'SKILL_REDIRECT', 'SKILL_ACTION']);
     assert.deepEqual(result.emitted[3].data.asr, { text: 'redirect asr' });
     assert.equal(result.emitted[4].data.fireAndForget, true);
     assert.deepEqual(result.emitted[4].data.analytics, { marker: 'destination' });
+  });
+});
+
+test('voice turn telemetry emits only correlation, stage, duration, and outcome', async () => {
+  const records = [];
+  const transactionLog = {
+    debug() {}, warn() {}, error() {},
+    info(message, fields) { records.push({ message, fields }); },
+  };
+  await withPeer({ source: [{ body: action('source', 'telemetry-session') }], destination: [] }, async (url, requests) => {
+    const result = await runTurn(url, {
+      intent: 'launch-intent',
+      // Deliberately sensitive-looking content: telemetry must not contain it.
+      entities: { phrase: 'private transcript and token=do-not-log' },
+      transactionLog,
+    }, null, requests);
+    const spans = records.filter((record) => record.message === 'voice_turn_span');
+    assert.deepEqual(spans.map((record) => record.fields.stage), ['context_wait', 'route', 'skill', 'response_ready']);
+    for (const { fields } of spans) {
+      assert.deepEqual(Object.keys(fields).sort(), ['durationMs', 'event', 'outcome', 'stage', 'turnId']);
+      assert.equal(fields.turnId, result.trace.turnId);
+      assert.equal(typeof fields.durationMs, 'number');
+    }
+    const complete = records.find((record) => record.message === 'voice_turn_complete');
+    assert.deepEqual(Object.keys(complete.fields).sort(), ['event', 'outcome', 'totalMs', 'turnId']);
+    assert.equal(complete.fields.turnId, result.trace.turnId);
+    assert.equal(JSON.stringify(records).includes('private transcript'), false);
+    assert.equal(JSON.stringify(records).includes('do-not-log'), false);
   });
 });

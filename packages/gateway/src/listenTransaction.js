@@ -7,7 +7,12 @@
 // ERROR (final). Timeouts: transaction 60s, ASR 40s, CONTEXT-wait 5s, parser 10s, skill 10s.
 
 import { newMsgId, now, ResponseType, RequestType, HubErrorCode, Timeouts } from '@phoenix/contracts';
-import { readTrace } from '@phoenix/common';
+import {
+  createVoiceTurnId,
+  logVoiceTurnComplete,
+  logVoiceTurnSpan,
+  readTrace,
+} from '@phoenix/common';
 import { SpeechHistoryRecord } from './historyClient.js';
 import { preprocessContext, validateContextMessage } from './preprocessor.js';
 import { isRedirect } from './skillClient.js';
@@ -100,6 +105,9 @@ export class ListenTransaction {
       transId: trace.transId || 'unknown',
       robotId: trace.robotId || 'unknown',
       loggingConfig: trace.loggingConfig || '{}',
+      // Do not reuse a caller-supplied value here. The gateway is the trust
+      // boundary and each listen socket gets a fresh, opaque correlation ID.
+      turnId: createVoiceTurnId(),
     };
     this.auth = socket._auth || null;
 
@@ -120,6 +128,13 @@ export class ListenTransaction {
     this.stateTrace = [this.state];
     this.startTime = now();
     this.timings = {};
+    this.contextSpanRecorded = false;
+    this.turnCompleted = false;
+    this.log.info('voice_turn_started', {
+      event: 'voice_turn_started',
+      turnId: this.trace.turnId,
+      entrypoint: 'gateway_listen',
+    });
 
     this.listenMessage = null;
     this.contextPr = defer();
@@ -192,10 +207,9 @@ export class ListenTransaction {
         this.log.error('CONTEXT rejected', {
           reason: err.message,
           dataKeys: shape(json.data),
-          // Ground truth for which robot this is: the transId's uuid-v1 node
-          // field is only an inference about the sender.
-          remote: this.socket && this.socket._remoteAddress,
-          robotID: json.data && json.data.general && json.data.general.robotID,
+          // Do not add robot/account/network identity to voice diagnostics.
+          // The request's correlation headers remain available to operators.
+          hasRobotID: !!(json.data && json.data.general && json.data.general.robotID),
         });
       }
       return this.reject(err);
@@ -325,6 +339,7 @@ export class ListenTransaction {
     // GARBAGE short-circuit. Real robots stream raw PCM here; the sim's mic mode
     // follows the same path.
     const t0 = now();
+    let outcome = 'ok';
     this.asrCancelled = false;
     // A fresh ASR phase reopens the audio path, matching a reference transaction
     // that had not yet reached stopASR().
@@ -339,7 +354,10 @@ export class ListenTransaction {
       // it cannot answer, and its performASR guards the assignment with
       // `if (asrData)`. Both matter here because a Phoenix provider session keeps
       // running until it is told to stop.
-      if (this.asrCancelled || this.state !== State.ASR) return;
+      if (this.asrCancelled || this.state !== State.ASR) {
+        outcome = 'cancelled';
+        return;
+      }
       // `if (asrData)` in the reference: an ASR phase that produced no result
       // must not overwrite data the client already supplied.
       if (out) {
@@ -356,10 +374,13 @@ export class ListenTransaction {
         }
       }
     } catch (err) {
+      outcome = metricOutcome(err);
       // The reference's outer catch re-wraps EVERY ASR failure — including its
       // own TIMEOUT_ASR throw — as HubErrorCode.ASR, so TIMEOUT_ASR never
       // reaches the robot (ListenTransactionHandler.ts:452-484).
       throw new HubError(HubErrorCode.ASR, errMsg(err));
+    } finally {
+      this._span('asr', t0, outcome);
     }
     this._gotoState(State.NLU);
   }
@@ -377,7 +398,11 @@ export class ListenTransaction {
       config.earlyEOS = asrData.earlyEOS ? cleanHintsEOS(asrData.earlyEOS, false, this.log) : undefined;
       config.maxSpeechTimeout = asrData.maxSpeechTimeout || 60 * 1000;
 
-      const session = (this.components.asrProvider || startASRSession)(config, this.log);
+      // Parakeet already emits its useful audio/silence/recognition breakdown.
+      // Scope only that provider logger so those existing fields gain the same
+      // opaque turn correlation without changing the supplied transaction log
+      // object or provider/test interface.
+      const session = (this.components.asrProvider || startASRSession)(config, this._asrLog());
       this.asrSession = session;
 
       // Only the phase that started this closure may emit or resolve; after a
@@ -494,11 +519,13 @@ export class ListenTransaction {
     }
     this._clearASRTimers();
     this.audioChunks.length = 0;
+    this._markFinalResponse('abandoned');
   }
 
   async _performNLU() {
     const context = await this._awaitContext();
     const t0 = now();
+    let outcome = 'ok';
     const parserPr = this.components.parser.handleNLU(
       {
         text: this.asrData.text,
@@ -514,6 +541,7 @@ export class ListenTransaction {
       this.nluData = result;
       this.timings.nlu = now() - t0;
     } catch (err) {
+      outcome = metricOutcome(err);
       // The reference wraps the whole parser block in a catch that re-throws
       // HubErrorCode.PARSER — including its own TIMEOUT_PARSER throw, so even a
       // parser timeout reaches the robot as 'PARSER'
@@ -521,6 +549,8 @@ export class ListenTransaction {
       // hub-listen-provider-failure transaction as
       // {"code":"PARSER","message":"Request failed with status code 503"}).
       throw new HubError(HubErrorCode.PARSER, errMsg(err));
+    } finally {
+      this._span('nlu', t0, outcome);
     }
     this._updateSpeech({ nlu: this.nluData }); // ListenTransactionHandler.ts:323
     this._gotoState(State.ROUTE);
@@ -528,9 +558,13 @@ export class ListenTransaction {
 
   async _performRouting() {
     const context = await this._awaitContext();
+    const t0 = now();
     const decision = this.components.intentRouter.getSkillIDFromNLU(this.nluData);
-    if (decision) {
-      const finalDecision = mediateDecision(decision, this.asrData, this.nluData, context.data.general.release) || decision;
+    const finalDecision = decision
+      ? (mediateDecision(decision, this.asrData, this.nluData, context.data.general.release) || decision)
+      : null;
+    this._span('route', t0, finalDecision ? 'matched' : 'unmatched');
+    if (finalDecision) {
       await this._onSkillMatch(finalDecision.skillID, context, finalDecision.memo, false);
     } else if (context.data && context.data.skill && context.data.skill.id && !this.listenMessage.data.hotphrase) {
       await this._onSkillMatch(context.data.skill.id, context, null, true);
@@ -551,11 +585,24 @@ export class ListenTransaction {
     this._emitListenResult(matchData, false);
 
     const t0 = now();
-    let skillOutput = await withTimeout(
-      this._skillLaunchOrUpdate(skillID, { context: context.data, nlu: this.nluData, asr: this.asrData, memo }, this.trace, isUpdate),
-      Timeouts.skill,
-    );
-    if (skillOutput === TIMEOUT) throw new HubError(HubErrorCode.TIMEOUT_SKILL, `Timeout of ${Timeouts.skill} while waiting for the skill response from '${skillID}'`);
+    let skillOutcome = 'ok';
+    let skillOutput;
+    try {
+      skillOutput = await withTimeout(
+        this._skillLaunchOrUpdate(skillID, { context: context.data, nlu: this.nluData, asr: this.asrData, memo }, this.trace, isUpdate),
+        Timeouts.skill,
+      );
+      if (skillOutput === TIMEOUT) {
+        skillOutcome = 'timeout';
+        throw new HubError(HubErrorCode.TIMEOUT_SKILL, `Timeout of ${Timeouts.skill} while waiting for the skill response from '${skillID}'`);
+      }
+      if (skillOutput.error) skillOutcome = 'remote_error';
+    } catch (err) {
+      if (skillOutcome === 'ok') skillOutcome = metricOutcome(err);
+      throw err;
+    } finally {
+      this._span('skill', t0, skillOutcome);
+    }
     // The reference times this leg with utils.common.time() (ListenTransactionHandler.ts:395-397)
     // and, when a redirect follows, OVERWRITES timings.skill with the redirect leg's own
     // duration (lines 404-410). A redirected SKILL_ACTION therefore reports only the second
@@ -569,7 +616,16 @@ export class ListenTransaction {
 
     if (skillOutput.response && isRedirect(skillOutput.response)) {
       const redirectStart = now();
-      skillOutput = await this._handleRedirect(skillOutput.response, context, skillID);
+      let redirectOutcome = 'ok';
+      try {
+        skillOutput = await this._handleRedirect(skillOutput.response, context, skillID);
+        if (skillOutput.error) redirectOutcome = 'remote_error';
+      } catch (err) {
+        redirectOutcome = metricOutcome(err);
+        throw err;
+      } finally {
+        this._span('skill_redirect', redirectStart, redirectOutcome);
+      }
       this.timings.skill = now() - redirectStart;
     }
     this._emitSkillResult(skillOutput, true);
@@ -586,7 +642,10 @@ export class ListenTransaction {
     // identified; peoplePresent is not folded into launch identity.
     const personIDs = perception.speaker ? [perception.speaker] : ['UNKNOWN'];
     const sessionID = (skillResponse && skillResponse.data && skillResponse.data.skill && skillResponse.data.skill.session && skillResponse.data.skill.session.id) || newMsgId();
-    this.components.historyClient.writeSkillLaunch({ robotID: general.robotID, sessionID, skillID, intent: this.nluData && this.nluData.intent, personIDs }, this.trace);
+    const startedAt = now();
+    this.components.historyClient.writeSkillLaunch({ robotID: general.robotID, sessionID, skillID, intent: this.nluData && this.nluData.intent, personIDs }, this.trace)
+      .then((result) => this._span('history_launch', startedAt, result === null ? 'error' : 'ok'))
+      .catch(() => this._span('history_launch', startedAt, 'error'));
   }
 
   // --- speech-history log sink (ListenTransactionHandler.ts:84-108) -----------
@@ -602,8 +661,13 @@ export class ListenTransaction {
    */
   _saveSpeech() {
     if (!this.speechRecord || !this.components.historyClient) return;
+    const startedAt = now();
     this.components.historyClient.saveSpeechRecord(this.speechRecord, this.trace)
-      .catch((err) => this.log.error(err.message));
+      .then(() => this._span('history_speech', startedAt, 'ok'))
+      .catch((err) => {
+        this._span('history_speech', startedAt, 'error');
+        this.log.error(err.message);
+      });
   }
 
   /**
@@ -652,9 +716,24 @@ export class ListenTransaction {
   }
 
   async _awaitContext() {
-    const ctx = await withTimeout(this.contextPr.promise, Timeouts.context);
-    if (ctx === TIMEOUT) throw new HubError(HubErrorCode.TIMEOUT_CONTEXT, `Timeout of ${Timeouts.context} while waiting for the context message`);
-    return ctx;
+    const t0 = now();
+    let outcome = 'ok';
+    try {
+      const ctx = await withTimeout(this.contextPr.promise, Timeouts.context);
+      if (ctx === TIMEOUT) {
+        outcome = 'timeout';
+        throw new HubError(HubErrorCode.TIMEOUT_CONTEXT, `Timeout of ${Timeouts.context} while waiting for the context message`);
+      }
+      return ctx;
+    } catch (err) {
+      if (outcome === 'ok') outcome = metricOutcome(err);
+      throw err;
+    } finally {
+      if (!this.contextSpanRecorded) {
+        this.contextSpanRecorded = true;
+        this._span('context_wait', t0, outcome);
+      }
+    }
   }
 
   // --- emitters (robot-facing wire shapes) ----------------------------------
@@ -667,7 +746,7 @@ export class ListenTransaction {
   }
   _emitListenResult(match, final) {
     this._updateSpeech({ match }); // ListenTransactionHandler.ts:676 — recorded even when match is null
-    this.response.write({
+    const wrote = this.response.write({
       type: ResponseType.LISTEN,
       msgID: newMsgId(),
       ts: now(),
@@ -675,30 +754,63 @@ export class ListenTransaction {
       final,
       timings: { total: now() - this.startTime, asr: this.timings.asr, nlu: this.timings.nlu },
     });
+    if (final && wrote !== false) this._markFinalResponse('listen');
   }
   _emitSkillResult(skillOutput, final) {
     if (skillOutput.error) {
-      this.response.write({ type: ResponseType.ERROR, final, ts: now(), msgID: newMsgId(), data: { message: errMsg(skillOutput.error) } });
+      const wrote = this.response.write({ type: ResponseType.ERROR, final, ts: now(), msgID: newMsgId(), data: { message: errMsg(skillOutput.error) } });
+      if (final && wrote !== false) this._markFinalResponse('error');
       return;
     }
     // Forward the skill's response VERBATIM, overwriting only final + timings (gotcha #4).
     const out = Object.assign({}, skillOutput.response, { final, timings: { total: now() - this.startTime, skill: this.timings.skill } });
-    this.response.write(out);
+    const wrote = this.response.write(out);
+    if (final && wrote !== false) this._markFinalResponse('skill');
   }
   _emitSkillRedirectNotification(redirectData) {
     const onRobot = this.components.skillConfigManager.isOnRobotSkill(redirectData.skillID);
-    this.response.write({
+    const wrote = this.response.write({
       type: ResponseType.SKILL_REDIRECT,
       msgID: newMsgId(),
       ts: now(),
       final: onRobot,
       data: { match: { skillID: redirectData.skillID, launch: true, onRobot }, nlu: redirectData.nlu, asr: redirectData.asr, memo: redirectData.memo },
     });
+    if (onRobot && wrote !== false) this._markFinalResponse('redirect');
   }
 
   // --- lifecycle ------------------------------------------------------------
 
   _finish() { this.resolve(); return Promise.resolve(); }
+
+  /** Called by the gateway error writer after it queues its final ERROR frame. */
+  markErrorResponse() { this._markFinalResponse('error'); }
+
+  _span(stage, startedAt, outcome = 'ok') {
+    logVoiceTurnSpan(this.log, this.trace, stage, startedAt, outcome);
+  }
+
+  _asrLog() {
+    const parent = this.log;
+    return {
+      ...parent,
+      info: (message, fields) => {
+        // The ASR breakdown always supplies an object. Leave a non-object
+        // supplied logger call unchanged rather than inventing a new shape.
+        if (!fields || typeof fields !== 'object' || Array.isArray(fields)) {
+          return parent.info?.(message, fields);
+        }
+        return parent.info?.(message, { ...fields, turnId: this.trace.turnId });
+      },
+    };
+  }
+
+  _markFinalResponse(outcome) {
+    if (this.turnCompleted) return;
+    this._span('response_ready', this.startTime, outcome);
+    this.turnCompleted = true;
+    logVoiceTurnComplete(this.log, this.trace, this.startTime, outcome);
+  }
 
   resolve() {
     clearTimeout(this._txTimer);
@@ -726,6 +838,14 @@ function loopUsers(contextMessage) {
   const runtime = contextMessage && contextMessage.data && contextMessage.data.runtime;
   const users = (runtime && runtime.loop && runtime.loop.users) || [];
   return users.map((u) => ({ firstName: u.firstName, lastName: u.lastName, id: u.id }));
+}
+
+// Keep the log taxonomy small and content-free. Error messages can include a
+// provider response or malformed client payload, so they never cross into
+// latency telemetry.
+function metricOutcome(error) {
+  if (error === TIMEOUT || String(error?.code || '').startsWith('TIMEOUT')) return 'timeout';
+  return 'error';
 }
 
 function errMsg(e) { return e instanceof Error ? e.message : (e && e.message) || String(e); }

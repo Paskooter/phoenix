@@ -11,6 +11,7 @@ import bodyParser from 'body-parser';
 import { newMsgId, now, ResponseType } from '@phoenix/contracts';
 import { readTrace } from './headers.js';
 import { logger } from './log.js';
+import { logVoiceTurnSpan } from './voiceTurnObservability.js';
 
 const JSON_CONTENT_TYPES = ['application/json', 'application/x-amz-json-1.1'];
 
@@ -153,7 +154,7 @@ export function createService({
 
   app.use((error, req, res, next) => {
     const reqLog = req._phoenixLog || logger(name, readTrace(req));
-    reqLog.error('handler threw', { error: error?.message });
+    reqLog.error('handler threw', { error: error?.safeLogMessage || error?.message });
     if (res.headersSent) return next(error);
     // A source adapter may need to preserve a framework-native parser error
     // envelope for one endpoint. Keep this opt-in and route-scoped so the
@@ -202,6 +203,8 @@ function routeMiddleware(name, handler) {
   return (req, res, next) => {
     const trace = req._phoenixTrace || readTrace(req);
     const reqLog = req._phoenixLog || logger(name, trace);
+    const spanStartedAt = Date.now();
+    let spanOutcome = 'ok';
     const url = new URL(req.originalUrl || req.url, 'http://localhost');
     const bodyDefault = Object.prototype.hasOwnProperty.call(handler, 'bodyDefault')
       ? (typeof handler.bodyDefault === 'function' ? handler.bodyDefault(req) : handler.bodyDefault)
@@ -219,7 +222,13 @@ function routeMiddleware(name, handler) {
       .then((result) => {
         if (!res.writableEnded) sendJson(res, 200, result);
       })
-      .catch(next);
+      .catch((error) => {
+        // Error text can contain an upstream response or invalid user input;
+        // only the safe outcome class is included in the timing event.
+        spanOutcome = 'error';
+        next(error);
+      })
+      .finally(() => logVoiceTurnSpan(reqLog, trace, 'http_request', spanStartedAt, spanOutcome));
   };
 }
 

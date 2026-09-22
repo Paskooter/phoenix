@@ -140,7 +140,14 @@ export async function createGateway(config = loadConfig()) {
       if (isBinary) return tx.handleMessage({ audio: data });
       let json;
       try { json = JSON.parse(data.toString('utf8')); }
-      catch { return tx.reject(new Error(`Invalid JSON arrived into socket: ${data}`)); }
+      catch {
+        // Preserve the original robot-visible protocol error, while giving the
+        // server logger a safe summary. A malformed frame can itself contain a
+        // transcript or token, so it must not be copied into observability.
+        const error = new Error(`Invalid JSON arrived into socket: ${data}`);
+        error.safeLogMessage = 'Invalid JSON arrived into socket';
+        return tx.reject(error);
+      }
       tx.handleMessage({ json });
     });
     // ListenHandler's SocketMessageReader resolves its read promise on close,
@@ -160,8 +167,9 @@ export async function createGateway(config = loadConfig()) {
     else ws.on('close', () => tx.abandon?.());
 
     tx.done.catch((err) => {
-      reqLog.error('transaction failed', { error: err.message, code: err.code });
-      response.write({ type: ResponseType.ERROR, msgID: newMsgId(), ts: now(), final: true, data: { code: err.code, message: err.message }, timings: { total: now() - tx.startTime } });
+      reqLog.error('transaction failed', { error: err.safeLogMessage || err.message, code: err.code });
+      const wrote = response.write({ type: ResponseType.ERROR, msgID: newMsgId(), ts: now(), final: true, data: { code: err.code, message: err.message }, timings: { total: now() - tx.startTime } });
+      if (wrote !== false) tx.markErrorResponse?.();
     });
   });
 
