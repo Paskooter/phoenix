@@ -193,26 +193,23 @@ application ports.
 
 ## 6. Point the robot at the server
 
-One run does everything on the robot:
+For public `jibo.io`, use the current `robot-ota-repoint.sh` helper before asking
+the robot to install an OTA. It rewrites all installed client endpoint configs to
+`*.jibo.io`, installs the CA-accepting Node client and ISRG Root X1, repairs the
+native OpenSSL default CA file, patches the independent OTA downloader and
+backup/restore helpers, sets the regional Jetstream hub, and creates
+`/var/jibo/keys` as a private directory without replacing existing keys. It can
+also prove possession of an already-paired robot to link it to a Phoenix account.
+The public helper **does not add a hosts-file redirect or a private CA**. An old
+`phoenix-repoint` block in `/var/etc/hosts` is a legacy LAN setup; remove it
+after confirming the robot has public-DNS jibo.io endpoints. Do not rely on it
+as proof that a fresh robot can connect.
 
-* redirects `<region>.jibo.com` and `<region>-socket.jibo.com` to the server,
-* installs the CA **the server generated** into the robot's trust store, so the
-  redirect is actually accepted,
-* patches every installed Node `jibo-server-client` HTTP transport and installs
-  its CA bundle, with backups and a guarded revert,
-* patches the separately executed OTA downloader to use that same public CA
-  bundle and verifies its executable mode is `0755` (a missing execute bit
-  otherwise appears only as the misleading `No data received from OTA service`),
-* ensures the OS and services version reporters embedded in a newly baked OTA
-  image match that artifact's catalog `toVersion`; package filenames alone do
-  not advance the robot's OTA state,
-* ensures `/var/jibo/keys` is a real mode-0700 directory before STS/backup/OTA
-  work begins, while preserving any existing key material,
-* points Jetstream's conversation hub at the server and restarts it, so speech
-  reaches Phoenix too (`--hub-port`, default 9000; `--no-hub` to skip),
-* proves possession of an already-paired robot using the credentials in its
-  own `/var/jibo/credentials.json`, without importing an original-cloud user
-  account.
+Do not confuse the public helper with the separate self-hosted
+`parity-robot/repoint-robot.sh` workflow: that older private-server workflow can
+use a hosts redirect and a locally generated CA. It is not the jibo.io migration
+recipe. Also, package filenames are not version state: the version reporters
+*inside* each OS/services OTA must agree with the catalog `toVersion`.
 
 ### Claim an already-paired robot into a new Phoenix account
 
@@ -230,6 +227,23 @@ claim code; it does not install or bypass robot access.
 curl --fail --remote-name https://jibo.io/robot-ota-repoint.sh && \
   bash ./robot-ota-repoint.sh --robot root@<robot-ip> --claim-code <portal-code> --yes
 ```
+
+For the 13.0.6 stock-to-jibo.io path, install all four offered subsystems:
+`os` 13.0.6, `services` 13.0.6, `oobe-config` 9.0.1, and `@be/be` 11.0.1.
+The catalog publishes each for the normal `fcs` filter and the OOBE skill's
+`eau` filter (plus filterless console queries); omitting `eau` makes a stock
+OOBE screen report no update even when the packages are present.
+The two skills are independent per-skill packages; neither wipes the skills
+partition. Do not treat a successful OS-only upgrade as a complete migration.
+The OTA itself preserves `/var`, including Wi-Fi, identity, household data and
+robot credentials. A robot on the published 13.0.5 package may have reverted
+to the original backup/restore helpers, so re-run the current public helper
+*before* its next OTA; otherwise its pre-update backup can fail even though the
+new services package contains the fix. After installation, check that both
+`jibo-version` and `jibo-service-version` report 13.0.6, that BE reports
+11.0.1, that `/etc/hosts` contains no Phoenix LAN redirects, and that a fresh
+voice turn reaches jibo.io. The clean stock-to-OTA end-to-end trial remains a
+separate acceptance test; packaging checks alone do not certify it.
 
 For a self-hosted deployment with a private CA, the portal instead produces the
 equivalent `parity-robot/repoint-robot.sh` command including the configured

@@ -10,9 +10,9 @@
     "13.0.1 is the jibo.io repoint build of platform 13.0.0. It exists as a distinct, higher",
     "version because a robot already running 13.0.0 would never be offered 13.0.0 again \u2014 the",
     "loop-guard would suppress exactly the update that performs the repoint.",
-    "Not yet published: a skills package. The behaviour engine's own client copy lives in the",
-    "skills partition, so a complete repoint eventually needs one.",
-    "A stock robot sends otaFilter fcs (baked into jibo-ssm-normal.json). The source filter rule is a PREFIX match when the request carries a filter and an EXACT empty-string match when it does not, so ONE entry cannot serve both: filter  is NOT a wildcard. Every version is therefore published twice, once filterless and once as fcs, pointing at the same file."
+    "13.0.6 adds independent @be/be 11.0.1 and oobe-config 9.0.1 skill OTAs; neither",
+    "replaces the skills partition or removes the other installed skills.",
+    "The 13.0.6 packages are published for filterless, fcs (SSM scheduler), and eau (the OOBE skill) requests. The source filter rule is a PREFIX match when the request carries a filter and an EXACT empty-string match when it does not; filter '' is NOT a wildcard."
   ],
   "updates": [
     {
@@ -158,6 +158,171 @@
         "os": "13.0.5"
       },
       "file": "services-13.0.5.tar"
+    },
+    {
+      "id": "os-13.0.6",
+      "subsystem": "os",
+      "fromVersion": "*",
+      "toVersion": "13.0.6",
+      "created": 1790116200000,
+      "changes": "jibo.io OTA v13.0.6: preserve the proven 13.0.5 OS payload, including executable permissions and TLS support, and fix the embedded release reporter so the update is not offered again after installation.",
+      "filter": "",
+      "dependencies": {},
+      "file": "os-13.0.6.tar"
+    },
+    {
+      "id": "os-13.0.6-fcs",
+      "subsystem": "os",
+      "fromVersion": "*",
+      "toVersion": "13.0.6",
+      "created": 1790116200000,
+      "changes": "jibo.io OTA v13.0.6: preserve the proven 13.0.5 OS payload, including executable permissions and TLS support, and fix the embedded release reporter so the update is not offered again after installation.",
+      "filter": "fcs",
+      "dependencies": {},
+      "file": "os-13.0.6.tar"
+    },
+    {
+      "id": "services-13.0.6",
+      "subsystem": "services",
+      "fromVersion": "*",
+      "toVersion": "13.0.6",
+      "created": 1790116200000,
+      "changes": "jibo.io OTA v13.0.6: preserve the proven 13.0.5 services payload, bake verified public-CA handling into system backup and restore, and fix the embedded release reporter.",
+      "filter": "",
+      "dependencies": { "os": "13.0.6" },
+      "file": "services-13.0.6.tar"
+    },
+    {
+      "id": "services-13.0.6-fcs",
+      "subsystem": "services",
+      "fromVersion": "*",
+      "toVersion": "13.0.6",
+      "created": 1790116200000,
+      "changes": "jibo.io OTA v13.0.6: preserve the proven 13.0.5 services payload, bake verified public-CA handling into system backup and restore, and fix the embedded release reporter.",
+      "filter": "fcs",
+      "dependencies": { "os": "13.0.6" },
+      "file": "services-13.0.6.tar"
+    },
+    {
+      "id": "be-11.0.1-jibo-io",
+      "subsystem": "@be/be",
+      "fromVersion": "*",
+      "toVersion": "11.0.1",
+      "created": 1790116200000,
+      "changes": "Install the known-working Phoenix BE 11.0.1 in the standard @be/be skill slot, with jibo.io client endpoints and public CA. Does not replace the skills partition.",
+      "filter": "",
+      "dependencies": { "os": "13.0.6", "services": "13.0.6" },
+      "file": "be-11.0.1-jibo-io.tar"
+    },
+    {
+      "id": "be-11.0.1-jibo-io-fcs",
+      "subsystem": "@be/be",
+      "fromVersion": "*",
+      "toVersion": "11.0.1",
+      "created": 1790116200000,
+      "changes": "Install the known-working Phoenix BE 11.0.1 in the standard @be/be skill slot, with jibo.io client endpoints and public CA. Does not replace the skills partition.",
+      "filter": "fcs",
+      "dependencies": { "os": "13.0.6", "services": "13.0.6" },
+      "file": "be-11.0.1-jibo-io.tar"
+    },
+    {
+      "id": "be-11.0.1-jibo-io-from-12",
+      "subsystem": "@be/be",
+      "fromVersion": "12.0.0",
+      "toVersion": "11.0.1",
+      "created": 1790116200000,
+      "changes": "Replace original-cloud BE 12.0.0 with the hardware-tested Phoenix BE 11.0.1; this is an intentional compatibility downgrade.",
+      "filter": "",
+      "dependencies": { "os": "13.0.6", "services": "13.0.6" },
+      "file": "be-11.0.1-jibo-io.tar"
+    },
+    {
+      "id": "be-11.0.1-jibo-io-from-12-fcs",
+      "subsystem": "@be/be",
+      "fromVersion": "12.0.0",
+      "toVersion": "11.0.1",
+      "created": 1790116200000,
+      "changes": "Replace original-cloud BE 12.0.0 with the hardware-tested Phoenix BE 11.0.1; this is an intentional compatibility downgrade.",
+      "filter": "fcs",
+      "dependencies": { "os": "13.0.6", "services": "13.0.6" },
+      "file": "be-11.0.1-jibo-io.tar"
+    },
+    {
+      "id": "oobe-config-9.0.1-jibo-io",
+      "subsystem": "oobe-config",
+      "fromVersion": "*",
+      "toVersion": "9.0.1",
+      "created": 1790116200000,
+      "changes": "Update the OOBE skill's own server client, endpoints, and public CA without replacing the rest of the skills partition.",
+      "filter": "",
+      "dependencies": { "os": "13.0.6", "services": "13.0.6" },
+      "file": "oobe-config-9.0.1-jibo-io.tar"
+    },
+    {
+      "id": "oobe-config-9.0.1-jibo-io-fcs",
+      "subsystem": "oobe-config",
+      "fromVersion": "*",
+      "toVersion": "9.0.1",
+      "created": 1790116200000,
+      "changes": "Update the OOBE skill's own server client, endpoints, and public CA without replacing the rest of the skills partition.",
+      "filter": "fcs",
+      "dependencies": { "os": "13.0.6", "services": "13.0.6" },
+      "file": "oobe-config-9.0.1-jibo-io.tar"
+    },
+    {
+      "id": "os-13.0.6-eau",
+      "subsystem": "os",
+      "fromVersion": "*",
+      "toVersion": "13.0.6",
+      "created": 1790116200000,
+      "changes": "jibo.io OTA 13.0.6 for the stock OOBE update channel; corrected embedded version reporter and preserved executable metadata.",
+      "filter": "eau",
+      "dependencies": {},
+      "file": "os-13.0.6.tar"
+    },
+    {
+      "id": "services-13.0.6-eau",
+      "subsystem": "services",
+      "fromVersion": "*",
+      "toVersion": "13.0.6",
+      "created": 1790116200000,
+      "changes": "jibo.io OTA 13.0.6 for the stock OOBE update channel; backup/restore TLS and corrected embedded version reporter.",
+      "filter": "eau",
+      "dependencies": { "os": "13.0.6" },
+      "file": "services-13.0.6.tar"
+    },
+    {
+      "id": "be-11.0.1-jibo-io-eau",
+      "subsystem": "@be/be",
+      "fromVersion": "*",
+      "toVersion": "11.0.1",
+      "created": 1790116200000,
+      "changes": "Install hardware-tested BE 11.0.1 into the standard @be/be slot through the stock OOBE update channel.",
+      "filter": "eau",
+      "dependencies": { "os": "13.0.6", "services": "13.0.6" },
+      "file": "be-11.0.1-jibo-io.tar"
+    },
+    {
+      "id": "be-11.0.1-jibo-io-from-12-eau",
+      "subsystem": "@be/be",
+      "fromVersion": "12.0.0",
+      "toVersion": "11.0.1",
+      "created": 1790116200000,
+      "changes": "Replace original-cloud BE 12.0.0 with the hardware-tested Phoenix BE 11.0.1 through the stock OOBE update channel.",
+      "filter": "eau",
+      "dependencies": { "os": "13.0.6", "services": "13.0.6" },
+      "file": "be-11.0.1-jibo-io.tar"
+    },
+    {
+      "id": "oobe-config-9.0.1-jibo-io-eau",
+      "subsystem": "oobe-config",
+      "fromVersion": "*",
+      "toVersion": "9.0.1",
+      "created": 1790116200000,
+      "changes": "Update the OOBE skill's own jibo.io client and public CA through the stock OOBE update channel.",
+      "filter": "eau",
+      "dependencies": { "os": "13.0.6", "services": "13.0.6" },
+      "file": "oobe-config-9.0.1-jibo-io.tar"
     }
   ]
 }

@@ -27,7 +27,7 @@ BASE_RELEASE = "Release-13.0.0-20190225"
 # filesystem, so the marker embedded in each replaced partition must match the
 # catalog `toVersion`.  Leaving the stock marker here makes the server offer the
 # same wildcard package again after a successful install.
-DEFAULT_OTA_VERSION = "13.0.5"
+DEFAULT_OTA_VERSION = "13.0.6"
 RELEASE_DATE = "20190225"
 RELEASE_MARKER = BASE_RELEASE.encode("ascii")
 RELEASE_MARKER_PATHS = {

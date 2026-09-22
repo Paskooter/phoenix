@@ -127,10 +127,28 @@ scripts/build-ota-packages.sh \
 
 Each `<subsystem>-<version>.tar` is the reference OTA format (an uncompressed tar wrapping
 `filesystem.tar.bz2`). Needs `bzip2` and either root (loop mount) or `debugfs` (e2fsprogs).
+The generic script's unprivileged `debugfs rdump` path does **not** preserve
+rootfs/services numeric ownership or setuid bits; never publish its output to
+production without a separate metadata-preserving packer and full validation.
 `manifest.json` lists both `13.0.0` and `12.10.0` (os + services); the server computes each
 package's real length + SHA-1 at startup, serves the highest available `toVersion`, and silently
 skips any not yet built. Use only **production** (`-prod`/`-production`) buildroots for a
 prod-fused robot — see the build repo `…/platformos/builds/sqa-testing/`.
+
+For the public jibo.io 13.0.6 release, use
+`scripts/build-jibo-io-ota-13-0-6.py` with the exact published 13.0.5 OS and
+services package bytes and the reviewed BE 11.0.1 skills image. It hash-pins
+all three inputs, preserves numeric ownership/modes (including setuid and
+executables), fixes the embedded OS/services version reporters, and patches
+the separate backup/restore TLS helpers. It emits four packages: `os`,
+`services`, `@be/be` 11.0.1 and `oobe-config` 9.0.1. The skills packages contain
+one skill's files at the tar root, as in Jibo's published skill OTAs; **do not**
+publish a whole `skills.ext4` dump as a skill update, because the robot's skill
+installer would place the partition tree inside a single skill directory.
+Check the generated `build-manifest.json` and inner tar member owners/modes
+before installing packages into the live OTA data directory. Publishing the
+manifest requires restarting the OTA service, because it hashes package files
+when the catalog loads.
 
 **2. Run it** (started by `run-compose-stack.sh` on **:9010**, or standalone):
 
@@ -138,15 +156,19 @@ prod-fused robot — see the build repo `…/platformos/builds/sqa-testing/`.
 npm run start:ota        # PORT=7015 default; ETCO_ota_dataDir / ETCO_ota_manifest / ETCO_ota_publicUrl
 ```
 
-**3. Point the robot at it.** The robot resolves its Update endpoint from `region` in
-`/var/jibo/credentials.json` → `https://<region>.jibo.com` (a global endpoint shared by all
-server-client services), so make that host resolve to this server (DNS or `/etc/hosts` on the
-robot) and `credentials.json` exist. Then a normal `checkForUpdates` walks os→services→reboot,
-calibration intact. `fromVersion: "*"` in the manifest matches any installed version (with a
-loop-guard so it stops once the robot already runs the target).
+**3. Point the robot at it.** For public jibo.io, run the supported
+`scripts/robot-ota-repoint.sh` helper first. It rewrites the installed client
+endpoint templates to `https://<region>.jibo.io` and installs public CA trust;
+it does **not** require a hosts-file intercept or private CA. The OTA keeps
+`/var` (identity and calibration). For a separate private self-hosted instance,
+DNS/hosts and trust depend on that instance's certificate and repoint workflow;
+do not apply those private-server instructions to the public jibo.io path.
+`fromVersion: "*"` entries are offered only when the installed version compares
+below `toVersion`; specific downgrade entries must name their exact source
+version. The OS, services, OOBE and BE subsystems are distinct updates.
 
 > Scope: this serves whatever packages you build — `os`/`services` from the buildroot, and any
-> skill subsystem (`be`, `oobe-config`, …) you add to `manifest.json`. It does **not** sign
+> skill subsystem (`@be/be`, `oobe-config`, …) you add to `manifest.json`. It does **not** sign
 > images; a production-fused robot still needs Jibo-signed bootloaders (use official signed
 > builds, or the secure-boot flash). It is a Phoenix *extension*, excluded from the reference
 > conversational-contract check.
