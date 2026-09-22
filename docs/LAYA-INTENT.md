@@ -56,6 +56,17 @@ those capabilities. If the GPU, model manifest, or warm-up prediction fails,
 `/readyz` does not report ready. Run exactly one Uvicorn worker; multiple
 workers would load multiple copies of the model into VRAM.
 
+The bootstrap job downloads into a private staging directory and promotes only
+the verified Laya checkpoint files: the root decision configuration and
+weights, tokenizer assets, and `encoder/config.json` needed for offline model
+construction (plus a supplied top-level `config.json`, if present). This also
+avoids a pre-1.18 `huggingface_hub` local-directory permission-probe bug
+without changing the service's read-only mount or running downloads as root. A successful bootstrap has
+already checked the required checkpoint files and written the hash manifest;
+the harmless warning from an older image does not require deleting the model
+volume. Re-run bootstrap only after upgrading this service if you want to
+remove that old downloader warning.
+
 Allow TCP/6973 only from the Phoenix VPS over an authenticated private route.
 Keep the bearer token in `/etc/phoenix/laya.env` on the GPU host and the
 Phoenix private environment on the VPS; do not commit it or enter it into a
