@@ -124,14 +124,15 @@ visibility, then the exact Parakeet image:
 
 ```bash
 nvidia-smi  # or /usr/lib/wsl/lib/nvidia-smi if it is not on PATH
-docker run --rm --gpus all nvcr.io/nvidia/k8s/cuda-sample:nbody nbody -gpu -benchmark
 docker run --rm --gpus all --entrypoint python parakeet-asr:latest -c \
   'import torch; print(torch.__version__, torch.version.cuda, torch.cuda.is_available(), torch.cuda.device_count()); print(torch.cuda.get_arch_list())'
 ```
 
-If the NVIDIA sample fails, fix WSL/Docker GPU pass-through before rebuilding
-Parakeet. If the sample works but Torch reports `False` or `torch.version.cuda`
-is `None`, the image has the wrong Torch build. For an RTX 50-series GPU the
+The existing local image is the most useful probe: it avoids a registry
+download and tests the exact Torch installation Parakeet uses. If `docker run
+--gpus all` fails before Python starts, fix WSL/Docker GPU pass-through. If it
+starts but Torch reports `False` or `torch.version.cuda` is `None`, check the
+GPU device request and Torch build. For an RTX 50-series GPU the
 Torch build must support its Blackwell architecture (`sm_120`); inspect the
 printed architecture list rather than assuming a CUDA wheel is sufficient.
 If all checks pass, recreate the existing Parakeet container with `--gpus all`
