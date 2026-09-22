@@ -116,7 +116,10 @@ for _attempt in $(seq 1 20); do
   if systemctl is-active --quiet "$SERVICE"; then
     all_ok=1
     for url in $HEALTH_URLS; do
-      curl --fail --silent --show-error --connect-timeout 2 --max-time 5 "$url" >/dev/null || all_ok=0
+      # A brief connection refusal is normal while systemd is replacing the
+      # process tree. Keep retries quiet; only the final rollback message is
+      # actionable to an operator.
+      curl --fail --silent --connect-timeout 2 --max-time 5 "$url" >/dev/null || all_ok=0
     done
     if [[ "$all_ok" = 1 ]]; then healthy=1; break; fi
   fi
