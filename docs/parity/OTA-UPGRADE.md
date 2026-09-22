@@ -147,8 +147,8 @@ by an OS update:
 
 | What the repoint sets | Partition | Carried by the OTA payload? |
 | --- | --- | --- |
-| `/etc/hosts` entry, and the patched `@jibo/jibo-server-client` CA handling (DIVERGENCES R1) | `rootfs` | yes — `os` package |
-| `/usr/local/etc/jibo-jetstream-service.json` hub/entrypoint override | `services` | yes — `services` package |
+| Public CA bundle, `/etc/ssl/cert.pem`, the patched `@jibo/jibo-server-client` copies, and the OTA downloader's explicit CA | `rootfs` | yes — `os` package |
+| `/usr/local/etc/jibo-jetstream-service.json` hub/entrypoint override, plus `jibo-system-backup` and `jibo-system-restore` using the rootfs public CA bundle explicitly | `services` | yes — `services` package |
 | `@be/phoenix-parity-11-0-1` under `/opt/jibo/Jibo/Skills` | `skills` | yes — a skills package |
 | the region / server URL in `/var/jibo/credentials.json` | `var` | **no — `/var` is preserved, deliberately** |
 
@@ -171,9 +171,12 @@ payload.
 
 Where the URL actually lives when baked: the `override` block of
 `/usr/local/etc/jibo-jetstream-service.json` on the **services** partition supplies the
-hub host and port, the hosts entry in **rootfs** supplies the name, and the CA trust
-patch in **rootfs** makes the TLS work. `/var/jibo/credentials.json`'s region is
-preserved and is not the mechanism.
+hub host and port; the rewritten client region configs retain the robot's region but
+resolve the public `*.jibo.io` names through DNS; and the public CA bundle plus explicit
+Node-6 CA handling in **rootfs** makes TLS work. The backup and restore helpers in
+**services** are separate raw `request`/`https` programs, so they explicitly read the
+same bundle rather than relying on the patched server client. `/var/jibo/credentials.json`'s
+region is preserved and is not the mechanism.
 
 Recorded in DIVERGENCES, because the reference had no such step: a reference robot was
 provisioned by the factory/cloud, not repointed by its own update.
@@ -218,8 +221,9 @@ provisioned by the factory/cloud, not repointed by its own update.
 
 ## Two delivery paths, one repoint (R-07, R-08)
 
-The repoint content is the same either way — hosts entry, CA trust, BE 11.0.1, a
-baked server URL. What differs is how it reaches the robot:
+The repoint content is the same either way — public CA trust, explicit TLS handling for
+every Node-6 network client (including backup/restore), BE 11.0.1, and a baked server
+URL. What differs is how it reaches the robot:
 
 | | OTA (R-06, R-07) | Flash (R-08) |
 | --- | --- | --- |
@@ -228,12 +232,12 @@ baked server URL. What differs is how it reaches the robot:
 | `/var` | preserved by the A/B slot swap | preserved because the helper never writes that partition |
 | Rollback | U-Boot `bootcount`/`bootlimit` after the slot flip | the same mechanism, plus the old slot still on disk |
 
-Both were open as of 2026-09-18: **no built image carries the repoint at all.**
-Grepping every overlay in the workbench for `region_config`, `HubClient.override`,
-`phoenix-ca` and `jibo-server-client` returns nothing, and the workbench does not
-reference `point-robot-at-phoenix.sh` anywhere — so a flashed *or* updated robot still
-needs the SSH repoint afterwards until R-07 and R-08 land. That is the single gap both
-tasks exist to close.
+Both were open as of 2026-09-18. The Phoenix image baker now owns the repoint payload:
+it rewrites every client config, installs the public trust material, gives the OTA
+downloader and both system-manager backup helpers an explicit CA bundle, and records
+their source and output hashes in `repoint-manifest.json`. A release still requires the
+workbench build/package/physical-update gates above; this source change alone is not a
+published or hardware-validated OTA release.
 
 R-08 additionally owns the certificate question, because it is the path where it
 bites hardest: the robot's public bundle holds 180 certificates of which **58 have

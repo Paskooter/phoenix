@@ -226,6 +226,8 @@ export function staticRoutes() {
       join(PROJECT_DIR, 'scripts/robot-ota-repoint.sh'), 'text/plain; charset=utf-8'),
     'GET /robot-client/node.js': serveExternal(
       join(PROJECT_DIR, 'scripts/robot-client/node.js'), 'text/plain; charset=utf-8'),
+    'GET /robot-client/patch-system-backup-tls.cjs': serveExternal(
+      join(PROJECT_DIR, 'scripts/robot-client/patch-system-backup-tls.cjs'), 'text/plain; charset=utf-8'),
     'GET /robot-client/isrg-root-x1.pem': serveExternal(
       join(PROJECT_DIR, 'scripts/robot-client/isrg-root-x1.pem'), 'application/x-pem-file'),
   };

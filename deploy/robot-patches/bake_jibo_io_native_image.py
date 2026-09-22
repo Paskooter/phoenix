@@ -559,6 +559,74 @@ def patch_ota_downloader(rootfs: Path) -> dict[str, Any]:
         }
 
 
+# These two helpers are shipped by system-manager on the services partition
+# (`/usr/local/bin` on the running robot). They use raw request/https transfers,
+# not @jibo/jibo-server-client, so the client CA patch and the OTA downloader
+# patch cannot cover them. Pin the known source hashes: a different installed
+# helper must halt the image build rather than receive an unreviewed edit.
+SYSTEM_BACKUP_TLS_PATCHES = {
+    "/bin/jibo-system-backup": {
+        "original_sha256": "d17fbf4150dee58a988fe5ee72071d4515ef74f29876215bf66de2601e33e522",
+        "require_anchor": "var request = require('request');\n",
+        "transfer_anchor": "            method: 'PUT',\n            headers: {",
+        "transfer_replacement": "            method: 'PUT',\n            ca: phoenixTlsCA,\n            headers: {",
+    },
+    "/bin/jibo-system-restore": {
+        "original_sha256": "b5e7ec06c4ea72b641b8738b789a389575e250b152b3b6ecddd952d593e05ee6",
+        "require_anchor": "var https = require('https');\n",
+        "transfer_anchor": "        https.get(downloadUrl, callbackDownload)",
+        "transfer_replacement": "        var phoenixDownloadOptions = url.parse(downloadUrl);\n        phoenixDownloadOptions.ca = phoenixTlsCA;\n        https.get(phoenixDownloadOptions, callbackDownload)",
+        "extra_require": "var url = require('url');\n",
+    },
+}
+SYSTEM_BACKUP_TLS_MARK_BEGIN = "// >>> phoenix-system-backup-tls >>>"
+SYSTEM_BACKUP_TLS_MARK_END = "// <<< phoenix-system-backup-tls <<<"
+
+
+def patch_system_backup_tls(services: Path) -> list[dict[str, Any]]:
+    """Bake explicit, verified public CA handling into backup *and* restore.
+
+    Node 6.9 ignores the OS CA store. The image installs a maintained public
+    bundle in that store, then both system-manager helpers pass that exact bundle
+    to their respective network clients. There is intentionally no catch/fallback:
+    inability to read the configured CA is a safe failure, not a reason to make a
+    TLS request with an obsolete embedded root set.
+    """
+    ca_prelude = "\n".join([
+        SYSTEM_BACKUP_TLS_MARK_BEGIN,
+        "// Node 6 does not load the system CA bundle for request/https automatically.",
+        "// Read the maintained public bundle explicitly; a missing configured path is",
+        "// fatal rather than silently disabling or bypassing certificate verification.",
+        "var phoenixTlsCA = fs.readFileSync(process.env.JIBO_EXTRA_CA_CERTS || '/etc/ssl/certs/ca-certificates.crt');",
+        SYSTEM_BACKUP_TLS_MARK_END,
+        "",
+    ])
+    results: list[dict[str, Any]] = []
+    for remote, spec in SYSTEM_BACKUP_TLS_PATCHES.items():
+        with tempfile.TemporaryDirectory(prefix="jibo-io-system-backup-tls-") as td:
+            local = Path(td) / Path(remote).name
+            debugfs_dump(services, remote, local)
+            source = local.read_text(encoding="utf-8")
+            source_hash = sha256_bytes(source.encode("utf-8"))
+            if source_hash != spec["original_sha256"]:
+                fail(f"unexpected system-manager helper source hash for {remote}: {source_hash}")
+            if source.count(spec["require_anchor"]) != 1 or source.count(spec["transfer_anchor"]) != 1:
+                fail(f"system-manager TLS anchors not found exactly once in {remote}")
+            replacement = spec["require_anchor"] + spec.get("extra_require", "") + ca_prelude
+            patched = source.replace(spec["require_anchor"], replacement).replace(
+                spec["transfer_anchor"], spec["transfer_replacement"]
+            )
+            local.write_text(patched, encoding="utf-8")
+            replace_preserving_inode(services, remote, local, mode=CLIENT_READABLE)
+            results.append({
+                "path": remote,
+                "original_sha256": source_hash,
+                "patched_sha256": sha256_bytes(patched.encode("utf-8")),
+                "ca_bundle": "/etc/ssl/certs/ca-certificates.crt",
+            })
+    return results
+
+
 SHIM_REMOTE_PATH = "/lib/libjibosslshim.so"
 SHIM_SERVICE_EXECUTABLE = "/usr/local/bin/jibo-server-service"
 SYSTEM_MANAGER_CONFIG = "/etc/jibo-system-manager.json"
@@ -864,6 +932,7 @@ def main() -> int:
     ssl_shim = install_ssl_shim(services, args.ssl_shim)
     trust = add_trust_root(rootfs, args.root_ca)
     ota_downloader = patch_ota_downloader(rootfs)
+    system_backup_tls = patch_system_backup_tls(services)
 
     # The stock /etc/hosts is deliberately untouched: it remains the symlink to
     # preserved /var/etc/hosts, and no Phoenix address or marker is added.
@@ -893,6 +962,7 @@ def main() -> int:
         "trust": trust,
         "ssl_shim": ssl_shim,
         "ota_downloader": ota_downloader,
+        "system_backup_tls": system_backup_tls,
         "native_binary_patches": [native_patch, asr_patch],
         "text_literal_patches": text_patches,
         "residual_literal_rewrites": residual_rewrites,

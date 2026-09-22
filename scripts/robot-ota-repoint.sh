@@ -84,15 +84,17 @@ done
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # The portal publishes this script as a single download. A source checkout has
-# robot-client/ beside it, but a downloaded script does not. Fetch only the two
+# robot-client/ beside it, but a downloaded script does not. Fetch only the three
 # fixed support assets that the script needs, pin them by SHA-256, and keep them
 # in a temporary local directory. This is deliberately not a curl|shell path.
 PUBLIC_ASSET_ORIGIN="${PHOENIX_REPOINT_ASSET_ORIGIN:-https://jibo.io}"
 CLIENT_SOURCE="${SCRIPT_DIR}/robot-client/node.js"
 ROOT_PEM_SRC="${REGION_CA}"
+BACKUP_TLS_PATCHER="${SCRIPT_DIR}/robot-client/patch-system-backup-tls.cjs"
 SUPPORT_DIR=""
 CLIENT_SOURCE_SHA256="29686ca0aec6b93b8b716b94fca443ce25e6e7e55e01e798be56bce920c66bac"
 ROOT_PEM_SOURCE_SHA256="22b557a27055b33606b6559f37703928d3e4ad79f110b407d04986e1843543d1"
+BACKUP_TLS_PATCHER_SHA256="2063cf6d26344fc49548a1f691120f240524b976caa559930e52115857460762"
 
 cleanup_support() {
   [ -z "$SUPPORT_DIR" ] || rm -rf "$SUPPORT_DIR"
@@ -121,7 +123,7 @@ fetch_support_asset() {
 ensure_support_assets() {
   # A checked-out copy has both support files already. A standalone download
   # receives only the missing file(s), never overwrites a supplied custom CA.
-  if [ ! -r "$CLIENT_SOURCE" ] || { [ -z "$ROOT_PEM_SRC" ] && [ ! -r "${SCRIPT_DIR}/robot-client/isrg-root-x1.pem" ]; }; then
+  if [ ! -r "$CLIENT_SOURCE" ] || [ ! -r "$BACKUP_TLS_PATCHER" ] || { [ -z "$ROOT_PEM_SRC" ] && [ ! -r "${SCRIPT_DIR}/robot-client/isrg-root-x1.pem" ]; }; then
     SUPPORT_DIR="$(mktemp -d "${TMPDIR:-/tmp}/phoenix-repoint.XXXXXX")" || die "could not create a temporary support directory"
   fi
   if [ ! -r "$CLIENT_SOURCE" ]; then
@@ -136,6 +138,11 @@ ensure_support_assets() {
       ROOT_PEM_SRC="$SUPPORT_DIR/robot-client/isrg-root-x1.pem"
       fetch_support_asset '/robot-client/isrg-root-x1.pem' "$ROOT_PEM_SRC" "$ROOT_PEM_SOURCE_SHA256"
     fi
+  fi
+  if [ ! -r "$BACKUP_TLS_PATCHER" ]; then
+    mkdir -p "$SUPPORT_DIR/robot-client"
+    BACKUP_TLS_PATCHER="$SUPPORT_DIR/robot-client/patch-system-backup-tls.cjs"
+    fetch_support_asset '/robot-client/patch-system-backup-tls.cjs' "$BACKUP_TLS_PATCHER" "$BACKUP_TLS_PATCHER_SHA256"
   fi
 }
 
@@ -265,15 +272,17 @@ say "  3. install the CA-accepting client + its CA into every client copy (Node 
 say "     the system trust store, so this is the only way the Node client can verify TLS)"
 say "  4. link /etc/ssl/cert.pem -> ${TRUST_BUNDLE} (OpenSSL's default CAfile, which the"
 say "     stock image never shipped; without it the NATIVE hub client verifies nothing)"
-say "  5. point the jetstream hub override at ${REGION%-entrypoint}-hub.${PUBLIC_SUFFIX}:443, so audio"
+say "  5. patch system-manager backup and restore with that maintained public CA bundle"
+say "     (the stock Node 6 helpers bypass the patched server client)"
+say "  6. point the jetstream hub override at ${REGION%-entrypoint}-hub.${PUBLIC_SUFFIX}:443, so audio"
 say "     turns go to this server instead of wherever it was pointed before"
-say "  6. ensure /var/jibo/keys exists as a private directory (mode 0700; preserve existing keys)"
+say "  7. ensure /var/jibo/keys exists as a private directory (mode 0700; preserve existing keys)"
 if [ -n "$CLAIM_CODE" ]; then
-  say "  7. prove possession with the robot's existing credentials and link it to the signed-in Phoenix account"
+  say "  8. prove possession with the robot's existing credentials and link it to the signed-in Phoenix account"
 else
-  say "  7. register the robot's existing credentials as an unclaimed bootstrap (idempotent)"
+  say "  8. register the robot's existing credentials as an unclaimed bootstrap (idempotent)"
 fi
-say "  8. write a receipt to ${RECEIPT}"
+say "  9. write a receipt to ${RECEIPT}"
 say ""
 say "  NOT touched: /etc/hosts, any private CA, server certs, the robot's own credentials."
 say "  After this the robot can reach ${REST_URL}, stream audio to the hub, and take an OTA"
@@ -480,7 +489,35 @@ out="$(rsh "
 printf '%s\n' "$out"
 APPLIED+=("/etc/ssl/cert.pem")
 
-# 7c-ter. The hub.
+# 7c-ter. System-manager backup/restore. The established public CA bundle has
+# just been installed above. These are separate Node 6 scripts, not consumers of
+# @jibo/jibo-server-client, so the client patch does not make their raw upload
+# (`request`) or download (`https`) paths trust the modern chain. The support
+# patcher pins the exact upstream sources and preserves rollback copies.
+[ -r "$BACKUP_TLS_PATCHER" ] || die "the system backup TLS support file is unavailable"
+BACKUP_TLS_REMOTE="$(rsh 'mktemp /tmp/phoenix-system-backup-tls.XXXXXX' 2>/dev/null | tr -d '\r')"
+[[ "$BACKUP_TLS_REMOTE" =~ ^/tmp/phoenix-system-backup-tls\.[A-Za-z0-9]+$ ]] || die "could not allocate a safe remote backup TLS patch path"
+scp -o BatchMode=yes -q "$BACKUP_TLS_PATCHER" "${ROBOT}:${BACKUP_TLS_REMOTE}" || die "could not upload the reviewed system backup TLS patcher"
+out="$(rsh "
+  set -eu
+  PATCH='$BACKUP_TLS_REMOTE'
+  cleanup() {
+    status=\$?
+    trap - EXIT HUP INT TERM
+    rm -f \"\$PATCH\"
+    mount -o remount,ro /usr/local 2>/dev/null || true
+    exit \$status
+  }
+  trap cleanup EXIT HUP INT TERM
+  if ! jibo-mount --rw >/dev/null 2>&1; then
+    mount -o remount,rw /usr/local
+  fi
+  node \"\$PATCH\" --root /usr/local/bin --receipt /var/lib/phoenix/jibo-system-backup-tls.json --json
+" 2>&1 | tr -d '\r')" || die "could not apply the hash-guarded system backup/restore TLS patch"
+printf '%s\n' "$out"
+APPLIED+=("/usr/local/bin/jibo-system-{backup,restore} explicit public CA")
+
+# 7c-quater. The hub.
 #
 # The audio path is configured SEPARATELY from the Classic path, in
 # /usr/local/etc/jibo-jetstream-service.json, and `HubClient.override` WINS over
