@@ -29,12 +29,15 @@ CURRENT_LINK="${PHOENIX_CURRENT_LINK:-$REPOSITORY/current}"
 SERVICE="${PHOENIX_SERVICE:-phoenix}"
 NO_RESTART="${PHOENIX_DEPLOY_NO_RESTART:-0}"
 REVISION="${1:-HEAD}"
+NPM_BIN="${PHOENIX_NPM_BIN:-$(command -v npm 2>/dev/null || true)}"
 
 die() { echo "release deploy: $*" >&2; exit 2; }
 
 [[ -d "$REPOSITORY/.git" || -f "$REPOSITORY/.git" ]] || die "not a Git checkout: $REPOSITORY"
 [[ "$RELEASE_ROOT" = /* && "$CURRENT_LINK" = /* ]] || die "release root and current link must be absolute paths"
 [[ "$NO_RESTART" = 0 || "$NO_RESTART" = 1 ]] || die "PHOENIX_DEPLOY_NO_RESTART must be 0 or 1"
+[[ -n "$NPM_BIN" && -x "$NPM_BIN" ]] \
+  || die "npm is not on PATH; set PHOENIX_NPM_BIN to the production Node installation's npm binary"
 
 COMMIT="$(git -C "$REPOSITORY" rev-parse --verify "${REVISION}^{commit}")" \
   || die "revision does not resolve to a commit: $REVISION"
@@ -59,7 +62,7 @@ fi
 # hooks are disabled because this repository's prepare hook edits Git hooks and
 # does not contribute to a production runtime.
 if [[ ! -d "$RELEASE_DIR/node_modules" ]]; then
-  npm --prefix "$RELEASE_DIR" ci --omit=dev --ignore-scripts
+  "$NPM_BIN" --prefix "$RELEASE_DIR" ci --omit=dev --ignore-scripts
 fi
 
 [[ -x "$RELEASE_DIR/scripts/run-compose-stack.sh" ]] \

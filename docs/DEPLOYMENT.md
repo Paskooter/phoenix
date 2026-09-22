@@ -1467,8 +1467,14 @@ git fetch origin
 sudo PHOENIX_RELEASE_ROOT=/srv/phoenix/releases \
   PHOENIX_CURRENT_LINK=/srv/phoenix/current \
   PHOENIX_SERVICE=phoenix-native.service \
+  PHOENIX_NPM_BIN="$(command -v npm)" \
   scripts/deploy-native-release.sh origin/main
 ```
+
+If Node came from NVM or another per-user installation, `sudo` may intentionally
+drop it from root's `PATH`. Keep the service itself on its pinned Node runtime
+and pass that runtime's `npm` path through `PHOENIX_NPM_BIN` as above; do not
+fall back to a different system Node just for deployments.
 
 If nginx serves portal files directly rather than proxying them through Account,
 its `root` must point at `/srv/phoenix/current/packages/account/portal`, never a
@@ -1826,6 +1832,7 @@ robot trust path, remains an operator acceptance test.
 
    ```sh
    sudo PHOENIX_SERVICE=phoenix-native.service \
+     PHOENIX_NPM_BIN="$(command -v npm)" \
      /srv/phoenix/scripts/deploy-native-release.sh <reviewed-commit-or-origin/main>
    ```
 
