@@ -750,9 +750,10 @@ Why these variables matter:
   sets the skills/settings peers by container name
   (`docker-compose.yml:45-67`). Do not set `ETCO_hub_accountUrl` to the public
   portal URL; the internal `account:8080` path is the intended boundary.
-- `NET_settings=account:8080` is important for the report skill. The Compose
-  report service otherwise falls back to the dead source hostname
-  `settings.jibo.aws` (`docker-compose.yml:113-126`).
+- Both bundled launchers point `NET_settings` at the private Account Settings
+  service by default: `account:8080` in Compose and `localhost:9011` natively.
+  If you override it, use a reachable private peer; the original cloud hostname
+  is not a Phoenix service. Verify calendar/commute requests after deployment.
 - The production Compose and native-launcher defaults fail closed for auth and
   require a real secret/public origin. Keep those values explicit even on a
   private deployment; the symmetric secret can mint tokens for any identity if leaked

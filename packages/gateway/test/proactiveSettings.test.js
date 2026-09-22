@@ -143,6 +143,27 @@ test('SettingsClient rejects on a non-2xx settings answer', async () => {
   } finally { await new Promise((r) => server.close(r)); }
 });
 
+test('SettingsClient sends the private peer token when configured', async () => {
+  const previous = process.env.ETCO_account_internalPeerToken;
+  process.env.ETCO_account_internalPeerToken = 'settings-peer-test-token';
+  const server = createServer((req, res) => {
+    assert.equal(req.headers['x-phoenix-internal-token'], 'settings-peer-test-token');
+    req.resume();
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end('[]');
+  });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  try {
+    const client = new SettingsClient(`http://127.0.0.1:${server.address().port}`);
+    const data = await client.getSettings('account', 'loop', 'tid:settings-test', ['report-skill']);
+    assert.equal(data.size, 0);
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+    if (previous === undefined) delete process.env.ETCO_account_internalPeerToken;
+    else process.env.ETCO_account_internalPeerToken = previous;
+  }
+});
+
 // ---------------------------------------------------------------------------
 // End-to-end: a live gateway gates the real report-skill proactive registration
 // ---------------------------------------------------------------------------
@@ -154,6 +175,8 @@ function stubServer(handler) {
 const close = (server) => new Promise((r) => server.close(r));
 
 async function withRuntime({ settingsURL }, run) {
+  const previousPeerToken = process.env.ETCO_account_internalPeerToken;
+  process.env.ETCO_account_internalPeerToken = 'h05-settings-internal-peer';
   const dir = mkdtempSync(join(tmpdir(), 'phx-h05-'));
   const store = new Store(join(dir, 'store.json'));
   const owner = createOwnerAccount(store, { email: 'h05-owner@jetson.test', password: 'h05-pass' });
@@ -185,7 +208,7 @@ async function withRuntime({ settingsURL }, run) {
 
   const amz = (op, body, accountId) => fetch(`http://127.0.0.1:${account.address().port}/`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json;charset=utf-8', 'x-amz-target': `Settings_20160801.${op}`, 'x-amz-credentials': JSON.stringify({ id: accountId }) },
+    headers: { 'content-type': 'application/json;charset=utf-8', 'x-amz-target': `Settings_20160801.${op}`, 'x-amz-credentials': JSON.stringify({ id: accountId }), 'x-phoenix-internal-token': process.env.ETCO_account_internalPeerToken },
     body: JSON.stringify(body),
   }).then(async (res) => ({ status: res.status, body: await res.json().catch(() => null) }));
 
@@ -199,6 +222,8 @@ async function withRuntime({ settingsURL }, run) {
     await close(history.server);
     await new Promise((r) => account.close(r));
     rmSync(dir, { recursive: true, force: true });
+    if (previousPeerToken === undefined) delete process.env.ETCO_account_internalPeerToken;
+    else process.env.ETCO_account_internalPeerToken = previousPeerToken;
   }
 }
 

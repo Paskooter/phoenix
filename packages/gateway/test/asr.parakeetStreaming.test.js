@@ -257,6 +257,8 @@ test('streaming: an empty silence endpoint keeps listening on a reopened stream'
     },
   });
   const session = new ParakeetASRSession(server.url, { lang: 'en-US' }, SILENT_LOG);
+  let wireEos = 0;
+  session.onEndOfSpeech(() => { wireEos += 1; });
   const startPr = session.start();
   try {
     await waitFor(() => session.streamingReady);
@@ -264,6 +266,7 @@ test('streaming: an empty silence endpoint keeps listening on a reopened stream'
     for (let i = 0; i < 3; i += 1) session.provideAudio(SPEECH());
     for (let i = 0; i < 7; i += 1) session.provideAudio(SILENCE());
     await waitFor(() => session.relistenCount === 1, 3000);
+    assert.equal(wireEos, 0, 'a false endpoint must not tell the robot to stop streaming');
     await waitFor(() => session.streamingReady, 3000);
 
     // The real request, spoken after the pause.
@@ -273,6 +276,7 @@ test('streaming: an empty silence endpoint keeps listening on a reopened stream'
     const result = await withTimeout(startPr);
     assert.equal(result.text, 'what time is it', 'the turn resolves with the utterance that had words');
     assert.equal(result.confidence, 0.9);
+    assert.equal(wireEos, 1, 'the confirmed utterance sends one EOS');
     assert.ok(server.connections.length >= 2, 'a fresh stream was opened after the empty endpoint');
   } finally {
     if (!session.stopped) session.stop();

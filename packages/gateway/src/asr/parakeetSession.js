@@ -472,7 +472,11 @@ export class ParakeetASRSession {
     this.finalizeReason = reason;
     this.pcmPending = Buffer.alloc(0);
     this.log.debug?.(`EOS detected (${reason}), finalizing with ${this.chunks.length} chunks`);
-    this._emitEOS();
+    // A silence boundary is provisional until Parakeet returns words. If it
+    // returns empty, this session relistens; telling the robot EOS now makes it
+    // stop sending audio, leaving that relisten to hit the 40-second hub timeout.
+    // Other boundaries are final and can notify the robot immediately.
+    if (reason !== 'silence') this._emitEOS();
     this._finalize({ mode: 'cancel' }).catch((err) => {
       this.log.error?.('Parakeet finalize failed: ' + err.message);
       this.state = 'DONE';
@@ -535,6 +539,7 @@ export class ParakeetASRSession {
     this.pcmPending = Buffer.alloc(0);
     this.pcmCarry = null;
     this.eosFired = false;      // the next endpoint ends this window (wire EOS stays single)
+    this.eosAt = null;
     this.state = this.sosFired ? 'TRAILING_SILENCE' : 'WAITING';
     this.finalizeReason = null;
     this.log.debug?.('[asr] empty silence endpoint: no words recognized, continuing to listen', {
@@ -668,6 +673,9 @@ export class ParakeetASRSession {
    * the reference's batch behavior).
    */
   _emitFinalResult(transcript, confidence) {
+    // Deliver exactly one wire EOS before the transcript, including when the
+    // provisional silence boundary was held back for a possible relisten.
+    this._emitEOS();
     const text = transcript || '';
     const result = {
       text,

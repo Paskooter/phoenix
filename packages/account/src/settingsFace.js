@@ -414,6 +414,26 @@ async function getWithProviders({ req, body, providers, store = null }) {
     }
   }));
 
+  // iCal subscriptions are a Phoenix portal extension, not rows in the
+  // recovered Pegasus report-skill manifest. The Hub-provided view therefore
+  // cannot ask Person for them. Pass the verified speaker's cached events to
+  // the report skill after the loop-membership check; never expose the private
+  // subscription URL in this response.
+  if (store && Object.prototype.hasOwnProperty.call(results, REPORT_SKILL)) {
+    const subscriptions = getSettingsData(store, context.userId).icalSubscriptions?.subscriptions;
+    if (Array.isArray(subscriptions)) {
+      results[REPORT_SKILL].icalSubscriptions = {
+        subscriptions: subscriptions.filter((item) => item && typeof item === 'object').map((item) => ({
+          id: item.id,
+          label: item.label,
+          enabled: item.enabled !== false,
+          verification: item.verification,
+          events: Array.isArray(item.events) ? item.events : [],
+        })),
+      };
+    }
+  }
+
   return settings.map((config) => {
     const result = { skillId: config.skillId, view: config.view, data: results[config.skillId], errors: errors[config.skillId] };
     if (!Object.keys(result.errors).length) delete result.errors;

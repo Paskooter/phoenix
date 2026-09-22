@@ -10,7 +10,8 @@
 // The pinned source sets exactly the two x-amz headers plus the body: the wire content
 // type and the axios transport defaults come from the HTTP adapter, and no x-jibo-transid
 // is forwarded here (captured reference request, docs/parity/evidence/2026-09-05/reference/
-// transactions.json, "Original Settings client reaches legacy target").
+// transactions.json, "Original Settings client reaches legacy target"). Phoenix also
+// sends its independently configured internal peer token to the private Account face.
 //
 // Pinned source: pegasus@5c0a7390539663ba749d360de348a428c088505c
 //   packages/hub/src/utils/SettingsClient.ts:18-47 (getSettings, response map).
@@ -46,6 +47,10 @@ export class SettingsClient {
         'content-type': 'application/json;charset=utf-8',
         'x-amz-credentials': JSON.stringify({ id: accountId }),
         'x-amz-target': `Settings_${SETTINGS_API_VERSION}.GetSettings`,
+        // Phoenix's local Settings face requires a separate trusted-peer
+        // credential. Never treat the caller-supplied account id as proof.
+        ...(process.env.ETCO_account_internalPeerToken
+          ? { 'x-phoenix-internal-token': process.env.ETCO_account_internalPeerToken } : {}),
       },
       // JSON.stringify drops an undefined transId, matching the source axios data object.
       body: JSON.stringify({ loopId, transId, skills, getView: false }),

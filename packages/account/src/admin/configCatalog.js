@@ -598,10 +598,10 @@ export const SETTINGS = [
     label: 'Settings service',
     group: 'report',
     type: 'string',
-    default: 'settings.jibo.aws',
+    default: null,
     services: ['skills'],
-    help: 'Where the report skill fetches a speaker’s personal settings. The default is the original '
-      + 'name, resolved inside the stack.',
+    help: 'Where the report skill fetches a speaker’s personal settings. The bundled launchers '
+      + 'route to the private Account service by default (account:8080 in Compose, localhost:9011 natively).',
   },
   {
     key: 'TOMTOM_API_KEY',

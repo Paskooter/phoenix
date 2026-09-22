@@ -204,7 +204,10 @@ PARSER_LAYA_MIN_CONFIDENCE="${ETCO_parser_layaMinConfidence:-${LAYA_MIN_CONFIDEN
 PARSER_LAYA_SECONDARY_FALLBACK="${ETCO_parser_layaSecondaryFallback:-${LAYA_SECONDARY_FALLBACK:-none}}"
 REPORT_PREFS_FROM_CONFIG="${prefsFromConfig:-${PREFS_FROM_CONFIG:-false}}"
 REPORT_LASSO="${NET_lasso:-localhost:$(p 9007)}"
-REPORT_SETTINGS="${NET_settings:-${NET_SETTINGS:-settings.jibo.aws}}"
+# The original cloud hostname is only a source-compatibility default inside the
+# standalone clients. A bundled Phoenix stack always uses its local Account
+# Settings face, including when a deployment omits the optional override.
+REPORT_SETTINGS="${NET_settings:-${NET_SETTINGS:-localhost:$(p 9011)}}"
 PHOTO_PUBLIC_URL="${PHOTO_PUBLIC_URL:-${ETCO_account_photoBaseUrl:-$CLASSIC_PUBLIC_URL}}"
 GQA_ATTRIBUTION_FILE="${GQA_ATTRIBUTION_FILE:-${ETCO_gqa_attributionFile:-$CLASSIC_DATA_DIR/gqa-attribution.json}}"
 CLASSIC_NOTIFICATION_FILE="${CLASSIC_NOTIFICATION_FILE:-${ETCO_classic_notificationFile:-$CLASSIC_DATA_DIR/notifications.json}}"
@@ -295,6 +298,7 @@ ETCO_server_parakeetUrl="$PARAKEET_URL" \
 NET_parser=localhost:$(p 9005) \
 NET_history=localhost:$(p 9006) \
 NET_data=localhost:$(p 9007) \
+NET_settings="$REPORT_SETTINGS" \
   node packages/gateway/src/index.js  > "$LOG_DIR/phx-compose-hub.log"        2>&1 & JOB_PIDS[hub]=$!
 
 # Phoenix extension: the classic-service entrypoint — the robot's SINGLE front door for every

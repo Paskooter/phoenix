@@ -122,10 +122,11 @@ test('VAD: SOS after 150ms speech, EOS after the configured silence, transcript 
     assert.equal(sos, 1);
     for (let i = 0; i < silenceChunks - 1; i += 1) session.provideAudio(SILENCE());
     assert.equal(eos, 0, `${ASR_SILENCE_TO_EOS_MS - 100}ms silence is not yet an endpoint`);
-    session.provideAudio(SILENCE());            // the configured window -> EOS + finalize
-    assert.equal(eos, 1);
+    session.provideAudio(SILENCE());            // the configured window -> provisional endpoint
+    assert.equal(eos, 0, 'wire EOS waits until recognition confirms this was a real utterance');
 
     const result = await withTimeout(startPr);
+    assert.equal(eos, 1);
     assert.equal(result.text, 'what time is it');
     assert.equal(result.confidence, 1.0);
     // the POSTed body is a WAV: RIFF header + all buffered PCM
