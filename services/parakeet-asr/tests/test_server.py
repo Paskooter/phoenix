@@ -8,6 +8,8 @@ import io
 import json
 import struct
 import sys
+import threading
+import time
 import wave
 from pathlib import Path
 
@@ -16,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from fastapi.testclient import TestClient  # noqa: E402
 
 from app import server  # noqa: E402
-from app.recognizer import StubRecognizer, mean_confidence  # noqa: E402
+from app.recognizer import NemoRecognizer, StubRecognizer, Transcript, mean_confidence  # noqa: E402
 from app.normalize import normalize_text  # noqa: E402
 
 
@@ -108,21 +110,23 @@ def test_stream_emits_interim_results_before_the_end():
     c = client(stub)
     with c.websocket_connect("/stream") as ws:
         ws.send_text(json.dumps({"type": "start", "sampleRate": 16000}))
-        # 1s of loud audio in 100ms frames: more than one interim window.
+        # A 300 ms first window must yield an interim while the stream is still
+        # open, so earlyEOS can interrupt an in-progress utterance.
         frame = make_wav(0.1)[44:]
-        for _ in range(10):
+        for _ in range(3):
+            ws.send_bytes(frame)
+        first = json.loads(ws.receive_text())
+        assert first["type"] == "interim"
+        for _ in range(7):
             ws.send_bytes(frame)
         ws.send_text(json.dumps({"type": "eos"}))
 
-        kinds = []
         while True:
             msg = json.loads(ws.receive_text())
-            kinds.append(msg["type"])
             if msg["type"] == "final":
                 assert msg["text"] == "live long and prosper"
                 assert msg["confidence"] == 0.9
                 break
-        assert "interim" in kinds, f"no interim result was sent: {kinds}"
 
 
 def test_stream_does_not_repeat_an_unchanged_hypothesis():
@@ -133,10 +137,13 @@ def test_stream_does_not_repeat_an_unchanged_hypothesis():
     with c.websocket_connect("/stream") as ws:
         ws.send_text(json.dumps({"type": "start", "sampleRate": 16000}))
         frame = make_wav(0.1)[44:]
-        for _ in range(10):
+        for _ in range(3):
+            ws.send_bytes(frame)
+        assert json.loads(ws.receive_text())["type"] == "interim"
+        for _ in range(7):
             ws.send_bytes(frame)
         ws.send_text(json.dumps({"type": "eos"}))
-        interims = 0
+        interims = 1
         while True:
             msg = json.loads(ws.receive_text())
             if msg["type"] == "interim":
@@ -156,6 +163,123 @@ def test_silence_is_not_decoded():
         ws.send_text(json.dumps({"type": "eos"}))
         json.loads(ws.receive_text())
         assert before == 0, "silence triggered an interim decode"
+
+
+def test_trailing_silence_does_not_trigger_a_redundant_interim():
+    stub = StubRecognizer("hello")
+    c = client(stub)
+    with c.websocket_connect("/stream") as ws:
+        ws.send_text(json.dumps({"type": "start", "sampleRate": 16000}))
+        speech = make_wav(0.1)[44:]
+        for _ in range(2):
+            ws.send_bytes(speech)
+        for _ in range(3):
+            ws.send_bytes(b"\x00\x00" * 1600)
+        ws.send_text(json.dumps({"type": "eos"}))
+        assert json.loads(ws.receive_text())["type"] == "final"
+        assert stub.calls == 1, "only the full-buffer final should be decoded"
+
+
+def test_stream_coalesces_backlogged_interims_and_final_has_all_audio():
+    class SlowRecognizer(StubRecognizer):
+        def transcribe_pcm(self, pcm, sample_rate):
+            time.sleep(0.05)
+            self.calls += 1
+            return Transcript(text=str(len(pcm) // 2))
+
+    stub = SlowRecognizer()
+    c = client(stub)
+    frame = make_wav(0.1)[44:]
+    with c.websocket_connect("/stream") as ws:
+        ws.send_text(json.dumps({"type": "start", "sampleRate": 16000}))
+        for _ in range(3):
+            ws.send_bytes(frame)
+        first = json.loads(ws.receive_text())
+        assert first["type"] == "interim"
+        assert first["text"] == "4800"
+
+        # An old serial handler would decode at 0.6s and 0.9s before seeing
+        # EOS. The off-loop handler may do one of those interims, but skips the
+        # stale queued partial and still decodes the full 1.0s final.
+        for _ in range(7):
+            ws.send_bytes(frame)
+        ws.send_text(json.dumps({"type": "eos"}))
+        final = json.loads(ws.receive_text())
+        assert final["type"] == "final"
+        assert final["text"] == "16000"
+        assert stub.calls <= 3
+
+
+def test_inference_does_not_block_readiness_or_other_sockets():
+    entered = threading.Event()
+    release = threading.Event()
+
+    class GatedRecognizer(StubRecognizer):
+        def transcribe_pcm(self, pcm, sample_rate):
+            entered.set()
+            assert release.wait(2), "test did not release the inference worker"
+            return super().transcribe_pcm(pcm, sample_rate)
+
+    c = client(GatedRecognizer("hello"))
+    frame = make_wav(0.1)[44:]
+    with c.websocket_connect("/stream") as ws:
+        ws.send_text(json.dumps({"type": "start", "sampleRate": 16000}))
+        for _ in range(3):
+            ws.send_bytes(frame)
+        assert entered.wait(1), "interim inference did not start"
+        try:
+            started = time.monotonic()
+            assert c.get("/healthz").json()["ok"] is True
+            assert time.monotonic() - started < 0.5, "model inference blocked the event loop"
+        finally:
+            release.set()
+        assert json.loads(ws.receive_text())["type"] == "interim"
+        ws.send_text(json.dumps({"type": "eos"}))
+        assert json.loads(ws.receive_text())["type"] == "final"
+
+
+def test_nemo_skips_ffmpeg_for_canonical_gateway_wav(tmp_path):
+    path = tmp_path / "canonical.wav"
+    path.write_bytes(make_wav())
+
+    class FakeModel:
+        paths = None
+
+        def transcribe(self, paths, return_hypotheses):
+            self.paths = paths
+            return [type("Hypothesis", (), {"text": "hello", "word_confidence": [0.9]})()]
+
+    model = FakeModel()
+    recognizer = NemoRecognizer()
+    recognizer._model = model
+    recognizer.resample = lambda _path: (_ for _ in ()).throw(AssertionError("ffmpeg should be skipped"))
+    transcript = recognizer.transcribe_wav(str(path))
+    assert transcript.text == "hello"
+    assert model.paths == [str(path)]
+    assert path.exists(), "the caller owns the input WAV"
+
+
+def test_nemo_still_resamples_noncanonical_wav(tmp_path):
+    source = tmp_path / "8k.wav"
+    source.write_bytes(make_wav(sample_rate=8000))
+    converted = tmp_path / "16k.wav"
+    converted.write_bytes(make_wav())
+
+    class FakeModel:
+        paths = None
+
+        def transcribe(self, paths, return_hypotheses):
+            self.paths = paths
+            return [type("Hypothesis", (), {"text": "hello"})()]
+
+    model = FakeModel()
+    recognizer = NemoRecognizer()
+    recognizer._model = model
+    recognizer.resample = lambda path: str(converted)
+    recognizer.transcribe_wav(str(source))
+    assert model.paths == [str(converted)]
+    assert source.exists(), "the caller owns the input WAV"
+    assert not converted.exists(), "the recognizer cleans its conversion"
 
 
 def test_healthz_does_not_need_a_model():

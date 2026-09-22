@@ -26,9 +26,11 @@ added keys are ignored by them and nothing has to be upgraded in lockstep.
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import tempfile
+from concurrent.futures import ThreadPoolExecutor
 from typing import Optional
 
 from contextlib import asynccontextmanager
@@ -53,6 +55,16 @@ BACKEND = os.environ.get("PARAKEET_BACKEND", "nemo").strip().lower()
 API_VERSION = "0.1.0" if BACKEND == "faster-whisper" else "0.2.0"
 
 _recognizer: Optional[Recognizer] = None
+# NeMo's model is shared across connections. Keep inference serial (as it was
+# on the old event-loop path), but run it off-loop so sockets can keep receiving
+# audio while an interim is in flight. A bounded worker also avoids concurrent
+# GPU calls and the associated VRAM spikes.
+_inference_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="parakeet-infer")
+
+
+async def _infer(method, *args) -> Transcript:
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(_inference_executor, lambda: method(*args))
 
 
 def set_recognizer(recognizer: Recognizer) -> None:
@@ -145,16 +157,24 @@ async def transcribe_audio(
         raise HTTPException(status_code=400, detail="Only .wav files are supported.")
 
     data = await file.read()
-    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
-        tmp.write(data)
-        path = tmp.name
+
+    # Keep temp-file ownership inside the worker. If the HTTP client disconnects
+    # and cancels this coroutine, a queued/running inference must not lose its
+    # input file before the recognizer has finished opening it.
+    def transcribe_upload() -> Transcript:
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+            tmp.write(data)
+            path = tmp.name
+        try:
+            return get_recognizer().transcribe_wav(path)
+        finally:
+            if os.path.exists(path):
+                os.remove(path)
+
     try:
-        transcript = get_recognizer().transcribe_wav(path)
+        transcript = await _infer(transcribe_upload)
     except RuntimeError as error:                      # ffmpeg / decode failure
         raise HTTPException(status_code=500, detail=str(error))
-    finally:
-        if os.path.exists(path):
-            os.remove(path)
     return _payload(file.filename or "audio.wav", transcript, normalize)
 
 
@@ -170,10 +190,9 @@ async def stream(ws: WebSocket) -> None:
         server -> {"type":"interim","text":...,"confidence":...}   (repeatedly)
         server -> {"type":"final","text":...,"confidence":...}
 
-    Interim results are produced by re-decoding the buffer so far. That is more
-    work than a cache-aware streaming model would do, but it is model-agnostic
-    and a robot turn is a few seconds; correctness of the earlyEOS signal
-    matters more here than decoder efficiency.
+    Interim results still decode the buffer so far for model compatibility.
+    While a decode is in flight we continue receiving audio, coalesce pending
+    interim work into the latest buffer, and prioritize the final at EOS.
     """
     await ws.accept()
     normalize = False
@@ -182,6 +201,41 @@ async def stream(ws: WebSocket) -> None:
     pending = 0
     interim_bytes = int(sample_rate * 2 * INTERIM_MS / 1000)
     last_text = None
+    interim_task: Optional[asyncio.Task] = None
+    ending = False
+    generation = 0
+
+    def start_interim(chunk_voiced: bool) -> None:
+        nonlocal pending, interim_task
+        if ending or interim_task is not None or not chunk_voiced or pending < interim_bytes:
+            return
+        snapshot = bytes(buffer)
+        snapshot_rate = sample_rate
+        snapshot_generation = generation
+        pending = 0
+        interim_task = asyncio.create_task(emit_interim(snapshot, snapshot_rate, snapshot_generation))
+
+    async def emit_interim(snapshot: bytes, snapshot_rate: int, snapshot_generation: int) -> None:
+        nonlocal interim_task, last_text, ending
+        try:
+            transcript = await _infer(get_recognizer().transcribe_pcm, snapshot, snapshot_rate)
+            if not ending and snapshot_generation == generation and transcript.text and transcript.text != last_text:
+                last_text = transcript.text
+                await ws.send_text(json.dumps({
+                    "type": "interim",
+                    **_payload("stream", transcript, normalize),
+                }))
+        except Exception:
+            # The gateway retains PCM and falls back to POST /transcribe when
+            # this socket fails; a broken inference must not leave it waiting.
+            if not ending:
+                ending = True
+                await ws.close(code=1011)
+        finally:
+            interim_task = None
+            # Do not immediately decode a backlog that arrived during this
+            # inference: its newest packets (possibly EOS) have not necessarily
+            # been consumed yet. The next audio packet can start a fresh interim.
 
     try:
         while True:
@@ -193,18 +247,9 @@ async def stream(ws: WebSocket) -> None:
                 chunk = message["bytes"]
                 buffer.extend(chunk)
                 pending += len(chunk)
-                if pending >= interim_bytes and rms(chunk) >= SILENCE_RMS:
-                    pending = 0
-                    transcript = get_recognizer().transcribe_pcm(bytes(buffer), sample_rate)
-                    # Only speak up when the hypothesis actually changed: the hub
-                    # matches earlyEOS against each interim, and repeats would
-                    # make a trigger appear to fire more than once.
-                    if transcript.text and transcript.text != last_text:
-                        last_text = transcript.text
-                        await ws.send_text(json.dumps({
-                            "type": "interim",
-                            **_payload("stream", transcript, normalize),
-                        }))
+                # Like the original gate, a silence packet cannot start a new
+                # inference even if earlier speech left enough buffered bytes.
+                start_interim(rms(chunk) >= SILENCE_RMS)
                 continue
 
             text = message.get("text")
@@ -217,6 +262,7 @@ async def stream(ws: WebSocket) -> None:
 
             kind = control.get("type")
             if kind == "start":
+                generation += 1
                 sample_rate = int(control.get("sampleRate") or SAMPLE_RATE)
                 normalize = bool(control.get("normalize", False))
                 interim_bytes = int(sample_rate * 2 * INTERIM_MS / 1000)
@@ -224,7 +270,12 @@ async def stream(ws: WebSocket) -> None:
                 pending = 0
                 last_text = None
             elif kind == "eos":
-                transcript = (get_recognizer().transcribe_pcm(bytes(buffer), sample_rate)
+                ending = True
+                # Let an in-flight interim finish, but skip any queued partial
+                # buffers. Only the final full-buffer decode is useful now.
+                if interim_task is not None:
+                    await interim_task
+                transcript = (await _infer(get_recognizer().transcribe_pcm, bytes(buffer), sample_rate)
                               if buffer else Transcript(text=""))
                 await ws.send_text(json.dumps({
                     "type": "final",
@@ -232,4 +283,7 @@ async def stream(ws: WebSocket) -> None:
                 }))
                 return
     except WebSocketDisconnect:
+        ending = True
+        if interim_task is not None:
+            interim_task.cancel()
         return

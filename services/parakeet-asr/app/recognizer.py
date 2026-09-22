@@ -99,7 +99,8 @@ class NemoRecognizer:
       The RNNT model returns the bare lowercase text the grammars expect.
     * **Resident in VRAM.** Loaded once at startup, not per request.
     * **ffmpeg resampling.** Any sample rate, channel count or bit depth is
-      accepted and converted to 16 kHz mono s16 before inference.
+      accepted and converted to 16 kHz mono s16 before inference. Canonical
+      16 kHz mono s16 PCM from the gateway skips this redundant conversion.
 
     What is added: word confidence, which NeMo does not preserve unless the
     decoding config asks for it.
@@ -195,8 +196,20 @@ class NemoRecognizer:
         model = self.load()
         resampled = None
         try:
-            resampled = self.resample(path)
-            hyps = model.transcribe([resampled], return_hypotheses=True)
+            # Streaming PCM is already 16 kHz mono s16. The old unconditional
+            # ffmpeg pass started a subprocess and rewrote every interim WAV.
+            # Unknown/non-canonical WAVs still take the original conversion.
+            try:
+                with wave.open(path, "rb") as audio:
+                    canonical = (audio.getnchannels() == 1
+                                 and audio.getsampwidth() == 2
+                                 and audio.getframerate() == 16000
+                                 and audio.getcomptype() == "NONE")
+            except (OSError, wave.Error, EOFError):
+                canonical = False
+            if not canonical:
+                resampled = self.resample(path)
+            hyps = model.transcribe([resampled or path], return_hypotheses=True)
             if isinstance(hyps, tuple):  # some versions return (best, all)
                 hyps = hyps[0]
             if not hyps:

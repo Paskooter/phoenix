@@ -86,12 +86,15 @@ server -> {"type":"interim","text":...,"confidence":...}   (repeatedly)
 server -> {"type":"final","text":...,"confidence":...}
 ```
 
-Interim results come from re-decoding the buffer so far. That is more work than
-a cache-aware streaming model, but it is model-agnostic and a robot turn is a
-few seconds; the correctness of the `earlyEOS` signal matters more here than
-decoder efficiency. Repeated identical hypotheses are suppressed — the hub
-matches `earlyEOS` against each interim, and a repeat would make one trigger
-word look like several. Silent chunks are not decoded.
+Interim results still re-decode the buffer so far, preserving `earlyEOS`, but
+inference runs in one background worker instead of blocking the WebSocket event
+loop. Audio received during an interim is coalesced into the latest buffer;
+once `eos` arrives, queued partial decodes are skipped and the full-buffer
+final is prioritized. Canonical 16 kHz mono s16 WAVs from Phoenix skip a
+redundant ffmpeg conversion on each decode. Non-canonical uploads still use
+ffmpeg. Repeated identical hypotheses are suppressed, and silence alone does
+not trigger an interim. The remaining full-buffer re-decodes are a model/API
+limitation; a stateful streaming model would be the next larger improvement.
 
 ## Running
 
@@ -145,7 +148,7 @@ works.
 ## Tests, and what they do not cover
 
 ```bash
-python3 -m pytest tests/ -q     # 11 passed
+python3 -m pytest tests/ -q     # contract tests; no GPU/model required
 ```
 
 They run without a model or a GPU, because the recognizer is injected. That
