@@ -82,6 +82,14 @@ function withTimeout(promise, ms = 3000) {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+function endOfOggPage(buffer, offset = 0) {
+  assert.equal(buffer.toString('ascii', offset, offset + 4), 'OggS');
+  const segments = buffer[offset + 26];
+  let bodyBytes = 0;
+  for (let index = 0; index < segments; index += 1) bodyBytes += buffer[offset + 27 + index];
+  return offset + 27 + segments + bodyBytes;
+}
+
 async function cleanupDecoder(decoder) {
   if (!decoder) return;
   decoder.abort();
@@ -385,6 +393,40 @@ test('explicit OGG end-of-input accepts decoded audio before a missing EOS page'
     await withTimeout(decoder.finish({ allowTruncated: true }));
     assert.ok(Buffer.concat(decoded).length > 0);
     assert.equal(decoder.child, null);
+  } finally {
+    await cleanupDecoder(decoder);
+  }
+});
+
+test('header-only OGG listen starts wait for later microphone pages', { skip: !FFMPEG_AVAILABLE && 'ffmpeg is required by the audio decoder candidate' }, async () => {
+  const pcm = [];
+  const decoder = new StreamingAudioDecoder({
+    encoding: AUDIO_ENCODINGS.OGG_OPUS,
+    onPcm: (chunk) => pcm.push(chunk),
+    log: { error() {} },
+  });
+  // Prevent an unexpected decoder error from becoming an unhandled EventEmitter
+  // exception so the assertions below can expose the state that regressed.
+  let failure = null;
+  decoder.on('error', (err) => { failure = err; });
+  const firstPageEnd = endOfOggPage(OGG_OPUS);
+  const headersEnd = endOfOggPage(OGG_OPUS, firstPageEnd);
+  try {
+    // ffmpeg's header-only exit is version-dependent, so construct the exact
+    // state its close handler sees rather than making this regression test
+    // depend on the runner's ffmpeg version. The production close handler
+    // invokes _rewindHeaderOnlyOgg() only for this narrow condition.
+    decoder.started = true;
+    decoder.oggPages = 2;
+    decoder.oggPrimer = Buffer.from(OGG_OPUS.subarray(0, headersEnd));
+    assert.equal(decoder._rewindHeaderOnlyOgg(), true);
+    assert.equal(decoder.failed, false);
+    assert.equal(failure, null);
+
+    decoder.write(OGG_OPUS.subarray(headersEnd));
+    await withTimeout(decoder.finish());
+    assert.ok(Buffer.concat(pcm).length > 0, 'the restarted decoder receives later audio');
+    assert.equal(failure, null);
   } finally {
     await cleanupDecoder(decoder);
   }

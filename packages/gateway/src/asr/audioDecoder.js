@@ -16,6 +16,10 @@ const MAX_PENDING_INPUT_BYTES = 2 * 1024 * 1024;
 const MAX_STDERR_BYTES = 16 * 1024;
 const MAX_FLAC_OUTPUT_BYTES = 4 * 1024 * 1024;
 const MAX_OGG_PAGE_BYTES = 27 + 255 + (255 * 255);
+// Native Jetstream can start a listen socket with OpusHead and OpusTags only,
+// then wait for microphone samples. Keep that bounded prefix so a decoder that
+// exits after those headers can be restarted when audio arrives.
+const MAX_OGG_PRIMER_BYTES = 2 * MAX_OGG_PAGE_BYTES;
 
 /**
  * Diagnostic tee.  `PHOENIX_ASR_CAPTURE_DIR` writes the exact encoded bytes a
@@ -227,6 +231,8 @@ export class StreamingAudioDecoder extends EventEmitter {
     this.oggBuffer = Buffer.alloc(0);
     this.oggPages = 0;
     this.oggSawEos = false;
+    this.oggPrimer = Buffer.alloc(0);
+    this.oggHeaderOnlyEofs = 0;
     this.capture = openCapture(this.encoding, log && log.transId);
     this.flacBuffer = Buffer.alloc(0);
     this.flacMetadata = null;
@@ -251,6 +257,12 @@ export class StreamingAudioDecoder extends EventEmitter {
       this._startNativeFlac();
       return;
     }
+    this._startOggProcess();
+  }
+
+  /** Start (or restart after a header-only native Ogg probe) the ffmpeg child. */
+  _startOggProcess() {
+    if (this.child || this.closing || this.failed || !this.started) return;
     let child;
     try {
       child = spawn(this.ffmpegPath, decoderArgs(this.sampleRate), {
@@ -265,6 +277,8 @@ export class StreamingAudioDecoder extends EventEmitter {
       if (this.closing || this.failed) return;
       try {
         this.decodedBytes += chunk.length;
+        // A decoded audio frame makes a header-only restart unnecessary.
+        this.oggPrimer = Buffer.alloc(0);
         this.onPcm?.(chunk);
         this.emit('pcm', chunk);
       } catch (err) {
@@ -334,10 +348,34 @@ export class StreamingAudioDecoder extends EventEmitter {
         const diag = this.encoding === AUDIO_ENCODINGS.OGG_OPUS
           ? ` (oggPages=${this.oggPages}, oggSawEos=${this.oggSawEos}, pendingBytes=${this.oggBuffer.length}, decodedBytes=${this.decodedBytes})`
           : ` (decodedBytes=${this.decodedBytes})`;
+        if (this._rewindHeaderOnlyOgg()) return;
         this._fail(new AudioDecodeError(`Audio decoder ended before ASR end-of-speech${diag}`));
       }
     });
     this._flush();
+  }
+
+  /**
+   * Some current ffmpeg builds exit cleanly after receiving just Ogg's OpusHead
+   * and OpusTags pages, even though the native robot keeps the listen window
+   * open. This is neither malformed input nor an end-of-speech. Requeue the
+   * exact bounded prefix and let the next client frame start a fresh decoder.
+   * Audio-bearing, partial, and EOS-marked streams remain errors.
+   */
+  _rewindHeaderOnlyOgg() {
+    if (this.encoding !== AUDIO_ENCODINGS.OGG_OPUS
+      || this.inputEnded
+      || this.decodedBytes !== 0
+      || this.oggPages !== 2
+      || this.oggSawEos
+      || this.oggBuffer.length !== 0
+      || this.queuedBytes !== 0
+      || this.oggPrimer.length === 0) return false;
+    this.queue = [this.oggPrimer];
+    this.queuedBytes = this.oggPrimer.length;
+    this.waitingDrain = false;
+    this.oggHeaderOnlyEofs += 1;
+    return true;
   }
 
   _startNativeFlac() {
@@ -365,6 +403,16 @@ export class StreamingAudioDecoder extends EventEmitter {
       this._fail(err);
       throw err;
     }
+    // Preserve only the short Ogg preamble necessary for a header-only restart;
+    // never retain an entire spoken turn a second time.
+    if (this.decodedBytes === 0 && this.oggPrimer.length < MAX_OGG_PRIMER_BYTES) {
+      const remaining = MAX_OGG_PRIMER_BYTES - this.oggPrimer.length;
+      this.oggPrimer = Buffer.concat([this.oggPrimer, chunk.subarray(0, remaining)]);
+    }
+    // A header-only process exit clears `child` but leaves the listening turn
+    // open. Restart only on fresh audio, avoiding a process-respawn loop while
+    // the robot is quietly waiting for an answer.
+    if (!this.child) this._startOggProcess();
     try {
       this.oggBuffer = this.oggBuffer.length === 0
         ? Buffer.from(chunk)
@@ -401,6 +449,17 @@ export class StreamingAudioDecoder extends EventEmitter {
       this._settleFinishError(new AudioDecodeError('Audio decoder has not been started'));
       return this.finishPromise;
     }
+    // The Ogg process can have cleanly exited after OpusHead/OpusTags while the
+    // robot was waiting for microphone input. A caller that now closes that
+    // turn must receive the ordinary no-audio outcome, rather than leaving its
+    // finish promise unresolved because there is no child left to close.
+    if (this.encoding === AUDIO_ENCODINGS.OGG_OPUS
+      && !this.child
+      && this.oggHeaderOnlyEofs > 0
+      && this.decodedBytes === 0) {
+      this._fail(new AudioDecodeError('OGG stream contains no decodable audio'));
+      return this.finishPromise;
+    }
     this.inputEnded = true;
     if (this.encoding === AUDIO_ENCODINGS.FLAC) {
       try {
@@ -430,6 +489,7 @@ export class StreamingAudioDecoder extends EventEmitter {
     this.closing = true;
     this.queue.length = 0;
     this.queuedBytes = 0;
+    this.oggPrimer = Buffer.alloc(0);
     this.flacBuffer = Buffer.alloc(0);
     this.nativeFlacPendingBytes = 0;
     this.nativeFlacStartupBuffer = Buffer.alloc(0);
