@@ -2862,6 +2862,55 @@ const ROUTES = {
 
 const fmtMs = (value) => Number.isFinite(value) ? `${Math.round(value).toLocaleString()} ms` : '—';
 
+// Stage keys are an allowlisted part of the telemetry schema.  Keep the UI's
+// labels friendly without ever reflecting an arbitrary value into the panel.
+const VOICE_STAGE_LABELS = Object.freeze({
+  context_wait: 'Context available',
+  asr: 'Speech recognition',
+  nlu: 'Language parsing',
+  route: 'Intent routing',
+  skill: 'Skill response',
+  skill_redirect: 'Redirected skill',
+  history_launch: 'Launch history (background)',
+  history_speech: 'Speech history (background)',
+  response_ready: 'Final response ready',
+  http_request: 'Service request',
+});
+
+function voiceStageLabel(stage) {
+  return VOICE_STAGE_LABELS[stage] || 'Recorded stage';
+}
+
+function voiceStageTone(stage) {
+  if (stage === 'asr') return 'voice-tone-asr';
+  if (stage === 'nlu' || stage === 'context_wait') return 'voice-tone-language';
+  if (stage === 'skill' || stage === 'skill_redirect') return 'voice-tone-skill';
+  if (stage === 'response_ready' || stage === 'route') return 'voice-tone-response';
+  return 'voice-tone-background';
+}
+
+function durationScale(totalMs, parts) {
+  return Math.max(1, Number(totalMs) || 0, ...parts.map(({ durationMs }) => Number(durationMs) || 0));
+}
+
+function durationBar({ label, durationMs, outcome, tone, scale, detail }) {
+  const duration = Math.max(0, Number(durationMs) || 0);
+  // Very short measured spans still get a visible marker, while their text
+  // supplies the precise elapsed duration.
+  const percent = duration ? Math.min(100, Math.max(2, (duration / scale) * 100)) : 0;
+  const description = `${label}: ${fmtMs(duration)} elapsed duration${outcome ? `, ${outcome}` : ''}. ${detail}`;
+  return h('div', {
+    class: `voice-duration-bar ${tone}`, role: 'listitem', tabindex: '0', title: description,
+    'aria-label': description,
+  },
+  h('div', { class: 'voice-duration-meta' },
+    h('span', { class: 'voice-duration-label', text: label }),
+    outcome && h('span', { class: 'pill', text: outcome })),
+  h('div', { class: 'voice-duration-track', 'aria-hidden': 'true' },
+    h('span', { class: 'voice-duration-fill', style: `--duration-pct: ${percent.toFixed(2)}%` })),
+  h('span', { class: 'voice-duration-value', text: fmtMs(duration) }));
+}
+
 /** A purpose-built telemetry view; it never reads or renders raw log lines. */
 async function renderAdminVoiceTurns() {
   const container = adminPage('#/admin/voice-turns', 'Voice turns',
@@ -2869,7 +2918,7 @@ async function renderAdminVoiceTurns() {
   show(container);
   if (!(await adminGate(container))) return;
 
-  const state = { range: '3600000', turnId: '', outcome: '', stage: '', loading: false };
+  const state = { range: '3600000', turnId: '', outcome: '', stage: '', loading: false, expanded: new Set() };
   const body = h('div', { class: 'voice-turn-results' }, loading(5));
   const status = h('span', { class: 'note', text: 'Loading recent turns…' });
   const idInput = h('input', {
@@ -2901,6 +2950,18 @@ async function renderAdminVoiceTurns() {
   }
 
   function draw(turns) {
+    // The DOM is intentionally rebuilt from the bounded server projection on
+    // every poll.  Capture native <details> state first so inspecting a turn
+    // is not interrupted by the five-second refresh.
+    for (const opened of body.querySelectorAll('details.voice-turn[open][data-turn-id]')) {
+      state.expanded.add(opened.dataset.turnId);
+    }
+    // Do not retain IDs which are outside the current bounded/filter result;
+    // this keeps a long-lived admin tab from accumulating stale UI state.
+    const visibleTurnIds = new Set(turns.map((turn) => turn.turnId));
+    for (const turnId of state.expanded) {
+      if (!visibleTurnIds.has(turnId)) state.expanded.delete(turnId);
+    }
     if (!turns.length) {
       body.replaceChildren(empty('No voice turns match', 'Try a wider time range or clear a filter.', 'clock'));
       return;
@@ -2909,17 +2970,51 @@ async function renderAdminVoiceTurns() {
     list.append(h('div', { class: 'voice-turn-head', role: 'row' },
       h('span', {}, 'Time'), h('span', {}, 'Turn'), h('span', {}, 'Total'), h('span', {}, 'Outcome')));
     for (const turn of turns) {
-      const detail = h('details', { class: 'voice-turn' });
+      const stages = turn.stages || [];
+      const scale = durationScale(turn.totalMs, stages);
+      const scaleId = `voice-duration-scale-${turn.turnId}`;
+      const detail = h('details', {
+        class: 'voice-turn', 'data-turn-id': turn.turnId, open: state.expanded.has(turn.turnId),
+        on: { toggle: () => {
+          if (detail.open) state.expanded.add(turn.turnId);
+          else state.expanded.delete(turn.turnId);
+        } },
+      });
       const timeline = h('div', { class: 'voice-turn-timeline' },
-        ...(turn.stages || []).map((stage) => h('div', { class: 'voice-stage' },
-          h('span', { class: 'voice-stage-name', text: stage.stage }),
-          h('span', { class: 'voice-stage-duration', text: fmtMs(stage.durationMs) }),
-          h('span', { class: 'pill', text: stage.outcome }))));
-      if (turn.asr) timeline.append(h('div', { class: 'voice-asr' },
-        h('strong', { text: 'ASR breakdown' }),
-        row('Audio received', fmtMs(turn.asr.audioMs)),
-        row('Silence endpoint', fmtMs(turn.asr.silenceWaitMs)),
-        row('Recognition', fmtMs(turn.asr.recognizeMs))));
+        h('div', { class: 'voice-timeline-heading' },
+          h('div', {}, h('strong', { text: 'Elapsed stage durations' }),
+            h('p', { id: scaleId, class: 'field-hint', text: `Each bar is a duration, scaled against ${fmtMs(scale)}. Stages can overlap, so this is not a timestamp sequence.` })),
+          h('div', { class: 'voice-timeline-axis', 'aria-hidden': 'true' },
+            h('span', { text: '0 ms' }), h('span', { text: fmtMs(scale) })) ),
+        h('div', { class: 'voice-stage-chart', role: 'list', 'aria-describedby': scaleId },
+          ...stages.map((stage) => durationBar({
+            label: voiceStageLabel(stage.stage), durationMs: stage.durationMs, outcome: stage.outcome,
+            tone: voiceStageTone(stage.stage), scale,
+            detail: 'Width is relative to this turn’s elapsed-duration scale.',
+          }))),
+        h('div', { class: 'voice-timeline-legend', 'aria-label': 'Timeline colour legend' },
+          h('span', { text: 'Colour key:' }),
+          h('span', { class: 'voice-legend voice-tone-asr', text: 'Speech' }),
+          h('span', { class: 'voice-legend voice-tone-language', text: 'Language / context' }),
+          h('span', { class: 'voice-legend voice-tone-skill', text: 'Skill' }),
+          h('span', { class: 'voice-legend voice-tone-response', text: 'Response' }),
+          h('span', { class: 'voice-legend voice-tone-background', text: 'Background' })));
+      if (turn.asr) {
+        const asrParts = [
+          { label: 'Audio received', durationMs: turn.asr.audioMs },
+          { label: 'Silence endpoint', durationMs: turn.asr.silenceWaitMs },
+          { label: 'Recognition', durationMs: turn.asr.recognizeMs },
+        ];
+        const asrScale = durationScale(0, asrParts);
+        timeline.append(h('div', { class: 'voice-asr' },
+          h('div', { class: 'voice-asr-heading' }, h('strong', { text: 'ASR phase breakdown' }),
+            h('span', { class: 'field-hint', text: `Elapsed durations · scale 0–${fmtMs(asrScale)}` })),
+          h('div', { class: 'voice-asr-chart', role: 'list' },
+            ...asrParts.map((part) => durationBar({
+              ...part, tone: 'voice-tone-asr', scale: asrScale,
+              detail: 'An ASR elapsed-duration component; it contains no audio or speech text.',
+            })) )));
+      }
       else timeline.append(h('p', { class: 'field-hint', text: 'No server-side ASR breakdown for this turn.' }));
       detail.append(h('summary', { class: 'voice-turn-row' },
         h('span', { text: fmtDate(turn.startedAt) }),
