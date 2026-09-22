@@ -5,7 +5,7 @@
 //   POST /api/login  {email,password}              -> {account}              + session cookie
 //   POST /api/logout                               -> {}                     (clears cookie)
 //   GET  /api/me                                   -> {account} | 401
-//   GET  /api/robots                               -> [{friendlyId,loopName,loopId,created,lastSeen,canManage}]
+//   GET  /api/robots                               -> [{friendlyId,loopName,loopId,created,lastSeen,connection,canManage}]
 //   GET  /api/robot?loopId=…                       -> robot record + Robot_20160225 read
 //   POST /api/robots/setup …                       -> QR pairing payload (MUST be preserved)
 //   POST /api/robots/claim-code                    -> one-time existing-robot ownership code
@@ -48,7 +48,7 @@ import {
 import { createSession, destroySession, getSession, sessionCookie, clearCookie } from './sessions.js';
 import { buildQrCodes } from './qrPayload.js';
 import { userFromSession as sessionUser, portalAccount } from './portal/session.js';
-import { classicBaseUrl } from './portal/classicClient.js';
+import { classicBaseUrl, classicCall } from './portal/classicClient.js';
 import { portalLoopRoutes, visibleLoops } from './portal/loops.js';
 import { portalProfileRoutes } from './portal/profile.js';
 import { portalRobotRoutes } from './portal/robots.js';
@@ -103,6 +103,27 @@ const robotView = ({ robot, loop, owner }, {
   if (includeOwnerEmail) out.ownerEmail = owner ? owner.email : null;
   return out;
 };
+
+// A status probe adds useful presence information to the portal but must never
+// make the entire Robots page wait indefinitely for a restarting Classic
+// service. The caller gets `null` for both a timeout and an ordinary failure;
+// neither condition is disclosed as an internal diagnostic to the browser.
+const ROBOT_STATUS_TIMEOUT_MS = 2500;
+function robotConnectionStatus(callClassic, request) {
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (value) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(value);
+    };
+    const timer = setTimeout(() => finish(null), ROBOT_STATUS_TIMEOUT_MS);
+    Promise.resolve()
+      .then(() => callClassic(request))
+      .then(finish, () => finish(null));
+  });
+}
 
 function withCookie(res, cookie, status, body) {
   res.setHeader('Set-Cookie', cookie);
@@ -340,7 +361,7 @@ export function portalRoutes(store, options = {}) {
       return { account: portalAccount(account) };
     },
 
-    'GET /api/robots': ({ req, res }) => {
+    'GET /api/robots': async ({ req, res }) => {
       const account = userFromSession(store, req);
       if (!account) return sendJson(res, 401, { error: 'not logged in' });
       // A person can participate in more than one loop. An invited loop is
@@ -353,9 +374,50 @@ export function portalRoutes(store, options = {}) {
             && String(member.status || '').toLowerCase() === 'accepted'))
         .map((loop) => String(loop._id)));
       const robots = store.allRobots().filter(({ loop }) => loop && visible.has(String(loop._id)));
-      return robots.map(({ robot, loop, owner }) => robotView({ robot, loop, owner }, {
-        canManage: idsEqual(loop.owner, account._id),
+
+      // Notification_20150505.GetStatus is the source service's presence
+      // signal: it is true while the robot's notification socket is connected.
+      // Ask it with the server-held robot credentials, just as the bounded
+      // details projection does. The browser receives only the boolean, not a
+      // credential identifier or a diagnostic that could reveal internals.
+      //
+      // `lastSeen` predates this portal and is blank on imported robots. When
+      // the presence service confirms a live socket, that is a real, current
+      // observation by Phoenix, so persist that latest observation for the
+      // card's next load.
+      // An unavailable status service is deliberately non-fatal: the robot
+      // still belongs in the user's list, with connection left unknown.
+      const observedAt = Date.now();
+      let changed = false;
+      const callClassic = portal.classicCall || classicCall;
+      const views = await Promise.all(robots.map(async ({ robot, loop, owner }) => {
+        const view = robotView({ robot, loop, owner }, {
+          canManage: idsEqual(loop.owner, account._id),
+        });
+        try {
+          const result = await robotConnectionStatus(callClassic, {
+            base: portal.classicBase,
+            account: robot,
+            target: 'Notification_20150505.GetStatus',
+            body: { accountId: robot._id },
+          });
+          if (typeof result?.body?.connected === 'boolean') {
+            view.connection = { connected: result.body.connected };
+            if (result.body.connected) {
+              robot.lastSeen = observedAt;
+              view.lastSeen = observedAt;
+              changed = true;
+            }
+          } else {
+            view.connection = null;
+          }
+        } catch {
+          view.connection = null;
+        }
+        return view;
       }));
+      if (changed) store.flush();
+      return views;
     },
 
     // Add-a-robot: mint a setup token, build the WiFi+token QR payload (the robot scans it,

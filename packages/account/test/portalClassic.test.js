@@ -18,9 +18,9 @@ const { VoiceTrainingStore } = await import('../../classic/src/index.js');
 const { createOtaService } = await import('../../ota/src/service.js');
 const { Catalog } = await import('../../ota/src/catalog.js');
 
-let owner; let loop;
+let owner; let loop; let robot; let accountStore;
 let mediaStore; let personStore; let jotStore; let vtStore; let pushRegistry;
-let accountServer; let classicServer; let otaServer;
+let accountServer; let classicServer; let otaServer; let classic;
 let base;
 const jars = new Map();
 
@@ -47,10 +47,10 @@ async function otaEntryFile() {
 
 before(async () => {
   const accountDir = join(dir, 'account');
-  const store = new Store(join(accountDir, 'store.json'));
-  owner = createOwnerAccount(store, { email: 'portal-classic@fixture.test', password: 'classic-pass-1', firstName: 'Portal' });
-  ({ loop } = createLoop(store, { owner, robotId: 'classic-fixture-robot' }));
-  store.flush();
+  accountStore = new Store(join(accountDir, 'store.json'));
+  owner = createOwnerAccount(accountStore, { email: 'portal-classic@fixture.test', password: 'classic-pass-1', firstName: 'Portal' });
+  ({ loop, robot } = createLoop(accountStore, { owner, robotId: 'classic-fixture-robot' }));
+  accountStore.flush();
 
   mediaStore = new MediaStore({ directory: join(dir, 'media'), file: join(dir, 'media.json') });
   await mediaStore.putObject({
@@ -65,12 +65,13 @@ before(async () => {
   pushRegistry = new DeviceRegistry(join(dir, 'push.json'));
   pushRegistry.createDevice(owner.accessKeyId, { name: 'test-phone', pushToken: 'tok-1', type: 'android' });
 
-  classicServer = await createClassicEntrypoint({
+  classic = createClassicEntrypoint({
     media: { store: mediaStore },
     person: { store: personStore },
     jot: { store: jotStore, pushRegistry },
     voiceTraining: { store: vtStore },
-  }).listen(0);
+  });
+  classicServer = await classic.listen(0);
   const classicPort = classicServer.address().port;
 
   const pkgFile = await otaEntryFile();
@@ -82,7 +83,7 @@ before(async () => {
   process.env.NET_ota = `127.0.0.1:${otaServer.address().port}`;
   process.env.NET_classic = `127.0.0.1:${classicPort}`;
 
-  accountServer = await createAccountService({ store }).listen(0);
+  accountServer = await createAccountService({ store: accountStore }).listen(0);
   base = `http://127.0.0.1:${accountServer.address().port}`;
   const login = await call('POST', '/api/login', { email: owner.email, password: 'classic-pass-1' }, 'owner');
   assert.equal(login.status, 200);
@@ -107,6 +108,22 @@ test('signature travel: the portal uses the account credentials, never forges id
   assert.deepEqual(robot.body.getRobot, { id: 'classic-fixture-robot', payload: {} });
   assert.deepEqual(robot.body.connection, { connected: false });
   assert.equal(robot.body.diagnostics, undefined);
+});
+
+test('robot cards report notification-socket presence and persist the observation time', async () => {
+  const offline = await call('GET', '/api/robots');
+  const offlineRobot = offline.body.find((entry) => entry.friendlyId === robot.friendlyId);
+  assert.equal(offline.status, 200);
+  assert.deepEqual(offlineRobot.connection, { connected: false });
+  assert.equal(offlineRobot.lastSeen, null);
+
+  classic.hub.newRobotToken(robot._id, 'portal-status-test');
+  classic.hub.store.markConnected({ accountId: robot._id });
+  const online = await call('GET', '/api/robots');
+  const onlineRobot = online.body.find((entry) => entry.friendlyId === robot.friendlyId);
+  assert.deepEqual(onlineRobot.connection, { connected: true });
+  assert.ok(Number.isSafeInteger(onlineRobot.lastSeen));
+  assert.equal(accountStore.accounts.get(robot._id).lastSeen, onlineRobot.lastSeen);
 });
 
 test('gallery: list seeded media through Classic Media_20160725, serve its bytes, then delete', async () => {

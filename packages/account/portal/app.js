@@ -125,11 +125,34 @@ const icon = (name, size = 16, className) => {
    Formatting
    ========================================================================== */
 
-const fmtDate = (v) => (v ? new Date(Number(v) || v).toLocaleString(undefined, {
-  dateStyle: 'medium', timeStyle: 'short',
-}) : '—');
+const fmtDate = (v, fallback = '—') => {
+  if (v === null || v === undefined || v === '') return fallback;
+  const date = new Date(Number(v) || v);
+  return Number.isNaN(date.getTime()) ? fallback : date.toLocaleString(undefined, {
+    dateStyle: 'medium', timeStyle: 'short',
+  });
+};
 const fmtDay = (v) => (v ? new Date(Number(v) || v).toLocaleDateString(undefined, { dateStyle: 'medium' }) : '—');
 const fmtBool = (v) => (v ? 'yes' : 'no');
+
+// Some old Robot_20160225 records serialize unset optional fields as the
+// literal string "null". It is not useful data, and showing five copies of it
+// under Connection makes the detail card look broken.
+const meaningfulText = (value) => {
+  if (typeof value !== 'string') return null;
+  const text = value.trim();
+  return text && !/^(?:null|undefined|none|n\/?a)$/i.test(text) ? text : null;
+};
+
+const robotLastSeen = (value) => fmtDate(value, 'Not yet observed');
+
+const connectionStatus = (connection) => {
+  if (connection?.connected === true) {
+    return h('span', { class: 'pill pill-ok' }, h('span', { class: 'dot dot-live' }), 'Connected');
+  }
+  if (connection?.connected === false) return h('span', { class: 'pill pill-warn' }, 'Not connected');
+  return h('span', { class: 'pill pill-warn' }, 'Status unavailable');
+};
 
 /** Sentence-case a key like `googleWork` or `top_stories`. */
 const prettyLabel = (key) => String(key)
@@ -1360,37 +1383,41 @@ async function renderProfile() {
    ========================================================================== */
 
 async function renderRobot() {
-  show(page('Robots', 'The robots paired with this server.', loading(3)));
+  show(page('Robots', 'Your Jibos and their current connection status.', loading(3)));
 
   const robots = await api('GET', '/api/robots');
-  const container = page('Robots', 'The robots paired with this server.');
+  const container = page('Robots', 'Connection status is checked when this page opens.');
   container.querySelector('.page-head').append(h('div', { class: 'row' },
-    h('a', { class: 'btn btn-primary', href: '#/add' }, icon('plus', 15), 'Connect a Jibo'),
-    h('a', { class: 'btn btn-quiet', href: '#/claim' }, icon('link', 15), 'Migrate an existing Jibo')));
+    h('button', { class: 'btn btn-quiet', type: 'button', on: { click: renderRobot } }, icon('refresh', 15), 'Refresh status'),
+    h('a', { class: 'btn btn-primary', href: '#/add' }, icon('plus', 15), 'Add a Jibo')));
 
   if (!robots.ok) { container.append(errorBox('Could not load robots.', robots.data.error)); return show(container); }
   const list = Array.isArray(robots.data) ? robots.data : [];
   setBadge('badge-robots', list.length);
 
   if (!list.length) {
-    container.append(empty('No robots paired yet',
-      'Choose the setup or migration path from Connect a Jibo.', 'robot'));
+    container.append(card('Add your first Jibo', {},
+      h('p', { class: 'instruct' }, 'Start with the state your Jibo is in today.'),
+      h('p', { class: 'field-hint' }, 'You can either set up a new or factory-reset Jibo with a QR code, or migrate one that was set up before.'),
+      h('div', { class: 'row', style: 'margin-top:1.25rem' },
+        h('a', { class: 'btn btn-primary', href: '#/add' }, icon('plus', 15), 'Add a Jibo'))));
     return show(container);
   }
 
   for (const robot of list) {
     const detail = h('div', {});
     const c = card(robot.friendlyId, {
-      sub: robot.loopName || '—',
+      sub: meaningfulText(robot.loopName) || 'No loop name',
       actions: [h('button', {
         class: 'btn btn-sm', type: 'button',
         on: { click: (e) => loadDetail(e.currentTarget, robot, detail) },
-      }, 'Details')],
+      }, 'View details')],
     },
-      row('Loop', robot.loopName || '—'),
+      row('Loop', meaningfulText(robot.loopName) || '—'),
       row('Access', robot.canManage ? 'Owner' : 'Shared with you'),
+      row('Connection', connectionStatus(robot.connection)),
       row('Created', fmtDate(robot.created)),
-      row('Last seen', fmtDate(robot.lastSeen)),
+      row('Last seen', robotLastSeen(robot.lastSeen)),
       detail);
     container.append(c);
   }
@@ -1403,23 +1430,26 @@ async function renderRobot() {
     button.disabled = false;
     if (!r.ok) { host.replaceChildren(errorBox('Could not load robot detail.', r.data.error)); return; }
     const d = r.data;
-    const payload = d.getRobot?.payload || {};
+    const payload = d.getRobot?.payload && typeof d.getRobot.payload === 'object' && !Array.isArray(d.getRobot.payload)
+      ? d.getRobot.payload : {};
     const remoteEnabled = typeof payload.remoteEnabled === 'boolean' ? payload.remoteEnabled : null;
-    const location = [payload.city, payload.state, payload.country].filter((part) => typeof part === 'string' && part).join(', ');
+    const ssid = meaningfulText(payload.SSID);
+    const location = [payload.city, payload.state, payload.country].map(meaningfulText).filter(Boolean).join(', ');
+    const timezone = meaningfulText(payload.timezone);
+    const platform = meaningfulText(payload.platform);
+    const serialNumber = meaningfulText(payload.serialNumber);
     host.replaceChildren(
-      row('Loop', d.loop ? d.loop.name : '—'),
+      row('Loop', meaningfulText(d.loop?.name) || '—'),
       row('Status', d.loop?.isSuspended
         ? h('span', { class: 'pill pill-error' }, 'Suspended')
         : h('span', { class: 'pill pill-ok' }, h('span', { class: 'dot' }), 'Active')),
-      d.connection && typeof d.connection.connected === 'boolean'
-        ? row('Connection', d.connection.connected
-          ? h('span', { class: 'pill pill-ok' }, h('span', { class: 'dot dot-live' }), 'Connected')
-          : h('span', { class: 'pill pill-warn' }, 'Not connected')) : null,
-      typeof payload.SSID === 'string' && payload.SSID ? row('Wi-Fi network', payload.SSID) : null,
+      row('Connection', connectionStatus(d.connection)),
+      row('Last seen', robotLastSeen(d.robot?.lastSeen)),
+      ssid ? row('Wi-Fi network', ssid) : null,
       location ? row('Location', location) : null,
-      typeof payload.timezone === 'string' && payload.timezone ? row('Timezone', payload.timezone) : null,
-      typeof payload.platform === 'string' && payload.platform ? row('Platform', payload.platform) : null,
-      typeof payload.serialNumber === 'string' && payload.serialNumber ? row('Serial number', payload.serialNumber) : null,
+      timezone ? row('Timezone', timezone) : null,
+      platform ? row('Platform', platform) : null,
+      serialNumber ? row('Serial number', serialNumber) : null,
       remoteEnabled === null ? null : row('Remote access', remoteEnabled ? 'Enabled' : 'Disabled'),
       d.diagnostics
         ? h('div', { class: 'notice notice-warn' }, icon('alert', 16),
@@ -1434,21 +1464,21 @@ async function renderRobot() {
 
 async function renderClaim() {
   const container = page('Migrate an existing Jibo',
-    'Repoint an already-set-up robot, safely link it to this account, then let it take its OTA update.');
+    'Move a Jibo that was set up before to jibo.io and link it to this account.');
   container.querySelector('.page-head').prepend(
     h('a', { class: 'link', href: '#/add', style: 'display:inline-flex;align-items:center;gap:.35rem;margin-bottom:.75rem' },
       icon('back', 14), 'Choose a different path'));
 
   const result = h('div', { hidden: true });
   const request = h('button', { type: 'button', class: 'btn btn-primary' },
-    icon('link', 15), 'Create one-time claim command');
+    icon('link', 15), 'Create migration command');
   request.addEventListener('click', async () => {
     request.disabled = true;
     const res = await api('POST', '/api/robots/claim-code', {});
     request.disabled = false;
     result.hidden = false;
     if (!res.ok) {
-      result.replaceChildren(errorBox('Could not create a claim command.', res.data?.error));
+      result.replaceChildren(errorBox('Could not create a migration command.', res.data?.error));
       return;
     }
     const publicJiboIo = /(^|\.)jibo\.io$/i.test(location.hostname);
@@ -1474,10 +1504,10 @@ async function renderClaim() {
     const expiry = fmtDate(res.data.expires);
     result.replaceChildren(
       h('div', { class: 'notice notice-warn' },
-        h('strong', {}, 'One use only.'), ' This command expires ', expiry,
+        h('strong', {}, 'One use only.'), ' This private command expires ', expiry,
         '. Do not share it; it links whichever robot proves possession to your account.'),
       h('p', { class: 'instruct' },
-        'Run this on a computer that can SSH as root to your Jibo. Replace only ',
+        'Run this on the computer that can SSH as root to your Jibo. Replace only ',
         h('code', {}, '<robot-ip>'), '. The command reads the existing robot credentials over SSH; do not copy those credentials into this site.'),
       publicJiboIo ? h('p', { class: 'field-hint' },
         'The command downloads the public script first. You can ',
@@ -1489,26 +1519,24 @@ async function renderClaim() {
         'This server has not published its robot-repoint IP, so replace ', h('code', {}, '<server-ip>'),
         ' with the public IP the robot should reach.') : null,
       h('p', { class: 'field-hint' },
-        'The command applies the displayed plan because it includes ', h('code', {}, '--yes'),
-        '. It does not import the former cloud account or its people. It preserves the robot’s existing keys and makes this Phoenix account its loop owner.'),
+        'It keeps the robot’s existing credentials, does not import the former cloud account or its people, and links the robot to this account.'),
       h('ol', { class: 'field-hint' },
-        h('li', {}, 'Wait for the command to report that the robot was claimed, then keep Jibo powered and online.'),
-        h('li', {}, 'Jibo’s normal updater will see the jibo.io OTA catalog. Do not interrupt its download or reboot.'),
-        h('li', {}, 'Use ', h('a', { href: '#/system' }, 'System → Software updates'),
-          ' to see the catalog offered to robots. It is informational; updates are not pushed from the browser.')));
+        h('li', {}, 'Run the command and wait for it to report that the robot was claimed.'),
+        h('li', {}, 'Keep Jibo powered and online while its regular updater checks the jibo.io catalog.'),
+        h('li', {}, 'Return to ', h('a', { href: '#/robot' }, 'Robots'), ' and refresh its status.')));
   });
 
-  container.append(card('Step 1 — Prepare', {},
-    h('p', { class: 'instruct' }, 'Use this only for a Jibo that was set up before and still has its robot credentials.'),
-    h('p', { class: 'field-hint' }, 'The robot must already have owner-authorized root SSH access and be reachable from this computer. Install and verify that local access before continuing; this migration tool does not bypass it.'),
-    h('p', { class: 'field-hint' }, 'The helper intentionally uses non-interactive SSH keys. Before creating a code, confirm ',
-      h('code', {}, 'ssh root@<robot-ip> true'), ' exits successfully without asking for a password.'),
-    h('p', { class: 'field-hint' }, 'For a new or factory-reset Jibo, use ', h('a', { href: '#/add/new' }, 'the QR setup path'),
-      ' instead. Its normal setup creates and links the robot automatically.')),
-    card('Step 2 — Create your private pairing command', {},
-      h('p', { class: 'instruct' }, 'Create a short-lived code only when you are ready to run the command. It is bound to your signed-in account.'),
-    h('div', { class: 'row', style: 'margin-top:1.25rem' }, request),
-    result));
+  container.append(
+    card('Before you start', {},
+      h('p', { class: 'instruct' }, 'Choose this only for a Jibo that was set up before and still has its robot credentials.'),
+      h('p', { class: 'field-hint' }, 'This computer needs owner-authorized root SSH access to the robot. Confirm ',
+        h('code', {}, 'ssh root@<robot-ip> true'), ' works without asking for a password.'),
+      h('p', { class: 'field-hint' }, 'If Jibo is new or factory-reset and showing normal setup, use ',
+        h('a', { href: '#/add/new' }, 'QR setup'), ' instead.')),
+    card('Get your migration command', {},
+      h('p', { class: 'instruct' }, 'Create the short-lived account-linking command only when you are ready to run it.'),
+      h('div', { class: 'row', style: 'margin-top:1.25rem' }, request),
+      result));
   show(container);
 }
 
@@ -1520,23 +1548,23 @@ let pollTimer = null;
 function stopPoll() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }
 
 function renderAdd() {
-  const container = page('Connect a Jibo', 'Choose the path that matches the robot in front of you.');
+  const container = page('Add a Jibo', 'How is this Jibo set up today? Both paths link it to this account.');
   container.querySelector('.page-head').prepend(
     h('a', { class: 'link', href: '#/robot', style: 'display:inline-flex;align-items:center;gap:.35rem;margin-bottom:.75rem' },
       icon('back', 14), 'Back to robots'));
   container.append(
-    card('My Jibo has been set up already', {},
-      h('p', { class: 'instruct' }, 'It previously connected to the original cloud or another server.'),
-      h('p', { class: 'field-hint' }, 'We will prepare SSH access, repoint it to jibo.io, create a one-use ownership link for this account, and then let its regular OTA updater finish the migration.'),
+    card('Already set up', {},
+      h('p', { class: 'instruct' }, 'It previously used the original cloud or another server.'),
+      h('p', { class: 'field-hint' }, 'Use your existing root SSH access to repoint it and run one account-linking command.'),
       h('div', { class: 'row', style: 'margin-top:1.25rem' },
-        h('a', { class: 'btn btn-primary', href: '#/claim' }, icon('link', 15), 'Migrate this Jibo'))),
-    card('My Jibo is new or factory-reset', {},
-      h('p', { class: 'instruct' }, 'It is at the normal setup screen and does not need its former cloud credentials.'),
-      h('p', { class: 'field-hint' }, 'Enter Wi-Fi details and show the generated QR code to Jibo. Normal setup creates the robot credentials and links it to this account.'),
+        h('a', { class: 'btn btn-primary', href: '#/claim' }, icon('link', 15), 'Get migration command'))),
+    card('New or factory-reset', {},
+      h('p', { class: 'instruct' }, 'It is showing Jibo’s normal setup screen.'),
+      h('p', { class: 'field-hint' }, 'Enter Wi-Fi details, show Jibo the QR code, and normal setup will create and link its account.'),
       h('div', { class: 'row', style: 'margin-top:1.25rem' },
-        h('a', { class: 'btn btn-primary', href: '#/add/new' }, icon('plus', 15), 'Set up with a QR code'))),
-    h('p', { class: 'field-hint' }, 'Need the public, signed-out preparation steps? Read the ', h('a', { href: '/guide' }, 'migration guide'),
-      '. It explains how to repoint first and return here later to link the robot to an account.'));
+        h('a', { class: 'btn btn-primary', href: '#/add/new' }, icon('plus', 15), 'Create setup code'))),
+    h('p', { class: 'field-hint' }, 'Not sure? If it has been reset or is at setup, choose QR setup. Otherwise choose migration. The ',
+      h('a', { href: '/guide' }, 'public guide'), ' also covers repointing before you have an account.'));
   show(container);
 }
 
@@ -1547,8 +1575,8 @@ function renderAdd() {
 async function renderAddNew() {
   const container = page('Set up a robot', 'Show the code to the robot and it will join your network.');
   container.querySelector('.page-head').prepend(
-    h('a', { class: 'link', href: '#/robot', style: 'display:inline-flex;align-items:center;gap:.35rem;margin-bottom:.75rem' },
-      icon('back', 14), 'Back to robots'));
+    h('a', { class: 'link', href: '#/add', style: 'display:inline-flex;align-items:center;gap:.35rem;margin-bottom:.75rem' },
+      icon('back', 14), 'Choose a different path'));
 
   const errorLine = h('p', { class: 'error', hidden: true });
   const form = h('form', {},
