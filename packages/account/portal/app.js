@@ -1550,7 +1550,17 @@ async function renderGallery() {
   const r = await api('GET', `/api/media?loopId=${encodeURIComponent(loop.id)}`);
   if (!r.ok) { container.append(errorBox('Could not load the gallery.', r.data.error)); return show(container); }
 
-  const items = (r.data.media || []).filter((m) => !m.isDeleted && m.url);
+  // Media.List expands each parent once more for every thumbnail, with the
+  // expanded thumbnail carrying `reference: <parent path>`.  A gallery tile
+  // represents the parent capture; use its ordinary thumbnail as the preview
+  // when available, and retain the parent image for the full-size viewer.
+  const items = (r.data.media || [])
+    .filter((m) => !m.isDeleted && m.url && !m.reference)
+    .map((m) => {
+      const thumbs = Array.isArray(m.thumbs) ? m.thumbs.filter((thumb) => thumb && thumb.url && thumb.path) : [];
+      const preview = thumbs.find((thumb) => thumb.type === 'thumb') || thumbs[0] || m;
+      return { ...m, previewPath: preview.path };
+    });
   if (!items.length) {
     container.append(empty('Nothing captured yet', 'Photographs the robot takes will appear here.', 'image'));
     return show(container);
@@ -1562,8 +1572,8 @@ async function renderGallery() {
     on: { click: removeSelected },
   }, 'Delete selected');
 
-  const imageUrl = (m) => {
-    const path = (m.path || '').split('/').pop();
+  const imageUrl = (value) => {
+    const path = typeof value === 'string' ? value : (value?.path || '').split('/').pop();
     if (!/^[A-Za-z0-9_-]+$/.test(path)) return '';
     return `/api/media/blob/${path}`;
   };
@@ -1576,7 +1586,7 @@ async function renderGallery() {
   const grid = h('div', { class: 'media-grid' }, ...items.map((m) => h('div', {
     class: 'media-tile', 'data-path': m.path,
   },
-    h('img', { src: imageUrl(m), loading: 'lazy', alt: `${m.type} captured ${fmtDate(m.created)}`, on: { click: () => openMedia(m) } }),
+    h('img', { src: imageUrl(m.previewPath), loading: 'lazy', alt: `${m.type} captured ${fmtDate(m.created)}`, on: { click: () => openMedia(m) } }),
     h('label', { class: 'chip' },
       h('input', {
         type: 'checkbox',

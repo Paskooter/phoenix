@@ -665,7 +665,7 @@ export function makeMediaHandler({ store, baseFor, accountResolver, loops, crede
 }
 
 /** GET /media/blob/:path — the object bytes behind the `url` the app is handed (no S3). */
-export function mediaBlobRoutes(store, { callerBoundary = false } = {}) {
+export function mediaBlobRoutes(store, { callerBoundary = false, loops } = {}) {
   return {
     'GET /media/blob/:path': async ({ req, res }) => {
       const path = String(req.params.path || '');
@@ -673,7 +673,21 @@ export function mediaBlobRoutes(store, { callerBoundary = false } = {}) {
       if (callerBoundary) {
         const caller = verifiedCallerFromRequest(req);
         const record = store.find(path) || store.findByThumbPath(path)?.record;
-        if (!caller || !record || String(record.accountId) !== String(caller.accountId)) {
+        // A media object belongs to its loop, not exclusively to the account
+        // that originally uploaded it.  List/Get already authorize a loop
+        // member, so the direct object route must make the same check.  An
+        // uploader-only check breaks shared galleries (and imported media)
+        // while a missing/unavailable Account peer must fail closed.
+        let members;
+        try {
+          members = record && typeof loops?.members === 'function'
+            ? await loops.members(record.loopId)
+            : undefined;
+        } catch {
+          members = undefined;
+        }
+        if (!caller || !record || !Array.isArray(members)
+          || !members.some((accountId) => sameId(accountId, caller.accountId))) {
           res.writeHead(403, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' });
           return void res.end('forbidden');
         }

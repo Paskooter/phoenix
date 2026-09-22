@@ -510,7 +510,7 @@ export function createClassicEntrypoint({ extra = [], tls, publicUrl, publicOrig
       ...backupBlobRoutes(backups), // PUT/GET /backup/blob — the self-hosted store the URLs point at
       ...keyRoutes(keys, { membership: keyMembership, baseFor, binaryDir: keyBinaryDir, callerBoundary }), // POST /binaryRequest, /deleteBinaries, GET /key/binary
       ...verifiedDirectRoutes(logHttpRoutes(logStore, { callerBoundary }), callerBoundary),  // PUT/GET /log/upload|blob — the log/ASR/binary sink the URLs point at
-      ...verifiedDirectRoutes(mediaBlobRoutes(mediaStore, { callerBoundary }), callerBoundary), // GET /media/blob/:path — the object bytes behind a Media url
+      ...verifiedDirectRoutes(mediaBlobRoutes(mediaStore, { callerBoundary, loops: mediaLoops }), callerBoundary), // GET /media/blob/:path — the object bytes behind a Media url
       // Internal enqueue: push a notification to a robot's account (portal/system/tests use this).
       'POST /notify': verifiedDirectRoute(({ res, body, caller }) => {
         const accountId = caller?.accountId || body?.accountId;
