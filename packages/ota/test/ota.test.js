@@ -11,6 +11,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -109,6 +110,52 @@ test('a token-authenticated loopback Classic peer can carry a verified caller wi
       body: JSON.stringify({ subsystem: 'os' }),
     });
     assert.equal(forged.status, 401);
+  } finally {
+    await new Promise((resolve) => peer.close(resolve));
+  }
+});
+
+test('an authenticated versioned package URL round-trips from Update to the package endpoint', async () => {
+  const peer = await createOtaService({
+    catalog,
+    publicBaseUrl: 'https://ota.fixture.test',
+    packageBearerSecret: 'fixture-package-secret',
+    resolveCredentials: () => null,
+    internalPeerToken: 'fixture-classic-ota-token',
+  }).listen(0);
+  const peerBase = `http://127.0.0.1:${peer.address().port}`;
+  const headers = {
+    'content-type': 'application/x-amz-json-1.1',
+    'x-amz-target': 'Update_20160301.GetUpdateFrom',
+    'x-phoenix-ota-peer-token': 'fixture-classic-ota-token',
+    'x-phoenix-verified-account': JSON.stringify({ id: 'fixture-account' }),
+  };
+  try {
+    const issued = await fetch(`${peerBase}/`, {
+      method: 'POST', headers, body: JSON.stringify({ fromVersion: '3.3.4', subsystem: 'os' }),
+    });
+    assert.equal(issued.status, 200);
+    const update = await issued.json();
+    assert.equal(update._id, 'os-12.10.0', 'fixture uses a dotted versioned package ID');
+
+    const signed = new URL(update.url);
+    const requestDownload = (value) => new Promise((resolve, reject) => {
+      const req = http.get(`${peerBase}${value.pathname}${value.search}`, {
+        // Undici deliberately blocks Host overrides. The real TLS edge preserves
+        // this header, so use the native client for this direct-origin fixture.
+        headers: { host: 'ota.fixture.test' },
+      }, resolve);
+      req.on('error', reject);
+    });
+    const download = await requestDownload(signed);
+    assert.equal(download.statusCode, 200, 'the server must accept the exact URL it just issued');
+    const chunks = [];
+    for await (const chunk of download) chunks.push(chunk);
+    assert.equal(sha1(Buffer.concat(chunks)), sha1(FILES['os-12.10.0.tar']));
+
+    signed.searchParams.set('id', 'os-12.6.0');
+    const tampered = await requestDownload(signed);
+    assert.equal(tampered.statusCode, 403, 'the package ID remains bound into the bearer HMAC');
   } finally {
     await new Promise((resolve) => peer.close(resolve));
   }

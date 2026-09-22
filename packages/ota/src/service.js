@@ -194,7 +194,12 @@ function packageBearer(secret, url, now) {
   const id = ids[0];
   const expiryText = expiresValues[0];
   const signature = signatures[0];
-  if (!id || !/^[0-9A-Za-z_-]+$/.test(id) || !/^\d+$/.test(expiryText)) return { id: null, reason: 'query-shape' };
+  // Catalog IDs are deployment-defined opaque strings. Published Phoenix
+  // firmware IDs include dotted semantic versions (for example
+  // `os-13.0.5-fcs`), so the bearer grammar must accept them. The ID is still
+  // authenticated by the HMAC and resolved only through Catalog.findById; it
+  // is never used as a filesystem path.
+  if (!id || id.length > 256 || !/^[0-9A-Za-z._-]+$/.test(id) || !/^\d+$/.test(expiryText)) return { id: null, reason: 'query-shape' };
   const expires = Number(expiryText);
   if (!Number.isSafeInteger(expires) || expires <= now || String(expires) !== expiryText || !/^[a-f0-9]{64}$/i.test(signature)) return { id: null, reason: 'expired-or-invalid' };
   const expected = Buffer.from(packageSignature(secret, id, expires), 'hex');
