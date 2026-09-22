@@ -10,6 +10,7 @@ import struct
 import sys
 import threading
 import time
+from types import SimpleNamespace
 import wave
 from pathlib import Path
 
@@ -280,6 +281,19 @@ def test_nemo_still_resamples_noncanonical_wav(tmp_path):
     assert model.paths == [str(converted)]
     assert source.exists(), "the caller owns the input WAV"
     assert not converted.exists(), "the recognizer cleans its conversion"
+
+
+def test_gpu_image_fails_readiness_instead_of_silently_using_cpu(monkeypatch):
+    monkeypatch.setenv("PARAKEET_REQUIRE_CUDA", "true")
+    monkeypatch.setitem(sys.modules, "torch", SimpleNamespace(
+        cuda=SimpleNamespace(is_available=lambda: False),
+    ))
+    try:
+        NemoRecognizer().load()
+    except RuntimeError as error:
+        assert "CUDA is required but unavailable" in str(error)
+    else:
+        raise AssertionError("production image accepted a missing GPU")
 
 
 def test_healthz_does_not_need_a_model():

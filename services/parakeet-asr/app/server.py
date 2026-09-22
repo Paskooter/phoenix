@@ -52,7 +52,7 @@ SILENCE_RMS = float(os.environ.get("PARAKEET_SILENCE_RMS", "200"))
 # Hub clients on the mature POST /transcribe fallback, avoiding the repeated
 # partial-buffer inference that streaming requires from a GPU-sized backend.
 BACKEND = os.environ.get("PARAKEET_BACKEND", "nemo").strip().lower()
-API_VERSION = "0.1.0" if BACKEND == "faster-whisper" else "0.2.0"
+API_VERSION = "0.1.0" if BACKEND == "faster-whisper" else "0.2.1"
 
 _recognizer: Optional[Recognizer] = None
 # NeMo's model is shared across connections. Keep inference serial (as it was

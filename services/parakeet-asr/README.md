@@ -109,6 +109,36 @@ docker build --target contract -t parakeet-asr:contract .
 docker run --rm parakeet-asr:contract python -m pytest tests/ -q
 ```
 
+The production image requires CUDA and explicitly moves NeMo to `cuda`. If
+Torch cannot see the GPU, startup fails instead of quietly transcribing on CPU.
+After rebuilding, `/healthz` reports API `0.2.1`; `0.2.0` means an older image
+is still serving. Do not assume the container was rebuilt just because Docker
+reports it as running.
+
+### GPU checks on Windows/WSL2
+
+Use an up-to-date NVIDIA **Windows** driver, WSL2 kernel, and Docker Desktop
+WSL2 backend with integration enabled for your distro. Do not install a Linux
+NVIDIA display driver inside WSL. From WSL, first check host and Docker GPU
+visibility, then the exact Parakeet image:
+
+```bash
+nvidia-smi  # or /usr/lib/wsl/lib/nvidia-smi if it is not on PATH
+docker run --rm --gpus all nvcr.io/nvidia/k8s/cuda-sample:nbody nbody -gpu -benchmark
+docker run --rm --gpus all --entrypoint python parakeet-asr:latest -c \
+  'import torch; print(torch.__version__, torch.version.cuda, torch.cuda.is_available(), torch.cuda.device_count()); print(torch.cuda.get_arch_list())'
+```
+
+If the NVIDIA sample fails, fix WSL/Docker GPU pass-through before rebuilding
+Parakeet. If the sample works but Torch reports `False` or `torch.version.cuda`
+is `None`, the image has the wrong Torch build. For an RTX 50-series GPU the
+Torch build must support its Blackwell architecture (`sm_120`); inspect the
+printed architecture list rather than assuming a CUDA wheel is sufficient.
+If all checks pass, recreate the existing Parakeet container with `--gpus all`
+(or Compose `gpus: all`), verify `/healthz` says `0.2.1`, and repeat the Torch
+check **inside that running container**. Docker's GPU flag is set when the
+container is created; restarting one created without it does not add a GPU.
+
 ### CPU-only fallback
 
 The production Parakeet/NeMo model is GPU-oriented.  A small VPS must not

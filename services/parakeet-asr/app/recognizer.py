@@ -117,6 +117,16 @@ class NemoRecognizer:
         """Load the model. Called at startup so the first request is not slow."""
         if self._model is not None:
             return self._model
+        # The production image is GPU-only. A missing WSL/Docker device or a
+        # CPU-only Torch wheel must fail readiness instead of silently turning
+        # every streaming interim into seconds of CPU inference.
+        if os.environ.get("PARAKEET_REQUIRE_CUDA", "false").strip().lower() == "true":
+            import torch
+            if not torch.cuda.is_available():
+                raise RuntimeError(
+                    "Parakeet CUDA is required but unavailable; check Docker GPU access "
+                    "and the installed PyTorch CUDA build"
+                )
         import nemo.collections.asr as nemo_asr  # heavy, GPU-bound; imported lazily
         model = nemo_asr.models.ASRModel.from_pretrained(model_name=self.model_name)
         if self.device:

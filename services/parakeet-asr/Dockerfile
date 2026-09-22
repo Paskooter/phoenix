@@ -43,10 +43,12 @@ FROM contract AS model
 
 COPY requirements-model.txt .
 RUN pip install --no-cache-dir -r requirements-model.txt
+ENV PARAKEET_REQUIRE_CUDA=true PARAKEET_DEVICE=cuda
 
 EXPOSE 6972
 # PARAKEET_MODEL        nvidia/parakeet-rnnt-0.6b   model name
-# PARAKEET_DEVICE       (unset)                     e.g. cuda; unset lets NeMo decide
+# PARAKEET_DEVICE       cuda                        move the model onto the GPU
+# PARAKEET_REQUIRE_CUDA true                      fail readiness without CUDA
 # PARAKEET_INTERIM_MS   300                         streaming interim decode window
 # PARAKEET_SILENCE_RMS  200                         below this a chunk is silence
 CMD ["uvicorn", "app.server:app", "--host", "0.0.0.0", "--port", "6972"]
