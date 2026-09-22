@@ -2889,26 +2889,78 @@ function voiceStageTone(stage) {
   return 'voice-tone-background';
 }
 
-function durationScale(totalMs, parts) {
-  return Math.max(1, Number(totalMs) || 0, ...parts.map(({ durationMs }) => Number(durationMs) || 0));
+const VOICE_BACKGROUND_STAGES = new Set(['history_launch', 'history_speech', 'http_request']);
+const numericTime = (value) => Number.isFinite(value) && value >= 0 ? value : null;
+
+function temporalStage(stage, turnStartedAt, tapeEndsAt) {
+  const startedAt = numericTime(stage.startedAt);
+  const endedAt = numericTime(stage.endedAt);
+  if (startedAt === null || endedAt === null || endedAt < startedAt) return null;
+  // A bad or late foreign timestamp must not overflow the visual tape. The
+  // original numbers remain server-side timing-only data; the UI just bounds
+  // its rendering to this turn's safely calculated time window.
+  const start = Math.max(turnStartedAt, Math.min(startedAt, tapeEndsAt));
+  const end = Math.max(start, Math.min(endedAt, tapeEndsAt));
+  return { ...stage, start, end, durationMs: Math.max(0, end - start) };
 }
 
-function durationBar({ label, durationMs, outcome, tone, scale, detail }) {
-  const duration = Math.max(0, Number(durationMs) || 0);
-  // Very short measured spans still get a visible marker, while their text
-  // supplies the precise elapsed duration.
-  const percent = duration ? Math.min(100, Math.max(2, (duration / scale) * 100)) : 0;
-  const description = `${label}: ${fmtMs(duration)} elapsed duration${outcome ? `, ${outcome}` : ''}. ${detail}`;
-  return h('div', {
-    class: `voice-duration-bar ${tone}`, role: 'listitem', tabindex: '0', title: description,
-    'aria-label': description,
-  },
-  h('div', { class: 'voice-duration-meta' },
-    h('span', { class: 'voice-duration-label', text: label }),
-    outcome && h('span', { class: 'pill', text: outcome })),
-  h('div', { class: 'voice-duration-track', 'aria-hidden': 'true' },
-    h('span', { class: 'voice-duration-fill', style: `--duration-pct: ${percent.toFixed(2)}%` })),
-  h('span', { class: 'voice-duration-value', text: fmtMs(duration) }));
+function temporalLanes(stages) {
+  const lanes = [];
+  for (const stage of stages) {
+    // Keep non-overlapping stages together so the normal request path reads as
+    // one continuous tape. A new lane is allocated only for a real overlap.
+    const lane = lanes.find((candidate) => candidate.end <= stage.start);
+    if (lane) {
+      lane.stages.push(stage);
+      lane.end = stage.end;
+    } else lanes.push({ end: stage.end, stages: [stage] });
+  }
+  return lanes.map((lane) => lane.stages);
+}
+
+function tapeSegment(stage, turnStartedAt, scale) {
+  const offset = stage.start - turnStartedAt;
+  const width = stage.durationMs;
+  const leftPct = Math.min(100, (offset / scale) * 100);
+  // Zero-length phases have a visible marker; their exact duration is still
+  // stated in text and the browser tooltip.
+  const widthPct = width ? Math.max(.75, Math.min(100 - leftPct, (width / scale) * 100)) : .75;
+  const label = voiceStageLabel(stage.stage);
+  const bounds = `+${fmtMs(offset)} to +${fmtMs(offset + width)}`;
+  const description = `${label}: ${bounds}, ${fmtMs(width)} elapsed duration, ${stage.outcome}.`;
+  return h('span', {
+    class: `voice-waterfall-span ${voiceStageTone(stage.stage)}`,
+    style: `--stage-left: ${leftPct.toFixed(2)}%; --stage-width: ${widthPct.toFixed(2)}%`,
+    tabindex: '0', title: description, 'aria-label': description,
+  }, h('span', { text: label }));
+}
+
+function tapeDetails(stages, turnStartedAt) {
+  return h('ul', { class: 'voice-tape-details', role: 'list' }, ...stages.map((stage) => {
+    const offset = stage.start - turnStartedAt;
+    const bounds = `+${fmtMs(offset)} → +${fmtMs(offset + stage.durationMs)}`;
+    return h('li', { class: voiceStageTone(stage.stage), role: 'listitem' },
+      h('span', { class: 'voice-tape-swatch', 'aria-hidden': 'true' }),
+      h('strong', { text: voiceStageLabel(stage.stage) }),
+      h('span', { text: `${bounds} · ${fmtMs(stage.durationMs)}` }),
+      h('span', { class: 'pill', text: stage.outcome }));
+  }));
+}
+
+function tapeLanes(lanes, turnStartedAt, scale, completionOffset, label) {
+  return h('div', { class: 'voice-tape-lanes' }, ...lanes.map((lane, index) =>
+    h('div', { class: `voice-tape-lane ${lanes.length > 1 ? 'voice-tape-lane-overlap' : 'voice-tape-lane-single'}` },
+      lanes.length > 1 && h('span', { class: 'voice-tape-lane-label', text: `${label} ${index + 1}` }),
+      h('div', { class: 'voice-waterfall-track', 'aria-label': `${label}${lanes.length > 1 ? ` ${index + 1}` : ''}` },
+        h('span', { class: 'voice-completion-line', style: `--completion-pct: ${completionOffset.toFixed(2)}%`, 'aria-hidden': 'true' }),
+        ...lane.map((stage) => tapeSegment(stage, turnStartedAt, scale))))));
+}
+
+function asrTimingList(asr) {
+  return h('dl', { class: 'voice-asr-timings' },
+    h('div', {}, h('dt', { text: 'Audio received' }), h('dd', { text: fmtMs(asr.audioMs) })),
+    h('div', {}, h('dt', { text: 'Silence endpoint' }), h('dd', { text: fmtMs(asr.silenceWaitMs) })),
+    h('div', {}, h('dt', { text: 'Recognition' }), h('dd', { text: fmtMs(asr.recognizeMs) })));
 }
 
 /** A purpose-built telemetry view; it never reads or renders raw log lines. */
@@ -2971,8 +3023,27 @@ async function renderAdminVoiceTurns() {
       h('span', {}, 'Time'), h('span', {}, 'Turn'), h('span', {}, 'Total'), h('span', {}, 'Outcome')));
     for (const turn of turns) {
       const stages = turn.stages || [];
-      const scale = durationScale(turn.totalMs, stages);
-      const scaleId = `voice-duration-scale-${turn.turnId}`;
+      const turnStartedAt = numericTime(turn.startedAt);
+      const responseReady = stages.find((stage) => stage.stage === 'response_ready');
+      const completionAt = numericTime(turn.completedAt)
+        ?? numericTime(responseReady?.endedAt)
+        ?? (turnStartedAt === null ? null : turnStartedAt + (Number(turn.totalMs) || 0));
+      const knownEnds = stages.map((stage) => numericTime(stage.endedAt)).filter((value) => value !== null);
+      const tapeEndsAt = turnStartedAt === null ? null : Math.max(turnStartedAt, completionAt || turnStartedAt, ...knownEnds);
+      const scale = tapeEndsAt === null ? null : Math.max(1, tapeEndsAt - turnStartedAt);
+      const completionOffset = scale === null || completionAt === null
+        ? 100 : Math.min(100, Math.max(0, ((completionAt - turnStartedAt) / scale) * 100));
+      const temporalStages = scale === null ? [] : stages
+        .filter((stage) => stage.stage !== 'response_ready')
+        .map((stage) => temporalStage(stage, turnStartedAt, tapeEndsAt))
+        .filter(Boolean)
+        .sort((a, b) => a.start - b.start || a.end - b.end);
+      const mainStages = temporalStages.filter((stage) => !VOICE_BACKGROUND_STAGES.has(stage.stage));
+      const backgroundStages = temporalStages.filter((stage) => VOICE_BACKGROUND_STAGES.has(stage.stage));
+      const mainLanes = temporalLanes(mainStages);
+      const backgroundLanes = temporalLanes(backgroundStages);
+      const unavailableStages = stages.filter((stage) => stage.stage !== 'response_ready').length - temporalStages.length;
+      const scaleId = `voice-waterfall-scale-${turn.turnId}`;
       const detail = h('details', {
         class: 'voice-turn', 'data-turn-id': turn.turnId, open: state.expanded.has(turn.turnId),
         on: { toggle: () => {
@@ -2982,16 +3053,31 @@ async function renderAdminVoiceTurns() {
       });
       const timeline = h('div', { class: 'voice-turn-timeline' },
         h('div', { class: 'voice-timeline-heading' },
-          h('div', {}, h('strong', { text: 'Elapsed stage durations' }),
-            h('p', { id: scaleId, class: 'field-hint', text: `Each bar is a duration, scaled against ${fmtMs(scale)}. Stages can overlap, so this is not a timestamp sequence.` })),
+          h('div', {}, h('strong', { text: 'Turn timing waterfall' }),
+            h('p', { id: scaleId, class: 'field-hint', text: scale === null
+              ? 'This older retained turn does not include temporal stage bounds.'
+              : `The main path is one elapsed-time tape from turn start to ${fmtMs(scale)}. Extra lanes appear only for real overlap; background work is grouped separately.` })),
           h('div', { class: 'voice-timeline-axis', 'aria-hidden': 'true' },
-            h('span', { text: '0 ms' }), h('span', { text: fmtMs(scale) })) ),
-        h('div', { class: 'voice-stage-chart', role: 'list', 'aria-describedby': scaleId },
-          ...stages.map((stage) => durationBar({
-            label: voiceStageLabel(stage.stage), durationMs: stage.durationMs, outcome: stage.outcome,
-            tone: voiceStageTone(stage.stage), scale,
-            detail: 'Width is relative to this turn’s elapsed-duration scale.',
-          }))),
+            h('span', { text: 'Turn start · 0 ms' }), h('span', { text: scale === null ? 'Timing unavailable' : `End · ${fmtMs(scale)}` })) ),
+        scale !== null && h('div', { class: 'voice-waterfall', 'aria-describedby': scaleId },
+          h('div', { class: 'voice-waterfall-section' },
+            h('div', { class: 'voice-waterfall-section-title', text: 'Main response path' }),
+            mainStages.length
+              ? [
+                tapeLanes(mainLanes, turnStartedAt, scale, completionOffset, 'Overlap lane'),
+                tapeDetails(mainStages, turnStartedAt),
+              ]
+              : h('p', { class: 'field-hint', text: 'No positioned main-path stages were recorded.' })),
+          backgroundStages.length && h('div', { class: 'voice-waterfall-section voice-waterfall-background' },
+            h('div', { class: 'voice-waterfall-section-title', text: 'Background / overlapping work' }),
+            h('p', { class: 'field-hint', text: 'These spans may continue after the final response is ready.' }),
+            tapeLanes(backgroundLanes, turnStartedAt, scale, completionOffset, 'Background lane'),
+            tapeDetails(backgroundStages, turnStartedAt)),
+          h('div', { class: 'voice-completion-note' },
+            h('span', { class: 'voice-completion-dot', 'aria-hidden': 'true' }),
+            h('strong', { text: `Final response ready · +${fmtMs(Math.max(0, (completionAt || turnStartedAt) - turnStartedAt))}` }),
+            h('span', { text: 'Completion milestone; it is not a duration bar.' })),
+          unavailableStages > 0 && h('p', { class: 'field-hint', text: `${unavailableStages} older stage timing record${unavailableStages === 1 ? '' : 's'} cannot be positioned on this tape.` })),
         h('div', { class: 'voice-timeline-legend', 'aria-label': 'Timeline colour legend' },
           h('span', { text: 'Colour key:' }),
           h('span', { class: 'voice-legend voice-tone-asr', text: 'Speech' }),
@@ -3000,20 +3086,10 @@ async function renderAdminVoiceTurns() {
           h('span', { class: 'voice-legend voice-tone-response', text: 'Response' }),
           h('span', { class: 'voice-legend voice-tone-background', text: 'Background' })));
       if (turn.asr) {
-        const asrParts = [
-          { label: 'Audio received', durationMs: turn.asr.audioMs },
-          { label: 'Silence endpoint', durationMs: turn.asr.silenceWaitMs },
-          { label: 'Recognition', durationMs: turn.asr.recognizeMs },
-        ];
-        const asrScale = durationScale(0, asrParts);
         timeline.append(h('div', { class: 'voice-asr' },
           h('div', { class: 'voice-asr-heading' }, h('strong', { text: 'ASR phase breakdown' }),
-            h('span', { class: 'field-hint', text: `Elapsed durations · scale 0–${fmtMs(asrScale)}` })),
-          h('div', { class: 'voice-asr-chart', role: 'list' },
-            ...asrParts.map((part) => durationBar({
-              ...part, tone: 'voice-tone-asr', scale: asrScale,
-              detail: 'An ASR elapsed-duration component; it contains no audio or speech text.',
-            })) )));
+            h('span', { class: 'field-hint', text: 'Provider-reported elapsed components, not separate timestamped spans.' })),
+          asrTimingList(turn.asr)));
       }
       else timeline.append(h('p', { class: 'field-hint', text: 'No server-side ASR breakdown for this turn.' }));
       detail.append(h('summary', { class: 'voice-turn-row' },

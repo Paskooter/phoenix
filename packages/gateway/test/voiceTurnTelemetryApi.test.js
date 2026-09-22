@@ -63,7 +63,13 @@ test('the gateway telemetry endpoint requires a server-held proof and returns on
   assert.equal(page.turns.length, 1);
   assert.deepEqual(Object.keys(page.turns[0]).sort(), ['asr', 'completedAt', 'outcome', 'stages', 'startedAt', 'totalMs', 'turnId']);
   assert.deepEqual(page.turns[0].asr, { audioMs: 700, silenceWaitMs: 400, recognizeMs: 25 });
-  assert.deepEqual(page.turns[0].stages.map(({ stage, outcome }) => ({ stage, outcome })), [{ stage: 'nlu', outcome: 'ok' }]);
+  assert.equal(page.turns[0].stages.length, 1);
+  assert.deepEqual(Object.keys(page.turns[0].stages[0]).sort(), ['durationMs', 'endedAt', 'outcome', 'stage', 'startedAt']);
+  assert.equal(page.turns[0].stages[0].stage, 'nlu');
+  assert.equal(page.turns[0].stages[0].outcome, 'ok');
+  assert.equal(page.turns[0].stages[0].startedAt, began + 10);
+  assert.equal(typeof page.turns[0].stages[0].endedAt, 'number');
+  assert.ok(page.turns[0].stages[0].endedAt >= page.turns[0].stages[0].startedAt);
   assert.equal(JSON.stringify(page).includes('must not retain this'), false);
   assert.equal(JSON.stringify(page).includes('existing-correlation-only'), false);
   assert.equal((await fetch(`${base}${path}`, { headers })).status, 403, 'a valid proof may not be replayed');

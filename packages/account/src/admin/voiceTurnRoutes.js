@@ -19,7 +19,15 @@ function safeTurn(value) {
   if (!value || !TURN_ID.test(value.turnId || '')) return null;
   const stages = Array.isArray(value.stages) ? value.stages
     .filter((stage) => STAGES.has(stage?.stage) && OUTCOMES.has(stage?.outcome))
-    .map((stage) => ({ stage: stage.stage, durationMs: safeNumber(stage.durationMs), outcome: stage.outcome })) : [];
+    // Timestamp bounds are allow-listed numeric timing metadata.  Keep the
+    // second projection here so Account never relays arbitrary hub fields.
+    .map((stage) => ({
+      stage: stage.stage,
+      startedAt: safeNumber(stage.startedAt),
+      endedAt: safeNumber(stage.endedAt),
+      durationMs: safeNumber(stage.durationMs),
+      outcome: stage.outcome,
+    })) : [];
   const asr = value.asr && typeof value.asr === 'object' ? {
     audioMs: safeNumber(value.asr.audioMs),
     silenceWaitMs: safeNumber(value.asr.silenceWaitMs),

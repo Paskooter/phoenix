@@ -811,7 +811,10 @@ export class ListenTransaction {
 
   _markFinalResponse(outcome) {
     if (this.turnCompleted) return;
-    this._span('response_ready', this.startTime, outcome);
+    // response_ready is a completion milestone, not a span covering the
+    // whole turn.  A near-zero span lets the safe telemetry tape place its
+    // marker at the response event rather than depicting it as a phase.
+    this._span('response_ready', now(), outcome);
     this.turnCompleted = true;
     logVoiceTurnComplete(this.log, this.trace, this.startTime, outcome);
   }

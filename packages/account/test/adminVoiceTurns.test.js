@@ -47,7 +47,7 @@ test.before(async () => {
     res.end(JSON.stringify({
       turns: [{
         turnId: TURN_ID, startedAt: 100, completedAt: 150, totalMs: 50, outcome: 'skill',
-        stages: [{ stage: 'nlu', durationMs: 10, outcome: 'ok', hidden: 'not for browser' }],
+        stages: [{ stage: 'nlu', startedAt: 110, endedAt: 120, durationMs: 10, outcome: 'ok', hidden: 'not for browser' }],
         asr: { audioMs: 20, silenceWaitMs: 30, recognizeMs: 40, transcript: 'never expose' },
         robotId: 'also-hidden',
       }],
@@ -87,6 +87,7 @@ test('voice-turn admin API forwards only a privacy-safe telemetry projection', a
   assert.equal(result.status, 200);
   assert.deepEqual(Object.keys(result.body).sort(), ['maxRetained', 'outcomes', 'retained', 'retentionMs', 'scope', 'stages', 'turns']);
   assert.deepEqual(Object.keys(result.body.turns[0]).sort(), ['asr', 'completedAt', 'outcome', 'stages', 'startedAt', 'totalMs', 'turnId']);
+  assert.deepEqual(result.body.turns[0].stages, [{ stage: 'nlu', startedAt: 110, endedAt: 120, durationMs: 10, outcome: 'ok' }]);
   assert.deepEqual(result.body.turns[0].asr, { audioMs: 20, silenceWaitMs: 30, recognizeMs: 40 });
   assert.equal(JSON.stringify(result.body).includes('never expose'), false);
   assert.equal(JSON.stringify(result.body).includes('also-hidden'), false);

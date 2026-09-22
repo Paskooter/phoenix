@@ -50,7 +50,15 @@ function publicTurn(turn) {
     completedAt: turn.completedAt,
     totalMs: turn.totalMs,
     outcome: turn.outcome,
-    stages: turn.stages.map((stage) => ({ ...stage })),
+    // Do not spread an internal record into the external projection.  The
+    // waterfall needs these five timing-only fields and nothing else.
+    stages: turn.stages.map((stage) => ({
+      stage: stage.stage,
+      startedAt: number(stage.startedAt),
+      endedAt: number(stage.endedAt),
+      durationMs: number(stage.durationMs),
+      outcome: stage.outcome,
+    })),
     asr: turn.asr ? { ...turn.asr } : null,
   };
 }
@@ -66,8 +74,8 @@ export function recordVoiceTurnStart(trace, startedAt = Date.now()) {
   if (turn) turn.startedAt = Math.min(turn.startedAt, startedAt);
 }
 
-function duration(startedAt) {
-  return Math.max(0, Math.round(Date.now() - startedAt));
+function duration(startedAt, endedAt = Date.now()) {
+  return Math.max(0, Math.round(endedAt - startedAt));
 }
 
 /**
@@ -76,18 +84,24 @@ function duration(startedAt) {
  */
 export function logVoiceTurnSpan(log, trace, stage, startedAt, outcome = 'ok') {
   if (!trace?.turnId) return;
+  const endedAt = Date.now();
+  const durationMs = duration(startedAt, endedAt);
   if (STAGES.has(stage) && OUTCOMES.has(outcome)) {
     // Only the gateway-created ListenTransaction may start a record. Trace
     // headers cross service boundaries, so an arbitrary HTTP caller must not
     // be able to allocate entries in this bounded telemetry ring.
     const turn = existingTurn(trace.turnId);
-    if (turn) turn.stages.push({ stage, durationMs: duration(startedAt), outcome, endedAt: Date.now() });
+    // Absolute wall-clock bounds are numeric timing metadata only. They let
+    // the admin waterfall place concurrent work honestly, without retaining
+    // speech, request, identity, or diagnostic content.
+    const safeStartedAt = number(startedAt);
+    if (turn && safeStartedAt !== null) turn.stages.push({ stage, startedAt: safeStartedAt, endedAt: number(endedAt), durationMs, outcome });
   }
   log?.info?.('voice_turn_span', {
     event: 'voice_turn_span',
     turnId: trace.turnId,
     stage,
-    durationMs: duration(startedAt),
+    durationMs,
     outcome,
   });
 }

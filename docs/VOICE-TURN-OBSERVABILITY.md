@@ -85,8 +85,12 @@ Open **Administration → Voice turns** (`#/admin/voice-turns`) to inspect the
 same structured projection in the portal. It has an exact turn-ID search plus
 time, outcome, and stage filters; expanding a row shows the stage breakdown and
 the Parakeet audio/silence/recognition measurements when that server-side ASR
-turn produced them. It refreshes every five seconds and has explicit loading,
-empty, and unavailable states.
+turn produced them. The main stages share a relative-time tape: each coloured
+segment begins and ends where that gateway span actually did. A separate lane
+appears only for real overlap, and background history work is kept apart from
+the response path. `response_ready` is a completion marker, not an invented
+whole-turn phase. It refreshes every five seconds and preserves expanded turns,
+with explicit loading, empty, and unavailable states.
 
 The browser calls only `GET /api/admin/voice-turns`. As with every `/api/admin/`
 route, Account re-checks the signed-in account's `isAdmin` flag (401 signed out,
