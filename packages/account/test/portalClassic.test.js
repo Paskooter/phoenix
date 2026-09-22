@@ -105,6 +105,7 @@ test('signature travel: the portal uses the account credentials, never forges id
   // record. Their verified owner gets the bounded empty bootstrap projection,
   // rather than a misleading Robot_20160225 404 in the console.
   assert.deepEqual(robot.body.getRobot, { id: 'classic-fixture-robot', payload: {} });
+  assert.deepEqual(robot.body.connection, { connected: false });
   assert.equal(robot.body.diagnostics, undefined);
 });
 
@@ -178,10 +179,9 @@ test('OTA update status surfaces the catalog through the classic update proxy', 
   assert.ok(upd.body.updates.some((u) => u.toVersion === '13.0.0'));
 });
 
-test('oauth clients read from the account store', async () => {
+test('the global OAuth client registry is not exposed to an ordinary account', async () => {
   const r = await call('GET', '/api/oauthclients');
-  assert.equal(r.status, 200);
-  assert.ok(Array.isArray(r.body.clients));
+  assert.equal(r.status, 403);
 });
 
 test('IFTTT identity is reported (possibly with an honest diagnostic when unavailable)', async () => {

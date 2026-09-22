@@ -5,8 +5,8 @@
 //   POST /api/login  {email,password}              -> {account}              + session cookie
 //   POST /api/logout                               -> {}                     (clears cookie)
 //   GET  /api/me                                   -> {account} | 401
-//   GET  /api/robots                               -> [{friendlyId,loopName,loopId,created,lastSeen}]
-//   GET  /api/robots/detail …                      -> robot record + Robot_20160225 read
+//   GET  /api/robots                               -> [{friendlyId,loopName,loopId,created,lastSeen,canManage}]
+//   GET  /api/robot?loopId=…                       -> robot record + Robot_20160225 read
 //   POST /api/robots/setup …                       -> QR pairing payload (MUST be preserved)
 //   POST /api/robots/claim-code                    -> one-time existing-robot ownership code
 //   GET  /api/robots/setup/status?token=           -> pairing completion poll
@@ -78,15 +78,31 @@ export function accountRegion(env = process.env) {
   return env.ETCO_account_region || DEFAULT_ACCOUNT_REGION;
 }
 
-const robotView = ({ robot, loop, owner }) => ({
-  friendlyId: robot.friendlyId,
-  accessKeyId: robot.accessKeyId,
-  loopId: loop ? loop._id : null,
-  loopName: loop ? loop.name : null,
-  ownerEmail: owner ? owner.email : null,
-  created: robot.created,
-  lastSeen: robot.lastSeen || null,
-});
+function idsEqual(a, b) {
+  return a != null && b != null && String(a) === String(b);
+}
+
+// Browser-facing robot cards deliberately contain neither credential material
+// nor another member's email address.  Administrators can request the small
+// operational projection below explicitly; adoption returns the secret only
+// in its one-time credentialsJson response.
+const robotView = ({ robot, loop, owner }, {
+  canManage = undefined,
+  includeAccessKey = false,
+  includeOwnerEmail = false,
+} = {}) => {
+  const out = {
+    friendlyId: robot.friendlyId,
+    loopId: loop ? loop._id : null,
+    loopName: loop ? loop.name : null,
+    created: robot.created,
+    lastSeen: robot.lastSeen || null,
+  };
+  if (canManage !== undefined) out.canManage = !!canManage;
+  if (includeAccessKey) out.accessKeyId = robot.accessKeyId;
+  if (includeOwnerEmail) out.ownerEmail = owner ? owner.email : null;
+  return out;
+};
 
 function withCookie(res, cookie, status, body) {
   res.setHeader('Set-Cookie', cookie);
@@ -203,6 +219,7 @@ export function portalRoutes(store, options = {}) {
       : options.requireEmailVerification === true,
     classicBase: options.classicBase || classicBaseUrl(),
     classicCall: options.classicCall,
+    requireAdmin,
     webPush: options.webPush,
   };
   const repointHost = String(options.repointHost || process.env.ETCO_account_repointHost || '').trim();
@@ -326,12 +343,19 @@ export function portalRoutes(store, options = {}) {
     'GET /api/robots': ({ req, res }) => {
       const account = userFromSession(store, req);
       if (!account) return sendJson(res, 401, { error: 'not logged in' });
-      // A person can participate in more than one household.  Keep each
-      // household's data separate, but list robots from every household the
-      // current account is actually allowed to see (owned or accepted invite).
-      const visible = new Set(visibleLoops(store, account._id).map((loop) => String(loop._id)));
+      // A person can participate in more than one loop. An invited loop is
+      // visible solely to let its recipient accept or decline; it is not yet a
+      // usable Jibo. The original app likewise kept invitations out of its
+      // normal Jibos list until the membership became accepted.
+      const visible = new Set(visibleLoops(store, account._id)
+        .filter((loop) => idsEqual(loop.owner, account._id)
+          || (loop.members || []).some((member) => idsEqual(member.accountId, account._id)
+            && String(member.status || '').toLowerCase() === 'accepted'))
+        .map((loop) => String(loop._id)));
       const robots = store.allRobots().filter(({ loop }) => loop && visible.has(String(loop._id)));
-      return robots.map(robotView);
+      return robots.map(({ robot, loop, owner }) => robotView({ robot, loop, owner }, {
+        canManage: idsEqual(loop.owner, account._id),
+      }));
     },
 
     // Add-a-robot: mint a setup token, build the WiFi+token QR payload (the robot scans it,
@@ -426,7 +450,10 @@ export function portalRoutes(store, options = {}) {
 
     'GET /api/admin/robots': ({ req, res }) => {
       if (!requireAdmin(store, req, res)) return;
-      return store.allRobots().map(robotView);
+      return store.allRobots().map((record) => robotView(record, {
+        includeAccessKey: true,
+        includeOwnerEmail: true,
+      }));
     },
 
     /**
@@ -462,7 +489,10 @@ export function portalRoutes(store, options = {}) {
           });
         }
         return {
-          robot: robotView({ robot: existingRobot, loop: linked.payload.loop, owner }),
+          robot: robotView({ robot: existingRobot, loop: linked.payload.loop, owner }, {
+            includeAccessKey: true,
+            includeOwnerEmail: true,
+          }),
           existing: true,
           transferred: linked.payload.linked,
           instructions: [
@@ -473,7 +503,7 @@ export function portalRoutes(store, options = {}) {
       const { loop, robot } = createLoop(store, { owner, robotId: friendlyId });
       const region = accountRegion();
       return {
-        robot: robotView({ robot, loop, owner }),
+        robot: robotView({ robot, loop, owner }, { includeAccessKey: true, includeOwnerEmail: true }),
         secretAccessKey: robot.secretAccessKey, // shown once at adoption; needed for the robot file
         credentialsJson: { accessKeyId: robot.accessKeyId, secretAccessKey: robot.secretAccessKey, region },
         instructions: [

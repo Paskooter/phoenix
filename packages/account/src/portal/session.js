@@ -32,6 +32,10 @@ export function portalAccount(account) {
     // hand-edited client cannot grant itself anything.
     isAdmin: !!account.isAdmin,
     messagingAllowed: account.messagingAllowed === undefined ? true : !!account.messagingAllowed,
+    // Jibo's native setting defaults to alerts only when the member is tagged;
+    // preserve that source behavior for browser notifications too.
+    jotNotificationMode: ['always', 'tagged', 'none'].includes(account.jotNotificationMode)
+      ? account.jotNotificationMode : 'tagged',
     phoneNumber: account.phoneNumber,
     photoUrl: account.photoUrl,
     created: account.created,

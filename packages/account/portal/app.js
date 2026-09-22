@@ -95,6 +95,7 @@ const ICONS = {
   bell: 'M18 9a6 6 0 1 0-12 0c0 5-2 6.5-2 6.5h16S18 14 18 9ZM10.3 19a2 2 0 0 0 3.4 0',
   download: 'M12 4v10m0 0 4-4m-4 4-4-4M4 18h16',
   copy: 'M9 9h10v12H9zM5 15V3h10v2',
+  share: 'M16 5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM6 14.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM16 24a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM8.2 10.8l5.6-3.2M8.2 13.2l5.6 3.2',
   eye: 'M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Zm9.5 2.6a2.6 2.6 0 1 0 0-5.2 2.6 2.6 0 0 0 0 5.2Z',
   refresh: 'M20 12a8 8 0 1 1-2.6-5.9M20 4v4h-4',
   lock: 'M7 10.5V8a5 5 0 0 1 10 0v2.5M5.5 10.5h13a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-8.5a1 1 0 0 1 1-1Z',
@@ -334,7 +335,11 @@ function householdSwitcher(context) {
         route();
       },
     },
-  }, ...context.loops.map((loop) => h('option', { value: loop.id }, loop.name || 'Unnamed loop')));
+  }, ...context.loops.map((loop) => {
+    const membership = (loop.members || []).find((member) => String(member.accountId) === String(me?.id));
+    const invited = membership && String(membership.status || '').toLowerCase() === 'invited';
+    return h('option', { value: loop.id }, `${loop.name || 'Unnamed loop'}${invited ? ' (invitation)' : ''}`);
+  }));
   select.value = String(context.active.id);
   return h('div', { class: 'household-switcher' },
     h('span', { class: 'field-label' }, 'Viewing loop'),
@@ -360,17 +365,22 @@ async function renderHome() {
   // `GET /api/loop` answers { loops: [...] }, not a bare array.
   const loopList = loops.ok && Array.isArray(loops.data.loops) ? loops.data.loops : [];
   const robotList = robots.ok && Array.isArray(robots.data) ? robots.data : [];
+  const membershipState = (loop) => (loop.members || []).find((member) => String(member.accountId) === String(me?.id))?.status;
+  const usableLoops = loopList.filter((loop) => loop.canManage === true
+    || String(membershipState(loop) || '').toLowerCase() === 'accepted');
+  const pendingInvitations = loopList.filter((loop) => loop.canManage !== true
+    && String(membershipState(loop) || '').toLowerCase() === 'invited');
   // Each loop also carries a member record for the robot itself; it is not a
   // person and must not be counted as one.
   const peopleOf = (l) => (l.members || []).filter((m) => !(m.accountId && m.accountId === l.robot));
-  const members = loopList.reduce((n, l) => n + peopleOf(l).length, 0);
-  const unlinked = loopList.reduce((n, l) => n + peopleOf(l).filter((m) => !m.account).length, 0);
+  const members = usableLoops.reduce((n, l) => n + peopleOf(l).length, 0);
+  const unlinked = usableLoops.reduce((n, l) => n + peopleOf(l).filter((m) => !m.account).length, 0);
 
   body.append(h('div', { class: 'stat-grid' },
     h('article', { class: 'stat' },
       h('div', { class: 'label' }, icon('users', 14), 'Members'),
       h('div', { class: 'value', text: String(members) }),
-      h('div', { class: 'note', text: `across ${loopList.length} loop${loopList.length === 1 ? '' : 's'}` })),
+      h('div', { class: 'note', text: `across ${usableLoops.length} loop${usableLoops.length === 1 ? '' : 's'}` })),
     h('article', { class: 'stat' },
       h('div', { class: 'label' }, icon('robot', 14), 'Robots'),
       h('div', { class: 'value', text: String(robotList.length) }),
@@ -379,6 +389,12 @@ async function renderHome() {
       h('div', { class: 'label' }, icon('link', 14), 'Unlinked'),
       h('div', { class: 'value', text: String(unlinked) }),
       h('div', { class: 'note', text: unlinked ? 'members with no account' : 'every member is linked' }))));
+
+  if (pendingInvitations.length) {
+    body.append(h('div', { class: 'notice notice-warn', style: 'margin-top:1rem' }, icon('users', 16),
+      h('div', {}, `${pendingInvitations.length} loop invitation${pendingInvitations.length === 1 ? '' : 's'} waiting. `,
+        h('a', { class: 'link', href: '#/loop' }, 'Review invitations'))));
+  }
 
   // The single most common cause of "I had trouble fetching your personal
   // settings" is a member with no account link, so say so here rather than
@@ -409,9 +425,9 @@ async function renderHome() {
   if (!loops.ok) body.append(h('div', { style: 'margin-top:1.5rem' }, errorBox('Could not load your loops.', loops.data.error)));
   if (!robots.ok) body.append(h('div', { style: 'margin-top:1rem' }, errorBox('Could not load robots.', robots.data.error)));
 
-  if (loopList.length) {
+  if (usableLoops.length) {
     const loopCard = card('Your loops', {});
-    for (const l of loopList) {
+    for (const l of usableLoops) {
       const n = peopleOf(l).length;
       loopCard.querySelector('.card-body').append(row(
         l.name, `${n} member${n === 1 ? '' : 's'} · ${l.robotFriendlyId || 'no robot'}`));
@@ -458,32 +474,83 @@ async function renderLoop() {
   const switcher = householdSwitcher(context);
   if (switcher) container.append(switcher);
 
-  const isOwner = active.owner === me?.id;
+  // Capability is decided by the server with the loop projection. Keep the
+  // UI aligned with that authorization decision instead of deriving it from a
+  // record identifier returned for display/association purposes.
+  const isOwner = active.canManage === true;
+  const myMembership = (active.members || []).find((member) => String(member.accountId) === String(me?.id));
+  const isInvited = !isOwner && String(myMembership?.status || '').toLowerCase() === 'invited';
+  const personName = (member, fallback = 'A loop member') => member?.nickname
+    || [member?.memberProperties?.firstName, member?.memberProperties?.lastName].filter(Boolean).join(' ')
+    || [member?.account?.firstName, member?.account?.lastName].filter(Boolean).join(' ')
+    || fallback;
+
+  // Source parity: a pending invitation is not a usable household. The
+  // original app takes the member to an explicit accept/decline screen rather
+  // than exposing owner-only controls that would fail with 403.
+  if (isInvited) {
+    const owner = (active.members || []).find((member) => String(member.accountId) === String(active.owner));
+    const accepted = (active.members || []).filter((member) => member.accountId
+      && String(member.accountId) !== String(active.robot)
+      && String(member.status || '').toLowerCase() === 'accepted');
+    const accept = h('button', { type: 'button', class: 'btn btn-primary' }, 'Accept invitation');
+    const decline = h('button', { type: 'button', class: 'btn btn-quiet' }, 'Decline');
+    accept.addEventListener('click', async () => {
+      accept.disabled = true;
+      const res = await api('POST', '/api/loop/accept', { loopId: active.id });
+      if (res.ok) { notify('You joined this loop.'); await renderLoop(); }
+      else { accept.disabled = false; notify(res.data.error || 'Could not accept invitation', 'error'); }
+    });
+    decline.addEventListener('click', async () => {
+      const yes = await confirmDialog({
+        title: `Decline ${active.name}?`,
+        body: 'You will no longer see this loop. The owner can send another invitation later.',
+        confirmLabel: 'Decline invitation',
+      });
+      if (!yes) return;
+      decline.disabled = true;
+      const res = await api('POST', '/api/loop/decline', { loopId: active.id });
+      if (!res.ok) { decline.disabled = false; notify(res.data.error || 'Could not decline invitation', 'error'); return; }
+      rememberActiveLoop('');
+      location.hash = '#/';
+    });
+    container.append(card('Loop invitation', { sub: active.name },
+      h('p', {}, 'You have been invited to join this loop. Accept to see its Jibo, gallery, and inbox.'),
+      row('Invited by', personName(owner, 'The loop owner')),
+      accepted.length ? row('Current members', accepted.map((member) => personName(member)).join(', ')) : null,
+      h('div', { class: 'row', style: 'margin-top:1rem' }, accept, decline)));
+    show(container);
+    return;
+  }
 
   /* -- the loop record ------------------------------------------------ */
 
-  const renameForm = h('form', { class: 'row', on: { submit: renameLoop } },
+  const renameForm = isOwner ? h('form', { class: 'row', on: { submit: renameLoop } },
     h('input', { name: 'name', value: active.name, required: true, 'aria-label': 'Loop name', style: 'flex:1;min-width:12rem' }),
-    h('button', { type: 'submit', class: 'btn' }, 'Rename'));
+    h('button', { type: 'submit', class: 'btn' }, 'Rename')) : null;
+  const owner = (active.members || []).find((member) => String(member.accountId) === String(active.owner));
 
   const loopCard = card(active.name, {
     sub: active.isSuspended ? null : 'Active',
-    actions: [h('button', {
+    actions: isOwner ? [h('button', {
       class: 'btn btn-sm btn-danger',
       type: 'button',
       on: { click: suspendLoop },
-    }, active.isSuspended ? 'Un-suspend' : 'Suspend')],
+    }, active.isSuspended ? 'Un-suspend' : 'Suspend')] : [],
   },
     active.isSuspended
       ? h('div', { class: 'notice notice-warn' }, icon('alert', 16),
         h('div', {}, 'This loop is suspended. Member edits are blocked while it is.'))
       : null,
     row('Loop ID', h('code', { text: active.id })),
-    row('Owner', isOwner ? h('span', {}, 'You ', h('span', { class: 'pill pill-accent' }, 'owner')) : active.owner),
+    row('Owner', isOwner
+      ? h('span', {}, 'You ', h('span', { class: 'pill pill-accent' }, 'owner'))
+      : personName(owner, 'Loop owner')),
     row('Robot', active.robotFriendlyId || 'none paired'),
     row('Status', active.isSuspended
       ? h('span', { class: 'pill pill-error' }, 'Suspended')
       : h('span', { class: 'pill pill-ok' }, h('span', { class: 'dot' }), 'Active')),
+    !isOwner ? h('p', { class: 'field-hint' }, 'You are a member of this loop. Its owner manages members and settings.') : null,
     renameForm);
   container.append(loopCard);
 
@@ -508,10 +575,11 @@ async function renderLoop() {
     sub: `${people.length} ${people.length === 1 ? 'person' : 'people'}`
       + `${unlinkedCount ? ` · ${unlinkedCount} unlinked` : ''}`,
   },
-    h('p', { class: 'field-hint' },
-      'Linking a member to an account is what lets the robot fetch that person’s own '
-      + 'weather, news and commute. Pick an account here, then press Link on the member.'),
-    h('div', { class: 'link-picker' }, searchInput, resultsBox),
+    h('p', { class: 'field-hint' }, isOwner
+      ? 'Linking a member to an account is what lets the robot fetch that person’s own '
+        + 'weather, news and commute. Pick an account here, then press Link on the member.'
+      : 'The loop owner manages member accounts and recognition settings.'),
+    isOwner ? h('div', { class: 'link-picker' }, searchInput, resultsBox) : null,
     h('div', { class: 'member-list' }));
   container.append(membersCard);
 
@@ -542,14 +610,14 @@ async function renderLoop() {
           + 'It is managed from the Robots page.'));
     }
 
-    const accountLabel = linked
+    const accountLabel = isOwner && linked
       ? (linked.email || linked.id || 'linked')
         + (linked.isActive === false ? ' (inactive)' : '')
-      : (m.accountId || 'none');
+      : (linked ? 'Linked account' : 'Not linked');
 
     const children = [];
 
-    if (state.editId === m.id) {
+    if (isOwner && state.editId === m.id) {
       const form = h('form', {
         class: 'edit-member',
         on: {
@@ -598,21 +666,25 @@ async function renderLoop() {
       }),
       h('span', { class: 'chip-mark' }), h('span', {}, label));
 
-    const actions = [
-      h('button', {
+    const actions = [];
+    if (isOwner) {
+      actions.push(h('button', {
         class: 'link', type: 'button',
         on: { click: () => toggleLink(m) },
-      }, linked ? 'Unlink' : 'Link account'),
-      h('button', {
+      }, linked ? 'Unlink' : 'Link account'));
+      actions.push(h('button', {
         class: 'link', type: 'button',
         on: { click: () => { state.editId = state.editId === m.id ? null : m.id; paintMembers(); } },
-      }, 'Edit'),
-    ];
-    if (isOwner) {
+      }, 'Edit'));
       actions.push(h('button', {
         class: 'link danger', type: 'button',
         on: { click: () => removeMember(m, name) },
       }, 'Remove'));
+    } else if (String(m.accountId) === String(me?.id)) {
+      actions.push(h('button', {
+        class: 'link danger', type: 'button',
+        on: { click: () => leaveLoop(m) },
+      }, 'Leave loop'));
     }
 
     children.push(
@@ -620,12 +692,10 @@ async function renderLoop() {
         h('span', { class: `status status-${m.status || 'invited'}`, text: m.status || 'invited' })),
       row('Account', accountLabel),
       row('Enrolled', `face ${fmtBool(m.enrolled?.face)} · voice ${fmtBool(m.enrolled?.voice)}`),
-      linked
-        ? null
-        : h('div', { class: 'member-unlinked-note' }, icon('alert', 13),
-          h('span', {}, 'No account linked — the robot cannot load their personal report.')),
-      h('div', { class: 'enroll' }, enrolChip('face', 'Face'), enrolChip('voice', 'Voice')),
-      h('div', { class: 'member-actions' }, ...actions));
+      isOwner && !linked ? h('div', { class: 'member-unlinked-note' }, icon('alert', 13),
+        h('span', {}, 'No account linked — the robot cannot load their personal report.')) : null,
+      isOwner ? h('div', { class: 'enroll' }, enrolChip('face', 'Face'), enrolChip('voice', 'Voice')) : null,
+      actions.length ? h('div', { class: 'member-actions' }, ...actions) : null);
 
     return h('div', {
       class: `member-block${linked ? '' : ' unlinked'}`,
@@ -647,7 +717,7 @@ async function renderLoop() {
 
   /* -- invite ---------------------------------------------------------- */
 
-  container.append(card('Invite a member', {},
+  if (isOwner) container.append(card('Invite a member', {},
     h('form', {
       class: 'invite-form',
       on: {
@@ -696,6 +766,19 @@ async function renderLoop() {
     const res = await api('POST', '/api/loop/members/remove', { loopId: active.id, id: m.id });
     if (res.ok) { notify('Member removed'); await renderLoop(); }
     else notify(res.data.error || 'Could not remove', 'error');
+  }
+
+  async function leaveLoop(m) {
+    const yes = await confirmDialog({
+      title: `Leave ${active.name}?`,
+      body: 'You will lose access to this loop’s Jibo, gallery, and inbox. The owner can invite you again later.',
+      confirmLabel: 'Leave loop',
+    });
+    if (!yes) return;
+    const res = await api('POST', '/api/loop/members/remove', { loopId: active.id, id: m.id });
+    if (!res.ok) { notify(res.data.error || 'Could not leave loop', 'error'); return; }
+    rememberActiveLoop('');
+    location.hash = '#/';
   }
 
   async function renameLoop(e) {
@@ -1147,8 +1230,13 @@ async function renderProfile() {
         ['', 'male', 'female', 'other', 'they'].map((g) =>
           h('option', { value: g, selected: a.gender === g }, g ? prettyLabel(g) : '(not set)'))))),
     field('Phone number', h('input', { name: 'phoneNumber', type: 'tel', value: a.phoneNumber || '', autocomplete: 'tel' })),
-    toggle('messagingAllowed', a.messagingAllowed ?? true, 'Allow messaging',
+    toggle('messagingAllowed', a.messagingAllowed ?? true, 'Receive Jibo messages',
       'Let other people in your loops send you messages through the robot.'),
+    field('Message alerts', h('select', { name: 'jotNotificationMode' },
+      h('option', { value: 'tagged', selected: a.jotNotificationMode === 'tagged' }, 'Only when I am selected'),
+      h('option', { value: 'always', selected: a.jotNotificationMode === 'always' }, 'For every loop message'),
+      h('option', { value: 'none', selected: a.jotNotificationMode === 'none' }, 'Do not alert me')),
+    'Controls visible browser alerts after you enable notifications on this device.'),
     h('div', { class: 'row', style: 'margin-top:1.25rem' },
       h('button', { type: 'submit', class: 'btn btn-primary' }, 'Save changes')));
 
@@ -1163,6 +1251,7 @@ async function renderProfile() {
       birthday: fd.birthdayDate ? Date.parse(`${fd.birthdayDate}T00:00:00Z`) : null,
       phoneNumber: fd.phoneNumber || null,
       messagingAllowed: !!fd.messagingAllowed,
+      jotNotificationMode: fd.jotNotificationMode,
     });
     if (res.ok) { notify('Profile saved'); await refreshMe(); await renderProfile(); }
     else notify(res.data.error || 'Could not save', 'error');
@@ -1314,6 +1403,7 @@ async function renderRobot() {
       }, 'Details')],
     },
       row('Loop', robot.loopName || '—'),
+      row('Access', robot.canManage ? 'Owner' : 'Shared with you'),
       row('Created', fmtDate(robot.created)),
       row('Last seen', fmtDate(robot.lastSeen)),
       detail);
@@ -1328,16 +1418,28 @@ async function renderRobot() {
     button.disabled = false;
     if (!r.ok) { host.replaceChildren(errorBox('Could not load robot detail.', r.data.error)); return; }
     const d = r.data;
+    const payload = d.getRobot?.payload || {};
+    const remoteEnabled = typeof payload.remoteEnabled === 'boolean' ? payload.remoteEnabled : null;
+    const location = [payload.city, payload.state, payload.country].filter((part) => typeof part === 'string' && part).join(', ');
     host.replaceChildren(
-      row('Loop', d.loop ? `${d.loop.name} (${d.loop.id})` : '—'),
+      row('Loop', d.loop ? d.loop.name : '—'),
       row('Status', d.loop?.isSuspended
         ? h('span', { class: 'pill pill-error' }, 'Suspended')
         : h('span', { class: 'pill pill-ok' }, h('span', { class: 'dot' }), 'Active')),
-      row('Robot account', d.robot ? d.robot.id : '—'),
+      d.connection && typeof d.connection.connected === 'boolean'
+        ? row('Connection', d.connection.connected
+          ? h('span', { class: 'pill pill-ok' }, h('span', { class: 'dot dot-live' }), 'Connected')
+          : h('span', { class: 'pill pill-warn' }, 'Not connected')) : null,
+      typeof payload.SSID === 'string' && payload.SSID ? row('Wi-Fi network', payload.SSID) : null,
+      location ? row('Location', location) : null,
+      typeof payload.timezone === 'string' && payload.timezone ? row('Timezone', payload.timezone) : null,
+      typeof payload.platform === 'string' && payload.platform ? row('Platform', payload.platform) : null,
+      typeof payload.serialNumber === 'string' && payload.serialNumber ? row('Serial number', payload.serialNumber) : null,
+      remoteEnabled === null ? null : row('Remote access', remoteEnabled ? 'Enabled' : 'Disabled'),
       d.diagnostics
-        ? errorBox('The Classic entrypoint reported a problem.', JSON.stringify(d.diagnostics))
-        : null,
-      d.getRobot ? h('pre', { class: 'json', text: JSON.stringify(d.getRobot, null, 2) }) : null);
+        ? h('div', { class: 'notice notice-warn' }, icon('alert', 16),
+          h('div', {}, 'Additional robot status is unavailable right now. Basic loop information is still shown.'))
+        : null);
   }
 }
 
@@ -1537,36 +1639,57 @@ async function renderAddNew() {
    ========================================================================== */
 
 async function renderGallery() {
-  show(page('Gallery', 'Photographs and media the robot captured.', loading(3)));
+  show(page('Gallery', 'Photographs and media captured across your loops.', loading(3)));
 
   const context = await householdContext();
-  const loop = context.active;
-  const container = page('Gallery', 'Photographs and media the robot captured.');
+  const container = page('Gallery', 'Photographs and media captured across your loops.');
   if (!context.ok) { container.append(errorBox('Could not load your loops.', context.error)); return show(container); }
-  const switcher = householdSwitcher(context);
-  if (switcher) container.append(switcher);
-  if (!loop) { container.append(empty('No loop', 'Pair a robot first.', 'image')); return show(container); }
+  // The native Jibo gallery was a single, date-sorted timeline spanning every
+  // accepted loop. Do the same here: a person with two Jibos should never have
+  // to guess which household contains a photo.
+  const visibleLoops = context.loops.filter((candidate) => candidate.canManage === true
+    || (candidate.members || []).some((member) => String(member.accountId) === String(me?.id)
+      && String(member.status || '').toLowerCase() === 'accepted'));
+  if (!visibleLoops.length) {
+    container.append(empty('No loop', 'Accept a loop invitation or pair a robot first.', 'image'));
+    return show(container);
+  }
 
-  const r = await api('GET', `/api/media?loopId=${encodeURIComponent(loop.id)}`);
-  if (!r.ok) { container.append(errorBox('Could not load the gallery.', r.data.error)); return show(container); }
-
+  const responses = await Promise.all(visibleLoops.map(async (loop) => ({
+    loop,
+    result: await api('GET', `/api/media?loopId=${encodeURIComponent(loop.id)}`),
+  })));
+  const failures = responses.filter(({ result }) => !result.ok);
   // Media.List expands each parent once more for every thumbnail, with the
-  // expanded thumbnail carrying `reference: <parent path>`.  A gallery tile
+  // expanded thumbnail carrying `reference: <parent path>`. A gallery tile
   // represents the parent capture; use its ordinary thumbnail as the preview
   // when available, and retain the parent image for the full-size viewer.
-  const items = (r.data.media || [])
+  const items = responses.flatMap(({ loop, result }) => (result.ok ? (result.data.media || []) : [])
     .filter((m) => !m.isDeleted && m.url && !m.reference)
     .map((m) => {
       const thumbs = Array.isArray(m.thumbs) ? m.thumbs.filter((thumb) => thumb && thumb.url && thumb.path) : [];
       const preview = thumbs.find((thumb) => thumb.type === 'thumb') || thumbs[0] || m;
-      return { ...m, previewPath: preview.path };
-    });
+      return {
+        ...m, loopId: loop.id, loopName: loop.name, previewPath: preview.path,
+        // Media.Remove is owner-only in the original service. A shared-loop
+        // gallery stays readable, but must not offer a delete control that
+        // cannot possibly alter the capture.
+        canDelete: loop.canManage === true,
+      };
+    }))
+    .sort((a, b) => Number(b.created || 0) - Number(a.created || 0));
+  if (failures.length) {
+    container.append(h('div', { class: 'notice notice-warn' }, icon('alert', 16),
+      h('div', {}, `Could not load media from ${failures.length} loop${failures.length === 1 ? '' : 's'}. The rest of your gallery is still shown.`)));
+  }
   if (!items.length) {
-    container.append(empty('Nothing captured yet', 'Photographs the robot takes will appear here.', 'image'));
+    container.append(failures.length === responses.length
+      ? errorBox('Could not load the gallery.', failures[0]?.result.data.error)
+      : empty('Nothing captured yet', 'Photographs the robot takes will appear here.', 'image'));
     return show(container);
   }
 
-  const selected = new Set();
+  const selected = new Map();
   const deleteBtn = h('button', {
     class: 'btn btn-danger btn-sm', type: 'button', disabled: true,
     on: { click: removeSelected },
@@ -1584,35 +1707,62 @@ async function renderGallery() {
   };
 
   const grid = h('div', { class: 'media-grid' }, ...items.map((m) => h('div', {
-    class: 'media-tile', 'data-path': m.path,
+    class: 'media-tile', 'data-path': m.path, 'data-loop': m.loopId,
   },
     h('img', { src: imageUrl(m.previewPath), loading: 'lazy', alt: `${m.type} captured ${fmtDate(m.created)}`, on: { click: () => openMedia(m) } }),
-    h('label', { class: 'chip' },
+    m.canDelete ? h('label', { class: 'chip' },
       h('input', {
         type: 'checkbox',
         'aria-label': 'Select this item',
         on: {
           change: (e) => {
-            if (e.target.checked) selected.add(m.path); else selected.delete(m.path);
+            const key = `${m.loopId}:${m.path}`;
+            if (e.target.checked) selected.set(key, m); else selected.delete(key);
             syncDelete();
           },
         },
       }),
-      h('span', { class: 'chip-mark' }), h('span', {}, 'Select')),
-    h('div', { class: 'media-caption' }, `${m.type} · ${fmtDay(m.created)}`))));
+      h('span', { class: 'chip-mark' }), h('span', {}, 'Select')) : null,
+    h('div', { class: 'media-caption' }, `${m.loopName || 'Loop'} · ${m.type} · ${fmtDay(m.created)}`))));
 
   container.append(card(`${items.length} item${items.length === 1 ? '' : 's'}`, {
-    sub: loop.name, actions: [deleteBtn], bare: true,
+    sub: `${visibleLoops.length} ${visibleLoops.length === 1 ? 'loop' : 'loops'}`,
+    actions: items.some((item) => item.canDelete) ? [deleteBtn] : [], bare: true,
   }, h('div', { class: 'card-body' }, grid)));
   show(container);
 
   function openMedia(m) {
+    const share = typeof navigator.share === 'function'
+      ? h('button', {
+        type: 'button', class: 'btn btn-sm',
+        on: {
+          click: async (event) => {
+            event.stopPropagation();
+            try {
+              const response = await fetch(imageUrl(m));
+              if (!response.ok) throw new Error('The image is no longer available');
+              const blob = await response.blob();
+              const extension = m.type === 'recording' || m.type === 'audio' ? 'mp4' : 'jpg';
+              const file = new File([blob], `jibo-${m.path}.${extension}`, {
+                type: blob.type || (extension === 'mp4' ? 'video/mp4' : 'image/jpeg'),
+              });
+              const data = { title: 'Jibo capture', text: `${m.loopName || 'Jibo'} capture` };
+              if (!navigator.canShare || navigator.canShare({ files: [file] })) data.files = [file];
+              await navigator.share(data);
+            } catch (error) {
+              // Dismissing the native share sheet is not an error worth showing.
+              if (error?.name !== 'AbortError') notify(error?.message || 'Could not share this capture.', 'error');
+            }
+          },
+        },
+      }, icon('share', 14), 'Share') : null;
     const overlay = h('div', {
       class: 'overlay',
       on: { click: (e) => { if (e.target === overlay || e.target.tagName !== 'IMG') overlay.remove(); } },
     },
       h('img', { src: imageUrl(m), class: 'overlay-img', alt: '' }),
-      h('p', {}, `${m.type} · ${m.path} · ${fmtDate(m.created)}`));
+      h('p', {}, `${m.loopName || 'Loop'} · ${m.type} · ${fmtDate(m.created)}`),
+      share);
     const onKey = (e) => { if (e.key === 'Escape') { overlay.remove(); removeEventListener('keydown', onKey); } };
     addEventListener('keydown', onKey);
     document.body.append(overlay);
@@ -1626,9 +1776,17 @@ async function renderGallery() {
       confirmLabel: 'Delete',
     });
     if (!yes) return;
-    const res = await api('POST', '/api/media/remove', { loopId: loop.id, paths: [...selected] });
-    notify(res.ok ? 'Deleted' : (res.data.error || 'Could not delete'), res.ok ? 'ok' : 'error');
-    if (res.ok) await renderGallery();
+    const pathsByLoop = new Map();
+    for (const item of selected.values()) {
+      const paths = pathsByLoop.get(item.loopId) || [];
+      paths.push(item.path);
+      pathsByLoop.set(item.loopId, paths);
+    }
+    const results = await Promise.all([...pathsByLoop.entries()].map(([loopId, paths]) =>
+      api('POST', '/api/media/remove', { loopId, paths })));
+    const failed = results.find((result) => !result.ok);
+    notify(failed ? (failed.data.error || 'Could not delete every selected item') : 'Deleted', failed ? 'error' : 'ok');
+    if (!failed) await renderGallery();
   }
 }
 
@@ -1742,15 +1900,14 @@ async function renderInbox() {
    ========================================================================== */
 
 async function renderSystem() {
-  show(page('System', 'Updates, OAuth clients and IFTTT.', loading(4)));
+  show(page('System', 'Software updates and connected services.', loading(4)));
 
-  const [upd, oauth, ifttt] = await Promise.all([
+  const [upd, ifttt] = await Promise.all([
     api('GET', '/api/update/status'),
-    api('GET', '/api/oauthclients'),
     api('GET', '/api/ifttt'),
   ]);
 
-  const container = page('System', 'Updates, OAuth clients and IFTTT.');
+  const container = page('System', 'Software updates and connected services.');
 
   const updates = upd.ok ? (upd.data.updates || []) : [];
   container.append(card('Software updates (OTA)', {
@@ -1764,12 +1921,6 @@ async function renderSystem() {
       : errorBox('Could not reach the update catalog.', upd.data.error),
     h('p', { class: 'field-hint' },
       'This shows the catalog a robot would be offered. Updates are not pushed from here.')));
-
-  container.append(card('OAuth clients', {}, oauth.ok
-    ? ((oauth.data.clients || []).length
-      ? h('div', {}, ...oauth.data.clients.map((c) => row(c.name || c.clientId, c.id)))
-      : empty('No registered clients', '', 'link'))
-    : errorBox('Could not load OAuth clients.', oauth.data.error)));
 
   const iftttCard = card('IFTTT', {});
   const iftttBody = iftttCard.querySelector('.card-body');

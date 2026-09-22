@@ -15,6 +15,7 @@ import { requireUser, portalAccount } from './session.js';
 import { bumpAccountSessionVersion } from '../sessions.js';
 
 const GENDERS = ['male', 'female', 'other', 'they'];
+const JOT_NOTIFICATION_MODES = ['always', 'tagged', 'none'];
 
 function badRequest(res, message) {
   return sendJson(res, 400, { error: message });
@@ -55,6 +56,12 @@ export function portalProfileRoutes(store, { identityProviders = undefined } = {
       if (input.messagingAllowed !== undefined) {
         if (typeof input.messagingAllowed !== 'boolean') return badRequest(res, 'messagingAllowed must be a boolean');
         account.messagingAllowed = input.messagingAllowed;
+      }
+      if (input.jotNotificationMode !== undefined) {
+        if (typeof input.jotNotificationMode !== 'string' || !JOT_NOTIFICATION_MODES.includes(input.jotNotificationMode)) {
+          return badRequest(res, `jotNotificationMode must be one of ${JOT_NOTIFICATION_MODES.join(', ')}`);
+        }
+        account.jotNotificationMode = input.jotNotificationMode;
       }
       account.updated = Date.now();
       store.flush();

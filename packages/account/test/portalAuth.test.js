@@ -148,6 +148,18 @@ test('member /api/robots: an accepted household member sees that household robot
   loop.members.push({
     _id: 'shared-household-member', accountId: george._id, status: 'ACCEPTED',
     enrolled: { face: false, voice: false }, created: Date.now(),
+    memberProperties: {
+      firstName: 'George', lastName: 'Jetson', email: 'private-member@fixture.test',
+      phoneNumber: '+1-555-0199', birthday: 123456789, gender: 'other',
+    },
+  });
+  const { loop: invitation, robot: invitedRobot } = createLoop(store, {
+    owner,
+    robotId: 'invited-household-robot',
+  });
+  invitation.members.push({
+    _id: 'invited-household-member', accountId: george._id, status: 'INVITED',
+    enrolled: { face: false, voice: false }, created: Date.now(),
   });
   store.flush();
 
@@ -156,6 +168,29 @@ test('member /api/robots: an accepted household member sees that household robot
   const visible = mine.body.find((entry) => entry.friendlyId === robot.friendlyId);
   assert.equal(visible.loopId, loop._id);
   assert.equal(visible.loopName, loop.name);
+  assert.equal(visible.canManage, false);
+  assert.equal(visible.accessKeyId, undefined, 'a shared-loop browser card never leaks a credential identifier');
+  assert.equal(visible.ownerEmail, undefined, 'a shared-loop browser card never leaks another member email');
+  assert.equal(mine.body.some((entry) => entry.friendlyId === invitedRobot.friendlyId), false,
+    'a pending invitation is not presented as an available robot');
+
+  const detail = await call('GET', `/api/robot?loopId=${encodeURIComponent(loop._id)}`, null, 'j2');
+  assert.equal(detail.status, 200, 'accepted members can open the bounded robot details projection');
+  assert.equal(detail.body.robot.friendlyId, robot.friendlyId);
+
+  const invitedDetail = await call('GET', `/api/robot?loopId=${encodeURIComponent(invitation._id)}`, null, 'j2');
+  assert.equal(invitedDetail.status, 404, 'an invitation must be accepted before robot detail is available');
+
+  const loops = await call('GET', '/api/loop', null, 'j2');
+  assert.equal(loops.status, 200);
+  const shared = loops.body.loops.find((entry) => entry.id === loop._id);
+  const self = shared.members.find((entry) => entry.accountId === george._id);
+  assert.equal(shared.canManage, false);
+  assert.equal(self.memberProperties.firstName, 'George');
+  assert.equal(self.memberProperties.phoneNumber, undefined, 'a shared member does not receive profile contact data');
+  assert.equal(self.account.email, undefined, 'a shared member does not receive account email data');
+  assert.equal(JSON.stringify(shared).includes('private-member@fixture.test'), false);
+  assert.equal(JSON.stringify(shared).includes('+1-555-0199'), false);
 });
 
 test('store persists across instances (robot creds survive restart)', () => {

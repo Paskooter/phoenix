@@ -124,6 +124,35 @@ test('Jot forwards intended recipients and sends a content-free browser notifica
   assert.equal(delivered[0].subscription.endpoint.endsWith('/recipient'), true);
 });
 
+test('Jot browser alerts honor the source always/tagged/none preference', async () => {
+  // The preceding delivery test registered this separate endpoint. Remove the
+  // exact subscription so this test observes notification *recipient* policy,
+  // rather than duplicating a valid delivery to two browser devices.
+  webPush.unsubscribe(recipient._id, browserSubscription('recipient'));
+  webPush.subscribe(recipient._id, browserSubscription('recipient-mode'), 'Recipient phone');
+  const routes = portalMessagingRoutes(store, {
+    webPush,
+    classicCall: async ({ body }) => ({ body: { loopId: body.loopId, content: body.content } }),
+  });
+
+  recipient.jotNotificationMode = 'none';
+  delivered.length = 0;
+  await routes['POST /api/jot/message']({
+    req: sessionRequest(owner), res: response(), body: { loopId: loop._id, content: 'tagged but quiet', tags: [recipient._id] },
+  });
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(delivered.length, 0, 'none does not create a visible browser alert');
+
+  recipient.jotNotificationMode = 'always';
+  delivered.length = 0;
+  await routes['POST /api/jot/message']({
+    req: sessionRequest(owner), res: response(), body: { loopId: loop._id, content: 'unaddressed update', tags: [] },
+  });
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(delivered.length, 1, 'always alerts even when the member was not tagged');
+  recipient.jotNotificationMode = undefined;
+});
+
 test('Jot rejects recipient tags that are not accepted people in the loop', async () => {
   let classicCalls = 0;
   const routes = portalMessagingRoutes(store, {

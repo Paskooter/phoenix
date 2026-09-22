@@ -1,4 +1,5 @@
-// Portal REST: OTA/update status, IFTTT, OAuth clients (surface 9).
+// Portal REST: OTA/update status, IFTTT, and the administrator-only OAuth
+// client registry (surface 9).
 //   - Update_20160301 (the OTA service, reached through the classic proxy) — status list.
 //   - OAuth clients — the account service OWNS the oauthClients registry (OauthClients_20171108),
 //     read directly from the store.
@@ -23,6 +24,7 @@ function reportError(res, error) {
 export function portalSystemRoutes(store, options = {}) {
   const classic = options.classicCall || classicCall;
   const base = options.classicBase;
+  const requireAdmin = options.requireAdmin;
   const forwarded = (account) => ({ id: account._id, email: account.email });
 
   return {
@@ -54,8 +56,11 @@ export function portalSystemRoutes(store, options = {}) {
     },
 
     'GET /api/oauthclients': ({ req, res }) => {
-      const account = requireUser(store, req, res);
-      if (!account) return;
+      // OauthClients_20171108 is an admin-only service in the recovered
+      // implementation. It is a registry for server integrations, not a
+      // household's connected accounts, so do not disclose it to every signed
+      // in console user.
+      if (!requireAdmin || !requireAdmin(store, req, res)) return;
       return { clients: [...store.oauthClients.values()].map((c) => ({
         id: c._id,
         name: c.name,

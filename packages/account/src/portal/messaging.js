@@ -42,12 +42,18 @@ export function portalMessagingRoutes(store, options = {}) {
   }
 
   function loopRecipients(loop, senderId, tags = []) {
-    const selected = tags.length ? new Set(tags.map(String)) : null;
-    const accountIds = new Set(selected || acceptedRecipientIds(loop));
+    const selected = new Set(tags.map(String));
+    const accountIds = acceptedRecipientIds(loop);
     accountIds.delete(String(senderId));
     return [...accountIds].filter((id) => {
       const account = store.accounts.get(id);
-      return account && account.isDeleted !== true && account.isActive !== false && account.messagingAllowed !== false;
+      if (!account || account.isDeleted === true || account.isActive === false || account.messagingAllowed === false) return false;
+      // Recovered Push settings behavior: source defaults an unset preference
+      // to `tagged`; `always` alerts for every message other than the sender;
+      // `none` produces no visible alert. Tags do not make a Jot private.
+      const mode = ['always', 'tagged', 'none'].includes(account.jotNotificationMode)
+        ? account.jotNotificationMode : 'tagged';
+      return mode === 'always' || (mode === 'tagged' && selected.has(String(id)));
     });
   }
 

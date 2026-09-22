@@ -48,26 +48,29 @@ after(async () => {
   rmSync(dir, { recursive: true, force: true });
 });
 
-test('GET /api/me carries the fuller profile (birthday/gender/messagingAllowed)', async () => {
+test('GET /api/me carries the fuller profile and source-compatible Jot alert preference', async () => {
   const r = await call('GET', '/api/me');
   assert.equal(r.status, 200);
   assert.ok('messagingAllowed' in r.body.account);
+  assert.equal(r.body.account.jotNotificationMode, 'tagged');
   assert.equal(r.body.account.email, owner.email);
 });
 
 test('PUT /api/me updates profile fields and persists', async () => {
   const r = await call('PUT', '/api/me', {
     firstName: 'Guy', lastName: 'Fixtures', gender: 'other',
-    birthday: 727286400000, phoneNumber: '+1-555-0100', messagingAllowed: false,
+    birthday: 727286400000, phoneNumber: '+1-555-0100', messagingAllowed: false, jotNotificationMode: 'none',
   });
   assert.equal(r.status, 200);
   assert.equal(r.body.account.lastName, 'Fixtures');
   assert.equal(r.body.account.gender, 'other');
   assert.equal(r.body.account.birthday, 727286400000);
   assert.equal(r.body.account.messagingAllowed, false);
+  assert.equal(r.body.account.jotNotificationMode, 'none');
   const stored = store.accounts.get(owner._id);
   assert.equal(stored.lastName, 'Fixtures');
   assert.equal(stored.messagingAllowed, false);
+  assert.equal(stored.jotNotificationMode, 'none');
 });
 
 test('invalid profile values are rejected without mutating', async () => {
@@ -76,6 +79,8 @@ test('invalid profile values are rejected without mutating', async () => {
   assert.equal(bad.status, 400);
   const badBirthday = await call('PUT', '/api/me', { birthday: 'not-a-ms' });
   assert.equal(badBirthday.status, 400);
+  const badNotificationMode = await call('PUT', '/api/me', { jotNotificationMode: 'unrestricted' });
+  assert.equal(badNotificationMode.status, 400);
   assert.equal(JSON.stringify(store.accounts.get(owner._id)), before);
 });
 

@@ -12,6 +12,8 @@
 import { sendJson } from '@phoenix/common';
 import { isMemberStatus, MEMBER_STATUS } from '../model.js';
 import {
+  acceptInvitation,
+  declineInvitation,
   LoopError,
   inviteMember,
   removeMember,
@@ -50,19 +52,25 @@ export function visibleLoops(store, accountId) {
 }
 
 /** Linked account projection for a member (never credentials). */
-function linkedAccount(store, member) {
+function linkedAccount(store, member, { includeEmail = false } = {}) {
   const account = member.accountId ? store.accounts.get(member.accountId) : null;
   if (!account) return null;
-  return {
+  const out = {
     id: account._id,
-    email: account.email,
     firstName: account.firstName,
     lastName: account.lastName,
-    isActive: !!account.isActive,
   };
+  // The owner needs an address to link and manage pending members. A shared
+  // member does not: exposing it in the JSON response made private contact
+  // information available even though the console deliberately hid it.
+  if (includeEmail) {
+    out.email = account.email;
+    out.isActive = !!account.isActive;
+  }
+  return out;
 }
 
-function memberView(store, member) {
+function memberView(store, member, { includeSensitive = false } = {}) {
   const out = {
     id: member._id,
     accountId: member.accountId ?? null,
@@ -71,17 +79,24 @@ function memberView(store, member) {
     nickname: own(member, 'nickname') ? member.nickname : null,
     phoneticName: own(member, 'phoneticName') ? member.phoneticName : null,
     created: typeof member.created === 'number' ? member.created : null,
-    memberProperties: member.memberProperties || {},
-    account: linkedAccount(store, member),
+    // Names are needed to identify a fellow loop participant. Contact details,
+    // birthday, gender and other person properties are owner-only management
+    // data, not data every accepted member needs to receive.
+    memberProperties: includeSensitive ? (member.memberProperties || {}) : {
+      firstName: member.memberProperties?.firstName || null,
+      lastName: member.memberProperties?.lastName || null,
+    },
+    account: linkedAccount(store, member, { includeEmail: includeSensitive }),
   };
   return out;
 }
 
-function loopView(store, loop) {
+function loopView(store, loop, viewerAccountId = null) {
+  const includeSensitive = idsEqual(loop.owner, viewerAccountId);
   const robot = loop.robot ? store.accounts.get(loop.robot) : null;
   const members = (loop.members || [])
     .filter((member) => !['removed', 'declined'].includes(String(member.status || '').toLowerCase()))
-    .map((member) => memberView(store, member));
+    .map((member) => memberView(store, member, { includeSensitive }));
   const out = {
     id: loop._id,
     name: loop.name,
@@ -91,6 +106,7 @@ function loopView(store, loop) {
     isSuspended: !!loop.isSuspended,
     created: typeof loop.created === 'number' ? loop.created : null,
     updated: typeof loop.updated === 'number' ? loop.updated : null,
+    canManage: includeSensitive,
     members,
   };
   return out;
@@ -131,7 +147,7 @@ export function portalLoopRoutes(store, options = {}) {
     'GET /api/loop': ({ req, res }) => {
       const account = requireUser(store, req, res);
       if (!account) return;
-      const loops = visibleLoops(store, account._id).map((loop) => loopView(store, loop));
+      const loops = visibleLoops(store, account._id).map((loop) => loopView(store, loop, account._id));
       return { loops };
     },
 
@@ -149,7 +165,7 @@ export function portalLoopRoutes(store, options = {}) {
         if (error instanceof LoopError) return fail(res, error);
         throw error;
       }
-      return { loop: loopView(store, activeLoop(store, loopId)) };
+      return { loop: loopView(store, activeLoop(store, loopId), account._id) };
     },
 
     'POST /api/loop/suspend': ({ req, res, body }) => {
@@ -162,7 +178,7 @@ export function portalLoopRoutes(store, options = {}) {
       }
       loop.isSuspended = true;
       saveLoop(store, loop, loopUpdatedOutbox);
-      return { loop: loopView(store, loop) };
+      return { loop: loopView(store, loop, account._id) };
     },
 
     'POST /api/loop/unsuspend': ({ req, res, body }) => {
@@ -175,7 +191,7 @@ export function portalLoopRoutes(store, options = {}) {
       }
       loop.isSuspended = false;
       saveLoop(store, loop, loopUpdatedOutbox);
-      return { loop: loopView(store, loop) };
+      return { loop: loopView(store, loop, account._id) };
     },
 
     'POST /api/loop/invite': async ({ req, res, body }) => {
@@ -203,7 +219,39 @@ export function portalLoopRoutes(store, options = {}) {
         if (error instanceof LoopError) return fail(res, error);
         throw error;
       }
-      return { loop: loopView(store, activeLoop(store, payload.loopId)) };
+      return { loop: loopView(store, activeLoop(store, payload.loopId), account._id) };
+    },
+
+    // An invited account can see the loop in the source list, but cannot use it
+    // until it explicitly accepts.  Keeping that state transition in the
+    // session portal (rather than asking an owner to flip `members/status`)
+    // preserves the original Loop.AcceptInvitation / DeclineInvitation flow.
+    'POST /api/loop/accept': async ({ req, res, body }) => {
+      const account = requireUser(store, req, res);
+      if (!account) return;
+      const loopId = body && body.loopId;
+      if (!loopId) return sendJson(res, 400, { error: 'loopId is required' });
+      try {
+        await acceptInvitation(store, { loopId, accountId: account._id }, loopUpdatedOutbox, { invitationProviders });
+      } catch (error) {
+        if (error instanceof LoopError) return fail(res, error);
+        throw error;
+      }
+      return { loop: loopView(store, activeLoop(store, loopId), account._id) };
+    },
+
+    'POST /api/loop/decline': async ({ req, res, body }) => {
+      const account = requireUser(store, req, res);
+      if (!account) return;
+      const loopId = body && body.loopId;
+      if (!loopId) return sendJson(res, 400, { error: 'loopId is required' });
+      try {
+        await declineInvitation(store, { loopId, accountId: account._id }, loopUpdatedOutbox, { invitationProviders });
+      } catch (error) {
+        if (error instanceof LoopError) return fail(res, error);
+        throw error;
+      }
+      return { declined: true };
     },
 
     'POST /api/loop/remove': ({ req, res, body }) => {
@@ -245,7 +293,7 @@ export function portalLoopRoutes(store, options = {}) {
       }
       loop.owner = target.accountId;
       saveLoop(store, loop, loopUpdatedOutbox);
-      return { loop: loopView(store, loop) };
+      return { loop: loopView(store, loop, account._id) };
     },
 
     // -- members ----------------------------------------------------------------
@@ -261,7 +309,7 @@ export function portalLoopRoutes(store, options = {}) {
         if (error instanceof LoopError) return fail(res, error);
         throw error;
       }
-      return { loop: loopView(store, activeLoop(store, loopId)) };
+      return { loop: loopView(store, activeLoop(store, loopId), account._id) };
     },
 
     'POST /api/loop/members/status': ({ req, res, body }) => {
@@ -281,7 +329,7 @@ export function portalLoopRoutes(store, options = {}) {
       if (!member) return sendJson(res, 404, { error: 'Member not found', code: 'MEMBER_NOT_FOUND' });
       member.status = String(status).toLowerCase();
       saveLoop(store, loop, loopUpdatedOutbox);
-      return { loop: loopView(store, loop) };
+      return { loop: loopView(store, loop, account._id) };
     },
 
     'POST /api/loop/members/nickname': ({ req, res, body }) => {
@@ -298,7 +346,7 @@ export function portalLoopRoutes(store, options = {}) {
         if (error instanceof LoopError) return fail(res, error);
         throw error;
       }
-      return { loop: loopView(store, activeLoop(store, loopId)) };
+      return { loop: loopView(store, activeLoop(store, loopId), account._id) };
     },
 
     'POST /api/loop/members/phonetic': ({ req, res, body }) => {
@@ -315,7 +363,7 @@ export function portalLoopRoutes(store, options = {}) {
         if (error instanceof LoopError) return fail(res, error);
         throw error;
       }
-      return { loop: loopView(store, activeLoop(store, loopId)) };
+      return { loop: loopView(store, activeLoop(store, loopId), account._id) };
     },
 
     'POST /api/loop/members/enrollment': ({ req, res, body }) => {
@@ -335,7 +383,7 @@ export function portalLoopRoutes(store, options = {}) {
         if (error instanceof LoopError) return fail(res, error);
         throw error;
       }
-      return { loop: loopView(store, activeLoop(store, loopId)) };
+      return { loop: loopView(store, activeLoop(store, loopId), account._id) };
     },
 
     // THE news-bug fix: give an identified speaker an accountId so the report skill's
@@ -368,7 +416,7 @@ export function portalLoopRoutes(store, options = {}) {
         member.status = 'accepted';
       }
       saveLoop(store, loop, loopUpdatedOutbox);
-      return { loop: loopView(store, loop) };
+      return { loop: loopView(store, loop, account._id) };
     },
 
     'POST /api/loop/members/unlink': ({ req, res, body }) => {
@@ -385,7 +433,7 @@ export function portalLoopRoutes(store, options = {}) {
       if (!member) return;
       member.accountId = undefined;
       saveLoop(store, loop, loopUpdatedOutbox);
-      return { loop: loopView(store, loop) };
+      return { loop: loopView(store, loop, account._id) };
     },
 
     // -- account lookup for linking ---------------------------------------------

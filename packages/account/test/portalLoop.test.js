@@ -88,7 +88,12 @@ test('ownership transfer to another member', async () => {
   // link the "other" account as a member first, then transfer
   const r = await call('GET', '/api/loop');
   const loopId = r.body.loops[0].id;
-  await call('POST', '/api/loop/invite', { loopId, email: other.email });
+  const invite = await call('POST', '/api/loop/invite', { loopId, email: other.email });
+  assert.equal(invite.status, 200);
+  // A transfer is allowed only to an accepted member. The source invitation
+  // flow is explicit; an email match does not silently join an account.
+  const accepted = await call('POST', '/api/loop/accept', { loopId }, 'other');
+  assert.equal(accepted.status, 200);
 
   const transfer = await call('POST', '/api/loop/transfer', { loopId, toAccountId: other._id });
   assert.equal(transfer.status, 200);
@@ -123,4 +128,28 @@ test('a removed member leaves the default household view', async () => {
   assert.ok(!removed.body.loop.members.some((m) => m.id === victim._id), 'removed member is gone from the view');
   const stored = store.loops.get(id).members.find((m) => m._id === victim._id);
   assert.equal(String(stored.status).toLowerCase(), 'removed', 'but the status is persisted on the record');
+});
+
+test('an invited account accepts or declines its own invitation', async () => {
+  const accepted = createLoop(store, { owner, robotId: 'loop-accepted-invitation-robot' }).loop;
+  const declined = createLoop(store, { owner, robotId: 'loop-declined-invitation-robot' }).loop;
+  store.flush();
+
+  const firstInvite = await call('POST', '/api/loop/invite', { loopId: accepted._id, email: other.email });
+  assert.equal(firstInvite.status, 200);
+  const pending = await call('GET', '/api/loop', null, 'other');
+  assert.ok(pending.body.loops.some((entry) => entry.id === accepted._id
+    && entry.members.some((member) => member.accountId === other._id && member.status === 'invited')));
+
+  const joined = await call('POST', '/api/loop/accept', { loopId: accepted._id }, 'other');
+  assert.equal(joined.status, 200);
+  assert.equal(joined.body.loop.members.find((member) => member.accountId === other._id).status, 'accepted');
+
+  const secondInvite = await call('POST', '/api/loop/invite', { loopId: declined._id, email: other.email });
+  assert.equal(secondInvite.status, 200);
+  const declinedResult = await call('POST', '/api/loop/decline', { loopId: declined._id }, 'other');
+  assert.equal(declinedResult.status, 200);
+  assert.equal(declinedResult.body.declined, true);
+  const afterDecline = await call('GET', '/api/loop', null, 'other');
+  assert.ok(!afterDecline.body.loops.some((entry) => entry.id === declined._id));
 });
