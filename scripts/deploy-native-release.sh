@@ -38,6 +38,11 @@ die() { echo "release deploy: $*" >&2; exit 2; }
 [[ "$NO_RESTART" = 0 || "$NO_RESTART" = 1 ]] || die "PHOENIX_DEPLOY_NO_RESTART must be 0 or 1"
 [[ -n "$NPM_BIN" && -x "$NPM_BIN" ]] \
   || die "npm is not on PATH; set PHOENIX_NPM_BIN to the production Node installation's npm binary"
+# NVM's npm launcher uses `#!/usr/bin/env node`.  Adding the selected npm
+# directory to PATH keeps its Node interpreter paired with npm even when this
+# script runs through sudo, whose secure_path intentionally omits user NVM dirs.
+PATH="$(dirname "$NPM_BIN"):$PATH"
+export PATH
 
 COMMIT="$(git -C "$REPOSITORY" rev-parse --verify "${REVISION}^{commit}")" \
   || die "revision does not resolve to a commit: $REVISION"
