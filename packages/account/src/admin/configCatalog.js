@@ -487,12 +487,12 @@ export const SETTINGS = [
   },
   {
     key: 'ETCO_parser_layaMinConfidence',
-    label: 'Laya minimum confidence',
+    label: 'Laya minimum candidate probability',
     group: 'nlu',
     type: 'number',
-    default: '0.85',
+    default: '0.45',
     services: ['nlu'],
-    help: 'Phoenix rejects lower-confidence leaf selections even if the classifier returns an intent.',
+    help: 'Minimum selected candidate probability (not Laya entropy confidence); lower-probability leaf selections are rejected.',
   },
   {
     key: 'ETCO_parser_layaSecondaryFallback',

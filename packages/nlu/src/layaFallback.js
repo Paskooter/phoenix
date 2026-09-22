@@ -9,6 +9,16 @@
 import { readFileSync } from 'node:fs';
 
 const SOURCE_TOOLS = JSON.parse(readFileSync(new URL('./generatedIntentCatalog.json', import.meta.url), 'utf8')).tools;
+// The generated entity schema currently omits the optional `group` output
+// produced by hue-control for `lightsUp`/`lightsDown`. Keep these out of Laya's
+// acceptance set until the request text's light-group values are validated.
+const LAYA_INTENTS_BY_PROFILE = new Map([
+  ['phoenix-information', new Set(['requestCalendar', 'requestCommute', 'launchPersonalReport'])],
+  ['phoenix-home', new Set(['galleryOpen'])],
+  ['phoenix-play', new Set(['requestDrawPicture', 'requestDance', 'jokeKnockKnock', 'goodBye'])],
+  ['phoenix-system', new Set(['stop', 'restart', 'wifiStatus'])],
+]);
+const LAYA_PROFILE_INTENTS = new Set([...LAYA_INTENTS_BY_PROFILE.values()].flatMap((intents) => [...intents]));
 
 function isEntityless(tool) {
   const properties = tool?.entities?.type === 'object' ? tool.entities.properties : null;
@@ -16,13 +26,15 @@ function isEntityless(tool) {
 }
 
 export const LAYA_ENTITYLESS_INTENTS = new Set(
-  SOURCE_TOOLS.filter((tool) => isEntityless(tool) && (tool.launch || tool.scope === 'global')).map((tool) => tool.name),
+  SOURCE_TOOLS.filter((tool) => isEntityless(tool)
+    && (tool.launch || tool.scope === 'global')
+    && LAYA_PROFILE_INTENTS.has(tool.name)).map((tool) => tool.name),
 );
 
 const DEFAULT_TIMEOUT_MS = 700;
 const MIN_TIMEOUT_MS = 50;
 const MAX_TIMEOUT_MS = 2_000;
-const DEFAULT_CONFIDENCE = 0.85;
+const DEFAULT_CONFIDENCE = 0.45;
 
 function boundedInteger(value, fallback, min, max) {
   const parsed = Number(value);
@@ -57,11 +69,30 @@ export function envLayaConfig() {
 function isValidResponse(result, config) {
   if (!result || typeof result !== 'object' || result.unknown !== false) return false;
   if (typeof result.intent !== 'string' || !LAYA_ENTITYLESS_INTENTS.has(result.intent)) return false;
-  if (typeof result.confidence !== 'number' || !Number.isFinite(result.confidence) || result.confidence < config.minConfidence) return false;
+  if (typeof result.confidence !== 'number' || !Number.isFinite(result.confidence)) return false;
+  // `confidence` from Laya is an entropy score. The server's explicit
+  // top_probability is the quantity gated against profile.min_confidence;
+  // comparing entropy confidence with that threshold rejected nearly every
+  // otherwise valid result (for example, 0.15 entropy vs 0.85 probability).
+  if (typeof result.top_probability !== 'number' || !Number.isFinite(result.top_probability)) return false;
+  if (result.top_probability < config.minConfidence || result.top_probability < 0 || result.top_probability > 1) return false;
+  const probabilities = result.probabilities;
+  if (!probabilities || typeof probabilities !== 'object' || Array.isArray(probabilities)) return false;
+  const rankedProbabilities = Object.values(probabilities);
+  if (rankedProbabilities.length < 2 || rankedProbabilities.some((value) => typeof value !== 'number'
+    || !Number.isFinite(value) || value < 0 || value > 1)) return false;
+  const selectedProbability = probabilities[result.intent];
+  const sortedProbabilities = [...rankedProbabilities].sort((left, right) => right - left);
+  if (selectedProbability !== sortedProbabilities[0]) return false;
+  if (selectedProbability < config.minConfidence || Math.abs(selectedProbability - result.top_probability) > 0.0001) return false;
+  const expectedMargin = sortedProbabilities[0] - sortedProbabilities[1];
+  if (typeof result.margin !== 'number' || !Number.isFinite(result.margin)
+    || Math.abs(expectedMargin - result.margin) > 0.0001) return false;
   // The service's leaf profile is the only place an intent is returned.  This
   // makes a compromised/incorrect root category harmless to Phoenix.
-  if (typeof result.profile !== 'string' || result.profile === 'phoenix-core') return false;
-  if (!Array.isArray(result.route) || result.route[0] !== 'phoenix-core' || result.route.at(-1) !== result.profile) return false;
+  if (typeof result.profile !== 'string' || !LAYA_INTENTS_BY_PROFILE.get(result.profile)?.has(result.intent)) return false;
+  if (!Array.isArray(result.route) || result.route.length !== 2
+    || result.route[0] !== 'phoenix-core' || result.route[1] !== result.profile) return false;
   return true;
 }
 

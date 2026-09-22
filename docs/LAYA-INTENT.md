@@ -1,11 +1,11 @@
 # Private Laya intent fallback
 
-Phoenix can use a self-hosted Laya classifier as a fast fallback after the
-robot's deterministic parser. It is not a replacement for grammar/entity
-parsing yet: the initial `phoenix-core` profile accepts only entityless,
-launchable/global intents and returns an explicit no-match for everything else.
-That preserves a safe result for requests containing names, rooms, durations,
-locations, dates, or other slots.
+Phoenix can use a self-hosted Laya classifier as a fallback after the robot's
+deterministic parser. This prototype is not a replacement for grammar/entity
+parsing: it has no entity extraction, and an entityless candidate allowlist
+does not prove that the utterance itself lacks a name, room, date, or other
+slot. The holdout below demonstrates false accepts on such requests, so Laya
+must remain disabled by default.
 
 The service uses a fixed two-level decision tree:
 
@@ -13,7 +13,7 @@ The service uses a fixed two-level decision tree:
 grammar (HIGH -> immediately return)
   -> Laya broad domain (information / home / play / system / unknown)
   -> Laya domain-local intent (at most a small fixed candidate set)
-  -> validate intent + confidence + entityless catalog entry
+  -> validate intent + candidate probability + entityless catalog allowlist
   -> existing Phoenix NLU and skill routing
 ```
 
@@ -83,21 +83,59 @@ ETCO_parser_layaUrl=http://192.168.1.252:6973
 ETCO_parser_layaToken=<same private token>
 ETCO_parser_layaProfile=phoenix-core
 ETCO_parser_layaTimeoutMs=700
-ETCO_parser_layaMinConfidence=0.85
+ETCO_parser_layaMinConfidence=0.45
 ETCO_parser_layaSecondaryFallback=none
 ```
 
-Leave it disabled initially. First replay the NLU corpus and record intent,
-no-match, p50/p95 latency, and false-positive rates. Then enable a canary by
-changing only `ETCO_parser_layaEnabled=true` and restarting `phoenix.service`.
+Leave it disabled. Only after a source-derived replay meets a separately agreed
+precision/coverage gate should anyone consider a reviewed canary by changing
+`ETCO_parser_layaEnabled=true` and restarting `phoenix.service`.
 HIGH-priority grammar matches never call Laya. A Laya timeout, bad token,
 unavailable service, unexpected profile, non-leaf response, unknown response,
-low confidence, or entity-bearing intent is a safe no-match; a valid
-deterministic LOW parse remains available.
+low selected-candidate probability, or entity-bearing intent is a safe
+no-match; a valid deterministic LOW parse remains available.
 
 `ETCO_parser_layaSecondaryFallback=llm` is optional during evaluation. Keep it
 as `none` when the goal is to remove LLMs from intent classification; it does
 not affect LLM use by the answer skill.
+
+The API's `confidence` field is Laya's entropy-derived score and is diagnostic;
+it is not the probability of the selected candidate. `top_probability` is the
+selected candidate's probability. The service gates that value against
+server-owned per-profile thresholds; Phoenix independently gates it against
+`ETCO_parser_layaMinConfidence`. The client also checks that the selected
+candidate is the actual maximum in the returned probabilities and that the
+reported margin matches that distribution.
+
+## Current profile evaluation
+
+The checked-in profile experiment is bounded to eleven entityless intents.
+Light brightness intents are withheld: their source rules can produce a
+room/group entity omitted by the generated schema. The 58-case development
+corpus has 33 supported examples and 25 unknown/entity controls. After one
+concise-root variant and one leaf-threshold sweep, the best tested
+zero-false-positive point was root probability >= 0.40, leaf probability >=
+0.45, and margin >= 0.03. It accepted only 6/33 supported examples (18.2%
+recall) with 0/25 controls falsely accepted.
+
+The frozen 56-case holdout was then run once at those fixed thresholds. It
+accepted 4/33 supported examples (12.1% recall) and falsely accepted 4/23
+unknown/entity controls (17.4% false-positive rate); precision among its eight
+accepted utterances was 50%. The four correct matches were one each for
+`requestCalendar`, `requestCommute`, `requestDance`, and `requestDrawPicture`;
+every other supported intent had zero correct matches out of three. False
+accepts included two photo requests as `galleryOpen`, a calendar request with
+date/time as `requestCalendar`, and a weather request as `requestCommute`. The
+one-run confusion and per-intent report is preserved in
+`services/laya-intent/evaluation/phoenix-holdout-results.json`. The per-intent
+abstention/false-accept breakdown in that file was recomputed from the saved
+confusion after fixing a reporting arithmetic bug; predictions were not rerun.
+
+On this CPU, model load took 7.51 s; mean per-utterance inference was 455 ms,
+p50 360 ms, p95 911 ms. These are CPU measurements, not expected GPU service
+latencies. The holdout falsified the development zero-FP result. This is not
+useful coverage or safe entity handling for a replacement/global fallback:
+keep `ETCO_parser_layaEnabled=false` and do not canary this profile.
 
 ## Verification
 
@@ -109,6 +147,18 @@ cd ../.. && node --test packages/nlu/test/layaFallback.test.js
 ```
 
 Do not promote the generic checkpoint as a full 622-intent replacement without
-a held-out, source-derived evaluation and confidence calibration. Add
-additional server-owned leaf profiles only after their candidate set, supported
-entity behavior, and downstream skill routing have each been replayed.
+a held-out, source-derived evaluation and confidence calibration. Use the
+development set for any further experiments:
+
+```bash
+cd services/laya-intent
+LAYA_MODEL_PATH=/models/laya LAYA_DEVICE=cuda \
+  python evaluation/evaluate_profiles.py \
+  --cases evaluation/phoenix-intents.json
+```
+
+The frozen holdout has already been used once; do not rerun it for profile
+iteration. The checked-in thresholds/profile are a failed recorded experiment,
+not a deployable recommendation. Add additional server-owned leaf profiles
+only after their candidate set, supported entity behavior, and downstream
+skill routing have each been replayed.

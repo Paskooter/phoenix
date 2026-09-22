@@ -14,7 +14,7 @@ from app.profiles import load_profiles  # noqa: E402
 @pytest.fixture(autouse=True)
 def reset_service_state(monkeypatch):
     monkeypatch.setenv("LAYA_BACKEND", "stub")
-    monkeypatch.setenv("LAYA_STUB_INTENTS", '{"phoenix-core":"home","phoenix-home":"lightsUp"}')
+    monkeypatch.setenv("LAYA_STUB_INTENTS", '{"phoenix-core":"home","phoenix-home":"galleryOpen"}')
     monkeypatch.setattr(server, "AUTH_TOKEN", "")
     monkeypatch.setattr(server, "profiles", {})
     monkeypatch.setattr(server, "root_profiles", set())
@@ -23,7 +23,7 @@ def reset_service_state(monkeypatch):
 
 
 def client(classifier=None):
-    server.classifier = classifier or StubClassifier(intents={"phoenix-core": "home", "phoenix-home": "lightsUp"})
+    server.classifier = classifier or StubClassifier(intents={"phoenix-core": "home", "phoenix-home": "galleryOpen"})
     return TestClient(server.app)
 
 
@@ -43,12 +43,15 @@ def test_readyz_reports_stub_readiness():
 
 def test_classification_is_fixed_profile_and_has_explicit_unknown():
     with client() as c:
-        response = c.post("/v1/classify", json={"text": "turn on the lights"})
+        response = c.post("/v1/classify", json={"text": "open the gallery"})
         assert response.status_code == 200
         body = response.json()
-        assert body["intent"] == "lightsUp"
+        assert body["intent"] == "galleryOpen"
         assert body["unknown"] is False
         assert body["profile"] == "phoenix-home"
+        assert body["confidence"] == 0.99
+        assert body["top_probability"] == 0.99
+        assert body["margin"] == 0.99
 
         unknown = c.post("/v1/classify", json={"text": "turn on the lights", "profile": "missing"})
         assert unknown.status_code == 400
@@ -134,7 +137,8 @@ def test_laya_classifier_never_sends_request_defined_criteria():
             calls.append((state, questions))
             return {"answers": {"intent": {
                 "choice": "home",
-                "confidence": 0.9,
+                # Low entropy confidence must not veto a high selected-candidate probability.
+                "confidence": 0.12,
                 "probabilities": {"unknown": 0.01, "home": 0.9},
             }}}
 
@@ -144,13 +148,58 @@ def test_laya_classifier_never_sends_request_defined_criteria():
     profile = load_profiles()["phoenix-core"]
     result = classifier.classify("turn on the lights", profile)
     assert result.intent == "home"
+    assert result.confidence == 0.12
     assert calls[0][0] == "turn on the lights"
-    assert calls[0][1]["intent"]["criteria"]["home"] == "control smart lights or open the photo gallery"
+    assert calls[0][1]["intent"]["criteria"]["home"] == "open or show the whole photo gallery"
     assert "model" not in calls[0][1]
+
+
+def test_laya_classifier_gates_on_selected_probability_and_margin():
+    from app.classifier import LayaClassifier
+
+    scenarios = [
+        ({"unknown": 0.05, "home": 0.90}, 0.12, "home", False, "match"),
+        ({"unknown": 0.05, "home": 0.39}, 0.99, None, True, "low_confidence"),
+        ({"unknown": 0.79, "home": 0.80}, 0.99, None, True, "ambiguous"),
+    ]
+    for probabilities, confidence, expected_intent, expected_unknown, expected_reason in scenarios:
+        class Agent:
+            device = type("Device", (), {"type": "cuda"})()
+
+        class Router:
+            def __init__(self, **_kwargs):
+                self.agent = Agent()
+
+            def preload(self, _names):
+                pass
+
+            def load(self, _name):
+                return self.agent
+
+            def predict(self, _state, _questions, model):
+                assert model == "english"
+                return {"answers": {"intent": {
+                    "choice": "home",
+                    "confidence": confidence,
+                    "probabilities": probabilities,
+                }}}
+
+        classifier = LayaClassifier("fixed", None, "cuda", False, loader=Router)
+        classifier.load()
+        result = classifier.classify("open the photo gallery", load_profiles()["phoenix-core"])
+        assert result.intent == expected_intent
+        assert result.unknown is expected_unknown
+        assert result.reason == expected_reason
 
 
 def test_tree_profile_walks_only_server_owned_children():
     with client() as c:
-        body = c.post("/v1/classify", json={"text": "turn on the lights"}).json()
-    assert body["intent"] == "lightsUp"
+        body = c.post("/v1/classify", json={"text": "open the gallery"}).json()
+    assert body["intent"] == "galleryOpen"
     assert body["route"] == ["phoenix-core", "phoenix-home"]
+
+
+def test_profile_withholds_light_intents_until_group_entities_are_checked():
+    profiles = load_profiles()
+    assert "lightsUp" not in profiles["phoenix-home"].criteria
+    assert "lightsDown" not in profiles["phoenix-home"].criteria

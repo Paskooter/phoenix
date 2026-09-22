@@ -1,0 +1,76 @@
+{
+  "schema": "phoenix.laya.holdout-results.v1",
+  "source": "Single CPU run of phoenix-holdout.json; aggregate confusion and false-accept examples are preserved from that run. Per-intent abstention/false-accept counts were recomputed from its confusion matrix after correcting the evaluator's reporting arithmetic; the holdout was not rerun.",
+  "selection_mode": "fixed",
+  "thresholds": {
+    "root_probability": 0.4,
+    "leaf_probability": 0.45,
+    "margin": 0.03
+  },
+  "cases": {
+    "total": 56,
+    "supported": 33,
+    "unknown_or_entity_controls": 23
+  },
+  "metrics": {
+    "correct": 23,
+    "accuracy": 0.4107,
+    "true_positive": 4,
+    "positive_recall": 0.1212,
+    "false_positive": 4,
+    "false_positive_rate": 0.1739,
+    "false_negative": 29,
+    "wrong_intent": 4,
+    "accepted": 8,
+    "precision": 0.5
+  },
+  "latency_ms": {
+    "mean": 454.63,
+    "p50": 360.19,
+    "p95": 911.46
+  },
+  "model_load_seconds": 7.51,
+  "inference_seconds": 25.46,
+  "confusion": [
+    {"expected": "galleryOpen", "predicted": "unknown", "count": 3},
+    {"expected": "goodBye", "predicted": "unknown", "count": 3},
+    {"expected": "jokeKnockKnock", "predicted": "unknown", "count": 3},
+    {"expected": "launchPersonalReport", "predicted": "unknown", "count": 3},
+    {"expected": "requestCalendar", "predicted": "requestCalendar", "count": 1},
+    {"expected": "requestCalendar", "predicted": "unknown", "count": 2},
+    {"expected": "requestCommute", "predicted": "requestCommute", "count": 1},
+    {"expected": "requestCommute", "predicted": "unknown", "count": 2},
+    {"expected": "requestDance", "predicted": "requestDance", "count": 1},
+    {"expected": "requestDance", "predicted": "unknown", "count": 2},
+    {"expected": "requestDrawPicture", "predicted": "requestDrawPicture", "count": 1},
+    {"expected": "requestDrawPicture", "predicted": "unknown", "count": 2},
+    {"expected": "restart", "predicted": "unknown", "count": 3},
+    {"expected": "stop", "predicted": "unknown", "count": 3},
+    {"expected": "unknown", "predicted": "galleryOpen", "count": 2},
+    {"expected": "unknown", "predicted": "requestCalendar", "count": 1},
+    {"expected": "unknown", "predicted": "requestCommute", "count": 1},
+    {"expected": "unknown", "predicted": "unknown", "count": 19},
+    {"expected": "wifiStatus", "predicted": "unknown", "count": 3}
+  ],
+  "per_intent": {
+    "galleryOpen": {"cases": 3, "correct": 0, "abstained": 3, "false_or_wrong_accepts": 0},
+    "goodBye": {"cases": 3, "correct": 0, "abstained": 3, "false_or_wrong_accepts": 0},
+    "jokeKnockKnock": {"cases": 3, "correct": 0, "abstained": 3, "false_or_wrong_accepts": 0},
+    "launchPersonalReport": {"cases": 3, "correct": 0, "abstained": 3, "false_or_wrong_accepts": 0},
+    "requestCalendar": {"cases": 3, "correct": 1, "abstained": 2, "false_or_wrong_accepts": 0},
+    "requestCommute": {"cases": 3, "correct": 1, "abstained": 2, "false_or_wrong_accepts": 0},
+    "requestDance": {"cases": 3, "correct": 1, "abstained": 2, "false_or_wrong_accepts": 0},
+    "requestDrawPicture": {"cases": 3, "correct": 1, "abstained": 2, "false_or_wrong_accepts": 0},
+    "restart": {"cases": 3, "correct": 0, "abstained": 3, "false_or_wrong_accepts": 0},
+    "stop": {"cases": 3, "correct": 0, "abstained": 3, "false_or_wrong_accepts": 0},
+    "unknown": {"cases": 23, "correct": 19, "abstained": 0, "false_or_wrong_accepts": 4},
+    "wifiStatus": {"cases": 3, "correct": 0, "abstained": 3, "false_or_wrong_accepts": 0}
+  },
+  "false_accept_examples": [
+    {"text": "open the photo of the dog", "predicted": "galleryOpen"},
+    {"text": "find any new photos", "predicted": "galleryOpen"},
+    {"text": "what's on my calendar tomorrow at three", "predicted": "requestCalendar"},
+    {"text": "how is the weather tomorrow", "predicted": "requestCommute"}
+  ],
+  "recommendation": "Do not enable Laya as a production fallback. The frozen holdout did not preserve the zero-false-positive development operating point and yielded only 12.1% positive recall."
+}

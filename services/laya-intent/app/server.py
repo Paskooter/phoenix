@@ -148,10 +148,18 @@ def _classification_payload(
     route: list[str],
     elapsed_ms: float,
 ) -> dict[str, Any]:
+    ordered_probabilities = sorted((float(value) for value in result.probabilities.values()), reverse=True)
+    top_probability = ordered_probabilities[0] if ordered_probabilities else 0.0
+    margin = top_probability - ordered_probabilities[1] if len(ordered_probabilities) > 1 else top_probability
     return {
         "intent": result.intent,
         "unknown": result.unknown,
+        # Laya's own `confidence` is entropy-derived and is not the selected
+        # candidate probability. Expose probability and margin separately so
+        # clients can apply a threshold with the same meaning as the server.
         "confidence": round(float(result.confidence), 4),
+        "top_probability": round(top_probability, 4),
+        "margin": round(margin, 4),
         "probabilities": {key: round(float(value), 4) for key, value in result.probabilities.items()},
         "profile": profile.name,
         "route": route,
