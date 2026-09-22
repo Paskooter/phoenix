@@ -47,6 +47,13 @@ ticket or commit it. The Compose launcher refuses to start when required values
 are missing. The native launcher also defaults to loopback and must be fronted by
 TLS for any browser or robot outside the host.
 
+For OTA, set `ETCO_ota_packageBearerSecret` to a separate random secret when you
+want OTA download links to have an independent rotation boundary. Leaving it
+empty deliberately falls back to `HUB_TOKEN_SECRET`; the native launcher passes
+that resolved value to the OTA service. Do not start the OTA process by hand
+without one of those values: it can otherwise issue package links that its own
+download endpoint rejects.
+
 ### Configure account email before inviting people
 
 An Internet-facing portal needs a real SMTP relay. Set `ETCO_account_portalUrl`

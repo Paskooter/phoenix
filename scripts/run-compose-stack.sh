@@ -241,6 +241,7 @@ PORT=$(p 9014) ETCO_server_port=$(p 9014) PHOENIX_SKILL_ID=template-skill \
 # with scripts/build-ota-packages.sh). Disable with OTA=0.
 if [ "${OTA:-1}" != "0" ]; then
   PORT=$(p 9010) ETCO_ota_publicUrl="${OTA_PUBLIC_URL:-}" ETCO_ota_internalPeerToken="$OTA_INTERNAL_PEER_TOKEN" \
+  ETCO_ota_packageBearerSecret="${ETCO_ota_packageBearerSecret:-$HUB_TOKEN_SECRET}" \
   ETCO_ota_manifest="$OTA_MANIFEST" ETCO_ota_dataDir="$OTA_DATA_DIR" \
   ETCO_ota_accountDataFile="$ACCOUNT_DATA_FILE" \
     node packages/ota/src/index.js    > "$LOG_DIR/phx-compose-ota.log"        2>&1 & JOB_PIDS[ota]=$!
