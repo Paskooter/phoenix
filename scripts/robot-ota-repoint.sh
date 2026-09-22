@@ -84,17 +84,19 @@ done
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # The portal publishes this script as a single download. A source checkout has
-# robot-client/ beside it, but a downloaded script does not. Fetch only the three
+# robot-client/ beside it, but a downloaded script does not. Fetch only the four
 # fixed support assets that the script needs, pin them by SHA-256, and keep them
 # in a temporary local directory. This is deliberately not a curl|shell path.
 PUBLIC_ASSET_ORIGIN="${PHOENIX_REPOINT_ASSET_ORIGIN:-https://jibo.io}"
 CLIENT_SOURCE="${SCRIPT_DIR}/robot-client/node.js"
 ROOT_PEM_SRC="${REGION_CA}"
 BACKUP_TLS_PATCHER="${SCRIPT_DIR}/robot-client/patch-system-backup-tls.cjs"
+OTA_TLS_PATCHER="${SCRIPT_DIR}/robot-client/patch-ota-downloader-tls.cjs"
 SUPPORT_DIR=""
 CLIENT_SOURCE_SHA256="29686ca0aec6b93b8b716b94fca443ce25e6e7e55e01e798be56bce920c66bac"
 ROOT_PEM_SOURCE_SHA256="22b557a27055b33606b6559f37703928d3e4ad79f110b407d04986e1843543d1"
 BACKUP_TLS_PATCHER_SHA256="2063cf6d26344fc49548a1f691120f240524b976caa559930e52115857460762"
+OTA_TLS_PATCHER_SHA256="e2a2baf3da64e9c446adf1d51d025a4758b21cb7c7b7876ac775f29c124f561c"
 
 cleanup_support() {
   [ -z "$SUPPORT_DIR" ] || rm -rf "$SUPPORT_DIR"
@@ -123,7 +125,7 @@ fetch_support_asset() {
 ensure_support_assets() {
   # A checked-out copy has both support files already. A standalone download
   # receives only the missing file(s), never overwrites a supplied custom CA.
-  if [ ! -r "$CLIENT_SOURCE" ] || [ ! -r "$BACKUP_TLS_PATCHER" ] || { [ -z "$ROOT_PEM_SRC" ] && [ ! -r "${SCRIPT_DIR}/robot-client/isrg-root-x1.pem" ]; }; then
+  if [ ! -r "$CLIENT_SOURCE" ] || [ ! -r "$BACKUP_TLS_PATCHER" ] || [ ! -r "$OTA_TLS_PATCHER" ] || { [ -z "$ROOT_PEM_SRC" ] && [ ! -r "${SCRIPT_DIR}/robot-client/isrg-root-x1.pem" ]; }; then
     SUPPORT_DIR="$(mktemp -d "${TMPDIR:-/tmp}/phoenix-repoint.XXXXXX")" || die "could not create a temporary support directory"
   fi
   if [ ! -r "$CLIENT_SOURCE" ]; then
@@ -143,6 +145,11 @@ ensure_support_assets() {
     mkdir -p "$SUPPORT_DIR/robot-client"
     BACKUP_TLS_PATCHER="$SUPPORT_DIR/robot-client/patch-system-backup-tls.cjs"
     fetch_support_asset '/robot-client/patch-system-backup-tls.cjs' "$BACKUP_TLS_PATCHER" "$BACKUP_TLS_PATCHER_SHA256"
+  fi
+  if [ ! -r "$OTA_TLS_PATCHER" ]; then
+    mkdir -p "$SUPPORT_DIR/robot-client"
+    OTA_TLS_PATCHER="$SUPPORT_DIR/robot-client/patch-ota-downloader-tls.cjs"
+    fetch_support_asset '/robot-client/patch-ota-downloader-tls.cjs' "$OTA_TLS_PATCHER" "$OTA_TLS_PATCHER_SHA256"
   fi
 }
 
@@ -489,7 +496,30 @@ out="$(rsh "
 printf '%s\n' "$out"
 APPLIED+=("/etc/ssl/cert.pem")
 
-# 7c-ter. System-manager backup/restore. The established public CA bundle has
+# 7c-ter. The rootfs OTA downloader is a separate direct executable. Node 6 does
+# not load the system store for this raw https request, and SystemManager execs
+# the helper rather than invoking node itself, so preserve 0755 as well as
+# supplying the explicit CA. This makes the first OTA after repoint reliable.
+[ -r "$OTA_TLS_PATCHER" ] || die "the OTA downloader TLS support file is unavailable"
+OTA_TLS_REMOTE="$(rsh 'mktemp /tmp/phoenix-ota-downloader-tls.XXXXXX' 2>/dev/null | tr -d '\r')"
+[[ "$OTA_TLS_REMOTE" =~ ^/tmp/phoenix-ota-downloader-tls\.[A-Za-z0-9]+$ ]] || die "could not allocate a safe remote OTA downloader patch path"
+scp -o BatchMode=yes -q "$OTA_TLS_PATCHER" "${ROBOT}:${OTA_TLS_REMOTE}" || die "could not upload the reviewed OTA downloader TLS patcher"
+out="$(rsh "
+  set -eu
+  PATCH='$OTA_TLS_REMOTE'
+  cleanup() {
+    status=\$?
+    trap - EXIT HUP INT TERM
+    rm -f \"\$PATCH\"
+    exit \$status
+  }
+  trap cleanup EXIT HUP INT TERM
+  node \"\$PATCH\" --json
+" 2>&1 | tr -d '\r')" || die "could not apply the hash-guarded OTA downloader TLS patch"
+printf '%s\n' "$out"
+APPLIED+=("/usr/bin/jibo-download-update explicit public CA + mode 0755")
+
+# 7c-quater. System-manager backup/restore. The established public CA bundle has
 # just been installed above. These are separate Node 6 scripts, not consumers of
 # @jibo/jibo-server-client, so the client patch does not make their raw upload
 # (`request`) or download (`https`) paths trust the modern chain. The support

@@ -230,6 +230,13 @@ code. That is intentionally not an account claim: it only registers an
 unclaimed bootstrap. The owner must create an account and re-run the
 portal-provided, code-bearing command to link it.
 
+The helper also prepares the robot's complete OTA path: it installs the public
+CA for update discovery, the separately executed package downloader, and
+backup/restore, and verifies that the downloader remains executable. Re-run the
+current helper idempotently if an older repoint reports `No data received from
+OTA service` immediately after an update begins; do not disable TLS verification
+or replace the robot's credentials to work around that error.
+
 The separate household-snapshot importer is an operator migration tool, not a
 step in ordinary customer claims: it can carry legacy member/profile data and
 must be reviewed separately.

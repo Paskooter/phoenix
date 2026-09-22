@@ -312,6 +312,7 @@ def patch_json(image: Path, remote: str, transform, *, mode: int | None = None) 
 # @be/settings"). Preserving whatever mode the stock image shipped is therefore the
 # wrong default for these files.
 CLIENT_READABLE = 0o100644  # S_IFREG | 0644: this code stores FULL modes, type bits included
+CLIENT_EXECUTABLE = 0o100755  # OTA CLI scripts are exec'd directly by SystemManager.
 
 
 def patch_region_config(image: Path, remote: str) -> dict[str, Any]:
@@ -545,15 +546,20 @@ def patch_ota_downloader(rootfs: Path) -> dict[str, Any]:
         debugfs_dump(rootfs, OTA_DOWNLOADER_PATH, local)
         text = local.read_text(encoding="utf-8")
         if "JIBO_EXTRA_CA_CERTS" in text:
-            return {"path": OTA_DOWNLOADER_PATH, "patched": False, "reason": "already patched"}
+            # A prior builder revision accidentally used CLIENT_READABLE here.
+            # SystemManager execs this file through /usr/bin/jibo-download-update;
+            # mode 0644 makes every OTA download fail before opening the URL.
+            replace_preserving_inode(rootfs, OTA_DOWNLOADER_PATH, local, mode=CLIENT_EXECUTABLE)
+            return {"path": OTA_DOWNLOADER_PATH, "patched": False, "reason": "already patched", "mode": "0755"}
         if text.count(OTA_DOWNLOADER_ANCHOR) != 1:
             fail(f"OTA downloader anchor found {text.count(OTA_DOWNLOADER_ANCHOR)} times in {OTA_DOWNLOADER_PATH}")
         patched = text.replace(OTA_DOWNLOADER_ANCHOR, OTA_DOWNLOADER_PATCH)
         local.write_text(patched, encoding="utf-8")
-        replace_preserving_inode(rootfs, OTA_DOWNLOADER_PATH, local, mode=CLIENT_READABLE)
+        replace_preserving_inode(rootfs, OTA_DOWNLOADER_PATH, local, mode=CLIENT_EXECUTABLE)
         return {
             "path": OTA_DOWNLOADER_PATH,
             "patched": True,
+            "mode": "0755",
             "bytes_before": len(text.encode("utf-8")),
             "bytes_after": len(patched.encode("utf-8")),
         }
