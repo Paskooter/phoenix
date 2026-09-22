@@ -43,7 +43,7 @@ docker compose --env-file /etc/phoenix/laya.env --profile bootstrap run --rm lay
 # Start the single-worker, GPU-required, read-only serving container.
 docker compose --env-file /etc/phoenix/laya.env up -d --build laya-intent
 docker compose --env-file /etc/phoenix/laya.env ps
-curl -fsS http://127.0.0.1:6973/readyz
+curl -fsS http://192.168.1.252:6973/readyz
 ```
 
 The compose file binds `192.168.1.252:6973` by default, requires CUDA, runs as
