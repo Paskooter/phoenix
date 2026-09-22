@@ -11,6 +11,8 @@ import {
   createVoiceTurnId,
   logVoiceTurnComplete,
   logVoiceTurnSpan,
+  recordVoiceTurnAsrBreakdown,
+  recordVoiceTurnStart,
   readTrace,
 } from '@phoenix/common';
 import { SpeechHistoryRecord } from './historyClient.js';
@@ -135,6 +137,7 @@ export class ListenTransaction {
       turnId: this.trace.turnId,
       entrypoint: 'gateway_listen',
     });
+    recordVoiceTurnStart(this.trace, this.startTime);
 
     this.listenMessage = null;
     this.contextPr = defer();
@@ -800,6 +803,7 @@ export class ListenTransaction {
         if (!fields || typeof fields !== 'object' || Array.isArray(fields)) {
           return parent.info?.(message, fields);
         }
+        if (message === 'ASR turn') recordVoiceTurnAsrBreakdown(this.trace, fields);
         return parent.info?.(message, { ...fields, turnId: this.trace.turnId });
       },
     };

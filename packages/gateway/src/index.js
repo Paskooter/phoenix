@@ -10,7 +10,19 @@
 // Server-side ASR (audio streaming) is M8; CLIENT_ASR/CLIENT_NLU robots are fully supported.
 
 import { WebSocketServer } from 'ws';
-import { createService, logger, jwt, parseServiceArgs, serviceCliPort, serviceHelp, runService } from '@phoenix/common';
+import {
+  createService,
+  logger,
+  jwt,
+  parseServiceArgs,
+  parseVoiceTurnQuery,
+  recentVoiceTurns,
+  sendJson,
+  serviceCliPort,
+  serviceHelp,
+  verifyVoiceTurnTelemetryProof,
+  runService,
+} from '@phoenix/common';
 import { newMsgId, now, ResponseType, DefaultPort } from '@phoenix/contracts';
 import { loadConfig, accountVerifyTimeout, hubSetupConfig } from './config.js';
 import { ParserClient } from './parserClient.js';
@@ -24,6 +36,30 @@ import { ProactiveTransaction } from './proactive/proactiveTransaction.js';
 
 const LISTEN_PATHS = new Set(['/listen', '/v1/listen']);
 const PROACTIVE_PATHS = new Set(['/proactive', '/v1/proactive']);
+const VOICE_TURN_PROOF_MAX_AGE_MS = 30_000;
+const VOICE_TURN_PROOF_NONCES_MAX = 2_000;
+
+function verifyVoiceTurnTelemetryRequest(req, url, secret, usedNonces, now = Date.now()) {
+  const timestamp = req.headers['x-phoenix-voice-turn-timestamp'];
+  const nonce = req.headers['x-phoenix-voice-turn-nonce'];
+  const proof = req.headers['x-phoenix-voice-turn-proof'];
+  const sentAt = typeof timestamp === 'string' ? Number(timestamp) : NaN;
+  if (!Number.isSafeInteger(sentAt) || Math.abs(now - sentAt) > VOICE_TURN_PROOF_MAX_AGE_MS) return false;
+  if (typeof nonce !== 'string' || usedNonces.has(nonce)) return false;
+  const valid = verifyVoiceTurnTelemetryProof(proof, secret, {
+    method: req.method,
+    target: `${url.pathname}${url.search}`,
+    timestamp,
+    nonce,
+  });
+  if (!valid) return false;
+  for (const [seenNonce, seenAt] of usedNonces) {
+    if (now - seenAt > VOICE_TURN_PROOF_MAX_AGE_MS) usedNonces.delete(seenNonce);
+  }
+  usedNonces.set(nonce, now);
+  while (usedNonces.size > VOICE_TURN_PROOF_NONCES_MAX) usedNonces.delete(usedNonces.keys().next().value);
+  return true;
+}
 
 export function buildComponents(config) {
   const skillConfigManager = new SkillConfigManager(config.skills);
@@ -85,6 +121,7 @@ export async function createGateway(config = loadConfig()) {
   const settingsSkills = config.skills.filter(skill => !!skill.settings);
   const listSkills = () => ({ skills: config.skills });
   const listSettingsSkills = () => ({ skills: settingsSkills });
+  const usedVoiceTurnProofNonces = new Map();
 
   const service = createService({
     name: 'gateway',
@@ -96,6 +133,20 @@ export async function createGateway(config = loadConfig()) {
       // Phoenix's no-ID discovery aliases are deployment extensions.
       'GET /v1/skills': () => ({ skills: config.skills.map((s) => ({ id: s.id, intents: s.intents })) }),
       'GET /skills': () => ({ skills: config.skills.map((s) => ({ id: s.id, intents: s.intents })) }),
+      // Browser-facing administration is served by Account, which re-checks
+      // its session's isAdmin flag and proves this private hop with an HMAC.
+      // This endpoint deliberately returns only the bounded structured turn
+      // projection, never the general log ring or request content.
+      'GET /v1/admin/voice-turns': ({ req, res, url }) => {
+        if (!verifyVoiceTurnTelemetryRequest(req, url, config.hubTokenSecret, usedVoiceTurnProofNonces)) {
+          return sendJson(res, 403, { error: 'forbidden' });
+        }
+        try {
+          return recentVoiceTurns(parseVoiceTurnQuery(url.searchParams));
+        } catch (error) {
+          return sendJson(res, 400, { error: error.message });
+        }
+      },
     },
   });
 

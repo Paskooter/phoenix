@@ -1969,6 +1969,7 @@ async function renderSystem() {
 const ADMIN_TABS = [
   { hash: '#/admin', label: 'Status', icon: 'server' },
   { hash: '#/admin/config', label: 'Configuration', icon: 'sliders' },
+  { hash: '#/admin/voice-turns', label: 'Voice turns', icon: 'clock' },
   { hash: '#/admin/logs', label: 'Logs', icon: 'message' },
   { hash: '#/admin/robots', label: 'Robots', icon: 'robot' },
   { hash: '#/admin/admins', label: 'Administrators', icon: 'users' },
@@ -2857,6 +2858,121 @@ const ROUTES = {
   '#/add/new': renderAddNew,
 };
 
+/* -- Voice-turn latency ---------------------------------------------------- */
+
+const fmtMs = (value) => Number.isFinite(value) ? `${Math.round(value).toLocaleString()} ms` : '—';
+
+/** A purpose-built telemetry view; it never reads or renders raw log lines. */
+async function renderAdminVoiceTurns() {
+  const container = adminPage('#/admin/voice-turns', 'Voice turns',
+    'Recent gateway latency, without speech or identity data.');
+  show(container);
+  if (!(await adminGate(container))) return;
+
+  const state = { range: '3600000', turnId: '', outcome: '', stage: '', loading: false };
+  const body = h('div', { class: 'voice-turn-results' }, loading(5));
+  const status = h('span', { class: 'note', text: 'Loading recent turns…' });
+  const idInput = h('input', {
+    type: 'search', class: 'voice-turn-id', placeholder: 'Exact turn ID (UUID)',
+    'aria-label': 'Find an exact voice turn ID',
+  });
+  const rangeSelect = h('select', { 'aria-label': 'Time range' },
+    ...[['900000', 'Last 15 minutes'], ['3600000', 'Last hour'], ['21600000', 'Last 6 hours'], ['0', 'Retained turns']]
+      .map(([value, label]) => h('option', { value, selected: value === state.range }, label)));
+  const outcomeSelect = h('select', { 'aria-label': 'Filter by outcome' }, h('option', { value: '' }, 'All outcomes'));
+  const stageSelect = h('select', { 'aria-label': 'Filter by stage' }, h('option', { value: '' }, 'All stages'));
+  const refresh = h('button', { class: 'btn btn-quiet', type: 'button' }, icon('refresh', 14), 'Refresh');
+
+  const toolbar = h('div', { class: 'voice-turn-toolbar' },
+    h('label', { class: 'log-control' }, 'Time', rangeSelect),
+    h('label', { class: 'log-control voice-turn-search' }, 'Turn ID', idInput),
+    h('label', { class: 'log-control' }, 'Outcome', outcomeSelect),
+    h('label', { class: 'log-control' }, 'Stage', stageSelect),
+    h('span', { class: 'spacer' }), refresh, status);
+  container.append(toolbar, body);
+  container.append(h('p', { class: 'note voice-turn-note' },
+    'Shows only the gateway process’s bounded timing projection. It contains no transcript, audio, '
+      + 'robot/account identity, credentials, or raw log lines.'));
+
+  function options(select, values, selected, allLabel) {
+    const current = select.value || selected || '';
+    select.replaceChildren(h('option', { value: '' }, allLabel),
+      ...values.map((value) => h('option', { value, selected: value === current }, value)));
+  }
+
+  function draw(turns) {
+    if (!turns.length) {
+      body.replaceChildren(empty('No voice turns match', 'Try a wider time range or clear a filter.', 'clock'));
+      return;
+    }
+    const list = h('div', { class: 'voice-turn-list', role: 'list' });
+    list.append(h('div', { class: 'voice-turn-head', role: 'row' },
+      h('span', {}, 'Time'), h('span', {}, 'Turn'), h('span', {}, 'Total'), h('span', {}, 'Outcome')));
+    for (const turn of turns) {
+      const detail = h('details', { class: 'voice-turn' });
+      const timeline = h('div', { class: 'voice-turn-timeline' },
+        ...(turn.stages || []).map((stage) => h('div', { class: 'voice-stage' },
+          h('span', { class: 'voice-stage-name', text: stage.stage }),
+          h('span', { class: 'voice-stage-duration', text: fmtMs(stage.durationMs) }),
+          h('span', { class: 'pill', text: stage.outcome }))));
+      if (turn.asr) timeline.append(h('div', { class: 'voice-asr' },
+        h('strong', { text: 'ASR breakdown' }),
+        row('Audio received', fmtMs(turn.asr.audioMs)),
+        row('Silence endpoint', fmtMs(turn.asr.silenceWaitMs)),
+        row('Recognition', fmtMs(turn.asr.recognizeMs))));
+      else timeline.append(h('p', { class: 'field-hint', text: 'No server-side ASR breakdown for this turn.' }));
+      detail.append(h('summary', { class: 'voice-turn-row' },
+        h('span', { text: fmtDate(turn.startedAt) }),
+        h('code', { text: turn.turnId }),
+        h('strong', { text: fmtMs(turn.totalMs) }),
+        h('span', { class: 'pill', text: turn.outcome || 'in progress' })), timeline);
+      list.append(detail);
+    }
+    body.replaceChildren(list);
+  }
+
+  async function load({ initial = false } = {}) {
+    if (state.loading) return;
+    state.loading = true;
+    refresh.disabled = true;
+    if (initial) body.replaceChildren(loading(5));
+    const query = new URLSearchParams({ limit: '50' });
+    if (state.range !== '0') query.set('from', String(Date.now() - Number(state.range)));
+    if (state.turnId) query.set('turnId', state.turnId);
+    if (state.outcome) query.set('outcome', state.outcome);
+    if (state.stage) query.set('stage', state.stage);
+    const res = await api('GET', `/api/admin/voice-turns?${query.toString()}`);
+    state.loading = false;
+    refresh.disabled = false;
+    if (!res.ok) {
+      status.textContent = 'Unavailable';
+      body.replaceChildren(errorBox('Could not load voice-turn telemetry.', res.data.error || 'Try refresh.'));
+      return;
+    }
+    options(outcomeSelect, res.data.outcomes || [], state.outcome, 'All outcomes');
+    options(stageSelect, res.data.stages || [], state.stage, 'All stages');
+    draw(res.data.turns || []);
+    status.textContent = `${(res.data.turns || []).length} shown · ${res.data.retained} retained`;
+  }
+
+  const apply = () => {
+    state.range = rangeSelect.value;
+    state.turnId = idInput.value.trim();
+    state.outcome = outcomeSelect.value;
+    state.stage = stageSelect.value;
+    load({ initial: true });
+  };
+  rangeSelect.addEventListener('change', apply);
+  outcomeSelect.addEventListener('change', apply);
+  stageSelect.addEventListener('change', apply);
+  idInput.addEventListener('input', debounce(apply, 300));
+  refresh.addEventListener('click', () => load());
+
+  await load({ initial: true });
+  stopPoll();
+  pollTimer = setInterval(() => load(), 5000);
+}
+
 /**
  * The server's own log lines, live.
  *
@@ -3002,6 +3118,7 @@ async function renderAdminLogs() {
 const ADMIN_ROUTES = {
   '#/admin': renderAdminStatus,
   '#/admin/config': renderAdminConfig,
+  '#/admin/voice-turns': renderAdminVoiceTurns,
   '#/admin/logs': renderAdminLogs,
   '#/admin/robots': renderAdminRobots,
   '#/admin/admins': renderAdminAdmins,

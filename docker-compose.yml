@@ -239,6 +239,9 @@ services:
       # Display-only public IP used by the portal's physical-robot claim command.
       - ETCO_account_repointHost=${ETCO_account_repointHost:-}
       - NET_ota=ota:8080         # so the robot's single endpoint reaches Update_* via /
+      # Admin-only voice-turn telemetry is fetched from the private hub with a
+      # server-held HMAC proof; this is never a browser-visible hub address.
+      - NET_hub=hub:8080
       # PHOTO_PUBLIC_URL must be the externally reachable Classic/TLS origin
       # (for example https://region.example), never account:8080 or localhost.
       # Classic forwards GET /member-photos/:key to this Account container.

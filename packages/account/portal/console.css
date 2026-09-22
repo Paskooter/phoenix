@@ -1593,9 +1593,42 @@ pre.json {
 .log-line.log-error .log-msg { color: var(--error); }
 .log-line.log-warn .log-msg { color: var(--accent-warm, var(--accent)); }
 
+/* Voice-turn telemetry is a separate, structured view — not a log tail. */
+.voice-turn-toolbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .65rem;
+  padding: .7rem .85rem; background: var(--bg-soft); border: 1px solid var(--border);
+  border-radius: var(--radius, .6rem); margin-top: 1rem;
+}
+.voice-turn-search input { min-width: 16rem; }
+.voice-turn-results { margin-top: .75rem; }
+.voice-turn-list { border: 1px solid var(--border); border-radius: var(--radius, .6rem); overflow: hidden; }
+.voice-turn-head, .voice-turn-row {
+  display: grid; grid-template-columns: minmax(9rem, 1fr) minmax(15rem, 2fr) minmax(5rem, .7fr) minmax(6rem, .8fr);
+  align-items: center; gap: .75rem; padding: .65rem .8rem;
+}
+.voice-turn-head { background: var(--bg-soft); color: var(--muted); font-size: var(--t-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.voice-turn { border-top: 1px solid var(--border-soft); }
+.voice-turn:first-of-type { border-top: 0; }
+.voice-turn-row { cursor: pointer; list-style: none; }
+.voice-turn-row::-webkit-details-marker { display: none; }
+.voice-turn-row:hover { background: var(--panel-2); }
+.voice-turn-row code { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.voice-turn-timeline { display: grid; gap: .45rem; padding: .15rem .8rem .8rem; background: var(--bg-soft); }
+.voice-stage { display: grid; grid-template-columns: minmax(9rem, 1fr) minmax(6rem, auto) minmax(7rem, auto); gap: .5rem; align-items: center; padding: .38rem .5rem; border-radius: var(--radius-xs); background: var(--panel); }
+.voice-stage-name { font-family: var(--font-mono); font-size: .78rem; }
+.voice-stage-duration { font-variant-numeric: tabular-nums; color: var(--fg-dim); }
+.voice-asr { padding: .65rem; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--panel); }
+.voice-turn-note { margin-top: .75rem; }
+
 @media (max-width: 650px) {
   .log-control input { min-width: 0; width: 100%; }
   .log-actions { margin-left: 0; }
   .log-list { height: 55vh; font-size: .68rem; }
   .log-ns-name { display: none; }
+  .voice-turn-search input { min-width: 0; width: 100%; }
+  .voice-turn-head { display: none; }
+  .voice-turn-row { grid-template-columns: 1fr auto; }
+  .voice-turn-row code { grid-column: 1 / -1; }
+  .voice-stage { grid-template-columns: 1fr auto; }
+  .voice-stage .pill { grid-column: 1 / -1; justify-self: start; }
 }

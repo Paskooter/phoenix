@@ -79,6 +79,35 @@ Leave `ETCO_hub_recordSpeechHistory=false` (the default) unless a separately
 approved speech-retention policy requires it. That legacy history option stores
 turn content and is independent of this latency telemetry.
 
+## Administrator dashboard
+
+Open **Administration → Voice turns** (`#/admin/voice-turns`) to inspect the
+same structured projection in the portal. It has an exact turn-ID search plus
+time, outcome, and stage filters; expanding a row shows the stage breakdown and
+the Parakeet audio/silence/recognition measurements when that server-side ASR
+turn produced them. It refreshes every five seconds and has explicit loading,
+empty, and unavailable states.
+
+The browser calls only `GET /api/admin/voice-turns`. As with every `/api/admin/`
+route, Account re-checks the signed-in account's `isAdmin` flag (401 signed out,
+403 non-admin). Account then queries the hub's private
+`/v1/admin/voice-turns` endpoint using an HMAC proof derived from the existing
+server-held `HUB_TOKEN_SECRET`. Each proof binds the request method, query,
+timestamp, and one-time nonce; the hub accepts it for at most 30 seconds and
+rejects replayed nonces. No hub secret, cookie, account identity, or
+browser-supplied header is forwarded to the hub. The hub endpoint returns a
+bounded in-memory projection, not scraped JSON logs, and Account projects it a
+second time before returning it to the browser.
+
+The bundled Compose and native launchers set Account's `NET_hub` peer
+automatically. For a split-host deployment, set `NET_hub` (or
+`ETCO_account_hubUrl`) to the private hub address and keep that address
+unreachable from untrusted networks. The telemetry ring retains 200 turns or
+one hour by default; `PHOENIX_VOICE_TURN_BUFFER_MAX` (20–1000) and
+`PHOENIX_VOICE_TURN_RETAIN_MS` (one minute–24 hours) tune those bounds at hub
+startup. These records disappear when the hub restarts and are not a history
+database.
+
 ## Boundaries and limits
 
 Wake-word detection, microphone buffering, local end-of-speech sensing, robot
