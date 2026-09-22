@@ -203,6 +203,9 @@ One run does everything on the robot:
 * patches the separately executed OTA downloader to use that same public CA
   bundle and verifies its executable mode is `0755` (a missing execute bit
   otherwise appears only as the misleading `No data received from OTA service`),
+* ensures the OS and services version reporters embedded in a newly baked OTA
+  image match that artifact's catalog `toVersion`; package filenames alone do
+  not advance the robot's OTA state,
 * ensures `/var/jibo/keys` is a real mode-0700 directory before STS/backup/OTA
   work begins, while preserving any existing key material,
 * points Jetstream's conversation hub at the server and restarts it, so speech
@@ -350,6 +353,7 @@ not establish a connection.
 | Connects, then reconnects every ~2 minutes | Server is not answering the client's pings | The client disconnects after 120s without traffic |
 | OTA/backup fails immediately after repointing, or STS cannot create its pair/loop key | `/var/jibo/keys` is missing, a symlink, or not private | Re-run the supported repoint preflight; it creates a real `0700` directory and preserves existing keys |
 | OTA says `No data received from OTA service` immediately after beginning a download | The robot's direct `jibo-download-update` helper is not executable, or an old repoint script did not install its CA patch | Re-download and re-run the current supported repoint helper; it hash-checks the helper, restores mode `0755`, and keeps TLS verification enabled |
+| A completed update is offered again on the next check | The image still reports the stock version even though the package catalog uses a newer `toVersion` | Rebuild with `bake_jibo_io_native_image.py --ota-version` set to that exact catalog version; verify both `jibo-version` commands after the update |
 
 The Node clients have a separate trust path. The repoint installer patches every
 nested `jibo-server-client` copy to load `lib/http/phoenix-ca.pem`, using the robot's

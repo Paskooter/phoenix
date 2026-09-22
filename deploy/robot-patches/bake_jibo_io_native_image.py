@@ -22,6 +22,24 @@ import tempfile
 from typing import Any
 
 BASE_RELEASE = "Release-13.0.0-20190225"
+# OTA eligibility is derived from these two binaries, not the package filename.
+# A Phoenix OTA is a real version step even though it starts from the Last Dance
+# filesystem, so the marker embedded in each replaced partition must match the
+# catalog `toVersion`.  Leaving the stock marker here makes the server offer the
+# same wildcard package again after a successful install.
+DEFAULT_OTA_VERSION = "13.0.5"
+RELEASE_DATE = "20190225"
+RELEASE_MARKER = BASE_RELEASE.encode("ascii")
+RELEASE_MARKER_PATHS = {
+    "rootfs": {
+        "path": "/usr/bin/jibo-version",
+        "original_sha256": "10e5e3fc26d378ddd62d1d507ce90a257c489dba15e8e22228b79a143e43a2a5",
+    },
+    "services": {
+        "path": "/usr/local/bin/jibo-service-version",
+        "original_sha256": "1030a13a7df30d24638902dbeaf9558865cc7f8f27335e44544d06263515f59d",
+    },
+}
 DEFAULT_PUBLIC_URL = "https://api.jibo.io"
 # Empty by default: bake NO HubClient.override, so each robot resolves the hub for
 # its own region from region-settings. Pass --hub-host to pin one explicitly.
@@ -313,6 +331,51 @@ def patch_json(image: Path, remote: str, transform, *, mode: int | None = None) 
 # wrong default for these files.
 CLIENT_READABLE = 0o100644  # S_IFREG | 0644: this code stores FULL modes, type bits included
 CLIENT_EXECUTABLE = 0o100755  # OTA CLI scripts are exec'd directly by SystemManager.
+
+
+def release_marker(version: str) -> bytes:
+    """Return a fixed-width marker suitable for patching the shipped ELF files."""
+    if not re.fullmatch(r"\d+\.\d+\.\d+", version):
+        fail("OTA version must be dotted numeric major.minor.patch")
+    marker = f"Release-{version}-{RELEASE_DATE}".encode("ascii")
+    if len(marker) != len(RELEASE_MARKER):
+        fail(
+            f"OTA version {version!r} cannot replace {BASE_RELEASE!r} without "
+            "changing the binary layout"
+        )
+    return marker
+
+
+def patch_release_marker(image: Path, image_name: str, version: str) -> dict[str, Any]:
+    """Make the installed version reporter agree with this OTA artifact's version.
+
+    The system manager asks these binaries for `fromVersion` on every future OTA
+    check.  This deliberately changes only a single, source-pinned, same-length
+    ASCII literal in each stock ELF and retains its inode metadata.
+    """
+    spec = RELEASE_MARKER_PATHS[image_name]
+    remote = spec["path"]
+    target = release_marker(version)
+    with tempfile.TemporaryDirectory(prefix=f"jibo-io-version-{image_name}-") as td:
+        local = Path(td) / Path(remote).name
+        debugfs_dump(image, remote, local)
+        original = local.read_bytes()
+        original_hash = sha256_bytes(original)
+        if original_hash != spec["original_sha256"]:
+            fail(f"unexpected release reporter hash for {remote}: {original_hash}")
+        occurrences = original.count(RELEASE_MARKER)
+        if occurrences != 1:
+            fail(f"release marker found {occurrences} times in {remote}")
+        patched = original.replace(RELEASE_MARKER, target)
+        local.write_bytes(patched)
+        replace_preserving_inode(image, remote, local)
+        return {
+            "path": remote,
+            "from": BASE_RELEASE,
+            "to": target.decode("ascii"),
+            "original_sha256": original_hash,
+            "patched_sha256": sha256_bytes(patched),
+        }
 
 
 def patch_region_config(image: Path, remote: str) -> dict[str, Any]:
@@ -821,6 +884,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--root-ca", type=Path, required=True)
     parser.add_argument("--public-url", default=DEFAULT_PUBLIC_URL)
     parser.add_argument(
+        "--ota-version",
+        default=DEFAULT_OTA_VERSION,
+        help="version reported by the installed OS/services images (must match the OTA catalog toVersion)",
+    )
+    parser.add_argument(
         "--ssl-shim",
         type=Path,
         default=Path("/home/shell/work/hermes-be/tools/jibo/libjibosslshim.so"),
@@ -850,6 +918,7 @@ def validate_args(args: argparse.Namespace) -> None:
         fail("unsafe --entrypoint-host")
     if args.public_url.rstrip("/") != DEFAULT_PUBLIC_URL:
         fail("this reviewed candidate is pinned to https://api.jibo.io")
+    release_marker(args.ota_version)
 
 
 def main() -> int:
@@ -860,6 +929,7 @@ def main() -> int:
         print(f"  stock images: {args.legacy_images}")
         print(f"  skills base:  {args.skills_base}")
         print(f"  output:       {args.output}")
+        print(f"  OTA version:  {args.ota_version}")
         print(f"  public URL:   {args.public_url}")
         print(f"  hub override: {args.hub_host}:{args.hub_port}")
         print(f"  entrypoint:   {args.entrypoint_host}:443")
@@ -939,6 +1009,8 @@ def main() -> int:
     trust = add_trust_root(rootfs, args.root_ca)
     ota_downloader = patch_ota_downloader(rootfs)
     system_backup_tls = patch_system_backup_tls(services)
+    root_release_marker = patch_release_marker(rootfs, "rootfs", args.ota_version)
+    services_release_marker = patch_release_marker(services, "services", args.ota_version)
 
     # The stock /etc/hosts is deliberately untouched: it remains the symlink to
     # preserved /var/etc/hosts, and no Phoenix address or marker is added.
@@ -951,6 +1023,7 @@ def main() -> int:
         "kind": "jibo-io-native-image",
         "status": "baked-no-host-intercept-no-private-ca",
         "base_release": BASE_RELEASE,
+        "ota_version": args.ota_version,
         "public_url": args.public_url.rstrip("/"),
         "hub": {
             "hub_port": args.hub_port,
@@ -969,6 +1042,7 @@ def main() -> int:
         "ssl_shim": ssl_shim,
         "ota_downloader": ota_downloader,
         "system_backup_tls": system_backup_tls,
+        "release_markers": [root_release_marker, services_release_marker],
         "native_binary_patches": [native_patch, asr_patch],
         "text_literal_patches": text_patches,
         "residual_literal_rewrites": residual_rewrites,
