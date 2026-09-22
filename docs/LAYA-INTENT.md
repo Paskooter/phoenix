@@ -83,13 +83,14 @@ ETCO_parser_layaUrl=http://192.168.1.252:6973
 ETCO_parser_layaToken=<same private token>
 ETCO_parser_layaProfile=phoenix-core
 ETCO_parser_layaTimeoutMs=700
-ETCO_parser_layaMinConfidence=0.45
+ETCO_parser_layaMinConfidence=0.85
 ETCO_parser_layaSecondaryFallback=none
 ```
 
-Leave it disabled. Only after a source-derived replay meets a separately agreed
-precision/coverage gate should anyone consider a reviewed canary by changing
-`ETCO_parser_layaEnabled=true` and restarting `phoenix.service`.
+Leave it disabled. The evaluated 0.45 client threshold had only 50% precision
+on holdout, so it is not the production default. Do not enable this profile by
+merely changing `ETCO_parser_layaEnabled`; a new model/profile needs a fresh,
+independent precision and coverage evaluation first.
 HIGH-priority grammar matches never call Laya. A Laya timeout, bad token,
 unavailable service, unexpected profile, non-leaf response, unknown response,
 low selected-candidate probability, or entity-bearing intent is a safe

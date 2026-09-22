@@ -89,7 +89,7 @@ test('Laya environment configuration requires every explicit enablement componen
     delete process.env.ETCO_parser_layaToken;
     delete process.env.ETCO_parser_layaMinConfidence;
     assert.equal(envLayaConfig().enabled, false);
-    assert.equal(envLayaConfig().minConfidence, 0.45);
+    assert.equal(envLayaConfig().minConfidence, 0.85);
     process.env.ETCO_parser_layaUrl = 'http://192.168.1.252:6973/';
     process.env.ETCO_parser_layaToken = 'secret';
     process.env.ETCO_parser_layaTimeoutMs = '99999';

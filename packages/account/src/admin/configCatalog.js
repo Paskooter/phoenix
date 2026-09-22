@@ -490,7 +490,7 @@ export const SETTINGS = [
     label: 'Laya minimum candidate probability',
     group: 'nlu',
     type: 'number',
-    default: '0.45',
+    default: '0.85',
     services: ['nlu'],
     help: 'Minimum selected candidate probability (not Laya entropy confidence); lower-probability leaf selections are rejected.',
   },

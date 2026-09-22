@@ -34,7 +34,10 @@ export const LAYA_ENTITYLESS_INTENTS = new Set(
 const DEFAULT_TIMEOUT_MS = 700;
 const MIN_TIMEOUT_MS = 50;
 const MAX_TIMEOUT_MS = 2_000;
-const DEFAULT_CONFIDENCE = 0.45;
+// The evaluated 0.45 experimental operating point produced 50% precision on
+// holdout. Keep the production client default conservative while Laya remains
+// disabled; an operator must explicitly choose any lower threshold.
+const DEFAULT_CONFIDENCE = 0.85;
 
 function boundedInteger(value, fallback, min, max) {
   const parsed = Number(value);
