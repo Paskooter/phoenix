@@ -1549,6 +1549,7 @@ function stopPoll() { if (pollTimer) { clearInterval(pollTimer); pollTimer = nul
 
 function renderAdd() {
   const container = page('Add a Jibo', 'Two quick questions will take you to the right setup path.');
+  const cloudName = /(^|\.)jibo\.io$/i.test(location.hostname) ? 'jibo.io' : 'this Phoenix server';
   container.querySelector('.page-head').prepend(
     h('a', { class: 'link', href: '#/robot', style: 'display:inline-flex;align-items:center;gap:.35rem;margin-bottom:.75rem' },
       icon('back', 14), 'Back to robots'));
@@ -1566,7 +1567,7 @@ function renderAdd() {
       h('button', { type: 'button', class: 'btn btn-quiet', on: { click: () => { next.replaceChildren(); } } },
         'Change my answer')));
   };
-  container.append(card('1. Has this Jibo already been pointed at jibo.io?', {},
+  container.append(card(`1. Has this Jibo already been pointed at ${cloudName}?`, {},
     h('p', { class: 'instruct' }, 'A factory-reset Jibo may show a setup screen while still pointing at the original, offline cloud.'),
     h('div', { class: 'row', style: 'margin-top:1.25rem' },
       h('button', { type: 'button', class: 'btn btn-primary', on: { click: () => chooseTarget(true) } }, 'Yes'),
