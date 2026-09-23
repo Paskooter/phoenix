@@ -30,7 +30,7 @@ process.env.ETCO_account_dataFile = join(dir, 'store.json');
 delete process.env.NET_robotread;
 
 const { createAccountService, getStore, Store } = await import('../src/index.js');
-const { createOwnerAccount, createLoop, mintSetupToken, ACCESS_TOKEN_LIFETIME_MS } = await import('../src/model.js');
+const { createOwnerAccount, createLoop, findOrCreateRobotAccount, mintSetupToken, ACCESS_TOKEN_LIFETIME_MS } = await import('../src/model.js');
 
 // Robot registry stub. A missing id rejects, which the source tolerates
 // (`try { robot = await robotClient.getRobot(robotId) } catch { warn }`); a
@@ -255,26 +255,121 @@ test('SetupRobot reports a deleted incumbent robot on a live loop as ACCOUNT_IS_
 // the new-loop create() path
 // ---------------------------------------------------------------------------
 
-test('SetupRobot mints a second loop for a re-added robot and leaves the first one suspended', async () => {
+test('SetupRobot re-pairs a same-owner robot without changing its loop, members, or history', async () => {
   const store = getStore();
   const o = owner('readd-owner', 'Readd');
   const first = createLoop(store, { owner: o, robotId: 'oobe-readd-robot' });
+  first.loop.history = [{ event: 'kept', at: 1 }];
+  first.loop.members[0].nickname = 'Owner nickname';
+  store.flush();
+  const before = JSON.parse(JSON.stringify(first.loop));
 
-  // The portal mints a fresh, unbound token for the same robot.
+  // The portal mints a fresh, unbound token; the robot's friendlyId resolves
+  // its existing same-owner loop without a user-selected loopId.
   const token = mintSetupToken(store, o._id, null);
   const r = await amz('OOBE_20161026.SetupRobot', { token: token._id, id: 'oobe-readd-robot' });
   assert.equal(r.status, 200);
 
   const loops = [...store.loops.values()].filter((l) => l.owner === o._id);
-  assert.equal(loops.length, 2, 'a second loop, not a reused one');
-  const original = store.loops.get(first.loop._id);
-  assert.equal(original.isSuspended, true, 'the first loop is suspended by removeRobotFromLoops');
-  assert.equal(original.robot, undefined);
-  const fresh = loops.find((l) => l._id !== first.loop._id);
-  assert.equal(fresh.robot, first.robot._id);
-  // getLoopName({account}) -> listOwnerLoops: only the owner's own loops dedupe.
-  assert.equal(fresh.name, 'Readd\'s 2 Jibo');
+  assert.equal(loops.length, 1, 'no duplicate loop is created');
+  assert.deepEqual(store.loops.get(first.loop._id), before, 'the loop and its history stay untouched');
   assert.equal(r.body.accessKeyId, first.robot.accessKeyId);
+  assert.equal(r.body.secretAccessKey, first.robot.secretAccessKey);
+  assert.equal(store.tokens.has(token._id), false, 'the successful pairing consumes its token');
+});
+
+test('SetupRobot resumes a suspended same-owner loop without replacing its robot membership', async () => {
+  const store = getStore();
+  const o = owner('suspended-same-owner', 'Suspend');
+  const created = createLoop(store, { owner: o, robotId: 'oobe-suspended-same-owner-robot' });
+  created.loop.isSuspended = true;
+  created.loop.history = [{ event: 'kept while suspended', at: 2 }];
+  store.flush();
+  const membersBefore = JSON.parse(JSON.stringify(created.loop.members));
+  const historyBefore = JSON.parse(JSON.stringify(created.loop.history));
+  const token = mintSetupToken(store, o._id, null);
+
+  const r = await amz('OOBE_20161026.SetupRobot', { token: token._id, id: created.robot.friendlyId });
+  assert.equal(r.status, 200);
+  assert.equal(r.body.accessKeyId, created.robot.accessKeyId);
+  const loop = store.loops.get(created.loop._id);
+  assert.equal(loop.isSuspended, false, 'successful setup resumes the existing loop');
+  assert.deepEqual(loop.members, membersBefore, 'the existing robot member is not duplicated or replaced');
+  assert.deepEqual(loop.history, historyBefore, 'loop history is preserved');
+  assert.equal(store.tokens.has(token._id), false);
+});
+
+test('SetupRobot creates one loop for a genuinely new robot id', async () => {
+  const store = getStore();
+  const o = owner('new-id-owner', 'New');
+  const before = store.loops.size;
+  const token = mintSetupToken(store, o._id, null);
+
+  const r = await amz('OOBE_20161026.SetupRobot', { token: token._id, id: 'oobe-truly-new-robot' });
+  assert.equal(r.status, 200);
+  assert.equal(store.loops.size, before + 1);
+  const robot = store.accountByFriendlyId('oobe-truly-new-robot');
+  const loop = [...store.loops.values()].find((item) => item.robot === robot._id);
+  assert.ok(loop);
+  assert.equal(loop.owner, o._id);
+  assert.equal(r.body.accessKeyId, robot.accessKeyId);
+  assert.equal(store.tokens.has(token._id), false, 'the successful pairing consumes its token');
+});
+
+test('SetupRobot refuses a cross-account robot ID without changing its owner loop', async () => {
+  const store = getStore();
+  const victim = owner('cross-owner-victim', 'Victim');
+  const owned = createLoop(store, { owner: victim, robotId: 'oobe-cross-owner-robot' });
+  const victimLoopBefore = JSON.parse(JSON.stringify(owned.loop));
+  const victimRobotBefore = JSON.parse(JSON.stringify(owned.robot));
+  const attacker = owner('cross-owner-attacker', 'Attacker');
+  const token = mintSetupToken(store, attacker._id, null);
+
+  const r = await amz('OOBE_20161026.SetupRobot', { token: token._id, id: owned.robot.friendlyId });
+  assert.equal(r.status, 409);
+  assert.equal(r.body.__type, 'ROBOT_ALREADY_CLAIMED');
+  assert.equal(r.body.message, 'Robot cannot be paired with this account');
+  assert.equal(r.body.accessKeyId, undefined, 'the existing credentials are never returned');
+  assert.ok(store.tokens.has(token._id), 'a refused pairing does not consume the token');
+  assert.deepEqual(store.loops.get(owned.loop._id), victimLoopBefore, 'the victim loop is untouched');
+  assert.deepEqual(store.accounts.get(owned.robot._id), victimRobotBefore, 'the victim robot account is untouched');
+  assert.equal([...store.loops.values()].some((loop) => loop.owner === attacker._id), false);
+});
+
+test('SetupRobot refuses a cross-account ID even with a suspended destination loop', async () => {
+  const store = getStore();
+  const victim = owner('suspended-collision-victim', 'Victim');
+  const victimLoop = createLoop(store, { owner: victim, robotId: 'oobe-suspended-collision-robot' });
+  const victimBefore = JSON.parse(JSON.stringify(victimLoop.loop));
+  const attacker = owner('suspended-collision-attacker', 'Attacker');
+  const destination = createLoop(store, { owner: attacker, robotId: 'oobe-suspended-destination' });
+  destination.loop.isSuspended = true;
+  store.flush();
+  const destinationBefore = JSON.parse(JSON.stringify(destination.loop));
+  const token = mintSetupToken(store, attacker._id, destination.loop._id);
+
+  const r = await amz('OOBE_20161026.SetupRobot', { token: token._id, id: victimLoop.robot.friendlyId });
+  assert.equal(r.status, 409);
+  assert.equal(r.body.__type, 'ROBOT_ALREADY_CLAIMED');
+  assert.equal(r.body.accessKeyId, undefined, 'the victim credentials are never returned');
+  assert.ok(store.tokens.has(token._id), 'a refused pairing does not consume the token');
+  assert.deepEqual(store.loops.get(victimLoop.loop._id), victimBefore, 'the victim loop is not detached');
+  assert.deepEqual(store.loops.get(destination.loop._id), destinationBefore, 'the caller loop is untouched');
+});
+
+test('SetupRobot does not return credentials for an orphaned existing robot account', async () => {
+  const store = getStore();
+  const o = owner('orphan-owner', 'Orphan');
+  const orphan = findOrCreateRobotAccount(store, 'oobe-orphaned-robot');
+  const token = mintSetupToken(store, o._id, null);
+  const before = JSON.parse(JSON.stringify(orphan));
+
+  const r = await amz('OOBE_20161026.SetupRobot', { token: token._id, id: orphan.friendlyId });
+  assert.equal(r.status, 409);
+  assert.equal(r.body.__type, 'ROBOT_ALREADY_CLAIMED');
+  assert.equal(r.body.accessKeyId, undefined);
+  assert.deepEqual(store.accounts.get(orphan._id), before);
+  assert.ok(store.tokens.has(token._id));
 });
 
 test('getLoopName dedupes against the owner\'s loops only, not every loop in the store', async () => {

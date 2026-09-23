@@ -1618,8 +1618,6 @@ function renderAddRepointOobe() {
    ========================================================================== */
 
 async function renderAddNew() {
-  show(page('Set up a robot', 'Preparing your loops…', loading(1)));
-  const loopsResponse = await api('GET', '/api/loop');
   const container = page('Set up a robot', 'Show the code to the robot and it will join your network.');
   container.querySelector('.page-head').prepend(
     h('a', { class: 'link', href: '#/add', style: 'display:inline-flex;align-items:center;gap:.35rem;margin-bottom:.75rem' },
@@ -1628,20 +1626,9 @@ async function renderAddNew() {
   container.append(h('div', { class: 'notice notice-warn' }, icon('alert', 16),
     h('div', {}, 'This works only after Jibo has been pointed at this server. If it is still trying to reach the original cloud, ',
       h('a', { href: '#/add/repoint-oobe' }, 'repoint it first'), '.')));
-  if (!loopsResponse.ok) {
-    container.append(errorBox('Could not load your loops. Refresh before creating a setup code.'));
-    return show(container);
-  }
-  const ownedLoops = (loopsResponse.data.loops || []).filter((loop) => loop.canManage);
-  const target = h('select', { name: 'loopId', required: true },
-    ...(ownedLoops.length ? [h('option', { value: '', disabled: true, selected: true }, 'Choose new or reconnect…')] : []),
-    h('option', { value: 'new' }, 'A new Jibo — create a new loop'),
-    ...ownedLoops.map((loop) => h('option', { value: loop.id },
-      `Reconnect to ${loop.name || 'Unnamed loop'}${loop.robotFriendlyId ? ` (${loop.robotFriendlyId})` : ''}`)));
   const errorLine = h('p', { class: 'error', hidden: true });
   const form = h('form', {},
-    field('Which loop?', target),
-    h('p', { class: 'field-hint' }, 'If this is a reset Jibo already in your account, select its existing loop to keep its people and history. Choose a new loop only for a new Jibo.'),
+    h('p', { class: 'field-hint' }, 'A Jibo already paired to this account keeps its loop, people, and history. A new Jibo gets a new loop.'),
     field('Home Wi-Fi name (SSID)', h('input', { name: 'ssid', required: true, autocomplete: 'off' })),
     field('Wi-Fi password', h('input', { name: 'password', type: 'password', autocomplete: 'off' })),
     h('details', { class: 'map-manual' },
@@ -1668,7 +1655,6 @@ async function renderAddNew() {
       : null;
     const r = await api('POST', '/api/robots/setup', {
       ssid: fd.ssid, password: fd.password, static: staticConfig,
-      loopId: fd.loopId === 'new' ? null : fd.loopId,
     });
     if (!r.ok) {
       errorLine.hidden = false;

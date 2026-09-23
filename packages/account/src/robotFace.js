@@ -75,6 +75,14 @@ const Errors = Object.freeze({
   CREDENTIALS_REQUIRED: { code: 'CREDENTIALS_REQUIRED', message: 'Credentials required', statusCode: 401 },
   AUTHORIZED_UNDER_ADMIN: { code: 'AUTHORIZED_UNDER_ADMIN', message: 'Must be authorized under admin account', statusCode: 401 },
   LOOP_NOT_FOUND: { code: 'LOOP_NOT_FOUND', message: 'Loop does not exist', statusCode: 404 },
+  // Phoenix security guard: SetupRobot is unsigned and a setup token alone is
+  // not proof of possession of an already-registered robot's credentials.
+  // Keep this response generic so it does not reveal another account's loop.
+  ROBOT_ALREADY_CLAIMED: {
+    code: 'ROBOT_ALREADY_CLAIMED',
+    message: 'Robot cannot be paired with this account',
+    statusCode: 409,
+  },
   // Source errors/loop.ts LOOP_SUSPENDED: "Loop is suspended and cannot be modified", statusCode 403.
   LOOP_SUSPENDED: { code: 'LOOP_SUSPENDED', message: 'Loop is suspended and cannot be modified', statusCode: 403 },
   ROBOT_NOT_FOUND: { code: 'ROBOT_NOT_FOUND', message: 'Robot not found', statusCode: 404 },
@@ -486,6 +494,13 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     if (!account) return void sendAmzError(res, Errors.ACCOUNT_NOT_FOUND);
     if (account.isDeleted === true) return void sendAmzError(res, Errors.ACCOUNT_IS_DELETED);
 
+    // SetupRobot has no robot signature: anyone can call it with a valid QR
+    // token and any friendlyId. Only a currently-linked, nondeleted loop owned
+    // by this token account proves the robot already belongs to this account.
+    // Reject orphaned and foreign-linked accounts before any account/loop
+    // mutation or credential response; otherwise an unsigned request could
+    // detach another owner's robot and disclose its stored secret key.
+    let pairing;
     let loop;
     if (token.loopId) {
       // BaseLoopController.findById -> Loop.findById, behind the schema's
@@ -498,6 +513,8 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
       if (String(loop.owner) !== String(account._id)) {
         return void sendAmzError(res, Errors.OWNER_CAN_MANIPULATE);
       }
+      pairing = existingRobotPairing(id, account);
+      if (pairing.error) return void sendAmzError(res, pairing.error);
       if (loop.isSuspended) {
         // ROBOT REPLACEMENT. Source order is exact:
         //   newRobotAccount = findOrCreateRobotAccount({ robotId: id })
@@ -544,6 +561,8 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
         }
       }
     } else {
+      pairing = existingRobotPairing(id, account);
+      if (pairing.error) return void sendAmzError(res, pairing.error);
       // Source loop.ctrl.ts create({ ownerId, name, robotId }):
       //   robot = await robotClient.getRobot(robotId)   // failure is tolerated
       //   if (robot.payload.suspended) throw ROBOT_DISABLED
@@ -556,11 +575,35 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
       if (lookup && lookup.payload && lookup.payload.suspended === true) {
         return void sendAmzError(res, Errors.ROBOT_DISABLED);
       }
-      const robotAccount = findOrCreateRobotAccount(store, id);
-      removeRobotFromLoops(store, robotAccount._id, loopUpdatedOutbox);
-      ({ loop } = createLoop(store, { owner: account, robotId: id }));
-      loopUpdatedOutbox.record(loop);
-      dispatchLoopCreated(loop, invitationProviders);
+      // The registry lookup above yields. Recheck the identity association
+      // afterwards so two unrelated setup tokens cannot both observe an unseen
+      // friendlyId and let the later request detach the first request's loop.
+      pairing = existingRobotPairing(id, account);
+      if (pairing.error) return void sendAmzError(res, pairing.error);
+      if (pairing.loop) {
+        // QR setup has no user-selected loop. Reuse the same-owner association
+        // in place so people and history remain untouched. A suspended
+        // association is resumed, matching SetupRobot's replacement semantics
+        // without removing or recreating its existing robot membership.
+        loop = pairing.loop;
+        findOrCreateRobotAccount(store, id); // preserves/reactivates the source robot account
+        if (loop.isSuspended) {
+          const before = JSON.parse(JSON.stringify(loop));
+          const draft = JSON.parse(JSON.stringify(loop));
+          draft.isSuspended = false;
+          saveLoop(store, draft, loopUpdatedOutbox, before);
+          loop = draft;
+        }
+      } else {
+        // Only an unseen friendlyId reaches loop creation. Existing accounts
+        // without a live same-owner association were rejected above because
+        // SetupRobot cannot authenticate an ownership transfer.
+        const robotAccount = findOrCreateRobotAccount(store, id);
+        removeRobotFromLoops(store, robotAccount._id, loopUpdatedOutbox);
+        ({ loop } = createLoop(store, { owner: account, robotId: id }));
+        loopUpdatedOutbox.record(loop);
+        dispatchLoopCreated(loop, invitationProviders);
+      }
     }
 
     const robot = store.accounts.get(loop.robot) || findOrCreateRobotAccount(store, id);
@@ -963,6 +1006,26 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
 
   function activeLoopForRobot(robotId) {
     return [...store.loops.values()].find((loop) => loop.isDeleted !== true && loop.robot === robotId) || null;
+  }
+
+  function existingRobotPairing(friendlyId, owner) {
+    const robots = [...store.accounts.values()].filter((account) => account.friendlyId === friendlyId);
+    if (!robots.length) return { robot: null, loop: null, error: null };
+    if (robots.length !== 1) return { robot: null, loop: null, error: Errors.ROBOT_ALREADY_CLAIMED };
+    const [robot] = robots;
+
+    const linkedLoops = [...store.loops.values()].filter((loop) =>
+      loop.isDeleted !== true && String(loop.robot) === String(robot._id));
+    if (linkedLoops.some((loop) => String(loop.owner) !== String(owner._id)) || linkedLoops.length === 0) {
+      return { robot, loop: null, error: Errors.ROBOT_ALREADY_CLAIMED };
+    }
+    if (robot.isDeleted === true) return { robot, loop: null, error: Errors.ACCOUNT_IS_DELETED };
+
+    // A legacy duplicate can point at the same robot more than once. Reuse a
+    // same-owner live association; never let another owner's duplicate make
+    // the selection ambiguous.
+    const loop = linkedLoops.find((candidate) => candidate.isSuspended !== true) || linkedLoops[0];
+    return { robot, loop, error: null };
   }
 
   /**

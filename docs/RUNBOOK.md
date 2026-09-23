@@ -231,10 +231,10 @@ same region for the repoint; `--region` is available only when that config is
 missing or intentionally customized. Reboot only after
 the helper verifies every installed client copy and confirms OOBE with no
 credentials. Then create the QR code in **Robots → Add a Jibo → Setup screen**.
-Choose **new loop** for a new robot or the robot's **existing loop** for a
-re-pair; the latter preserves members and history. QR setup links the robot
-account. Do not use a migration
-claim code. Existing Wi-Fi may remain connected, so a test that must exercise
+There is no loop selector: a robot already linked to this account keeps its
+existing loop, while a new robot ID creates a new loop. QR setup links the robot
+account. Do not use a migration claim code for a new robot. Existing Wi-Fi may
+remain connected, so a test that must exercise
 the Wi-Fi QR stage also needs a separate, deliberate Wi-Fi reset.
 
 The helper checks `/opt` before OOBE. A stock 13.0.0 filesystem may be only
@@ -245,11 +245,26 @@ then verifies at least 2 GiB free. This growth cannot be reversed by
 `--revert`; do not attempt it on an unexpected mount or partition layout.
 If QR pairing already succeeded before this issue was found, do **not** delete
 the server robot record or wipe credentials. Restore capacity, set the robot
-back to OOBE, and scan a fresh QR for the same account/robot; SetupRobot
-reissues that robot's credentials without making a duplicate **when the
-existing loop is selected** in the portal. The older portal's default new-loop
-QR leaves an extra suspended loop; use the reconciliation script after stopping
-the account service if that already happened.
+back to OOBE, and scan a fresh QR for the same account/robot. SetupRobot resolves
+the friendlyId automatically, reissues its credentials, and reuses the live
+same-owner loop while preserving its members and history. A suspended loop is
+resumed without replacing its robot member. The portal no longer has a loop
+selector, and its setup request does not send a loopId. A genuinely new robot
+ID creates one new loop.
+
+SetupRobot is unsigned, so the QR token alone cannot authorize transfer of an
+existing robot account. A friendlyId already linked to a different account, or
+an existing orphaned robot account with no live same-owner loop, is rejected
+without detaching any loop or returning credentials. Use the credentials-backed
+adoption flow while the robot still has its current keys, or an explicitly
+authorized recovery/transfer path when those keys are unavailable. If an older
+deployment already created duplicate loops, stop the account service and use
+the reconciliation script before restarting it.
+
+This ownership guard cannot prove physical possession of a never-seen friendlyId:
+the first successful setup token can claim an unseen ID. Treat QR setup as
+provisioning, not as proof for an ownership transfer; use an independently
+authenticated claim or admin recovery when identity ownership matters.
 
 ### Claim an already-paired robot into a new Phoenix account
 

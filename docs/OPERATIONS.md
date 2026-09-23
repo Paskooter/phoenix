@@ -238,14 +238,27 @@ ext4 mount, stop and inspect storage instead of repeatedly retrying QR setup.
 open http://localhost:9011        # or your public URL
 ```
 
-Sign up → **Add a robot** → choose **new loop** for a new Jibo or the **existing
-loop** when re-pairing a reset Jibo → enter your home WiFi → the portal renders
-the setup **QR**. Hold it
-up to Jibo's eye; he scans it (WiFi creds + a one-time token), joins the network, and calls
-`OOBE.setupRobot` against this service, which mints his permanent `accessKeyId`/`secretAccessKey`,
-attaches him to your chosen loop, and returns them — the robot writes them to `/var/jibo/credentials.json`
-itself. The portal polls until he's done and lists him. (The QR payload and encoder are a
+Sign up → **Add a robot** → enter your home WiFi → the portal renders the setup
+**QR**. Hold it up to Jibo's eye; he scans it (WiFi credentials + a one-time token),
+joins the network, and calls `OOBE.setupRobot` against this service. A robot ID
+already linked to a live loop owned by this account reuses that loop and its
+members/history; a suspended same-owner loop resumes without replacing its robot
+membership. A new robot ID creates a new loop. The service mints or reissues the
+robot's permanent `accessKeyId`/`secretAccessKey`, which the robot writes to
+`/var/jibo/credentials.json`. The portal polls until setup finishes and lists it.
+(The QR payload and encoder are a
 from-scratch reimplementation of the robot's `oobe-config` format — see `packages/account/portal/qr.js`.)
+
+The OOBE setup call is unsigned, so a QR token by itself does not prove ownership
+of an already-registered robot. Phoenix rejects a robot ID linked to another
+account, as well as an existing orphaned robot account with no live same-owner
+loop; it does not move that robot or return its stored credentials. Use the
+credentials-backed adoption flow for a robot that still has its current keys, or
+an explicitly authorized recovery/transfer path when those keys are unavailable.
+This guard cannot prove physical possession of a never-seen friendlyId: the first
+successful setup token can claim an unseen ID. Treat QR setup as provisioning,
+not as an ownership-transfer proof; use an independently authenticated claim or
+admin recovery when identity ownership matters.
 
 **2. Adopt an existing robot — one that paired with the original Jibo cloud years ago.**
 
