@@ -226,16 +226,24 @@ bash ./robot-ota-repoint.sh --robot root@<robot-ip> --oobe --yes
 This mode refuses existing credentials, does not create a server record, and
 leaves the next boot in OOBE. Reboot after it succeeds, then perform QR setup.
 The helper requires passwordless key-based SSH; it does not acquire that access.
+Before repointing, it checks `/opt`: stock 13.0.0 can have a 300 MB ext4
+filesystem inside a 10 GB partition, leaving too little staging space for OTA.
+The dry run shows the proposed in-place expansion; `--yes` performs it and
+verifies at least 2 GiB free. Filesystem growth persists and `--revert` does
+not undo it. If the partition itself is too small or `/opt` is not the expected
+ext4 mount, stop and inspect storage instead of repeatedly retrying QR setup.
 
 ```bash
 # started by run-compose-stack.sh on :9011, or `docker compose up`
 open http://localhost:9011        # or your public URL
 ```
 
-Sign up → **Add a robot** → enter your home WiFi → the portal renders the setup **QR**. Hold it
+Sign up → **Add a robot** → choose **new loop** for a new Jibo or the **existing
+loop** when re-pairing a reset Jibo → enter your home WiFi → the portal renders
+the setup **QR**. Hold it
 up to Jibo's eye; he scans it (WiFi creds + a one-time token), joins the network, and calls
 `OOBE.setupRobot` against this service, which mints his permanent `accessKeyId`/`secretAccessKey`,
-attaches him to your loop, and returns them — the robot writes them to `/var/jibo/credentials.json`
+attaches him to your chosen loop, and returns them — the robot writes them to `/var/jibo/credentials.json`
 itself. The portal polls until he's done and lists him. (The QR payload and encoder are a
 from-scratch reimplementation of the robot's `oobe-config` format — see `packages/account/portal/qr.js`.)
 

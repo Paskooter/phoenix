@@ -231,9 +231,25 @@ same region for the repoint; `--region` is available only when that config is
 missing or intentionally customized. Reboot only after
 the helper verifies every installed client copy and confirms OOBE with no
 credentials. Then create the QR code in **Robots → Add a Jibo → Setup screen**.
-QR setup creates and links the fresh robot account. Do not use a migration
+Choose **new loop** for a new robot or the robot's **existing loop** for a
+re-pair; the latter preserves members and history. QR setup links the robot
+account. Do not use a migration
 claim code. Existing Wi-Fi may remain connected, so a test that must exercise
 the Wi-Fi QR stage also needs a separate, deliberate Wi-Fi reset.
+
+The helper checks `/opt` before OOBE. A stock 13.0.0 filesystem may be only
+300 MB even when its ext4 partition is 10 GB; the update manager then loops
+before requesting a package because it needs 2.5× the package length free.
+The helper plans an in-place `resize2fs` when that exact layout is detected,
+then verifies at least 2 GiB free. This growth cannot be reversed by
+`--revert`; do not attempt it on an unexpected mount or partition layout.
+If QR pairing already succeeded before this issue was found, do **not** delete
+the server robot record or wipe credentials. Restore capacity, set the robot
+back to OOBE, and scan a fresh QR for the same account/robot; SetupRobot
+reissues that robot's credentials without making a duplicate **when the
+existing loop is selected** in the portal. The older portal's default new-loop
+QR leaves an extra suspended loop; use the reconciliation script after stopping
+the account service if that already happened.
 
 ### Claim an already-paired robot into a new Phoenix account
 

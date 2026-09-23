@@ -93,6 +93,32 @@ test('end-to-end: signup -> setup QR -> robot redeems -> status flips -> robot l
   assert.ok(robots.body.some((r) => r.friendlyId === 'castle-cylinder-fig-quilt'));
 });
 
+test('re-pair QR targets the existing loop without creating a duplicate', async () => {
+  const before = await call('GET', '/api/loop');
+  const loop = before.body.loops.find((entry) => entry.robotFriendlyId === 'castle-cylinder-fig-quilt');
+  assert.ok(loop);
+
+  const setup = await call('POST', '/api/robots/setup', {
+    ssid: 'JetsonNet', password: 'orbit-city', loopId: loop.id,
+  });
+  assert.equal(setup.status, 200);
+  assert.equal(getStore().tokens.get(setup.body.token).loopId, loop.id);
+  const redeemed = await amz('OOBE.SetupRobot', { token: setup.body.token, id: 'castle-cylinder-fig-quilt' });
+  assert.equal(redeemed.status, 200);
+
+  const after = await call('GET', '/api/loop');
+  assert.equal(after.body.loops.length, before.body.loops.length);
+  assert.equal(after.body.loops.find((entry) => entry.id === loop.id).robotFriendlyId, 'castle-cylinder-fig-quilt');
+});
+
+test('setup QR cannot target a loop owned by another account', async () => {
+  const first = await call('GET', '/api/loop');
+  const foreignLoopId = first.body.loops.find((entry) => entry.robotFriendlyId === 'castle-cylinder-fig-quilt').id;
+  await call('POST', '/api/signup', { email: 'jane@jetson.test', password: 'her-own-password', firstName: 'Jane' });
+  const response = await call('POST', '/api/robots/setup', { ssid: 'JetsonNet', loopId: foreignLoopId });
+  assert.equal(response.status, 403);
+});
+
 test('expired setup token is not reported as successful pairing', async () => {
   const setup = await call('POST', '/api/robots/setup', { ssid: 'JetsonNet', password: 'orbit-city' });
   assert.equal(setup.status, 200);

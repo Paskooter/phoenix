@@ -275,6 +275,33 @@ case "$RO_ROOT" in
   *) say "  / is writable" ;;
 esac
 
+# Stock 13.0.0 images can ship a 300 MB ext4 filesystem on a much larger
+# /opt partition. The native update manager refuses a download unless /opt has
+# at least 2.5 times the package length free; the first OS package alone needs
+# about 600 MB. Check before OOBE so setup does not loop without downloading.
+OPT_MIN_FREE_KIB=2097152
+OPT_RESIZE=0
+if [ "$OOBE" -eq 1 ] && [ "$REVERT" -eq 0 ]; then
+  OPT_MOUNT="$(rsh "mount | sed -n 's|^\([^ ]*\) on /opt type \([^ ]*\) .*|\1 \2|p' | head -1" 2>/dev/null | tr -d '\r')"
+  read -r OPT_DEVICE OPT_FSTYPE <<< "$OPT_MOUNT"
+  OPT_DF="$(rsh "df -k /opt | awk 'NR==2 {print \$2, \$4}'" 2>/dev/null | tr -d '\r')"
+  read -r OPT_TOTAL_KIB OPT_FREE_KIB <<< "$OPT_DF"
+  [[ "$OPT_TOTAL_KIB" =~ ^[0-9]+$ && "$OPT_FREE_KIB" =~ ^[0-9]+$ ]] || die "could not check /opt capacity"
+  say "  /opt: ${OPT_TOTAL_KIB} KiB total, ${OPT_FREE_KIB} KiB free (${OPT_DEVICE:-unknown}, ${OPT_FSTYPE:-unknown})"
+  if [ "$OPT_FREE_KIB" -lt "$OPT_MIN_FREE_KIB" ]; then
+    [[ "$OPT_DEVICE" =~ ^/dev/mmcblk[0-9]+p[0-9]+$ && "$OPT_FSTYPE" = ext4 ]] \
+      || die "/opt needs at least 2 GiB free for OOBE OTA; inspect this nonstandard mount before continuing"
+    OPT_DEVICE_BYTES="$(rsh "blockdev --getsize64 '$OPT_DEVICE'" 2>/dev/null | tr -d '\r')"
+    [[ "$OPT_DEVICE_BYTES" =~ ^[0-9]+$ ]] || die "could not measure /opt block device"
+    if [ "$OPT_DEVICE_BYTES" -le "$((OPT_TOTAL_KIB * 1024 + 104857600))" ]; then
+      die "/opt has too little free space and its block device has no room to grow; free space before OOBE"
+    fi
+    rsh 'command -v resize2fs' >/dev/null 2>&1 || die "resize2fs is unavailable on the robot; expand /opt manually before OOBE"
+    OPT_RESIZE=1
+    say "  /opt filesystem is smaller than its ${OPT_DEVICE_BYTES}-byte partition; it must be expanded"
+  fi
+fi
+
 # ── 5. Revert ───────────────────────────────────────────────────────────────
 if [ "$REVERT" -eq 1 ]; then
   step "Reverting the OTA repoint"
@@ -291,6 +318,10 @@ fi
 
 # ── 6. Plan ─────────────────────────────────────────────────────────────────
 step "Plan"
+if [ "$OPT_RESIZE" -eq 1 ]; then
+  say "  0. expand /opt ext4 in place on ${OPT_DEVICE} and verify at least 2 GiB free"
+  say "     (filesystem growth is persistent and is not undone by --revert)"
+fi
 say "  1. back up and rewrite jibo.com -> jibo.io in ${#PRESENT[@]} client config file(s)"
 say "  2. install the public root into ${TRUST_BUNDLE} (+ ${TRUST_DIR}/isrg-root-x1.pem and its"
 say "     subject-hash symlink), remounting / read-write for the write and back to read-only after"
@@ -345,6 +376,14 @@ fi
 # and a trap restores it even if the script dies mid-way.
 step "Applying"
 APPLIED=()
+
+if [ "$OPT_RESIZE" -eq 1 ]; then
+  rsh "resize2fs '$OPT_DEVICE' >/dev/null && sync" || die "could not expand /opt filesystem"
+  OPT_FREE_KIB="$(rsh "df -k /opt | awk 'NR==2 {print \$4}'" 2>/dev/null | tr -d '\r')"
+  [[ "$OPT_FREE_KIB" =~ ^[0-9]+$ ]] && [ "$OPT_FREE_KIB" -ge "$OPT_MIN_FREE_KIB" ] \
+    || die "/opt still has less than 2 GiB free after resize; stopping before repoint"
+  say "  /opt expanded; ${OPT_FREE_KIB} KiB free"
+fi
 
 ORIG_ROOT_MOUNT="$(rsh 'mount | sed -n "/ on \/ /p" | head -1' 2>/dev/null | tr -d '\r')"
 ORIG_LOCAL_MOUNT="$(rsh 'mount | sed -n "/ on \/usr\/local /p" | head -1' 2>/dev/null | tr -d '\r')"

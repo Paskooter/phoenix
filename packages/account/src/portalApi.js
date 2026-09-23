@@ -422,14 +422,25 @@ export function portalRoutes(store, options = {}) {
     },
 
     // Add-a-robot: mint a setup token, build the WiFi+token QR payload (the robot scans it,
-    // joins WiFi, and redeems the token via OOBE.setupRobot). loopId null = brand-new robot.
+    // joins WiFi, and redeems the token via OOBE.setupRobot). A reset robot can
+    // target its existing loop, preserving that loop's members and history.
+    // Omitting loopId means a genuinely new robot and creates a new loop.
     'POST /api/robots/setup': ({ req, res, body }) => {
       const account = userFromSession(store, req);
       if (!account) return sendJson(res, 401, { error: 'not logged in' });
-      const { ssid, password = '', static: staticConfig = null } = body || {};
+      const { ssid, password = '', static: staticConfig = null, loopId = null } = body || {};
       if (!ssid) return sendJson(res, 400, { error: 'WiFi ssid is required' });
 
-      const token = mintSetupToken(store, account._id, null);
+      let targetLoopId = null;
+      if (loopId != null && loopId !== '') {
+        if (typeof loopId !== 'string') return sendJson(res, 400, { error: 'Invalid loop' });
+        const loop = store.loops.get(loopId);
+        if (!loop || loop.isDeleted === true) return sendJson(res, 404, { error: 'Loop not found' });
+        if (!idsEqual(loop.owner, account._id)) return sendJson(res, 403, { error: 'Only the loop owner can re-pair a Jibo' });
+        targetLoopId = loop._id;
+      }
+
+      const token = mintSetupToken(store, account._id, targetLoopId);
       const { payload, codes } = buildQrCodes({ ssid, password, staticConfig, token: token._id });
       return {
         token: token._id,
