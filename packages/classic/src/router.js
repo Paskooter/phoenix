@@ -39,6 +39,20 @@ function alreadyRegistered(registrations, prefix) {
   ).test(prefix));
 }
 
+// srv-security-gw's unauthorizedMethods includes exactly these two OOBE
+// operations. A factory-reset robot has no access keys with which to sign
+// SetupRobot; the one-time setup token is verified by the account service.
+// Keep every other target (and any request that claims to be signed) behind
+// the normal SigV4 boundary.
+const UNSIGNED_OOBE_TARGETS = new Set([
+  'OOBE_20161026.SetupRobot',
+  'OOBE_20161026.GetStatus',
+]);
+
+function isUnsignedOobeRequest(req, target) {
+  return UNSIGNED_OOBE_TARGETS.has(target) && !req.headers.authorization;
+}
+
 export function createClassicRouter(registrations, { callerBoundary } = {}) {
   const defaults = DEFAULT_ADMIN_PROXIES
     .filter((d) => !alreadyRegistered(registrations, d.match.source.slice(1, -1)));
@@ -50,7 +64,7 @@ export function createClassicRouter(registrations, { callerBoundary } = {}) {
   const dispatch = async ({ req, res, body, log }) => {
     const { target, prefix, op } = parseTarget(req);
     let caller;
-    if (callerBoundary) {
+    if (callerBoundary && !isUnsignedOobeRequest(req, target)) {
       try {
         // JSON routes carry the exact body-parser capture. A raw route is staged by the boundary,
         // which supplies a digest and a replay stream instead of hashing a reconstructed object.
