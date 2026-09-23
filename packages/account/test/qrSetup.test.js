@@ -11,7 +11,7 @@ const dir = mkdtempSync(join(tmpdir(), 'phx-qr-'));
 process.env.ETCO_account_dataFile = join(dir, 'store.json');
 
 const { buildQrCodes, robotDecode, XOR_KEY } = await import('../src/qrPayload.js');
-const { createAccountService } = await import('../src/index.js');
+const { createAccountService, getStore, model } = await import('../src/index.js');
 
 test('QR payload: DHCP 3-line round-trip through the robot decoder', () => {
   const { payload, codes } = buildQrCodes({ ssid: 'JetsonNet', password: 'orbit-city', token: 'Ab3xK9z' });
@@ -91,4 +91,17 @@ test('end-to-end: signup -> setup QR -> robot redeems -> status flips -> robot l
 
   const robots = await call('GET', '/api/robots');
   assert.ok(robots.body.some((r) => r.friendlyId === 'castle-cylinder-fig-quilt'));
+});
+
+test('expired setup token is not reported as successful pairing', async () => {
+  const setup = await call('POST', '/api/robots/setup', { ssid: 'JetsonNet', password: 'orbit-city' });
+  assert.equal(setup.status, 200);
+  const token = getStore().tokens.get(setup.body.token);
+  token.created = Date.now() - model.ACCESS_TOKEN_LIFETIME_MS - 1000;
+  getStore().flush();
+
+  const status = await call('GET', `/api/robots/setup/status?token=${setup.body.token}`);
+  assert.equal(status.status, 200);
+  assert.equal(status.body.complete, false);
+  assert.equal(status.body.expired, true);
 });

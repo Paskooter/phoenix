@@ -464,12 +464,17 @@ export function portalRoutes(store, options = {}) {
       if (!account) return sendJson(res, 401, { error: 'not logged in' });
       const tokenId = url.searchParams.get('token');
       if (!tokenId) return sendJson(res, 400, { error: 'token query param required' });
-      const { token } = findToken(store, tokenId);
-      if (token && String(token.accountId) !== String(account._id)) {
+      const { token, error } = findToken(store, tokenId);
+      const storedToken = token || (error === 'TOKEN_EXPIRED' ? store.tokens.get(tokenId) : null);
+      if (storedToken && String(storedToken.accountId) !== String(account._id)) {
         // Do not turn a setup token into a cross-account completion oracle.
         return sendJson(res, 404, { error: 'setup token not found' });
       }
-      return { complete: !token, expires: token ? token.created + ACCESS_TOKEN_LIFETIME_MS : null };
+      return {
+        complete: !storedToken,
+        expired: error === 'TOKEN_EXPIRED',
+        expires: storedToken ? storedToken.created + ACCESS_TOKEN_LIFETIME_MS : null,
+      };
     },
 
     // -- per-robot hub auth ---------------------------------------------------

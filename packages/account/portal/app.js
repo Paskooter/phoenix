@@ -1676,16 +1676,27 @@ async function renderAddNew() {
       h('div', { html: qrSvg(codes[(frame + i) % codes.length], 5) })));
     paint();
 
-    container.append(card('Setup code', { sub: `${codes.length} frames` },
+    const qrCard = card('Setup code', { sub: `${codes.length} frames · valid for 15 minutes` },
       h('p', { class: 'instruct' }, 'Open the robot’s setup screen and hold this up to its eye.'),
       holder,
       h('p', { class: 'field-hint', style: 'text-align:center' }, 'Tap the codes to advance the frames.'),
-      status));
+      status);
+    container.append(qrCard);
 
     stopPoll();
     pollTimer = setInterval(async () => {
       const res = await api('GET', `/api/robots/setup/status?token=${encodeURIComponent(r.data.token)}`);
-      if (res.ok && res.data.complete) {
+      if (res.ok && res.data.expired) {
+        stopPoll();
+        status.replaceChildren('This setup code has expired. Make a new one and scan it again.');
+        status.style.color = 'var(--warn)';
+        const again = h('button', { type: 'button', class: 'btn btn-primary', on: { click: () => {
+          qrCard.remove();
+          formCard.hidden = false;
+          form.requestSubmit();
+        } } }, 'Make a new code');
+        qrCard.append(h('div', { class: 'row', style: 'justify-content:center;margin-top:1rem' }, again));
+      } else if (res.ok && res.data.complete) {
         stopPoll();
         status.replaceChildren(icon('check', 15), ' The robot is set up. Returning to your robots…');
         status.style.color = 'var(--ok)';
