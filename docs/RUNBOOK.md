@@ -211,10 +211,34 @@ use a hosts redirect and a locally generated CA. It is not the jibo.io migration
 recipe. Also, package filenames are not version state: the version reporters
 *inside* each OS/services OTA must agree with the catalog `toVersion`.
 
+### Repoint a stock or factory-reset robot before QR setup
+
+A robot on its setup screen is not necessarily pointed at jibo.io. If it is
+still on stock endpoints, normal QR pairing cannot reach Phoenix. Once
+owner-authorized, key-based `root` SSH is available, run the explicit OOBE mode
+of the public helper **before rebooting away from SSH**:
+
+```bash
+curl --fail --remote-name https://jibo.io/robot-ota-repoint.sh
+bash ./robot-ota-repoint.sh --robot root@<robot-ip> --oobe --dry-run
+bash ./robot-ota-repoint.sh --robot root@<robot-ip> --oobe --yes
+```
+
+The helper refuses active robot credentials, never calls adoption, and sets
+the robot's next boot to `oobe` even if an SSH mod temporarily booted it in
+developer mode. It reads the stock OOBE skill's `serverRegion` and uses the
+same region for the repoint; `--region` is available only when that config is
+missing or intentionally customized. Reboot only after
+the helper verifies every installed client copy and confirms OOBE with no
+credentials. Then create the QR code in **Robots → Add a Jibo → Setup screen**.
+QR setup creates and links the fresh robot account. Do not use a migration
+claim code. Existing Wi-Fi may remain connected, so a test that must exercise
+the Wi-Fi QR stage also needs a separate, deliberate Wi-Fi reset.
+
 ### Claim an already-paired robot into a new Phoenix account
 
 The customer must first create and sign into their Phoenix account. In the
-portal, open **Robots → Connect a Jibo → My Jibo has been set up already**,
+portal, open **Robots → Add a Jibo → Already set up / has credentials**,
 then generate the private command. On the public `jibo.io` deployment it first
 downloads the public-DNS repoint script and includes a 15-minute, one-time
 claim code:

@@ -213,6 +213,20 @@ small **web portal** in front (responsive vanilla HTML/JS, no build step). It do
 
 **1. Pair a brand-new (or factory-reset) robot — the real OOBE handshake.**
 
+The setup screen alone does **not** mean the robot already talks to Phoenix.
+For the public jibo.io instance, an unprovisioned stock robot with authorized
+root SSH must first run:
+
+```bash
+curl --fail --remote-name https://jibo.io/robot-ota-repoint.sh
+bash ./robot-ota-repoint.sh --robot root@<robot-ip> --oobe --dry-run
+bash ./robot-ota-repoint.sh --robot root@<robot-ip> --oobe --yes
+```
+
+This mode refuses existing credentials, does not create a server record, and
+leaves the next boot in OOBE. Reboot after it succeeds, then perform QR setup.
+The helper requires passwordless key-based SSH; it does not acquire that access.
+
 ```bash
 # started by run-compose-stack.sh on :9011, or `docker compose up`
 open http://localhost:9011        # or your public URL
@@ -229,8 +243,8 @@ from-scratch reimplementation of the robot's `oobe-config` format — see `packa
 
 Its existing robot credentials prove possession; they are not an old human
 account and are not imported as one. The customer creates and signs into a new
-Phoenix account, opens **Robots → Connect a Jibo → My Jibo has been set up
-already**, and copies the one-time command the portal produces. It includes an
+Phoenix account, opens **Robots → Add a Jibo → Already set up / has credentials**,
+and copies the one-time command the portal produces. It includes an
 expiring ownership code:
 
 ```bash

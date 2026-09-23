@@ -1398,7 +1398,7 @@ async function renderRobot() {
   if (!list.length) {
     container.append(card('Add your first Jibo', {},
       h('p', { class: 'instruct' }, 'Start with the state your Jibo is in today.'),
-      h('p', { class: 'field-hint' }, 'You can either set up a new or factory-reset Jibo with a QR code, or migrate one that was set up before.'),
+      h('p', { class: 'field-hint' }, 'First check whether Jibo has been pointed at this server. A robot on its setup screen may still be trying to reach the old cloud.'),
       h('div', { class: 'row', style: 'margin-top:1.25rem' },
         h('a', { class: 'btn btn-primary', href: '#/add' }, icon('plus', 15), 'Add a Jibo'))));
     return show(container);
@@ -1531,8 +1531,8 @@ async function renderClaim() {
       h('p', { class: 'instruct' }, 'Choose this only for a Jibo that was set up before and still has its robot credentials.'),
       h('p', { class: 'field-hint' }, 'This computer needs owner-authorized root SSH access to the robot. Confirm ',
         h('code', {}, 'ssh root@<robot-ip> true'), ' works without asking for a password.'),
-      h('p', { class: 'field-hint' }, 'If Jibo is new or factory-reset and showing normal setup, use ',
-        h('a', { href: '#/add/new' }, 'QR setup'), ' instead.')),
+      h('p', { class: 'field-hint' }, 'If Jibo is on its setup screen, its old credentials cannot be claimed. Use ',
+        h('a', { href: '#/add' }, 'the setup-screen path'), ' instead.')),
     card('Get your migration command', {},
       h('p', { class: 'instruct' }, 'Create the short-lived account-linking command only when you are ready to run it.'),
       h('div', { class: 'row', style: 'margin-top:1.25rem' }, request),
@@ -1541,30 +1541,74 @@ async function renderClaim() {
 }
 
 /* ==========================================================================
-   Connect a robot — choose QR setup or existing-robot migration
+   Connect a robot — first establish cloud target, then setup state
    ========================================================================== */
 
 let pollTimer = null;
 function stopPoll() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }
 
 function renderAdd() {
-  const container = page('Add a Jibo', 'How is this Jibo set up today? Both paths link it to this account.');
+  const container = page('Add a Jibo', 'Two quick questions will take you to the right setup path.');
   container.querySelector('.page-head').prepend(
     h('a', { class: 'link', href: '#/robot', style: 'display:inline-flex;align-items:center;gap:.35rem;margin-bottom:.75rem' },
       icon('back', 14), 'Back to robots'));
+  const next = h('div', {});
+  const chooseTarget = (alreadyPointed) => {
+    next.replaceChildren(card('2. What is Jibo showing now?', {},
+      h('p', { class: 'field-hint' }, alreadyPointed
+        ? 'Since it already reaches this server, choose its current setup state.'
+        : 'We will repoint it first. Choose its current setup state so the helper uses the correct credential path.'),
+      h('div', { class: 'row', style: 'margin-top:1.25rem' },
+        h('a', { class: 'btn btn-primary', href: alreadyPointed ? '#/add/new' : '#/add/repoint-oobe' },
+          icon('plus', 15), 'Setup screen / no credentials'),
+        h('a', { class: 'btn', href: '#/claim' }, icon('link', 15), 'Already set up / has credentials')),
+      h('p', { class: 'field-hint' }, 'The setup-screen path uses QR pairing. The already-set-up path uses the robot’s existing credentials and a one-time account claim.'),
+      h('button', { type: 'button', class: 'btn btn-quiet', on: { click: () => { next.replaceChildren(); } } },
+        'Change my answer')));
+  };
+  container.append(card('1. Has this Jibo already been pointed at jibo.io?', {},
+    h('p', { class: 'instruct' }, 'A factory-reset Jibo may show a setup screen while still pointing at the original, offline cloud.'),
+    h('div', { class: 'row', style: 'margin-top:1.25rem' },
+      h('button', { type: 'button', class: 'btn btn-primary', on: { click: () => chooseTarget(true) } }, 'Yes'),
+      h('button', { type: 'button', class: 'btn', on: { click: () => chooseTarget(false) } }, 'No'),
+      h('button', { type: 'button', class: 'btn', on: { click: () => chooseTarget(false) } }, 'I’m not sure')),
+    h('p', { class: 'field-hint' }, '“No” and “I’m not sure” use the same safe repoint check. You will need owner-authorized root SSH access.')),
+  next,
+  h('p', { class: 'field-hint' }, 'Need more context? Read the ', h('a', { href: '/guide' }, 'public guide'), '.'));
+  show(container);
+}
+
+function renderAddRepointOobe() {
+  const container = page('Repoint a Jibo on its setup screen',
+    'Point an unprovisioned Jibo at jibo.io, then complete normal QR setup.');
+  container.querySelector('.page-head').prepend(
+    h('a', { class: 'link', href: '#/add', style: 'display:inline-flex;align-items:center;gap:.35rem;margin-bottom:.75rem' },
+      icon('back', 14), 'Choose a different path'));
+  if (!/(^|\.)jibo\.io$/i.test(location.hostname)) {
+    container.append(card('This helper is for jibo.io', {},
+      h('p', { class: 'instruct' }, 'This one-command repoint targets jibo.io and its public certificate. For another Phoenix server, use that server’s own deployment instructions before QR setup.')));
+    return show(container);
+  }
+  const scriptUrl = 'https://jibo.io/robot-ota-repoint.sh';
+  const dryRun = `curl --fail --remote-name ${scriptUrl} && bash ./robot-ota-repoint.sh --robot root@<robot-ip> --oobe --dry-run`;
+  const apply = 'bash ./robot-ota-repoint.sh --robot root@<robot-ip> --oobe --yes';
   container.append(
-    card('Already set up', {},
-      h('p', { class: 'instruct' }, 'It previously used the original cloud or another server.'),
-      h('p', { class: 'field-hint' }, 'Use your existing root SSH access to repoint it and run one account-linking command.'),
-      h('div', { class: 'row', style: 'margin-top:1.25rem' },
-        h('a', { class: 'btn btn-primary', href: '#/claim' }, icon('link', 15), 'Get migration command'))),
-    card('New or factory-reset', {},
-      h('p', { class: 'instruct' }, 'It is showing Jibo’s normal setup screen.'),
-      h('p', { class: 'field-hint' }, 'Enter Wi-Fi details, show Jibo the QR code, and normal setup will create and link its account.'),
-      h('div', { class: 'row', style: 'margin-top:1.25rem' },
-        h('a', { class: 'btn btn-primary', href: '#/add/new' }, icon('plus', 15), 'Create setup code'))),
-    h('p', { class: 'field-hint' }, 'Not sure? If it has been reset or is at setup, choose QR setup. Otherwise choose migration. The ',
-      h('a', { href: '/guide' }, 'public guide'), ' also covers repointing before you have an account.'));
+    card('Before you start', {},
+      h('p', { class: 'instruct' }, 'Jibo must have no active robot credentials and be reachable by root SSH. It may currently be in a developer mode used to get SSH; the helper sets its next boot to OOBE.'),
+      h('p', { class: 'field-hint' }, 'From the computer where you will run the command, make sure ',
+        h('code', {}, 'ssh root@<robot-ip> true'), ' succeeds without a password prompt. The helper does not install SSH access or reset the robot.'),
+      h('p', { class: 'field-hint' }, 'If Jibo is already on the setup screen but has not been repointed, do this before generating a QR code. Do not reboot between obtaining SSH access and repointing if reboot would close SSH.')),
+    card('1. Review the repoint plan', {},
+      h('p', { class: 'instruct' }, 'Download the public helper and run its read-only plan first. You can ',
+        h('a', { href: scriptUrl, download: 'robot-ota-repoint.sh' }, 'inspect the script'), ' before running it.'),
+      h('div', { class: 'restart-cmd' }, h('span', { class: 'prompt' }, '$'), h('code', { text: dryRun }), copyButton(() => dryRun))),
+    card('2. Point Jibo at jibo.io', {},
+      h('p', { class: 'instruct' }, 'Run this only when the plan names your Jibo. It prepares OOBE for the next boot, does not adopt old credentials, and makes no account record. It can be rerun if the first attempt is interrupted.'),
+      h('div', { class: 'restart-cmd' }, h('span', { class: 'prompt' }, '$'), h('code', { text: apply }), copyButton(() => apply))),
+    card('3. Finish normal setup', {},
+      h('p', { class: 'instruct' }, 'After the helper confirms OOBE mode and no credentials, reboot Jibo and return to its setup screen. Create a QR code in this account and let Jibo scan it. That step creates and links its new robot account.'),
+      h('p', { class: 'field-hint' }, 'Use the QR path, not a migration claim code. If Jibo already knows your Wi-Fi, it may skip the Wi-Fi portion of setup; that does not change the account-pairing step.'),
+      h('a', { class: 'btn btn-primary', href: '#/add/new' }, icon('plus', 15), 'Continue to QR setup')));
   show(container);
 }
 
@@ -1578,6 +1622,9 @@ async function renderAddNew() {
     h('a', { class: 'link', href: '#/add', style: 'display:inline-flex;align-items:center;gap:.35rem;margin-bottom:.75rem' },
       icon('back', 14), 'Choose a different path'));
 
+  container.append(h('div', { class: 'notice notice-warn' }, icon('alert', 16),
+    h('div', {}, 'This works only after Jibo has been pointed at this server. If it is still trying to reach the original cloud, ',
+      h('a', { href: '#/add/repoint-oobe' }, 'repoint it first'), '.')));
   const errorLine = h('p', { class: 'error', hidden: true });
   const form = h('form', {},
     field('Home Wi-Fi name (SSID)', h('input', { name: 'ssid', required: true, autocomplete: 'off' })),
@@ -2855,6 +2902,7 @@ const ROUTES = {
   '#/inbox': renderInbox,
   '#/system': renderSystem,
   '#/add': renderAdd,
+  '#/add/repoint-oobe': renderAddRepointOobe,
   '#/add/new': renderAddNew,
 };
 

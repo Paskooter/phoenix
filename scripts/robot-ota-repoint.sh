@@ -41,6 +41,7 @@
 # Usage:
 #   robot-ota-repoint.sh --robot root@<ip> [--region <r>] [--region-ca <pem>]
 #                        [--claim-code <portal-code>] [--dry-run] [--yes] [--verify] [--revert]
+#   robot-ota-repoint.sh --robot root@<ip> --oobe --yes
 #   robot-ota-repoint.sh --robot root@<ip> --full --phoenix https://... --yes
 #
 # Nothing is changed without showing a plan first. Every file edited is backed up
@@ -50,7 +51,7 @@ set -uo pipefail
 
 ROBOT=""; REGION=""; REGION_CA=""; DRY=0; ASSUME_YES=0; VERIFY=0; REVERT=0
 PUBLIC_SUFFIX="jibo.io"
-FULL=0; FULL_ARGS=(); CLAIM_CODE=""
+FULL=0; FULL_ARGS=(); CLAIM_CODE=""; OOBE=0
 
 # The robot's own trust store. `bundle` is what OpenSSL reads; the individual PEM
 # plus the subject-hash symlink are how a cert is normally installed alongside it.
@@ -69,6 +70,7 @@ while [ $# -gt 0 ]; do
     --region-ca) REGION_CA="${2:-}"; shift 2 ;;
     --suffix)    PUBLIC_SUFFIX="${2:-}"; shift 2 ;;
     --claim-code) CLAIM_CODE="${2:-}"; shift 2 ;;
+    --oobe)      OOBE=1; shift ;;
     --dry-run)   DRY=1; shift ;;
     --yes)       ASSUME_YES=1; shift ;;
     --verify)    VERIFY=1; shift ;;
@@ -168,6 +170,9 @@ if [ "$FULL" -eq 1 ]; then
 fi
 
 [ -n "$ROBOT" ] || die "--robot root@<ip> is required (or --full for the complete repoint)"
+if [ "$OOBE" -eq 1 ] && [ -n "$CLAIM_CODE" ]; then
+  die "--oobe cannot use --claim-code; an unprovisioned robot links through QR setup"
+fi
 if [ -n "$CLAIM_CODE" ] && [[ ! "$CLAIM_CODE" =~ ^[A-Za-z0-9_-]{43}$ ]]; then
   die "--claim-code must be the exact one-time code shown by the portal"
 fi
@@ -182,24 +187,37 @@ step "Robot"
 HOSTNAME_="$(rsh 'hostname' 2>/dev/null | tr -d '\r')"
 RELEASE="$(rsh 'jibo-version 2>/dev/null | head -1' 2>/dev/null | tr -d '\r')"
 MODE="$(rsh 'jibo-getmode 2>/dev/null' 2>/dev/null | tr -d '\r')"
-if [ -z "$REGION" ]; then
-  # The region drives which <region>.jibo.io the robot asks. Read it without
-  # ever echoing the credential material sitting beside it in the same file.
-  REGION="$(rsh 'sed -n "s/.*\"region\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\".*/\1/p" /var/jibo/credentials.json 2>/dev/null | head -1' 2>/dev/null | tr -d '\r')"
+HAS_CREDS=0
+if rsh 'test -s /var/jibo/credentials.json' >/dev/null 2>&1; then HAS_CREDS=1; fi
+if [ "$OOBE" -eq 1 ]; then
+  [ "$HAS_CREDS" -eq 0 ] || die "--oobe requires no active robot credentials; use the already-set-up migration path"
+else
+  [ "$MODE" != oobe ] || die "robot is in OOBE mode; use --oobe, then QR setup"
+  [ "$HAS_CREDS" -eq 1 ] || die "robot has no active credentials; use --oobe if it is on the setup screen"
 fi
+if [ -z "$REGION" ]; then
+  if [ "$OOBE" -eq 1 ]; then
+    # OOBE does not have robot credentials. Its skill carries the authoritative
+    # serverRegion it will use during SetupRobot, so match that exact value.
+    REGION="$(rsh 'sed -n "s/.*\"serverRegion\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\".*/\1/p" /opt/jibo/Jibo/Skills/oobe-config/config.json 2>/dev/null | head -1' 2>/dev/null | tr -d '\r')"
+  else
+    # Do not echo the credential material sitting beside the region field.
+    REGION="$(rsh 'sed -n "s/.*\"region\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\".*/\1/p" /var/jibo/credentials.json 2>/dev/null | head -1' 2>/dev/null | tr -d '\r')"
+  fi
+fi
+[ -n "$REGION" ] || die "could not determine the robot's region; pass --region"
+[[ "$REGION" =~ ^[a-z0-9][a-z0-9-]*$ ]] || die "invalid region name"
 say "  host      : ${HOSTNAME_:-unknown}"
 say "  release   : ${RELEASE:-unknown}"
 say "  mode      : ${MODE:-unknown}"
 say "  region    : ${REGION:-unknown}"
-[ -n "$REGION" ] || die "could not determine the robot's region; pass --region"
-
 REST_URL="https://${REGION}.${PUBLIC_SUFFIX}/"
 SOCKET_URL="wss://${REGION}-socket.${PUBLIC_SUFFIX}/"
 say "  will call : ${REST_URL}"
 say "  socket    : ${SOCKET_URL}"
 
 # ── 2. Find every installed copy of the client config ────────────────────────
-# The same six locations the image builder patches. The four nested ones matter:
+# Check both shipped locations for jibo-ssm as well as the skill-local copies.
 # Node resolves ITS OWN copy of the client, so patching only the top-level one
 # leaves a live jibo.com endpoint behind.
 step "Client configuration copies"
@@ -208,6 +226,7 @@ CONFIG_PATHS=(
   "/usr/lib/node_modules/@jibo/jibo-log-client/node_modules/@jibo/jibo-server-client/lib/region_config.json"
   "/usr/lib/node_modules/@jibo/jibo-ota-updater/node_modules/@jibo/jibo-server-client/lib/region_config.json"
   "/bin/jibo-ssm/node_modules/@jibo/jibo-server-client/lib/region_config.json"
+  "/usr/local/bin/jibo-ssm/node_modules/@jibo/jibo-server-client/lib/region_config.json"
   "/opt/jibo/Jibo/Skills/phoenix-be-11-0-1-parity/node_modules/@jibo/jibo-server-client/lib/region_config.json"
   "/opt/jibo/Jibo/Skills/oobe-config/node_modules/@jibo/jibo-server-client/lib/region_config.json"
 )
@@ -262,10 +281,10 @@ if [ "$REVERT" -eq 1 ]; then
   say "  backups are kept beside each file as <file>.prerepoint-<stamp>.bak"
   n=0
   for p in "${PRESENT[@]}"; do
-    rsh "ls '$p'.prerepoint-*.bak >/dev/null 2>&1 && { cp -a \$(ls -t '$p'.prerepoint-*.bak | head -1) '$p'; echo '  restored '$p; }" 2>/dev/null || true
+    rsh "ls '$p'.prerepoint-*.bak >/dev/null 2>&1 && { cp -a \$(ls -tr '$p'.prerepoint-*.bak | head -1) '$p'; echo '  restored '$p; }" 2>/dev/null || true
     n=$((n+1))
   done
-  say "  reverted ${n} config file(s); the install root is NOT removed automatically"
+  say "  restored up to ${n} endpoint config file(s); client/CA/hub patches remain in place"
   say "  (removing ISRG X1 is safe but rarely wanted: other names may rely on it)"
   exit 0
 fi
@@ -284,14 +303,21 @@ say "     (the stock Node 6 helpers bypass the patched server client)"
 say "  6. point the jetstream hub override at ${REGION%-entrypoint}-hub.${PUBLIC_SUFFIX}:443, so audio"
 say "     turns go to this server instead of wherever it was pointed before"
 say "  7. ensure /var/jibo/keys exists as a private directory (mode 0700; preserve existing keys)"
-if [ -n "$CLAIM_CODE" ]; then
+if [ "$OOBE" -eq 1 ]; then
+  say "  8. leave this unprovisioned robot unregistered; QR setup will create and link it later"
+elif [ -n "$CLAIM_CODE" ]; then
   say "  8. prove possession with the robot's existing credentials and link it to the signed-in Phoenix account"
 else
   say "  8. register the robot's existing credentials as an unclaimed bootstrap (idempotent)"
 fi
 say "  9. write a receipt to ${RECEIPT}"
 say ""
-say "  NOT touched: /etc/hosts, any private CA, server certs, the robot's own credentials."
+if [ "$OOBE" -eq 1 ]; then
+  say "  The robot's next boot will be set to OOBE. No credentials will be created."
+else
+  say "  The robot's mode and existing credentials will be preserved."
+fi
+say "  NOT touched: /etc/hosts, any private CA, server certs."
 say "  After this the robot can reach ${REST_URL}, stream audio to the hub, and take an OTA"
 say "  update from it. A reboot is needed for the native services to reload their config."
 
@@ -321,18 +347,29 @@ step "Applying"
 APPLIED=()
 
 ORIG_ROOT_MOUNT="$(rsh 'mount | sed -n "/ on \/ /p" | head -1' 2>/dev/null | tr -d '\r')"
+ORIG_LOCAL_MOUNT="$(rsh 'mount | sed -n "/ on \/usr\/local /p" | head -1' 2>/dev/null | tr -d '\r')"
 ROOT_WAS_RO=0
+LOCAL_WAS_RO=0
 case "$ORIG_ROOT_MOUNT" in *"ro,"*|*"ro)"*) ROOT_WAS_RO=1 ;; esac
+case "$ORIG_LOCAL_MOUNT" in *"ro,"*|*"ro)"*) LOCAL_WAS_RO=1 ;; esac
 
 restore_root_ro() {
   [ "$ROOT_WAS_RO" -eq 1 ] || return 0
   rsh 'mount -o remount,ro / 2>/dev/null || true' >/dev/null 2>&1 || true
 }
-trap 'restore_root_ro; cleanup_support' EXIT
+restore_local_ro() {
+  [ "$LOCAL_WAS_RO" -eq 1 ] || return 0
+  rsh 'mount -o remount,ro /usr/local 2>/dev/null || true' >/dev/null 2>&1 || true
+}
+trap 'restore_local_ro; restore_root_ro; cleanup_support' EXIT
 
 if [ "$ROOT_WAS_RO" -eq 1 ]; then
   say "  remounting / read-write (it was read-only)"
   rsh 'mount -o remount,rw /' >/dev/null 2>&1 || die "could not remount / read-write"
+fi
+if [ "$LOCAL_WAS_RO" -eq 1 ]; then
+  say "  remounting /usr/local read-write (it was read-only)"
+  rsh 'mount -o remount,rw /usr/local' >/dev/null 2>&1 || die "could not remount /usr/local read-write"
 fi
 
 # 7a. STS creates its pair/loop key below this directory. A missing directory
@@ -375,7 +412,7 @@ for p in "${PRESENT[@]}"; do
     chmod a+rX \"\$(dirname \"\$f\")\" 2>/dev/null || true
     after=\$(grep -o 'jibo\.com' \"\$f\" | wc -l)
     printf '  rewrote %s (%s -> %s jibo.com; mode now %s)\n' '$p' \"\$before\" \"\$after\" \"\$(ls -ln \"\$f\" | awk '{print \$1}')\"
-  " 2>&1 | tr -d '\r')"
+  " 2>&1 | tr -d '\r')" || die "failed to rewrite $p: $out"
   printf '%s\n' "$out"
   APPLIED+=("$p")
 done
@@ -405,10 +442,10 @@ if [ -r "$CLIENT_SOURCE" ]; then
       changed=\$((changed+1))
     done
     echo \"  copies to update: \$changed\"
-  " 2>&1 | tr -d '\r')"
+  " 2>&1 | tr -d '\r')" || die "failed to back up a client module: $out"
   printf '%s\n' "$out"
   # Ship the module and the CA, then place them in every copy.
-  rsh "mkdir -p /tmp/robot-client" >/dev/null 2>&1
+  rsh "mkdir -p /tmp/robot-client" >/dev/null 2>&1 || die "could not prepare robot staging directory"
   scp -o BatchMode=yes -q "$CLIENT_SOURCE" "${ROBOT}:/tmp/robot-client/node.js" || die "could not upload the client module"
   CA_SOURCE="${ROOT_PEM_SRC:-}"
   if [ -n "$CA_SOURCE" ] && [ -r "$CA_SOURCE" ]; then
@@ -431,7 +468,7 @@ if [ -r "$CLIENT_SOURCE" ]; then
     done
     rm -rf /tmp/robot-client
     printf '  installed the CA-accepting client + CA into %s copies\n' \"\$n\"
-  " 2>&1 | tr -d '\r')"
+  " 2>&1 | tr -d '\r')" || die "failed to install a client module: $out"
   printf '%s\n' "$out"
   APPLIED+=("${CLIENT_DIRS_NOTE:-client node.js + phoenix-ca.pem (all copies)}")
 else
@@ -459,7 +496,7 @@ if [ "$HAVE_ROOT" -eq 0 ]; then
       rm -f '$TMP_REMOTE'
       printf '  installed ISRG Root X1 into %s\n' '$TRUST_BUNDLE'
       printf '  plus %s/isrg-root-x1.pem and %s/${HASH}.0\n' '${TRUST_DIR}' '${TRUST_DIR}'
-    " 2>&1 | tr -d '\r')"
+    " 2>&1 | tr -d '\r')" || die "failed to install the public root: $out"
     printf '%s\n' "$out"
     APPLIED+=("${TRUST_BUNDLE}")
   fi
@@ -492,7 +529,7 @@ out="$(rsh "
     ln -sf '$TRUST_BUNDLE' '/etc/ssl/cert.pem'
     printf '  /etc/ssl/cert.pem -> %s (OpenSSL default CAfile)\n' \"\$(readlink /etc/ssl/cert.pem)\"
   fi
-" 2>&1 | tr -d '\r')"
+" 2>&1 | tr -d '\r')" || die "could not configure the default CA file: $out"
 printf '%s\n' "$out"
 APPLIED+=("/etc/ssl/cert.pem")
 
@@ -588,7 +625,7 @@ out="$(rsh "
   chmod 644 \"\$F\"
   mount -o remount,ro /usr/local
   printf '  hub -> %s:443 (jetstream override)\n' '${HUB_HOST}'
-" 2>&1 | tr -d '\r')"
+" 2>&1 | tr -d '\r')" || die "could not configure the jetstream hub: $out"
 printf '%s\n' "$out"
 APPLIED+=("/usr/local/etc/jibo-jetstream-service.json")
 
@@ -600,14 +637,15 @@ APPLIED+=("/usr/local/etc/jibo-jetstream-service.json")
 # robot even though everything above is correct. Hand them to the server's
 # adoption endpoint, which is idempotent: re-running this reports the existing
 # ids rather than forking the household.
-ADOPT_URL="https://${REGION}.${PUBLIC_SUFFIX}/api/adopt-robot"  # built from parts, never from REST_URL (which carries a trailing /)
-CREDS="$(rsh 'cat /var/jibo/credentials.json 2>/dev/null' 2>/dev/null | tr -d '\r')"
-FRIENDLY="$(rsh 'hostname 2>/dev/null' 2>/dev/null | tr -d '\r')"
-AKID="$(printf '%s' "$CREDS" | sed -n 's/.*"accessKeyId"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')"
-ASEC="$(printf '%s' "$CREDS" | sed -n 's/.*"secretAccessKey"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')"
-if [ -z "$AKID" ] || [ -z "$ASEC" ]; then
-  say "  the robot has no credentials to adopt (unpaired); skipping adoption"
+if [ "$OOBE" -eq 1 ]; then
+  say "  OOBE: no credentials were read or registered; QR setup will create and link them."
 else
+  ADOPT_URL="https://${REGION}.${PUBLIC_SUFFIX}/api/adopt-robot"  # built from parts, never from REST_URL (which carries a trailing /)
+  CREDS="$(rsh 'cat /var/jibo/credentials.json 2>/dev/null' 2>/dev/null | tr -d '\r')"
+  FRIENDLY="$(rsh 'hostname 2>/dev/null' 2>/dev/null | tr -d '\r')"
+  AKID="$(printf '%s' "$CREDS" | sed -n 's/.*"accessKeyId"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')"
+  ASEC="$(printf '%s' "$CREDS" | sed -n 's/.*"secretAccessKey"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')"
+  [ -n "$AKID" ] && [ -n "$ASEC" ] || die "robot credentials are incomplete; no account adoption was attempted"
   # The secret is passed on stdin, never on a command line or in the log.
   if [ -n "$CLAIM_CODE" ]; then
     ADOPT_BODY="$(printf '{"accessKeyId":"%s","secretAccessKey":"%s","friendlyId":"%s","claimCode":"%s"}' "$AKID" "$ASEC" "$FRIENDLY" "$CLAIM_CODE")"
@@ -639,6 +677,13 @@ else
   esac
 fi
 
+# An SSH mod often boots a still-unprovisioned robot in int-developer mode.
+# Set its *next boot* to the real setup mode only after the repoint is complete.
+if [ "$OOBE" -eq 1 ]; then
+  rsh 'jibo-setmode oobe' >/dev/null 2>&1 || die "could not set the next boot to OOBE"
+  say "  next boot mode set to OOBE (no reboot was triggered)"
+fi
+
 # 7d. Put / back the way it was found.
 restore_root_ro
 say "  / restored: $(rsh 'mount | sed -n "/ on \/ /p" | head -1' 2>/dev/null | tr -d '\r')"
@@ -653,7 +698,7 @@ rsh "
   \"robot\": \"${HOSTNAME_}\",
   \"region\": \"${REGION}\",
   \"rest_url\": \"${REST_URL}\",
-  \"mode\": \"minimal-ota\",
+  \"mode\": \"$(if [ "$OOBE" -eq 1 ]; then printf oobe; else printf paired; fi)\",
   \"patched\": \"$(printf '%s ' "${APPLIED[@]}")\",
   \"trust_root\": \"${ROOT_SHA}\",
   \"hosts_intercept\": false,
@@ -661,32 +706,48 @@ rsh "
 }
 JSON
   echo \"  receipt written to ${RECEIPT}\"
-" 2>&1 | tr -d '\r'
+" 2>&1 | tr -d '\r' || die "could not write the robot repoint receipt"
 
 # ── 8. Verify ───────────────────────────────────────────────────────────────
 step "Verify"
 say "  jibo.com references left in the patched files:"
-for p in "${APPLIED[@]}"; do
+for p in "${PRESENT[@]}"; do
   case "$p" in *region_config.json)
     n="$(rsh "grep -c 'jibo\.com' '$p' 2>/dev/null" 2>/dev/null | tr -d '\r')"
-    printf '    %-6s %s\n' "${n:-?}" "$p" ;;
+    printf '    %-6s %s\n' "${n:-?}" "$p"
+    [ "$n" = 0 ] || die "the robot still has an old-cloud endpoint in $p" ;;
   esac
+done
+CLIENT_HASH="$(sha256_of "$CLIENT_SOURCE")"
+for p in "${PRESENT[@]}"; do
+  client="${p%/lib/region_config.json}/lib/http/node.js"
+  installed_hash="$(rsh "sha256sum '$client' 2>/dev/null" 2>/dev/null | awk '{print $1}')"
+  [ "$installed_hash" = "$CLIENT_HASH" ] || die "the CA-accepting client was not installed at $client"
 done
 
 if [ "$VERIFY" -eq 1 ]; then
-  say "  asking the robot itself to validate the server's certificate:"
-  out="$(rsh "echo | openssl s_client -connect ${REGION}.${PUBLIC_SUFFIX}:443 -servername ${REGION}.${PUBLIC_SUFFIX} 2>&1 | grep -E 'Verify return code|subject=|issuer=' | head -4" 2>&1 | tr -d '\r')"
-  printf '%s\n' "$out"
-  case "$out" in
-    *"Verify return code: 0"*) say "  -> the robot validates the server certificate." ;;
-    *) say "  -> NOT validated. Check the trust-store step above before expecting an update." ;;
-  esac
+  say "  asking the robot itself to validate TLS to ${REST_URL}:"
+  # Stock firmware has curl but no openssl CLI. Do not use -k: a 404 from the
+  # Classic front door still proves DNS, TLS chain, and hostname verification.
+  out="$(rsh "curl --silent --show-error --max-time 15 --cacert '$TRUST_BUNDLE' -o /dev/null -w '%{http_code}' '$REST_URL'" 2>&1 | tr -d '\r')" \
+    || die "the robot could not validate the public server TLS connection: $out"
+  say "  validated TLS; HTTP status ${out}"
 fi
 
 step "Done"
-say "  Next: leave the robot alone and let it poll, or force the check by cycling"
-say "  the robot's mode. It should be offered the 13.0.1 jibo.io packages and, on"
-say "  applying them, come up talking to ${REST_URL} with no hosts intercept and no"
-say "  private CA in the path."
+if [ "$OOBE" -eq 1 ]; then
+  rsh 'test "$(jibo-getmode 2>/dev/null)" = oobe && test ! -s /var/jibo/credentials.json' \
+    || die "OOBE state changed unexpectedly; do not continue to QR setup yet"
+  say "  OOBE mode and absent credentials verified. No account claim was made."
+  say "  Reboot when ready, then use this site's QR setup flow to create and link"
+  say "  a fresh robot account. Do not use an already-set-up claim code."
+else
+  say "  Next: reboot or let the robot check for the currently published jibo.io OTA"
+  say "  packages. Its existing credentials remain in place for adoption."
+fi
 say ""
-say "  Revert with: $0 --robot $ROBOT --revert"
+if [ "$OOBE" -eq 1 ]; then
+  say "  Restore endpoint configs only with: $0 --robot $ROBOT --oobe --revert"
+else
+  say "  Restore endpoint configs only with: $0 --robot $ROBOT --revert"
+fi
