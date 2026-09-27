@@ -6,20 +6,15 @@
 //
 // Leaflet is vendored (portal/vendor/) rather than loaded from a CDN: the portal
 // runs on a LAN next to the robot and should render without reaching an outside
-// host. Map TILES and the address search do need the internet, so every failure
-// path here falls back to the manual latitude/longitude fields rather than
-// leaving the page broken — a household with no outbound route can still set a
-// commute, just the tedious way.
+// host. Map TILES need the internet. Address search is an explicit, authenticated
+// request through Account, where all users share one upstream rate limit and
+// cache. Every failure path keeps the manual latitude/longitude fields usable.
 //
 // Markers are Leaflet `divIcon`s (styled in CSS), so no image assets are needed
 // and the vendored directory stays two files.
 
 const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 const TILE_ATTRIB = '© OpenStreetMap contributors';
-const NOMINATIM = 'https://nominatim.openstreetmap.org/search';
-// Nominatim asks every caller to identify itself. Being honest about who we are
-// is the condition of using it.
-const USER_AGENT_REFERRER = 'Phoenix Jibo portal';
 const DEFAULT_VIEW = { lat: 42.3601, lng: -71.0589, zoom: 11 }; // Jibo was built in Boston.
 
 let leafletPromise = null;
@@ -53,15 +48,14 @@ function formatPoint(point) {
 }
 
 async function geocode(query) {
-  const url = `${NOMINATIM}?format=jsonv2&limit=5&q=${encodeURIComponent(query)}`;
-  const res = await fetch(url, { headers: { Accept: 'application/json' }, referrerPolicy: 'no-referrer-when-downgrade' });
-  if (!res.ok) throw new Error(`search failed (${res.status})`);
-  const rows = await res.json();
-  return rows.map((row) => ({
-    label: row.display_name,
-    lat: Number(row.lat),
-    lng: Number(row.lon),
-  }));
+  const res = await fetch('/api/address-search', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ query }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error || 'Address search is unavailable right now.');
+  return body.results || [];
 }
 
 /**
@@ -111,16 +105,30 @@ export function createLocationPicker({ places, onChange }) {
   search.type = 'search';
   search.className = 'map-search';
   search.placeholder = 'Search an address or place…';
-  search.setAttribute('aria-label', 'Search for a place');
+  search.setAttribute('aria-label', 'Address or place');
+  const searchButton = document.createElement('button');
+  searchButton.type = 'button';
+  searchButton.className = 'btn map-search-button';
+  searchButton.textContent = 'Search';
   const locate = document.createElement('button');
   locate.type = 'button';
   locate.className = 'ghost map-locate';
   locate.textContent = 'Use my location';
-  tools.append(search, locate);
+  tools.append(search, searchButton, locate);
 
   const results = document.createElement('div');
   results.className = 'map-results';
   results.hidden = true;
+  results.setAttribute('aria-live', 'polite');
+
+  const searchCredit = document.createElement('p');
+  searchCredit.className = 'map-search-credit';
+  const creditLink = document.createElement('a');
+  creditLink.href = 'https://www.openstreetmap.org/copyright';
+  creditLink.target = '_blank';
+  creditLink.rel = 'noopener noreferrer';
+  creditLink.textContent = 'OpenStreetMap contributors';
+  searchCredit.append('Press Search to look up the address with OpenStreetMap. Results © ', creditLink);
 
   const canvas = document.createElement('div');
   canvas.className = 'map-canvas';
@@ -161,7 +169,7 @@ export function createLocationPicker({ places, onChange }) {
   }
   manual.appendChild(manualGrid);
 
-  el.append(tabs, tools, results, canvas, hint, manual);
+  el.append(tabs, tools, results, searchCredit, canvas, hint, manual);
 
   function setActive(key) {
     active = key;
@@ -278,50 +286,74 @@ export function createLocationPicker({ places, onChange }) {
     );
   });
 
-  let searchTimer = null;
+  let searchSequence = 0;
+  let searching = false;
   search.addEventListener('input', () => {
-    clearTimeout(searchTimer);
-    const query = search.value.trim();
-    if (query.length < 3) { results.hidden = true; results.replaceChildren(); return; }
-    // Nominatim's usage policy is at most one request a second; debounce well
-    // clear of it rather than firing on every keystroke.
-    searchTimer = setTimeout(async () => {
-      try {
-        const rows = await geocode(query);
-        results.replaceChildren();
-        if (!rows.length) {
-          const empty = document.createElement('p');
-          empty.className = 'map-result-empty';
-          empty.textContent = 'Nothing found.';
-          results.appendChild(empty);
-        }
-        for (const row of rows) {
-          const option = document.createElement('button');
-          option.type = 'button';
-          option.className = 'map-result';
-          option.textContent = row.label;
-          option.addEventListener('click', () => {
-            const marker = markers.get(active);
-            if (marker) marker.setOpacity(1);
-            place(active, row.lat, row.lng);
-            if (map) map.setView([row.lat, row.lng], 15);
-            results.hidden = true;
-            search.value = '';
-            hint.textContent = `${labelOf(active)} set to ${row.label.split(',')[0]}.`;
-          });
-          results.appendChild(option);
-        }
-        results.hidden = false;
-      } catch {
-        results.replaceChildren();
-        const failed = document.createElement('p');
-        failed.className = 'map-result-empty';
-        failed.textContent = 'Address search is unavailable offline.';
-        results.appendChild(failed);
-        results.hidden = false;
-      }
-    }, 450);
+    searchSequence += 1;
+    results.hidden = true;
+    results.replaceChildren();
   });
+  search.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter') return;
+    event.preventDefault(); // this picker lives inside the report settings form
+    void runSearch();
+  });
+  searchButton.addEventListener('click', () => { void runSearch(); });
+
+  async function runSearch() {
+    if (searching) return;
+    const query = search.value.trim();
+    if (query.length < 3) {
+      hint.textContent = 'Enter at least three characters, then press Search.';
+      search.focus();
+      return;
+    }
+    const sequence = ++searchSequence;
+    searching = true;
+    searchButton.disabled = true;
+    searchButton.textContent = 'Searching…';
+    results.hidden = true;
+    try {
+      const rows = await geocode(query);
+      if (sequence !== searchSequence) return;
+      results.replaceChildren();
+      if (!rows.length) {
+        const empty = document.createElement('p');
+        empty.className = 'map-result-empty';
+        empty.textContent = 'Nothing found. Try a fuller address or place name.';
+        results.appendChild(empty);
+      }
+      for (const row of rows) {
+        const option = document.createElement('button');
+        option.type = 'button';
+        option.className = 'map-result';
+        option.textContent = row.label;
+        option.addEventListener('click', () => {
+          const marker = markers.get(active);
+          if (marker) marker.setOpacity(1);
+          place(active, row.lat, row.lng);
+          if (map) map.setView([row.lat, row.lng], 15);
+          results.hidden = true;
+          search.value = '';
+          hint.textContent = `${labelOf(active)} set to ${row.label.split(',')[0]}.`;
+        });
+        results.appendChild(option);
+      }
+      results.hidden = false;
+    } catch (error) {
+      if (sequence !== searchSequence) return;
+      results.replaceChildren();
+      const failed = document.createElement('p');
+      failed.className = 'map-result-empty';
+      failed.textContent = error.message || 'Address search is unavailable right now.';
+      results.appendChild(failed);
+      results.hidden = false;
+    } finally {
+      searching = false;
+      searchButton.disabled = false;
+      searchButton.textContent = 'Search';
+    }
+  }
 
   return {
     element: el,

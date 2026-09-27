@@ -333,6 +333,7 @@ export function createAccountService({
   webPushService,
   webPushConfig,
   webPushSender,
+  addressSearchService,
 } = {}) {
   // The source Settings controller is always the production algorithm. Explicit provider
   // injection is reserved for tests; normal construction uses Phoenix storage/NET seams.
@@ -420,6 +421,7 @@ export function createAccountService({
       requireEmailVerification: portalRequireEmailVerification,
       repointHost,
       webPush: effectiveWebPush,
+      addressSearchService,
     }), // REST /api/* (sessions)
     ...settingsPeerRoutes(store), // internal Account client seams used by source Settings
     ...backupPeerRoutes(store),   // internal Account client seam used by source Backup (getLoop)

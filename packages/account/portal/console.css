@@ -746,7 +746,10 @@ body.console {
 
 .map-tools { display: flex; gap: .5rem; flex-wrap: wrap; }
 .map-search { flex: 1 1 240px; }
+.map-search-button { flex: 0 0 auto; }
 .map-locate { flex: 0 0 auto; white-space: nowrap; }
+.map-search-credit { margin: -.4rem 0 0; font-size: var(--t-xs); color: var(--muted); }
+.map-search-credit a { color: inherit; }
 /* map.js emits `.ghost` for its own buttons; give it the shared ghost look. */
 button.ghost {
   padding: .55rem .9rem;
@@ -772,6 +775,7 @@ button.ghost:hover { background: var(--panel-2); border-color: var(--accent-line
   padding: .3rem;
   background: var(--panel-2);
 }
+.map-results[hidden] { display: none; }
 .map-result {
   text-align: left;
   background: transparent;

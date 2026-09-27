@@ -56,6 +56,7 @@ import { portalMediaRoutes } from './portal/media.js';
 import { portalPeopleRoutes } from './portal/people.js';
 import { portalMessagingRoutes } from './portal/messaging.js';
 import { portalSystemRoutes } from './portal/system.js';
+import { portalAddressSearchRoutes } from './portal/addressSearch.js';
 import { adminConfigRoutes } from './admin/configRoutes.js';
 import { adminOpsRoutes } from './admin/adminRoutes.js';
 import { adminLogRoutes } from './admin/logRoutes.js';
@@ -590,6 +591,7 @@ export function portalRoutes(store, options = {}) {
     ...portalPeopleRoutes(store, portal),
     ...portalMessagingRoutes(store, portal),
     ...portalSystemRoutes(store, portal),
+    ...portalAddressSearchRoutes(store, options.addressSearchService),
 
     // The admin surface's configuration and operations routes. Each re-checks
     // requireAdmin itself, exactly as the routes above do — being mounted here

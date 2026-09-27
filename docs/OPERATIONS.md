@@ -249,6 +249,19 @@ robot's permanent `accessKeyId`/`secretAccessKey`, which the robot writes to
 (The QR payload and encoder are a
 from-scratch reimplementation of the robot's `oobe-config` format — see `packages/account/portal/qr.js`.)
 
+The **Personal report → Commute** map supports pin placement, browser-location
+permission, and address search. Address search runs only when the user presses
+**Search** or Enter; typing alone makes no network request. Account authenticates
+the request, caches results for 24 hours, limits each account to 12 searches per
+minute, and serializes provider requests at least 1.1 seconds apart per Account
+process. It sends only the typed query to OpenStreetMap's public Nominatim API;
+the account identity is not sent. Manual coordinates remain available if search
+is offline. Keep only **one Account process** with this in-memory limiter. If you
+scale to multiple Account replicas, first use a shared limiter/cache or another
+geocoding provider: Nominatim's one-request-per-second limit applies to the
+whole application, not separately to each browser or replica. Its public API
+also prohibits autocomplete, so do not restore the old search-as-you-type path.
+
 The OOBE setup call is unsigned, so a QR token by itself does not prove ownership
 of an already-registered robot. Phoenix rejects a robot ID linked to another
 account, as well as an existing orphaned robot account with no live same-owner
