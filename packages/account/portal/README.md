@@ -69,12 +69,23 @@ Every visible string on the public site, the logo and the accent colour live in
 ```
 
 Keys map to `data-brand="hero.title"` attributes in the HTML, and repeating lists
-(`features.items`, `faq.items`, `status.metrics`, `footer.columns`, `install.steps`,
-`pipeline.stages`) are rendered from the same config by `site.js`.
+(`features.items`, `faq.items`, `status.metrics`, `status.caveats`, `footer.columns`,
+`install.steps`, `pipeline.stages`) are rendered from the same config with the markup in
+`site-render.js`. An install step may set `"prompt": ""` and `"copy": false` for something to
+say to the robot rather than type. Optional slots (`nav.guide`, `install.cta`) stay hidden
+unless an instance sets them.
 
-**The HTML carries every default inline.** `brand.js` only overwrites what an override
-actually sets, so the pages are complete and readable before any script runs — and with
-JavaScript off entirely.
+**The HTML carries every default inline, and the account service renders the instance's
+branding into it before it is served** (`src/brandRender.js`): text slots, links, lists,
+logo, accent colour, and the title, description and social tags. Link previews, crawlers
+and visitors without JavaScript therefore see the instance's own page, and nothing flashes
+from the project default to the instance copy. `brand.js` and `site.js` apply the same
+config again in the browser — a no-op over a rendered page, and the whole mechanism when the
+files are served statically by a reverse proxy instead.
+
+The account service also answers a mistyped page address with `404.html` (a JSON error
+envelope is kept for API clients and anything that does not ask for HTML), and generates
+`sitemap.xml` with absolute locations from `PHOENIX_SITE_URL` plus the operator's own pages.
 
 To customise without editing a file inside the checkout, point the account service at your own
 JSON. The following is a configuration example; it was not executed in this documentation update.
@@ -93,6 +104,8 @@ in `deploy/nginx/phoenix.conf`).
 |---|---|
 | `theme.css` | Design tokens, reset, and the primitives both surfaces share |
 | `site.css` / `site.js` | The public site and legal pages |
+| `site-render.js` | Markup for the branded lists, shared by the browser and the account service |
+| `../src/brandRender.js` | Renders the merged branding into each page the account service serves |
 | `console.css` / `app.js` | The signed-in console |
 | `brand.js` | Branding loader and the theme switch, shared by both |
 | `../src/admin/configCatalog.js` | Every settable environment variable: type, default, help, which services read it |

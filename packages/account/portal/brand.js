@@ -90,18 +90,29 @@ export function applyText(root, brand) {
  * re-skin the product without anyone having to understand the token set.
  */
 export function applyPalette(brand) {
-  if (!brand) return;
   const root = document.documentElement;
+  for (const [property, value] of paletteDeclarations(brand)) root.style.setProperty(property, value);
+}
+
+/**
+ * The custom properties an operator's colours set, as [property, value]
+ * pairs. Pure, so the account service can put the same declarations on the
+ * served <html> element and the page never paints in the default accent first.
+ */
+export function paletteDeclarations(brand) {
+  const out = [];
+  if (!brand) return out;
   const hex = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
   if (typeof brand.accent === 'string' && hex.test(brand.accent)) {
-    root.style.setProperty('--accent', brand.accent);
-    root.style.setProperty('--accent-soft', withAlpha(brand.accent, 0.13));
-    root.style.setProperty('--accent-line', withAlpha(brand.accent, 0.30));
-    root.style.setProperty('--accent-glow', withAlpha(brand.accent, 0.22));
+    out.push(['--accent', brand.accent],
+      ['--accent-soft', withAlpha(brand.accent, 0.13)],
+      ['--accent-line', withAlpha(brand.accent, 0.30)],
+      ['--accent-glow', withAlpha(brand.accent, 0.22)]);
   }
   if (typeof brand.accentWarm === 'string' && hex.test(brand.accentWarm)) {
-    root.style.setProperty('--accent-warm', brand.accentWarm);
+    out.push(['--accent-warm', brand.accentWarm]);
   }
+  return out;
 }
 
 /** #rgb / #rrggbb to rgba(), so one configured hex can drive the soft variants. */
@@ -152,7 +163,11 @@ export function applyMeta(brand) {
       el.setAttribute('content', name);
     }
   }
-  if (typeof brand.description === 'string' && brand.description) {
+  // The site description belongs to the page that describes the site; every
+  // other page (terms, privacy, the console) keeps its own. A page opts in with
+  // <html data-brand-description>.
+  if (typeof brand.description === 'string' && brand.description
+    && document.documentElement.hasAttribute('data-brand-description')) {
     for (const sel of ['meta[name="description"]', 'meta[property="og:description"]',
       'meta[name="twitter:description"]']) {
       const el = document.querySelector(sel);

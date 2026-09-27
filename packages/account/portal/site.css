@@ -124,12 +124,18 @@
    ========================================================================== */
 
 .section { padding-block: var(--section-y); position: relative; }
-.section + .section { padding-top: 0; }
+/* Two plain sections in a row would stack both paddings into one oversized
+   gap, so the second drops its top. A shaded section is a band of its own:
+   it and the section after it both keep their full padding (the section after
+   one used to start flush against its border). */
+.section:not(.section-alt) + .section:not(.section-alt) { padding-top: 0; }
 .section-alt {
   background: var(--bg-soft);
   border-block: 1px solid var(--border-soft);
-  padding-top: var(--section-y) !important;
 }
+/* The footer brings its own top margin; the last section adding its bottom
+   padding as well left twice the usual gap above the footer. */
+main > .section:last-child { padding-bottom: 0; }
 
 .section-head {
   max-width: 660px;
@@ -142,6 +148,9 @@
   margin-block: .9rem .85rem;
 }
 .section-head p { font-size: var(--t-lg); line-height: 1.6; color: var(--fg-dim); }
+/* A hint in a section head stays a hint; the lead-paragraph size above would
+   otherwise win on specificity. */
+.section-head p.field-hint { font-size: var(--t-sm); color: var(--muted); }
 
 /* ==========================================================================
    Hero
@@ -627,6 +636,8 @@
 }
 @media (min-width: 900px) { .install-grid { grid-template-columns: minmax(0, .85fr) minmax(0, 1fr); } }
 
+.install-cta { margin-top: 1.5rem; }
+
 .terminal {
   border-radius: var(--radius);
   background: var(--bg-soft);
@@ -649,7 +660,7 @@
   font-size: var(--t-xs);
   color: var(--muted);
 }
-.terminal-body { padding: 1.1rem; display: grid; gap: 1.1rem; }
+.terminal-body { padding: 1.1rem; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.1rem; }
 
 .cmd-step .cmd-label {
   font-size: var(--t-xs);
@@ -677,13 +688,15 @@
 .cmd-line .prompt { color: var(--accent); font-family: var(--font-mono); font-size: var(--t-sm); flex: none; }
 .cmd-line code {
   flex: 1;
+  /* Neither the grid row nor this flex item may grow past the card, or a long
+     command pushes the copy button out of it. The command wraps instead of
+     scrolling behind a hidden scrollbar; the copy button copies it whole. */
+  min-width: 0;
   font-size: var(--t-sm);
   color: var(--fg-dim);
-  overflow-x: auto;
-  white-space: pre;
-  scrollbar-width: none;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
-.cmd-line code::-webkit-scrollbar { display: none; }
 .copy-btn {
   flex: none;
   width: 26px; height: 26px;
@@ -972,5 +985,7 @@
   line-height: 1;
 }
 .center-page h1 { font-size: var(--t-2xl); margin-block: 1.25rem .9rem; }
-.center-page p { color: var(--muted); max-width: 46ch; margin-inline: auto; }
+/* Not the big code itself: it is a <p> too, and a muted colour here would paint
+   over its gradient text. */
+.center-page p:not(.code) { color: var(--muted); max-width: 46ch; margin-inline: auto; }
 .center-page .btn { margin-top: 2rem; }

@@ -18,7 +18,7 @@ import { calendarPortalRoutes } from './calendarRoutes.js';
 import { backupPeerRoutes } from './backupPeerRoutes.js';
 import { keyPeerRoutes } from './keyPeerRoutes.js';
 import { mediaPeerRoutes } from './mediaPeerRoutes.js';
-import { staticRoutes } from './static.js';
+import { portalNotFound, staticRoutes } from './static.js';
 import { createSettingsProviders } from './settingsProviders.js';
 import { MemberPhotoStorage } from './memberPhotoStorage.js';
 import { pipeline } from 'node:stream/promises';
@@ -447,6 +447,9 @@ export function createAccountService({
       stsProvider: lpsStsProvider === undefined
         ? createLpsStsProvider({ config: loopConfig }) : lpsStsProvider,
     }), // AWS-JSON POST / (OOBE ops + Update_* proxy to OTA + OAuthClients/LPS)
+    // Must stay last: a browser that asks for a page that does not exist gets
+    // the site's 404 page; every other unmatched request keeps the JSON envelope.
+    'GET *': portalNotFound(),
   };
   const service = createService({
     name: 'account',

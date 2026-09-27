@@ -111,7 +111,7 @@
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true">
         <path d="M12 7v5l3 2m6-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" stroke="currentColor"
               stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
-      Last updated <span data-brand="legal.updated">18 September 2026</span>
+      Last updated <span data-brand="legal.securityUpdated">27 September 2026</span>
     </p>
   </div>
 </div>
@@ -162,8 +162,9 @@
       <li><strong>The console</strong> talks to the services it fronts using the signed-in account's
         own keys, rather than a shared administrative credential, so a session can only reach what
         that account could reach.</li>
-      <li><strong>The admin surface</strong> is gated separately by a password held in the
-        instance's environment configuration, not by an ordinary account.</li>
+      <li><strong>The admin surface</strong> is available only to accounts an operator has marked
+        as administrators. The server checks that mark on every administrative request, so revoking
+        it takes effect immediately. There is no shared admin password.</li>
     </ul>
 
     <h2 id="deploy">3. Deploying it safely</h2>
@@ -172,8 +173,9 @@
       <li>Terminate TLS in front of the service. A reverse-proxy configuration is included with the
         source; use a real certificate rather than a self-signed one wherever the robot will accept
         it.</li>
-      <li>Set a strong, unique admin password in the environment configuration, and do not reuse a
-        password from anywhere else.</li>
+      <li>Make administrators of only the accounts that need it, using the Administrators page or
+        <code>scripts/portal-grant-admin.mjs</code>, and give each of them a strong, unique password.
+        Keep a second administrator so one lost account cannot lock you out.</li>
       <li>Keep the environment file, the data directory and any credential material readable only by
         the account the service runs as.</li>
       <li>Run the service as an unprivileged user, not as root.</li>
@@ -188,7 +190,8 @@
     <ul>
       <li>Put a TLS-terminating reverse proxy in front of it and never expose the service port
         directly.</li>
-      <li>Restrict the admin surface by source address at the proxy, in addition to its password.</li>
+      <li>Restrict the admin surface by source address at the proxy, in addition to its account
+        check.</li>
       <li>Consider putting the whole console behind a VPN or a private tunnel instead. For a
         household service this is both easier and stronger than hardening a public endpoint.</li>
       <li>Rate-limit authentication endpoints at the proxy.</li>
@@ -200,8 +203,8 @@
     <p>Stated plainly, because a security page that only lists strengths is not a security page:</p>
     <ul>
       <li>Phoenix has not undergone an independent security audit or penetration test.</li>
-      <li>There is no built-in rate limiting or brute-force lockout on sign-in; that belongs at your
-        proxy.</li>
+      <li>Sign-in allows ten attempts per address and email address in fifteen minutes, but there is
+        no account lockout. Rate-limit at your proxy as well.</li>
       <li>There is no multi-factor authentication.</li>
       <li>Some compatibility surfaces reproduce the behaviour of a service designed around 2016, and
         those behaviours cannot be modernised without breaking the robot that depends on them.</li>
@@ -215,7 +218,8 @@
       small enough to reason about.</p>
     <p>Front-end libraries are vendored into the repository and served from your own instance rather
       than loaded from a CDN, so no outside host can inject code into a page that has access to your
-      session. This website loads no third-party scripts, styles or fonts at all.</p>
+      session. <span data-brand="legal.thirdPartyAssets">This website loads no third-party scripts,
+      styles or fonts at all.</span></p>
 
     <h2 id="report">7. Reporting a vulnerability</h2>
     <p>If you believe you have found a security problem, please report it <strong>privately

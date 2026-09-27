@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-<html lang="en" data-title-template="%s — the cloud your robot can talk to again">
+<html lang="en" data-title-template="%s — the cloud your robot can talk to again" data-brand-description>
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Phoenix — the cloud your robot can talk to again</title>
 <meta name="color-scheme" content="dark light" />
-<meta property="og:site_name" content="Phoenix" />
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
 <link rel="manifest" href="/manifest.webmanifest" />
 <link rel="stylesheet" href="/theme.css" />
@@ -398,10 +397,10 @@
     <div class="metrics" data-list="metrics" data-reveal-group>
       <article class="metric" data-reveal>
         <div class="metric-value">
-          <span class="grad">20,477</span><span class="metric-of">of 20,528</span>
+          <span class="grad">20,479</span><span class="metric-of">of 20,528</span>
         </div>
         <p class="metric-label">captured requests where the parser agrees with the original</p>
-        <p class="metric-detail">51 residual differences remain tracked and open.</p>
+        <p class="metric-detail">The other 49 are known tie-breaks, recorded as divergence N1. The opt-in compiled parser matches all 20,528.</p>
       </article>
       <article class="metric" data-reveal>
         <div class="metric-value">
@@ -412,7 +411,7 @@
       </article>
       <article class="metric" data-reveal>
         <div class="metric-value">
-          <span class="grad">77</span><span class="metric-of">of 81</span>
+          <span class="grad">77</span><span class="metric-of">of 83</span>
         </div>
         <p class="metric-label">reviewed checklist tasks verified with evidence</p>
         <p class="metric-detail">Counts reviewed tasks, not working features or percent-complete software.</p>
@@ -429,8 +428,7 @@
       </h3>
       <ul data-list="caveats">
         <li>1:1 compatibility with the original service is not yet verified, and is not claimed.</li>
-        <li>No robot has yet completed a full over-the-air upgrade through Phoenix.</li>
-        <li>Notification delivery over the native socket is implemented but unverified.</li>
+        <li>Not every skill, firmware version and real-microphone journey has been accepted on hardware yet.</li>
         <li>Several surfaces in the console are read-only, and are labelled as such.</li>
       </ul>
     </div>
@@ -453,18 +451,22 @@
         Behind a reverse proxy the console is static files and /api is proxied to the account
         service. A worked nginx configuration ships in deploy/nginx/.
       </p>
+      <!-- Optional: an instance that publishes a setup guide can link it here
+           (install.cta, to links.guide). The project itself has no guide page. -->
+      <a class="btn btn-primary install-cta" href="/app" data-brand="install.cta"
+         data-brand-attr="href:links.guide" data-brand-optional hidden></a>
     </div>
 
     <div class="terminal" data-reveal>
       <div class="terminal-bar" aria-hidden="true">
-        <i></i><i></i><i></i><span>phoenix — install</span>
+        <i></i><i></i><i></i><span data-brand="install.terminalTitle">phoenix — install</span>
       </div>
       <div class="terminal-body" data-list="steps">
         <div class="cmd-step">
           <div class="cmd-label">Clone and install</div>
           <div class="cmd-line">
             <span class="prompt">$</span>
-            <code>git clone &lt;your-phoenix-remote&gt; &amp;&amp; cd phoenix &amp;&amp; npm install</code>
+            <code>git clone https://github.com/Paskooter/phoenix.git &amp;&amp; cd phoenix &amp;&amp; npm install</code>
             <button class="copy-btn" type="button" aria-label="Copy command">
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true">
                 <path d="M9 9h10v12H9zM5 15V3h10v2" stroke="currentColor" stroke-width="1.7"
@@ -474,10 +476,10 @@
           </div>
         </div>
         <div class="cmd-step">
-          <div class="cmd-label">Start the account service</div>
+          <div class="cmd-label">Start every service</div>
           <div class="cmd-line">
             <span class="prompt">$</span>
-            <code>npm run start:account</code>
+            <code>bash scripts/run-compose-stack.sh</code>
             <button class="copy-btn" type="button" aria-label="Copy command">
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true">
                 <path d="M9 9h10v12H9zM5 15V3h10v2" stroke="currentColor" stroke-width="1.7"
@@ -490,7 +492,7 @@
           <div class="cmd-label">Open the console</div>
           <div class="cmd-line">
             <span class="prompt">$</span>
-            <code>http://localhost:7016/app</code>
+            <code>http://localhost:9011/app</code>
             <button class="copy-btn" type="button" aria-label="Copy command">
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true">
                 <path d="M9 9h10v12H9zM5 15V3h10v2" stroke="currentColor" stroke-width="1.7"
@@ -597,8 +599,8 @@
                   stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </a>
-        <a class="btn btn-ghost btn-lg" href="#how" data-brand-attr="href:links.ctaSecondary"
-           data-brand="cta.secondary">Read the documentation</a>
+        <a class="btn btn-ghost btn-lg" href="https://github.com/Paskooter/phoenix#readme"
+           data-brand-attr="href:links.ctaSecondary" data-brand="cta.secondary">Read the documentation</a>
       </div>
     </div>
   </div>

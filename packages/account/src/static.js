@@ -11,6 +11,7 @@
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { dirname, join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { renderBrandedHtml } from './brandRender.js';
 
 const SOURCE_DIR = dirname(fileURLToPath(import.meta.url));
 const PORTAL_DIR = join(SOURCE_DIR, '../portal');
@@ -68,15 +69,25 @@ const MIME = {
 /** Text types get placeholder substitution; binaries are served byte-for-byte. */
 const SUBSTITUTED = new Set(['.html', '.xml', '.webmanifest', '.txt']);
 
-function serve(file, type) {
+/**
+ * Prepare a file's bytes for serving: placeholders for text types, and the
+ * instance's branding rendered into HTML pages (see brandRender.js), so what
+ * leaves the server is the instance's page rather than the project default.
+ */
+function prepare(buffer, ext, branding) {
+  if (!SUBSTITUTED.has(ext)) return buffer;
+  const substituted = applyPlaceholders(buffer);
+  if (ext !== '.html' || !branding) return substituted;
+  return Buffer.from(renderBrandedHtml(substituted.toString('utf8'), branding()));
+}
+
+function serve(file, type, branding) {
   const path = join(PORTAL_DIR, file);
   const contentType = type || MIME[extname(file)] || 'application/octet-stream';
-  const substitute = SUBSTITUTED.has(extname(file));
   let cached = null;
   return ({ res }) => {
     if (cached === null) {
-      cached = existsSync(path) ? readFileSync(path) : false;
-      if (cached !== false && substitute) cached = applyPlaceholders(cached);
+      cached = existsSync(path) ? prepare(readFileSync(path), extname(file), branding) : false;
     }
     if (cached === false) { res.writeHead(404, { 'content-type': 'text/plain' }); return void res.end('not found'); }
     res.writeHead(200, {
@@ -98,14 +109,12 @@ function serve(file, type) {
  * substituted exactly as for built-in pages, so an operator page gets the same
  * `%SITE_URL%` treatment.
  */
-function serveExternal(absolutePath, type, extraHeaders = {}) {
+function serveExternal(absolutePath, type, extraHeaders = {}, branding = null) {
   const contentType = type || MIME[extname(absolutePath)] || 'application/octet-stream';
-  const substitute = SUBSTITUTED.has(extname(absolutePath));
   let cached = null;
   return ({ res }) => {
     if (cached === null) {
-      cached = existsSync(absolutePath) ? readFileSync(absolutePath) : false;
-      if (cached !== false && substitute) cached = applyPlaceholders(cached);
+      cached = existsSync(absolutePath) ? prepare(readFileSync(absolutePath), extname(absolutePath), branding) : false;
     }
     if (cached === false) { res.writeHead(404, { 'content-type': 'text/plain' }); return void res.end('not found'); }
     res.writeHead(200, {
@@ -127,10 +136,10 @@ function serveExternal(absolutePath, type, extraHeaders = {}) {
  * its keys are merged over the defaults, so a partial file only has to name what
  * it changes.
  */
-function serveBranding() {
+function serveBranding(branding) {
   let cached = null;
   return ({ res }) => {
-    if (cached === null) cached = buildBranding();
+    if (cached === null) cached = Buffer.from(JSON.stringify(branding()));
     res.writeHead(200, {
       'content-type': MIME['.json'],
       'cache-control': 'no-cache',
@@ -143,15 +152,55 @@ function serveBranding() {
 function buildBranding() {
   const defaults = readJson(join(PORTAL_DIR, 'branding.json')) || {};
   const overridePath = process.env.PHOENIX_BRANDING_FILE;
-  if (!overridePath) return Buffer.from(JSON.stringify(defaults));
+  if (!overridePath) return defaults;
   const override = readJson(overridePath);
   if (!override) {
     // A configured-but-unreadable override is an operator mistake worth saying
     // out loud, rather than silently serving the defaults.
     console.warn(`[portal] PHOENIX_BRANDING_FILE is set but could not be read: ${overridePath}`);
-    return Buffer.from(JSON.stringify(defaults));
+    return defaults;
   }
-  return Buffer.from(JSON.stringify(deepMerge(defaults, override)));
+  return deepMerge(defaults, override);
+}
+
+/** The merged branding, built once on first use and shared by every route. */
+function lazyBranding() {
+  let merged = null;
+  return () => {
+    if (merged === null) merged = buildBranding();
+    return merged;
+  };
+}
+
+/**
+ * The sitemap, with the operator's own pages added. The shipped file lists the
+ * project's public pages; an instance's pages (a setup guide, say) belong in it
+ * too, or a crawler never learns they exist. Locations are made absolute from
+ * PHOENIX_SITE_URL, as the sitemap protocol requires, when that is set.
+ */
+function serveSitemap(operatorPages) {
+  let cached = null;
+  return ({ res }) => {
+    if (cached === null) {
+      let xml = applyPlaceholders(readFileSync(join(PORTAL_DIR, 'sitemap.xml'))).toString('utf8');
+      const origin = siteUrl();
+      const listed = new Set([...xml.matchAll(/<loc>([^<]*)<\/loc>/g)]
+        .map((m) => new URL(m[1], 'http://localhost').pathname));
+      const extra = operatorPages
+        .map((name) => `/${name}`)
+        .filter((path) => !listed.has(path))
+        .map((path) => `  <url><loc>${origin}${path}</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>\n`)
+        .join('');
+      xml = xml.replace('</urlset>', `${extra}</urlset>`);
+      cached = Buffer.from(xml);
+    }
+    res.writeHead(200, {
+      'content-type': MIME['.xml'],
+      'cache-control': 'no-cache',
+      'x-content-type-options': 'nosniff',
+    });
+    res.end(cached);
+  };
 }
 
 function readJson(path) {
@@ -173,6 +222,32 @@ function deepMerge(base, patch) {
 
 const isPlainObject = (v) => !!v && typeof v === 'object' && !Array.isArray(v);
 
+/**
+ * The last route of the account service: a mistyped page address answers with
+ * the site's own 404 page instead of a bare JSON error envelope.
+ *
+ * Only a browser navigation gets the page — a GET that asks for HTML, outside
+ * /api/ — and it keeps the 404 status. Every other request (API clients,
+ * robots, peers) receives exactly the error envelope the service has always
+ * sent, raised the same way the shared service raises it.
+ */
+export function portalNotFound() {
+  const branding = lazyBranding();
+  const page = serve('404.html', undefined, branding);
+  return ({ req, res }) => {
+    const path = String(req?.path || '');
+    const wantsHtml = /\btext\/html\b/i.test(String(req?.headers?.accept || ''));
+    if (!wantsHtml || path.startsWith('/api/') || path.startsWith('/member-photos/')) {
+      const error = new Error(`URL not found: ${path}`);
+      error.statusCode = 404;
+      throw error;
+    }
+    const writeHead = res.writeHead.bind(res);
+    res.writeHead = (status, headers) => writeHead(status === 200 ? 404 : status, headers);
+    return page({ req, res });
+  };
+}
+
 /** Explicit GET routes for every portal asset and page. */
 export function staticRoutes() {
   // Vendored third-party assets keep their own directory so it stays obvious
@@ -186,37 +261,42 @@ export function staticRoutes() {
     // styles
     'theme.css', 'site.css', 'console.css',
     // scripts
-    'app.js', 'pwa.js', 'site.js', 'brand.js', 'qr.js', 'map.js',
+    'app.js', 'pwa.js', 'site.js', 'site-render.js', 'brand.js', 'qr.js', 'map.js',
     // vendored
     'vendor/leaflet.js', 'vendor/leaflet.css',
     // assets and metadata
-    'assets/favicon.svg', 'assets/og.png', 'robots.txt', 'sitemap.xml', 'manifest.webmanifest',
+    'assets/favicon.svg', 'assets/og.png', 'robots.txt', 'manifest.webmanifest',
   ];
+
+  // One merged branding per route table, shared by /branding.json and every
+  // page rendered with it, so the two can never disagree.
+  const branding = lazyBranding();
+  const page = (file) => serve(file, undefined, branding);
 
   const routes = {
     // The public site.
-    'GET /': serve('index.html'),
-    'GET /terms': serve('terms.html'),
-    'GET /privacy': serve('privacy.html'),
-    'GET /security': serve('security.html'),
+    'GET /': page('index.html'),
+    'GET /terms': page('terms.html'),
+    'GET /privacy': page('privacy.html'),
+    'GET /security': page('security.html'),
 
     // The console. Both entry points serve the same shell, which routes on the
     // hash; /admin is kept because it is where the admin surface has always
     // lived.
-    'GET /app': serve('app.html'),
+    'GET /app': page('app.html'),
     // Root scope is intentional: the worker owns only the console app shell,
     // but its Push click handler must be able to open /app from any page.
     'GET /sw.js': serve('sw.js'),
-    'GET /admin': serve('app.html'),
+    'GET /admin': page('app.html'),
     // Mail actions intentionally enter the same static console shell. The
     // browser exchanges the single-use code with the same-origin API, so a
     // reverse proxy never needs to expose a token-bearing dynamic GET route.
-    'GET /activate': serve('app.html'),
-    'GET /reset': serve('app.html'),
-    'GET /confirmemailreset': serve('app.html'),
+    'GET /activate': page('app.html'),
+    'GET /reset': page('app.html'),
+    'GET /confirmemailreset': page('app.html'),
 
     // Operator-configurable branding.
-    'GET /branding.json': serveBranding(),
+    'GET /branding.json': serveBranding(branding),
 
     // Public, fixed-path migration assets. These are not a directory mapping:
     // adding a file under scripts/ never makes it Internet-visible by accident.
@@ -234,7 +314,7 @@ export function staticRoutes() {
       join(PROJECT_DIR, 'scripts/robot-client/isrg-root-x1.pem'), 'application/x-pem-file'),
   };
 
-  for (const f of files) routes[`GET /${f}`] = serve(f);
+  for (const f of files) routes[`GET /${f}`] = extname(f) === '.html' ? page(f) : serve(f);
 
   // Operator pages: extra HTML an instance serves that the project does not ship.
   //
@@ -245,16 +325,19 @@ export function staticRoutes() {
   // built-in REPLACES it. Nothing is read from that directory unless it is configured,
   // so the default install is unchanged.
   const pagesDir = process.env.PHOENIX_PAGES_DIR;
+  const operatorPages = [];
   if (pagesDir && existsSync(pagesDir)) {
     for (const entry of readdirSync(pagesDir)) {
       if (!entry.endsWith('.html')) continue;
       const name = entry.slice(0, -'.html'.length);
-      const handler = serveExternal(join(pagesDir, entry));
+      const handler = serveExternal(join(pagesDir, entry), undefined, {}, branding);
       routes[`GET /${name}`] = handler;
       routes[`GET /${entry}`] = handler;
       if (name === 'index') routes['GET /'] = handler;
+      else if (name !== '404') operatorPages.push(name);
     }
   }
+  routes['GET /sitemap.xml'] = serveSitemap(operatorPages.sort());
 
   return routes;
 }

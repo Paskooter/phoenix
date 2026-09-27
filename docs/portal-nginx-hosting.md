@@ -241,6 +241,7 @@ syntax check or reload.
 | `/console.css` | direct file route | `text/css; charset=utf-8` |
 | `/app.js` | direct file route | `text/javascript; charset=utf-8` |
 | `/site.js` | direct file route | `text/javascript; charset=utf-8` |
+| `/site-render.js` | direct file route | `text/javascript; charset=utf-8` |
 | `/brand.js` | direct file route | `text/javascript; charset=utf-8` |
 | `/qr.js` | direct file route | `text/javascript; charset=utf-8` |
 | `/map.js` | direct file route | `text/javascript; charset=utf-8` |
@@ -349,6 +350,13 @@ static delivery versus Node static delivery is a deployment choice, not two inde
 - `PHOENIX_BRANDING_FILE` makes the Node service deep-merge an operator JSON over defaults. An nginx
   `alias` for `/branding.json` serves the aliased file directly and does not perform that merge;
   provide the complete intended response when using the static alias.
+- Only Node delivery renders anything on the server. It fills `%SITE_URL%` (canonical, social
+  tags, `sitemap.xml`, `robots.txt`) from `PHOENIX_SITE_URL`, renders the merged branding into
+  every page, adds operator pages to the sitemap, and serves `404.html` for a mistyped page.
+  nginx static delivery sends the files as they are on disk: branding is applied by the browser
+  after the page loads, so crawlers and link previews that do not run scripts see the project's
+  default copy and the literal `%SITE_URL%` placeholders. Use Node delivery for a public
+  instance with its own branding.
 
 ## 8. Verification
 
@@ -362,7 +370,7 @@ base with the real portal URL.
 BASE=https://portal.example.com
 
 for path in / /app /admin /terms /privacy /security /branding.json \
-  /theme.css /site.css /console.css /app.js /site.js /brand.js /qr.js /map.js \
+  /theme.css /site.css /console.css /app.js /site.js /site-render.js /brand.js /qr.js /map.js \
   /vendor/leaflet.js /vendor/leaflet.css /assets/favicon.svg /robots.txt \
   /sitemap.xml /manifest.webmanifest; do
   curl --noproxy '*' --silent --show-error --output /dev/null \

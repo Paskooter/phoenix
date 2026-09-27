@@ -10,7 +10,7 @@
 
 import { qrSvg } from '/qr.js';
 import { createLocationPicker } from '/map.js';
-import { initBrand, initTheme } from '/brand.js';
+import { getBrandSync, initBrand, initTheme, pick } from '/brand.js';
 import {
   browserPushState,
   disableBrowserPush,
@@ -2823,9 +2823,23 @@ function renderAuth() {
   const resend = authRoot.querySelector('#auth-resend');
 
   let mode = publicMailAction?.type === 'reset' ? 'reset' : 'login';
+  // The sign-in and sign-up headings are the instance's to word (branding.json
+  // `console.*`); these strings are only the fallback when it says nothing.
+  const branded = (path, fallback) => {
+    const value = pick(getBrandSync(), path);
+    return typeof value === 'string' && value ? value : fallback;
+  };
   const COPY = {
-    login: { title: 'Welcome back', sub: 'Use the same account you sign into the robot app with.', cta: 'Sign in' },
-    signup: { title: 'Create an account', sub: 'We will send a confirmation link before the account can sign in.', cta: 'Create account' },
+    login: {
+      title: branded('console.signInTitle', 'Welcome back'),
+      sub: branded('console.signInBody', 'Use the same account you sign into the robot app with.'),
+      cta: 'Sign in',
+    },
+    signup: {
+      title: branded('console.signUpTitle', 'Create an account'),
+      sub: branded('console.signUpBody', 'This account lives on this server only.'),
+      cta: 'Create account',
+    },
     recovery: { title: 'Reset your password', sub: 'Enter your email and we will send a reset link if an account exists.', cta: 'Send reset link' },
     reset: { title: 'Choose a new password', sub: 'Use at least 8 characters with an uppercase letter, lowercase letter, and number.', cta: 'Set new password' },
   };

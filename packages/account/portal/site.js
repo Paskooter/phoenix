@@ -5,7 +5,8 @@
 // without JavaScript; this adds motion, the live pipeline demo, and the
 // operator's own branding on top.
 
-import { initBrand, initTheme, pick } from '/brand.js';
+import { initBrand, initTheme } from '/brand.js';
+import { pipelineStageLabels, renderSiteList } from '/site-render.js';
 
 /* ==========================================================================
    Legacy hash routes
@@ -204,26 +205,30 @@ function initPipeline(brand) {
   const utterance = said?.dataset.full || 'Hey Jibo, what does my day look like?';
   const answer = reply?.dataset.full || 'You have two meetings, and it is 8 degrees out.';
 
-  let cancelled = false;
+  // Each run of the loop owns a generation; bumping it stops that run at its
+  // next step. A boolean would not do: a page restored from the back/forward
+  // cache resumes the old run's timers, and it must not type alongside the new one.
+  let generation = 0;
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
   // Pause the loop while the tab is hidden — a background tab running a timer
   // loop forever is rude, and browsers throttle it into nonsense anyway.
   let hidden = document.hidden;
   document.addEventListener('visibilitychange', () => { hidden = document.hidden; });
-  const idle = async () => { while (hidden && !cancelled) await wait(250); };
 
-  async function type(el, textValue, speed) {
-    el.textContent = '';
-    for (const ch of textValue) {
-      if (cancelled) return;
-      el.textContent += ch;
-      await wait(speed);
-    }
-  }
+  async function loop(run) {
+    const cancelled = () => run !== generation;
+    const idle = async () => { while (hidden && !cancelled()) await wait(250); };
+    const type = async (el, textValue, speed) => {
+      el.textContent = '';
+      for (const ch of textValue) {
+        if (cancelled()) return;
+        el.textContent += ch;
+        await wait(speed);
+      }
+    };
 
-  async function loop() {
-    while (!cancelled) {
+    while (!cancelled()) {
       await idle();
       // Reset.
       stages.forEach((s) => s.classList.remove('active', 'done'));
@@ -233,12 +238,12 @@ function initPipeline(brand) {
       if (caret) caret.hidden = false;
 
       await type(said, utterance, 34);
-      if (cancelled) return;
+      if (cancelled()) return;
       if (caret) caret.hidden = true;
       await wait(320);
 
       for (const stage of stages) {
-        if (cancelled) return;
+        if (cancelled()) return;
         stage.classList.add('active');
         const dwell = Number(stage.dataset.ms || 260);
         await wait(dwell);
@@ -256,19 +261,23 @@ function initPipeline(brand) {
     }
   }
 
-  // Only run while the card is actually on screen.
+  let started = false;
+  const start = () => {
+    started = true;
+    generation += 1;
+    loop(generation);
+  };
+  // Start once the card is actually on screen.
   if ('IntersectionObserver' in window) {
     const io = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && cancelled === false && !pipe.dataset.running) {
-        pipe.dataset.running = '1';
-        loop();
-      }
+      if (entry.isIntersecting && !started) start();
     }, { threshold: 0.25 });
     io.observe(pipe);
   } else {
-    loop();
+    start();
   }
-  addEventListener('pagehide', () => { cancelled = true; });
+  addEventListener('pagehide', () => { generation += 1; });
+  addEventListener('pageshow', (event) => { if (event.persisted && started) start(); });
   return brand;
 }
 
@@ -276,127 +285,24 @@ function initPipeline(brand) {
    Branded lists
    ========================================================================== */
 
-const el = (tag, attrs = {}, ...kids) => {
-  const node = document.createElement(tag);
-  for (const [k, v] of Object.entries(attrs)) {
-    if (v == null || v === false) continue;
-    if (k === 'class') node.className = v;
-    else if (k === 'text') node.textContent = v;
-    else node.setAttribute(k, v === true ? '' : v);
-  }
-  for (const kid of kids.flat()) {
-    if (kid == null) continue;
-    node.append(kid);
-  }
-  return node;
-};
-
-// Line art, 24x24, stroked with currentColor so it inherits the accent.
-const ICONS = {
-  conversation: 'M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.9-.9L3 20.5l1.6-4.6A8.4 8.4 0 0 1 3.6 11.5a8.4 8.4 0 0 1 9-8.4 8.4 8.4 0 0 1 8.4 8.4Z',
-  library: 'M4 19.5V6a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 1.5ZM8 4v12M4 19.5A2 2 0 0 1 6 18h13',
-  household: 'M3 10.5 12 3l9 7.5M5 9.5V20h14V9.5M9.5 20v-5.5h5V20',
-  revival: 'M12 3v10m0-10 3.5 3.5M12 3 8.5 6.5M4 13a8 8 0 1 0 16 0',
-  shield: 'M12 3 4.5 6v6c0 4.5 3.2 7.8 7.5 9 4.3-1.2 7.5-4.5 7.5-9V6L12 3Zm-2.6 8.8 2 2 3.8-3.8',
-  open: 'M8 6H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-3M14 3h7v7M10.5 13.5 21 3',
-  lock: 'M6 10.5V8a6 6 0 0 1 12 0v2.5M5 10.5h14a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-8.5a1 1 0 0 1 1-1Z',
-  copy: 'M9 9h10v12H9zM5 15V3h10v2',
-  chip: 'M8 4h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8a4 4 0 0 1 4-4ZM9 9h6v6H9zM12 4V1m0 22v-3M4 12H1m22 0h-3',
-};
-
-const icon = (name, size = 20) => {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('viewBox', '0 0 24 24');
-  svg.setAttribute('width', size);
-  svg.setAttribute('height', size);
-  svg.setAttribute('fill', 'none');
-  svg.setAttribute('aria-hidden', 'true');
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  path.setAttribute('d', ICONS[name] || ICONS.chip);
-  path.setAttribute('stroke', 'currentColor');
-  path.setAttribute('stroke-width', '1.6');
-  path.setAttribute('stroke-linecap', 'round');
-  path.setAttribute('stroke-linejoin', 'round');
-  svg.append(path);
-  return svg;
-};
-
-const chevron = () => {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('viewBox', '0 0 24 24');
-  svg.setAttribute('width', '16');
-  svg.setAttribute('height', '16');
-  svg.setAttribute('fill', 'none');
-  svg.setAttribute('class', 'chev');
-  svg.setAttribute('aria-hidden', 'true');
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  path.setAttribute('d', 'm6 9 6 6 6-6');
-  path.setAttribute('stroke', 'currentColor');
-  path.setAttribute('stroke-width', '1.8');
-  path.setAttribute('stroke-linecap', 'round');
-  path.setAttribute('stroke-linejoin', 'round');
-  svg.append(path);
-  return svg;
-};
-
 /**
- * Re-render a list from branding.json. The markup already holds the default
- * items, so for an unmodified instance this paints exactly what was there;
- * for a customised one it is how the operator's own copy gets in.
+ * Re-render the list slots from branding.json with the same markup the
+ * account service renders into the page it serves (site-render.js). Served by
+ * the account service, this repaints what is already there; served as static
+ * files, it is how an operator's own lists get in. A list the config does not
+ * define keeps the authored default.
  */
-function renderList(selector, path, brand, build) {
-  const host = document.querySelector(selector);
-  const items = pick(brand, path);
-  if (!host || !Array.isArray(items) || !items.length) return;
-  host.replaceChildren(...items.map(build));
-}
-
 function renderBrandedContent(brand) {
-  renderList('[data-list="features"]', 'features.items', brand, (item) =>
-    el('article', { class: 'feature', 'data-reveal': true },
-      el('div', { class: 'feature-icon' }, icon(item.icon)),
-      el('h3', { text: item.title }),
-      el('p', { text: item.body })));
-
-  renderList('[data-list="flow"]', 'pipeline.stages', brand, (stage) =>
-    el('article', { class: 'flow-step', 'data-reveal': true },
-      el('h3', { text: stage.label }),
-      el('p', { text: stage.detail })));
-
-  renderList('[data-list="metrics"]', 'status.metrics', brand, (m) =>
-    el('article', { class: 'metric', 'data-reveal': true },
-      el('div', { class: 'metric-value' },
-        el('span', { class: 'grad', text: m.value }),
-        m.of ? el('span', { class: 'metric-of', text: m.of }) : null),
-      el('p', { class: 'metric-label', text: m.label }),
-      m.detail ? el('p', { class: 'metric-detail', text: m.detail }) : null));
-
-  renderList('[data-list="caveats"]', 'status.caveats', brand, (line) => el('li', { text: line }));
-
-  renderList('[data-list="faq"]', 'faq.items', brand, (item) => {
-    const summary = el('summary', {}, el('span', { text: item.q }), chevron());
-    return el('details', {}, summary, el('div', { class: 'answer' }, el('p', { text: item.a })));
-  });
-
-  renderList('[data-list="steps"]', 'install.steps', brand, (step) =>
-    el('div', { class: 'cmd-step' },
-      el('div', { class: 'cmd-label', text: step.label }),
-      el('div', { class: 'cmd-line' },
-        el('span', { class: 'prompt', text: '$' }),
-        el('code', { text: step.command }),
-        el('button', { class: 'copy-btn', type: 'button', 'aria-label': 'Copy command' }, icon('copy', 14)))));
-
-  renderList('[data-list="footer-cols"]', 'footer.columns', brand, (col) =>
-    el('div', { class: 'footer-col' },
-      el('h4', { text: col.title }),
-      el('ul', {}, (col.links || []).map((link) =>
-        el('li', {}, el('a', { href: link.href, text: link.label }))))));
+  for (const host of document.querySelectorAll('[data-list]')) {
+    const html = renderSiteList(host.dataset.list, brand);
+    if (html) host.innerHTML = html;
+  }
 
   // Pipeline stage labels in the hero card follow the same config.
-  const stages = pick(brand, 'pipeline.stages');
-  if (Array.isArray(stages)) {
+  const labels = pipelineStageLabels(brand);
+  if (labels) {
     const nodes = document.querySelectorAll('[data-pipe] .pipe-stage .stage-label');
-    nodes.forEach((node, i) => { if (stages[i]?.label) node.textContent = stages[i].label; });
+    nodes.forEach((node, i) => { if (labels[i]) node.textContent = labels[i]; });
   }
 }
 

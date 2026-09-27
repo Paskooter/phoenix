@@ -14,4 +14,4 @@ Disallow: /admin
 Disallow: /api/
 Disallow: /member-photos/
 
-Sitemap: /sitemap.xml
+Sitemap: %SITE_URL%/sitemap.xml

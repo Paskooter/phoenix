@@ -99,10 +99,10 @@
     "body": "This project publishes its own failures. A real robot connects, authenticates and holds a conversation \u2014 and full behavioural equivalence with the original is not yet proven. Both of those are true at the same time, and the numbers below are the ones the repository tracks.",
     "metrics": [
       {
-        "value": "20,477",
+        "value": "20,479",
         "of": "of 20,528",
         "label": "captured requests where the parser agrees with the original",
-        "detail": "51 residual differences remain tracked and open."
+        "detail": "The other 49 are known tie-breaks, recorded as divergence N1. The opt-in compiled parser matches all 20,528."
       },
       {
         "value": "4,424",
@@ -112,7 +112,7 @@
       },
       {
         "value": "77",
-        "of": "of 81",
+        "of": "of 83",
         "label": "reviewed checklist tasks verified with evidence",
         "detail": "Counts reviewed tasks, not working features or percent-complete software."
       }
@@ -120,8 +120,7 @@
     "caveatTitle": "Not finished",
     "caveats": [
       "1:1 compatibility with the original service is not yet verified, and is not claimed.",
-      "No robot has yet completed a full over-the-air upgrade through Phoenix.",
-      "Notification delivery over the native socket is implemented but unverified.",
+      "Not every skill, firmware version and real-microphone journey has been accepted on hardware yet.",
       "Several surfaces in the console are read-only, and are labelled as such."
     ]
   },
@@ -129,18 +128,19 @@
     "eyebrow": "Install",
     "title": "Run it yourself",
     "body": "Phoenix is a Node.js workspace with one external dependency. Clone it, point your robot at it, and the console is served on the same host.",
+    "terminalTitle": "phoenix \u2014 install",
     "steps": [
       {
         "label": "Clone and install",
-        "command": "git clone <your-phoenix-remote> && cd phoenix && npm install"
+        "command": "git clone https://github.com/Paskooter/phoenix.git && cd phoenix && npm install"
       },
       {
-        "label": "Start the account service",
-        "command": "npm run start:account"
+        "label": "Start every service",
+        "command": "bash scripts/run-compose-stack.sh"
       },
       {
         "label": "Open the console",
-        "command": "http://localhost:7016/app"
+        "command": "http://localhost:9011/app"
       }
     ],
     "note": "Behind a reverse proxy the console is static files and /api is proxied to the account service. A worked nginx configuration ships in deploy/nginx/."
@@ -206,6 +206,23 @@
         ]
       },
       {
+        "title": "Project",
+        "links": [
+          {
+            "label": "Source on GitHub",
+            "href": "https://github.com/Paskooter/phoenix"
+          },
+          {
+            "label": "Releases",
+            "href": "https://github.com/Paskooter/phoenix/releases"
+          },
+          {
+            "label": "Report an issue",
+            "href": "https://github.com/Paskooter/phoenix/issues"
+          }
+        ]
+      },
+      {
         "title": "Legal",
         "links": [
           {
@@ -228,7 +245,9 @@
   },
   "legal": {
     "contact": "the maintainer of the Phoenix instance you are using",
-    "updated": "18 September 2026"
+    "updated": "18 September 2026",
+    "thirdPartyAssets": "This website loads no third-party scripts, styles or fonts at all.",
+    "securityUpdated": "27 September 2026"
   },
   "console": {
     "signInTitle": "Welcome back",
@@ -240,7 +259,8 @@
     "github": "https://github.com/Paskooter/phoenix",
     "releases": "https://github.com/Paskooter/phoenix/releases",
     "issues": "https://github.com/Paskooter/phoenix/issues",
-    "console": "/app"
+    "console": "/app",
+    "ctaSecondary": "https://github.com/Paskooter/phoenix#readme"
   },
   "strip": {
     "item1": "Runs on your hardware",
