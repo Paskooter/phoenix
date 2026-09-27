@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
-import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, readFileSync, chmodSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -28,9 +28,16 @@ function run(args, env) {
 test('native OTA plans, downloads, and applies four subsystems without BE or OOBE', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'phx-native-ota-'));
   const creds = join(dir, 'credentials.json');
+  const modePath = join(dir, 'mode.json');
+  const setModeBin = join(dir, 'jibo-setmode');
   writeFileSync(creds, '{}');
+  writeFileSync(modePath, JSON.stringify({ mode: 'int-developer' }));
+  writeFileSync(setModeBin, '#!/bin/sh\nprintf \'{"mode":"%s"}\' "$1" > "$PHOENIX_ROBOT_OTA_MODE_PATH"\n');
+  chmodSync(setModeBin, 0o755);
   const calls = [];
   let offered = updates;
+  let rejectPost = false;
+  let rejectDownload = false;
   const server = createServer((req, res) => {
     let body = '';
     req.on('data', (chunk) => { body += chunk; });
@@ -39,10 +46,17 @@ test('native OTA plans, downloads, and applies four subsystems without BE or OOB
       res.setHeader('content-type', 'application/json');
       if (req.method === 'GET' && req.url === '/update/fcs') return res.end(JSON.stringify({ updates: offered }));
       if (req.method === 'PUT' && req.url === '/update/') {
+        if (rejectDownload) {
+          res.write(JSON.stringify({ id: updates[0].id, status: 'failed', reason: 'checksum mismatch' }) + '\n');
+          return res.end();
+        }
         body && JSON.parse(body).ids.forEach((id) => res.write(JSON.stringify({ id, length: 10, received: 10, status: 'finished' }) + '\n'));
         return res.end();
       }
-      if (req.method === 'POST' && req.url === '/update/') return res.end('{}');
+      if (req.method === 'POST' && req.url === '/update/') {
+        assert.equal(JSON.parse(readFileSync(modePath, 'utf8')).mode, 'normal');
+        return res.end(rejectPost ? JSON.stringify({ error: 'rejected' }) : '{}');
+      }
       res.statusCode = 404;
       res.end('{}');
     });
@@ -53,6 +67,8 @@ test('native OTA plans, downloads, and applies four subsystems without BE or OOB
     PHOENIX_ROBOT_OTA_CREDENTIALS_PATH: creds,
     PHOENIX_ROBOT_OTA_STATE_PATH: join(dir, 'ota.json'),
     PHOENIX_ROBOT_OTA_BE_PATH: join(dir, 'missing-be'),
+    PHOENIX_ROBOT_OTA_MODE_PATH: modePath,
+    PHOENIX_ROBOT_OTA_SETMODE_BIN: setModeBin,
   };
   try {
     const plan = await run(['--plan', 'fcs'], env);
@@ -65,6 +81,7 @@ test('native OTA plans, downloads, and applies four subsystems without BE or OOB
     const apply = await run(['--apply', hash, 'fcs'], env);
     assert.equal(apply.code, 0, apply.stderr);
     assert.match(apply.stdout, /Native OTA accepted/);
+    assert.equal(JSON.parse(readFileSync(modePath, 'utf8')).mode, 'normal');
     assert.deepEqual(calls.slice(1).map(({ method }) => method), ['GET', 'PUT', 'POST']);
     assert.deepEqual(calls.at(-1).body.ids, [
       'os-13.0.6-fcs', 'services-13.0.6-fcs',
@@ -78,10 +95,40 @@ test('native OTA plans, downloads, and applies four subsystems without BE or OOB
     assert.deepEqual(calls.at(-1).method, 'GET');
 
     offered = updates;
+    rejectPost = true;
+    writeFileSync(modePath, JSON.stringify({ mode: 'int-developer' }));
+    const rejected = await run(['--apply', hash, 'fcs'], env);
+    assert.notEqual(rejected.code, 0);
+    assert.match(rejected.stderr, /installer rejected/);
+    assert.equal(JSON.parse(readFileSync(modePath, 'utf8')).mode, 'int-developer',
+      'clear installer rejection restores the previous boot mode');
+    rejectPost = false;
+
+    rejectDownload = true;
+    const failedDownload = await run(['--apply', hash, 'fcs'], env);
+    assert.notEqual(failedDownload.code, 0);
+    assert.match(failedDownload.stderr, /checksum mismatch/);
+    assert.equal(JSON.parse(readFileSync(modePath, 'utf8')).mode, 'int-developer',
+      'mode is unchanged until every package passes checksum verification');
+    assert.equal(calls.at(-1).method, 'PUT', 'failed downloads must not start the installer');
+    rejectDownload = false;
+
+    offered = updates;
     const changedPlan = await run(['--apply', '0'.repeat(64), 'fcs'], env);
     assert.notEqual(changedPlan.code, 0);
     assert.match(changedPlan.stderr, /catalog changed/);
     assert.deepEqual(calls.at(-1).method, 'GET');
+
+    offered = updates.map((u) => u.subsystem === '@be/be'
+      ? { ...u, id: 'be-11.0.2-jibo-io-fcs', toVersion: '11.0.2' } : u);
+    const nextBe = await run(['--plan', 'fcs'], env);
+    assert.equal(nextBe.code, 0, nextBe.stderr);
+    assert.match(nextBe.stdout, /@be\/be -> 11\.0\.2/);
+    offered = offered.map((u) => u.subsystem === '@be/be'
+      ? { ...u, toVersion: '12.0.0' } : u);
+    const unsupportedBe = await run(['--plan', 'fcs'], env);
+    assert.notEqual(unsupportedBe.code, 0);
+    assert.match(unsupportedBe.stderr, /unexpected OTA version/);
   } finally {
     await new Promise((resolve) => server.close(resolve));
     rmSync(dir, { recursive: true, force: true });

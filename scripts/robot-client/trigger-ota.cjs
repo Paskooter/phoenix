@@ -6,6 +6,7 @@
 // this helper compatible with the robot's Node 6 runtime and never fetch OTA
 // packages on the operator's computer or bypass the updater's SHA-1 check.
 var crypto = require('crypto');
+var childProcess = require('child_process');
 var fs = require('fs');
 var http = require('http');
 
@@ -13,13 +14,15 @@ var VERSIONS = {
   os: '13.0.6',
   services: '13.0.6',
   'oobe-config': '9.0.1',
-  '@be/be': '11.0.1'
+  '@be/be': '11.x'
 };
 var ORDER = ['os', 'services', 'oobe-config', '@be/be'];
 var port = Number(process.env.PHOENIX_ROBOT_OTA_PORT || 8585);
 var credentialsPath = process.env.PHOENIX_ROBOT_OTA_CREDENTIALS_PATH || '/var/jibo/credentials.json';
 var workStatePath = process.env.PHOENIX_ROBOT_OTA_STATE_PATH || '/var/jibo/ota.json';
 var bePath = process.env.PHOENIX_ROBOT_OTA_BE_PATH || '/opt/jibo/Jibo/Skills/@be/be';
+var modePath = process.env.PHOENIX_ROBOT_OTA_MODE_PATH || '/var/jibo/mode.json';
+var setModeBin = process.env.PHOENIX_ROBOT_OTA_SETMODE_BIN || '/usr/bin/jibo-setmode';
 if (!Number.isInteger(port) || port < 1 || port > 65535) {
   throw new Error('invalid system-manager port');
 }
@@ -90,7 +93,15 @@ function plan(filter) {
         throw new Error('unexpected OTA subsystem; review the catalog before installing');
       }
       if (bySubsystem[update.subsystem]) throw new Error('multiple updates offered for ' + update.subsystem);
-      if (update.toVersion !== VERSIONS[update.subsystem]
+      // A later 11.x BE may add the user-facing mode/firewall controls without
+      // requiring a new OS/services image. Keep the platform versions pinned,
+      // but accept a published 11.x BE no older than the known-good 11.0.1.
+      var beMatch = update.subsystem === '@be/be'
+        ? /^11\.([0-9]{1,3})\.([0-9]{1,3})$/.exec(update.toVersion || '') : null;
+      var versionOk = update.subsystem === '@be/be'
+        ? !!beMatch && (Number(beMatch[1]) > 0 || Number(beMatch[2]) >= 1)
+        : update.toVersion === VERSIONS[update.subsystem];
+      if (!versionOk
         || !/^[A-Za-z0-9._@-]{1,100}$/.test(update.id)
         || !Number.isSafeInteger(update.length) || update.length < 1) {
         throw new Error('unexpected OTA version, ID, or length for ' + update.subsystem);
@@ -115,7 +126,21 @@ function printPlan(result) {
   result.updates.forEach(function(u) {
     console.log('  ' + u.subsystem + ' -> ' + u.toVersion + ' (' + Math.ceil(u.length / 1048576) + ' MiB)');
   });
+  console.log('PHOENIX_OTA_UPDATE_COUNT=' + result.updates.length);
   console.log('PHOENIX_OTA_PLAN_HASH=' + result.hash);
+}
+
+function savedMode() {
+  var value = JSON.parse(fs.readFileSync(modePath, 'utf8')).mode;
+  if (!/^(identified|oobe|int-developer|developer|certification|normal|service)$/.test(value)) {
+    throw new Error('unrecognized saved robot mode');
+  }
+  return value;
+}
+
+function setMode(mode) {
+  childProcess.execFileSync(setModeBin, [mode], { timeout: 10000, stdio: 'pipe' });
+  if (savedMode() !== mode) throw new Error('could not verify next-boot mode ' + mode);
 }
 
 function download(updates) {
@@ -159,11 +184,28 @@ function main() {
     if (result.hash !== expectedHash) throw new Error('OTA catalog changed since the plan; run the plan again');
     console.log('Downloading through the robot system-manager...');
     return download(result.updates).then(function() {
+      // jibo-setmode only writes /var/jibo/mode.json; the running services keep
+      // their current mode. Do this AFTER every package checksum succeeds and
+      // immediately BEFORE the native installer queues its reboot. A paired
+      // USB-flashed robot without BE must never boot normal before its BE OTA.
+      var previousMode = savedMode();
+      if (previousMode !== 'normal') {
+        setMode('normal');
+        console.log('Next-boot mode set to normal (was ' + previousMode + ').');
+      }
       console.log('Downloads verified. Starting the native OTA installer; the robot will reboot.');
       return request('POST', '/update/', { ids: result.updates.map(function(u) { return u.id; }) }, null, 60000)
         .then(function(response) {
-          if (response.error) throw new Error('native OTA installer rejected the request: ' + response.error);
+          if (response.error) {
+            if (previousMode !== 'normal') setMode(previousMode);
+            throw new Error('native OTA installer rejected the request: ' + response.error);
+          }
           console.log('Native OTA accepted. Wait for the robot to finish installing and reconnect.');
+        }, function(error) {
+          // A disconnected POST is ambiguous: it may mean the installer already
+          // rebooted. Restore only when no OTA work state was created.
+          if (previousMode !== 'normal' && !fs.existsSync(workStatePath)) setMode(previousMode);
+          throw error;
         });
     });
   });

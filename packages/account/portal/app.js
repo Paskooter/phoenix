@@ -1603,7 +1603,7 @@ async function renderClaim() {
         h('li', {}, 'Return to ', h('a', { href: '#/robot' }, 'Robots'), ' and refresh its status.')),
       publicJiboIo ? h('div', { class: 'notice notice-accent' },
         h('strong', {}, 'USB-flashed Jibo with no BE skill?'),
-        h('p', {}, 'After the account claim succeeds, preview and then start the update from the same computer. This uses Jibo’s built-in system-manager to install the published OTA packages, including BE. It does not reset the robot or run OOBE, and Jibo will reboot during installation.'),
+        h('p', {}, 'After the account claim succeeds, preview and then start the update from the same computer. This uses Jibo’s built-in system-manager to install the published OTA packages, including BE. It does not reset the robot or run OOBE. After verifying the downloads, it selects normal mode for the installation reboot so Jibo starts BE automatically.'),
         h('div', { class: 'restart-cmd' },
           h('span', { class: 'prompt' }, '$'),
           h('code', { text: 'bash ./robot-ota-repoint.sh --robot root@<robot-ip> --ota-only --dry-run' }),

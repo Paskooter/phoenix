@@ -320,7 +320,10 @@ skill. After claiming it, run `robot-ota-repoint.sh --robot root@<robot-ip>
 --ota-only --yes` from the SSH-capable computer. This uses the robot's own
 system-manager update API to install the published OS, services, OOBE, and BE
 packages without running OOBE or erasing credentials. Preview first with
-`--ota-only --dry-run`; the installer reboots the robot, so keep power on.
+`--ota-only --dry-run`; the installer reboots the robot, so keep power on. For
+paired robots, the helper selects `normal` as the next-boot mode; when BE is
+missing, it defers that mode change until every OTA package is downloaded and
+checksum-verified. The QR/OOBE path deliberately stays in OOBE mode.
 
 The SSH script streams the robot secret directly to the HTTPS adoption request;
 it never prints or stores that secret locally. The code is stored server-side

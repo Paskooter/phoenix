@@ -322,7 +322,13 @@ bash ./robot-ota-repoint.sh --robot root@<robot-ip> --ota-only --yes
 
 This previews the `fcs` catalog, pins that exact plan, then asks the robot to
 download and checksum the packages and start the normal rebooting installer.
-It refuses unexpected package versions or a pending OTA work state.
+It pins OS/services/OOBE versions and accepts published BE 11.x versions no
+older than 11.0.1. It refuses other versions or a pending OTA work state. For a
+paired robot, the helper sets the saved mode to `normal` only after all OTA
+downloads pass checksum verification and immediately before asking the native
+installer to reboot. If BE is already installed, an ordinary repoint also
+sets the next-boot mode to `normal`; the unprovisioned `--oobe` path remains
+in OOBE mode. A clear installer rejection restores the prior mode.
 
 The separate household-snapshot importer is an operator migration tool, not a
 step in ordinary customer claims: it can carry legacy member/profile data and

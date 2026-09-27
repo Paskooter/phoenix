@@ -104,7 +104,7 @@ CLIENT_SOURCE_SHA256="29686ca0aec6b93b8b716b94fca443ce25e6e7e55e01e798be56bce920
 ROOT_PEM_SOURCE_SHA256="22b557a27055b33606b6559f37703928d3e4ad79f110b407d04986e1843543d1"
 BACKUP_TLS_PATCHER_SHA256="2063cf6d26344fc49548a1f691120f240524b976caa559930e52115857460762"
 OTA_TLS_PATCHER_SHA256="e2a2baf3da64e9c446adf1d51d025a4758b21cb7c7b7876ac775f29c124f561c"
-OTA_TRIGGER_SHA256="08dc5f43d49e28145991d628beb97284ff2d2d17ac566a244067ad213156e26e"
+OTA_TRIGGER_SHA256="76effe5693f8573f56f8f3c653adf6bdf1f5e5f3f953c019f87dd6463d23e394"
 
 cleanup_support() {
   [ -z "$SUPPORT_DIR" ] || rm -rf "$SUPPORT_DIR"
@@ -201,9 +201,23 @@ fi
 SSH=(ssh -o BatchMode=yes -o ConnectTimeout=10 "$ROBOT")
 rsh() { "${SSH[@]}" "$@"; }
 
+set_paired_mode_normal_if_ready() {
+  local current_mode
+  if ! rsh 'test -s /opt/jibo/Jibo/Skills/@be/be/package.json' >/dev/null 2>&1; then
+    say "  BE is not installed yet; preserving the current mode until its OTA download is verified."
+    return 0
+  fi
+  current_mode="$(rsh 'jibo-getmode' 2>/dev/null | tr -d '\r')" \
+    || die "could not read the robot's saved mode"
+  [ "$current_mode" = normal ] && { say "  next-boot mode is already normal"; return 0; }
+  rsh 'jibo-setmode normal && test "$(jibo-getmode)" = normal' >/dev/null 2>&1 \
+    || die "could not set and verify normal mode for the next boot"
+  say "  next-boot mode: ${current_mode} -> normal (no reboot triggered)"
+}
+
 run_native_ota() {
   ensure_ota_trigger
-  local remote plan_output plan_hash
+  local remote plan_output plan_hash count
   remote="$(rsh 'mktemp /tmp/phoenix-trigger-ota.XXXXXX' 2>/dev/null | tr -d '\r')"
   [[ "$remote" =~ ^/tmp/phoenix-trigger-ota\.[A-Za-z0-9]+$ ]] || die "could not allocate a safe remote OTA helper path"
   scp -o BatchMode=yes -q "$OTA_TRIGGER" "${ROBOT}:${remote}" || die "could not upload the OTA helper"
@@ -212,6 +226,9 @@ run_native_ota() {
   printf '%s\n' "$plan_output"
   plan_hash="$(printf '%s\n' "$plan_output" | sed -n 's/^PHOENIX_OTA_PLAN_HASH=\([a-f0-9]*\)$/\1/p')"
   [[ "$plan_hash" =~ ^[a-f0-9]{64}$ ]] || die "OTA helper returned no valid plan hash"
+  count="$(printf '%s\n' "$plan_output" | sed -n 's/^PHOENIX_OTA_UPDATE_COUNT=\([0-9]*\)$/\1/p')"
+  [[ "$count" =~ ^[0-4]$ ]] || die "OTA helper returned an invalid update count"
+  OTA_UPDATE_COUNT="$count"
   if [ "$DRY" -eq 1 ]; then
     rsh "rm -f '$remote'" >/dev/null 2>&1 || true
     say "  dry run: no OTA download or installation started"
@@ -220,7 +237,7 @@ run_native_ota() {
   if [ "$ASSUME_YES" -ne 1 ]; then
     printf 'Download and install these native OTA updates on %s (robot will reboot)? [y/N] ' "$ROBOT"
     read -r reply </dev/tty || reply=n
-    case "$reply" in y|Y|yes|YES) ;; *) say "OTA aborted; nothing downloaded"; return 0 ;; esac
+    case "$reply" in y|Y|yes|YES) ;; *) rsh "rm -f '$remote'" >/dev/null 2>&1 || true; say "OTA aborted; nothing downloaded"; return 0 ;; esac
   fi
   rsh "node '$remote' --apply '$plan_hash' fcs" 2>&1 | tr -d '\r' \
     || die "native OTA did not confirm completion; the robot may already be rebooting. Check its OTA state before retrying"
@@ -266,6 +283,10 @@ say "  socket    : ${SOCKET_URL}"
 if [ "$OTA_ONLY" -eq 1 ]; then
   step "Native OTA (BE is not required)"
   run_native_ota
+  if [ "$DRY" -eq 0 ] && [ "${OTA_UPDATE_COUNT:-1}" -eq 0 ]; then
+    set_paired_mode_normal_if_ready
+    say "  No OTA reboot is pending; reboot when ready to start BE in normal mode."
+  fi
   exit 0
 fi
 
@@ -402,7 +423,8 @@ say ""
 if [ "$OOBE" -eq 1 ]; then
   say "  The robot's next boot will be set to OOBE. No credentials will be created."
 else
-  say "  The robot's mode and existing credentials will be preserved."
+  say "  Existing credentials are preserved. If BE is installed, the saved next-boot"
+  say "  mode becomes normal. Without BE, mode changes only after verified OTA downloads."
 fi
 say "  NOT touched: /etc/hosts, any private CA, server certs."
 say "  After this the robot can reach ${REST_URL}, stream audio to the hub, and take an OTA"
@@ -840,6 +862,7 @@ if [ "$OOBE" -eq 1 ]; then
   say "  Reboot when ready, then use this site's QR setup flow to create and link"
   say "  a fresh robot account. Do not use an already-set-up claim code."
 else
+  set_paired_mode_normal_if_ready
   if [ "$START_OTA" -eq 1 ]; then
     step "Native OTA (BE is not required)"
     run_native_ota
