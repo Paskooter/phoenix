@@ -77,6 +77,8 @@ test('production-authenticated robot settings preserve ownership and Classic dat
       loopId: loop._id, id: added.body.holiday.id,
     })).status, 200);
 
+    const absentBackup = await call('owner', 'GET', `/api/robot/backup-key/status?loopId=${loop._id}`);
+    assert.deepEqual(absentBackup.body, { backupExists: false });
     const oldHash = createHash('sha1').update('old passphrase').digest('hex');
     const newHash = createHash('sha1').update('new passphrase').digest('hex');
     const originalCiphertext = Buffer.alloc(48, 7).toString('base64');
