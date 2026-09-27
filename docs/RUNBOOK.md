@@ -315,6 +315,13 @@ run the same public repoint helper without `--claim-code`, which creates only an
 unclaimed, idempotent robot bootstrap. They must create an account and run the
 portal-provided claim command later to associate that robot with the account.
 
+A USB flash that preserves `/var` can leave an already-paired robot with no BE
+skill. After claiming it, run `robot-ota-repoint.sh --robot root@<robot-ip>
+--ota-only --yes` from the SSH-capable computer. This uses the robot's own
+system-manager update API to install the published OS, services, OOBE, and BE
+packages without running OOBE or erasing credentials. Preview first with
+`--ota-only --dry-run`; the installer reboots the robot, so keep power on.
+
 The SSH script streams the robot secret directly to the HTTPS adoption request;
 it never prints or stores that secret locally. The code is stored server-side
 only as a hash, expires after 15 minutes, and is consumed only after the robot

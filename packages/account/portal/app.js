@@ -1600,7 +1600,18 @@ async function renderClaim() {
       h('ol', { class: 'field-hint' },
         h('li', {}, 'Run the command and wait for it to report that the robot was claimed.'),
         h('li', {}, 'Keep Jibo powered and online while its regular updater checks the jibo.io catalog.'),
-        h('li', {}, 'Return to ', h('a', { href: '#/robot' }, 'Robots'), ' and refresh its status.')));
+        h('li', {}, 'Return to ', h('a', { href: '#/robot' }, 'Robots'), ' and refresh its status.')),
+      publicJiboIo ? h('div', { class: 'notice notice-accent' },
+        h('strong', {}, 'USB-flashed Jibo with no BE skill?'),
+        h('p', {}, 'After the account claim succeeds, preview and then start the update from the same computer. This uses Jibo’s built-in system-manager to install the published OTA packages, including BE. It does not reset the robot or run OOBE, and Jibo will reboot during installation.'),
+        h('div', { class: 'restart-cmd' },
+          h('span', { class: 'prompt' }, '$'),
+          h('code', { text: 'bash ./robot-ota-repoint.sh --robot root@<robot-ip> --ota-only --dry-run' }),
+          copyButton(() => 'bash ./robot-ota-repoint.sh --robot root@<robot-ip> --ota-only --dry-run')),
+        h('div', { class: 'restart-cmd' },
+          h('span', { class: 'prompt' }, '$'),
+          h('code', { text: 'bash ./robot-ota-repoint.sh --robot root@<robot-ip> --ota-only --yes' }),
+          copyButton(() => 'bash ./robot-ota-repoint.sh --robot root@<robot-ip> --ota-only --yes'))) : null);
   });
 
   container.append(

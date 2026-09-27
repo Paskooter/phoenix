@@ -40,7 +40,9 @@
 #
 # Usage:
 #   robot-ota-repoint.sh --robot root@<ip> [--region <r>] [--region-ca <pem>]
-#                        [--claim-code <portal-code>] [--dry-run] [--yes] [--verify] [--revert]
+#                        [--claim-code <portal-code>] [--start-ota]
+#                        [--dry-run] [--yes] [--verify] [--revert]
+#   robot-ota-repoint.sh --robot root@<ip> --ota-only [--dry-run] [--yes]
 #   robot-ota-repoint.sh --robot root@<ip> --oobe --yes
 #   robot-ota-repoint.sh --robot root@<ip> --full --phoenix https://... --yes
 #
@@ -51,7 +53,7 @@ set -uo pipefail
 
 ROBOT=""; REGION=""; REGION_CA=""; DRY=0; ASSUME_YES=0; VERIFY=0; REVERT=0
 PUBLIC_SUFFIX="jibo.io"
-FULL=0; FULL_ARGS=(); CLAIM_CODE=""; OOBE=0
+FULL=0; FULL_ARGS=(); CLAIM_CODE=""; OOBE=0; OTA_ONLY=0; START_OTA=0
 
 # The robot's own trust store. `bundle` is what OpenSSL reads; the individual PEM
 # plus the subject-hash symlink are how a cert is normally installed alongside it.
@@ -71,6 +73,8 @@ while [ $# -gt 0 ]; do
     --suffix)    PUBLIC_SUFFIX="${2:-}"; shift 2 ;;
     --claim-code) CLAIM_CODE="${2:-}"; shift 2 ;;
     --oobe)      OOBE=1; shift ;;
+    --ota-only)  OTA_ONLY=1; shift ;;
+    --start-ota) START_OTA=1; shift ;;
     --dry-run)   DRY=1; shift ;;
     --yes)       ASSUME_YES=1; shift ;;
     --verify)    VERIFY=1; shift ;;
@@ -94,11 +98,13 @@ CLIENT_SOURCE="${SCRIPT_DIR}/robot-client/node.js"
 ROOT_PEM_SRC="${REGION_CA}"
 BACKUP_TLS_PATCHER="${SCRIPT_DIR}/robot-client/patch-system-backup-tls.cjs"
 OTA_TLS_PATCHER="${SCRIPT_DIR}/robot-client/patch-ota-downloader-tls.cjs"
+OTA_TRIGGER="${SCRIPT_DIR}/robot-client/trigger-ota.cjs"
 SUPPORT_DIR=""
 CLIENT_SOURCE_SHA256="29686ca0aec6b93b8b716b94fca443ce25e6e7e55e01e798be56bce920c66bac"
 ROOT_PEM_SOURCE_SHA256="22b557a27055b33606b6559f37703928d3e4ad79f110b407d04986e1843543d1"
 BACKUP_TLS_PATCHER_SHA256="2063cf6d26344fc49548a1f691120f240524b976caa559930e52115857460762"
 OTA_TLS_PATCHER_SHA256="e2a2baf3da64e9c446adf1d51d025a4758b21cb7c7b7876ac775f29c124f561c"
+OTA_TRIGGER_SHA256="08dc5f43d49e28145991d628beb97284ff2d2d17ac566a244067ad213156e26e"
 
 cleanup_support() {
   [ -z "$SUPPORT_DIR" ] || rm -rf "$SUPPORT_DIR"
@@ -155,6 +161,16 @@ ensure_support_assets() {
   fi
 }
 
+ensure_ota_trigger() {
+  if [ ! -r "$OTA_TRIGGER" ]; then
+    [ -n "$SUPPORT_DIR" ] || SUPPORT_DIR="$(mktemp -d "${TMPDIR:-/tmp}/phoenix-repoint.XXXXXX")" \
+      || die "could not create a temporary support directory"
+    mkdir -p "$SUPPORT_DIR/robot-client"
+    OTA_TRIGGER="$SUPPORT_DIR/robot-client/trigger-ota.cjs"
+    fetch_support_asset '/robot-client/trigger-ota.cjs' "$OTA_TRIGGER" "$OTA_TRIGGER_SHA256"
+  fi
+}
+
 trap cleanup_support EXIT
 say()  { printf '%s\n' "$*"; }
 step() { printf '\n== %s\n' "$*"; }
@@ -162,6 +178,7 @@ die()  { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 
 # ── Advanced path: hand off to the full repoint, unchanged ───────────────────
 if [ "$FULL" -eq 1 ]; then
+  [ "$OTA_ONLY" -eq 0 ] && [ "$START_OTA" -eq 0 ] || die "OTA flags cannot be combined with --full"
   SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
   FULL_SCRIPT="${SELF_DIR}/parity-robot/repoint-robot.sh"
   [ -x "$FULL_SCRIPT" ] || die "full repoint script not found: $FULL_SCRIPT"
@@ -170,6 +187,10 @@ if [ "$FULL" -eq 1 ]; then
 fi
 
 [ -n "$ROBOT" ] || die "--robot root@<ip> is required (or --full for the complete repoint)"
+[ "$OTA_ONLY" -eq 0 ] || { [ "$START_OTA" -eq 0 ] && [ "$OOBE" -eq 0 ] && [ "$REVERT" -eq 0 ] \
+  && [ -z "$CLAIM_CODE" ]; } || die "--ota-only cannot be combined with repoint, OOBE, revert, or claim flags"
+[ "$START_OTA" -eq 0 ] || { [ "$OOBE" -eq 0 ] && [ "$REVERT" -eq 0 ]; } \
+  || die "--start-ota requires an already-paired robot and cannot be combined with --revert"
 if [ "$OOBE" -eq 1 ] && [ -n "$CLAIM_CODE" ]; then
   die "--oobe cannot use --claim-code; an unprovisioned robot links through QR setup"
 fi
@@ -179,6 +200,32 @@ fi
 
 SSH=(ssh -o BatchMode=yes -o ConnectTimeout=10 "$ROBOT")
 rsh() { "${SSH[@]}" "$@"; }
+
+run_native_ota() {
+  ensure_ota_trigger
+  local remote plan_output plan_hash
+  remote="$(rsh 'mktemp /tmp/phoenix-trigger-ota.XXXXXX' 2>/dev/null | tr -d '\r')"
+  [[ "$remote" =~ ^/tmp/phoenix-trigger-ota\.[A-Za-z0-9]+$ ]] || die "could not allocate a safe remote OTA helper path"
+  scp -o BatchMode=yes -q "$OTA_TRIGGER" "${ROBOT}:${remote}" || die "could not upload the OTA helper"
+  plan_output="$(rsh "node '$remote' --plan fcs" 2>&1 | tr -d '\r')" \
+    || die "could not plan the native OTA: $plan_output"
+  printf '%s\n' "$plan_output"
+  plan_hash="$(printf '%s\n' "$plan_output" | sed -n 's/^PHOENIX_OTA_PLAN_HASH=\([a-f0-9]*\)$/\1/p')"
+  [[ "$plan_hash" =~ ^[a-f0-9]{64}$ ]] || die "OTA helper returned no valid plan hash"
+  if [ "$DRY" -eq 1 ]; then
+    rsh "rm -f '$remote'" >/dev/null 2>&1 || true
+    say "  dry run: no OTA download or installation started"
+    return 0
+  fi
+  if [ "$ASSUME_YES" -ne 1 ]; then
+    printf 'Download and install these native OTA updates on %s (robot will reboot)? [y/N] ' "$ROBOT"
+    read -r reply </dev/tty || reply=n
+    case "$reply" in y|Y|yes|YES) ;; *) say "OTA aborted; nothing downloaded"; return 0 ;; esac
+  fi
+  rsh "node '$remote' --apply '$plan_hash' fcs" 2>&1 | tr -d '\r' \
+    || die "native OTA did not confirm completion; the robot may already be rebooting. Check its OTA state before retrying"
+  rsh "rm -f '$remote'" >/dev/null 2>&1 || true
+}
 
 rsh 'true' >/dev/null 2>&1 || die "cannot reach ${ROBOT} over SSH"
 
@@ -215,6 +262,12 @@ REST_URL="https://${REGION}.${PUBLIC_SUFFIX}/"
 SOCKET_URL="wss://${REGION}-socket.${PUBLIC_SUFFIX}/"
 say "  will call : ${REST_URL}"
 say "  socket    : ${SOCKET_URL}"
+
+if [ "$OTA_ONLY" -eq 1 ]; then
+  step "Native OTA (BE is not required)"
+  run_native_ota
+  exit 0
+fi
 
 # ── 2. Find every installed copy of the client config ────────────────────────
 # Check both shipped locations for jibo-ssm as well as the skill-local copies.
@@ -342,6 +395,9 @@ else
   say "  8. register the robot's existing credentials as an unclaimed bootstrap (idempotent)"
 fi
 say "  9. write a receipt to ${RECEIPT}"
+if [ "$START_OTA" -eq 1 ]; then
+  say "  10. ask the native system-manager to download and install the published OTA set (reboots)"
+fi
 say ""
 if [ "$OOBE" -eq 1 ]; then
   say "  The robot's next boot will be set to OOBE. No credentials will be created."
@@ -784,8 +840,14 @@ if [ "$OOBE" -eq 1 ]; then
   say "  Reboot when ready, then use this site's QR setup flow to create and link"
   say "  a fresh robot account. Do not use an already-set-up claim code."
 else
-  say "  Next: reboot or let the robot check for the currently published jibo.io OTA"
-  say "  packages. Its existing credentials remain in place for adoption."
+  if [ "$START_OTA" -eq 1 ]; then
+    step "Native OTA (BE is not required)"
+    run_native_ota
+  else
+    say "  Next: reboot or let the robot check for the currently published jibo.io OTA"
+    say "  packages. If BE is absent after a USB flash, run this script again with"
+    say "  --ota-only --yes to install the published updates without entering OOBE."
+  fi
 fi
 say ""
 if [ "$OOBE" -eq 1 ]; then

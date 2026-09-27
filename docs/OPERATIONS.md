@@ -311,6 +311,19 @@ current helper idempotently if an older repoint reports `No data received from
 OTA service` immediately after an update begins; do not disable TLS verification
 or replace the robot's credentials to work around that error.
 
+A USB-flashed robot may retain its credentials in `/var` while having no BE
+skill. Do not run OOBE or erase its identity. After adopting it, use the public
+helper's `--ota-only` mode to invoke the BE-independent native system-manager:
+
+```bash
+bash ./robot-ota-repoint.sh --robot root@<robot-ip> --ota-only --dry-run
+bash ./robot-ota-repoint.sh --robot root@<robot-ip> --ota-only --yes
+```
+
+This previews the `fcs` catalog, pins that exact plan, then asks the robot to
+download and checksum the packages and start the normal rebooting installer.
+It refuses unexpected package versions or a pending OTA work state.
+
 The separate household-snapshot importer is an operator migration tool, not a
 step in ordinary customer claims: it can carry legacy member/profile data and
 must be reviewed separately.

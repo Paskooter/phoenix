@@ -310,6 +310,8 @@ export function staticRoutes() {
       join(PROJECT_DIR, 'scripts/robot-client/patch-system-backup-tls.cjs'), 'text/plain; charset=utf-8'),
     'GET /robot-client/patch-ota-downloader-tls.cjs': serveExternal(
       join(PROJECT_DIR, 'scripts/robot-client/patch-ota-downloader-tls.cjs'), 'text/plain; charset=utf-8'),
+    'GET /robot-client/trigger-ota.cjs': serveExternal(
+      join(PROJECT_DIR, 'scripts/robot-client/trigger-ota.cjs'), 'text/plain; charset=utf-8'),
     'GET /robot-client/isrg-root-x1.pem': serveExternal(
       join(PROJECT_DIR, 'scripts/robot-client/isrg-root-x1.pem'), 'application/x-pem-file'),
   };
