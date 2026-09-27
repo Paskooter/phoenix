@@ -217,6 +217,23 @@ test('an owner can read the empty bootstrap projection of an adopted robot with 
   assert.equal(denied.body.__type, 'MANUFACTURING_OR_OWNER_ONLY');
 });
 
+test('an adopted robot owner can save settings without a manufacturing lifecycle record', async () => {
+  const store = storeFor('adopted-settings');
+  const h = makeRobotHandler({
+    store,
+    ownedRobots: async (accountId) => (accountId === 'owner-account' ? [ID] : []),
+  });
+  const denied = await call(h, 'UpdateRobot', { id: ID, payload: { remoteEnabled: true } }, OTHER());
+  assert.equal(denied.status, 403);
+  assert.equal(store.eventsFor(ID).length, 0);
+
+  const saved = await call(h, 'UpdateRobot', { id: ID, payload: { remoteEnabled: true } }, OWNER());
+  assert.equal(saved.status, 200);
+  assert.deepEqual(store.eventsFor(ID).map((event) => event.name), ['RobotCreated', 'RobotUpdated']);
+  const read = await call(h, 'GetRobot', { id: ID }, OWNER());
+  assert.equal(read.body.payload.remoteEnabled, true);
+});
+
 test('an administrator only gets an adopted empty projection for a robot they own', async () => {
   const owned = async (accountId) => (accountId === 'admin-account' ? [ID] : []);
   const h = makeRobotHandler({ store: storeFor('perm-admin-adopted-read'), ownedRobots: owned });

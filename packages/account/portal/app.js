@@ -120,6 +120,7 @@ const ICONS = {
   users: 'M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20M10 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM20 20v-1.5a3.5 3.5 0 0 0-2.6-3.4M15.4 4.6a3.5 3.5 0 0 1 0 6.8',
   sliders: 'M4 7h10M18 7h2M4 17h4M12 17h8M4 12h2M10 12h10M16 5v4M10 15v4M8 10v4',
   robot: 'M8 4h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8a4 4 0 0 1 4-4ZM9.5 10.5h.01M14.5 10.5h.01M9 15h6',
+  sparkles: 'm12 2 1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8L12 2ZM19 17l.7 1.3L21 19l-1.3.7L19 21l-.7-1.3L17 19l1.3-.7L19 17ZM4 16l.6 1.4L6 18l-1.4.6L4 20l-.6-1.4L2 18l1.4-.6L4 16Z',
   image: 'M4 5.5h16v13H4zM4 15l4.5-4.5 4 4 3-3L20 16M15.5 9.5h.01',
   message: 'M20 11.5a7.6 7.6 0 0 1-8.2 7.6 8.2 8.2 0 0 1-3.4-.8L4 19.5l1.4-4a7.6 7.6 0 0 1-1-3.9 7.6 7.6 0 0 1 8.2-7.6A7.6 7.6 0 0 1 20 11.5Z',
   user: 'M19 20v-1.5a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4V20M12 11a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z',
@@ -208,6 +209,11 @@ const prettyLabel = (key) => String(key)
 const initials = (account) => {
   const source = `${account?.firstName || ''} ${account?.lastName || ''}`.trim() || account?.email || '?';
   return source.split(/[\s@._-]+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+};
+
+const safePhotoPath = (url) => {
+  const key = typeof url === 'string' ? url.split('/').pop() : '';
+  return /^[A-Za-z0-9_-]+$/.test(key) ? `/member-photos/${key}` : null;
 };
 
 /* ==========================================================================
@@ -372,7 +378,11 @@ function paintAccount() {
   shell.hidden = !me;
   authRoot.hidden = !!me;
   if (!me) return;
-  document.getElementById('avatar').textContent = initials(me);
+  const avatar = document.getElementById('avatar');
+  avatar.textContent = initials(me);
+  const photo = safePhotoPath(me.photoUrl);
+  avatar.style.backgroundImage = photo ? `url("${photo}")` : '';
+  avatar.classList.toggle('has-photo', !!photo);
   document.getElementById('who-name').textContent =
     [me.firstName, me.lastName].filter(Boolean).join(' ') || me.email;
   document.getElementById('who-email').textContent = me.email || '';
@@ -520,6 +530,7 @@ async function renderHome() {
     quick('#/loop', 'Loops', 'users', 'Members and account links'),
     quick('#/settings', 'Personal report', 'sliders', 'Weather, news, commute'),
     quick('#/robot', 'Robots', 'robot', 'Pairing and status'),
+    quick('#/tips', 'What Jibo can do', 'sparkles', 'Ideas and first steps'),
     quick('#/gallery', 'Gallery', 'image', 'What the robot captured')));
 
   if (!loops.ok) body.append(h('div', { style: 'margin-top:1.5rem' }, errorBox('Could not load your loops.', loops.data.error)));
@@ -1199,6 +1210,11 @@ async function renderSettings() {
 
   const form = h('form', { class: 'settings-form' });
 
+  const proactive = h('fieldset', {},
+    h('legend', {}, 'When Jibo offers your report'),
+    toggle('offerProactively', s.offerProactively !== false, 'Offer my Personal Report',
+      'Jibo may offer your report when he recognizes you. You can still ask for it when this is off.'));
+
   const weather = h('fieldset', {},
     h('legend', {}, 'Weather'),
     toggle('weather', s.weather.active, 'Include weather', 'The robot opens the report with today’s forecast.'),
@@ -1251,7 +1267,7 @@ async function renderSettings() {
     calendarManager.element);
 
   const saveBtn = h('button', { type: 'submit', class: 'btn btn-primary' }, 'Save changes');
-  form.append(weather, news, commute, calendar,
+  form.append(proactive, weather, news, commute, calendar,
     h('div', { class: 'save-bar' },
       h('p', {}, 'Changes apply the next time you ask for your report.'),
       saveBtn));
@@ -1263,6 +1279,7 @@ async function renderSettings() {
     const newsCats = {};
     for (const k of Object.keys(s.news.categories)) newsCats[k] = !!fd[`news_${k}`];
     const payload = {
+      offerProactively: !!fd.offerProactively,
       weather: { active: !!fd.weather, celsius: fd.units === 'c' },
       news: { active: !!fd.news, categories: newsCats },
       commute: {
@@ -1309,10 +1326,10 @@ async function renderProfile() {
         type: 'date', name: 'birthdayDate',
         value: isoDay(a.birthday),
       })),
-      field('Gender', h('select', { name: 'gender' },
-        ['', 'male', 'female', 'other', 'they'].map((g) =>
-          h('option', { value: g, selected: a.gender === g }, g ? prettyLabel(g) : '(not set)'))))),
-    field('Phone number', h('input', { name: 'phoneNumber', type: 'tel', value: a.phoneNumber || '', autocomplete: 'tel' })),
+      field('Pronouns', h('select', { name: 'gender' },
+        [['', '(not set)'], ['male', 'He / him'], ['female', 'She / her'], ['they', 'They / them'], ['other', 'Other']].map(([value, label]) =>
+          h('option', { value, selected: (a.gender || '') === value }, label))),
+        'Jibo uses this legacy preference when referring to you.')),
     toggle('messagingAllowed', a.messagingAllowed ?? true, 'Receive Jibo messages',
       'Let other people in your loops send you messages through the robot.'),
     field('Message alerts', h('select', { name: 'jotNotificationMode' },
@@ -1330,10 +1347,9 @@ async function renderProfile() {
       // Send the fields as typed so a cleared name is actually cleared.
       firstName: fd.firstName ?? '',
       lastName: fd.lastName ?? '',
-      gender: fd.gender || undefined,
+      gender: fd.gender || null,
       // The control is a date picker; the API still stores epoch milliseconds.
       birthday: fd.birthdayDate ? Date.parse(`${fd.birthdayDate}T00:00:00Z`) : null,
-      phoneNumber: fd.phoneNumber || null,
       messagingAllowed: !!fd.messagingAllowed,
       jotNotificationMode: fd.jotNotificationMode,
     });
@@ -1342,6 +1358,53 @@ async function renderProfile() {
   });
 
   container.append(card('Profile', { sub: `Signed in as ${a.email}` }, profileForm));
+
+  const photoInput = h('input', { type: 'file', accept: 'image/*', 'aria-label': 'Choose or take a profile photo' });
+  const profilePhoto = safePhotoPath(a.photoUrl);
+  const photoPreview = h('span', { class: 'profile-photo-preview' },
+    profilePhoto ? h('img', { src: profilePhoto, alt: 'Your current profile photo' }) : initials(a));
+  const photoSave = h('button', { type: 'button', class: 'btn btn-primary' }, 'Use this photo');
+  photoSave.disabled = true;
+  photoInput.addEventListener('change', () => { photoSave.disabled = !photoInput.files?.length; });
+  photoSave.addEventListener('click', async () => {
+    const file = photoInput.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/') || file.size > 10_000_000) {
+      notify('Choose an image under 10 MB.', 'error'); return;
+    }
+    photoSave.disabled = true;
+    let objectUrl;
+    try {
+      objectUrl = URL.createObjectURL(file);
+      const image = new Image();
+      image.src = objectUrl;
+      await image.decode();
+      const scale = Math.min(1, 1024 / Math.max(image.naturalWidth, image.naturalHeight));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+      canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+      const jpeg = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', .82));
+      if (!jpeg || jpeg.size > 2_000_000) throw new Error('The resized photo is still over 2 MB. Choose a smaller image.');
+      const response = await fetch('/api/me/photo', {
+        method: 'POST', headers: { 'content-type': 'image/jpeg' }, body: jpeg,
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || 'Could not save photo');
+      notify('Profile photo saved');
+      await refreshMe();
+      await renderProfile();
+    } catch (error) { notify(error.message || 'Could not read that image', 'error'); photoSave.disabled = false; }
+    finally { if (objectUrl) URL.revokeObjectURL(objectUrl); }
+  });
+  container.append(card('Profile photo', { sub: 'Use your camera or choose a picture. The upload is resized on this device.' },
+    h('div', { class: 'profile-photo-editor' }, photoPreview,
+      h('div', {}, photoInput, h('div', { class: 'row', style: 'margin-top:.8rem' }, photoSave,
+        profilePhoto ? h('button', { type: 'button', class: 'btn btn-quiet', on: { click: async () => {
+          const result = await api('DELETE', '/api/me/photo');
+          notify(result.ok ? 'Profile photo removed' : (result.data.error || 'Could not remove photo'), result.ok ? 'ok' : 'error');
+          if (result.ok) { await refreshMe(); await renderProfile(); }
+        } } }, 'Remove photo') : null)))));
 
   const pwForm = h('form', {},
     field('Current password', h('input', { name: 'currentPassword', type: 'password', required: true, autocomplete: 'current-password' })),
@@ -1483,8 +1546,8 @@ async function renderRobot() {
 
   for (const robot of list) {
     const detail = h('div', {});
-    const c = card(robot.friendlyId, {
-      sub: meaningfulText(robot.loopName) || 'No loop name',
+    const c = card(meaningfulText(robot.loopName) || robot.friendlyId, {
+      sub: robot.friendlyId,
       actions: [h('button', {
         class: 'btn btn-sm', type: 'button',
         on: { click: (e) => loadDetail(e.currentTarget, robot, detail) },
@@ -1496,6 +1559,7 @@ async function renderRobot() {
       row('Created', fmtDate(robot.created)),
       row('Last seen', robotLastSeen(robot.lastSeen)),
       detail);
+    c.classList.add('robot-card', `robot-color-${robot.avatarColor || 'blue'}`);
     container.append(c);
   }
   show(container);
@@ -1511,7 +1575,9 @@ async function renderRobot() {
       ? d.getRobot.payload : {};
     const remoteEnabled = typeof payload.remoteEnabled === 'boolean' ? payload.remoteEnabled : null;
     const ssid = meaningfulText(payload.SSID);
-    const location = [payload.city, payload.state, payload.country].map(meaningfulText).filter(Boolean).join(', ');
+    const locationSource = payload.locationOverride || payload;
+    const location = [locationSource.city, locationSource.state, locationSource.country]
+      .map(meaningfulText).filter(Boolean).join(', ');
     const timezone = meaningfulText(payload.timezone);
     const platform = meaningfulText(payload.platform);
     const serialNumber = meaningfulText(payload.serialNumber);
@@ -1531,8 +1597,258 @@ async function renderRobot() {
       d.diagnostics
         ? h('div', { class: 'notice notice-warn' }, icon('alert', 16),
           h('div', {}, 'Additional robot status is unavailable right now. Basic loop information is still shown.'))
-        : null);
+        : null,
+      robot.canManage ? robotSettingsPanel(robot, d) : null);
   }
+}
+
+function renderTips() {
+  const body = page('Get to know Jibo', 'A few useful things to try once your Jibo is connected.');
+  body.append(
+    card('Start with your voice', {},
+      h('p', {}, 'Try “Hey Jibo, what time is it?” or ask for the weather. Speak after the blue listening light appears.'),
+      h('p', { class: 'field-hint' }, 'If Jibo hears the wake word but not the question, check his connection on the Robots page.')),
+    card('Make your report yours', {},
+      h('p', {}, 'Personal Report can include weather, news, your commute, and a verified calendar subscription. Each person chooses their own settings.'),
+      h('a', { class: 'btn btn-secondary', href: '#/settings' }, 'Set up my report')),
+    card('People and loops', {},
+      h('p', {}, 'A loop is Jibo’s household. Add people and birthdays there so he knows who is part of the home.'),
+      h('a', { class: 'btn btn-secondary', href: '#/loop' }, 'Explore loops')),
+    card('Photos and messages', {},
+      h('p', {}, 'Jibo’s photos appear in Gallery. Loop members can send messages through the Jibo inbox, and the installed web app can notify you of new ones.'),
+      h('div', { class: 'row' },
+        h('a', { class: 'btn btn-secondary', href: '#/gallery' }, 'Open Gallery'),
+        h('a', { class: 'btn btn-secondary', href: '#/inbox' }, 'Open inbox'))));
+  show(body);
+}
+
+function robotSettingsPanel(robot, detail) {
+  const loopId = robot.loopId;
+  const payload = detail.getRobot?.payload || {};
+  const settings = h('details', { class: 'robot-settings' }, h('summary', {}, 'Settings for this Jibo'));
+
+  const nameForm = h('form', {},
+    field('Jibo name', h('input', { name: 'name', value: detail.loop?.name || robot.loopName || '', maxlength: 80, required: true }),
+      'The original app changes the loop name here. This name also appears across your console.'),
+    h('button', { type: 'submit', class: 'btn btn-secondary' }, 'Save name'));
+  onSubmit(nameForm, async () => {
+    const name = new FormData(nameForm).get('name');
+    const result = await api('PUT', '/api/loop', { loopId, name });
+    notify(result.ok ? 'Jibo name saved' : (result.data.error || 'Could not rename Jibo'), result.ok ? 'ok' : 'error');
+    if (result.ok) await renderRobot();
+  });
+
+  const colorForm = h('form', {},
+    field('Console color', h('select', { name: 'color' },
+      [['blue', 'Blue'], ['teal', 'Teal'], ['violet', 'Violet'], ['coral', 'Coral'], ['gold', 'Gold'], ['slate', 'Slate']]
+        .map(([value, label]) => h('option', { value, selected: (detail.loop?.avatarColor || robot.avatarColor) === value }, label))),
+    'A placeholder for future robot avatars; this changes only the console appearance.'),
+    h('button', { type: 'submit', class: 'btn btn-secondary' }, 'Save color'));
+  onSubmit(colorForm, async () => {
+    const color = new FormData(colorForm).get('color');
+    const result = await api('PUT', '/api/robot/color', { loopId, color });
+    if (result.ok) {
+      robot.avatarColor = color;
+      const tile = settings.closest('.robot-card');
+      if (tile) {
+        for (const className of [...tile.classList]) if (className.startsWith('robot-color-')) tile.classList.remove(className);
+        tile.classList.add(`robot-color-${color}`);
+      }
+    }
+    notify(result.ok ? 'Color saved' : (result.data.error || 'Could not save color'), result.ok ? 'ok' : 'error');
+  });
+
+  const remoteForm = h('form', {},
+    toggle('remoteEnabled', payload.remoteEnabled === true, 'Enable companion applications',
+      'Allows owner-authorized remote companion controls when the robot and ROM service support them.'),
+    h('button', { type: 'submit', class: 'btn btn-secondary' }, 'Save access'));
+  onSubmit(remoteForm, async () => {
+    const enabled = !!new FormData(remoteForm).get('remoteEnabled');
+    const result = await api('PUT', '/api/robot/properties', { loopId, remoteEnabled: enabled });
+    notify(result.ok ? 'Companion access saved' : (result.data.error || 'Could not change access'), result.ok ? 'ok' : 'error');
+  });
+
+  const existing = payload.locationOverride || {};
+  const locationPicker = createLocationPicker({ places: [{ key: 'jibo', label: 'Jibo', point: {
+    lat: existing.latitude ?? null, lng: existing.longitude ?? null,
+  } }] });
+  const currentTimeZone = payload.timezone || existing.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  const timeZoneList = h('datalist', { id: `timezones-${loopId}` },
+    ['UTC', ...(Intl.supportedValuesOf?.('timeZone') || [])].map((value) => h('option', { value })));
+  const locationForm = h('form', {},
+    h('p', { class: 'field-hint' }, 'Use your device location, search an address, or move the pin. The robot uses this pin for local weather.'),
+    locationPicker.element,
+    field('City or place name', h('input', { name: 'city', value: existing.city || '', maxlength: 120 }),
+      'Used as the human-readable location; an address search sets the pin, not this label.'),
+    field('Time zone', h('input', { name: 'timezone', value: currentTimeZone, list: `timezones-${loopId}`, required: true }),
+      'Check this if the robot is in a different time zone from your phone.'),
+    timeZoneList,
+    h('button', { type: 'submit', class: 'btn btn-secondary' }, 'Save robot location'));
+  onSubmit(locationForm, async () => {
+    const fd = Object.fromEntries(new FormData(locationForm));
+    const point = locationPicker.value().jibo;
+    if (point.lat == null || point.lng == null) { notify('Choose a location first', 'error'); return; }
+    const result = await api('PUT', '/api/robot/properties', { loopId, location: {
+      ...point, city: fd.city, timezone: fd.timezone,
+    } });
+    notify(result.ok ? 'Robot location saved' : (result.data.error || 'Could not save location'), result.ok ? 'ok' : 'error');
+  });
+
+  const holidaysHost = h('div', {}, loading(2));
+  const holidays = h('details', {}, h('summary', {}, 'Birthdays and holidays'), holidaysHost);
+  holidays.addEventListener('toggle', () => { if (holidays.open && holidaysHost.querySelector('.loading-rows')) void loadRobotHolidays(loopId, holidaysHost); });
+
+  const wifi = h('details', {}, h('summary', {}, 'Change Wi-Fi'), robotWifiPanel(loopId));
+  const passphrase = h('details', {}, h('summary', {}, 'Backup passphrase'), backupPassphrasePanel(loopId));
+
+  settings.append(card('Name and color', {}, nameForm, colorForm),
+    card('Companion applications', {}, remoteForm),
+    card('Location and local weather', {}, locationForm), holidays, wifi, passphrase);
+  return settings;
+}
+
+const PASSPHRASE_IV = new Uint8Array([10, 32, 101, 88, 3, 75, 46, 57, 94, 11, 27, 40, 6, 112, 51, 80]);
+const hex = (bytes) => [...new Uint8Array(bytes)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+
+function backupPassphrasePanel(loopId) {
+  const host = h('div', {}, h('p', { class: 'field-hint' }, 'Checking backup state…'));
+  void (async () => {
+    const status = await api('GET', `/api/robot/backup-key/status?loopId=${encodeURIComponent(loopId)}`);
+    if (!status.ok) { host.replaceChildren(errorBox('Could not check your backup', status.data.error)); return; }
+    if (!status.data.backupExists) {
+      host.replaceChildren(h('div', { class: 'notice notice-warn' }, icon('alert', 16),
+        h('div', {}, 'No encrypted loop-key backup exists yet. To create the first one, use a device that already holds the loop key. The server cannot generate that key without losing the original privacy protection.')));
+      return;
+    }
+    if (!window.crypto?.subtle) {
+      host.replaceChildren(errorBox('A secure browser connection is required to change the passphrase.'));
+      return;
+    }
+    const form = h('form', {},
+      h('p', { class: 'field-hint' }, 'Changing the passphrase re-encrypts the existing key in this browser. Your passphrases and unencrypted key are never sent to Phoenix. Keep the new passphrase somewhere safe; losing it can make restored content inaccessible.'),
+      field('Current passphrase', h('input', { type: 'password', name: 'current', required: true, autocomplete: 'off' })),
+      field('New passphrase', h('input', { type: 'password', name: 'next', required: true, minlength: 12, autocomplete: 'new-password' }),
+        'Use at least 12 characters.'),
+      field('Confirm new passphrase', h('input', { type: 'password', name: 'confirm', required: true, autocomplete: 'new-password' })),
+      h('button', { type: 'submit', class: 'btn btn-secondary' }, 'Change backup passphrase'));
+    onSubmit(form, async () => {
+      const fd = Object.fromEntries(new FormData(form));
+      if (fd.next !== fd.confirm || fd.next.length < 12 || fd.next === fd.current) {
+        notify('Choose and confirm a different passphrase of at least 12 characters', 'error'); return;
+      }
+      try {
+        const encoder = new TextEncoder();
+        const oldBytes = encoder.encode(fd.current);
+        const newBytes = encoder.encode(fd.next);
+        const oldPasswordHash = hex(await crypto.subtle.digest('SHA-1', oldBytes));
+        const newPasswordHash = hex(await crypto.subtle.digest('SHA-1', newBytes));
+        const current = await api('POST', '/api/robot/backup-key/current', { loopId, passwordHash: oldPasswordHash });
+        if (!current.ok) throw new Error(current.data.error || 'Could not unlock backup');
+        const oldKey = await crypto.subtle.importKey('raw', await crypto.subtle.digest('SHA-256', oldBytes), 'AES-CBC', false, ['decrypt']);
+        const ciphertext = Uint8Array.from(atob(current.data.encryptedKey.replace(/\s/g, '')), (c) => c.charCodeAt(0));
+        const plaintext = new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-CBC', iv: PASSPHRASE_IV }, oldKey, ciphertext));
+        const rawKey = Uint8Array.from(atob(new TextDecoder().decode(plaintext).trim()), (c) => c.charCodeAt(0));
+        if (rawKey.length !== 32) throw new Error('The current backup could not be decoded safely');
+        rawKey.fill(0);
+        const newKey = await crypto.subtle.importKey('raw', await crypto.subtle.digest('SHA-256', newBytes), 'AES-CBC', false, ['encrypt', 'decrypt']);
+        const nextEncrypted = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-CBC', iv: PASSPHRASE_IV }, newKey, plaintext));
+        const check = new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-CBC', iv: PASSPHRASE_IV }, newKey, nextEncrypted));
+        if (check.length !== plaintext.length || check.some((byte, i) => byte !== plaintext[i])) throw new Error('Encryption check failed');
+        plaintext.fill(0);
+        check.fill(0);
+        const encryptedKey = btoa(String.fromCharCode(...nextEncrypted));
+        const changed = await api('POST', '/api/robot/backup-key/change', {
+          loopId, oldPasswordHash, newPasswordHash, encryptedKey,
+        });
+        if (!changed.ok) throw new Error(changed.data.error || 'Could not update backup');
+        form.reset();
+        notify('Backup passphrase changed');
+      } catch (error) { notify(error.message || 'Could not change backup passphrase', 'error'); }
+    });
+    host.replaceChildren(form);
+  })();
+  return host;
+}
+
+function robotWifiPanel(loopId) {
+  const host = h('div', {},
+    h('p', { class: 'field-hint' }, 'On Jibo, open the Wi-Fi connection screen using his on-robot menu and wait for the camera/QR prompt. The original phone app does not switch that screen remotely; it waits for your tap on Jibo.'),
+    h('p', { class: 'field-hint' }, 'Keep Jibo powered on near the new network. Scanning this code reconnects the same loop and credentials; it does not create a second robot.'));
+  const form = h('form', {},
+    field('New Wi-Fi name (SSID)', h('input', { name: 'ssid', required: true, autocomplete: 'off' })),
+    field('New Wi-Fi password', h('input', { name: 'password', type: 'password', autocomplete: 'off' })),
+    h('button', { type: 'submit', class: 'btn btn-primary' }, 'Show Wi-Fi code'));
+  host.append(form);
+  onSubmit(form, async () => {
+    const fd = Object.fromEntries(new FormData(form));
+    const result = await api('POST', '/api/robots/wifi', { loopId, ssid: fd.ssid, password: fd.password });
+    if (!result.ok) { notify(result.data.error || 'Could not create Wi-Fi code', 'error'); return; }
+    form.hidden = true;
+    const codes = result.data.qr.codes;
+    let frame = 0;
+    const holder = h('div', { class: 'qr-codes', on: { click: () => {
+      frame = (frame + 1) % codes.length;
+      holder.replaceChildren(...[0, 1].map((i) => h('div', { html: qrSvg(codes[(frame + i) % codes.length], 5) })));
+    } } }, ...[0, 1].map((i) => h('div', { html: qrSvg(codes[(frame + i) % codes.length], 5) })));
+    const status = h('p', { class: 'field-hint' }, 'Waiting for Jibo to scan…');
+    const qr = h('div', {}, holder, h('p', { class: 'field-hint' }, 'Tap the code to advance frames.'), status);
+    host.append(qr);
+    stopPoll();
+    pollTimer = setInterval(async () => {
+      const check = await api('GET', `/api/robots/setup/status?token=${encodeURIComponent(result.data.token)}`);
+      if (!check.ok) return;
+      if (check.data.expired) { stopPoll(); status.textContent = 'This code expired. Create a new one.'; form.hidden = false; }
+      else if (check.data.complete) { stopPoll(); status.textContent = 'Jibo reconnected. Your loop is unchanged.'; notify('Wi-Fi changed'); }
+    }, 2000);
+  });
+  return host;
+}
+
+async function loadRobotHolidays(loopId, host) {
+  const result = await api('GET', `/api/robot/holidays?loopId=${encodeURIComponent(loopId)}`);
+  if (!result.ok) { host.replaceChildren(errorBox('Could not load holidays', result.data.error)); return; }
+  const regular = Array.isArray(result.data.holidays) ? result.data.holidays : [];
+  const custom = Array.isArray(result.data.custom) ? result.data.custom : [];
+  const birthdayRows = regular.filter((item) => item.category === 'birthday');
+  const standardRows = regular.filter((item) => item.category !== 'birthday');
+  const makeToggle = (item, isCustom) => h('label', { class: 'holiday-row' },
+    h('input', { type: 'checkbox', checked: item.isEnabled === true, on: { change: async (event) => {
+      const enabled = event.target.checked;
+      event.target.disabled = true;
+      const changed = isCustom
+        ? await api('PUT', '/api/robot/holidays/custom', { loopId, id: item.id, name: item.name, date: item.date, enabled })
+        : await api('PUT', '/api/robot/holiday', { loopId, id: item.id, enabled });
+      event.target.disabled = false;
+      if (!changed.ok) { event.target.checked = !enabled; notify(changed.data.error || 'Could not update holiday', 'error'); }
+      else notify('Holiday preference saved');
+    } } }),
+    h('span', {}, item.name || (item.category === 'birthday' ? 'Birthday' : 'Holiday')),
+    item.date ? h('span', { class: 'field-hint' }, item.date) : null);
+  const customList = h('div', {}, ...custom.map((item) => h('div', { class: 'holiday-custom-row' },
+    makeToggle(item, true),
+    h('button', { type: 'button', class: 'btn btn-quiet', on: { click: async () => {
+      const deleted = await api('DELETE', '/api/robot/holidays/custom', { loopId, id: item.id });
+      notify(deleted.ok ? 'Holiday removed' : (deleted.data.error || 'Could not remove holiday'), deleted.ok ? 'ok' : 'error');
+      if (deleted.ok) await loadRobotHolidays(loopId, host);
+    } } }, 'Remove'))));
+  const addForm = h('form', { class: 'holiday-add' },
+    field('Custom holiday name', h('input', { name: 'name', required: true, maxlength: 80 })),
+    field('Date', h('input', { name: 'date', type: 'date', required: true })),
+    h('button', { type: 'submit', class: 'btn btn-secondary' }, 'Add holiday'));
+  onSubmit(addForm, async () => {
+    const fd = Object.fromEntries(new FormData(addForm));
+    const added = await api('PUT', '/api/robot/holidays/custom', { loopId, name: fd.name, date: fd.date });
+    notify(added.ok ? 'Holiday added' : (added.data.error || 'Could not add holiday'), added.ok ? 'ok' : 'error');
+    if (added.ok) await loadRobotHolidays(loopId, host);
+  });
+  host.replaceChildren(
+    h('p', { class: 'field-hint' }, 'Birthdays come from loop members’ profiles. The choices below are stored in the original Person service format.'),
+    h('h4', {}, 'Birthdays'),
+    birthdayRows.length ? h('div', {}, ...birthdayRows.map((item) => makeToggle(item, false)))
+      : h('p', { class: 'field-hint' }, 'Add birthdays to loop members to enable birthday reminders.'),
+    h('h4', {}, 'Custom holidays'), customList, addForm,
+    h('details', {}, h('summary', {}, `Built-in holidays (${standardRows.length})`),
+      h('div', {}, ...standardRows.map((item) => makeToggle(item, false)))));
 }
 
 /* ==========================================================================
@@ -3036,6 +3352,7 @@ const ROUTES = {
   '#/settings': renderSettings,
   '#/profile': renderProfile,
   '#/robot': renderRobot,
+  '#/tips': renderTips,
   '#/claim': renderClaim,
   '#/gallery': renderGallery,
   '#/inbox': renderInbox,

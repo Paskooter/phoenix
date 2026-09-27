@@ -12,6 +12,7 @@ const newsKey = (cat) => `news${cat[0].toUpperCase()}${cat.slice(1)}`; // techno
 /** The wire-shape default (weather °F + news tech/sports/business/national on; commute+cal off). */
 export function defaultSettingsData() {
   const data = {
+    offerProactively: { value: true },
     weatherEnabled: { value: 1 }, weather: { value: 0 },
     calendarEnabled: { value: 0 },
     'google:personalCalendar:readonly': { credentialExists: false },
@@ -33,6 +34,7 @@ const get = (d, k, p) => (d[k] && d[k][p]);
 /** Wire data -> the friendly object the portal renders/edits. */
 export function dataToFriendly(d) {
   return {
+    offerProactively: get(d, 'offerProactively', 'value') !== false,
     weather: { active: !!get(d, 'weatherEnabled', 'value'), celsius: !!get(d, 'weather', 'value') },
     news: {
       active: !!get(d, 'newsEnabled', 'value'),
@@ -68,6 +70,10 @@ export function dataToFriendly(d) {
 export function friendlyToData(friendly, base = defaultSettingsData()) {
   const d = JSON.parse(JSON.stringify(base));
   const f = friendly || {};
+  if (Object.prototype.hasOwnProperty.call(f, 'offerProactively')) {
+    if (typeof f.offerProactively !== 'boolean') throw new TypeError('offerProactively must be a boolean');
+    d.offerProactively = { value: f.offerProactively };
+  }
   if (f.weather) {
     if ('active' in f.weather) d.weatherEnabled = { value: f.weather.active ? 1 : 0 };
     if ('celsius' in f.weather) d.weather = { value: f.weather.celsius ? 1 : 0 };

@@ -145,6 +145,30 @@ body.console {
   text-transform: uppercase;
   letter-spacing: 0;
 }
+.avatar.has-photo { background-size: cover; background-position: center; color: transparent; }
+.profile-photo-editor { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.profile-photo-editor > div { min-width: min(100%, 250px); flex: 1; }
+.profile-photo-preview { width: 92px; height: 92px; border-radius: 50%; display: grid; place-items: center;
+  overflow: hidden; background: var(--grad-brand); color: var(--accent-ink); font-size: 1.4rem; font-weight: 700; }
+.profile-photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+.robot-settings { margin-top: 1rem; }
+.robot-settings > summary, .robot-settings .card summary { cursor: pointer; min-height: 44px; padding: .7rem 0; font-weight: 650; }
+.robot-settings > .card, .robot-settings > details { margin-top: 1rem; }
+.robot-settings form + form { margin-top: 1.3rem; padding-top: 1.3rem; border-top: 1px solid var(--border-soft); }
+.robot-settings .map-picker { margin-block: 1rem; }
+.robot-settings h4 { margin: 1.3rem 0 .4rem; }
+.holiday-row { display: flex; align-items: center; gap: .65rem; min-height: 44px; cursor: pointer; }
+.holiday-row .field-hint { margin-left: auto; }
+.holiday-custom-row { display: flex; align-items: center; gap: .5rem; }
+.holiday-custom-row .holiday-row { flex: 1; }
+.holiday-add { display: grid; gap: .65rem; max-width: 420px; margin-top: .8rem; }
+.robot-card .card-head h3::before { content: ''; display: inline-block; width: .8em; height: .8em;
+  margin-right: .55em; border-radius: 50%; vertical-align: -.02em; background: var(--robot-avatar-color, #4b85db); }
+.robot-color-teal { --robot-avatar-color: #2ba99c; }
+.robot-color-violet { --robot-avatar-color: #9966ce; }
+.robot-color-coral { --robot-avatar-color: #e47770; }
+.robot-color-gold { --robot-avatar-color: #d6a438; }
+.robot-color-slate { --robot-avatar-color: #718098; }
 .account-chip .who {
   min-width: 0;
   display: flex;

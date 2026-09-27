@@ -13,7 +13,7 @@ const dir = mkdtempSync(join(tmpdir(), 'phx-portal-classic-'));
 
 const { createAccountService, Store } = await import('../src/index.js');
 const { createOwnerAccount, createLoop } = await import('../src/model.js');
-const { createClassicEntrypoint, MediaStore, PersonStore, JotStore, DeviceRegistry } = await import('../../classic/src/index.js');
+const { createClassicEntrypoint, MediaStore, PersonStore, RobotStore, JotStore, DeviceRegistry } = await import('../../classic/src/index.js');
 const { VoiceTrainingStore } = await import('../../classic/src/index.js');
 const { createOtaService } = await import('../../ota/src/service.js');
 const { Catalog } = await import('../../ota/src/catalog.js');
@@ -66,6 +66,7 @@ before(async () => {
   pushRegistry.createDevice(owner.accessKeyId, { name: 'test-phone', pushToken: 'tok-1', type: 'android' });
 
   classic = createClassicEntrypoint({
+    robotStore: new RobotStore({ dir: join(dir, 'robots') }),
     media: { store: mediaStore },
     person: { store: personStore },
     jot: { store: jotStore, pushRegistry },
@@ -109,6 +110,7 @@ test('signature travel: the portal uses the account credentials, never forges id
   assert.deepEqual(robot.body.connection, { connected: false });
   assert.equal(robot.body.diagnostics, undefined);
 });
+
 
 test('robot cards report notification-socket presence and persist the observation time', async () => {
   const offline = await call('GET', '/api/robots');

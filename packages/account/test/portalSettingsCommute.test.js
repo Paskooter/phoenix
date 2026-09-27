@@ -79,3 +79,19 @@ test('an omitted departure time leaves the stored one alone', async () => {
     await close();
   }
 });
+
+test('the proactive Personal Report preference is editable per account', async () => {
+  const { call, close } = await portal();
+  try {
+    const initial = await call('GET', '/api/settings');
+    assert.equal(initial.body.settings.offerProactively, true);
+    const disabled = await call('PUT', '/api/settings', { offerProactively: false });
+    assert.equal(disabled.status, 200);
+    assert.equal(disabled.body.settings.offerProactively, false);
+    const readBack = await call('GET', '/api/settings');
+    assert.equal(readBack.body.settings.offerProactively, false);
+    assert.equal((await call('PUT', '/api/settings', { offerProactively: 'false' })).status, 400);
+  } finally {
+    await close();
+  }
+});

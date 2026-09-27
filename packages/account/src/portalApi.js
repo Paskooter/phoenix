@@ -97,6 +97,7 @@ const robotView = ({ robot, loop, owner }, {
     friendlyId: robot.friendlyId,
     loopId: loop ? loop._id : null,
     loopName: loop ? loop.name : null,
+    avatarColor: loop?.avatarColor || 'blue',
     created: robot.created,
     lastSeen: robot.lastSeen || null,
   };
@@ -242,6 +243,7 @@ export function portalRoutes(store, options = {}) {
       : options.requireEmailVerification === true,
     classicBase: options.classicBase || classicBaseUrl(),
     classicCall: options.classicCall,
+    photoProvider: options.photoProvider,
     requireAdmin,
     webPush: options.webPush,
   };
@@ -440,6 +442,26 @@ export function portalRoutes(store, options = {}) {
       };
     },
 
+    // Reconnect the same robot to a new network. This is the native app's
+    // PrepareRobot(loopId) path, not a fresh household setup token.
+    'POST /api/robots/wifi': ({ req, res, body }) => {
+      const account = userFromSession(store, req);
+      if (!account) return sendJson(res, 401, { error: 'not logged in' });
+      const loop = typeof body?.loopId === 'string' ? store.loops.get(body.loopId) : null;
+      if (!loop || loop.isDeleted === true || !idsEqual(loop.owner, account._id) || !loop.robot) {
+        return sendJson(res, 404, { error: 'Owned robot not found' });
+      }
+      const ssid = body?.ssid;
+      const password = body?.password ?? '';
+      if (typeof ssid !== 'string' || Buffer.byteLength(ssid) < 1 || Buffer.byteLength(ssid) > 32
+        || typeof password !== 'string' || password.length > 63) {
+        return sendJson(res, 400, { error: 'Enter a Wi-Fi name and a password of at most 63 characters' });
+      }
+      const token = mintSetupToken(store, account._id, loop._id);
+      const { codes } = buildQrCodes({ ssid, password, token: token._id });
+      return { token: token._id, expires: token.created + ACCESS_TOKEN_LIFETIME_MS, qr: { codes } };
+    },
+
     // Existing (non-reset) robots prove possession from the SSH repoint
     // command by presenting the AWS key pair already on the device.  This
     // endpoint supplies the other half of that proof: a one-time code bound to
@@ -585,7 +607,7 @@ export function portalRoutes(store, options = {}) {
 
     // -- the rest of the mobile-app surface ------------------------------------
     ...portalLoopRoutes(store, portal),
-    ...portalProfileRoutes(store, { identityProviders: portal.identityProviders }),
+    ...portalProfileRoutes(store, { identityProviders: portal.identityProviders, photoProvider: portal.photoProvider }),
     ...portalRobotRoutes(store, portal),
     ...portalMediaRoutes(store, portal),
     ...portalPeopleRoutes(store, portal),

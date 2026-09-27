@@ -1068,7 +1068,9 @@ export function settingsPortalRoutes(store) {
     'PUT /api/settings': ({ req, res, body }) => {
       const account = owner(req);
       if (!account) return sendJson(res, 401, { error: 'not logged in' });
-      const data = friendlyToData(body || {}, getSettingsData(store, account._id));
+      let data;
+      try { data = friendlyToData(body || {}, getSettingsData(store, account._id)); }
+      catch (error) { return sendJson(res, 400, { error: error.message }); }
       setSettingsData(store, account._id, data);
       return { accountId: account._id, settings: dataToFriendly(data) };
     },

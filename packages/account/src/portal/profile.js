@@ -2,6 +2,7 @@
 // change is exactly the account the mobile app signs into.
 
 import { sendJson } from '@phoenix/common';
+import { Readable } from 'node:stream';
 import { hashPassword } from '../model.js';
 // Both formats, same reason as the login route: an imported household's password
 // is the source pbkdf2 encoding, not the portal's scrypt.
@@ -10,6 +11,8 @@ import {
   compareAccountPassword,
   confirmEmailReset,
   notifyPasswordChanged,
+  removePhoto,
+  updatePhoto,
 } from '../accountIdentity.js';
 import { requireUser, portalAccount } from './session.js';
 import { bumpAccountSessionVersion } from '../sessions.js';
@@ -21,7 +24,32 @@ function badRequest(res, message) {
   return sendJson(res, 400, { error: message });
 }
 
-export function portalProfileRoutes(store, { identityProviders = undefined } = {}) {
+export function portalProfileRoutes(store, { identityProviders = undefined, photoProvider = undefined } = {}) {
+  const uploadPhoto = async ({ req, res }) => {
+    const account = requireUser(store, req, res);
+    if (!account) return;
+    if (!photoProvider) return sendJson(res, 503, { error: 'Profile photos are not configured on this server' });
+    if (String(req.headers['content-type'] || '').toLowerCase() !== 'image/jpeg') {
+      return badRequest(res, 'Upload a JPEG image');
+    }
+    const chunks = [];
+    let size = 0;
+    for await (const chunk of req) {
+      size += chunk.length;
+      if (size > 2_000_000) return badRequest(res, 'Choose an image under 2 MB');
+      chunks.push(chunk);
+    }
+    const bytes = Buffer.concat(chunks, size);
+    if (bytes.length < 32 || bytes[0] !== 0xff || bytes[1] !== 0xd8
+      || bytes[bytes.length - 2] !== 0xff || bytes[bytes.length - 1] !== 0xd9) {
+      return badRequest(res, 'Choose a valid JPEG image under 2 MB');
+    }
+    try {
+      const updated = await updatePhoto(store, { ownerId: account._id, dataStream: Readable.from(bytes), photoProvider });
+      return { account: portalAccount(updated) };
+    } catch { return sendJson(res, 502, { error: 'Could not save profile photo' }); }
+  };
+  uploadPhoto.rawBody = true;
   return {
     'PUT /api/me': ({ req, res, body }) => {
       const account = requireUser(store, req, res);
@@ -36,7 +64,7 @@ export function portalProfileRoutes(store, { identityProviders = undefined } = {
         account.lastName = input.lastName.trim();
       }
       if (input.gender !== undefined) {
-        if (typeof input.gender !== 'string' || !GENDERS.includes(input.gender)) {
+        if (input.gender !== null && (typeof input.gender !== 'string' || !GENDERS.includes(input.gender))) {
           return badRequest(res, `gender must be one of ${GENDERS.join(', ')}`);
         }
         account.gender = input.gender;
@@ -66,6 +94,18 @@ export function portalProfileRoutes(store, { identityProviders = undefined } = {
       account.updated = Date.now();
       store.flush();
       return { account: portalAccount(account) };
+    },
+
+    'POST /api/me/photo': uploadPhoto,
+
+    'DELETE /api/me/photo': async ({ req, res }) => {
+      const account = requireUser(store, req, res);
+      if (!account) return;
+      if (!photoProvider) return sendJson(res, 503, { error: 'Profile photos are not configured on this server' });
+      try {
+        const updated = await removePhoto(store, { ownerId: account._id, photoProvider });
+        return { account: portalAccount(updated) };
+      } catch { return sendJson(res, 502, { error: 'Could not remove profile photo' }); }
     },
 
     'POST /api/me/password': ({ req, res, body }) => {

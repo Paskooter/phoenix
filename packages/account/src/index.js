@@ -22,6 +22,7 @@ import { portalNotFound, staticRoutes } from './static.js';
 import { createSettingsProviders } from './settingsProviders.js';
 import { MemberPhotoStorage } from './memberPhotoStorage.js';
 import { pipeline } from 'node:stream/promises';
+import { openSync, readSync, closeSync } from 'node:fs';
 import { timingSafeEqual } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { LoopUpdatedOutbox } from './loopUpdatedOutbox.js';
@@ -263,6 +264,21 @@ function photoKey(photoUrl) {
   return /^[a-zA-Z0-9_-]+$/.test(value || '') ? value : null;
 }
 
+function storedPhotoMime(provider, key) {
+  if (typeof provider.file !== 'function') return 'application/octet-stream';
+  let fd;
+  try {
+    fd = openSync(provider.file(key), 'r');
+    const header = Buffer.alloc(12);
+    const length = readSync(fd, header, 0, header.length, 0);
+    if (length >= 3 && header[0] === 0xff && header[1] === 0xd8 && header[2] === 0xff) return 'image/jpeg';
+    if (length >= 8 && header.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))) return 'image/png';
+    if (length >= 12 && header.toString('ascii', 0, 4) === 'RIFF' && header.toString('ascii', 8, 12) === 'WEBP') return 'image/webp';
+  } catch { /* unknown content stays a download */ }
+  finally { if (fd !== undefined) closeSync(fd); }
+  return 'application/octet-stream';
+}
+
 /** True when the signed-in account owns or belongs to the loop containing a photo key. */
 export function photoKeyOwnedByAccount(store, account, key) {
   if (!account || typeof key !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(key)) return false;
@@ -405,7 +421,8 @@ export function createAccountService({
       try {
         const stream = photoProvider.open(req.params.key);
         await new Promise((resolve, reject) => { stream.once('open', resolve); stream.once('error', reject); });
-        res.setHeader('content-type', 'application/octet-stream');
+        res.setHeader('content-type', storedPhotoMime(photoProvider, req.params.key));
+        res.setHeader('cache-control', 'private, no-store');
         await pipeline(stream, res);
       } catch (error) {
         if (!res.headersSent && !res.destroyed) { res.writeHead(404); res.end(); }
@@ -422,6 +439,7 @@ export function createAccountService({
       repointHost,
       webPush: effectiveWebPush,
       addressSearchService,
+      photoProvider,
     }), // REST /api/* (sessions)
     ...settingsPeerRoutes(store), // internal Account client seams used by source Settings
     ...backupPeerRoutes(store),   // internal Account client seam used by source Backup (getLoop)

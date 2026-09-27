@@ -400,7 +400,17 @@ export function makeRobotHandler(opts = {}) {
         }
         const key = convertRobotId(b.id);
         const aggregate = store.aggregate(key);
-        if (!aggregate.exists) return void sendAmzError(res, ROBOT_ERRORS.ENTITY_NOT_FOUND);
+        if (!aggregate.exists) {
+          // A robot restored from a stock image or adopted from the old cloud
+          // has an Account identity but no manufacturing event in Phoenix.
+          // Bootstrap only after the verified owner check above. Without this,
+          // the app can read the empty projection but can never save location
+          // or the remote-access switch for an adopted Jibo.
+          if (!credentials || !Array.isArray(owned) || !owned.includes(b.id)) {
+            return void sendAmzError(res, ROBOT_ERRORS.ENTITY_NOT_FOUND);
+          }
+          store.append({ name: 'RobotCreated', objectId: key, created: now(), payload: {} });
+        }
         if (aggregate.deleted) return void sendAmzError(res, ROBOT_ERRORS.ENTITY_DELETED);
         store.append({ name: 'RobotUpdated', objectId: key, created: now(), payload: b.payload });
         return void sendAmz(res, 200, COMMAND_ACCEPTED_RESPONSE);

@@ -8,6 +8,7 @@ import { tmpdir } from 'node:os';
 
 const { createAccountService, Store } = await import('../src/index.js');
 const { createOwnerAccount, verifyPassword } = await import('../src/model.js');
+const { MemberPhotoStorage } = await import('../src/memberPhotoStorage.js');
 
 const dir = mkdtempSync(join(tmpdir(), 'phx-portal-profile-'));
 const store = new Store(join(dir, 'store.json'));
@@ -31,6 +32,7 @@ before(async () => {
   owner = createOwnerAccount(store, { email: 'profile-owner@fixture.test', password: 'profile-pass-1', firstName: 'Guy' });
   server = await createAccountService({
     store,
+    memberPhotoProvider: new MemberPhotoStorage({ directory: join(dir, 'photos'), publicBaseUrl: '/member-photos' }),
     identityProviders: {
       portalUrl: 'http://portal.fixture.test',
       emailReset: { send(to, options) { mail.push({ template: 'emailReset', to, options }); } },
@@ -41,6 +43,33 @@ before(async () => {
   base = `http://127.0.0.1:${server.address().port}`;
   const login = await call('POST', '/api/login', { email: owner.email, password: 'profile-pass-1' }, 'owner');
   assert.equal(login.status, 200);
+});
+
+test('profile JPEG upload and removal are session-bound and serve the image MIME type', async () => {
+  const jpeg = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff]), Buffer.alloc(32, 0x44), Buffer.from([0xff, 0xd9])]);
+  const unauthenticated = await fetch(`${base}/api/me/photo`, {
+    method: 'POST', headers: { 'content-type': 'image/jpeg' }, body: jpeg,
+  });
+  assert.equal(unauthenticated.status, 401);
+  const invalid = await fetch(`${base}/api/me/photo`, {
+    method: 'POST', headers: { 'content-type': 'image/jpeg', cookie: jars.get('owner') }, body: Buffer.alloc(40, 0x44),
+  });
+  assert.equal(invalid.status, 400);
+  const uploaded = await fetch(`${base}/api/me/photo`, {
+    method: 'POST', headers: { 'content-type': 'image/jpeg', cookie: jars.get('owner') }, body: jpeg,
+  });
+  assert.equal(uploaded.status, 200);
+  const photoUrl = (await uploaded.json()).account.photoUrl;
+  assert.match(photoUrl, /^\/member-photos\/[a-zA-Z0-9_-]+$/);
+  const privateRead = await fetch(`${base}${photoUrl}`);
+  assert.equal(privateRead.status, 401);
+  const read = await fetch(`${base}${photoUrl}`, { headers: { cookie: jars.get('owner') } });
+  assert.equal(read.status, 200);
+  assert.match(read.headers.get('content-type'), /^image\/jpeg/);
+  assert.deepEqual(Buffer.from(await read.arrayBuffer()), jpeg);
+  const removed = await call('DELETE', '/api/me/photo');
+  assert.equal(removed.status, 200);
+  assert.equal(removed.body.account.photoUrl, null);
 });
 
 after(async () => {
