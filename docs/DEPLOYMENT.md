@@ -1482,6 +1482,13 @@ drop it from root's `PATH`. Keep the service itself on its pinned Node runtime
 and pass that runtime's `npm` path through `PHOENIX_NPM_BIN` as above; do not
 fall back to a different system Node just for deployments.
 
+The release health gate waits up to 90 attempts by default. OTA hashes every
+available package before opening its listener, so a populated catalog can take
+longer than 20 seconds to start. If unusually slow storage needs more time, set
+`PHOENIX_HEALTHCHECK_ATTEMPTS` to a larger positive integer for the deployment;
+verify the OTA log and health endpoint before doing so. Do not bypass the health
+gate or mistake catalog warm-up for an application crash.
+
 If nginx serves portal files directly rather than proxying them through Account,
 its `root` must point at `/srv/phoenix/current/packages/account/portal`, never a
 specific release. Run `nginx -t` and reload nginx after that one-time path

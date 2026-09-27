@@ -112,7 +112,12 @@ fi
 # fail closed when the launcher is alive but a child process exited immediately.
 HEALTH_URLS="${PHOENIX_HEALTHCHECK_URLS:-http://127.0.0.1:9000/healthcheck http://127.0.0.1:9010/healthcheck http://127.0.0.1:9011/healthcheck http://127.0.0.1:9012/healthcheck}"
 healthy=0
-for _attempt in $(seq 1 20); do
+# A populated OTA catalog hashes large OS/services/skill archives before it
+# starts listening. Give that bounded startup work enough time to finish; a
+# too-short window falsely rolls back an otherwise healthy release.
+HEALTH_ATTEMPTS="${PHOENIX_HEALTHCHECK_ATTEMPTS:-90}"
+[[ "$HEALTH_ATTEMPTS" =~ ^[1-9][0-9]*$ ]] || die "PHOENIX_HEALTHCHECK_ATTEMPTS must be a positive integer"
+for _attempt in $(seq 1 "$HEALTH_ATTEMPTS"); do
   if systemctl is-active --quiet "$SERVICE"; then
     all_ok=1
     for url in $HEALTH_URLS; do
