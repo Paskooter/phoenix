@@ -12,11 +12,13 @@
  *   node scripts/portal-grant-admin.mjs --email you@example.com
  *   node scripts/portal-grant-admin.mjs --email you@example.com --revoke
  *
- * The store file defaults to PHOENIX_ROBOT_STORE_FILE and then to the moth
- * deployment's account.json. Pass --store to point somewhere else.
+ * The store file is resolved the way the account service resolves it:
+ * --store, then ETCO_account_dataFile, then PHOENIX_DATA_DIR/account/store.json
+ * (the native launcher's layout), then the legacy PHOENIX_ROBOT_STORE_FILE and
+ * moth deployment paths.
  *
- * A running service may hold the store in memory, so restart it if the console
- * does not pick the change up:  systemctl --user restart phoenix-robot@moth
+ * A running service holds the store in memory, so restart it afterwards or the
+ * next write from the service replaces the change.
  */
 
 import { homedir } from 'node:os';
@@ -47,12 +49,14 @@ if (args.help) {
 }
 
 const storeFile = args.store
+  || process.env.ETCO_account_dataFile
+  || (process.env.PHOENIX_DATA_DIR ? join(process.env.PHOENIX_DATA_DIR, 'account/store.json') : '')
   || process.env.PHOENIX_ROBOT_STORE_FILE
   || join(homedir(), '.local/share/phoenix/moth/account.json');
 
 if (!existsSync(storeFile)) {
   console.error(`no account store at ${storeFile}`);
-  console.error('pass --store <file> or set PHOENIX_ROBOT_STORE_FILE');
+  console.error('pass --store <file>, or set ETCO_account_dataFile or PHOENIX_DATA_DIR');
   process.exit(2);
 }
 
@@ -96,6 +100,5 @@ store.flush();
 console.log(`${wanted ? 'granted' : 'revoked'} administrator access for ${target.email}`);
 console.log(`store: ${storeFile}`);
 if (wanted) {
-  console.log('Sign in to the console and open /admin. Restart the service if it does not take effect:');
-  console.log('  systemctl --user restart phoenix-robot@moth');
+  console.log('Restart the account service (it holds the store in memory), then sign in and open /admin.');
 }

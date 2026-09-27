@@ -333,7 +333,7 @@ fi
 
 echo "compose-contract stack: bind=${BIND_HOST} hub:$(p 9000) report:$(p 9003) chitchat:$(p 9004) parser:$(p 9005) history:$(p 9006) lasso:$(p 9007) color:$(p 9008) answer:$(p 9009) example:$(p 9013) template:$(p 9014)"
 echo "ext: ota:$(p 9010) (OTA update server)${ACCOUNT_URL:+ · account+portal:$(p 9011)}${CLASSIC_NOTE}"
-[ -n "$ACCOUNT_URL" ] && echo "portal: http://localhost:$(p 9011)  (admin at /#/admin — needs ADMIN_PASSWORD)"
+[ -n "$ACCOUNT_URL" ] && echo "portal: http://localhost:$(p 9011)  (console at /app; admin at /admin for accounts granted with scripts/portal-grant-admin.mjs)"
 [ -n "$CLASSIC_NOTE" ] && echo "robot front door: http://localhost:$(p 9012)  (point the robot region here)"
 echo "logs: $LOG_DIR/phx-compose-*.log"
 # The harness needs each service's pid to signal it on shutdown; announce them.

@@ -34,7 +34,7 @@ const pageTitle = document.getElementById('page-title');
    API
    ========================================================================== */
 
-const api = async (method, path, body) => {
+const apiRaw = async (method, path, body) => {
   try {
     const res = await fetch(path, {
       method,
@@ -47,6 +47,18 @@ const api = async (method, path, body) => {
     // A dead service should say so, not fail silently into an empty page.
     return { ok: false, status: 0, data: { error: 'Cannot reach the server.' } };
   }
+};
+
+// Every page renders asynchronously. Without a guard, a slow response for a
+// page the user has already left lands afterwards and replaces the page they
+// navigated to (or restarts its poll). Each navigation bumps this counter; a
+// response that arrives after one is never delivered, so the stale render
+// simply stops where it was.
+let navSeq = 0;
+const api = async (method, path, body) => {
+  const seq = navSeq;
+  const result = await apiRaw(method, path, body);
+  return seq === navSeq ? result : new Promise(() => {});
 };
 
 /* ==========================================================================
@@ -62,7 +74,9 @@ const h = (tag, attrs = {}, ...kids) => {
     if (k === 'class') el.className = v;
     else if (k === 'text') el.textContent = v;
     else if (k === 'html') el.innerHTML = v;
-    else if (k === 'on') for (const [ev, fn] of Object.entries(v)) el.addEventListener(ev, fn);
+    else if (k === 'on') {
+      for (const [ev, fn] of Object.entries(v)) el.addEventListener(ev, ev === 'submit' ? guardSubmit(fn) : fn);
+    }
     else if (k === 'hidden') el.hidden = v;
     else if (BOOL_ATTRS.includes(k)) { if (v) el.setAttribute(k, ''); }
     else el.setAttribute(k, v);
@@ -73,6 +87,32 @@ const h = (tag, attrs = {}, ...kids) => {
   }
   return el;
 };
+
+/**
+ * Wrap an async submit handler so a form cannot be submitted again while its
+ * request is in flight. A double-click used to send a message, an invitation or
+ * a password change twice. Submit buttons are disabled for the duration.
+ */
+function guardSubmit(handler) {
+  return async function guardedSubmit(event) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    if (form.dataset.busy) return;
+    form.dataset.busy = '1';
+    form.setAttribute('aria-busy', 'true');
+    const buttons = [...form.querySelectorAll('button[type="submit"]')].filter((b) => !b.disabled);
+    for (const button of buttons) button.disabled = true;
+    try {
+      await handler.call(this, event);
+    } finally {
+      delete form.dataset.busy;
+      form.removeAttribute('aria-busy');
+      for (const button of buttons) button.disabled = false;
+    }
+  };
+}
+
+const onSubmit = (form, handler) => form.addEventListener('submit', guardSubmit(handler));
 
 /** Inline icon from the shared 24x24 line set. */
 const ICONS = {
@@ -99,6 +139,7 @@ const ICONS = {
   eye: 'M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Zm9.5 2.6a2.6 2.6 0 1 0 0-5.2 2.6 2.6 0 0 0 0 5.2Z',
   refresh: 'M20 12a8 8 0 1 1-2.6-5.9M20 4v4h-4',
   lock: 'M7 10.5V8a5 5 0 0 1 10 0v2.5M5.5 10.5h13a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-8.5a1 1 0 0 1 1-1Z',
+  calendar: 'M7 3.5v3M17 3.5v3M4.5 9.5h15M6 5h12a1.5 1.5 0 0 1 1.5 1.5v12A1.5 1.5 0 0 1 18 20H6a1.5 1.5 0 0 1-1.5-1.5v-12A1.5 1.5 0 0 1 6 5Z',
   chip: 'M8.5 4h7a4.5 4.5 0 0 1 4.5 4.5v7a4.5 4.5 0 0 1-4.5 4.5h-7A4.5 4.5 0 0 1 4 15.5v-7A4.5 4.5 0 0 1 8.5 4ZM9.5 9.5h5v5h-5zM12 4V1.5m0 21V20M4 12H1.5m21 0H20',
 };
 
@@ -133,7 +174,11 @@ const fmtDate = (v, fallback = '—') => {
   });
 };
 const fmtDay = (v) => (v ? new Date(Number(v) || v).toLocaleDateString(undefined, { dateStyle: 'medium' }) : '—');
-const fmtBool = (v) => (v ? 'yes' : 'no');
+/** `YYYY-MM-DD` for a date input, or '' for a missing or unparseable value. */
+const isoDay = (v) => {
+  const date = new Date(Number(v));
+  return v && !Number.isNaN(date.getTime()) ? date.toISOString().slice(0, 10) : '';
+};
 
 // Some old Robot_20160225 records serialize unset optional fields as the
 // literal string "null". It is not useful data, and showing five copies of it
@@ -293,14 +338,32 @@ function confirmDialog({ title, body, confirmLabel = 'Confirm', danger = true })
    ========================================================================== */
 
 let me = null;
+let badgesPainted = false;
+
+/** Fill the sidebar counts once per session, whichever page was opened first. */
+async function paintBadges() {
+  const [loops, robots] = await Promise.all([apiRaw('GET', '/api/loop'), apiRaw('GET', '/api/robots')]);
+  if (robots.ok && Array.isArray(robots.data)) setBadge('badge-robots', robots.data.length);
+  if (loops.ok && Array.isArray(loops.data.loops)) {
+    const people = loops.data.loops
+      .filter((loop) => loop.canManage === true || (loop.members || []).some((member) =>
+        String(member.accountId) === String(me?.id) && String(member.status || '').toLowerCase() === 'accepted'))
+      .reduce((n, loop) => n + (loop.members || []).filter((m) => !(m.accountId && m.accountId === loop.robot)).length, 0);
+    setBadge('badge-members', people);
+  }
+}
 
 async function refreshMe() {
   const r = await api('GET', '/api/me');
   me = r.ok ? r.data.account : null;
   paintAccount();
+  if (me && !badgesPainted) {
+    badgesPainted = true;
+    void paintBadges();
+  }
   if (me) {
     void registerPortalServiceWorker();
-    void syncBrowserPush(api, me.id);
+    void syncBrowserPush(apiRaw, me.id);
   }
   return me;
 }
@@ -399,6 +462,20 @@ async function renderHome() {
   const members = usableLoops.reduce((n, l) => n + peopleOf(l).length, 0);
   const unlinked = usableLoops.reduce((n, l) => n + peopleOf(l).filter((m) => !m.account).length, 0);
 
+  // A brand-new account has no robot and no loop, and three zeros tell it
+  // nothing. Lead with the one thing to do next instead.
+  if (robots.ok && loops.ok && !robotList.length && !loopList.length) {
+    body.append(h('section', { class: 'card getting-started' },
+      h('div', { class: 'card-body' },
+        h('div', { class: 'getting-started-ic' }, icon('robot', 22)),
+        h('div', {},
+          h('h3', {}, 'Bring your Jibo online'),
+          h('p', { class: 'field-hint' },
+            'Pair your robot with this account to create its loop. Everything else here — members, the '
+            + 'personal report, the gallery and messages — starts from that loop.')),
+        h('a', { class: 'btn btn-primary', href: '#/add' }, icon('plus', 15), 'Add a Jibo'))));
+  }
+
   body.append(h('div', { class: 'stat-grid' },
     h('article', { class: 'stat' },
       h('div', { class: 'label' }, icon('users', 14), 'Members'),
@@ -460,9 +537,9 @@ async function renderHome() {
   if (robotList.length) {
     const robotCard = card('Robots', {});
     for (const rb of robotList) {
-      robotCard.querySelector('.card-body').append(row(rb.friendlyId, rb.loopName || '—'));
+      robotCard.querySelector('.card-body').append(row(rb.friendlyId, meaningfulText(rb.loopName) || '—'));
     }
-    body.append(robotCard);
+    body.append(h('div', { style: 'margin-top:1rem' }, robotCard));
   }
 
   setBadge('badge-members', members);
@@ -554,7 +631,6 @@ async function renderLoop() {
   const owner = (active.members || []).find((member) => String(member.accountId) === String(active.owner));
 
   const loopCard = card(active.name, {
-    sub: active.isSuspended ? null : 'Active',
     actions: isOwner ? [h('button', {
       class: 'btn btn-sm btn-danger',
       type: 'button',
@@ -600,7 +676,8 @@ async function renderLoop() {
   },
     h('p', { class: 'field-hint' }, isOwner
       ? 'Linking a member to an account is what lets the robot fetch that person’s own '
-        + 'weather, news and commute. Pick an account here, then press Link on the member.'
+        + 'weather, news and commute. Pick an account here, then press Link on the member. '
+        + 'Face and voice recognition are trained on Jibo itself, not from this console.'
       : 'The loop owner manages member accounts and recognition settings.'),
     isOwner ? h('div', { class: 'link-picker' }, searchInput, resultsBox) : null,
     h('div', { class: 'member-list' }));
@@ -701,8 +778,6 @@ async function renderLoop() {
       row('Recognition record', `Face: ${m.enrolled?.face ? 'recorded' : 'not recorded'} · Voice: ${m.enrolled?.voice ? 'recorded' : 'not recorded'}`),
       isOwner && !linked ? h('div', { class: 'member-unlinked-note' }, icon('alert', 13),
         h('span', {}, 'No account linked — the robot cannot load their personal report.')) : null,
-      isOwner ? h('p', { class: 'field-hint' },
-        'Face and voice recognition are trained on Jibo. This console cannot start, complete, or mark a training session.') : null,
       actions.length ? h('div', { class: 'member-actions' }, ...actions) : null);
 
     return h('div', {
@@ -1181,7 +1256,7 @@ async function renderSettings() {
       h('p', {}, 'Changes apply the next time you ask for your report.'),
       saveBtn));
 
-  form.addEventListener('submit', async (e) => {
+  onSubmit(form, async (e) => {
     e.preventDefault();
     saveBtn.disabled = true;
     const fd = Object.fromEntries(new FormData(form));
@@ -1232,7 +1307,7 @@ async function renderProfile() {
     h('div', { class: 'grid2' },
       field('Birthday', h('input', {
         type: 'date', name: 'birthdayDate',
-        value: a.birthday ? new Date(Number(a.birthday)).toISOString().slice(0, 10) : '',
+        value: isoDay(a.birthday),
       })),
       field('Gender', h('select', { name: 'gender' },
         ['', 'male', 'female', 'other', 'they'].map((g) =>
@@ -1248,12 +1323,13 @@ async function renderProfile() {
     h('div', { class: 'row', style: 'margin-top:1.25rem' },
       h('button', { type: 'submit', class: 'btn btn-primary' }, 'Save changes')));
 
-  profileForm.addEventListener('submit', async (e) => {
+  onSubmit(profileForm, async (e) => {
     e.preventDefault();
     const fd = Object.fromEntries(new FormData(profileForm));
     const res = await api('PUT', '/api/me', {
-      firstName: fd.firstName || undefined,
-      lastName: fd.lastName || undefined,
+      // Send the fields as typed so a cleared name is actually cleared.
+      firstName: fd.firstName ?? '',
+      lastName: fd.lastName ?? '',
       gender: fd.gender || undefined,
       // The control is a date picker; the API still stores epoch milliseconds.
       birthday: fd.birthdayDate ? Date.parse(`${fd.birthdayDate}T00:00:00Z`) : null,
@@ -1273,7 +1349,7 @@ async function renderProfile() {
       'At least 8 characters.'),
     h('div', { class: 'row', style: 'margin-top:1.25rem' },
       h('button', { type: 'submit', class: 'btn btn-primary' }, 'Change password')));
-  pwForm.addEventListener('submit', async (e) => {
+  onSubmit(pwForm, async (e) => {
     e.preventDefault();
     const res = await api('POST', '/api/me/password', Object.fromEntries(new FormData(pwForm)));
     notify(res.ok ? 'Password changed' : (res.data.error || 'Could not change password'), res.ok ? 'ok' : 'error');
@@ -1286,7 +1362,7 @@ async function renderProfile() {
     field('New email address', h('input', { name: 'email', type: 'email', required: true })),
     h('div', { class: 'row', style: 'margin-top:1.25rem' },
       h('button', { type: 'submit', class: 'btn btn-primary' }, 'Change email')));
-  mailForm.addEventListener('submit', async (e) => {
+  onSubmit(mailForm, async (e) => {
     e.preventDefault();
     const res = await api('POST', '/api/me/email', Object.fromEntries(new FormData(mailForm)));
     notify(res.ok ? 'Check the new email address to confirm the change.' : (res.data.error || 'Could not change email'), res.ok ? 'ok' : 'error');
@@ -1340,8 +1416,9 @@ async function renderProfile() {
           capabilities.secure ? 'This browser does not provide the Web Push APIs.' : 'Open the console over HTTPS to use notifications.'))));
   } else if (!state.server.ok || !state.server.data.available) {
     rows.push(row('Notifications', h('span', { class: 'pill pill-warn' }, 'Not configured')),
-      h('p', { class: 'field-hint' }, state.server.data?.reason || state.server.data?.error
-        || 'This server has not enabled browser notifications yet.'));
+      h('p', { class: 'field-hint' }, state.server.ok
+        ? 'This server has not enabled browser notifications yet. Its operator can turn them on.'
+        : (state.server.data?.error || 'Could not check whether this server offers notifications.')));
   } else if (state.permission === 'denied') {
     rows.push(row('Notifications', h('span', { class: 'pill pill-warn' }, 'Blocked')),
       h('p', { class: 'field-hint' }, 'Allow notifications for this site in your browser settings, then return here.'));
@@ -1575,7 +1652,9 @@ function renderAdd() {
       h('button', { type: 'button', class: 'btn', on: { click: () => chooseTarget(false) } }, 'I’m not sure')),
     h('p', { class: 'field-hint' }, '“No” and “I’m not sure” use the same safe repoint check. You will need owner-authorized root SSH access.')),
   next,
-  h('p', { class: 'field-hint' }, 'Need more context? Read the ', h('a', { href: '/guide' }, 'public guide'), '.'));
+  cloudName === 'jibo.io'
+    ? h('p', { class: 'field-hint' }, 'Need more context? Read the ', h('a', { class: 'link', href: '/guide' }, 'setup guide'), '.')
+    : null);
   show(container);
 }
 
@@ -1647,7 +1726,7 @@ async function renderAddNew() {
   container.append(formCard);
   show(container);
 
-  form.addEventListener('submit', async (e) => {
+  onSubmit(form, async (e) => {
     e.preventDefault();
     const fd = Object.fromEntries(new FormData(form));
     const staticConfig = (fd.ip || fd.netmask || fd.gateway)
@@ -1678,7 +1757,7 @@ async function renderAddNew() {
     paint();
 
     const qrCard = card('Setup code', { sub: `${codes.length} frames · valid for 15 minutes` },
-      h('p', { class: 'instruct' }, 'Open the robot’s setup screen and hold this up to its eye.'),
+      h('p', { class: 'instruct instruct-center' }, 'Open the robot’s setup screen and hold this up to its eye.'),
       holder,
       h('p', { class: 'field-hint', style: 'text-align:center' }, 'Tap the codes to advance the frames.'),
       status);
@@ -1782,7 +1861,8 @@ async function renderGallery() {
   const grid = h('div', { class: 'media-grid' }, ...items.map((m) => h('div', {
     class: 'media-tile', 'data-path': m.path, 'data-loop': m.loopId,
   },
-    h('img', { src: imageUrl(m.previewPath), loading: 'lazy', alt: `${m.type} captured ${fmtDate(m.created)}`, on: { click: () => openMedia(m) } }),
+    h('button', { type: 'button', class: 'media-open', 'aria-label': `Open ${m.type} captured ${fmtDate(m.created)}`, on: { click: () => openMedia(m) } },
+      h('img', { src: imageUrl(m.previewPath), loading: 'lazy', alt: '' })),
     m.canDelete ? h('label', { class: 'chip' },
       h('input', {
         type: 'checkbox',
@@ -1829,16 +1909,26 @@ async function renderGallery() {
           },
         },
       }, icon('share', 14), 'Share') : null;
+    const opener = document.activeElement;
+    // One exit path, so the Escape listener never outlives the viewer (it used
+    // to leak whenever the viewer was closed by a click) and focus returns to
+    // the tile that opened it.
+    const close = () => {
+      overlay.remove();
+      removeEventListener('keydown', onKey);
+      opener?.focus?.();
+    };
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
     const overlay = h('div', {
-      class: 'overlay',
-      on: { click: (e) => { if (e.target === overlay || e.target.tagName !== 'IMG') overlay.remove(); } },
+      class: 'overlay', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Capture viewer', tabindex: '-1',
+      on: { click: (e) => { if (e.target === overlay || e.target.tagName !== 'IMG') close(); } },
     },
-      h('img', { src: imageUrl(m), class: 'overlay-img', alt: '' }),
+      h('img', { src: imageUrl(m), class: 'overlay-img', alt: `${m.type} captured ${fmtDate(m.created)}` }),
       h('p', {}, `${m.loopName || 'Loop'} · ${m.type} · ${fmtDate(m.created)}`),
       share);
-    const onKey = (e) => { if (e.key === 'Escape') { overlay.remove(); removeEventListener('keydown', onKey); } };
     addEventListener('keydown', onKey);
     document.body.append(overlay);
+    overlay.focus();
   }
 
   async function removeSelected() {
@@ -1936,7 +2026,8 @@ async function renderInbox() {
       list.replaceChildren(errorBox('Could not load the Jibo inbox.', r.data.error));
     }
 
-    const people = inboxPeople(loop);
+    // Tagging yourself only alerts you about your own message.
+    const people = inboxPeople(loop).filter((person) => person.id !== String(me?.id));
     const recipients = people.length ? h('fieldset', { class: 'jot-recipient-picker' },
       h('legend', { text: 'Who is this for?' }),
       h('p', { class: 'field-hint', text: 'Optional. Everyone in the loop can view its message history; selecting people sends them an alert when notifications are enabled.' }),
@@ -1950,7 +2041,7 @@ async function renderInbox() {
       h('div', { class: 'compose' },
         h('span', { class: 'field-hint', text: `Saved to ${loop.name || 'this loop'}.` }),
         h('button', { type: 'submit', class: 'btn btn-primary' }, 'Send message')));
-    compose.addEventListener('submit', async (e) => {
+    onSubmit(compose, async (e) => {
       e.preventDefault();
       const data = new FormData(compose);
       const content = data.get('content');
@@ -2565,7 +2656,7 @@ async function renderAdminRobots() {
       h('button', { type: 'submit', class: 'btn btn-primary' }, 'Adopt robot')),
     result);
 
-  adoptForm.addEventListener('submit', async (e) => {
+  onSubmit(adoptForm, async (e) => {
     e.preventDefault();
     const fd = Object.fromEntries(new FormData(adoptForm));
     const res = await api('POST', '/api/admin/adopt', {
@@ -2675,7 +2766,9 @@ let publicMailAction = null;
 function clearPublicMailUrl() {
   // Keep a user-selected hash route, but remove the bearer code from history
   // and from anything they might copy from the address bar.
-  history.replaceState(null, '', `/${location.hash || ''}`);
+  // The console lives at /app; `/` is the public landing page, so a reload
+  // after following a mail link must not drop the user out of the console.
+  history.replaceState(null, '', `/app${location.hash || ''}`);
 }
 
 async function consumePublicMailAction() {
@@ -2778,7 +2871,7 @@ function renderAuth() {
       : (res.data.error || 'Could not resend the confirmation email.'), !res.ok);
   });
 
-  form.addEventListener('submit', async (e) => {
+  onSubmit(form, async (e) => {
     e.preventDefault();
     if (!form.reportValidity()) return;
     submit.disabled = true;
@@ -2813,8 +2906,6 @@ function renderAuth() {
       setMode('login');
       return;
     }
-    await refreshMe();
-    if (!location.hash || location.hash === '#/') location.hash = '#/';
     route();
   });
 
@@ -2855,26 +2946,36 @@ function initChrome() {
     menu.hidden = !open;
     chipBtn.setAttribute('aria-expanded', String(open));
   });
+  const closeMenu = () => {
+    if (!menu || menu.hidden) return;
+    menu.hidden = true;
+    chipBtn?.setAttribute('aria-expanded', 'false');
+  };
+  // Choosing an item (Account settings, Theme, …) is the end of the menu's job;
+  // before this it stayed open over the page it had just navigated to.
+  menu?.addEventListener('click', (e) => { if (e.target.closest('[role="menuitem"]')) closeMenu(); });
   document.addEventListener('click', (e) => {
-    if (menu && !menu.hidden && !menu.contains(e.target)) {
+    if (menu && !menu.hidden && !menu.contains(e.target) && !chipBtn?.contains(e.target)) {
       menu.hidden = true;
       chipBtn?.setAttribute('aria-expanded', 'false');
     }
   });
   addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
-    if (menu) menu.hidden = true;
+    closeMenu();
     closeNav();
   });
 
   document.getElementById('logout')?.addEventListener('click', async () => {
     // A sign-out is a reasonable expectation of privacy on a shared device.
     // Remove the browser's subscription before invalidating the session.
-    try { await disableBrowserPush(api); } catch { /* no subscription or offline */ }
-    await api('POST', '/api/logout');
+    try { await disableBrowserPush(apiRaw); } catch { /* no subscription or offline */ }
+    await apiRaw('POST', '/api/logout');
     me = null;
-    location.hash = '#/';
-    route();
+    badgesPainted = false;
+    // Changing the hash routes by itself; only an unchanged hash needs a nudge.
+    if (location.hash && location.hash !== '#/') location.hash = '#/';
+    else route();
   });
 }
 
@@ -3058,6 +3159,10 @@ async function renderAdminVoiceTurns() {
 
   function options(select, values, selected, allLabel) {
     const current = select.value || selected || '';
+    // Rebuilding a <select> closes it in most browsers, and this runs on every
+    // five-second poll; only touch it when the offered values actually change.
+    const offered = [...select.options].slice(1).map((option) => option.value);
+    if (offered.length === values.length && offered.every((value, i) => value === values[i])) return;
     select.replaceChildren(h('option', { value: '' }, allLabel),
       ...values.map((value) => h('option', { value, selected: value === current }, value)));
   }
@@ -3227,7 +3332,7 @@ async function renderAdminLogs() {
   show(container);
   if (!(await adminGate(container))) return;
 
-  const state = { cursor: 0, level: '', ns: '', paused: false, shown: 0, dropped: 0 };
+  const state = { cursor: 0, level: '', ns: '', paused: false, shown: 0, dropped: 0, inFlight: false, generation: 0 };
 
   const list = h('div', { class: 'log-list', role: 'log', 'aria-live': 'polite' });
   const status = h('span', { class: 'note', text: 'connecting…' });
@@ -3272,11 +3377,19 @@ async function renderAdminLogs() {
   }
 
   async function tick() {
-    if (state.paused) return;
+    // A slow response must not overlap the next one-second tick: both would
+    // read from the same cursor and every line would be appended twice.
+    if (state.paused || state.inFlight) return;
+    state.inFlight = true;
+    const generation = state.generation;
     const q = new URLSearchParams({ since: String(state.cursor), limit: '200' });
     if (state.level) q.set('level', state.level);
     if (state.ns) q.set('ns', state.ns);
-    const res = await api('GET', `/api/admin/logs?${q.toString()}`);
+    let res;
+    try { res = await api('GET', `/api/admin/logs?${q.toString()}`); }
+    finally { state.inFlight = false; }
+    // A filter changed while this was in flight; its lines belong to the old view.
+    if (generation !== state.generation) { tick(); return; }
     if (!res.ok) {
       status.textContent = res.data?.error || 'could not read the log';
       return;
@@ -3302,6 +3415,7 @@ async function renderAdminLogs() {
     state.ns = nsInput.value.trim();
     state.cursor = 0;
     state.shown = 0;
+    state.generation += 1;
     list.replaceChildren();
     tick();
   }
@@ -3335,7 +3449,6 @@ async function renderAdminLogs() {
   stopPoll();
   pollTimer = setInterval(tick, 1000);
 
-  container.querySelector('.notice-info')?.remove();
   container.append(h('p', { class: 'note' },
     'Only lines this process logged appear here. The level selector filters what '
     + 'was recorded — it cannot reveal lines the service suppressed, so run it at '
@@ -3357,6 +3470,7 @@ const ADMIN_ROUTES = {
 };
 
 async function route() {
+  navSeq += 1;
   stopPoll();
   await consumePublicMailAction();
   // `/admin` is served by the same shell; treat the path as the route so the

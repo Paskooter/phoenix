@@ -10,6 +10,7 @@
 // binds every Classic operation to the logged-in account rather than trusting a
 // forwarded identity assertion.
 
+import { randomUUID } from 'node:crypto';
 import { signSigV4 } from '@phoenix/common';
 
 // DefaultPort.classic (7017). The env override mirrors the NET_* peer convention used across the
@@ -74,6 +75,12 @@ export async function classicCall({
     host: new URL(base).host,
     'content-type': 'application/x-amz-json-1.1',
     'x-amz-target': target,
+    // Classic rejects a signature it has already seen, and X-Amz-Date only has
+    // one-second resolution: two identical calls in the same second (opening
+    // the inbox and refreshing it after a send, or two tabs) signed to the same
+    // value and the second failed with "Request signature has already been
+    // used". A unique signed header makes every portal request distinct.
+    'x-phoenix-request-id': randomUUID(),
   };
   if (credentials && typeof credentials === 'object') {
     const forwarded = {
