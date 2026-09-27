@@ -679,7 +679,10 @@ APPLIED+=("/usr/local/etc/jibo-jetstream-service.json")
 if [ "$OOBE" -eq 1 ]; then
   say "  OOBE: no credentials were read or registered; QR setup will create and link them."
 else
-  ADOPT_URL="https://${REGION}.${PUBLIC_SUFFIX}/api/adopt-robot"  # built from parts, never from REST_URL (which carries a trailing /)
+  # Adoption is an Account API route on the apex site, not a Classic API route
+  # on the robot's region entrypoint.  The region host intentionally returns
+  # 404 for /api/adopt-robot even while OTA and other robot calls work there.
+  ADOPT_URL="https://${PUBLIC_SUFFIX}/api/adopt-robot"
   CREDS="$(rsh 'cat /var/jibo/credentials.json 2>/dev/null' 2>/dev/null | tr -d '\r')"
   FRIENDLY="$(rsh 'hostname 2>/dev/null' 2>/dev/null | tr -d '\r')"
   AKID="$(printf '%s' "$CREDS" | sed -n 's/.*"accessKeyId"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')"
@@ -698,7 +701,7 @@ else
       if [ -n "$CLAIM_CODE" ]; then
         case "$ADOPT_OUT" in
           *'"linked":true'*|*'"alreadyLinked":true'*) say "  adoption: robot claimed for the signed-in Phoenix account" ;;
-          *) say "  adoption: identity registered but account claim did not complete" ;;
+          *) die "robot identity registered, but account claim did not complete; get a fresh portal code and re-run this command" ;;
         esac
       else
         case "$ADOPT_OUT" in
@@ -711,7 +714,7 @@ else
     *)
       say "  adoption did NOT succeed against ${ADOPT_URL}"
       say "    server said: $(printf '%s' "$ADOPT_OUT" | head -c 200)"
-      say "    the robot may reach the server and still be rejected until this is resolved."
+      die "robot adoption/account linking failed; get a fresh portal code if the previous one expired, then re-run this command"
       ;;
   esac
 fi

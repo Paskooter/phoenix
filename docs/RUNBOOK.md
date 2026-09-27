@@ -283,6 +283,12 @@ curl --fail --remote-name https://jibo.io/robot-ota-repoint.sh && \
   bash ./robot-ota-repoint.sh --robot root@<robot-ip> --claim-code <portal-code> --yes
 ```
 
+The robot's region entrypoint carries Classic/OTA traffic, but account linking
+uses `https://jibo.io/api/adopt-robot`. A successful repoint is not a successful
+claim unless the helper reports that the robot was claimed for the signed-in
+account. If linking fails, generate a fresh portal code and rerun the helper;
+the robot-side patches are idempotent. Do not continue to OTA on a failed claim.
+
 For the 13.0.6 stock-to-jibo.io path, install all four offered subsystems:
 `os` 13.0.6, `services` 13.0.6, `oobe-config` 9.0.1, and `@be/be` 11.0.1.
 The catalog publishes each for the normal `fcs` filter and the OOBE skill's
