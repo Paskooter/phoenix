@@ -276,8 +276,8 @@ if [ "$AUTO" -eq 1 ]; then
       START_OTA=1
       say "  detected  : credentials present; adopt/claim and start native OTA"
     else
-      say "  detected  : credentials present; register only, then sign in and rerun with a claim code"
-      say "  OTA       : deferred to preserve SSH access until account linking succeeds"
+      say "  detected  : credentials present; verify/register without changing account ownership"
+      say "  OTA       : deferred until an account claim or an explicit --ota-only run"
     fi
   else
     OOBE=1
@@ -455,7 +455,7 @@ if [ "$OOBE" -eq 1 ]; then
 elif [ -n "$CLAIM_CODE" ]; then
   say "  8. prove possession with the robot's existing credentials and link it to the signed-in Phoenix account"
 else
-  say "  8. register the robot's existing credentials as an unclaimed bootstrap (idempotent)"
+  say "  8. verify/register the robot's existing credentials without changing account ownership"
 fi
 say "  9. write a receipt to ${RECEIPT}"
 if [ "$START_OTA" -eq 1 ]; then
@@ -468,7 +468,7 @@ if [ "$OOBE" -eq 1 ]; then
 else
   say "  Existing credentials are preserved."
   if [ "$AUTO" -eq 1 ] && [ -z "$CLAIM_CODE" ]; then
-    say "  Without an account claim, OTA and boot-mode changes are deferred so SSH stays available."
+    say "  Without a claim code, OTA and boot-mode changes are deferred so SSH stays available."
   elif [ "$START_OTA" -eq 1 ]; then
     say "  The saved next-boot mode changes only after OTA downloads verify."
   else
@@ -914,7 +914,7 @@ else
   if [ "$START_OTA" -eq 1 ]; then
     say "  saved boot mode preserved until the OTA downloads verify"
   elif [ "$AUTO" -eq 1 ] && [ -z "$CLAIM_CODE" ]; then
-    say "  saved boot mode preserved until the account claim is complete"
+    say "  saved boot mode preserved until an account claim or explicit OTA"
   else
     set_paired_mode_normal_if_ready
   fi
@@ -928,8 +928,9 @@ else
     fi
   else
     if [ "$AUTO" -eq 1 ] && [ -z "$CLAIM_CODE" ]; then
-      say "  Next: create/sign in to a Phoenix account and rerun with its one-time"
-      say "  --claim-code. OTA was not started so SSH remains available for that step."
+      say "  Account ownership was not changed. If not yet linked, sign in and rerun"
+      say "  with a one-time --claim-code. If already linked, run --ota-only --yes"
+      say "  when ready. OTA was not started, so SSH remains available."
     else
       say "  Next: reboot or let the robot check for the currently published jibo.io OTA"
       say "  packages. If BE is absent after a USB flash, run this script again with"

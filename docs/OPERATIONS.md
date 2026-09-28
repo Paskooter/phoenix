@@ -153,6 +153,8 @@ The current jibo.io catalog advances OS/services to 13.0.7 and BE to 11.0.2.
 The OOBE 9.0.1 manifest entries must have exact-version OS/services
 dependencies updated to 13.0.7 in every filter (`""`, `fcs`, `eau`); the
 native installer rejects a mixed 13.0.6/13.0.7 plan even if discovery succeeds.
+Rotate the update IDs when correcting metadata already offered to robots:
+system-manager retains its first in-memory record for each ID until reboot.
 
 **2. Run it** (started by `run-compose-stack.sh` on **:9010**, or standalone):
 

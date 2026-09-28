@@ -306,7 +306,9 @@ pins the platform versions to this published set and rejects unexpected ones.
 Keep every offered package's exact-version dependencies aligned when publishing
 a newer OS/services pair: for example, OOBE 9.0.1 must require 13.0.7, not
 the superseded 13.0.6. Otherwise system-manager discovers packages but refuses
-to apply them after downloading.
+to apply them after downloading. Give an already-published corrected entry a
+new update ID too: the original system-manager caches metadata by ID and does
+not replace it until reboot.
 The catalog publishes each for the normal `fcs` filter and the OOBE skill's
 `eau` filter (plus filterless console queries); omitting `eau` makes a stock
 OOBE screen report no update even when the packages are present.

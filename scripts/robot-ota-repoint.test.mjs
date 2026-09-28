@@ -57,7 +57,7 @@ test('OOBE screen with preserved credentials selects adoption and native OTA', (
 
 test('signed-out credentials path defers OTA and mode changes until account claim', () => {
   const out = preview({ credentials: true, mode: 'int-developer' });
-  assert.match(out, /credentials present; register only, then sign in/);
+  assert.match(out, /credentials present; verify\/register without changing account ownership/);
   assert.match(out, /OTA and boot-mode changes are deferred/);
   assert.doesNotMatch(out, /ask the native system-manager to download and install/);
 });
