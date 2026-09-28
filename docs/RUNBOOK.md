@@ -211,26 +211,37 @@ use a hosts redirect and a locally generated CA. It is not the jibo.io migration
 recipe. Also, package filenames are not version state: the version reporters
 *inside* each OS/services OTA must agree with the catalog `toVersion`.
 
-### Repoint a stock or factory-reset robot before QR setup
+### Check a stock, USB-flashed, or formerly paired robot
 
 A robot on its setup screen is not necessarily pointed at jibo.io. If it is
-still on stock endpoints, normal QR pairing cannot reach Phoenix. Once
-owner-authorized, key-based `root` SSH is available, run the explicit OOBE mode
-of the public helper **before rebooting away from SSH**:
+still on stock endpoints, normal QR pairing cannot reach Phoenix. A setup
+screen does **not** prove that `/var/jibo/credentials.json` is absent: a USB
+flash may preserve it while removing BE. Once owner-authorized, key-based
+`root` SSH is available, use the detecting path **before rebooting away from
+SSH**:
 
 ```bash
 curl --fail --remote-name https://jibo.io/robot-ota-repoint.sh
-bash ./robot-ota-repoint.sh --robot root@<robot-ip> --oobe --dry-run
-bash ./robot-ota-repoint.sh --robot root@<robot-ip> --oobe --yes
+bash ./robot-ota-repoint.sh --robot root@<robot-ip> --auto --dry-run
+# Sign in and get a one-use code from Robots → Add a Jibo → Check and prepare this Jibo.
+bash ./robot-ota-repoint.sh --robot root@<robot-ip> --auto --claim-code <portal-code> --yes
 ```
 
-The helper refuses active robot credentials, never calls adoption, and sets
-the robot's next boot to `oobe` even if an SSH mod temporarily booted it in
-developer mode. It reads the stock OOBE skill's `serverRegion` and uses the
-same region for the repoint; `--region` is available only when that config is
-missing or intentionally customized. Reboot only after
-the helper verifies every installed client copy and confirms OOBE with no
-credentials. Then create the QR code in **Robots → Add a Jibo → Setup screen**.
+If credentials are present, even while showing OOBE, the helper preserves and
+adopts them, consumes the claim code to link the robot to the signed-in account,
+and starts the native OTA. It installs BE if absent and switches the next boot
+to normal only when BE is present or the OTA downloads are verified. Do not
+delete the credentials to force QR setup.
+
+If credentials are absent, the helper does **not** consume the claim code or
+create a server robot record. It reads the OOBE skill's `serverRegion`, repoints
+the robot, and selects OOBE for the next boot. Reboot after verification; create
+a QR code in **Robots → Add a Jibo → New, unpaired Jibo: QR setup**. The stock
+update manager refuses to list updates before credentials exist, so an OTA
+**cannot** safely run before QR setup. After QR provisioning issues credentials,
+the OOBE skill performs the OTA automatically; wait for OS, services, OOBE, and
+BE installation to finish. `--region` is available when the OOBE config is
+missing or intentionally customized.
 There is no loop selector: a robot already linked to this account keeps its
 existing loop, while a new robot ID creates a new loop. QR setup links the robot
 account. Do not use a migration claim code for a new robot. Existing Wi-Fi may
@@ -269,7 +280,7 @@ authenticated claim or admin recovery when identity ownership matters.
 ### Claim an already-paired robot into a new Phoenix account
 
 The customer must first create and sign into their Phoenix account. In the
-portal, open **Robots → Add a Jibo → Already set up / has credentials**,
+portal, open **Robots → Add a Jibo → Check and prepare this Jibo**,
 then generate the private command. On the public `jibo.io` deployment it first
 downloads the public-DNS repoint script and includes a 15-minute, one-time
 claim code:
@@ -280,7 +291,7 @@ claim code; it does not install or bypass robot access.
 
 ```bash
 curl --fail --remote-name https://jibo.io/robot-ota-repoint.sh && \
-  bash ./robot-ota-repoint.sh --robot root@<robot-ip> --claim-code <portal-code> --yes
+  bash ./robot-ota-repoint.sh --robot root@<robot-ip> --auto --claim-code <portal-code> --yes
 ```
 
 The robot's region entrypoint carries Classic/OTA traffic, but account linking
@@ -316,14 +327,12 @@ unclaimed, idempotent robot bootstrap. They must create an account and run the
 portal-provided claim command later to associate that robot with the account.
 
 A USB flash that preserves `/var` can leave an already-paired robot with no BE
-skill. After claiming it, run `robot-ota-repoint.sh --robot root@<robot-ip>
---ota-only --yes` from the SSH-capable computer. This uses the robot's own
-system-manager update API to install the published OS, services, OOBE, and BE
-packages without running OOBE or erasing credentials. Preview first with
-`--ota-only --dry-run`; the installer reboots the robot, so keep power on. For
-paired robots, the helper selects `normal` as the next-boot mode; when BE is
-missing, it defers that mode change until every OTA package is downloaded and
-checksum-verified. The QR/OOBE path deliberately stays in OOBE mode.
+skill. The `--auto` command above handles this in one run, using the robot's
+own system-manager update API to install the published OS, services, OOBE, and
+BE packages without erasing credentials. The standalone `--ota-only` mode is
+still available for maintenance after adoption. Preview with `--dry-run`; the
+installer reboots the robot, so keep power on. The QR/OOBE path deliberately
+stays in OOBE until it provisions and updates.
 
 The SSH script streams the robot secret directly to the HTTPS adoption request;
 it never prints or stores that secret locally. The code is stored server-side

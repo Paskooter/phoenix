@@ -214,17 +214,24 @@ small **web portal** in front (responsive vanilla HTML/JS, no build step). It do
 **1. Pair a brand-new (or factory-reset) robot — the real OOBE handshake.**
 
 The setup screen alone does **not** mean the robot already talks to Phoenix.
-For the public jibo.io instance, an unprovisioned stock robot with authorized
-root SSH must first run:
+For the public jibo.io instance, a stock or USB-flashed robot with authorized
+root SSH should use the credential-detecting helper first. A setup screen can
+still have preserved `/var` credentials and must not be treated as proof that
+the robot is unprovisioned:
 
 ```bash
 curl --fail --remote-name https://jibo.io/robot-ota-repoint.sh
-bash ./robot-ota-repoint.sh --robot root@<robot-ip> --oobe --dry-run
-bash ./robot-ota-repoint.sh --robot root@<robot-ip> --oobe --yes
+bash ./robot-ota-repoint.sh --robot root@<robot-ip> --auto --dry-run
+# Get the short-lived code in the signed-in portal when ready to apply.
+bash ./robot-ota-repoint.sh --robot root@<robot-ip> --auto --claim-code <portal-code> --yes
 ```
 
-This mode refuses existing credentials, does not create a server record, and
-leaves the next boot in OOBE. Reboot after it succeeds, then perform QR setup.
+With credentials present, including on an OOBE screen, it adopts/claims them
+and starts the native OTA. With credentials absent, it ignores the claim code,
+creates no server record, and leaves the next boot in OOBE. Reboot and perform
+QR setup; the stock OOBE flow automatically starts OTA after receiving new
+credentials. Its update manager cannot fetch updates before QR pairing because
+it requires `/var/jibo/credentials.json`.
 The helper requires passwordless key-based SSH; it does not acquire that access.
 Before repointing, it checks `/opt`: stock 13.0.0 can have a 300 MB ext4
 filesystem inside a 10 GB partition, leaving too little staging space for OTA.
@@ -277,13 +284,13 @@ admin recovery when identity ownership matters.
 
 Its existing robot credentials prove possession; they are not an old human
 account and are not imported as one. The customer creates and signs into a new
-Phoenix account, opens **Robots → Add a Jibo → Already set up / has credentials**,
+Phoenix account, opens **Robots → Add a Jibo → Check and prepare this Jibo**,
 and copies the one-time command the portal produces. It includes an
 expiring ownership code:
 
 ```bash
 curl --fail --remote-name https://jibo.io/robot-ota-repoint.sh && \
-  bash ./robot-ota-repoint.sh --robot root@<robot-ip> --claim-code <portal-code> --yes
+  bash ./robot-ota-repoint.sh --robot root@<robot-ip> --auto --claim-code <portal-code> --yes
 ```
 
 It uses key-based, non-interactive `root` SSH. Have the customer confirm
@@ -312,8 +319,9 @@ OTA service` immediately after an update begins; do not disable TLS verification
 or replace the robot's credentials to work around that error.
 
 A USB-flashed robot may retain its credentials in `/var` while having no BE
-skill. Do not run OOBE or erase its identity. After adopting it, use the public
-helper's `--ota-only` mode to invoke the BE-independent native system-manager:
+skill. Do not erase its identity: `--auto` adopts it and starts the OTA in one
+run. The public helper's `--ota-only` mode remains available for later
+maintenance through the BE-independent native system-manager:
 
 ```bash
 bash ./robot-ota-repoint.sh --robot root@<robot-ip> --ota-only --dry-run

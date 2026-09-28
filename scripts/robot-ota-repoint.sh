@@ -44,6 +44,7 @@
 #                        [--dry-run] [--yes] [--verify] [--revert]
 #   robot-ota-repoint.sh --robot root@<ip> --ota-only [--dry-run] [--yes]
 #   robot-ota-repoint.sh --robot root@<ip> --oobe --yes
+#   robot-ota-repoint.sh --robot root@<ip> --auto [--claim-code <portal-code>] --yes
 #   robot-ota-repoint.sh --robot root@<ip> --full --phoenix https://... --yes
 #
 # Nothing is changed without showing a plan first. Every file edited is backed up
@@ -53,7 +54,7 @@ set -uo pipefail
 
 ROBOT=""; REGION=""; REGION_CA=""; DRY=0; ASSUME_YES=0; VERIFY=0; REVERT=0
 PUBLIC_SUFFIX="jibo.io"
-FULL=0; FULL_ARGS=(); CLAIM_CODE=""; OOBE=0; OTA_ONLY=0; START_OTA=0
+FULL=0; FULL_ARGS=(); CLAIM_CODE=""; OOBE=0; OTA_ONLY=0; START_OTA=0; AUTO=0
 
 # The robot's own trust store. `bundle` is what OpenSSL reads; the individual PEM
 # plus the subject-hash symlink are how a cert is normally installed alongside it.
@@ -73,6 +74,7 @@ while [ $# -gt 0 ]; do
     --suffix)    PUBLIC_SUFFIX="${2:-}"; shift 2 ;;
     --claim-code) CLAIM_CODE="${2:-}"; shift 2 ;;
     --oobe)      OOBE=1; shift ;;
+    --auto)      AUTO=1; shift ;;
     --ota-only)  OTA_ONLY=1; shift ;;
     --start-ota) START_OTA=1; shift ;;
     --dry-run)   DRY=1; shift ;;
@@ -178,7 +180,7 @@ die()  { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 
 # ── Advanced path: hand off to the full repoint, unchanged ───────────────────
 if [ "$FULL" -eq 1 ]; then
-  [ "$OTA_ONLY" -eq 0 ] && [ "$START_OTA" -eq 0 ] || die "OTA flags cannot be combined with --full"
+  [ "$OTA_ONLY" -eq 0 ] && [ "$START_OTA" -eq 0 ] && [ "$AUTO" -eq 0 ] || die "OTA/auto flags cannot be combined with --full"
   SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
   FULL_SCRIPT="${SELF_DIR}/parity-robot/repoint-robot.sh"
   [ -x "$FULL_SCRIPT" ] || die "full repoint script not found: $FULL_SCRIPT"
@@ -187,6 +189,8 @@ if [ "$FULL" -eq 1 ]; then
 fi
 
 [ -n "$ROBOT" ] || die "--robot root@<ip> is required (or --full for the complete repoint)"
+[ "$AUTO" -eq 0 ] || { [ "$OOBE" -eq 0 ] && [ "$OTA_ONLY" -eq 0 ] && [ "$START_OTA" -eq 0 ] && [ "$REVERT" -eq 0 ]; } \
+  || die "--auto selects the credential path itself; do not combine it with --oobe, --ota-only, --start-ota, or --revert"
 [ "$OTA_ONLY" -eq 0 ] || { [ "$START_OTA" -eq 0 ] && [ "$OOBE" -eq 0 ] && [ "$REVERT" -eq 0 ] \
   && [ -z "$CLAIM_CODE" ]; } || die "--ota-only cannot be combined with repoint, OOBE, revert, or claim flags"
 [ "$START_OTA" -eq 0 ] || { [ "$OOBE" -eq 0 ] && [ "$REVERT" -eq 0 ]; } \
@@ -253,10 +257,27 @@ RELEASE="$(rsh 'jibo-version 2>/dev/null | head -1' 2>/dev/null | tr -d '\r')"
 MODE="$(rsh 'jibo-getmode 2>/dev/null' 2>/dev/null | tr -d '\r')"
 HAS_CREDS=0
 if rsh 'test -s /var/jibo/credentials.json' >/dev/null 2>&1; then HAS_CREDS=1; fi
+if [ "$AUTO" -eq 1 ]; then
+  if [ "$HAS_CREDS" -eq 1 ]; then
+    if [ -n "$CLAIM_CODE" ]; then
+      START_OTA=1
+      say "  detected  : credentials present; adopt/claim and start native OTA"
+    else
+      say "  detected  : credentials present; register only, then sign in and rerun with a claim code"
+      say "  OTA       : deferred to preserve SSH access until account linking succeeds"
+    fi
+  else
+    OOBE=1
+    say "  detected  : credentials absent; repoint for QR setup and its automatic OTA"
+    if [ -n "$CLAIM_CODE" ]; then
+      say "  claim code: not used on this path; QR setup will link the robot to the account"
+      CLAIM_CODE=""
+    fi
+  fi
+fi
 if [ "$OOBE" -eq 1 ]; then
   [ "$HAS_CREDS" -eq 0 ] || die "--oobe requires no active robot credentials; use the already-set-up migration path"
 else
-  [ "$MODE" != oobe ] || die "robot is in OOBE mode; use --oobe, then QR setup"
   [ "$HAS_CREDS" -eq 1 ] || die "robot has no active credentials; use --oobe if it is on the setup screen"
 fi
 if [ -z "$REGION" ]; then
@@ -352,10 +373,11 @@ esac
 # Stock 13.0.0 images can ship a 300 MB ext4 filesystem on a much larger
 # /opt partition. The native update manager refuses a download unless /opt has
 # at least 2.5 times the package length free; the first OS package alone needs
-# about 600 MB. Check before OOBE so setup does not loop without downloading.
+# about 600 MB. Check before OOBE or a script-triggered OTA so an undersized
+# USB-flashed /opt cannot cause either path to loop without downloading.
 OPT_MIN_FREE_KIB=2097152
 OPT_RESIZE=0
-if [ "$OOBE" -eq 1 ] && [ "$REVERT" -eq 0 ]; then
+if { [ "$OOBE" -eq 1 ] || [ "$START_OTA" -eq 1 ]; } && [ "$REVERT" -eq 0 ]; then
   OPT_MOUNT="$(rsh "mount | sed -n 's|^\([^ ]*\) on /opt type \([^ ]*\) .*|\1 \2|p' | head -1" 2>/dev/null | tr -d '\r')"
   read -r OPT_DEVICE OPT_FSTYPE <<< "$OPT_MOUNT"
   OPT_DF="$(rsh "df -k /opt | awk 'NR==2 {print \$2, \$4}'" 2>/dev/null | tr -d '\r')"
@@ -364,13 +386,13 @@ if [ "$OOBE" -eq 1 ] && [ "$REVERT" -eq 0 ]; then
   say "  /opt: ${OPT_TOTAL_KIB} KiB total, ${OPT_FREE_KIB} KiB free (${OPT_DEVICE:-unknown}, ${OPT_FSTYPE:-unknown})"
   if [ "$OPT_FREE_KIB" -lt "$OPT_MIN_FREE_KIB" ]; then
     [[ "$OPT_DEVICE" =~ ^/dev/mmcblk[0-9]+p[0-9]+$ && "$OPT_FSTYPE" = ext4 ]] \
-      || die "/opt needs at least 2 GiB free for OOBE OTA; inspect this nonstandard mount before continuing"
+      || die "/opt needs at least 2 GiB free for OTA; inspect this nonstandard mount before continuing"
     OPT_DEVICE_BYTES="$(rsh "blockdev --getsize64 '$OPT_DEVICE'" 2>/dev/null | tr -d '\r')"
     [[ "$OPT_DEVICE_BYTES" =~ ^[0-9]+$ ]] || die "could not measure /opt block device"
     if [ "$OPT_DEVICE_BYTES" -le "$((OPT_TOTAL_KIB * 1024 + 104857600))" ]; then
-      die "/opt has too little free space and its block device has no room to grow; free space before OOBE"
+      die "/opt has too little free space and its block device has no room to grow; free space before OTA"
     fi
-    rsh 'command -v resize2fs' >/dev/null 2>&1 || die "resize2fs is unavailable on the robot; expand /opt manually before OOBE"
+    rsh 'command -v resize2fs' >/dev/null 2>&1 || die "resize2fs is unavailable on the robot; expand /opt manually before OTA"
     OPT_RESIZE=1
     say "  /opt filesystem is smaller than its ${OPT_DEVICE_BYTES}-byte partition; it must be expanded"
   fi
@@ -421,10 +443,16 @@ if [ "$START_OTA" -eq 1 ]; then
 fi
 say ""
 if [ "$OOBE" -eq 1 ]; then
-  say "  The robot's next boot will be set to OOBE. No credentials will be created."
+  say "  The robot's next boot will be set to OOBE. QR pairing creates credentials,"
+  say "  then the stock OOBE flow starts the OTA. OTA cannot run before credentials exist."
 else
-  say "  Existing credentials are preserved. If BE is installed, the saved next-boot"
-  say "  mode becomes normal. Without BE, mode changes only after verified OTA downloads."
+  say "  Existing credentials are preserved."
+  if [ "$AUTO" -eq 1 ] && [ -z "$CLAIM_CODE" ]; then
+    say "  Without an account claim, OTA and boot-mode changes are deferred so SSH stays available."
+  else
+    say "  If BE is installed, the saved next-boot mode becomes normal."
+    say "  Without BE, mode changes only after verified OTA downloads."
+  fi
 fi
 say "  NOT touched: /etc/hosts, any private CA, server certs."
 say "  After this the robot can reach ${REST_URL}, stream audio to the hub, and take an OTA"
@@ -860,16 +888,26 @@ if [ "$OOBE" -eq 1 ]; then
     || die "OOBE state changed unexpectedly; do not continue to QR setup yet"
   say "  OOBE mode and absent credentials verified. No account claim was made."
   say "  Reboot when ready, then use this site's QR setup flow to create and link"
-  say "  a fresh robot account. Do not use an already-set-up claim code."
+  say "  a fresh robot account. OOBE automatically requests the published OTA after"
+  say "  receiving credentials; wait for the update and BE installation to finish."
 else
-  set_paired_mode_normal_if_ready
+  if [ "$AUTO" -eq 1 ] && [ -z "$CLAIM_CODE" ]; then
+    say "  saved boot mode preserved until the account claim is complete"
+  else
+    set_paired_mode_normal_if_ready
+  fi
   if [ "$START_OTA" -eq 1 ]; then
     step "Native OTA (BE is not required)"
     run_native_ota
   else
-    say "  Next: reboot or let the robot check for the currently published jibo.io OTA"
-    say "  packages. If BE is absent after a USB flash, run this script again with"
-    say "  --ota-only --yes to install the published updates without entering OOBE."
+    if [ "$AUTO" -eq 1 ] && [ -z "$CLAIM_CODE" ]; then
+      say "  Next: create/sign in to a Phoenix account and rerun with its one-time"
+      say "  --claim-code. OTA was not started so SSH remains available for that step."
+    else
+      say "  Next: reboot or let the robot check for the currently published jibo.io OTA"
+      say "  packages. If BE is absent after a USB flash, run this script again with"
+      say "  --ota-only --yes to install the published updates without entering OOBE."
+    fi
   fi
 fi
 say ""
