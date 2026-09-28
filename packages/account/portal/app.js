@@ -1,8 +1,9 @@
 // Phoenix console — vanilla SPA, no build step, no framework.
 //
-// Hash routes: #/, #/loop, #/settings, #/profile, #/robot, #/gallery,
-// #/inbox, #/system, plus #/add (connection choice), #/add/new
-// (QR pairing), #/claim (existing-robot migration) and #/admin.
+// Hash routes: #/, #/loop, #/settings, #/profile, #/robot, #/tips, #/gallery,
+// #/inbox, #/system, plus #/robot/<loopId>[/<section>] (one robot's
+// settings), #/add (connection choice), #/add/new (QR pairing), #/claim
+// (existing-robot migration) and #/admin.
 //
 // Every call below goes to the same-origin REST face the portal has always
 // used, authenticated by the phx_session cookie. The request shapes are
@@ -141,6 +142,10 @@ const ICONS = {
   refresh: 'M20 12a8 8 0 1 1-2.6-5.9M20 4v4h-4',
   lock: 'M7 10.5V8a5 5 0 0 1 10 0v2.5M5.5 10.5h13a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-8.5a1 1 0 0 1 1-1Z',
   calendar: 'M7 3.5v3M17 3.5v3M4.5 9.5h15M6 5h12a1.5 1.5 0 0 1 1.5 1.5v12A1.5 1.5 0 0 1 18 20H6a1.5 1.5 0 0 1-1.5-1.5v-12A1.5 1.5 0 0 1 6 5Z',
+  chevron: 'm6 9 6 6 6-6',
+  pin: 'M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Zm0-8.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z',
+  wifi: 'M2.5 9a14 14 0 0 1 19 0M5.5 12.5a9.5 9.5 0 0 1 13 0M8.6 15.9a5 5 0 0 1 6.8 0M12 19.5h.01',
+  trash: 'M4.5 7h15M9.5 7V4.5h5V7M6.5 7l.8 12a1.5 1.5 0 0 0 1.5 1.4h6.4a1.5 1.5 0 0 0 1.5-1.4l.8-12M10 11v5.5M14 11v5.5',
   chip: 'M8.5 4h7a4.5 4.5 0 0 1 4.5 4.5v7a4.5 4.5 0 0 1-4.5 4.5h-7A4.5 4.5 0 0 1 4 15.5v-7A4.5 4.5 0 0 1 8.5 4ZM9.5 9.5h5v5h-5zM12 4V1.5m0 21V20M4 12H1.5m21 0H20',
 };
 
@@ -530,7 +535,7 @@ async function renderHome() {
     quick('#/loop', 'Loops', 'users', 'Members and account links'),
     quick('#/settings', 'Personal report', 'sliders', 'Weather, news, commute'),
     quick('#/robot', 'Robots', 'robot', 'Pairing and status'),
-    quick('#/tips', 'What Jibo can do', 'sparkles', 'Ideas and first steps'),
+    quick('#/tips', 'Get to know Jibo', 'sparkles', 'Things to try'),
     quick('#/gallery', 'Gallery', 'image', 'What the robot captured')));
 
   if (!loops.ok) body.append(h('div', { style: 'margin-top:1.5rem' }, errorBox('Could not load your loops.', loops.data.error)));
@@ -1211,9 +1216,9 @@ async function renderSettings() {
   const form = h('form', { class: 'settings-form' });
 
   const proactive = h('fieldset', {},
-    h('legend', {}, 'When Jibo offers your report'),
-    toggle('offerProactively', s.offerProactively !== false, 'Offer my Personal Report',
-      'Jibo may offer your report when he recognizes you. You can still ask for it when this is off.'));
+    h('legend', {}, 'Offer'),
+    toggle('offerProactively', s.offerProactively !== false, 'Let Jibo offer my report',
+      'When he recognizes you, Jibo may ask if you want to hear it. You can always ask for it yourself.'));
 
   const weather = h('fieldset', {},
     h('legend', {}, 'Weather'),
@@ -1308,6 +1313,98 @@ async function renderSettings() {
    Account
    ========================================================================== */
 
+/**
+ * The account photo: pick an image and it is resized on this device and saved
+ * straight away. It updates in place rather than re-rendering the page, so
+ * unsaved edits in the profile form below are not thrown away.
+ */
+function profilePhotoEditor(account) {
+  let current = safePhotoPath(account.photoUrl);
+  const preview = h('span', { class: 'profile-photo-preview' });
+  const paintPreview = (src) => preview.replaceChildren(src
+    ? h('img', { src, alt: '' })
+    : h('span', { text: initials(account) }));
+  paintPreview(current);
+
+  const input = h('input', { type: 'file', accept: 'image/*', class: 'sr-only', tabindex: '-1', 'aria-hidden': 'true' });
+  const choose = h('button', { type: 'button', class: 'btn btn-sm', on: { click: () => input.click() } });
+  const remove = h('button', { type: 'button', class: 'btn btn-quiet btn-sm', on: { click: removePhoto } }, 'Remove');
+  const hint = h('span', { class: 'field-hint' }, 'Resized on this device before it is uploaded.');
+  const paintActions = () => {
+    choose.replaceChildren(icon('image', 14), current ? 'Change photo' : 'Add a photo');
+    remove.hidden = !current;
+  };
+  paintActions();
+
+  const busy = (on) => {
+    preview.classList.toggle('is-busy', on);
+    choose.disabled = on;
+    remove.disabled = on;
+  };
+  const saved = async (message) => {
+    await refreshMe();
+    current = safePhotoPath(me?.photoUrl);
+    paintPreview(current);
+    paintActions();
+    notify(message);
+  };
+
+  input.addEventListener('change', async () => {
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/') || file.size > 10_000_000) {
+      notify('Choose an image under 10 MB.', 'error');
+      return;
+    }
+    let objectUrl;
+    busy(true);
+    try {
+      objectUrl = URL.createObjectURL(file);
+      paintPreview(objectUrl);
+      const image = new Image();
+      image.src = objectUrl;
+      await image.decode();
+      const scale = Math.min(1, 1024 / Math.max(image.naturalWidth, image.naturalHeight));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+      canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+      const jpeg = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', .82));
+      if (!jpeg || jpeg.size > 2_000_000) throw new Error('The resized photo is still over 2 MB. Choose a smaller image.');
+      const response = await fetch('/api/me/photo', {
+        method: 'POST', headers: { 'content-type': 'image/jpeg' }, body: jpeg,
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || 'Could not save photo');
+      await saved('Profile photo saved');
+    } catch (error) {
+      paintPreview(current);
+      notify(error.message || 'Could not read that image', 'error');
+    } finally {
+      busy(false);
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    }
+  });
+
+  async function removePhoto() {
+    busy(true);
+    const result = await api('DELETE', '/api/me/photo');
+    busy(false);
+    if (!result.ok) { notify(result.data.error || 'Could not remove photo', 'error'); return; }
+    await saved('Profile photo removed');
+  }
+
+  return h('div', { class: 'profile-photo-editor' },
+    preview,
+    h('div', { class: 'profile-photo-text' },
+      h('strong', { text: [account.firstName, account.lastName].filter(Boolean).join(' ') || 'Your profile' }),
+      h('span', { class: 'field-hint', text: account.email }),
+      h('div', { class: 'row' }, choose, remove),
+      hint),
+    input);
+}
+
 async function renderProfile() {
   show(page('Account', 'Your profile, password and email address.', loading(5)));
 
@@ -1357,54 +1454,7 @@ async function renderProfile() {
     else notify(res.data.error || 'Could not save', 'error');
   });
 
-  container.append(card('Profile', { sub: `Signed in as ${a.email}` }, profileForm));
-
-  const photoInput = h('input', { type: 'file', accept: 'image/*', 'aria-label': 'Choose or take a profile photo' });
-  const profilePhoto = safePhotoPath(a.photoUrl);
-  const photoPreview = h('span', { class: 'profile-photo-preview' },
-    profilePhoto ? h('img', { src: profilePhoto, alt: 'Your current profile photo' }) : initials(a));
-  const photoSave = h('button', { type: 'button', class: 'btn btn-primary' }, 'Use this photo');
-  photoSave.disabled = true;
-  photoInput.addEventListener('change', () => { photoSave.disabled = !photoInput.files?.length; });
-  photoSave.addEventListener('click', async () => {
-    const file = photoInput.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/') || file.size > 10_000_000) {
-      notify('Choose an image under 10 MB.', 'error'); return;
-    }
-    photoSave.disabled = true;
-    let objectUrl;
-    try {
-      objectUrl = URL.createObjectURL(file);
-      const image = new Image();
-      image.src = objectUrl;
-      await image.decode();
-      const scale = Math.min(1, 1024 / Math.max(image.naturalWidth, image.naturalHeight));
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
-      canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
-      canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
-      const jpeg = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', .82));
-      if (!jpeg || jpeg.size > 2_000_000) throw new Error('The resized photo is still over 2 MB. Choose a smaller image.');
-      const response = await fetch('/api/me/photo', {
-        method: 'POST', headers: { 'content-type': 'image/jpeg' }, body: jpeg,
-      });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(result.error || 'Could not save photo');
-      notify('Profile photo saved');
-      await refreshMe();
-      await renderProfile();
-    } catch (error) { notify(error.message || 'Could not read that image', 'error'); photoSave.disabled = false; }
-    finally { if (objectUrl) URL.revokeObjectURL(objectUrl); }
-  });
-  container.append(card('Profile photo', { sub: 'Use your camera or choose a picture. The upload is resized on this device.' },
-    h('div', { class: 'profile-photo-editor' }, photoPreview,
-      h('div', {}, photoInput, h('div', { class: 'row', style: 'margin-top:.8rem' }, photoSave,
-        profilePhoto ? h('button', { type: 'button', class: 'btn btn-quiet', on: { click: async () => {
-          const result = await api('DELETE', '/api/me/photo');
-          notify(result.ok ? 'Profile photo removed' : (result.data.error || 'Could not remove photo'), result.ok ? 'ok' : 'error');
-          if (result.ok) { await refreshMe(); await renderProfile(); }
-        } } }, 'Remove photo') : null)))));
+  container.append(card('Profile', {}, profilePhotoEditor(a), profileForm));
 
   const pwForm = h('form', {},
     field('Current password', h('input', { name: 'currentPassword', type: 'password', required: true, autocomplete: 'current-password' })),
@@ -1522,6 +1572,76 @@ async function renderProfile() {
    Robots
    ========================================================================== */
 
+const ROBOT_COLORS = [
+  ['blue', 'Blue'], ['teal', 'Teal'], ['violet', 'Violet'],
+  ['coral', 'Coral'], ['gold', 'Gold'], ['slate', 'Slate'],
+];
+const robotColorOf = (value) => (ROBOT_COLORS.some(([key]) => key === value) ? value : 'blue');
+const robotName = (robot) => meaningfulText(robot?.loopName) || robot?.friendlyId || 'Jibo';
+
+/** Jibo's one round eye on a disc of the robot's console color. */
+const robotAvatar = (color, size = 'md') => h('span', {
+  class: `robot-avatar robot-avatar-${size} robot-color-${robotColorOf(color)}`,
+  'aria-hidden': 'true',
+}, h('span', { class: 'robot-avatar-eye' }));
+
+/** The read-only facts a robot reports about itself, skipping anything it left unset. */
+function robotFacts(d) {
+  const payload = d.getRobot?.payload && typeof d.getRobot.payload === 'object' && !Array.isArray(d.getRobot.payload)
+    ? d.getRobot.payload : {};
+  const locationSource = payload.locationOverride || payload;
+  const location = [locationSource.city, locationSource.state, locationSource.country]
+    .map(meaningfulText).filter(Boolean).join(', ');
+  const remoteEnabled = typeof payload.remoteEnabled === 'boolean' ? payload.remoteEnabled : null;
+  const facts = [
+    row('Loop status', d.loop?.isSuspended
+      ? h('span', { class: 'pill pill-error' }, 'Suspended')
+      : h('span', { class: 'pill pill-ok' }, h('span', { class: 'dot' }), 'Active')),
+    meaningfulText(payload.SSID) ? row('Wi-Fi network', meaningfulText(payload.SSID)) : null,
+    location ? row('Location', location) : null,
+    meaningfulText(payload.timezone) ? row('Time zone', meaningfulText(payload.timezone).replace(/_/g, ' ')) : null,
+    meaningfulText(payload.platform) ? row('Platform', meaningfulText(payload.platform)) : null,
+    meaningfulText(payload.serialNumber) ? row('Serial number', h('span', { class: 'mono' }, meaningfulText(payload.serialNumber))) : null,
+    remoteEnabled === null ? null : row('Companion apps', remoteEnabled ? 'Allowed' : 'Off'),
+    d.diagnostics
+      ? h('div', { class: 'notice notice-warn' }, icon('alert', 16),
+        h('div', {}, 'Additional robot status is unavailable right now. Basic loop information is still shown.'))
+      : null,
+  ];
+  // replaceChildren() would render a null as the text "null".
+  return facts.filter(Boolean);
+}
+
+/**
+ * A switch that saves the moment it is flipped, and flips back if the save
+ * fails. For single on/off preferences a separate Save button is only one more
+ * thing to forget.
+ */
+function liveSwitch({ checked, label, hint, save, saved = 'Saved' }) {
+  const input = h('input', { type: 'checkbox', checked: !!checked });
+  const el = h('label', { class: 'switch' },
+    input,
+    h('span', { class: 'track' }),
+    h('span', { class: 'switch-text' },
+      h('span', {}, label),
+      hint ? h('span', { class: 'switch-hint' }, hint) : null));
+  input.addEventListener('change', async () => {
+    const next = input.checked;
+    input.disabled = true;
+    el.classList.add('is-saving');
+    const result = await save(next);
+    input.disabled = false;
+    el.classList.remove('is-saving');
+    if (!result.ok) {
+      input.checked = !next;
+      notify(result.data?.error || 'Could not save that change', 'error');
+      return;
+    }
+    notify(typeof saved === 'function' ? saved(next) : saved);
+  });
+  return el;
+}
+
 async function renderRobot() {
   show(page('Robots', 'Your Jibos and their current connection status.', loading(3)));
 
@@ -1544,205 +1664,520 @@ async function renderRobot() {
     return show(container);
   }
 
-  for (const robot of list) {
-    const detail = h('div', {});
-    const c = card(meaningfulText(robot.loopName) || robot.friendlyId, {
-      sub: robot.friendlyId,
-      actions: [h('button', {
-        class: 'btn btn-sm', type: 'button',
-        on: { click: (e) => loadDetail(e.currentTarget, robot, detail) },
-      }, 'View details')],
-    },
-      row('Loop', meaningfulText(robot.loopName) || '—'),
-      row('Access', robot.canManage ? 'Owner' : 'Shared with you'),
-      row('Connection', connectionStatus(robot.connection)),
-      row('Created', fmtDate(robot.created)),
-      row('Last seen', robotLastSeen(robot.lastSeen)),
-      detail);
-    c.classList.add('robot-card', `robot-color-${robot.avatarColor || 'blue'}`);
-    container.append(c);
-  }
+  container.append(h('div', { class: 'robot-list' }, ...list.map(robotCard)));
   show(container);
+}
 
-  async function loadDetail(button, robot, host) {
-    button.disabled = true;
-    host.replaceChildren(loading(2));
+function robotCard(robot) {
+  const detail = h('div', { class: 'robot-detail', hidden: true });
+  let loaded = false;
+  const more = h('button', { class: 'btn btn-quiet btn-sm', type: 'button', 'aria-expanded': 'false' },
+    icon('chevron', 14, 'robot-more-caret'), 'More details');
+  more.addEventListener('click', async () => {
+    const open = detail.hidden;
+    detail.hidden = !open;
+    more.setAttribute('aria-expanded', String(open));
+    more.lastChild.textContent = open ? 'Fewer details' : 'More details';
+    if (!open || loaded) return;
+    loaded = true;
+    detail.replaceChildren(loading(2));
     const r = await api('GET', `/api/robot?loopId=${encodeURIComponent(robot.loopId || '')}`);
-    button.disabled = false;
-    if (!r.ok) { host.replaceChildren(errorBox('Could not load robot detail.', r.data.error)); return; }
-    const d = r.data;
-    const payload = d.getRobot?.payload && typeof d.getRobot.payload === 'object' && !Array.isArray(d.getRobot.payload)
-      ? d.getRobot.payload : {};
-    const remoteEnabled = typeof payload.remoteEnabled === 'boolean' ? payload.remoteEnabled : null;
-    const ssid = meaningfulText(payload.SSID);
-    const locationSource = payload.locationOverride || payload;
-    const location = [locationSource.city, locationSource.state, locationSource.country]
-      .map(meaningfulText).filter(Boolean).join(', ');
-    const timezone = meaningfulText(payload.timezone);
-    const platform = meaningfulText(payload.platform);
-    const serialNumber = meaningfulText(payload.serialNumber);
-    host.replaceChildren(
-      row('Loop', meaningfulText(d.loop?.name) || '—'),
-      row('Status', d.loop?.isSuspended
-        ? h('span', { class: 'pill pill-error' }, 'Suspended')
-        : h('span', { class: 'pill pill-ok' }, h('span', { class: 'dot' }), 'Active')),
-      row('Connection', connectionStatus(d.connection)),
-      row('Last seen', robotLastSeen(d.robot?.lastSeen)),
-      ssid ? row('Wi-Fi network', ssid) : null,
-      location ? row('Location', location) : null,
-      timezone ? row('Timezone', timezone) : null,
-      platform ? row('Platform', platform) : null,
-      serialNumber ? row('Serial number', serialNumber) : null,
-      remoteEnabled === null ? null : row('Remote access', remoteEnabled ? 'Enabled' : 'Disabled'),
-      d.diagnostics
-        ? h('div', { class: 'notice notice-warn' }, icon('alert', 16),
-          h('div', {}, 'Additional robot status is unavailable right now. Basic loop information is still shown.'))
-        : null,
-      robot.canManage ? robotSettingsPanel(robot, d) : null);
-  }
-}
-
-function renderTips() {
-  const body = page('Get to know Jibo', 'A few useful things to try once your Jibo is connected.');
-  body.append(
-    card('Start with your voice', {},
-      h('p', {}, 'Try “Hey Jibo, what time is it?” or ask for the weather. Speak after the blue listening light appears.'),
-      h('p', { class: 'field-hint' }, 'If Jibo hears the wake word but not the question, check his connection on the Robots page.')),
-    card('Make your report yours', {},
-      h('p', {}, 'Personal Report can include weather, news, your commute, and a verified calendar subscription. Each person chooses their own settings.'),
-      h('a', { class: 'btn btn-secondary', href: '#/settings' }, 'Set up my report')),
-    card('People and loops', {},
-      h('p', {}, 'A loop is Jibo’s household. Add people and birthdays there so he knows who is part of the home.'),
-      h('a', { class: 'btn btn-secondary', href: '#/loop' }, 'Explore loops')),
-    card('Photos and messages', {},
-      h('p', {}, 'Jibo’s photos appear in Gallery. Loop members can send messages through the Jibo inbox, and the installed web app can notify you of new ones.'),
-      h('div', { class: 'row' },
-        h('a', { class: 'btn btn-secondary', href: '#/gallery' }, 'Open Gallery'),
-        h('a', { class: 'btn btn-secondary', href: '#/inbox' }, 'Open inbox'))));
-  show(body);
-}
-
-function robotSettingsPanel(robot, detail) {
-  const loopId = robot.loopId;
-  const payload = detail.getRobot?.payload || {};
-  const settings = h('details', { class: 'robot-settings' }, h('summary', {}, 'Settings for this Jibo'));
-
-  const nameForm = h('form', {},
-    field('Jibo name', h('input', { name: 'name', value: detail.loop?.name || robot.loopName || '', maxlength: 80, required: true }),
-      'The original app changes the loop name here. This name also appears across your console.'),
-    h('button', { type: 'submit', class: 'btn btn-secondary' }, 'Save name'));
-  onSubmit(nameForm, async () => {
-    const name = new FormData(nameForm).get('name');
-    const result = await api('PUT', '/api/loop', { loopId, name });
-    notify(result.ok ? 'Jibo name saved' : (result.data.error || 'Could not rename Jibo'), result.ok ? 'ok' : 'error');
-    if (result.ok) await renderRobot();
-  });
-
-  const colorForm = h('form', {},
-    field('Console color', h('select', { name: 'color' },
-      [['blue', 'Blue'], ['teal', 'Teal'], ['violet', 'Violet'], ['coral', 'Coral'], ['gold', 'Gold'], ['slate', 'Slate']]
-        .map(([value, label]) => h('option', { value, selected: (detail.loop?.avatarColor || robot.avatarColor) === value }, label))),
-    'A placeholder for future robot avatars; this changes only the console appearance.'),
-    h('button', { type: 'submit', class: 'btn btn-secondary' }, 'Save color'));
-  onSubmit(colorForm, async () => {
-    const color = new FormData(colorForm).get('color');
-    const result = await api('PUT', '/api/robot/color', { loopId, color });
-    if (result.ok) {
-      robot.avatarColor = color;
-      const tile = settings.closest('.robot-card');
-      if (tile) {
-        for (const className of [...tile.classList]) if (className.startsWith('robot-color-')) tile.classList.remove(className);
-        tile.classList.add(`robot-color-${color}`);
-      }
+    if (!r.ok) {
+      loaded = false; // let the next click try again
+      detail.replaceChildren(errorBox('Could not load robot detail.', r.data.error));
+      return;
     }
-    notify(result.ok ? 'Color saved' : (result.data.error || 'Could not save color'), result.ok ? 'ok' : 'error');
+    detail.replaceChildren(...robotFacts(r.data));
   });
 
-  const remoteForm = h('form', {},
-    toggle('remoteEnabled', payload.remoteEnabled === true, 'Enable companion applications',
-      'Allows owner-authorized remote companion controls when the robot and ROM service support them.'),
-    h('button', { type: 'submit', class: 'btn btn-secondary' }, 'Save access'));
-  onSubmit(remoteForm, async () => {
-    const enabled = !!new FormData(remoteForm).get('remoteEnabled');
-    const result = await api('PUT', '/api/robot/properties', { loopId, remoteEnabled: enabled });
-    notify(result.ok ? 'Companion access saved' : (result.data.error || 'Could not change access'), result.ok ? 'ok' : 'error');
+  const settings = robot.canManage && robot.loopId
+    ? h('a', { class: 'btn btn-sm', href: `#/robot/${encodeURIComponent(robot.loopId)}` }, icon('sliders', 14), 'Settings')
+    : h('span', { class: 'field-hint' }, 'Only the owner can change settings');
+
+  return h('section', { class: 'card robot-card' },
+    h('div', { class: 'robot-card-head' },
+      robotAvatar(robot.avatarColor),
+      h('div', { class: 'robot-card-title' },
+        h('h3', { text: robotName(robot) }),
+        h('span', { class: 'robot-id', text: robot.friendlyId })),
+      h('div', { class: 'robot-card-status' }, connectionStatus(robot.connection))),
+    h('div', { class: 'card-body' },
+      row('Access', robot.canManage ? 'Owner' : 'Shared with you'),
+      row('Last seen', robotLastSeen(robot.lastSeen)),
+      row('Added', fmtDate(robot.created)),
+      detail),
+    h('div', { class: 'card-foot robot-card-foot' }, more, settings));
+}
+
+/* -- One robot's settings (#/robot/<loopId>[/<section>]) -------------------- */
+
+const ROBOT_SETTINGS_TABS = [
+  ['general', 'General', 'robot'],
+  ['location', 'Location', 'pin'],
+  ['holidays', 'Holidays', 'calendar'],
+  ['wifi', 'Wi-Fi', 'wifi'],
+  ['backup', 'Backup', 'lock'],
+];
+
+async function renderRobotSettings(loopId, initialTab = 'general') {
+  const backLink = () => h('a', { class: 'link back-link', href: '#/robot' }, icon('back', 14), 'All robots');
+  const loadingPage = page('Robot settings', 'Loading this Jibo…', loading(5));
+  loadingPage.querySelector('.page-head').prepend(backLink());
+  show(loadingPage);
+
+  const [robots, detail] = await Promise.all([
+    api('GET', '/api/robots'),
+    api('GET', `/api/robot?loopId=${encodeURIComponent(loopId)}`),
+  ]);
+  const robot = robots.ok && Array.isArray(robots.data)
+    ? robots.data.find((item) => String(item.loopId) === String(loopId)) : null;
+  const fail = (title, message, detailText) => {
+    const container = page(title, '');
+    container.querySelector('.page-head').prepend(backLink());
+    container.append(errorBox(message, detailText));
+    show(container);
+  };
+  if (!robots.ok) return fail('Robot settings', 'Could not load your robots.', robots.data.error);
+  if (!robot) return fail('Robot settings', 'This Jibo is not paired with your account.');
+  if (!robot.canManage) return fail(robotName(robot), 'Only the loop owner can change this Jibo’s settings.');
+  if (!detail.ok) return fail(robotName(robot), 'Could not load this Jibo’s settings.', detail.data.error);
+
+  const d = detail.data;
+  const payload = d.getRobot?.payload && typeof d.getRobot.payload === 'object' && !Array.isArray(d.getRobot.payload)
+    ? d.getRobot.payload : {};
+  const state = {
+    loopId,
+    name: meaningfulText(d.loop?.name) || robotName(robot),
+    color: robotColorOf(d.loop?.avatarColor || robot.avatarColor),
+    friendlyId: robot.friendlyId,
+    payload,
+  };
+
+  const container = page(state.name, '');
+  const heroAvatar = robotAvatar(state.color, 'lg');
+  const heroTitle = h('h2', { text: state.name });
+  container.querySelector('.page-head').replaceWith(h('div', { class: 'page-head robot-hero' },
+    backLink(),
+    h('div', { class: 'robot-hero-main' },
+      heroAvatar,
+      h('div', { class: 'robot-hero-text' },
+        heroTitle,
+        h('div', { class: 'robot-hero-meta' },
+          h('span', { class: 'robot-id', text: state.friendlyId }),
+          connectionStatus(d.connection))))));
+  if (d.loop?.isSuspended) {
+    container.append(h('div', { class: 'notice notice-error' }, icon('alert', 16),
+      h('div', {}, 'This loop is suspended. Changes can still be saved, but Jibo will not use them until it is active again.')));
+  }
+
+  // The hero follows the General tab's unsaved choices, so a color can be
+  // judged on the actual avatar before it is saved.
+  const identity = {
+    preview(color) {
+      for (const cls of [...heroAvatar.classList]) if (cls.startsWith('robot-color-')) heroAvatar.classList.remove(cls);
+      heroAvatar.classList.add(`robot-color-${robotColorOf(color)}`);
+    },
+    rename(name) {
+      state.name = name;
+      heroTitle.textContent = name;
+      pageTitle.textContent = name;
+      document.title = `${name} — Phoenix`;
+    },
+  };
+
+  const builders = {
+    general: () => robotGeneralPanel(state, identity, d),
+    location: () => robotLocationPanel(state),
+    holidays: () => robotHolidaysPanel(state),
+    wifi: () => robotWifiPanel(state),
+    backup: () => robotBackupPanel(state),
+  };
+  const tabs = h('div', { class: 'subnav robot-tabs', role: 'tablist', 'aria-label': 'Settings sections' });
+  const panels = h('div', { class: 'robot-panels' });
+  const built = new Map();
+  const tabButtons = new Map();
+
+  function select(key, { focus = false } = {}) {
+    if (!builders[key]) key = 'general';
+    for (const [name, button] of tabButtons) {
+      const active = name === key;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-selected', String(active));
+      button.tabIndex = active ? 0 : -1;
+      if (active && focus) button.focus();
+    }
+    // Each section is built the first time it is shown. The map in Location
+    // measures its container when it is created, so it must not be built hidden.
+    if (!built.has(key)) {
+      const panel = h('div', { class: 'robot-panel', role: 'tabpanel', id: `robot-panel-${key}`, 'aria-labelledby': `robot-tab-${key}` },
+        builders[key]());
+      built.set(key, panel);
+      panels.append(panel);
+    }
+    for (const [name, panel] of built) panel.hidden = name !== key;
+    history.replaceState(null, '', `#/robot/${encodeURIComponent(loopId)}${key === 'general' ? '' : `/${key}`}`);
+  }
+
+  for (const [key, label, iconName] of ROBOT_SETTINGS_TABS) {
+    const button = h('button', {
+      type: 'button', role: 'tab', id: `robot-tab-${key}`, 'aria-controls': `robot-panel-${key}`,
+      on: { click: () => select(key) },
+    }, icon(iconName, 15), h('span', {}, label));
+    tabButtons.set(key, button);
+    tabs.append(button);
+  }
+  tabs.addEventListener('keydown', (event) => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const keys = ROBOT_SETTINGS_TABS.map(([key]) => key);
+    const current = keys.indexOf([...tabButtons].find(([, b]) => b.classList.contains('active'))?.[0]);
+    const next = event.key === 'Home' ? 0 : event.key === 'End' ? keys.length - 1
+      : (current + (event.key === 'ArrowRight' ? 1 : -1) + keys.length) % keys.length;
+    select(keys[next], { focus: true });
   });
 
-  const existing = payload.locationOverride || {};
-  const locationPicker = createLocationPicker({ places: [{ key: 'jibo', label: 'Jibo', point: {
-    lat: existing.latitude ?? null, lng: existing.longitude ?? null,
-  } }] });
-  const currentTimeZone = payload.timezone || existing.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
-  const timeZoneList = h('datalist', { id: `timezones-${loopId}` },
-    ['UTC', ...(Intl.supportedValuesOf?.('timeZone') || [])].map((value) => h('option', { value })));
-  const locationForm = h('form', {},
-    h('p', { class: 'field-hint' }, 'Use your device location, search an address, or move the pin. The robot uses this pin for local weather.'),
-    locationPicker.element,
-    field('City or place name', h('input', { name: 'city', value: existing.city || '', maxlength: 120 }),
-      'Used as the human-readable location; an address search sets the pin, not this label.'),
-    field('Time zone', h('input', { name: 'timezone', value: currentTimeZone, list: `timezones-${loopId}`, required: true }),
-      'Check this if the robot is in a different time zone from your phone.'),
-    timeZoneList,
-    h('button', { type: 'submit', class: 'btn btn-secondary' }, 'Save robot location'));
-  onSubmit(locationForm, async () => {
-    const fd = Object.fromEntries(new FormData(locationForm));
-    const point = locationPicker.value().jibo;
-    if (point.lat == null || point.lng == null) { notify('Choose a location first', 'error'); return; }
-    const result = await api('PUT', '/api/robot/properties', { loopId, location: {
-      ...point, city: fd.city, timezone: fd.timezone,
+  container.append(tabs, panels);
+  show(container);
+  select(initialTab);
+}
+
+function robotGeneralPanel(state, identity, d) {
+  const nameInput = h('input', { name: 'name', value: state.name, maxlength: 80, required: true, autocomplete: 'off' });
+  const swatches = h('div', { class: 'swatches' }, ...ROBOT_COLORS.map(([value, label]) =>
+    h('label', { class: `swatch robot-color-${value}`, title: label },
+      h('input', { type: 'radio', name: 'color', value, checked: value === state.color, 'aria-label': label }),
+      h('span', { class: 'swatch-dot', 'aria-hidden': 'true' }))));
+  swatches.addEventListener('change', (event) => identity.preview(event.target.value));
+
+  const form = h('form', { class: 'robot-identity-form' },
+    field('Name', nameInput, 'This is also the loop’s name, so everyone in the loop sees it.'),
+    h('fieldset', { class: 'swatch-field' },
+      h('legend', { class: 'field-label' }, 'Color'),
+      swatches,
+      h('span', { class: 'field-hint' }, 'Only changes how this Jibo appears in the console.')),
+    h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn btn-primary' }, 'Save')));
+
+  onSubmit(form, async () => {
+    const name = nameInput.value.trim();
+    const color = robotColorOf(new FormData(form).get('color'));
+    if (!name) { notify('Give this Jibo a name', 'error'); nameInput.focus(); return; }
+    if (name === state.name && color === state.color) { notify('Nothing has changed'); return; }
+    const failures = [];
+    if (name !== state.name) {
+      const renamed = await api('PUT', '/api/loop', { loopId: state.loopId, name });
+      if (renamed.ok) identity.rename(name);
+      else failures.push(renamed.data.error || 'Could not rename Jibo');
+    }
+    if (color !== state.color) {
+      const recolored = await api('PUT', '/api/robot/color', { loopId: state.loopId, color });
+      if (recolored.ok) state.color = color;
+      else { failures.push(recolored.data.error || 'Could not save the color'); identity.preview(state.color); }
+    }
+    notify(failures.length ? failures.join('. ') : 'Saved', failures.length ? 'error' : 'ok');
+  });
+
+  const companion = card('Companion apps', { sub: 'Remote control from other apps' },
+    liveSwitch({
+      checked: state.payload.remoteEnabled === true,
+      label: 'Allow companion apps',
+      hint: 'Lets apps you have authorized control this Jibo remotely, when his software supports it.',
+      save: (enabled) => api('PUT', '/api/robot/properties', { loopId: state.loopId, remoteEnabled: enabled }),
+      saved: (enabled) => (enabled ? 'Companion apps allowed' : 'Companion apps turned off'),
+    }));
+
+  return h('div', { class: 'stack' },
+    card('Name and color', {}, form),
+    companion,
+    card('About this Jibo', {}, h('div', { class: 'kv-list' }, ...robotFacts(d))));
+}
+
+function timeZoneSelect(current) {
+  const zones = new Set(['UTC', ...(Intl.supportedValuesOf?.('timeZone') || [])]);
+  if (current) zones.add(current);
+  const groups = new Map();
+  for (const zone of [...zones].sort()) {
+    const region = zone.includes('/') ? zone.split('/')[0] : 'Other';
+    if (!groups.has(region)) groups.set(region, []);
+    groups.get(region).push(zone);
+  }
+  return h('select', { name: 'timezone', required: true },
+    ...[...groups].map(([region, list]) => h('optgroup', { label: region },
+      ...list.map((zone) => h('option', { value: zone, selected: zone === current },
+        zone.replace(/_/g, ' '))))));
+}
+
+function robotLocationPanel(state) {
+  const existing = state.payload.locationOverride || {};
+  const browserZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  const savedZone = meaningfulText(state.payload.timezone) || meaningfulText(existing.timezone);
+  const cityInput = h('input', { name: 'city', value: existing.city || '', maxlength: 120, placeholder: 'e.g. Somerville', autocomplete: 'off' });
+  // A search result names the place; fill it in unless the person has typed
+  // their own label since the last automatic fill.
+  let autoCity = cityInput.value;
+  const picker = createLocationPicker({
+    places: [{ key: 'jibo', label: 'Jibo', point: { lat: existing.latitude ?? null, lng: existing.longitude ?? null } }],
+    onChange: (key, point, meta) => {
+      if (!meta?.label || cityInput.value !== autoCity) return;
+      autoCity = meta.label.split(',')[0].trim().slice(0, 120);
+      cityInput.value = autoCity;
+    },
+  });
+  const form = h('form', { class: 'robot-location-form' },
+    picker.element,
+    h('div', { class: 'grid2' },
+      field('Place name', cityInput, 'What Jibo calls this place. Searching an address fills it in.'),
+      field('Time zone', timeZoneSelect(savedZone || browserZone),
+        savedZone ? 'Jibo uses this for the time and your reminders.' : 'Preselected from this device. Change it if Jibo is somewhere else.')),
+    h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn btn-primary' }, 'Save location')));
+  onSubmit(form, async () => {
+    const fd = Object.fromEntries(new FormData(form));
+    const point = picker.value().jibo;
+    if (point.lat == null || point.lng == null) { notify('Search, use your location, or click the map to place Jibo first', 'error'); return; }
+    const result = await api('PUT', '/api/robot/properties', { loopId: state.loopId, location: {
+      ...point, city: fd.city.trim(), timezone: fd.timezone,
     } });
-    notify(result.ok ? 'Robot location saved' : (result.data.error || 'Could not save location'), result.ok ? 'ok' : 'error');
+    if (result.ok) {
+      state.payload.locationOverride = { latitude: point.lat, longitude: point.lng, city: fd.city.trim(), timezone: fd.timezone };
+      state.payload.timezone = fd.timezone;
+    }
+    notify(result.ok ? 'Location saved' : (result.data.error || 'Could not save location'), result.ok ? 'ok' : 'error');
   });
+  return card('Location and time zone', { sub: 'Used for local weather and the time' }, form);
+}
 
-  const holidaysHost = h('div', {}, loading(2));
-  const holidays = h('details', {}, h('summary', {}, 'Birthdays and holidays'), holidaysHost);
-  holidays.addEventListener('toggle', () => { if (holidays.open && holidaysHost.querySelector('.loading-rows')) void loadRobotHolidays(loopId, holidaysHost); });
+/** "2026-10-04" → "Sun, Oct 4, 2026" in the viewer's locale, read as a calendar day. */
+const fmtCalendarDay = (value) => {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}/.test(value)) return '';
+  const date = new Date(`${value.slice(0, 10)}T12:00:00`);
+  return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString(undefined, {
+    weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
+  });
+};
 
-  const wifi = h('details', {}, h('summary', {}, 'Change Wi-Fi'), robotWifiPanel(loopId));
-  const passphrase = h('details', {}, h('summary', {}, 'Backup passphrase'), backupPassphrasePanel(loopId));
+function robotHolidaysPanel(state) {
+  const host = h('div', { class: 'stack' }, card(null, {}, loading(5)));
+  void loadRobotHolidays(state, host);
+  return host;
+}
 
-  settings.append(card('Name and color', {}, nameForm, colorForm),
-    card('Companion applications', {}, remoteForm),
-    card('Location and local weather', {}, locationForm), holidays, wifi, passphrase);
-  return settings;
+async function loadRobotHolidays(state, host) {
+  const [result, loops] = await Promise.all([
+    api('GET', `/api/robot/holidays?loopId=${encodeURIComponent(state.loopId)}`),
+    api('GET', '/api/loop'),
+  ]);
+  if (!result.ok) { host.replaceChildren(errorBox('Could not load holidays.', result.data.error)); return; }
+  const loop = loops.ok ? (loops.data.loops || []).find((item) => String(item.id) === String(state.loopId)) : null;
+  const memberName = (memberId) => {
+    const member = (loop?.members || []).find((m) => String(m.id) === String(memberId) || String(m.accountId) === String(memberId));
+    return meaningfulText(member?.nickname) || meaningfulText(member?.account?.firstName) || null;
+  };
+
+  // ListHolidays answers a record once per upcoming occurrence (this year and
+  // next). Show each once, at its next date.
+  const today = new Date().toISOString().slice(0, 10);
+  const byId = new Map();
+  for (const item of Array.isArray(result.data.holidays) ? result.data.holidays : []) {
+    if (!item?.id) continue;
+    const list = byId.get(item.id) || [];
+    list.push(item);
+    byId.set(item.id, list);
+  }
+  const regular = [...byId.values()].map((occurrences) => {
+    occurrences.sort((a, b) => String(a.date).localeCompare(String(b.date)));
+    return occurrences.find((item) => String(item.date) >= today) || occurrences[0];
+  }).sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  const custom = (Array.isArray(result.data.custom) ? result.data.custom : [])
+    .slice().sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  const birthdays = regular.filter((item) => item.category === 'birthday');
+  const standard = regular.filter((item) => item.category !== 'birthday');
+
+  const holidaySwitch = (item, label) => liveSwitch({
+    checked: item.isEnabled === true,
+    label,
+    hint: fmtCalendarDay(item.date),
+    save: (enabled) => api('PUT', '/api/robot/holiday', { loopId: state.loopId, id: item.id, enabled }),
+    saved: (enabled) => `${label} ${enabled ? 'turned on' : 'turned off'}`,
+  });
+  const reload = () => loadRobotHolidays(state, host);
+
+  const birthdayCard = card('Birthdays', { sub: 'Jibo wishes people in this loop a happy birthday' },
+    birthdays.length
+      ? h('div', { class: 'setting-list' }, ...birthdays.map((item) => {
+        const name = memberName(item.memberId);
+        return h('div', { class: 'setting-row' }, holidaySwitch(item, name ? `${name}’s birthday` : 'A loop member’s birthday'));
+      }))
+      : h('p', { class: 'field-hint' }, 'When people in this loop add a birthday to their account, it appears here. ',
+        h('a', { class: 'link', href: '#/profile' }, 'Add your birthday')));
+
+  const addForm = h('form', { class: 'holiday-add' },
+    field('Name', h('input', { name: 'name', required: true, maxlength: 80, placeholder: 'e.g. Adoption day', autocomplete: 'off' })),
+    field('Date', h('input', { name: 'date', type: 'date', required: true })),
+    h('button', { type: 'submit', class: 'btn' }, icon('plus', 14), 'Add'));
+  onSubmit(addForm, async () => {
+    const fd = Object.fromEntries(new FormData(addForm));
+    const added = await api('PUT', '/api/robot/holidays/custom', { loopId: state.loopId, name: fd.name.trim(), date: fd.date });
+    if (!added.ok) { notify(added.data.error || 'Could not add that date', 'error'); return; }
+    notify(`${fd.name.trim()} added`);
+    await reload();
+  });
+  const customRows = custom.map((item) => h('div', { class: 'setting-row' },
+    liveSwitch({
+      checked: item.isEnabled !== false,
+      label: item.name || 'Untitled',
+      hint: fmtCalendarDay(item.date),
+      save: (enabled) => api('PUT', '/api/robot/holidays/custom', { loopId: state.loopId, id: item.id, name: item.name, date: item.date, enabled }),
+      saved: (enabled) => `${item.name} ${enabled ? 'turned on' : 'turned off'}`,
+    }),
+    h('button', {
+      type: 'button', class: 'icon-btn', 'aria-label': `Remove ${item.name}`, title: 'Remove',
+      on: { click: async () => {
+        const ok = await confirmDialog({
+          title: `Remove “${item.name}”?`,
+          body: 'Jibo will stop marking this date.',
+          confirmLabel: 'Remove',
+        });
+        if (!ok) return;
+        const deleted = await api('DELETE', '/api/robot/holidays/custom', { loopId: state.loopId, id: item.id });
+        notify(deleted.ok ? `${item.name} removed` : (deleted.data.error || 'Could not remove that date'), deleted.ok ? 'ok' : 'error');
+        if (deleted.ok) await reload();
+      } },
+    }, icon('trash', 16))));
+  const customCard = card('Your own dates', { sub: 'Anniversaries, adoption days, anything worth marking' },
+    customRows.length ? h('div', { class: 'setting-list' }, ...customRows) : null,
+    addForm);
+
+  const CATEGORY_LABELS = { national: 'National', public: 'Public', cultural: 'Cultural and religious' };
+  const groups = new Map();
+  for (const item of standard) {
+    const key = CATEGORY_LABELS[item.category] ? item.category : 'other';
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(item);
+  }
+  const enabledCount = standard.filter((item) => item.isEnabled === true).length;
+  const standardCard = card('Holidays', {
+    sub: standard.length ? `${enabledCount} of ${standard.length} on` : 'From this server’s holiday calendar',
+  }, standard.length
+    ? [...Object.keys(CATEGORY_LABELS), 'other'].filter((key) => groups.has(key)).map((key) => h('div', { class: 'setting-group' },
+      h('h4', { class: 'setting-group-title' }, CATEGORY_LABELS[key] || 'Other'),
+      h('div', { class: 'setting-list' }, ...groups.get(key).map((item) =>
+        h('div', { class: 'setting-row' }, holidaySwitch(item, item.name || 'Holiday'))))))
+    : empty('No upcoming holidays', 'This server’s holiday calendar has no upcoming dates yet. Your own dates above still work.', 'calendar'));
+
+  host.replaceChildren(birthdayCard, customCard, standardCard);
+}
+
+function robotWifiPanel(state) {
+  const host = h('div', { class: 'stack' });
+  const form = h('form', {},
+    h('ol', { class: 'steps' },
+      h('li', {}, h('strong', {}, 'Open Jibo’s Wi-Fi screen. '),
+        'Use the menu on Jibo himself and wait until he asks to scan a code. The console cannot open that screen for you.'),
+      h('li', {}, h('strong', {}, 'Enter the new network below. '),
+        'Keep Jibo powered on and within range of it.'),
+      h('li', {}, h('strong', {}, 'Hold the code up to his eye. '),
+        `${state.name} keeps his loop, people and history. He does not become a new robot.`)),
+    h('div', { class: 'grid2' },
+      field('Network name (SSID)', h('input', { name: 'ssid', required: true, maxlength: 32, autocomplete: 'off', spellcheck: 'false' })),
+      field('Password', h('input', { name: 'password', type: 'password', maxlength: 63, autocomplete: 'off' }),
+        'Leave empty for an open network.')),
+    h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn btn-primary' }, 'Show Wi-Fi code')));
+  const formCard = card('Move to a new network', {}, form);
+  host.append(formCard);
+
+  onSubmit(form, async () => {
+    const fd = Object.fromEntries(new FormData(form));
+    const result = await api('POST', '/api/robots/wifi', { loopId: state.loopId, ssid: fd.ssid, password: fd.password });
+    if (!result.ok) { notify(result.data.error || 'Could not create a Wi-Fi code', 'error'); return; }
+    formCard.hidden = true;
+
+    const codes = result.data.qr.codes;
+    let frame = 0;
+    const holder = h('div', { class: 'qr-codes', on: { click: () => { frame = (frame + 1) % codes.length; paint(); } } });
+    // Two frames side by side, or the only one when the payload fits in one.
+    const paint = () => holder.replaceChildren(...codes.slice(0, 2).map((_, i) =>
+      h('div', { html: qrSvg(codes[(frame + i) % codes.length], 5) })));
+    paint();
+    const status = h('p', { class: 'field-hint qr-status' },
+      h('span', { class: 'spinner', 'aria-hidden': 'true' }), 'Waiting for Jibo to scan…');
+    const startOver = h('button', { type: 'button', class: 'btn btn-quiet btn-sm', on: { click: () => {
+      stopPoll();
+      qrCard.remove();
+      formCard.hidden = false;
+    } } }, icon('back', 14), 'Change network');
+    const qrCard = card('Wi-Fi code', { sub: fd.ssid, actions: [startOver] },
+      h('p', { class: 'instruct instruct-center' }, 'Hold this up to Jibo’s eye while his Wi-Fi screen is open.'),
+      holder,
+      codes.length > 1 ? h('p', { class: 'field-hint', style: 'text-align:center' }, 'Tap the codes to advance the frames.') : null,
+      status);
+    host.append(qrCard);
+
+    stopPoll();
+    pollTimer = setInterval(async () => {
+      const check = await api('GET', `/api/robots/setup/status?token=${encodeURIComponent(result.data.token)}`);
+      if (!check.ok) return;
+      if (check.data.expired) {
+        stopPoll();
+        status.replaceChildren('This code expired.');
+        status.style.color = 'var(--warn)';
+        qrCard.querySelector('.card-body').append(h('div', { class: 'row', style: 'justify-content:center' },
+          h('button', { type: 'button', class: 'btn btn-primary', on: { click: () => {
+            qrCard.remove();
+            formCard.hidden = false;
+            form.requestSubmit();
+          } } }, 'Make a new code')));
+      } else if (check.data.complete) {
+        stopPoll();
+        holder.hidden = true;
+        status.replaceChildren(icon('check', 15), ` ${state.name} is on ${fd.ssid}. His loop is unchanged.`);
+        status.style.color = 'var(--ok)';
+        notify('Wi-Fi changed');
+      }
+    }, 2000);
+  });
+  return host;
 }
 
 const PASSPHRASE_IV = new Uint8Array([10, 32, 101, 88, 3, 75, 46, 57, 94, 11, 27, 40, 6, 112, 51, 80]);
 const hex = (bytes) => [...new Uint8Array(bytes)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 
-function backupPassphrasePanel(loopId) {
-  const host = h('div', {}, h('p', { class: 'field-hint' }, 'Checking backup state…'));
+function robotBackupPanel(state) {
+  const body = h('div', {}, loading(3));
+  const intro = h('p', { class: 'field-hint' },
+    'Your loop’s encryption key is backed up locked with this passphrase. Jibo needs it to restore protected content after a reset or on a replacement robot.');
   void (async () => {
-    const status = await api('GET', `/api/robot/backup-key/status?loopId=${encodeURIComponent(loopId)}`);
-    if (!status.ok) { host.replaceChildren(errorBox('Could not check your backup', status.data.error)); return; }
+    const status = await api('GET', `/api/robot/backup-key/status?loopId=${encodeURIComponent(state.loopId)}`);
+    if (!status.ok) { body.replaceChildren(errorBox('Could not check your backup.', status.data.error)); return; }
     if (!status.data.backupExists) {
-      host.replaceChildren(h('div', { class: 'notice notice-warn' }, icon('alert', 16),
-        h('div', {}, 'No encrypted loop-key backup exists yet. To create the first one, use a device that already holds the loop key. The server cannot generate that key without losing the original privacy protection.')));
+      body.replaceChildren(h('div', { class: 'notice' }, icon('lock', 16),
+        h('div', {}, h('strong', {}, 'No backup yet. '),
+          'The first backup has to come from a device that already holds the loop key. Phoenix cannot create one for you without breaking the original privacy protection.')));
       return;
     }
     if (!window.crypto?.subtle) {
-      host.replaceChildren(errorBox('A secure browser connection is required to change the passphrase.'));
+      body.replaceChildren(errorBox('Changing the passphrase needs a secure (HTTPS) connection.'));
       return;
     }
     const form = h('form', {},
-      h('p', { class: 'field-hint' }, 'Changing the passphrase re-encrypts the existing key in this browser. Your passphrases and unencrypted key are never sent to Phoenix. Keep the new passphrase somewhere safe; losing it can make restored content inaccessible.'),
       field('Current passphrase', h('input', { type: 'password', name: 'current', required: true, autocomplete: 'off' })),
-      field('New passphrase', h('input', { type: 'password', name: 'next', required: true, minlength: 12, autocomplete: 'new-password' }),
-        'Use at least 12 characters.'),
-      field('Confirm new passphrase', h('input', { type: 'password', name: 'confirm', required: true, autocomplete: 'new-password' })),
-      h('button', { type: 'submit', class: 'btn btn-secondary' }, 'Change backup passphrase'));
+      h('div', { class: 'grid2' },
+        field('New passphrase', h('input', { type: 'password', name: 'next', required: true, minlength: 12, autocomplete: 'new-password' }),
+          'At least 12 characters.'),
+        field('Confirm new passphrase', h('input', { type: 'password', name: 'confirm', required: true, autocomplete: 'new-password' }))),
+      h('div', { class: 'notice' }, icon('alert', 16),
+        h('div', {}, 'Your passphrases never leave this browser; the key is re-encrypted here. Keep the new one somewhere safe. If it is lost, restored content cannot be unlocked.')),
+      h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn btn-primary' }, 'Change passphrase')));
     onSubmit(form, async () => {
       const fd = Object.fromEntries(new FormData(form));
-      if (fd.next !== fd.confirm || fd.next.length < 12 || fd.next === fd.current) {
-        notify('Choose and confirm a different passphrase of at least 12 characters', 'error'); return;
-      }
+      if (fd.next.length < 12) { notify('The new passphrase needs at least 12 characters', 'error'); return; }
+      if (fd.next !== fd.confirm) { notify('The new passphrases do not match', 'error'); return; }
+      if (fd.next === fd.current) { notify('Choose a passphrase different from the current one', 'error'); return; }
       try {
         const encoder = new TextEncoder();
         const oldBytes = encoder.encode(fd.current);
         const newBytes = encoder.encode(fd.next);
         const oldPasswordHash = hex(await crypto.subtle.digest('SHA-1', oldBytes));
         const newPasswordHash = hex(await crypto.subtle.digest('SHA-1', newBytes));
-        const current = await api('POST', '/api/robot/backup-key/current', { loopId, passwordHash: oldPasswordHash });
+        const current = await api('POST', '/api/robot/backup-key/current', { loopId: state.loopId, passwordHash: oldPasswordHash });
         if (!current.ok) throw new Error(current.data.error || 'Could not unlock backup');
         const oldKey = await crypto.subtle.importKey('raw', await crypto.subtle.digest('SHA-256', oldBytes), 'AES-CBC', false, ['decrypt']);
         const ciphertext = Uint8Array.from(atob(current.data.encryptedKey.replace(/\s/g, '')), (c) => c.charCodeAt(0));
@@ -1758,97 +2193,48 @@ function backupPassphrasePanel(loopId) {
         check.fill(0);
         const encryptedKey = btoa(String.fromCharCode(...nextEncrypted));
         const changed = await api('POST', '/api/robot/backup-key/change', {
-          loopId, oldPasswordHash, newPasswordHash, encryptedKey,
+          loopId: state.loopId, oldPasswordHash, newPasswordHash, encryptedKey,
         });
         if (!changed.ok) throw new Error(changed.data.error || 'Could not update backup');
         form.reset();
         notify('Backup passphrase changed');
       } catch (error) { notify(error.message || 'Could not change backup passphrase', 'error'); }
     });
-    host.replaceChildren(form);
+    body.replaceChildren(form);
   })();
-  return host;
+  return card('Backup passphrase', { sub: 'Protects your loop key backup' }, intro, body);
 }
 
-function robotWifiPanel(loopId) {
-  const host = h('div', {},
-    h('p', { class: 'field-hint' }, 'On Jibo, open the Wi-Fi connection screen using his on-robot menu and wait for the camera/QR prompt. The original phone app does not switch that screen remotely; it waits for your tap on Jibo.'),
-    h('p', { class: 'field-hint' }, 'Keep Jibo powered on near the new network. Scanning this code reconnects the same loop and credentials; it does not create a second robot.'));
-  const form = h('form', {},
-    field('New Wi-Fi name (SSID)', h('input', { name: 'ssid', required: true, autocomplete: 'off' })),
-    field('New Wi-Fi password', h('input', { name: 'password', type: 'password', autocomplete: 'off' })),
-    h('button', { type: 'submit', class: 'btn btn-primary' }, 'Show Wi-Fi code'));
-  host.append(form);
-  onSubmit(form, async () => {
-    const fd = Object.fromEntries(new FormData(form));
-    const result = await api('POST', '/api/robots/wifi', { loopId, ssid: fd.ssid, password: fd.password });
-    if (!result.ok) { notify(result.data.error || 'Could not create Wi-Fi code', 'error'); return; }
-    form.hidden = true;
-    const codes = result.data.qr.codes;
-    let frame = 0;
-    const holder = h('div', { class: 'qr-codes', on: { click: () => {
-      frame = (frame + 1) % codes.length;
-      holder.replaceChildren(...[0, 1].map((i) => h('div', { html: qrSvg(codes[(frame + i) % codes.length], 5) })));
-    } } }, ...[0, 1].map((i) => h('div', { html: qrSvg(codes[(frame + i) % codes.length], 5) })));
-    const status = h('p', { class: 'field-hint' }, 'Waiting for Jibo to scan…');
-    const qr = h('div', {}, holder, h('p', { class: 'field-hint' }, 'Tap the code to advance frames.'), status);
-    host.append(qr);
-    stopPoll();
-    pollTimer = setInterval(async () => {
-      const check = await api('GET', `/api/robots/setup/status?token=${encodeURIComponent(result.data.token)}`);
-      if (!check.ok) return;
-      if (check.data.expired) { stopPoll(); status.textContent = 'This code expired. Create a new one.'; form.hidden = false; }
-      else if (check.data.complete) { stopPoll(); status.textContent = 'Jibo reconnected. Your loop is unchanged.'; notify('Wi-Fi changed'); }
-    }, 2000);
-  });
-  return host;
-}
-
-async function loadRobotHolidays(loopId, host) {
-  const result = await api('GET', `/api/robot/holidays?loopId=${encodeURIComponent(loopId)}`);
-  if (!result.ok) { host.replaceChildren(errorBox('Could not load holidays', result.data.error)); return; }
-  const regular = Array.isArray(result.data.holidays) ? result.data.holidays : [];
-  const custom = Array.isArray(result.data.custom) ? result.data.custom : [];
-  const birthdayRows = regular.filter((item) => item.category === 'birthday');
-  const standardRows = regular.filter((item) => item.category !== 'birthday');
-  const makeToggle = (item, isCustom) => h('label', { class: 'holiday-row' },
-    h('input', { type: 'checkbox', checked: item.isEnabled === true, on: { change: async (event) => {
-      const enabled = event.target.checked;
-      event.target.disabled = true;
-      const changed = isCustom
-        ? await api('PUT', '/api/robot/holidays/custom', { loopId, id: item.id, name: item.name, date: item.date, enabled })
-        : await api('PUT', '/api/robot/holiday', { loopId, id: item.id, enabled });
-      event.target.disabled = false;
-      if (!changed.ok) { event.target.checked = !enabled; notify(changed.data.error || 'Could not update holiday', 'error'); }
-      else notify('Holiday preference saved');
-    } } }),
-    h('span', {}, item.name || (item.category === 'birthday' ? 'Birthday' : 'Holiday')),
-    item.date ? h('span', { class: 'field-hint' }, item.date) : null);
-  const customList = h('div', {}, ...custom.map((item) => h('div', { class: 'holiday-custom-row' },
-    makeToggle(item, true),
-    h('button', { type: 'button', class: 'btn btn-quiet', on: { click: async () => {
-      const deleted = await api('DELETE', '/api/robot/holidays/custom', { loopId, id: item.id });
-      notify(deleted.ok ? 'Holiday removed' : (deleted.data.error || 'Could not remove holiday'), deleted.ok ? 'ok' : 'error');
-      if (deleted.ok) await loadRobotHolidays(loopId, host);
-    } } }, 'Remove'))));
-  const addForm = h('form', { class: 'holiday-add' },
-    field('Custom holiday name', h('input', { name: 'name', required: true, maxlength: 80 })),
-    field('Date', h('input', { name: 'date', type: 'date', required: true })),
-    h('button', { type: 'submit', class: 'btn btn-secondary' }, 'Add holiday'));
-  onSubmit(addForm, async () => {
-    const fd = Object.fromEntries(new FormData(addForm));
-    const added = await api('PUT', '/api/robot/holidays/custom', { loopId, name: fd.name, date: fd.date });
-    notify(added.ok ? 'Holiday added' : (added.data.error || 'Could not add holiday'), added.ok ? 'ok' : 'error');
-    if (added.ok) await loadRobotHolidays(loopId, host);
-  });
-  host.replaceChildren(
-    h('p', { class: 'field-hint' }, 'Birthdays come from loop members’ profiles. The choices below are stored in the original Person service format.'),
-    h('h4', {}, 'Birthdays'),
-    birthdayRows.length ? h('div', {}, ...birthdayRows.map((item) => makeToggle(item, false)))
-      : h('p', { class: 'field-hint' }, 'Add birthdays to loop members to enable birthday reminders.'),
-    h('h4', {}, 'Custom holidays'), customList, addForm,
-    h('details', {}, h('summary', {}, `Built-in holidays (${standardRows.length})`),
-      h('div', {}, ...standardRows.map((item) => makeToggle(item, false)))));
+function renderTips() {
+  const body = page('Get to know Jibo', 'Things to try once your Jibo is connected, and where to set him up.');
+  const phrases = [
+    'What time is it?',
+    'What’s the weather?',
+    'What’s my personal report?',
+    'Tell me the news.',
+    'Take a picture.',
+    'Who was Ada Lovelace?',
+  ];
+  const tip = (href, iconName, title, text) => h('a', { class: 'tip', href },
+    h('span', { class: 'tip-ic' }, icon(iconName, 18)),
+    h('span', { class: 'tip-title' }, title, icon('arrow', 14, 'arrow')),
+    h('span', { class: 'tip-text' }, text));
+  body.append(
+    h('section', { class: 'card say-card' },
+      h('div', { class: 'card-body' },
+        h('h3', {}, 'Say “Hey Jibo”, then ask'),
+        h('p', { class: 'field-hint' }, 'Wait for the blue listening light, then speak. A few to start with:'),
+        h('ul', { class: 'say-list' }, ...phrases.map((phrase) => h('li', {}, phrase))),
+        h('p', { class: 'field-hint' }, 'If Jibo hears “Hey Jibo” but not the question, check his connection on the ',
+          h('a', { class: 'link', href: '#/robot' }, 'Robots page'), '.'))),
+    h('h3', { style: 'margin:2rem 0 .9rem;font-size:var(--t-base)' }, 'Set up next'),
+    h('div', { class: 'tip-grid' },
+      tip('#/settings', 'sliders', 'Personal report', 'Weather, news, your commute and calendar. Each person picks their own.'),
+      tip('#/loop', 'users', 'People and loops', 'A loop is Jibo’s household. Add the people who live with him.'),
+      tip('#/robot', 'robot', 'Robot settings', 'His name and color, location, holidays, and Wi-Fi.'),
+      tip('#/gallery', 'image', 'Gallery', 'Photos Jibo takes show up here.'),
+      tip('#/inbox', 'message', 'Messages', 'Leave messages for people in the loop, delivered by Jibo.')));
+  show(body);
 }
 
 /* ==========================================================================
@@ -2076,17 +2462,17 @@ async function renderAddNew() {
       h('span', { class: 'spinner', style: 'display:inline-block;vertical-align:-3px;margin-right:.5rem' }),
       'Waiting for the robot to scan…');
 
-    const paint = () => holder.replaceChildren(...[0, 1].map((i) =>
+    const paint = () => holder.replaceChildren(...codes.slice(0, 2).map((_, i) =>
       // qrSvg() returns SVG *markup*. It must go in as markup: a plain string
       // child is appended as a text node, which is why the setup code used to
       // render as a wall of literal <svg> source instead of a scannable code.
       h('div', { html: qrSvg(codes[(frame + i) % codes.length], 5) })));
     paint();
 
-    const qrCard = card('Setup code', { sub: `${codes.length} frames · valid for 15 minutes` },
+    const qrCard = card('Setup code', { sub: `${codes.length} frame${codes.length === 1 ? '' : 's'} · valid for 15 minutes` },
       h('p', { class: 'instruct instruct-center' }, 'Open the robot’s setup screen and hold this up to its eye.'),
       holder,
-      h('p', { class: 'field-hint', style: 'text-align:center' }, 'Tap the codes to advance the frames.'),
+      codes.length > 1 ? h('p', { class: 'field-hint', style: 'text-align:center' }, 'Tap the codes to advance the frames.') : null,
       status);
     container.append(qrCard);
 
@@ -3845,8 +4231,12 @@ async function route() {
 
   if (!me) return renderAuth();
 
-  paintNav(ROUTES[hash] ? hash : '#/');
-  const render = ROUTES[hash] || renderHome;
+  // One robot's settings: #/robot/<loopId>, optionally /<section>.
+  const robotSettings = /^#\/robot\/([^/]+)(?:\/([a-z]+))?$/.exec(hash);
+  paintNav(robotSettings ? '#/robot' : (ROUTES[hash] ? hash : '#/'));
+  const render = robotSettings
+    ? () => renderRobotSettings(decodeURIComponent(robotSettings[1]), robotSettings[2])
+    : (ROUTES[hash] || renderHome);
   try {
     await render();
   } catch (error) {

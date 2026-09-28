@@ -63,7 +63,8 @@ async function geocode(query) {
  *
  * @param {object} options
  * @param {Array<{key:string,label:string,point:{lat:?number,lng:?number}}>} options.places
- * @param {(key:string, point:{lat:number,lng:number}) => void} [options.onChange]
+ * @param {(key:string, point:{lat:number,lng:number}, meta?:{label:string}) => void} [options.onChange]
+ *   `meta.label` is the chosen search result's name, when the point came from a search.
  * @returns {{element: HTMLElement, value: () => object, ready: Promise<boolean>}}
  */
 export function createLocationPicker({ places, onChange }) {
@@ -73,7 +74,8 @@ export function createLocationPicker({ places, onChange }) {
   let map = null;
 
   const el = document.createElement('div');
-  el.className = 'map-picker';
+  // A single pin needs no "which pin" selector; its tab is only a readout.
+  el.className = places.length === 1 ? 'map-picker map-picker-single' : 'map-picker';
 
   // --- place selector: which pin the next click moves ---------------------
   const tabs = document.createElement('div');
@@ -183,7 +185,7 @@ export function createLocationPicker({ places, onChange }) {
 
   const labelOf = (key) => (places.find((p) => p.key === key) || {}).label || key;
 
-  function syncPlace(key, { fromManual = false, pan = false } = {}) {
+  function syncPlace(key, { fromManual = false, pan = false, meta } = {}) {
     const point = state.get(key) || {};
     readouts.get(key).textContent = formatPoint(point);
     if (!fromManual) {
@@ -197,12 +199,12 @@ export function createLocationPicker({ places, onChange }) {
       if (marker) marker.setLatLng([point.lat, point.lng]);
       if (pan) map.panTo([point.lat, point.lng]);
     }
-    if (onChange) onChange(key, point);
+    if (onChange) onChange(key, point, meta);
   }
 
-  function place(key, lat, lng, { pan = true } = {}) {
+  function place(key, lat, lng, { pan = true, meta } = {}) {
     state.set(key, { lat: round(lat), lng: round(lng) });
-    syncPlace(key, { pan });
+    syncPlace(key, { pan, meta });
   }
 
   const ready = (async () => {
@@ -331,7 +333,7 @@ export function createLocationPicker({ places, onChange }) {
         option.addEventListener('click', () => {
           const marker = markers.get(active);
           if (marker) marker.setOpacity(1);
-          place(active, row.lat, row.lng);
+          place(active, row.lat, row.lng, { meta: { label: row.label } });
           if (map) map.setView([row.lat, row.lng], 15);
           results.hidden = true;
           search.value = '';
