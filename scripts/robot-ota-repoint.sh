@@ -462,6 +462,7 @@ say "  update from it. A reboot is needed for the native services to reload thei
 # before they touch a robot, and the digest check makes a broken publication a
 # clean failure rather than a half-repointed machine.
 ensure_support_assets
+if [ "$START_OTA" -eq 1 ]; then ensure_ota_trigger; fi
 
 if [ "$DRY" -eq 1 ]; then
   say ""
@@ -899,6 +900,10 @@ else
   if [ "$START_OTA" -eq 1 ]; then
     step "Native OTA (BE is not required)"
     run_native_ota
+    if [ "${OTA_UPDATE_COUNT:-1}" -eq 0 ]; then
+      say "  No OTA was offered. If Jibo is still on its setup screen, reboot it"
+      say "  when ready so the already-installed BE starts in normal mode."
+    fi
   else
     if [ "$AUTO" -eq 1 ] && [ -z "$CLAIM_CODE" ]; then
       say "  Next: create/sign in to a Phoenix account and rerun with its one-time"
