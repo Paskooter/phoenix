@@ -1393,6 +1393,21 @@ button.ghost:hover { background: var(--panel-2); border-color: var(--accent-line
 
 .qr-status { display: flex; align-items: center; justify-content: center; gap: .5rem; text-align: center; }
 
+/* Migration command (#/claim). */
+.claim-result { display: grid; gap: 1rem; margin-top: 1.25rem; min-width: 0; }
+.claim-result > * { margin: 0; min-width: 0; }
+.claim-result .steps { margin: 0; }
+.claim-result .steps li { min-width: 0; }
+.claim-result .steps .restart-cmd { margin-top: .5rem; }
+.claim-result .setting-group-title { margin-top: .25rem; }
+.outcome-list { display: grid; gap: .5rem; margin: 0; padding-left: 1.1rem; font-size: var(--t-sm); line-height: 1.55; color: var(--muted); }
+.outcome-list strong { color: var(--fg); font-weight: 600; }
+.claim-qr-note > div { display: grid; gap: .35rem; justify-items: start; min-width: 0; }
+.claim-qr-note strong { color: var(--fg); }
+.claim-qr-note p { color: var(--fg-dim); }
+.claim-qr-note .btn { margin-top: .4rem; }
+.restart-cmd { min-width: 0; }
+
 /* Raw payloads, shown rather than hidden — this is an operator's console. */
 pre.json {
   margin: 0;

@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 const script = join(dirname(fileURLToPath(import.meta.url)), 'robot-ota-repoint.sh');
 const claimCode = 'A'.repeat(43);
 
-function preview({ credentials, mode, claim = false }) {
+function preview({ credentials, mode, claim = false, shape = 'ok' }) {
   const dir = mkdtempSync(join(tmpdir(), 'phoenix-repoint-test-'));
   const ssh = join(dir, 'ssh');
   writeFileSync(ssh, `#!/usr/bin/env bash
@@ -20,6 +20,7 @@ case "$cmd" in
   jibo-version*) echo 'Jibo Release Version: Release-13.0.0-20190225' ;;
   jibo-getmode*) echo "$PHOENIX_TEST_MODE" ;;
   'test -s /var/jibo/credentials.json') test "$PHOENIX_TEST_CREDS" = yes ;;
+  *'grep -Eq'*accessKeyId*) test "$PHOENIX_TEST_CREDS_SHAPE" = ok ;;
   *'oobe-config/config.json'*) echo stg-entrypoint ;;
   *'/var/jibo/credentials.json'*) echo stg-entrypoint ;;
   *'test -f'*region_config.json*) [[ "$cmd" == *'/usr/lib/node_modules/@jibo/jibo-server-client/lib/region_config.json'* ]] ;;
@@ -38,7 +39,8 @@ esac
       ...(claim ? ['--claim-code', claimCode] : []), '--dry-run'], {
       encoding: 'utf8',
       env: { ...process.env, PATH: `${dir}:${process.env.PATH}`,
-        PHOENIX_TEST_CREDS: credentials ? 'yes' : 'no', PHOENIX_TEST_MODE: mode },
+        PHOENIX_TEST_CREDS: credentials ? 'yes' : 'no', PHOENIX_TEST_MODE: mode,
+        PHOENIX_TEST_CREDS_SHAPE: shape },
     });
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -66,4 +68,12 @@ test('missing credentials selects OOBE and never spends an account claim code', 
   assert.match(out, /claim code: not used on this path/);
   assert.match(out, /QR pairing creates credentials/);
   assert.doesNotMatch(out, /prove possession with the robot's existing credentials/);
+});
+
+test('a damaged credentials file stops before any change instead of failing at adoption', () => {
+  assert.throws(() => preview({ credentials: true, mode: 'oobe', claim: true, shape: 'bad' }), (error) => {
+    assert.match(String(error.stderr), /does not hold a complete robot identity; nothing was changed/);
+    assert.doesNotMatch(String(error.stdout), /== Plan/);
+    return true;
+  });
 });

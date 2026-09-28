@@ -257,6 +257,19 @@ RELEASE="$(rsh 'jibo-version 2>/dev/null | head -1' 2>/dev/null | tr -d '\r')"
 MODE="$(rsh 'jibo-getmode 2>/dev/null' 2>/dev/null | tr -d '\r')"
 HAS_CREDS=0
 if rsh 'test -s /var/jibo/credentials.json' >/dev/null 2>&1; then HAS_CREDS=1; fi
+# A non-empty file is not necessarily a usable identity. Check its shape on the
+# robot (the secret stays there until adoption needs it) against the formats the
+# adoption endpoint accepts, so a damaged file stops here, before any change,
+# instead of after the endpoints and trust store have already been rewritten.
+CREDS_USABLE=0
+if [ "$HAS_CREDS" -eq 1 ] && rsh 'f=/var/jibo/credentials.json
+  grep -Eq "\"accessKeyId\"[[:space:]]*:[[:space:]]*\"[A-Za-z0-9]{20}\"" "$f" &&
+  grep -Eq "\"secretAccessKey\"[[:space:]]*:[[:space:]]*\"[A-Za-z0-9]{40}\"" "$f"' >/dev/null 2>&1; then
+  CREDS_USABLE=1
+fi
+if [ "$HAS_CREDS" -eq 1 ] && [ "$CREDS_USABLE" -eq 0 ]; then
+  die "/var/jibo/credentials.json exists but does not hold a complete robot identity; nothing was changed. Inspect it before choosing adoption or QR setup"
+fi
 if [ "$AUTO" -eq 1 ]; then
   if [ "$HAS_CREDS" -eq 1 ]; then
     if [ -n "$CLAIM_CODE" ]; then
