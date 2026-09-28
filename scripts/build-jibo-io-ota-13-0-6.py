@@ -27,6 +27,8 @@ import tarfile
 import tempfile
 import time
 
+from be_ota_integrity import verify_be_ota
+
 
 BASE_HASHES = {
     "os": "fc9c073a5d664dd422f25b0d5ebea31d82ed08e15d0569b189585e392cee2f21",
@@ -280,6 +282,8 @@ def main() -> None:
     parser.add_argument("--os-base", required=True, type=Path)
     parser.add_argument("--services-base", required=True, type=Path)
     parser.add_argument("--skills-image", required=True, type=Path)
+    parser.add_argument("--be-reference", required=True, type=Path,
+                        help="pinned complete official jibo-be-11.0.1.tar.gz; BE build fails if any runtime file is omitted")
     parser.add_argument("--out", required=True, type=Path)
     parser.add_argument("--resume", action="store_true", help="verify and reuse completed packages from an interrupted build")
     args = parser.parse_args()
@@ -296,9 +300,13 @@ def main() -> None:
             if not args.resume:
                 raise ValueError(f"refusing to overwrite existing package: {output}")
             verify_package(output, kind)
+            if kind == "be":
+                verify_be_ota(args.be_reference, output, "11.0.1")
             return {"file": filename, "bytes": output.stat().st_size, "sha256": file_sha256(output), "resumed": True}
         result = make(output)
         verify_package(output, kind)
+        if kind == "be":
+            verify_be_ota(args.be_reference, output, "11.0.1")
         return result
     results = {}
     results["os"] = make_or_resume("os", "os-13.0.6.tar", lambda output: transform_system(args.os_base, output, "os"))

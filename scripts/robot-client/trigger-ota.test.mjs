@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 const helper = fileURLToPath(new URL('./trigger-ota.cjs', import.meta.url));
 const updates = [
-  { id: 'be-11.0.1-jibo-io-fcs', subsystem: '@be/be', toVersion: '11.0.1', length: 400, dependencies: { os: '13.0.7', services: '13.0.7' } },
+  { id: 'be-13.0.2-jibo-io-fcs', subsystem: '@be/be', toVersion: '13.0.2', length: 400, dependencies: { os: '13.0.7', services: '13.0.7' } },
   { id: 'os-13.0.7-fcs', subsystem: 'os', toVersion: '13.0.7', length: 100, dependencies: {} },
   { id: 'services-13.0.7-fcs', subsystem: 'services', toVersion: '13.0.7', length: 200, dependencies: { os: '13.0.7' } },
   { id: 'oobe-config-9.0.1-jibo-io-fcs', subsystem: 'oobe-config', toVersion: '9.0.1', length: 300, dependencies: { os: '13.0.7', services: '13.0.7' } },
@@ -75,7 +75,7 @@ test('native OTA plans, downloads, and applies four subsystems without BE or OOB
     assert.equal(plan.code, 0, plan.stderr);
     const hash = plan.stdout.match(/PHOENIX_OTA_PLAN_HASH=([a-f0-9]{64})/)?.[1];
     assert.ok(hash);
-    assert.match(plan.stdout, /@be\/be -> 11\.0\.1/);
+    assert.match(plan.stdout, /@be\/be -> 13\.0\.2/);
     assert.deepEqual(calls.map(({ method }) => method), ['GET']);
 
     const apply = await run(['--apply', hash, 'fcs'], env);
@@ -85,7 +85,7 @@ test('native OTA plans, downloads, and applies four subsystems without BE or OOB
     assert.deepEqual(calls.slice(1).map(({ method }) => method), ['GET', 'PUT', 'POST']);
     assert.deepEqual(calls.at(-1).body.ids, [
       'os-13.0.7-fcs', 'services-13.0.7-fcs',
-      'oobe-config-9.0.1-jibo-io-fcs', 'be-11.0.1-jibo-io-fcs',
+      'oobe-config-9.0.1-jibo-io-fcs', 'be-13.0.2-jibo-io-fcs',
     ]);
 
     offered = updates.filter((u) => u.subsystem !== '@be/be');
@@ -121,9 +121,10 @@ test('native OTA plans, downloads, and applies four subsystems without BE or OOB
 
     offered = updates.map((u) => u.subsystem === '@be/be'
       ? { ...u, id: 'be-11.0.2-jibo-io-fcs', toVersion: '11.0.2' } : u);
-    const nextBe = await run(['--plan', 'fcs'], env);
-    assert.equal(nextBe.code, 0, nextBe.stderr);
-    assert.match(nextBe.stdout, /@be\/be -> 11\.0\.2/);
+    const brokenBe = await run(['--plan', 'fcs'], env);
+    assert.notEqual(brokenBe.code, 0);
+    assert.match(brokenBe.stderr, /offered 11\.0\.2, expected 13\.0\.2/);
+    offered = updates;
     offered = offered.map((u) => u.subsystem === 'os'
       ? { ...u, id: 'os-13.0.8-fcs', toVersion: '13.0.8' } : u);
     const unsupportedOs = await run(['--plan', 'fcs'], env);

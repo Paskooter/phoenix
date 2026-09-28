@@ -301,7 +301,7 @@ account. If linking fails, generate a fresh portal code and rerun the helper;
 the robot-side patches are idempotent. Do not continue to OTA on a failed claim.
 
 The current jibo.io catalog offers four subsystems: `os` 13.0.7,
-`services` 13.0.7, `oobe-config` 9.0.1, and `@be/be` 11.0.2. The OTA helper
+`services` 13.0.7, `oobe-config` 9.0.1, and `@be/be` 13.0.2. The OTA helper
 pins the platform versions to this published set and rejects unexpected ones.
 Keep every offered package's exact-version dependencies aligned when publishing
 a newer OS/services pair: for example, OOBE 9.0.1 must require 13.0.7, not
@@ -320,9 +320,39 @@ to the original backup/restore helpers, so re-run the current public helper
 *before* its next OTA; otherwise its pre-update backup can fail even though the
 new services package contains the fix. After installation, check that both
 `jibo-version` and `jibo-service-version` report 13.0.7, that BE reports
-11.0.2, that `/etc/hosts` contains no Phoenix LAN redirects, and that a fresh
+13.0.2, that `/etc/hosts` contains no Phoenix LAN redirects, and that a fresh
 voice turn reaches jibo.io. The clean stock-to-OTA end-to-end trial remains a
 separate acceptance test; packaging checks alone do not certify it.
+
+**BE packaging release gate.** The old `be-11.0.2-jibo-io.tar` was incomplete:
+354 files from official BE 11.0.1 were omitted, including Nimbus and four
+other packages' declared entry points. Moth and Aero could show a green
+checkmark or black screen while SSM still reported `running`. Never build from
+that OTA, from an extracted parity skill, or from a robot's installed tree as
+the base. The tested Aero 13.0.2 tree has all 21,590 official files plus 13
+reviewed additions. Keep the entire BE source and built package in the
+separate local `../jibo-be` project; neither belongs in the Phoenix repository
+or on GitHub. Its `be/` tree is the complete release source, not an overlay.
+
+To reproduce the BE package, first commit reviewed BE changes in `jibo-be`
+(locally; do not push its source to GitHub), then run:
+
+```bash
+cd ../jibo-be
+python3 tools/pack.py be --out out/
+cd ../phoenix
+python3 scripts/be_ota_integrity.py \
+  --official-base /path/to/jibo-be-11.0.1.tar.gz \
+  --candidate ../jibo-be/out/be-13.0.2-jibo-io.tar --version 13.0.2
+```
+
+The packer must report 21,603 tracked files, and the independent gate must
+report 21,590 official files, 21,603 candidate files, and zero unresolved
+package mains. Do not publish if any
+gate fails. Publish the new package with a **new** catalog ID in all three
+filters (`""`, `fcs`, `eau`), remove the broken 11.0.2 offers, restart OTA,
+and verify discovery plus a physical robot boot and voice turn. Merely seeing
+an Electron process or SSM `running` is not an acceptance test.
 
 For a self-hosted deployment with a private CA, the portal instead produces the
 equivalent `parity-robot/repoint-robot.sh` command including the configured

@@ -149,7 +149,18 @@ Check the generated `build-manifest.json` and inner tar member owners/modes
 before installing packages into the live OTA data directory. Publishing the
 manifest requires restarting the OTA service, because it hashes package files
 when the catalog loads.
-The current jibo.io catalog advances OS/services to 13.0.7 and BE to 11.0.2.
+The historical 13.0.6 builder now also requires `--be-reference` pointing to
+the complete official BE 11.0.1 archive; its output is rejected if it omits
+any official runtime file or declared package entry point. Do not bypass that
+gate to publish a parity-tree-derived skill.
+The current jibo.io catalog advances OS/services to 13.0.7 and BE to 13.0.2.
+The BE 13.0.2 package is built from the complete `be/` tree in the separate
+local `../jibo-be` project with its `tools/pack.py`, then checked against the
+complete official 11.0.1 archive by `scripts/be_ota_integrity.py`. BE source
+and package artifacts must not enter the Phoenix repository or GitHub. The
+previous BE 11.0.2 package lacked 354
+official files and must never be offered again; see the incident and exact
+reproduction commands in `docs/RUNBOOK.md`.
 The OOBE 9.0.1 manifest entries must have exact-version OS/services
 dependencies updated to 13.0.7 in every filter (`""`, `fcs`, `eau`); the
 native installer rejects a mixed 13.0.6/13.0.7 plan even if discovery succeeds.
@@ -336,8 +347,8 @@ bash ./robot-ota-repoint.sh --robot root@<robot-ip> --ota-only --yes
 
 This previews the `fcs` catalog, pins that exact plan, then asks the robot to
 download and checksum the packages and start the normal rebooting installer.
-It pins OS/services/OOBE versions and accepts published BE 11.x versions no
-older than 11.0.1. It refuses other versions or a pending OTA work state. For a
+It pins OS/services/OOBE and the hardware-tested BE 13.0.2 version. It refuses
+other versions or a pending OTA work state. For a
 paired robot, the helper sets the saved mode to `normal` only after all OTA
 downloads pass checksum verification and immediately before asking the native
 installer to reboot. If BE is already installed, an ordinary repoint also

@@ -14,7 +14,7 @@ var VERSIONS = {
   os: '13.0.7',
   services: '13.0.7',
   'oobe-config': '9.0.1',
-  '@be/be': '11.x'
+  '@be/be': '13.0.2'
 };
 var ORDER = ['os', 'services', 'oobe-config', '@be/be'];
 var port = Number(process.env.PHOENIX_ROBOT_OTA_PORT || 8585);
@@ -93,14 +93,10 @@ function plan(filter) {
         throw new Error('unexpected OTA subsystem; review the catalog before installing');
       }
       if (bySubsystem[update.subsystem]) throw new Error('multiple updates offered for ' + update.subsystem);
-      // A later 11.x BE may add the user-facing mode/firewall controls without
-      // requiring a new OS/services image. Keep the platform versions pinned,
-      // but accept a published 11.x BE no older than the known-good 11.0.1.
-      var beMatch = update.subsystem === '@be/be'
-        ? /^11\.([0-9]{1,3})\.([0-9]{1,3})$/.exec(update.toVersion || '') : null;
-      var versionOk = update.subsystem === '@be/be'
-        ? !!beMatch && (Number(beMatch[1]) > 0 || Number(beMatch[2]) >= 1)
-        : update.toVersion === VERSIONS[update.subsystem];
+      // BE 13.0.2 is the complete, hardware-tested Aero build.  Keep a hard
+      // version pin: an arbitrary new catalog entry must not silently replace
+      // the robot's default skill without a new review and test.
+      var versionOk = update.toVersion === VERSIONS[update.subsystem];
       if (!versionOk
         || !/^[A-Za-z0-9._@-]{1,100}$/.test(update.id)
         || !Number.isSafeInteger(update.length) || update.length < 1) {

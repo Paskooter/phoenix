@@ -1,10 +1,14 @@
 # `@be/be` release index
 
-## SUPPORTED VERSION: BE 11.0.1
+## Complete base: official BE 11.0.1; current custom jibo.io BE: 13.0.2
 
-**Phoenix targets BE 11.0.1.** This is the version to bundle, to document, and to
-base further BE work on. It is not a preference — it is the only release
-measured to retain the behaviour Phoenix depends on.
+**Phoenix bases its custom BE on complete official BE 11.0.1.** The current
+jibo.io custom package is `@be/be` 13.0.2, measured to work on Aero. The
+complete source tree and packer live in the separate, local `../jibo-be`
+project, not in the Phoenix repository or on GitHub. The release gate is in the
+[`RUNBOOK`](../RUNBOOK.md). Do not confuse the custom version with the archived
+official BE 13 series. Official 11.0.1 is the only archived base measured to
+retain the behaviour Phoenix depends on.
 
 Root compared 12.0.0, 11.0.3, 11.0.2 and 11.0.1 in descending order against the
 same Phoenix process. **Only 11.0.1**:
@@ -26,7 +30,7 @@ What the newer releases lost:
 Evidence: [HARDWARE.md](HARDWARE.md) (the descending comparison and screenshots)
 and [the BE release audit](evidence/2026-09-05/be-release-audit/report.md).
 
-### Running it on a robot
+### Running the archived comparison builds on a robot
 
 The skill is installed as directory `phoenix-be-11-0-1-parity`, but the skills
 service matches on the **package name**, not the directory:

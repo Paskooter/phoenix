@@ -12,7 +12,7 @@
     "13.0.6 adds independent @be/be 11.0.1 and oobe-config 9.0.1 skill OTAs; neither",
     "replaces the skills partition or removes the other installed skills.",
     "The 13.0.6 packages are published for filterless, fcs (SSM scheduler), and eau (the OOBE skill) requests. The source filter rule is a PREFIX match when the request carries a filter and an EXACT empty-string match when it does not; filter '' is NOT a wildcard.",
-    "13.0.7 adds persistent SSH and full firewall controls in Be 11.0.2. The OS, services and Be packages must be installed in dependency order."
+    "13.0.7 adds OS and services firewall controls. Complete BE 13.0.2 from the separate jibo-be project supplies the matching Settings UI; incomplete BE 11.0.2 is withdrawn."
   ],
   "updates": [
     {
@@ -160,63 +160,7 @@
       "file": "services-13.0.6.tar"
     },
     {
-      "id": "be-11.0.1-jibo-io",
-      "subsystem": "@be/be",
-      "fromVersion": "*",
-      "toVersion": "11.0.1",
-      "created": 1790116200000,
-      "changes": "Install the known-working Phoenix BE 11.0.1 in the standard @be/be skill slot, with jibo.io client endpoints and public CA. Does not replace the skills partition.",
-      "filter": "",
-      "dependencies": {
-        "os": "13.0.6",
-        "services": "13.0.6"
-      },
-      "file": "be-11.0.1-jibo-io.tar"
-    },
-    {
-      "id": "be-11.0.1-jibo-io-fcs",
-      "subsystem": "@be/be",
-      "fromVersion": "*",
-      "toVersion": "11.0.1",
-      "created": 1790116200000,
-      "changes": "Install the known-working Phoenix BE 11.0.1 in the standard @be/be skill slot, with jibo.io client endpoints and public CA. Does not replace the skills partition.",
-      "filter": "fcs",
-      "dependencies": {
-        "os": "13.0.6",
-        "services": "13.0.6"
-      },
-      "file": "be-11.0.1-jibo-io.tar"
-    },
-    {
-      "id": "be-11.0.1-jibo-io-from-12",
-      "subsystem": "@be/be",
-      "fromVersion": "12.0.0",
-      "toVersion": "11.0.1",
-      "created": 1790116200000,
-      "changes": "Replace original-cloud BE 12.0.0 with the hardware-tested Phoenix BE 11.0.1; this is an intentional compatibility downgrade.",
-      "filter": "",
-      "dependencies": {
-        "os": "13.0.6",
-        "services": "13.0.6"
-      },
-      "file": "be-11.0.1-jibo-io.tar"
-    },
-    {
-      "id": "be-11.0.1-jibo-io-from-12-fcs",
-      "subsystem": "@be/be",
-      "fromVersion": "12.0.0",
-      "toVersion": "11.0.1",
-      "created": 1790116200000,
-      "changes": "Replace original-cloud BE 12.0.0 with the hardware-tested Phoenix BE 11.0.1; this is an intentional compatibility downgrade.",
-      "filter": "fcs",
-      "dependencies": {
-        "os": "13.0.6",
-        "services": "13.0.6"
-      },
-      "file": "be-11.0.1-jibo-io.tar"
-    },
-    {
-      "id": "oobe-config-9.0.1-jibo-io",
+      "id": "oobe-config-9.0.1-jibo-io-r2",
       "subsystem": "oobe-config",
       "fromVersion": "*",
       "toVersion": "9.0.1",
@@ -224,13 +168,13 @@
       "changes": "Update the OOBE skill's own server client, endpoints, and public CA without replacing the rest of the skills partition.",
       "filter": "",
       "dependencies": {
-        "os": "13.0.6",
-        "services": "13.0.6"
+        "os": "13.0.7",
+        "services": "13.0.7"
       },
       "file": "oobe-config-9.0.1-jibo-io.tar"
     },
     {
-      "id": "oobe-config-9.0.1-jibo-io-fcs",
+      "id": "oobe-config-9.0.1-jibo-io-r2-fcs",
       "subsystem": "oobe-config",
       "fromVersion": "*",
       "toVersion": "9.0.1",
@@ -238,8 +182,8 @@
       "changes": "Update the OOBE skill's own server client, endpoints, and public CA without replacing the rest of the skills partition.",
       "filter": "fcs",
       "dependencies": {
-        "os": "13.0.6",
-        "services": "13.0.6"
+        "os": "13.0.7",
+        "services": "13.0.7"
       },
       "file": "oobe-config-9.0.1-jibo-io.tar"
     },
@@ -268,35 +212,7 @@
       "file": "services-13.0.6.tar"
     },
     {
-      "id": "be-11.0.1-jibo-io-eau",
-      "subsystem": "@be/be",
-      "fromVersion": "*",
-      "toVersion": "11.0.1",
-      "created": 1790116200000,
-      "changes": "Install hardware-tested BE 11.0.1 into the standard @be/be slot through the stock OOBE update channel.",
-      "filter": "eau",
-      "dependencies": {
-        "os": "13.0.6",
-        "services": "13.0.6"
-      },
-      "file": "be-11.0.1-jibo-io.tar"
-    },
-    {
-      "id": "be-11.0.1-jibo-io-from-12-eau",
-      "subsystem": "@be/be",
-      "fromVersion": "12.0.0",
-      "toVersion": "11.0.1",
-      "created": 1790116200000,
-      "changes": "Replace original-cloud BE 12.0.0 with the hardware-tested Phoenix BE 11.0.1 through the stock OOBE update channel.",
-      "filter": "eau",
-      "dependencies": {
-        "os": "13.0.6",
-        "services": "13.0.6"
-      },
-      "file": "be-11.0.1-jibo-io.tar"
-    },
-    {
-      "id": "oobe-config-9.0.1-jibo-io-eau",
+      "id": "oobe-config-9.0.1-jibo-io-r2-eau",
       "subsystem": "oobe-config",
       "fromVersion": "*",
       "toVersion": "9.0.1",
@@ -304,8 +220,8 @@
       "changes": "Update the OOBE skill's own jibo.io client and public CA through the stock OOBE update channel.",
       "filter": "eau",
       "dependencies": {
-        "os": "13.0.6",
-        "services": "13.0.6"
+        "os": "13.0.7",
+        "services": "13.0.7"
       },
       "file": "oobe-config-9.0.1-jibo-io.tar"
     },
@@ -334,34 +250,6 @@
       "file": "services-13.0.7.tar"
     },
     {
-      "id": "be-11.0.2-jibo-io",
-      "subsystem": "@be/be",
-      "fromVersion": "*",
-      "toVersion": "11.0.2",
-      "created": 1790548799940,
-      "changes": "Settings adds persistent SSH access, a persistent full firewall control, and robot mode choices.",
-      "filter": "",
-      "dependencies": {
-        "os": "13.0.7",
-        "services": "13.0.7"
-      },
-      "file": "be-11.0.2-jibo-io.tar"
-    },
-    {
-      "id": "be-11.0.2-jibo-io-from-12",
-      "subsystem": "@be/be",
-      "fromVersion": "12.0.0",
-      "toVersion": "11.0.2",
-      "created": 1790548799940,
-      "changes": "Replace original-cloud BE 12.0.0 with the jibo.io BE 11.0.2, including persistent network access settings.",
-      "filter": "",
-      "dependencies": {
-        "os": "13.0.7",
-        "services": "13.0.7"
-      },
-      "file": "be-11.0.2-jibo-io.tar"
-    },
-    {
       "id": "os-13.0.7-fcs",
       "subsystem": "os",
       "fromVersion": "*",
@@ -384,34 +272,6 @@
         "os": "13.0.7"
       },
       "file": "services-13.0.7.tar"
-    },
-    {
-      "id": "be-11.0.2-jibo-io-fcs",
-      "subsystem": "@be/be",
-      "fromVersion": "*",
-      "toVersion": "11.0.2",
-      "created": 1790548799940,
-      "changes": "Settings adds persistent SSH access, a persistent full firewall control, and robot mode choices.",
-      "filter": "fcs",
-      "dependencies": {
-        "os": "13.0.7",
-        "services": "13.0.7"
-      },
-      "file": "be-11.0.2-jibo-io.tar"
-    },
-    {
-      "id": "be-11.0.2-jibo-io-from-12-fcs",
-      "subsystem": "@be/be",
-      "fromVersion": "12.0.0",
-      "toVersion": "11.0.2",
-      "created": 1790548799940,
-      "changes": "Replace original-cloud BE 12.0.0 with the jibo.io BE 11.0.2, including persistent network access settings.",
-      "filter": "fcs",
-      "dependencies": {
-        "os": "13.0.7",
-        "services": "13.0.7"
-      },
-      "file": "be-11.0.2-jibo-io.tar"
     },
     {
       "id": "os-13.0.7-eau",
@@ -438,32 +298,46 @@
       "file": "services-13.0.7.tar"
     },
     {
-      "id": "be-11.0.2-jibo-io-eau",
+      "id": "be-13.0.2-jibo-io",
       "subsystem": "@be/be",
       "fromVersion": "*",
-      "toVersion": "11.0.2",
-      "created": 1790548799940,
-      "changes": "Settings adds persistent SSH access, a persistent full firewall control, and robot mode choices.",
-      "filter": "eau",
+      "toVersion": "13.0.2",
+      "created": 1790569633804,
+      "changes": "Complete hardware-tested BE from the separate jibo-be tree; fixes the incomplete 11.0.2 package and includes the Firewall Settings screen.",
+      "filter": "",
       "dependencies": {
         "os": "13.0.7",
         "services": "13.0.7"
       },
-      "file": "be-11.0.2-jibo-io.tar"
+      "file": "be-13.0.2-jibo-io.tar"
     },
     {
-      "id": "be-11.0.2-jibo-io-from-12-eau",
+      "id": "be-13.0.2-jibo-io-fcs",
       "subsystem": "@be/be",
-      "fromVersion": "12.0.0",
-      "toVersion": "11.0.2",
-      "created": 1790548799940,
-      "changes": "Replace original-cloud BE 12.0.0 with the jibo.io BE 11.0.2, including persistent network access settings.",
+      "fromVersion": "*",
+      "toVersion": "13.0.2",
+      "created": 1790569633804,
+      "changes": "Complete hardware-tested BE from the separate jibo-be tree; fixes the incomplete 11.0.2 package and includes the Firewall Settings screen.",
+      "filter": "fcs",
+      "dependencies": {
+        "os": "13.0.7",
+        "services": "13.0.7"
+      },
+      "file": "be-13.0.2-jibo-io.tar"
+    },
+    {
+      "id": "be-13.0.2-jibo-io-eau",
+      "subsystem": "@be/be",
+      "fromVersion": "*",
+      "toVersion": "13.0.2",
+      "created": 1790569633804,
+      "changes": "Complete hardware-tested BE from the separate jibo-be tree; fixes the incomplete 11.0.2 package and includes the Firewall Settings screen.",
       "filter": "eau",
       "dependencies": {
         "os": "13.0.7",
         "services": "13.0.7"
       },
-      "file": "be-11.0.2-jibo-io.tar"
+      "file": "be-13.0.2-jibo-io.tar"
     }
   ]
 }
