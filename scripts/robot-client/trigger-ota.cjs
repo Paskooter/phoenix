@@ -11,8 +11,8 @@ var fs = require('fs');
 var http = require('http');
 
 var VERSIONS = {
-  os: '13.0.6',
-  services: '13.0.6',
+  os: '13.0.7',
+  services: '13.0.7',
   'oobe-config': '9.0.1',
   '@be/be': '11.x'
 };
@@ -104,9 +104,22 @@ function plan(filter) {
       if (!versionOk
         || !/^[A-Za-z0-9._@-]{1,100}$/.test(update.id)
         || !Number.isSafeInteger(update.length) || update.length < 1) {
-        throw new Error('unexpected OTA version, ID, or length for ' + update.subsystem);
+        throw new Error('unexpected OTA version, ID, or length for ' + update.subsystem
+          + ' (offered ' + String(update.toVersion) + ', expected '
+          + VERSIONS[update.subsystem] + ')');
       }
       bySubsystem[update.subsystem] = update;
+    });
+    Object.keys(bySubsystem).forEach(function(name) {
+      var dependencies = bySubsystem[name].dependencies || {};
+      Object.keys(dependencies).forEach(function(requiredName) {
+        if (bySubsystem[requiredName]
+          && bySubsystem[requiredName].toVersion !== dependencies[requiredName]) {
+          throw new Error('OTA catalog dependency mismatch: ' + name + ' requires '
+            + requiredName + ' ' + dependencies[requiredName] + ' but the catalog offers '
+            + bySubsystem[requiredName].toVersion);
+        }
+      });
     });
     if (!fs.existsSync(bePath) && !bySubsystem['@be/be']) {
       throw new Error('BE is absent but the server offered no BE update');

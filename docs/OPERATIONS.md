@@ -149,6 +149,10 @@ Check the generated `build-manifest.json` and inner tar member owners/modes
 before installing packages into the live OTA data directory. Publishing the
 manifest requires restarting the OTA service, because it hashes package files
 when the catalog loads.
+The current jibo.io catalog advances OS/services to 13.0.7 and BE to 11.0.2.
+The OOBE 9.0.1 manifest entries must have exact-version OS/services
+dependencies updated to 13.0.7 in every filter (`""`, `fcs`, `eau`); the
+native installer rejects a mixed 13.0.6/13.0.7 plan even if discovery succeeds.
 
 **2. Run it** (started by `run-compose-stack.sh` on **:9010**, or standalone):
 

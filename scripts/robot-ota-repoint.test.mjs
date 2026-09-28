@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 const script = join(dirname(fileURLToPath(import.meta.url)), 'robot-ota-repoint.sh');
 const claimCode = 'A'.repeat(43);
 
-function preview({ credentials, mode, claim = false, shape = 'ok' }) {
+function preview({ credentials, mode, claim = false, shape = 'ok', region = 'stg-entrypoint' }) {
   const dir = mkdtempSync(join(tmpdir(), 'phoenix-repoint-test-'));
   const ssh = join(dir, 'ssh');
   writeFileSync(ssh, `#!/usr/bin/env bash
@@ -21,9 +21,9 @@ case "$cmd" in
   jibo-getmode*) echo "$PHOENIX_TEST_MODE" ;;
   'test -s /var/jibo/credentials.json') test "$PHOENIX_TEST_CREDS" = yes ;;
   *'grep -Eq'*accessKeyId*) test "$PHOENIX_TEST_CREDS_SHAPE" = ok ;;
-  *'oobe-config/config.json'*) echo stg-entrypoint ;;
-  *'/var/jibo/credentials.json'*) echo stg-entrypoint ;;
-  *'test -f'*region_config.json*) [[ "$cmd" == *'/usr/lib/node_modules/@jibo/jibo-server-client/lib/region_config.json'* ]] ;;
+  *'oobe-config/config.json'*) echo "$PHOENIX_TEST_REGION" ;;
+  *'/var/jibo/credentials.json'*) echo "$PHOENIX_TEST_REGION" ;;
+  *'test -f'*region_config.json*) [[ "$cmd" == *'/usr/lib/node_modules/@jibo/jibo-server-client/lib/region_config.json'* || "$cmd" == *'/opt/jibo/Jibo/Skills/@be/be/node_modules/@jibo/jibo-server-client/lib/region_config.json'* ]] ;;
   *'grep -c'*'jibo\\.com'*) echo 5 ;;
   *'grep -q'*'ca-certificates.crt'*) exit 0 ;;
   *'ls /usr/lib/node_modules/'*) exit 0 ;;
@@ -40,7 +40,7 @@ esac
       encoding: 'utf8',
       env: { ...process.env, PATH: `${dir}:${process.env.PATH}`,
         PHOENIX_TEST_CREDS: credentials ? 'yes' : 'no', PHOENIX_TEST_MODE: mode,
-        PHOENIX_TEST_CREDS_SHAPE: shape },
+        PHOENIX_TEST_CREDS_SHAPE: shape, PHOENIX_TEST_REGION: region },
     });
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -60,6 +60,12 @@ test('signed-out credentials path defers OTA and mode changes until account clai
   assert.match(out, /credentials present; register only, then sign in/);
   assert.match(out, /OTA and boot-mode changes are deferred/);
   assert.doesNotMatch(out, /ask the native system-manager to download and install/);
+});
+
+test('api-region plan names neo-hub and patches the active stock BE client', () => {
+  const out = preview({ credentials: true, mode: 'int-developer', claim: true, region: 'api' });
+  assert.match(out, /point the jetstream hub override at neo-hub\.jibo\.io:443/);
+  assert.match(out, /present  \/opt\/jibo\/Jibo\/Skills\/@be\/be\/node_modules\/\@jibo\/jibo-server-client\/lib\/region_config\.json/);
 });
 
 test('missing credentials selects OOBE and never spends an account claim code', () => {

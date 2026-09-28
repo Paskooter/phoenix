@@ -106,7 +106,7 @@ CLIENT_SOURCE_SHA256="29686ca0aec6b93b8b716b94fca443ce25e6e7e55e01e798be56bce920
 ROOT_PEM_SOURCE_SHA256="22b557a27055b33606b6559f37703928d3e4ad79f110b407d04986e1843543d1"
 BACKUP_TLS_PATCHER_SHA256="2063cf6d26344fc49548a1f691120f240524b976caa559930e52115857460762"
 OTA_TLS_PATCHER_SHA256="e2a2baf3da64e9c446adf1d51d025a4758b21cb7c7b7876ac775f29c124f561c"
-OTA_TRIGGER_SHA256="76effe5693f8573f56f8f3c653adf6bdf1f5e5f3f953c019f87dd6463d23e394"
+OTA_TRIGGER_SHA256="40a6e20bd0d7c9721b62ec11b45ad2e485e8567be40de93702323d7f508007fa"
 
 cleanup_support() {
   [ -z "$SUPPORT_DIR" ] || rm -rf "$SUPPORT_DIR"
@@ -311,6 +311,9 @@ say "  mode      : ${MODE:-unknown}"
 say "  region    : ${REGION:-unknown}"
 REST_URL="https://${REGION}.${PUBLIC_SUFFIX}/"
 SOCKET_URL="wss://${REGION}-socket.${PUBLIC_SUFFIX}/"
+HUB_PREFIX="${REGION%-entrypoint}"
+HUB_HOST="${HUB_PREFIX}-hub.${PUBLIC_SUFFIX}"
+[ "$REGION" = "api" ] && HUB_HOST="neo-hub.${PUBLIC_SUFFIX}"
 say "  will call : ${REST_URL}"
 say "  socket    : ${SOCKET_URL}"
 
@@ -335,7 +338,11 @@ CONFIG_PATHS=(
   "/usr/lib/node_modules/@jibo/jibo-ota-updater/node_modules/@jibo/jibo-server-client/lib/region_config.json"
   "/bin/jibo-ssm/node_modules/@jibo/jibo-server-client/lib/region_config.json"
   "/usr/local/bin/jibo-ssm/node_modules/@jibo/jibo-server-client/lib/region_config.json"
+  "/opt/jibo/Jibo/Skills/@be/be/node_modules/@jibo/jibo-server-client/lib/region_config.json"
   "/opt/jibo/Jibo/Skills/phoenix-be-11-0-1-parity/node_modules/@jibo/jibo-server-client/lib/region_config.json"
+  "/opt/jibo/Jibo/Skills/phoenix-be-11-0-2-parity/node_modules/@jibo/jibo-server-client/lib/region_config.json"
+  "/opt/jibo/Jibo/Skills/phoenix-be-11-0-3-parity/node_modules/@jibo/jibo-server-client/lib/region_config.json"
+  "/opt/jibo/Jibo/Skills/phoenix-be12-parity/node_modules/@jibo/jibo-server-client/lib/region_config.json"
   "/opt/jibo/Jibo/Skills/oobe-config/node_modules/@jibo/jibo-server-client/lib/region_config.json"
 )
 PRESENT=()
@@ -440,7 +447,7 @@ say "  4. link /etc/ssl/cert.pem -> ${TRUST_BUNDLE} (OpenSSL's default CAfile, w
 say "     stock image never shipped; without it the NATIVE hub client verifies nothing)"
 say "  5. patch system-manager backup and restore with that maintained public CA bundle"
 say "     (the stock Node 6 helpers bypass the patched server client)"
-say "  6. point the jetstream hub override at ${REGION%-entrypoint}-hub.${PUBLIC_SUFFIX}:443, so audio"
+say "  6. point the jetstream hub override at ${HUB_HOST}:443, so audio"
 say "     turns go to this server instead of wherever it was pointed before"
 say "  7. ensure /var/jibo/keys exists as a private directory (mode 0700; preserve existing keys)"
 if [ "$OOBE" -eq 1 ]; then
@@ -462,6 +469,8 @@ else
   say "  Existing credentials are preserved."
   if [ "$AUTO" -eq 1 ] && [ -z "$CLAIM_CODE" ]; then
     say "  Without an account claim, OTA and boot-mode changes are deferred so SSH stays available."
+  elif [ "$START_OTA" -eq 1 ]; then
+    say "  The saved next-boot mode changes only after OTA downloads verify."
   else
     say "  If BE is installed, the saved next-boot mode becomes normal."
     say "  Without BE, mode changes only after verified OTA downloads."
@@ -758,9 +767,6 @@ APPLIED+=("/usr/local/bin/jibo-system-{backup,restore} explicit public CA")
 # hub is `stg-hub`, i.e. the "-entrypoint" suffix is dropped. The `api` region is
 # the odd one out and uses `neo-hub`. These names come from
 # HubClient.region-settings in the stock jibo-jetstream-service.json.
-HUB_PREFIX="${REGION%-entrypoint}"
-HUB_HOST="${HUB_PREFIX}-hub.${PUBLIC_SUFFIX}"
-[ "$REGION" = "api" ] && HUB_HOST="neo-hub.${PUBLIC_SUFFIX}"
 out="$(rsh "
   set -e
   F=/usr/local/etc/jibo-jetstream-service.json
@@ -905,7 +911,9 @@ if [ "$OOBE" -eq 1 ]; then
   say "  a fresh robot account. OOBE automatically requests the published OTA after"
   say "  receiving credentials; wait for the update and BE installation to finish."
 else
-  if [ "$AUTO" -eq 1 ] && [ -z "$CLAIM_CODE" ]; then
+  if [ "$START_OTA" -eq 1 ]; then
+    say "  saved boot mode preserved until the OTA downloads verify"
+  elif [ "$AUTO" -eq 1 ] && [ -z "$CLAIM_CODE" ]; then
     say "  saved boot mode preserved until the account claim is complete"
   else
     set_paired_mode_normal_if_ready
@@ -914,6 +922,7 @@ else
     step "Native OTA (BE is not required)"
     run_native_ota
     if [ "${OTA_UPDATE_COUNT:-1}" -eq 0 ]; then
+      set_paired_mode_normal_if_ready
       say "  No OTA was offered. If Jibo is still on its setup screen, reboot it"
       say "  when ready so the already-installed BE starts in normal mode."
     fi

@@ -9,10 +9,10 @@ import { fileURLToPath } from 'node:url';
 
 const helper = fileURLToPath(new URL('./trigger-ota.cjs', import.meta.url));
 const updates = [
-  { id: 'be-11.0.1-jibo-io-fcs', subsystem: '@be/be', toVersion: '11.0.1', length: 400, dependencies: { os: '13.0.6', services: '13.0.6' } },
-  { id: 'os-13.0.6-fcs', subsystem: 'os', toVersion: '13.0.6', length: 100, dependencies: {} },
-  { id: 'services-13.0.6-fcs', subsystem: 'services', toVersion: '13.0.6', length: 200, dependencies: { os: '13.0.6' } },
-  { id: 'oobe-config-9.0.1-jibo-io-fcs', subsystem: 'oobe-config', toVersion: '9.0.1', length: 300, dependencies: { os: '13.0.6', services: '13.0.6' } },
+  { id: 'be-11.0.1-jibo-io-fcs', subsystem: '@be/be', toVersion: '11.0.1', length: 400, dependencies: { os: '13.0.7', services: '13.0.7' } },
+  { id: 'os-13.0.7-fcs', subsystem: 'os', toVersion: '13.0.7', length: 100, dependencies: {} },
+  { id: 'services-13.0.7-fcs', subsystem: 'services', toVersion: '13.0.7', length: 200, dependencies: { os: '13.0.7' } },
+  { id: 'oobe-config-9.0.1-jibo-io-fcs', subsystem: 'oobe-config', toVersion: '9.0.1', length: 300, dependencies: { os: '13.0.7', services: '13.0.7' } },
 ];
 
 function run(args, env) {
@@ -84,7 +84,7 @@ test('native OTA plans, downloads, and applies four subsystems without BE or OOB
     assert.equal(JSON.parse(readFileSync(modePath, 'utf8')).mode, 'normal');
     assert.deepEqual(calls.slice(1).map(({ method }) => method), ['GET', 'PUT', 'POST']);
     assert.deepEqual(calls.at(-1).body.ids, [
-      'os-13.0.6-fcs', 'services-13.0.6-fcs',
+      'os-13.0.7-fcs', 'services-13.0.7-fcs',
       'oobe-config-9.0.1-jibo-io-fcs', 'be-11.0.1-jibo-io-fcs',
     ]);
 
@@ -124,6 +124,20 @@ test('native OTA plans, downloads, and applies four subsystems without BE or OOB
     const nextBe = await run(['--plan', 'fcs'], env);
     assert.equal(nextBe.code, 0, nextBe.stderr);
     assert.match(nextBe.stdout, /@be\/be -> 11\.0\.2/);
+    offered = offered.map((u) => u.subsystem === 'os'
+      ? { ...u, id: 'os-13.0.8-fcs', toVersion: '13.0.8' } : u);
+    const unsupportedOs = await run(['--plan', 'fcs'], env);
+    assert.notEqual(unsupportedOs.code, 0);
+    assert.match(unsupportedOs.stderr, /offered 13\.0\.8, expected 13\.0\.7/);
+    offered = offered.map((u) => u.subsystem === 'os'
+      ? { ...u, id: 'os-13.0.7-fcs', toVersion: '13.0.7' } : u);
+    offered = offered.map((u) => u.subsystem === 'oobe-config'
+      ? { ...u, dependencies: { os: '13.0.6', services: '13.0.6' } } : u);
+    const incompatibleOobe = await run(['--plan', 'fcs'], env);
+    assert.notEqual(incompatibleOobe.code, 0);
+    assert.match(incompatibleOobe.stderr, /catalog dependency mismatch: oobe-config requires os 13\.0\.6 but the catalog offers 13\.0\.7/);
+    offered = offered.map((u) => u.subsystem === 'oobe-config'
+      ? { ...u, dependencies: { os: '13.0.7', services: '13.0.7' } } : u);
     offered = offered.map((u) => u.subsystem === '@be/be'
       ? { ...u, toVersion: '12.0.0' } : u);
     const unsupportedBe = await run(['--plan', 'fcs'], env);

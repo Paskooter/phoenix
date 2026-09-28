@@ -300,8 +300,13 @@ claim unless the helper reports that the robot was claimed for the signed-in
 account. If linking fails, generate a fresh portal code and rerun the helper;
 the robot-side patches are idempotent. Do not continue to OTA on a failed claim.
 
-For the 13.0.6 stock-to-jibo.io path, install all four offered subsystems:
-`os` 13.0.6, `services` 13.0.6, `oobe-config` 9.0.1, and `@be/be` 11.0.1.
+The current jibo.io catalog offers four subsystems: `os` 13.0.7,
+`services` 13.0.7, `oobe-config` 9.0.1, and `@be/be` 11.0.2. The OTA helper
+pins the platform versions to this published set and rejects unexpected ones.
+Keep every offered package's exact-version dependencies aligned when publishing
+a newer OS/services pair: for example, OOBE 9.0.1 must require 13.0.7, not
+the superseded 13.0.6. Otherwise system-manager discovers packages but refuses
+to apply them after downloading.
 The catalog publishes each for the normal `fcs` filter and the OOBE skill's
 `eau` filter (plus filterless console queries); omitting `eau` makes a stock
 OOBE screen report no update even when the packages are present.
@@ -312,8 +317,8 @@ robot credentials. A robot on the published 13.0.5 package may have reverted
 to the original backup/restore helpers, so re-run the current public helper
 *before* its next OTA; otherwise its pre-update backup can fail even though the
 new services package contains the fix. After installation, check that both
-`jibo-version` and `jibo-service-version` report 13.0.6, that BE reports
-11.0.1, that `/etc/hosts` contains no Phoenix LAN redirects, and that a fresh
+`jibo-version` and `jibo-service-version` report 13.0.7, that BE reports
+11.0.2, that `/etc/hosts` contains no Phoenix LAN redirects, and that a fresh
 voice turn reaches jibo.io. The clean stock-to-OTA end-to-end trial remains a
 separate acceptance test; packaging checks alone do not certify it.
 
