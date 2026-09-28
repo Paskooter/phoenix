@@ -347,8 +347,9 @@ bash ./robot-ota-repoint.sh --robot root@<robot-ip> --ota-only --yes
 
 This previews the `fcs` catalog, pins that exact plan, then asks the robot to
 download and checksum the packages and start the normal rebooting installer.
-It pins OS/services/OOBE and the hardware-tested BE 13.0.2 version. It refuses
-other versions or a pending OTA work state. For a
+It accepts the latest applicable OS/services/OOBE/BE versions offered by the
+server, checking known subsystem names, metadata and dependencies rather than
+pinning version numbers. It refuses a pending OTA work state. For a
 paired robot, the helper sets the saved mode to `normal` only after all OTA
 downloads pass checksum verification and immediately before asking the native
 installer to reboot. If BE is already installed, an ordinary repoint also

@@ -120,16 +120,24 @@ test('native OTA plans, downloads, and applies four subsystems without BE or OOB
     assert.deepEqual(calls.at(-1).method, 'GET');
 
     offered = updates.map((u) => u.subsystem === '@be/be'
-      ? { ...u, id: 'be-11.0.2-jibo-io-fcs', toVersion: '11.0.2' } : u);
-    const brokenBe = await run(['--plan', 'fcs'], env);
-    assert.notEqual(brokenBe.code, 0);
-    assert.match(brokenBe.stderr, /offered 11\.0\.2, expected 13\.0\.2/);
+      ? { ...u, id: 'be-13.0.3-jibo-io-fcs', toVersion: '13.0.3' } : u);
+    const newerBe = await run(['--plan', 'fcs'], env);
+    assert.equal(newerBe.code, 0, newerBe.stderr);
+    assert.match(newerBe.stdout, /@be\/be -> 13\.0\.3/);
     offered = updates;
     offered = offered.map((u) => u.subsystem === 'os'
       ? { ...u, id: 'os-13.0.8-fcs', toVersion: '13.0.8' } : u);
-    const unsupportedOs = await run(['--plan', 'fcs'], env);
-    assert.notEqual(unsupportedOs.code, 0);
-    assert.match(unsupportedOs.stderr, /offered 13\.0\.8, expected 13\.0\.7/);
+    const newerOs = await run(['--plan', 'fcs'], env);
+    assert.notEqual(newerOs.code, 0, 'dependent services must be updated alongside the OS');
+    assert.match(newerOs.stderr, /catalog dependency mismatch/);
+    offered = offered.map((u) => u.subsystem === 'services'
+      ? { ...u, id: 'services-13.0.8-fcs', toVersion: '13.0.8', dependencies: { os: '13.0.8' } } : u);
+    offered = offered.map((u) => u.subsystem === 'oobe-config' || u.subsystem === '@be/be'
+      ? { ...u, dependencies: { os: '13.0.8', services: '13.0.8' } } : u);
+    const newerPlatform = await run(['--plan', 'fcs'], env);
+    assert.equal(newerPlatform.code, 0, newerPlatform.stderr);
+    assert.match(newerPlatform.stdout, /os -> 13\.0\.8/);
+    offered = updates;
     offered = offered.map((u) => u.subsystem === 'os'
       ? { ...u, id: 'os-13.0.7-fcs', toVersion: '13.0.7' } : u);
     offered = offered.map((u) => u.subsystem === 'oobe-config'
@@ -140,10 +148,10 @@ test('native OTA plans, downloads, and applies four subsystems without BE or OOB
     offered = offered.map((u) => u.subsystem === 'oobe-config'
       ? { ...u, dependencies: { os: '13.0.7', services: '13.0.7' } } : u);
     offered = offered.map((u) => u.subsystem === '@be/be'
-      ? { ...u, toVersion: '12.0.0' } : u);
-    const unsupportedBe = await run(['--plan', 'fcs'], env);
-    assert.notEqual(unsupportedBe.code, 0);
-    assert.match(unsupportedBe.stderr, /unexpected OTA version/);
+      ? { ...u, toVersion: 'not-a-version' } : u);
+    const malformedBe = await run(['--plan', 'fcs'], env);
+    assert.notEqual(malformedBe.code, 0);
+    assert.match(malformedBe.stderr, /invalid OTA version/);
   } finally {
     await new Promise((resolve) => server.close(resolve));
     rmSync(dir, { recursive: true, force: true });

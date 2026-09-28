@@ -10,12 +10,6 @@ var childProcess = require('child_process');
 var fs = require('fs');
 var http = require('http');
 
-var VERSIONS = {
-  os: '13.0.7',
-  services: '13.0.7',
-  'oobe-config': '9.0.1',
-  '@be/be': '13.0.2'
-};
 var ORDER = ['os', 'services', 'oobe-config', '@be/be'];
 var port = Number(process.env.PHOENIX_ROBOT_OTA_PORT || 8585);
 var credentialsPath = process.env.PHOENIX_ROBOT_OTA_CREDENTIALS_PATH || '/var/jibo/credentials.json';
@@ -89,26 +83,33 @@ function plan(filter) {
     if (data.error) throw new Error('update discovery failed: ' + data.error);
     var bySubsystem = {};
     data.updates.forEach(function(update) {
-      if (!update || !Object.prototype.hasOwnProperty.call(VERSIONS, update.subsystem)) {
+      if (!update || ORDER.indexOf(update.subsystem) === -1) {
         throw new Error('unexpected OTA subsystem; review the catalog before installing');
       }
       if (bySubsystem[update.subsystem]) throw new Error('multiple updates offered for ' + update.subsystem);
-      // BE 13.0.2 is the complete, hardware-tested Aero build.  Keep a hard
-      // version pin: an arbitrary new catalog entry must not silently replace
-      // the robot's default skill without a new review and test.
-      var versionOk = update.toVersion === VERSIONS[update.subsystem];
-      if (!versionOk
+      // The server's OTA catalog selects the latest applicable release. Keep
+      // the accepted subsystem set and metadata checks, but do not make a new
+      // published release require a new copy of this robot-side helper.
+      if (typeof update.toVersion !== 'string'
+        || !/^[0-9]+\.[0-9]+\.[0-9]+$/.test(update.toVersion)
         || !/^[A-Za-z0-9._@-]{1,100}$/.test(update.id)
         || !Number.isSafeInteger(update.length) || update.length < 1) {
-        throw new Error('unexpected OTA version, ID, or length for ' + update.subsystem
-          + ' (offered ' + String(update.toVersion) + ', expected '
-          + VERSIONS[update.subsystem] + ')');
+        throw new Error('invalid OTA version, ID, or length for ' + update.subsystem);
+      }
+      if (update.dependencies !== undefined && (update.dependencies === null
+        || typeof update.dependencies !== 'object' || Array.isArray(update.dependencies))) {
+        throw new Error('invalid OTA dependencies for ' + update.subsystem);
       }
       bySubsystem[update.subsystem] = update;
     });
     Object.keys(bySubsystem).forEach(function(name) {
       var dependencies = bySubsystem[name].dependencies || {};
       Object.keys(dependencies).forEach(function(requiredName) {
+        if (ORDER.indexOf(requiredName) === -1
+          || typeof dependencies[requiredName] !== 'string'
+          || !/^[0-9]+\.[0-9]+\.[0-9]+$/.test(dependencies[requiredName])) {
+          throw new Error('invalid OTA dependency for ' + name + ': ' + requiredName);
+        }
         if (bySubsystem[requiredName]
           && bySubsystem[requiredName].toVersion !== dependencies[requiredName]) {
           throw new Error('OTA catalog dependency mismatch: ' + name + ' requires '

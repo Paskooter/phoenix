@@ -302,7 +302,9 @@ the robot-side patches are idempotent. Do not continue to OTA on a failed claim.
 
 The current jibo.io catalog offers four subsystems: `os` 13.0.7,
 `services` 13.0.7, `oobe-config` 9.0.1, and `@be/be` 13.0.2. The OTA helper
-pins the platform versions to this published set and rejects unexpected ones.
+uses the latest applicable versions offered by the server catalog; it does not
+pin these numbers. It rejects unknown subsystems, malformed metadata, and
+incompatible dependencies, and rechecks the plan immediately before download.
 Keep every offered package's exact-version dependencies aligned when publishing
 a newer OS/services pair: for example, OOBE 9.0.1 must require 13.0.7, not
 the superseded 13.0.6. Otherwise system-manager discovers packages but refuses
