@@ -314,6 +314,10 @@ not replace it until reboot.
 The catalog publishes each for the normal `fcs` filter and the OOBE skill's
 `eau` filter (plus filterless console queries); omitting `eau` makes a stock
 OOBE screen report no update even when the packages are present.
+The production catalog keeps only the latest approved package for each of the
+four subsystems. After confirming its replacement is available in all three
+filters, withdraw superseded entries and remove their package files from the
+active OTA data directory. Store any desired rollback archive separately.
 The two skills are independent per-skill packages; neither wipes the skills
 partition. Do not treat a successful OS-only upgrade as a complete migration.
 The OTA itself preserves `/var`, including Wi-Fi, identity, household data and

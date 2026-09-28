@@ -153,7 +153,9 @@ The historical 13.0.6 builder now also requires `--be-reference` pointing to
 the complete official BE 11.0.1 archive; its output is rejected if it omits
 any official runtime file or declared package entry point. Do not bypass that
 gate to publish a parity-tree-derived skill.
-The current jibo.io catalog advances OS/services to 13.0.7 and BE to 13.0.2.
+The current jibo.io catalog offers only the latest approved packages:
+OS/services 13.0.7, OOBE 9.0.1, and BE 13.0.2, each through empty, `fcs`, and
+`eau` filters. Superseded packages do not belong in its active data directory.
 The BE 13.0.2 package is built from the complete `be/` tree in the separate
 local `../jibo-be` project with its `tools/pack.py`, then checked against the
 complete official 11.0.1 archive by `scripts/be_ota_integrity.py`. BE source
