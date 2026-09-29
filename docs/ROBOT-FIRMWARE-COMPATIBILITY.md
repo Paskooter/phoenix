@@ -118,6 +118,15 @@ request ever reached the server. On the robot:
 - `/var/log` is a RAM disk on this firmware: logs do not survive a reboot. Capture them over SSH
   (`tail -f /var/log/messages`) while reproducing.
 
+- The setup skill's first screen is a bitmap reading "Go to the Jibo app on your phone to get
+  started" (and, when a setup needs several QR codes, "Now get your next QR code from the app");
+  its error screens say "Go to the app for help". `assets/oobe/oobe.js` has been identical since
+  2016 on every firmware, so `patch-oobe-setup-text.cjs` hash-pins it and replaces both bitmaps
+  with text in the skill's own fonts and positions; the error phrases live in the
+  `oobe-config.js` bundle (not the unused `errorMessages.json`) and are rewritten by phrase. The
+  repoint helper applies it when the skill is the reviewed version and otherwise leaves the
+  screens alone; the jibo.io `oobe-config` 9.0.2 OTA carries the same change.
+
 ## Still unverified
 
 1. **A complete setup on factory firmware.** Aero (RTM3) has been repointed and the two faults

@@ -24,7 +24,7 @@ const FIRMWARE = {
 };
 
 function preview({ credentials, mode, claim = false, shape = 'ok', region = 'stg-entrypoint', auth = 'key', robot = 'root@192.0.2.15',
-  firmware = '13', handler, preflight = 'ok', hostKey = 'known', auto = true, extra = [] }) {
+  firmware = '13', handler, preflight = 'ok', hostKey = 'known', auto = true, extra = [], setupText = 'patched' }) {
   const fw = FIRMWARE[firmware];
   const dir = mkdtempSync(join(tmpdir(), 'phoenix-repoint-test-'));
   const ssh = join(dir, 'ssh');
@@ -73,6 +73,9 @@ case "$cmd" in
   *"sha256sum '"*'/http/node.js'*) [ -z "$PHOENIX_TEST_HANDLER" ] || echo "$PHOENIX_TEST_HANDLER  node.js" ;;
   'mktemp /tmp/phoenix-preflight.XXXXXX') echo /tmp/phoenix-preflight.abc123 ;;
   "cat > '/tmp/phoenix-preflight.abc123'") cat > /dev/null ;;
+  "node '/tmp/phoenix-preflight.abc123' --dry-run --suffix 'jibo.io'"*)
+    if [ "$PHOENIX_TEST_SETUP_TEXT" = patched ]; then echo patched
+    else echo 'patch-oobe-setup-text: setup artwork is not the reviewed version: 0123' >&2; exit 2; fi ;;
   "node '/tmp/phoenix-preflight.abc123' --dry-run --suffix"*)
     if [ "$PHOENIX_TEST_SSM" = google ]; then echo 'not-needed (checks google.com)'; else echo patched; fi ;;
   "node '/tmp/phoenix-preflight.abc123' --dry-run"*)
@@ -111,7 +114,7 @@ echo "ssh-keygen $*" >> "$PHOENIX_TEST_LOG"; rm -f "$PHOENIX_TEST_STALE_KEY"
         PHOENIX_TEST_AUTH: auth, PHOENIX_TEST_LOG: join(dir, 'ssh.log'),
         PHOENIX_TEST_RELEASE: fw.release, PHOENIX_TEST_NODE: fw.node, PHOENIX_TEST_BACKUP: fw.backup, PHOENIX_TEST_JETSTREAM: fw.jetstream, PHOENIX_TEST_SSM: fw.ssm,
         PHOENIX_TEST_HANDLER: handler ?? fw.handler, PHOENIX_TEST_FOUND: fw.found.join(' '),
-        PHOENIX_TEST_PREFLIGHT: preflight, PHOENIX_TEST_STALE_KEY: staleKey },
+        PHOENIX_TEST_PREFLIGHT: preflight, PHOENIX_TEST_STALE_KEY: staleKey, PHOENIX_TEST_SETUP_TEXT: setupText },
     });
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -193,6 +196,15 @@ test('a new or reset robot is restarted into setup at the end; a set-up one is l
   const paired = preview({ credentials: true, mode: 'normal', claim: true });
   assert.doesNotMatch(paired, /reboot the robot into its setup screen/);
   assert.match(paired, /10\. ask the native system-manager to download and install the published OTA set \(reboots\)/);
+});
+
+test('the setup screens are pointed at the server, and an unreviewed skill does not stop the repoint', () => {
+  const out = preview({ credentials: false, mode: 'int-developer', firmware: 'rtm3', region: '' });
+  assert.match(out, /setup screen text: reviewed stock version; will say "Go to jibo\.io"/);
+  assert.match(out, /the setup screens say "Go to jibo\.io" instead of sending people to the Jibo app/);
+  const unknown = preview({ credentials: false, mode: 'int-developer', firmware: 'rtm3', region: '', setupText: 'unknown' });
+  assert.match(unknown, /setup screen text: left as it is \(setup artwork is not the reviewed version: 0123\)/);
+  assert.match(unknown, /dry run/);
 });
 
 test('no robot address and no terminal to ask for one stops with the usage hint', () => {

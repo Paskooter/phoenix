@@ -314,12 +314,12 @@ account. If linking fails, generate a fresh portal code and rerun the helper;
 the robot-side patches are idempotent. Do not continue to OTA on a failed claim.
 
 The current jibo.io catalog offers four subsystems: `os` 13.0.7,
-`services` 13.0.7, `oobe-config` 9.0.1, and `@be/be` 13.0.2. The OTA helper
+`services` 13.0.7, `oobe-config` 9.0.2, and `@be/be` 13.0.2. The OTA helper
 uses the latest applicable versions offered by the server catalog; it does not
 pin these numbers. It rejects unknown subsystems, malformed metadata, and
 incompatible dependencies, and rechecks the plan immediately before download.
 Keep every offered package's exact-version dependencies aligned when publishing
-a newer OS/services pair: for example, OOBE 9.0.1 must require 13.0.7, not
+a newer OS/services pair: for example, OOBE 9.0.2 must require 13.0.7, not
 the superseded 13.0.6. Otherwise system-manager discovers packages but refuses
 to apply them after downloading. Give an already-published corrected entry a
 new update ID too: the original system-manager caches metadata by ID and does
@@ -332,7 +332,12 @@ four subsystems. After confirming its replacement is available in all three
 filters, withdraw superseded entries and remove their package files from the
 active OTA data directory. Store any desired rollback archive separately.
 The two skills are independent per-skill packages; neither wipes the skills
-partition. Do not treat a successful OS-only upgrade as a complete migration.
+partition. OOBE 9.0.2 is 9.0.1 with its setup screens pointed at jibo.io
+instead of the retired phone app; rebuild it from the previous package with
+`python3 scripts/build-oobe-config-ota.py --base <previous oobe-config tar>
+--out <dir> --version <new>`, which reuses the repoint helper's
+`patch-oobe-setup-text.cjs` and checks that only the artwork, the message
+bundle and `package.json` changed. Do not treat a successful OS-only upgrade as a complete migration.
 The OTA itself preserves `/var`, including Wi-Fi, identity, household data and
 robot credentials. A robot on the published 13.0.5 package may have reverted
 to the original backup/restore helpers, so re-run the current public helper
