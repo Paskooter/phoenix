@@ -44,6 +44,8 @@ async function signup(running, email) {
 }
 
 test('iCal subscriptions verify, persist, expose events, and keep invalid links saved', async () => {
+  const previousPrivateHosts = process.env.ETCO_account_allowPrivateCalendarHosts;
+  process.env.ETCO_account_allowPrivateCalendarHosts = 'true';
   const source = http.createServer((req, res) => {
     if (req.url === '/calendar.ics') {
       res.writeHead(200, { 'content-type': 'text/calendar; charset=utf-8' });
@@ -124,6 +126,8 @@ test('iCal subscriptions verify, persist, expose events, and keep invalid links 
       .find((record) => record.data?.icalSubscriptions?.subscriptions?.some((item) => item.id === id));
     assert.ok(accountSettings, 'subscription persisted in the account settings record');
   } finally {
+    if (previousPrivateHosts === undefined) delete process.env.ETCO_account_allowPrivateCalendarHosts;
+    else process.env.ETCO_account_allowPrivateCalendarHosts = previousPrivateHosts;
     await new Promise((resolve) => running.service.close(resolve));
     await new Promise((resolve) => source.close(resolve));
     rmSync(running.dir, { recursive: true, force: true });

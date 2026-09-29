@@ -992,6 +992,9 @@ function maskedCalendarUrl(value) {
 
 function calendarStatus(subscription) {
   const status = subscription.verification?.status || 'unknown';
+  if (status === 'ok' && subscription.verification?.lastError) {
+    return { label: 'Using saved events', className: 'status-unknown' };
+  }
   return {
     label: status === 'ok' ? 'Verified' : status === 'invalid' ? 'Needs attention' : 'Not checked',
     className: status === 'ok' ? 'status-ok' : status === 'invalid' ? 'status-error' : 'status-unknown',
@@ -1008,7 +1011,7 @@ function createCalendarManager({ subscriptions: initialSubscriptions, timeZone: 
   const list = h('div', { class: 'ical-subscription-list' });
   const preview = h('div', { class: 'ical-preview' });
   const helper = h('p', { class: 'field-hint ical-manager-hint' },
-    'Paste a read-only iCal subscription URL. Phoenix checks it now, keeps bad links editable, and caches the parsed events for the report.');
+    'Paste a read-only iCal URL. Phoenix checks it now and refreshes it daily while enabled, even when this page is closed. Removing it stops the refresh.');
   const labelInput = h('input', { type: 'text', maxlength: 120, placeholder: 'e.g. Family', autocomplete: 'off' });
   const urlInput = h('input', { type: 'url', inputmode: 'url', placeholder: 'https://calendar.example.com/feed.ics', autocomplete: 'url' });
   const timeZoneInput = h('input', {
@@ -1026,7 +1029,11 @@ function createCalendarManager({ subscriptions: initialSubscriptions, timeZone: 
     }
     list.replaceChildren(...subscriptions.map((subscription) => {
       const state = calendarStatus(subscription);
-      const enabled = h('input', { type: 'checkbox', checked: subscription.enabled !== false, 'aria-label': `Use ${subscription.label}` });
+      const enabled = h('input', {
+        type: 'checkbox', checked: subscription.enabled !== false,
+        'aria-label': `Use and refresh ${subscription.label}`,
+        title: 'Turn off to pause daily refresh and exclude this calendar from the report',
+      });
       enabled.addEventListener('change', async () => {
         enabled.disabled = true;
         const result = await api('PUT', `/api/calendar/subscriptions/${encodeURIComponent(subscription.id)}`, { enabled: enabled.checked });
@@ -1039,7 +1046,13 @@ function createCalendarManager({ subscriptions: initialSubscriptions, timeZone: 
           verify.disabled = true;
           const result = await api('POST', `/api/calendar/subscriptions/${encodeURIComponent(subscription.id)}/verify`);
           verify.disabled = false;
-          if (result.ok) { notify(result.data.subscription.verification.status === 'ok' ? 'Calendar verified' : 'Calendar still needs attention', result.data.subscription.verification.status === 'ok' ? 'ok' : 'error'); await reloadSubscriptions(); }
+          if (result.ok) {
+            const verification = result.data.subscription.verification;
+            notify(verification.lastError ? 'Refresh failed; saved events remain available'
+              : verification.status === 'ok' ? 'Calendar verified' : 'Calendar still needs attention',
+            verification.lastError ? 'error' : verification.status === 'ok' ? 'ok' : 'error');
+            await reloadSubscriptions();
+          }
           else notify(result.data.error || 'Could not verify calendar', 'error');
         } },
       }, 'Verify');
@@ -1062,8 +1075,10 @@ function createCalendarManager({ subscriptions: initialSubscriptions, timeZone: 
           else notify(result.data.error || 'Could not remove calendar', 'error');
         } },
       }, 'Remove');
-      const error = subscription.verification?.status === 'invalid'
-        ? h('p', { class: 'ical-subscription-error', text: subscription.verification.lastError || 'The link could not be verified.' }) : null;
+      const error = subscription.verification?.lastError
+        ? h('p', { class: 'ical-subscription-error', text: subscription.verification.status === 'ok'
+          ? `Last refresh failed; showing saved events. ${subscription.verification.lastError}`
+          : subscription.verification.lastError }) : null;
       return h('article', { class: 'ical-subscription' },
         h('div', { class: 'ical-subscription-main' },
           h('div', { class: 'ical-subscription-title' },
@@ -1073,6 +1088,7 @@ function createCalendarManager({ subscriptions: initialSubscriptions, timeZone: 
           h('div', { class: 'ical-subscription-url', text: maskedCalendarUrl(subscription.url) }),
           h('div', { class: 'ical-subscription-meta' },
             `${subscription.verification?.eventCount || 0} events`,
+            subscription.verification?.lastSuccess ? ` · updated ${fmtDate(subscription.verification.lastSuccess)}` : '',
             subscription.verification?.lastChecked ? ` · checked ${fmtDate(subscription.verification.lastChecked)}` : ''),
           error),
         h('div', { class: 'ical-subscription-actions' }, verify, edit, remove));

@@ -8,13 +8,14 @@ import { RobotReadClient } from './loopCreation.js';
 //   3. Admin face   — /api/admin/* gated by the account's isAdmin flag           [G.1]
 // Static portal UI served from ./portal                                          [G.4]
 
-import { createService } from '@phoenix/common';
+import { createService, logger } from '@phoenix/common';
 import { DefaultPort } from '@phoenix/contracts';
 import { getStore } from './store.js';
 import { portalRoutes } from './portalApi.js';
 import { robotFaceRoutes } from './robotFace.js';
 import { settingsPeerRoutes, settingsPortalRoutes } from './settingsFace.js';
 import { calendarPortalRoutes } from './calendarRoutes.js';
+import { IcalRefreshService } from './icalRefresh.js';
 import { backupPeerRoutes } from './backupPeerRoutes.js';
 import { keyPeerRoutes } from './keyPeerRoutes.js';
 import { mediaPeerRoutes } from './mediaPeerRoutes.js';
@@ -68,6 +69,7 @@ export * as sessions from './sessions.js';
 export { portalRoutes } from './portalApi.js';
 export { adoptRobot, createAdoptionRateLimiter, robotAdoptionRoutes } from './robotAdoption.js';
 export { calendarPortalRoutes } from './calendarRoutes.js';
+export { IcalRefreshService } from './icalRefresh.js';
 export { robotFaceRoutes } from './robotFace.js';
 export {
   createSettingsInternalService,
@@ -344,6 +346,7 @@ export function createAccountService({
   lpsStsProvider,
   calendarFetcher,
   calendarFetchTimeoutMs,
+  calendarRefreshOptions,
   repointHost,
   portalRequireEmailVerification,
   webPushService,
@@ -404,6 +407,13 @@ export function createAccountService({
     config: webPushConfig === undefined ? webPushConfigFromEnv() : webPushConfig,
     sender: webPushSender,
   });
+  const calendarFetchOptions = calendarFetchTimeoutMs === undefined
+    ? {} : { timeoutMs: calendarFetchTimeoutMs };
+  const calendarRefresh = new IcalRefreshService(store, {
+    fetcher: calendarFetcher,
+    fetchOptions: calendarFetchOptions,
+    ...calendarRefreshOptions,
+  });
   const routes = {
     // The direct Account photo ingress is intentionally session-bound. Public
     // photo URLs should point at Classic's signed proxy; an accidental
@@ -446,10 +456,13 @@ export function createAccountService({
     ...keyPeerRoutes(store),      // internal Account client seam used by source Key (loop members)
     ...mediaPeerRoutes(store),    // internal Account client seam used by Media (owned loops)
     ...listAssociatedLoopsRoute(store), // trusted Account -> GQA loop resolution peer
-    ...settingsPortalRoutes(store), // GET/PUT /api/settings (the report-settings editor)
+    ...settingsPortalRoutes(store, {
+      onCalendarChanged: () => calendarRefresh.changed(),
+    }), // GET/PUT /api/settings (the report-settings editor)
     ...calendarPortalRoutes(store, {
       fetcher: calendarFetcher,
-      fetchOptions: calendarFetchTimeoutMs === undefined ? {} : { timeoutMs: calendarFetchTimeoutMs },
+      fetchOptions: calendarFetchOptions,
+      onSubscriptionsChanged: () => calendarRefresh.changed(),
     }), // owner-scoped iCal subscriptions and cached events
     ...robotFaceRoutes(store, {
       settingsProviders: effectiveSettingsProviders,
@@ -482,8 +495,13 @@ export function createAccountService({
   // recover rows left by a prior process after construction.
   service.loopUpdatedOutbox = loopUpdatedOutbox;
   service.webPush = effectiveWebPush;
+  service.calendarRefresh = calendarRefresh;
   service.invitationProviders = effectiveInvitationProviders;
   service.identityProviders = effectiveIdentityProviders;
+  service.server.on('listening', () => {
+    void calendarRefresh.start().catch(() => logger('account.calendar').error('iCal startup refresh failed'));
+  });
+  service.server.on('close', () => calendarRefresh.stop());
   void loopUpdatedOutbox.recover();
   const invitationEvents = effectiveInvitationProviders.eventSender;
   if (invitationEvents && typeof invitationEvents.recover === 'function') {

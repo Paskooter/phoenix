@@ -1,6 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import { lookup } from 'node:dns/promises';
+import http from 'node:http';
+import https from 'node:https';
 import net from 'node:net';
+import { Readable } from 'node:stream';
 import { getSettingsData, setSettingsData } from './settingsData.js';
 import { ical } from '@phoenix/common';
 
@@ -9,6 +12,7 @@ const { IcalParseError, parseICalendar } = ical;
 export const ICAL_MAX_BYTES = 2 * 1024 * 1024;
 export const ICAL_FETCH_TIMEOUT_MS = 8000;
 export const ICAL_MAX_REDIRECTS = 3;
+export const ICAL_MAX_SUBSCRIPTIONS_PER_ACCOUNT = 20;
 export const ICAL_CACHE_BEFORE_MS = 2 * 24 * 60 * 60 * 1000;
 export const ICAL_CACHE_AFTER_MS = 370 * 24 * 60 * 60 * 1000;
 export const ICAL_ALLOW_PRIVATE_ENV = 'ETCO_account_allowPrivateCalendarHosts';
@@ -63,7 +67,14 @@ function privateHostLiteral(hostname) {
       || normalized.startsWith('fe9') || normalized.startsWith('fea')
       || normalized.startsWith('feb') || normalized.startsWith('2001:db8:')) return true;
     const mapped = normalized.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
-    return Boolean(mapped && privateIpv4(mapped[1]));
+    if (mapped) return privateIpv4(mapped[1]);
+    const mappedHex = normalized.match(/^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
+    if (mappedHex) {
+      const high = Number.parseInt(mappedHex[1], 16);
+      const low = Number.parseInt(mappedHex[2], 16);
+      return privateIpv4(`${high >> 8}.${high & 255}.${low >> 8}.${low & 255}`);
+    }
+    return false;
   }
   return false;
 }
@@ -100,19 +111,67 @@ function fetchURL(url, options) {
   return parsed.toString();
 }
 
-async function assertSafeResolvedHost(parsed, { allowPrivateHosts, resolveHost = true } = {}) {
-  if (allowPrivateHosts || !resolveHost || privateHostLiteral(parsed.hostname)) return;
+async function withAbort(promise, signal) {
+  if (!signal) return promise;
+  if (signal.aborted) throw abortError();
+  return new Promise((resolve, reject) => {
+    const onAbort = () => { cleanup(); reject(abortError()); };
+    const cleanup = () => signal.removeEventListener('abort', onAbort);
+    signal.addEventListener('abort', onAbort, { once: true });
+    Promise.resolve(promise).then(
+      (value) => { cleanup(); resolve(value); },
+      (error) => { cleanup(); reject(error); },
+    );
+  });
+}
+
+async function resolveSafeHost(parsed, { allowPrivateHosts, dnsLookup, signal }) {
+  const hostname = parsed.hostname.replace(/^\[|\]$/g, '');
+  const literalFamily = net.isIP(hostname);
+  if (literalFamily) return { address: hostname, family: literalFamily };
   let records;
   try {
-    records = await lookup(parsed.hostname, { all: true, verbatim: true });
+    records = await withAbort(dnsLookup(hostname, { all: true, verbatim: true }), signal);
   } catch {
-    // Fail closed.  Letting fetch resolve after our resolver failed would
-    // re-open the DNS-rebinding/metadata path we are trying to prevent.
+    if (signal.aborted) throw abortError();
     throw genericError('calendar URL host could not be resolved');
   }
-  if (records.some((record) => privateHostLiteral(record.address))) {
+  if (!Array.isArray(records) || !records.length
+    || records.some((record) => !record || net.isIP(record.address) !== record.family)) {
+    throw genericError('calendar URL host could not be resolved');
+  }
+  if (!allowPrivateHosts && records.some((record) => privateHostLiteral(record.address))) {
     throw genericError('calendar URL host is not allowed');
   }
+  return records[0];
+}
+
+async function fetchPinned(url, { signal, headers }, { allowPrivateHosts, dnsLookup }) {
+  const parsed = new URL(url);
+  const { address, family } = await resolveSafeHost(parsed, { allowPrivateHosts, dnsLookup, signal });
+  // The connection uses exactly the address we checked. The original hostname
+  // remains in the URL, Host header and TLS peer-name verification. Resolving
+  // once for validation and again inside fetch() would permit DNS rebinding.
+  return new Promise((resolve, reject) => {
+    const transport = parsed.protocol === 'https:' ? https : http;
+    const request = transport.get(parsed, {
+      headers,
+      signal,
+      lookup: (_host, options, callback) => {
+        if (typeof options === 'function') callback = options;
+        if (options?.all) callback(null, [{ address, family }]);
+        else callback(null, address, family);
+      },
+    }, (response) => {
+      resolve({
+        status: response.statusCode,
+        ok: response.statusCode >= 200 && response.statusCode < 300,
+        headers: { get: (name) => response.headers[String(name).toLowerCase()] ?? null },
+        body: Readable.toWeb(response),
+      });
+    });
+    request.once('error', reject);
+  });
 }
 
 function abortError() {
@@ -174,33 +233,34 @@ async function readResponseBody(response, maxBytes, signal) {
 /** Fetch without ever putting the source URL or response body in an error/log value. */
 export async function fetchIcalText(input, {
   fetchImpl = globalThis.fetch,
+  dnsLookup = lookup,
   timeoutMs = Number(process.env.ETCO_account_icalTimeoutMs) || ICAL_FETCH_TIMEOUT_MS,
   maxBytes = ICAL_MAX_BYTES,
   maxRedirects = ICAL_MAX_REDIRECTS,
   allowPrivateHosts = process.env[ICAL_ALLOW_PRIVATE_ENV] === 'true',
 } = {}) {
-  if (typeof fetchImpl !== 'function') throw genericError('calendar fetch is unavailable');
+  const usePinnedFetch = fetchImpl === globalThis.fetch;
+  if (!usePinnedFetch && typeof fetchImpl !== 'function') throw genericError('calendar fetch is unavailable');
   let current = validateIcalUrl(input, { allowPrivateHosts });
   for (let redirect = 0; redirect <= maxRedirects; redirect += 1) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      // Resolve every hop before fetching so DNS names cannot be used to reach
-      // RFC-1918, loopback, link-local, or cloud-metadata services.  Test and
-      // custom fetchers can opt out of DNS resolution while literal private
-      // addresses remain blocked by validateIcalUrl.
-      await assertSafeResolvedHost(current, {
-        allowPrivateHosts,
-        resolveHost: fetchImpl === globalThis.fetch,
-      });
-      const response = await fetchImpl(fetchURL(current.toString(), { allowPrivateHosts }), {
+      const requestUrl = fetchURL(current.toString(), { allowPrivateHosts });
+      const requestOptions = {
         method: 'GET',
         redirect: 'manual',
         signal: controller.signal,
         headers: { accept: 'text/calendar, text/plain;q=0.8, */*;q=0.1' },
-      });
+      };
+      const response = usePinnedFetch
+        ? await fetchPinned(requestUrl, requestOptions, { allowPrivateHosts, dnsLookup })
+        : await fetchImpl(requestUrl, requestOptions);
 
       if (response.status >= 300 && response.status < 400) {
+        if (typeof response.body?.cancel === 'function') {
+          await Promise.resolve(response.body.cancel()).catch(() => {});
+        }
         if (redirect === maxRedirects) throw genericError('calendar redirect limit exceeded');
         const location = response.headers?.get?.('location');
         if (!location) throw genericError('calendar redirect has no location');
@@ -254,10 +314,15 @@ export async function fetchAndParseIcal(input, {
 function normalizeVerification(value) {
   const source = value && typeof value === 'object' ? value : {};
   const status = ['ok', 'invalid', 'unknown'].includes(source.status) ? source.status : 'unknown';
+  const lastChecked = Number.isFinite(source.lastChecked) ? source.lastChecked : null;
   return {
     status,
     eventCount: Number.isInteger(source.eventCount) && source.eventCount >= 0 ? source.eventCount : 0,
-    lastChecked: Number.isFinite(source.lastChecked) ? source.lastChecked : null,
+    lastChecked,
+    // Older saved subscriptions only have lastChecked. For a successful old
+    // verification, that timestamp is also the last successful refresh.
+    lastSuccess: Number.isFinite(source.lastSuccess) ? source.lastSuccess
+      : status === 'ok' ? lastChecked : null,
     lastError: typeof source.lastError === 'string' ? source.lastError : null,
   };
 }
@@ -270,6 +335,7 @@ function normalizeSubscription(item) {
     enabled: item?.enabled !== false,
     verification: normalizeVerification(item?.verification),
     events: Array.isArray(item?.events) ? item.events : [],
+    checkedTimeZone: typeof item?.checkedTimeZone === 'string' ? validTimeZone(item.checkedTimeZone) : null,
   };
 }
 
@@ -320,6 +386,7 @@ export async function verifySubscription(subscription, {
   fetcher = fetchAndParseIcal,
   fetchOptions = {},
   now = Date.now(),
+  preserveOnError = false,
 } = {}) {
   const next = normalizeSubscription(subscription);
   try {
@@ -328,8 +395,9 @@ export async function verifySubscription(subscription, {
     return {
       ...next,
       events,
+      checkedTimeZone: validTimeZone(timeZone),
       verification: {
-        status: 'ok', eventCount: events.length, lastChecked: Date.now(), lastError: null,
+        status: 'ok', eventCount: events.length, lastChecked: now, lastSuccess: now, lastError: null,
       },
     };
   } catch (error) {
@@ -339,11 +407,17 @@ export async function verifySubscription(subscription, {
       ? error.message
       : String(error?.message || 'calendar verification failed')
         .replace(/[a-z][a-z0-9+.-]*:\/\/[^\s)]+/gi, '[url]');
+    const useSavedEvents = preserveOnError && next.verification.status === 'ok';
     return {
       ...next,
-      events: [],
+      events: useSavedEvents ? next.events : [],
+      checkedTimeZone: validTimeZone(timeZone),
       verification: {
-        status: 'invalid', eventCount: 0, lastChecked: Date.now(), lastError: message.slice(0, 240),
+        status: useSavedEvents ? 'ok' : 'invalid',
+        eventCount: useSavedEvents ? next.events.length : 0,
+        lastChecked: now,
+        lastSuccess: useSavedEvents ? next.verification.lastSuccess : null,
+        lastError: message.slice(0, 240),
       },
     };
   }

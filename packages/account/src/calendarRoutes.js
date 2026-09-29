@@ -6,6 +6,7 @@ import {
   accountTimeZone,
   calendarEventsForWindow,
   fetchAndParseIcal,
+  ICAL_MAX_SUBSCRIPTIONS_PER_ACCOUNT,
   listSubscriptions,
   publicSubscription,
   saveSubscriptions,
@@ -55,12 +56,27 @@ function subscriptionResponse(subscription) {
 export function calendarPortalRoutes(store, {
   fetcher = fetchAndParseIcal,
   fetchOptions = {},
+  onSubscriptionsChanged = () => {},
 } = {}) {
-  async function verifyAndPersist(accountId, subscriptions, target, timeZone) {
-    const verified = await verifySubscription(target, { timeZone, fetcher, fetchOptions });
-    const next = subscriptions.map((item) => item.id === verified.id ? verified : item);
-    saveSubscriptions(store, accountId, next);
-    return verified;
+  async function verifyAndPersist(accountId, target, timeZone) {
+    const starting = listSubscriptions(store, accountId).find((item) => item.id === target.id);
+    if (!starting || starting.url !== target.url) return starting || null;
+    const verified = await verifySubscription(starting, {
+      timeZone, fetcher, fetchOptions, preserveOnError: true,
+    });
+    // Fetches are asynchronous. Re-read the account before writing: otherwise
+    // a concurrent remove/edit could be undone by this old subscriptions array.
+    const current = listSubscriptions(store, accountId);
+    const latest = current.find((item) => item.id === target.id);
+    if (!latest) return null;
+    if (!store.accounts.get(accountId) || store.accounts.get(accountId).isDeleted === true) return null;
+    if (latest.url !== target.url
+      || JSON.stringify(latest.verification) !== JSON.stringify(starting.verification)
+      || accountTimeZone(getSettingsData(store, accountId)) !== timeZone) return latest;
+    const saved = { ...verified, label: latest.label, enabled: latest.enabled };
+    saveSubscriptions(store, accountId, current.map((item) => item.id === saved.id ? saved : item));
+    onSubscriptionsChanged();
+    return saved;
   }
 
   return {
@@ -80,6 +96,9 @@ export function calendarPortalRoutes(store, {
       const url = bodyUrl(body);
       if (!url) return sendJson(res, 400, { error: 'calendar URL is required' });
       const existing = listSubscriptions(store, account._id);
+      if (existing.length >= ICAL_MAX_SUBSCRIPTIONS_PER_ACCOUNT) {
+        return sendJson(res, 400, { error: `Limit of ${ICAL_MAX_SUBSCRIPTIONS_PER_ACCOUNT} calendars reached` });
+      }
       const target = {
         id: randomUUID(), label: bodyLabel(body), url, enabled: body?.enabled !== false,
         verification: { status: 'unknown', eventCount: 0, lastChecked: null, lastError: null }, events: [],
@@ -89,10 +108,10 @@ export function calendarPortalRoutes(store, {
       saveSubscriptions(store, account._id, [...existing, target]);
       const verified = await verifyAndPersist(
         account._id,
-        [...existing, target],
         target,
         accountTimeZone(getSettingsData(store, account._id)),
       );
+      if (!verified) return sendJson(res, 409, { error: 'calendar subscription was removed while checking' });
       return sendJson(res, 201, subscriptionResponse(verified));
     },
 
@@ -107,16 +126,20 @@ export function calendarPortalRoutes(store, {
       const next = {
         ...current,
         ...(body && typeof body.label === 'string' ? { label: body.label.trim().slice(0, 120) || current.label } : {}),
-        ...(urlChanged ? { url: bodyUrl(body), events: [], verification: { status: 'unknown', eventCount: 0, lastChecked: null, lastError: null } } : {}),
+        ...(urlChanged ? {
+          url: bodyUrl(body), events: [], checkedTimeZone: null,
+          verification: { status: 'unknown', eventCount: 0, lastChecked: null, lastSuccess: null, lastError: null },
+        } : {}),
         ...(typeof body?.enabled === 'boolean' ? { enabled: body.enabled } : {}),
       };
       if (urlChanged && !next.url) return sendJson(res, 400, { error: 'calendar URL is required' });
       const staged = subscriptions.map((item) => item.id === id ? next : item);
       saveSubscriptions(store, account._id, staged);
       const updated = urlChanged
-        ? await verifyAndPersist(account._id, staged, next, accountTimeZone(getSettingsData(store, account._id)))
+        ? await verifyAndPersist(account._id, next, accountTimeZone(getSettingsData(store, account._id)))
         : next;
-      if (!urlChanged) saveSubscriptions(store, account._id, staged);
+      if (!updated) return sendJson(res, 409, { error: 'calendar subscription was removed while checking' });
+      if (!urlChanged) onSubscriptionsChanged();
       return subscriptionResponse(updated);
     },
 
@@ -127,6 +150,7 @@ export function calendarPortalRoutes(store, {
       const subscriptions = listSubscriptions(store, account._id);
       if (!subscriptions.some((item) => item.id === id)) return sendJson(res, 404, { error: 'calendar subscription not found' });
       saveSubscriptions(store, account._id, subscriptions.filter((item) => item.id !== id));
+      onSubscriptionsChanged();
       return { removed: id };
     },
 
@@ -138,8 +162,9 @@ export function calendarPortalRoutes(store, {
       const target = subscriptions.find((item) => item.id === id);
       if (!target) return sendJson(res, 404, { error: 'calendar subscription not found' });
       const verified = await verifyAndPersist(
-        account._id, subscriptions, target, accountTimeZone(getSettingsData(store, account._id)),
+        account._id, target, accountTimeZone(getSettingsData(store, account._id)),
       );
+      if (!verified) return sendJson(res, 409, { error: 'calendar subscription was removed while checking' });
       return subscriptionResponse(verified);
     },
 

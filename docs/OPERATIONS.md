@@ -293,6 +293,24 @@ geocoding provider: Nominatim's one-request-per-second limit applies to the
 whole application, not separately to each browser or replica. Its public API
 also prohibits autocomplete, so do not restore the old search-as-you-type path.
 
+**Personal report → Calendar** stores each user's read-only iCal link and parsed
+events in the private Account store. Saving or manually verifying a link checks it
+immediately. While a subscription is enabled, the Account process checks for due
+refreshes on startup and hourly, and automatically fetches each link once due
+24 hours after its last attempt (manual **Verify** can check sooner). A
+successful refresh replaces the cached events
+(including events the calendar owner removed); a temporary failure retains the
+last good events and shows a warning in the portal. An initially invalid link is
+retried daily. Disabling a subscription pauses refresh and excludes it from the
+report; re-enabling a stale link refreshes it. Removing the link deletes its
+cached events and stops future fetches. Each account may keep up to 20 links.
+Changing the account calendar timezone
+reparses the feed promptly. The portal shows the last successful update and last
+check separately. The same URL validation, redirect, timeout, and size limits
+apply to background fetches; do not enable private calendar hosts on a public
+deployment. Keep only one Account process per store file: multiple replicas
+would duplicate fetches and can overwrite each other's account snapshots.
+
 The OOBE setup call is unsigned, so a QR token by itself does not prove ownership
 of an already-registered robot. Phoenix rejects a robot ID linked to another
 account, as well as an existing orphaned robot account with no live same-owner

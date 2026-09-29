@@ -1054,7 +1054,7 @@ export function settingsPeerRoutes(store) {
 }
 
 /** Portal REST: the friendly settings editor (session-cookie auth, keyed by the owner's _id). */
-export function settingsPortalRoutes(store) {
+export function settingsPortalRoutes(store, { onCalendarChanged = () => {} } = {}) {
   const owner = (req) => {
     const s = getSession(store, req);
     return (s && s.kind === 'user') ? store.accounts.get(s.accountId) : null;
@@ -1068,10 +1068,12 @@ export function settingsPortalRoutes(store) {
     'PUT /api/settings': ({ req, res, body }) => {
       const account = owner(req);
       if (!account) return sendJson(res, 401, { error: 'not logged in' });
+      const before = getSettingsData(store, account._id);
       let data;
-      try { data = friendlyToData(body || {}, getSettingsData(store, account._id)); }
+      try { data = friendlyToData(body || {}, before); }
       catch (error) { return sendJson(res, 400, { error: error.message }); }
       setSettingsData(store, account._id, data);
+      if (data.calendarTimeZone?.value !== before.calendarTimeZone?.value) onCalendarChanged();
       return { accountId: account._id, settings: dataToFriendly(data) };
     },
   };

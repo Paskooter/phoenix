@@ -96,9 +96,9 @@ export function friendlyToData(friendly, base = defaultSettingsData()) {
     if ('timeZone' in f.calendar && typeof f.calendar.timeZone === 'string' && f.calendar.timeZone.trim()) {
       d.calendarTimeZone = { value: f.calendar.timeZone.trim() };
     }
-    if (Array.isArray(f.calendar.icalSubscriptions)) {
-      d.icalSubscriptions = { subscriptions: f.calendar.icalSubscriptions };
-    }
+    // Subscription URLs and event caches are managed only by the dedicated
+    // calendar routes. The friendly settings editor must not provide a second,
+    // unvalidated write path that bypasses URL checks and the per-account cap.
     if ('googlePersonal' in f.calendar) d['google:personalCalendar:readonly'] = { credentialExists: !!f.calendar.googlePersonal };
     if ('googleWork' in f.calendar) d['google:workCalendar:readonly'] = { credentialExists: !!f.calendar.googleWork };
     if ('outlookPersonal' in f.calendar) d['outlook:personalCalendar:readonly'] = { credentialExists: !!f.calendar.outlookPersonal };
