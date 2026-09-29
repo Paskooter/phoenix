@@ -23,10 +23,18 @@ var CA_PATH = '/etc/ssl/certs/ca-certificates.crt';
 var REVIEWED = {
   // jibo-ota-updater 1.3.0 in the RTM3 (3.3.x) factory image through 1.4.1 in 13.0.x
   '33f6db1496baa3abd506a2ba9dad9b5cdf7567341e3e292e42cb3ed6f016003c':
-    '1a01b446575bc5da145a41e969ea110af62f144d5651ed5b7ca5aee8bfef826a',
+    '74b75fc45c8561ee9f1cae63bd0718316c00c62d77103f6492bfc5c58a0accbd',
   // jibo-ota-updater 1.3.0 in the RTM2 (3.0.x) factory image
   '447a2a5598ec13ea46367207ea594efd6774d785c97d5322200e5809d6d9acb2':
-    '6b9399b4d85213ba15c68224f0fae2c69ba787c207351184a65b6873452562b7'
+    'ce4253aabe016cc322401db15e5220bb89592ee18a04acc047e5cf1734ea6b14'
+};
+// Outputs of the previous version of this patch, which passed the CA bundle whole:
+// Node 4 reads only its first certificate. Upgrade them from the saved original.
+var PREVIOUS = {
+  '1a01b446575bc5da145a41e969ea110af62f144d5651ed5b7ca5aee8bfef826a':
+    '33f6db1496baa3abd506a2ba9dad9b5cdf7567341e3e292e42cb3ed6f016003c',
+  '6b9399b4d85213ba15c68224f0fae2c69ba787c207351184a65b6873452562b7':
+    '447a2a5598ec13ea46367207ea594efd6774d785c97d5322200e5809d6d9acb2'
 };
 var PATCHED = Object.keys(REVIEWED).map(function(original) { return REVIEWED[original]; });
 var EXECUTABLE_MODE = 0o755;
@@ -90,19 +98,21 @@ function exactlyOnce(source, needle, label) {
 function patchSource(source, caPath) {
   exactlyOnce(source, ANCHOR, 'OTA downloader');
   var prelude = [
-    '// This runs on Node 6.9.2, which predates NODE_EXTRA_CA_CERTS (added in 7.3) and',
+    '// This runs on Node 6.9.2 (Node 4.1.2 on factory images), which predates NODE_EXTRA_CA_CERTS and',
     '// ignores the system trust store entirely -- /etc/ssl/cert.pem does not help it.',
     '// Against a publicly-trusted server certificate a bare https.get therefore fails',
     '// with UNABLE_TO_GET_ISSUER_CERT_LOCALLY and the update download dies at 0 bytes,',
     '// which the system manager reports only as "Failed to download update". Hand https',
-    '// an explicit CA, the same way the patched jibo-server-client does.',
+    '// an explicit CA, the same way the patched jibo-server-client does. The bundle is split',
+    '// into certificates: Node 4 reads only the first certificate of a PEM bundle.',
     'let _getOpts = argv.url;',
     'if (argv.url.startsWith("https:")) {',
     '    let _caPath = process.env.JIBO_EXTRA_CA_CERTS || "' + caPath + '";',
     '    try {',
     '        let _url = require("url").parse(argv.url);',
     '        _getOpts = { protocol: _url.protocol, hostname: _url.hostname, port: _url.port,',
-    '                     path: _url.path, ca: fs.readFileSync(_caPath) };',
+    '                     path: _url.path, ca: fs.readFileSync(_caPath, "utf8")',
+    '                         .match(/-----BEGIN CERTIFICATE-----[\\s\\S]+?-----END CERTIFICATE-----/g) };',
     '    } catch (e) { /* no CA available: fall back to the default roots */ }',
     '}',
     '',
@@ -133,7 +143,20 @@ function apply(options) {
   var output = null;
 
   var patchedSha256 = sourceHash;
-  if (REVIEWED[sourceHash]) {
+  var originalHash = sourceHash;
+  var backup = TARGET + '.phoenix-ota-tls.bak';
+  if (PREVIOUS[sourceHash]) {
+    // Re-patch from the saved original, which must be the reviewed source.
+    originalHash = PREVIOUS[sourceHash];
+    if (!fs.existsSync(backup)) throw new Error('OTA downloader carries an earlier patch but its original backup is missing');
+    regularFile(backup, 'OTA downloader backup');
+    source = fs.readFileSync(backup);
+    if (sha256(source) !== originalHash) throw new Error('OTA downloader backup is not the reviewed original source');
+    output = utf8Buffer(patchSource(source.toString('utf8'), CA_PATH));
+    patchedSha256 = REVIEWED[originalHash];
+    if (sha256(output) !== patchedSha256) throw new Error('generated OTA downloader patch does not match the reviewed pin');
+    state = 'upgraded';
+  } else if (REVIEWED[sourceHash]) {
     output = utf8Buffer(patchSource(source.toString('utf8'), CA_PATH));
     patchedSha256 = REVIEWED[sourceHash];
     if (sha256(output) !== patchedSha256) {
@@ -159,10 +182,9 @@ function apply(options) {
   if (options.dryRun) return result;
 
   if (output) {
-    var backup = TARGET + '.phoenix-ota-tls.bak';
     if (fs.existsSync(backup)) {
       regularFile(backup, 'OTA downloader backup');
-      if (sha256(fs.readFileSync(backup)) !== sourceHash) {
+      if (sha256(fs.readFileSync(backup)) !== originalHash) {
         throw new Error('OTA downloader backup is not the reviewed original source');
       }
     } else {
@@ -172,7 +194,7 @@ function apply(options) {
     ensureSafeParent(RECEIPT);
     writeAtomic(RECEIPT, utf8Buffer(JSON.stringify({
       kind: 'phoenix-ota-downloader-tls', target: TARGET, backup: backup,
-      originalSha256: sourceHash, patchedSha256: patchedSha256,
+      originalSha256: originalHash, patchedSha256: patchedSha256,
       originalMode: priorMode.toString(8), patchedMode: EXECUTABLE_MODE.toString(8)
     }, null, 2) + '\n'), 0o600);
   } else if (priorMode !== EXECUTABLE_MODE) {

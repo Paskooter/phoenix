@@ -103,6 +103,7 @@ CLIENT_V2_SOURCE="${SCRIPT_DIR}/robot-client/node-v2.js"
 ROOT_PEM_SRC="${REGION_CA}"
 BACKUP_TLS_PATCHER="${SCRIPT_DIR}/robot-client/patch-system-backup-tls.cjs"
 OTA_TLS_PATCHER="${SCRIPT_DIR}/robot-client/patch-ota-downloader-tls.cjs"
+SSM_WIFI_PATCHER="${SCRIPT_DIR}/robot-client/patch-ssm-wifi-check.cjs"
 OTA_TRIGGER="${SCRIPT_DIR}/robot-client/trigger-ota.cjs"
 SUPPORT_DIR=""
 CLIENT_SOURCE_SHA256="29686ca0aec6b93b8b716b94fca443ce25e6e7e55e01e798be56bce920c66bac"
@@ -113,7 +114,8 @@ STOCK_CLIENT_V2_SHA256="81533de391dfba88fc40bedfc63ea30a77f8d032f9a8c23196db4cb3
 STOCK_CLIENT_V3_SHA256="c3511dbc55c8a9ec3ac74a675a1245306b55c67fab65a3ecfe896ed01689997a"
 ROOT_PEM_SOURCE_SHA256="22b557a27055b33606b6559f37703928d3e4ad79f110b407d04986e1843543d1"
 BACKUP_TLS_PATCHER_SHA256="0fee710b1dec524b8d4629deb19e8be9dc1013e161abed4180be3d2f2c28e2d8"
-OTA_TLS_PATCHER_SHA256="71fd99251474cff3ed4a993711d12069b74c0d2c653e04fedfe0218c0302beff"
+OTA_TLS_PATCHER_SHA256="51b71ff2e02569f203998b7d82c6e3f2743030a48bbc3abc149a66c6563061f1"
+SSM_WIFI_PATCHER_SHA256="01e806871ed64736e4717856aed1be49c4898723d8bb253d68cab860c9f64947"
 OTA_TRIGGER_SHA256="8454e5e68b8386e065463b3fab1123db99c3b8700ef400b9631a17eae44a76ff"
 
 cleanup_support() {
@@ -144,7 +146,7 @@ fetch_support_asset() {
 ensure_support_assets() {
   # A checked-out copy has both support files already. A standalone download
   # receives only the missing file(s), never overwrites a supplied custom CA.
-  if [ ! -r "$CLIENT_SOURCE" ] || [ ! -r "$CLIENT_V2_SOURCE" ] || [ ! -r "$BACKUP_TLS_PATCHER" ] || [ ! -r "$OTA_TLS_PATCHER" ] || { [ -z "$ROOT_PEM_SRC" ] && [ ! -r "${SCRIPT_DIR}/robot-client/isrg-root-x1.pem" ]; }; then
+  if [ ! -r "$CLIENT_SOURCE" ] || [ ! -r "$CLIENT_V2_SOURCE" ] || [ ! -r "$BACKUP_TLS_PATCHER" ] || [ ! -r "$OTA_TLS_PATCHER" ] || [ ! -r "$SSM_WIFI_PATCHER" ] || { [ -z "$ROOT_PEM_SRC" ] && [ ! -r "${SCRIPT_DIR}/robot-client/isrg-root-x1.pem" ]; }; then
     SUPPORT_DIR="$(mktemp -d "${TMPDIR:-/tmp}/phoenix-repoint.XXXXXX")" || die "could not create a temporary support directory"
   fi
   if [ ! -r "$CLIENT_SOURCE" ]; then
@@ -174,6 +176,11 @@ ensure_support_assets() {
     mkdir -p "$SUPPORT_DIR/robot-client"
     OTA_TLS_PATCHER="$SUPPORT_DIR/robot-client/patch-ota-downloader-tls.cjs"
     fetch_support_asset '/robot-client/patch-ota-downloader-tls.cjs' "$OTA_TLS_PATCHER" "$OTA_TLS_PATCHER_SHA256"
+  fi
+  if [ ! -r "$SSM_WIFI_PATCHER" ]; then
+    mkdir -p "$SUPPORT_DIR/robot-client"
+    SSM_WIFI_PATCHER="$SUPPORT_DIR/robot-client/patch-ssm-wifi-check.cjs"
+    fetch_support_asset '/robot-client/patch-ssm-wifi-check.cjs' "$SSM_WIFI_PATCHER" "$SSM_WIFI_PATCHER_SHA256"
   fi
 }
 
@@ -595,7 +602,8 @@ if [ "$HAS_JETSTREAM" -eq 1 ]; then
 else
   say "  6. (no jetstream hub config on this firmware; its audio path uses the client configs in step 1)"
 fi
-say "  7. ensure /var/jibo/keys exists as a private directory (mode 0700; preserve existing keys)"
+say "  7. ensure /var/jibo/keys exists as a private directory (mode 0700; preserve existing keys),"
+say "     and point jibo-ssm's Wi-Fi server check at ${PUBLIC_SUFFIX} where it still names the old cloud"
 if [ "$OOBE" -eq 1 ]; then
   say "  8. leave this unprovisioned robot unregistered; QR setup will create and link it later"
 elif [ -n "$CLAIM_CODE" ]; then
@@ -647,6 +655,7 @@ preflight_patcher() {
   case "$out" in
     patched) out="reviewed stock version; ready to patch" ;;
     already-patched) out="already patched" ;;
+    upgraded) out="carries an earlier patch; will be upgraded from its saved original" ;;
     mode-repaired) out="already patched; its executable mode will be restored" ;;
     *jibo-system-*)
       # One "<helper>: original|patched" line per helper.
@@ -655,6 +664,7 @@ preflight_patcher() {
   say "  ${label}: ${out}"
 }
 preflight_patcher "OTA downloader" "$OTA_TLS_PATCHER"
+preflight_patcher "Wi-Fi server check" "$SSM_WIFI_PATCHER" --suffix "$PUBLIC_SUFFIX"
 if [ "$HAS_BACKUP_HELPERS" -eq 1 ]; then
   preflight_patcher "backup/restore helpers" "$BACKUP_TLS_PATCHER" \
     --root /usr/local/bin --receipt /var/lib/phoenix/jibo-system-backup-tls.json
@@ -903,6 +913,32 @@ out="$(rsh "
 printf '%s\n' "$out"
 APPLIED+=("/usr/bin/jibo-download-update explicit public CA + mode 0755")
 
+# 7c-ter-bis. The Wi-Fi server check. When Jibo joins a network (during setup
+# too) jibo-ssm confirms it can reach "Jibo's servers". On the factory RTM2/RTM3
+# images that check targets <region>.jibo.com, which the region configs above do
+# not cover, over Node 4's built-in roots, which cannot verify this server. Setup
+# then stops at "Can't connect to Jibo's server" (error 4) before it ever asks
+# for credentials. Later firmware checks google.com and is left alone.
+SSM_WIFI_REMOTE="$(rsh 'mktemp /tmp/phoenix-ssm-wifi-check.XXXXXX' 2>/dev/null | tr -d '\r')"
+[[ "$SSM_WIFI_REMOTE" =~ ^/tmp/phoenix-ssm-wifi-check\.[A-Za-z0-9]+$ ]] || die "could not allocate a safe remote Wi-Fi check patch path"
+rput "$SSM_WIFI_PATCHER" "$SSM_WIFI_REMOTE" || die "could not upload the Wi-Fi server check patcher"
+out="$(rsh "
+  set -eu
+  PATCH='$SSM_WIFI_REMOTE'
+  cleanup() {
+    status=\$?
+    trap - EXIT HUP INT TERM
+    rm -f \"\$PATCH\"
+    [ ${LOCAL_WAS_RO} -eq 0 ] || mount -o remount,ro /usr/local 2>/dev/null || true
+    exit \$status
+  }
+  trap cleanup EXIT HUP INT TERM
+  mount -o remount,rw /usr/local
+  node \"\$PATCH\" --suffix '${PUBLIC_SUFFIX}'
+" 2>&1 | tr -d '\r')" || die "could not apply the Wi-Fi server check patch: $out"
+say "  Wi-Fi server check: ${out}"
+case "$out" in patched|already-patched) APPLIED+=("jibo-ssm Wi-Fi server check -> ${PUBLIC_SUFFIX}") ;; esac
+
 # 7c-quater. System-manager backup/restore. The established public CA bundle has
 # just been installed above. These are separate Node 6 scripts, not consumers of
 # @jibo/jibo-server-client, so the client patch does not make their raw upload
@@ -976,7 +1012,7 @@ out="$(rsh "
   printf '  hub -> %s:443 (jetstream override)\n' '${HUB_HOST}'
 " 2>&1 | tr -d '\r')" || die "could not configure the jetstream hub: $out"
 printf '%s\n' "$out"
-APPLIED+=("/usr/local/etc/jibo-jetstream-service.json")
+[ "$HAS_JETSTREAM" -eq 0 ] || APPLIED+=("/usr/local/etc/jibo-jetstream-service.json")
 
 # 7c-quinquies. The notification socket. From 8.x on, the native server service
 # builds its socket host as <region> + NotificationSubsystem.serverURLSuffix

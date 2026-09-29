@@ -13,11 +13,11 @@ const claimCode = 'A'.repeat(43);
 const STOCK_V3 = 'c3511dbc55c8a9ec3ac74a675a1245306b55c67fab65a3ecfe896ed01689997a';
 const STOCK_V2 = '81533de391dfba88fc40bedfc63ea30a77f8d032f9a8c23196db4cb3a44fa89b';
 const FIRMWARE = {
-  '13': { release: 'Jibo Release Version: Release-13.0.0-20190225', node: 'v6.9.2', backup: 'yes', jetstream: 'yes', handler: STOCK_V3,
+  '13': { release: 'Jibo Release Version: Release-13.0.0-20190225', node: 'v6.9.2', backup: 'yes', jetstream: 'yes', ssm: 'google', handler: STOCK_V3,
     found: ['/usr/lib/node_modules/@jibo/jibo-server-client/lib/region_config.json',
       '/opt/jibo/Jibo/Skills/@be/be/node_modules/@jibo/jibo-server-client/lib/region_config.json'] },
   // RTM3: the factory image a new-in-box robot runs (Node 4, 2.x clients, no backup helpers).
-  rtm3: { release: 'Jibo Release Version: Release-3.3.4-20170623', node: 'v4.1.2', backup: 'no', jetstream: 'no', handler: STOCK_V2,
+  rtm3: { release: 'Jibo Release Version: Release-3.3.4-20170623', node: 'v4.1.2', backup: 'no', jetstream: 'no', ssm: 'jibo.com', handler: STOCK_V2,
     found: ['/usr/lib/node_modules/@jibo/jibo-server-client/lib/region_config.json',
       '/usr/local/bin/jibo-ssm/node_modules/@jibo/jibo-server-client/lib/region_config.json',
       '/opt/jibo/Jibo/Skills/oobe-config/node_modules/@jibo/jibo-server-client/lib/region_config.json'] },
@@ -67,6 +67,8 @@ case "$cmd" in
   *"sha256sum '"*'/http/node.js'*) [ -z "$PHOENIX_TEST_HANDLER" ] || echo "$PHOENIX_TEST_HANDLER  node.js" ;;
   'mktemp /tmp/phoenix-preflight.XXXXXX') echo /tmp/phoenix-preflight.abc123 ;;
   "cat > '/tmp/phoenix-preflight.abc123'") cat > /dev/null ;;
+  "node '/tmp/phoenix-preflight.abc123' --dry-run --suffix"*)
+    if [ "$PHOENIX_TEST_SSM" = google ]; then echo 'not-needed (checks google.com)'; else echo patched; fi ;;
   "node '/tmp/phoenix-preflight.abc123' --dry-run"*)
     if [ "$PHOENIX_TEST_PREFLIGHT" = ok ]; then echo patched
     else echo 'patch-ota-downloader-tls: OTA downloader has an unsupported source hash: 0123' >&2; exit 2; fi ;;
@@ -94,7 +96,7 @@ esac
         PHOENIX_TEST_CREDS: credentials ? 'yes' : 'no', PHOENIX_TEST_MODE: mode,
         PHOENIX_TEST_CREDS_SHAPE: shape, PHOENIX_TEST_REGION: region,
         PHOENIX_TEST_AUTH: auth, PHOENIX_TEST_LOG: join(dir, 'ssh.log'),
-        PHOENIX_TEST_RELEASE: fw.release, PHOENIX_TEST_NODE: fw.node, PHOENIX_TEST_BACKUP: fw.backup, PHOENIX_TEST_JETSTREAM: fw.jetstream,
+        PHOENIX_TEST_RELEASE: fw.release, PHOENIX_TEST_NODE: fw.node, PHOENIX_TEST_BACKUP: fw.backup, PHOENIX_TEST_JETSTREAM: fw.jetstream, PHOENIX_TEST_SSM: fw.ssm,
         PHOENIX_TEST_HANDLER: handler ?? fw.handler, PHOENIX_TEST_FOUND: fw.found.join(' '),
         PHOENIX_TEST_PREFLIGHT: preflight },
     });
@@ -142,6 +144,7 @@ test('a damaged credentials file stops before any change instead of failing at a
 
 test('a key login is used without trying any password', () => {
   const out = preview({ credentials: true, mode: 'normal', claim: true });
+  assert.match(out, /Wi-Fi server check: not-needed \(checks google\.com\)/);
   assert.match(out, /login {5}: root via key/);
   assert.doesNotMatch(out, /factory root password/);
 });
@@ -173,6 +176,8 @@ test('a new-in-box RTM3 robot gets the 2.x client build, a default region, and n
   assert.match(out, /no system backup\/restore helpers on this firmware/);
   assert.match(out, /OTA downloader: reviewed stock version; ready to patch/);
   assert.match(out, /no jetstream hub config on this firmware/);
+  // The factory Wi-Fi check still names the old cloud and is patched (see patch-ssm-wifi-check.cjs).
+  assert.match(out, /Wi-Fi server check: reviewed stock version; ready to patch/);
   assert.doesNotMatch(out, /backup\/restore helpers: /);
 });
 

@@ -86,12 +86,33 @@ Probed from the ext4 images of each archived flash build with
 | Notification socket suffix | 8.x+ | never changed; only the jibo.io services OTA fixed it | rewritten, with a backup |
 | `/usr/local` read-write by default | 3.x–5.x | left read-only until reboot | restored to how it was found |
 | Any unreviewed patch target | future/unknown | discovered mid-apply | both patchers run in `--dry-run` as a compatibility check before any change |
+| Wi-Fi check names the old cloud | 3.x | setup stopped at "Can't connect to Jibo's server" (error 4) before asking for credentials | `patch-ssm-wifi-check.cjs` points it at this server and gives it the CA bundle; firmware that checks google.com is left alone |
+| Node 4 reads only the first certificate of a PEM bundle | 3.x | the OTA downloader (and the Wi-Fi check) could not verify this server even with the root installed | both split the bundle into certificates; robots with the earlier downloader patch are upgraded from the saved original |
+
+## Found on the first factory robot (Aero, RTM3 3.3.4, 2026-09-29)
+
+The first setup of a repointed RTM3 robot failed with "Can't connect to Jibo's server", and no
+request ever reached the server. On the robot:
+
+- `jibo-ssm` verifies a new Wi-Fi connection in three steps; the third, `_checkJiboServers` in
+  `/usr/local/bin/jibo-ssm/lib/skills-service-manager.js`, does
+  `https.get({ host: <region> + ".jibo.com", path: '/' })`. The suffix is a literal in that file,
+  not in any `region_config.json`, so it kept testing the dead original cloud. It logs
+  `ssm-wifi-service: error: ErrorCode { code: 4, description: 'Cannot Ping Jibo Servers' }`, and
+  the setup skill maps code 4 to error `wifi4`. 13.0 checks `google.com` instead.
+- Node 4.1.2 with the whole CA bundle as `ca` fails with `UNABLE_TO_GET_ISSUER_CERT_LOCALLY`; the
+  same bundle split into certificates, or the single ISRG root file, connects. Node 4 reads only
+  the first certificate of a PEM string, and the repoint appends the ISRG root at the end.
+- The setup skill (`oobe-config` 4.x) hard-codes region `api` and asks for updates with the filter
+  `rtm2Jinx`. The robot's clock, DNS and the repointed client copies were all correct.
+- `/var/log` is a RAM disk on this firmware: logs do not survive a reboot. Capture them over SSH
+  (`tail -f /var/log/messages`) while reproducing.
 
 ## Still unverified
 
-1. **A hardware run on factory RTM2 or RTM3 firmware.** Everything above for 3.x is from
-   the images, the archived packages, and offline runs of the patchers and client builds
-   on Node 4.1.2 against the real stock files. No 3.x robot has been repointed yet.
+1. **A complete setup on factory firmware.** Aero (RTM3) has been repointed and the two faults
+   above fixed by hand on it; a clean run of the updated helper on a freshly flashed robot, through
+   QR setup and its OTA, is the next test.
 2. **The OTA from a 3.x base.** After QR setup the old setup skill asks for updates. The
    jibo.io catalog must offer packages to `fromVersion` 3.0.x/3.3.x, and updater 1.3.0 must
    accept them. The original cloud did ship direct RTM3 → 8.x and RTM3 → Hashbrown OTAs,
