@@ -152,8 +152,18 @@ export class Catalog {
     return e.fromVersion === fromVersion;
   }
 
+  /**
+   * Phoenix divergence: a filter the catalog does not carry for this subsystem falls back
+   * to the unfiltered entries. Firmware bakes its filter in (factory RTM images ask with
+   * "rtm2Jinx", retail robots "fcs", others "eau"), and the source served each only from
+   * its own channel, so an unknown channel meant "no updates" at setup. A channel that does
+   * exist still wins, and a filterless request still never sees a filtered channel.
+   */
   listUpdates({ subsystem, filter } = {}) {
-    return this.entries.filter((e) => this._matchSubsystem(e, subsystem) && this._matchFilter(e, filter));
+    const scoped = this.entries.filter((e) => this._matchSubsystem(e, subsystem));
+    const matched = scoped.filter((e) => this._matchFilter(e, filter));
+    if (matched.length || !filter) return matched;
+    return scoped.filter((e) => this._matchFilter(e, ''));
   }
 
   /**

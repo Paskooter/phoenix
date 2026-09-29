@@ -109,6 +109,12 @@ request ever reached the server. On the robot:
   the first certificate of a PEM string, and the repoint appends the ISRG root at the end.
 - The setup skill (`oobe-config` 4.x) hard-codes region `api` and asks for updates with the filter
   `rtm2Jinx`. The robot's clock, DNS and the repointed client copies were all correct.
+- Second run (fresh flash, updated helper): Wi-Fi check and `SetupRobot` succeeded, then setup
+  showed "no updates found". The OTA service logged every `GetUpdateFrom` with filter `rtm2Jinx`
+  returning 0: the catalog carried only the default, `fcs` and `eau` channels, and the source
+  rule never serves unfiltered packages to a filtered request. The OTA catalog now falls back to
+  the unfiltered packages when a robot asks with a channel it does not carry
+  (`packages/ota/src/catalog.js` `listUpdates`), so any baked-in filter gets the default release.
 - `/var/log` is a RAM disk on this firmware: logs do not survive a reboot. Capture them over SSH
   (`tail -f /var/log/messages`) while reproducing.
 

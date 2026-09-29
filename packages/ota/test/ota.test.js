@@ -221,21 +221,34 @@ test('filter: prefix when asked for, empty-string-exact when not', () => {
   assert.equal(catalog.listUpdates({ subsystem: 'be', filter: 'gr' }).length, 1);
   assert.equal(catalog.listUpdates({ subsystem: 'be', filter: '' }).length, 0, 'a filterless request must not see the "green" entry');
   assert.equal(catalog.listUpdates({ subsystem: 'os', filter: '' }).length, 2, 'unfiltered entries are served to a filterless request');
-  assert.equal(catalog.listUpdates({ subsystem: 'os', filter: 'gr' }).length, 0, 'an unfiltered entry must not be served to a filtered request');
+  assert.equal(catalog.listUpdates({ subsystem: 'be', filter: 'gr' }).length, 1, 'a filtered request is served its own channel');
+  assert.equal(catalog.listUpdates({ subsystem: 'os', filter: 'gr' }).length, 2, 'a channel the catalog lacks falls back to the unfiltered entries');
 });
 
 test('a filterless catalog entry is invisible to a stock robot (filter is not a wildcard)', () => {
   // A stock robot sends otaFilter "fcs", baked into its jibo-ssm-normal.json. An
   // entry published with filter '' is NOT a wildcard: the source rule prefix-matches
-  // the ENTRY's filter against the REQUEST's, so '' never matches 'fcs'. Publishing
-  // only filterless entries makes a correct, fully-populated catalog report "already
-  // up to date" to every real robot, which is exactly what happened on jibo.io.
+  // the ENTRY's filter against the REQUEST's, so '' never matches 'fcs'. (Catalog
+  // listing now falls back to filterless entries when a channel is missing; see the
+  // next test. filterMatches itself stays the source rule.)
   assert.equal(filterMatches('', 'fcs'), false, "'' must not serve an fcs robot");
   assert.equal(filterMatches('fcs', 'fcs'), true);
   // ...and the converse: an fcs entry must not leak to a robot that sends no filter,
   // which is why a catalog has to carry BOTH forms of each version.
   assert.equal(filterMatches('fcs', ''), false);
   assert.equal(filterMatches('', ''), true);
+});
+
+test('a robot asking with a channel the catalog lacks gets the default packages', () => {
+  const cat = new Catalog({ log: { info() {}, warn() {} } });
+  const entry = (id, filter) => ({ id, subsystem: 'os', fromVersion: '*', toVersion: '13.0.7', filter });
+  cat.entries = [entry('os', ''), entry('os-fcs', 'fcs')];
+  // A factory RTM3 image asks with "rtm2Jinx" during setup.
+  assert.deepEqual(cat.listUpdatesFrom({ subsystem: 'os', fromVersion: '3.3.4', filter: 'rtm2Jinx' }).map((e) => e.id), ['os']);
+  // A channel that exists is still served on its own.
+  assert.deepEqual(cat.listUpdatesFrom({ subsystem: 'os', fromVersion: '3.3.4', filter: 'fcs' }).map((e) => e.id), ['os-fcs']);
+  // An up-to-date robot on an existing channel is not pushed to the default one.
+  assert.equal(cat.getUpdateFrom({ subsystem: 'os', fromVersion: '13.0.7', filter: 'fcs' }), null);
 });
 
 test('filterMatches is the source rule in both directions', () => {
