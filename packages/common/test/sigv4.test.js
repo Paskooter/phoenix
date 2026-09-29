@@ -209,15 +209,76 @@ test('an explicit x-amz-content-sha256 follows the native source signer path onl
       'x-amz-content-sha256': emptyHash,
     },
   });
-  const nativeHeaders = { ...result.headers, 'X-Amz-Target': 'Account_20151111.CreateHubToken' };
   // A caller-controlled payload hash must not be trusted by default: otherwise an attacker can
   // sign an empty body and attach an arbitrary entity after signing. Only the two documented
   // native operations may opt into this legacy wire ordering.
-  assert.equal(errorCode(() => verify(nativeHeaders, { body: '{"attachedAfterSigning":true}' })), 'SIGNATURE_MISMATCH');
-  assert.equal(verify(nativeHeaders, {
-    body: '{"attachedAfterSigning":true}',
-    allowNativeClientPayloadHash: true,
-  }).accessKeyId, ACCESS_KEY);
+  for (const target of ['Account_20151111.CreateHubToken', 'Notification_20150505.NewRobotToken']) {
+    const nativeHeaders = { ...result.headers, 'X-Amz-Target': target };
+    assert.equal(errorCode(() => verify(nativeHeaders, { body: '{"attachedAfterSigning":true}' })),
+      'SIGNATURE_MISMATCH', target);
+    assert.equal(verify(nativeHeaders, {
+      body: '{"attachedAfterSigning":true}',
+      allowNativeClientPayloadHash: true,
+    }).accessKeyId, ACCESS_KEY, target);
+  }
+});
+
+test('the stock Media.Create UNSIGNED-PAYLOAD marker still requires a valid signed-header HMAC', () => {
+  const body = Buffer.from('encrypted photo bytes');
+  const result = signed({
+    body,
+    service: 'media',
+    region: 'us-east-1',
+    headers: {
+      'X-Amz-Target': 'Media_20160725.Create',
+      'X-Amz-Content-Sha256': 'UNSIGNED-PAYLOAD',
+    },
+  });
+  assert.match(result.authorization, /SignedHeaders=[^,]*x-amz-target/);
+  assert.equal(result.canonicalRequest.split('\n').at(-1), 'UNSIGNED-PAYLOAD');
+  assert.equal(errorCode(() => verify(result.headers, { body })), 'SIGNATURE_MISMATCH');
+  assert.equal(verify(result.headers, { body, allowNativeClientPayloadHash: true }).accessKeyId, ACCESS_KEY);
+  assert.equal(errorCode(() => verify({ ...result.headers, Host: 'tampered.test' }, {
+    body, allowNativeClientPayloadHash: true,
+  })), 'SIGNATURE_MISMATCH');
+  assert.equal(errorCode(() => verify({ ...result.headers, Authorization: result.authorization.replace(/.$/, (last) => last === '0' ? '1' : '0') }, {
+    body, allowNativeClientPayloadHash: true,
+  })), 'SIGNATURE_MISMATCH');
+});
+
+test('UNSIGNED-PAYLOAD is confined to signed Media.Create at POST /', () => {
+  const body = Buffer.from('encrypted photo bytes');
+  for (const target of ['Media_20160725.List', 'Backup_20170222.New']) {
+    const result = signed({ body, headers: {
+      'X-Amz-Target': target,
+      'X-Amz-Content-Sha256': 'UNSIGNED-PAYLOAD',
+    } });
+    assert.equal(errorCode(() => verify(result.headers, { body, allowNativeClientPayloadHash: true })),
+      'SIGNATURE_MISMATCH', target);
+  }
+
+  // Signing the marker first and attaching the target later must not gain the exception.
+  const targetUnsigned = signSigV4({ ...BASE, body,
+    headers: { Host: 'example.test', 'X-Amz-Content-Sha256': 'UNSIGNED-PAYLOAD' },
+  });
+  assert.doesNotMatch(targetUnsigned.authorization, /SignedHeaders=[^,]*x-amz-target/);
+  assert.equal(errorCode(() => verify({ ...targetUnsigned.headers,
+    'X-Amz-Target': 'Media_20160725.Create',
+  }, { body, allowNativeClientPayloadHash: true })), 'SIGNATURE_MISMATCH');
+
+  for (const [method, path, marker] of [
+    ['GET', '/', 'UNSIGNED-PAYLOAD'],
+    ['POST', '/media', 'UNSIGNED-PAYLOAD'],
+    ['POST', '/', 'unsigned-payload'],
+  ]) {
+    const result = signed({ method, path, body, headers: {
+      'X-Amz-Target': 'Media_20160725.Create',
+      'X-Amz-Content-Sha256': marker,
+    } });
+    assert.equal(errorCode(() => verify(result.headers, {
+      method, path, body, allowNativeClientPayloadHash: true,
+    })), 'SIGNATURE_MISMATCH', `${method} ${path} ${marker}`);
+  }
 });
 
 test('accepts the shipped Android client\'s empty service segment', () => {

@@ -198,8 +198,12 @@ const NATIVE_CLIENT_BODY_HASH_TARGETS = new Set([
   'Account_20151111.CreateHubToken',
   'Notification_20150505.NewRobotToken',
 ]);
+// jibo-ssm's media manager passes an encrypted stream without a file path to the stock Node 6
+// client. It signs UNSIGNED-PAYLOAD in the canonical request. Only Media.Create may use it, and
+// only when the operation target itself is signed; TLS then protects the streamed body in transit.
+const NATIVE_CLIENT_UNSIGNED_PAYLOAD_TARGET = 'Media_20160725.Create';
 
-function verifyReceivedBodyHash({ headers, parsed, body, bodyDigest, method, allowNativeClientPayloadHash }) {
+function verifyReceivedBodyHash({ headers, parsed, body, bodyDigest, method, path, allowNativeClientPayloadHash }) {
   const explicit = headerValue(headers, 'x-amz-content-sha256');
   if (explicit === undefined) return;
   if (bodyDigest !== undefined && !/^[a-f0-9]{64}$/.test(bodyDigest)) fail('SIGNATURE_MISMATCH');
@@ -213,6 +217,12 @@ function verifyReceivedBodyHash({ headers, parsed, body, bodyDigest, method, all
   // hash, an exact documented target, POST, and a target omitted from SignedHeaders qualify.
   const target = headerValue(headers, 'x-amz-target');
   const signed = new Set(String(parsed.signedHeaders).split(';').map((name) => name.trim().toLowerCase()));
+  if (allowNativeClientPayloadHash
+    && String(method).toUpperCase() === 'POST'
+    && path === '/'
+    && explicit === 'UNSIGNED-PAYLOAD'
+    && target === NATIVE_CLIENT_UNSIGNED_PAYLOAD_TARGET
+    && signed.has('x-amz-target')) return;
   if (allowNativeClientPayloadHash
     && String(method).toUpperCase() === 'POST'
     && explicit === EMPTY_BODY_SHA256
@@ -429,6 +439,7 @@ export function verifySigV4({
     body,
     bodyDigest,
     method,
+    path,
     allowNativeClientPayloadHash,
   });
   const request = canonicalRequest({
