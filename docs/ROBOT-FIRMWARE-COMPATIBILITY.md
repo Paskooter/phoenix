@@ -55,6 +55,10 @@ Probed from the ext4 images of each archived flash build with
 
 - OpenSSH 7.3p1 with ed25519 host keys, `PermitRootLogin yes`, password login enabled,
   `/usr/libexec/sftp-server`, and a root password hash that verifies as `jibo`.
+  Host keys are generated on the robot, so a reflash gives it new ones (Aero, 2026-09-29).
+  The helper trusts a never-seen robot on first use, ignores keys filed under a robot's old
+  DHCP address (`CheckHostIP=no`), and for a changed key shows the new fingerprint and asks
+  before removing the old entry with `ssh-keygen -R`; `--yes` does not answer that question.
 - The firewall init script rejects inbound connections, SSH included, in `normal` and
   `oobe` modes, and leaves them open in `int-developer`, `identified` and `developer`
   (checked on RTM3 3.3.4, 5.4.0, 8.19.0, 10.5.7 and 13.0.0; not recorded for RTM2).

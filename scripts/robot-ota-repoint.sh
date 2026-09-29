@@ -237,8 +237,11 @@ case "$ROBOT" in *@*) ;; *) ROBOT="root@${ROBOT}" ;; esac
 DEFAULT_ROBOT_PASSWORD="jibo"
 SSH_DIR="$(mktemp -d /tmp/phoenix-ssh.XXXXXX)" || die "could not create a private SSH control directory"
 SSH_CONTROL="${SSH_DIR}/master"
+# accept-new: a robot never seen before is trusted on first use. CheckHostIP=no:
+# robots take DHCP addresses, so a stale key filed under an old IP is noise that
+# would otherwise fail a key the hostname entry already matches.
 SSH_OPTS=(-o ConnectTimeout=10 -o ServerAliveInterval=15 -o StrictHostKeyChecking=accept-new
-  -o ControlPath="$SSH_CONTROL")
+  -o CheckHostIP=no -o ControlPath="$SSH_CONTROL")
 SSH=(ssh "${SSH_OPTS[@]}" "$ROBOT")
 rsh() { "${SSH[@]}" "$@"; }
 # Uploads go through the same connection as `cat`, not scp: newer clients run
@@ -262,9 +265,47 @@ open_master() {
   return 1
 }
 
+host_key_failed() {
+  grep -qE 'REMOTE HOST IDENTIFICATION HAS CHANGED|Host key verification failed' "${SSH_DIR}/err" 2>/dev/null
+}
+
+# The names the robot's key is filed under in known_hosts: the real host name
+# (after any ssh_config alias), "[host]:port" off port 22, and its current IP.
+known_host_names() {
+  local host port address
+  host="$(ssh -G "$ROBOT" 2>/dev/null | awk '$1 == "hostname" { print $2; exit }')"
+  port="$(ssh -G "$ROBOT" 2>/dev/null | awk '$1 == "port" { print $2; exit }')"
+  [ -n "$host" ] || host="${ROBOT#*@}"
+  address="$(getent hosts "$host" 2>/dev/null | awk '{ print $1; exit }')"
+  local name
+  for name in "$host" ${address:+"$address"}; do
+    if [ -n "$port" ] && [ "$port" != 22 ]; then printf '[%s]:%s\n' "$name" "$port"; else printf '%s\n' "$name"; fi
+  done | awk '!seen[$0]++'
+}
+
+# Reflashing gives the robot a new host key, so a changed key is the normal
+# case here, but it is still the user's call: show the new fingerprint and ask
+# (--yes does not answer this). Without a terminal, say exactly what to run.
+forget_changed_host_key() {
+  local names fingerprint answer name
+  names="$(known_host_names)"
+  fingerprint="$(grep -oE 'SHA256:[A-Za-z0-9+/=]+' "${SSH_DIR}/err" | head -1)"
+  if ! { : </dev/tty; } 2>/dev/null; then
+    die "the robot's SSH host key changed (normal after a reflash). If this is your Jibo, run: $(printf 'ssh-keygen -R %s; ' $names)then run this again"
+  fi
+  say "  ${ROBOT}'s SSH host key has changed. That is expected if it was reflashed or reset;"
+  say "  otherwise another device may be answering at this address."
+  [ -z "$fingerprint" ] || say "  New key fingerprint: ${fingerprint}"
+  printf '  Forget the old key for %s and continue? [y/N] ' "$(echo $names)" >/dev/tty
+  read -r answer </dev/tty || answer=""
+  case "$answer" in y|Y|yes|YES) ;; *) die "stopped: the robot's host key was not accepted" ;; esac
+  for name in $names; do ssh-keygen -R "$name" >/dev/null 2>&1 || true; done
+  say "  Old host key removed; the new one will be saved on this connection."
+}
+
 ssh_failure_hint() {
-  if grep -q 'REMOTE HOST IDENTIFICATION HAS CHANGED' "${SSH_DIR}/err" 2>/dev/null; then
-    die "the robot's SSH host key changed (normal after a reflash). If this is your Jibo, run: ssh-keygen -R ${ROBOT#*@}"
+  if host_key_failed; then
+    die "the robot's SSH host key changed (normal after a reflash). If this is your Jibo, run: $(printf 'ssh-keygen -R %s; ' $(known_host_names))then run this again"
   fi
   if grep -qiE 'timed out|no route|refused|could not resolve|unreachable' "${SSH_DIR}/err" 2>/dev/null; then
     die "cannot reach ${ROBOT} over SSH: $(tail -1 "${SSH_DIR}/err")"
@@ -273,6 +314,10 @@ ssh_failure_hint() {
 
 connect_robot() {
   if open_master -o BatchMode=yes; then SSH_AUTH="key"; return 0; fi
+  if host_key_failed; then
+    forget_changed_host_key
+    if open_master -o BatchMode=yes; then SSH_AUTH="key"; return 0; fi
+  fi
   ssh_failure_hint
 
   # The factory password, answered by an askpass helper instead of a person.

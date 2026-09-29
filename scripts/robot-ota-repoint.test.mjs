@@ -24,7 +24,7 @@ const FIRMWARE = {
 };
 
 function preview({ credentials, mode, claim = false, shape = 'ok', region = 'stg-entrypoint', auth = 'key', robot = 'root@192.0.2.15',
-  firmware = '13', handler, preflight = 'ok' }) {
+  firmware = '13', handler, preflight = 'ok', hostKey = 'known' }) {
   const fw = FIRMWARE[firmware];
   const dir = mkdtempSync(join(tmpdir(), 'phoenix-repoint-test-'));
   const ssh = join(dir, 'ssh');
@@ -40,8 +40,14 @@ for a in "$@"; do
   esac
 done
 if [[ " $* " == *" -O exit "* ]]; then rm -f "$control"; exit 0; fi
+if [ "$1" = -G ]; then printf 'hostname %s\\nport 22\\n' "\${2#*@}"; exit 0; fi
 if [ "$master" = 1 ]; then
   echo "\${*: -1}" >> "$PHOENIX_TEST_LOG"
+  if [ -e "$PHOENIX_TEST_STALE_KEY" ]; then
+    printf '%s\\n' '@ WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED! @' \\
+      'SHA256:/FAfL6lYTXGslXazJhiJPgKnxtKoBkPynUDPGSvO0pM.' 'Host key verification failed.' >&2
+    exit 255
+  fi
   if [ "$batch" = 1 ]; then
     [ "$PHOENIX_TEST_AUTH" = key ] || { echo 'Permission denied (publickey,password).' >&2; exit 255; }
     echo key >> "$PHOENIX_TEST_LOG"
@@ -88,6 +94,13 @@ case "$cmd" in
 esac
 `);
   chmodSync(ssh, 0o755);
+  const keygen = join(dir, 'ssh-keygen');
+  writeFileSync(keygen, `#!/usr/bin/env bash
+echo "ssh-keygen $*" >> "$PHOENIX_TEST_LOG"; rm -f "$PHOENIX_TEST_STALE_KEY"
+`);
+  chmodSync(keygen, 0o755);
+  const staleKey = join(dir, 'stale-key');
+  if (hostKey === 'changed') writeFileSync(staleKey, '');
   try {
     return execFileSync('setsid', ['-w', 'bash', script, '--robot', robot, '--auto',
       ...(claim ? ['--claim-code', claimCode] : []), '--dry-run'], {
@@ -98,7 +111,7 @@ esac
         PHOENIX_TEST_AUTH: auth, PHOENIX_TEST_LOG: join(dir, 'ssh.log'),
         PHOENIX_TEST_RELEASE: fw.release, PHOENIX_TEST_NODE: fw.node, PHOENIX_TEST_BACKUP: fw.backup, PHOENIX_TEST_JETSTREAM: fw.jetstream, PHOENIX_TEST_SSM: fw.ssm,
         PHOENIX_TEST_HANDLER: handler ?? fw.handler, PHOENIX_TEST_FOUND: fw.found.join(' '),
-        PHOENIX_TEST_PREFLIGHT: preflight },
+        PHOENIX_TEST_PREFLIGHT: preflight, PHOENIX_TEST_STALE_KEY: staleKey },
     });
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -163,6 +176,14 @@ test('a bare robot address logs in as root', () => {
 test('a changed root password without a terminal stops with a clear message', () => {
   assert.throws(() => preview({ credentials: true, mode: 'normal', claim: true, auth: 'custom' }), (error) => {
     assert.match(String(error.stderr), /refused key and factory-password login, and there is no terminal/);
+    return true;
+  });
+});
+
+test('a changed host key without a terminal stops before any password and names the fix', () => {
+  assert.throws(() => preview({ credentials: true, mode: 'normal', claim: true, auth: 'factory', hostKey: 'changed' }), (error) => {
+    assert.match(String(error.stderr), /host key changed \(normal after a reflash\)\. If this is your Jibo, run: ssh-keygen -R 192\.0\.2\.15; then run this again/);
+    assert.doesNotMatch(String(error.stdout), /Enter the root password/);
     return true;
   });
 });
