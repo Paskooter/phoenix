@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync, chmodSync, rmSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { mkdtempSync, writeFileSync, chmodSync, rmSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,6 +13,7 @@ const claimCode = 'A'.repeat(43);
 // Firmware profiles from the archived flash images (see docs/ROBOT-FIRMWARE-COMPATIBILITY.md).
 const STOCK_V3 = 'c3511dbc55c8a9ec3ac74a675a1245306b55c67fab65a3ecfe896ed01689997a';
 const STOCK_V2 = '81533de391dfba88fc40bedfc63ea30a77f8d032f9a8c23196db4cb3a44fa89b';
+const FIVE_X_ONE_V3 = '4d8cf44d6a0d763d24f506248a9ee4b195c5fdf05f1e2d12ebc77afe4939b89a';
 const FIRMWARE = {
   '13': { release: 'Jibo Release Version: Release-13.0.0-20190225', node: 'v6.9.2', backup: 'yes', jetstream: 'yes', ssm: 'google', handler: STOCK_V3,
     found: ['/usr/lib/node_modules/@jibo/jibo-server-client/lib/region_config.json',
@@ -23,8 +25,19 @@ const FIRMWARE = {
       '/opt/jibo/Jibo/Skills/oobe-config/node_modules/@jibo/jibo-server-client/lib/region_config.json'] },
 };
 
+test('the reviewed 5x1 TLS edit reverses to the actual stock 3.x client bytes', () => {
+  const stock = readFileSync(join(dirname(fileURLToPath(import.meta.url)),
+    'parity-robot/test-fixtures/canonical-jibo-server-client/lib/http/node.js'), 'utf8');
+  const sha = (text) => createHash('sha256').update(text).digest('hex');
+  assert.equal(sha(stock), STOCK_V3);
+  const modified = stock.replaceAll('rejectUnauthorized: true', 'rejectUnauthorized: false');
+  assert.notEqual(modified, stock);
+  assert.equal(sha(modified), FIVE_X_ONE_V3);
+  assert.equal(sha(modified.replaceAll('rejectUnauthorized: false', 'rejectUnauthorized: true')), STOCK_V3);
+});
+
 function preview({ credentials, mode, claim = false, shape = 'ok', region = 'stg-entrypoint', auth = 'key', robot = 'root@192.0.2.15',
-  firmware = '13', handler, preflight = 'ok', hostKey = 'known', auto = true, extra = [], setupText = 'patched' }) {
+  firmware = '13', handler, normalizedHandler, credentialOverride = false, preflight = 'ok', hostKey = 'known', auto = true, extra = [], setupText = 'patched' }) {
   const fw = FIRMWARE[firmware];
   const dir = mkdtempSync(join(tmpdir(), 'phoenix-repoint-test-'));
   const ssh = join(dir, 'ssh');
@@ -70,7 +83,15 @@ case "$cmd" in
   *'test -f /usr/local/bin/jibo-system-backup'*) test "$PHOENIX_TEST_BACKUP" = yes ;;
   'test -f /usr/local/etc/jibo-jetstream-service.json') test "$PHOENIX_TEST_JETSTREAM" = yes ;;
   *'find "$d" -name region_config.json'*) printf '%s\\n' $PHOENIX_TEST_FOUND ;;
+  *"sed 's/rejectUnauthorized: false/rejectUnauthorized: true/g'"*'/http/node.js'*'| sha256sum'*)
+    [ -z "$PHOENIX_TEST_NORMALIZED_HANDLER" ] || echo "$PHOENIX_TEST_NORMALIZED_HANDLER  -" ;;
   *"sha256sum '"*'/http/node.js'*) [ -z "$PHOENIX_TEST_HANDLER" ] || echo "$PHOENIX_TEST_HANDLER  node.js" ;;
+  'mktemp /tmp/phoenix-cloud-config.XXXXXX') echo /tmp/phoenix-cloud-config.abc123 ;;
+  "cat > '/tmp/phoenix-cloud-config.abc123'") cat > /dev/null ;;
+  "node '/tmp/phoenix-cloud-config.abc123' --kind "*'region-config'*'--dry-run') echo patched ;;
+  "node '/tmp/phoenix-cloud-config.abc123' --kind "*'credentials'*'--dry-run')
+    if [ "$PHOENIX_TEST_CREDENTIAL_OVERRIDE" = yes ]; then echo patched; else echo already-patched; fi ;;
+  "node '/tmp/phoenix-cloud-config.abc123' --kind "*'notification'*'--dry-run') echo not-needed ;;
   'mktemp /tmp/phoenix-preflight.XXXXXX') echo /tmp/phoenix-preflight.abc123 ;;
   "cat > '/tmp/phoenix-preflight.abc123'") cat > /dev/null ;;
   "node '/tmp/phoenix-preflight.abc123' --dry-run --suffix 'jibo.io'"*)
@@ -114,6 +135,7 @@ echo "ssh-keygen $*" >> "$PHOENIX_TEST_LOG"; rm -f "$PHOENIX_TEST_STALE_KEY"
         PHOENIX_TEST_AUTH: auth, PHOENIX_TEST_LOG: join(dir, 'ssh.log'),
         PHOENIX_TEST_RELEASE: fw.release, PHOENIX_TEST_NODE: fw.node, PHOENIX_TEST_BACKUP: fw.backup, PHOENIX_TEST_JETSTREAM: fw.jetstream, PHOENIX_TEST_SSM: fw.ssm,
         PHOENIX_TEST_HANDLER: handler ?? fw.handler, PHOENIX_TEST_FOUND: fw.found.join(' '),
+        PHOENIX_TEST_NORMALIZED_HANDLER: normalizedHandler ?? '', PHOENIX_TEST_CREDENTIAL_OVERRIDE: credentialOverride ? 'yes' : 'no',
         PHOENIX_TEST_PREFLIGHT: preflight, PHOENIX_TEST_STALE_KEY: staleKey, PHOENIX_TEST_SETUP_TEXT: setupText },
     });
   } finally {
@@ -140,6 +162,24 @@ test('api-region plan names neo-hub and patches the active stock BE client', () 
   const out = preview({ credentials: true, mode: 'int-developer', claim: true, region: 'api' });
   assert.match(out, /point the jetstream hub override at neo-hub\.jibo\.io:443/);
   assert.match(out, /present  \/opt\/jibo\/Jibo\/Skills\/@be\/be\/node_modules\/\@jibo\/jibo-server-client\/lib\/region_config\.json/);
+});
+
+test('5x1 TLS-bypassed stock client and credential endpoint can be converted without replacing identity', () => {
+  const out = preview({ credentials: true, mode: 'int-developer', claim: true, region: 'api',
+    handler: FIVE_X_ONE_V3, normalizedHandler: STOCK_V3, credentialOverride: true });
+  assert.match(out, /third-party TLS bypass will be repaired/);
+  assert.match(out, /robot credential endpoint \(keys hidden\): patched/);
+  assert.match(out, /including third-party endpoints and credential-level overrides \(keys preserved\)/);
+  assert.match(out, /point the jetstream hub override at neo-hub\.jibo\.io:443/);
+});
+
+test('a modified client that is not exactly the reviewed stock TLS edit still stops', () => {
+  assert.throws(() => preview({ credentials: true, mode: 'int-developer', claim: true,
+    handler: FIVE_X_ONE_V3, normalizedHandler: 'f'.repeat(64) }), (error) => {
+    assert.match(String(error.stderr), /unrecognized HTTP client at .*nothing was changed/);
+    assert.doesNotMatch(String(error.stdout), /== Plan/);
+    return true;
+  });
 });
 
 test('missing credentials selects OOBE and never spends an account claim code', () => {

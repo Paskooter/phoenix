@@ -315,6 +315,8 @@ export function staticRoutes() {
       join(PROJECT_DIR, 'scripts/robot-client/patch-ssm-wifi-check.cjs'), 'text/plain; charset=utf-8'),
     'GET /robot-client/patch-oobe-setup-text.cjs': serveExternal(
       join(PROJECT_DIR, 'scripts/robot-client/patch-oobe-setup-text.cjs'), 'text/plain; charset=utf-8'),
+    'GET /robot-client/repoint-cloud-config.cjs': serveExternal(
+      join(PROJECT_DIR, 'scripts/robot-client/repoint-cloud-config.cjs'), 'text/plain; charset=utf-8'),
     'GET /robot-client/patch-system-backup-tls.cjs': serveExternal(
       join(PROJECT_DIR, 'scripts/robot-client/patch-system-backup-tls.cjs'), 'text/plain; charset=utf-8'),
     'GET /robot-client/patch-ota-downloader-tls.cjs': serveExternal(

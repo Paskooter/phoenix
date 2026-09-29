@@ -200,6 +200,19 @@ native OpenSSL default CA file, patches the independent OTA downloader and
 backup/restore helpers, sets the regional Jetstream hub, and creates
 `/var/jibo/keys` as a private directory without replacing existing keys. It can
 also prove possession of an already-paired robot to link it to a Phoenix account.
+The same command also handles a robot previously pointed at another cloud,
+including the [5x1 repoint](https://scripts.5x1.com/pm) pattern: it replaces
+an explicit endpoint in `/var/jibo/credentials.json`, third-party client
+endpoint rules, the notification socket suffix, and the Jetstream override. It
+preserves the robot's access keys, secret, and existing credential-file mode;
+backups of credential contents are private (`0600`) on the robot. If the prior
+script disabled TLS verification in an otherwise stock Node client, this helper
+recognizes that *exact* edit and replaces it with Phoenix's CA-verifying client.
+Unknown client modifications stop at preflight instead of being overwritten.
+These changes affect routing, not the old cloud's user account or its server-side
+data. Install the published Phoenix OTA after repointing so any old BE/SSM skill
+modifications are replaced too. Do not run the third-party script as part of
+this migration.
 The public helper **does not add a hosts-file redirect or a private CA**. An old
 `phoenix-repoint` block in `/var/etc/hosts` is a legacy LAN setup; remove it
 after confirming the robot has public-DNS jibo.io endpoints. Do not rely on it
@@ -306,6 +319,15 @@ account's previous code. `/repoint` serves the same file as
 `/robot-ota-repoint.sh`. With no `--robot`, the helper asks for the robot's
 address on the terminal; a claim code alone implies `--auto`, and without
 `--yes` it shows its plan and waits for confirmation.
+
+On a previously repointed robot, check the dry-run's credential endpoint and
+client rows before confirming. For a custom old-cloud region not served by this
+Phoenix instance, specify `--region api` (or the correct configured Phoenix
+region); do not assume that the old provider's region name exists on jibo.io.
+`--revert` restores only saved client region configs. It deliberately does not
+roll back credentials, CA trust, TLS clients, hub routing, or new pairing
+identity: reverting those automatically could resurrect a stale endpoint or
+overwrite credentials issued since migration.
 
 The robot's region entrypoint carries Classic/OTA traffic, but account linking
 uses `https://jibo.io/api/adopt-robot`. A successful repoint is not a successful

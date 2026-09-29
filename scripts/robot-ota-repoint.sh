@@ -2,32 +2,27 @@
 #
 # Repoint a Jibo robot at a Phoenix server that owns its own domain (jibo.io).
 #
-# DEFAULT BEHAVIOUR IS DELIBERATELY MINIMAL.
-#
-# Running this with no mode flag patches ONLY what a robot needs in order to reach
-# the server and complete an over-the-air update from it:
+# Running this with no mode flag detects whether the robot is already paired and
+# patches the routes and TLS trust it needs to reach this server and take its OTA:
 #
 #   1. every installed copy of the jibo-server-client `region_config.json` is
-#      rewritten from jibo.com to jibo.io, so the robot calls
-#      https://<region>.jibo.io instead of https://<region>.jibo.com;
-#   2. the publicly-trusted root (ISRG Root X1) is installed into the robot's real,
-#      persistent trust store, so it accepts the server's Let's Encrypt
-#      certificate for *.jibo.io.
+#      normalized to the public server, including third-party rules; a
+#      credential-level endpoint override (as installed by 5x1/OpenJibo)
+#      is also replaced without changing the robot's keys;
+#   2. the publicly-trusted root (ISRG Root X1), CA-verifying Node clients,
+#      native downloader/backup TLS path, notification and Jetstream routes are
+#      prepared for *.jibo.io. Existing robot identity is preserved.
 #
-# That is the whole default, and it is the whole point: the OTA payload is an `os`
-# package that replaces the rootfs partition, so it carries the hosts entry, the
-# CA handling and the baked server URL itself. Patching them here as well would be
-# redundant, and patching them here *instead* is what makes a robot depend on a
-# hosts intercept and a private CA it never needed once the operator owns the
-# domain. Public DNS resolves *.jibo.io already; nothing needs intercepting.
-#
-# Deliberately NOT done by default:
+# Deliberately NOT done:
 #   * no /etc/hosts intercept
 #   * no private certificate authority
 #   * no account adoption / loop claim, unless a signed-in portal claim code is
 #     explicitly supplied
-#   * no hub port or binding changes
 #   * no server-side certificate generation
+#
+# A prior mod may have disabled TLS verification in an otherwise stock client.
+# Only that exact, reversible one-line change is accepted and replaced with
+# the CA-verifying client. Other unknown client modifications remain a stop.
 #
 # Everything the older, fully-featured repoint could do is still reachable:
 #
@@ -51,8 +46,9 @@
 # robot's address, since it has no --robot (a claim code implies --auto):
 #   bash <(curl -fsSL https://jibo.io/repoint) --claim-code <portal-code>
 #
-# Nothing is changed without showing a plan first. Every file edited is backed up
-# on the robot, and --revert restores the backups.
+# Nothing is changed without showing a plan first. Edited cloud configs receive
+# timestamped backups; --revert restores region configs only, not credentials,
+# client/CA/hub patches, or an identity issued after QR setup.
 
 set -uo pipefail
 
@@ -118,8 +114,10 @@ BACKUP_TLS_PATCHER="${SCRIPT_DIR}/robot-client/patch-system-backup-tls.cjs"
 OTA_TLS_PATCHER="${SCRIPT_DIR}/robot-client/patch-ota-downloader-tls.cjs"
 SSM_WIFI_PATCHER="${SCRIPT_DIR}/robot-client/patch-ssm-wifi-check.cjs"
 SETUP_TEXT_PATCHER="${SCRIPT_DIR}/robot-client/patch-oobe-setup-text.cjs"
+CONFIG_PATCHER="${SCRIPT_DIR}/robot-client/repoint-cloud-config.cjs"
 OTA_TRIGGER="${SCRIPT_DIR}/robot-client/trigger-ota.cjs"
 SUPPORT_DIR=""
+CONFIG_PATCHER_REMOTE=""
 CLIENT_SOURCE_SHA256="29686ca0aec6b93b8b716b94fca443ce25e6e7e55e01e798be56bce920c66bac"
 CLIENT_V2_SOURCE_SHA256="22bb36bcc0c7ecedf64cca3c66b11c5d7959b3eba85990c739e77238c7b9c503"
 # The two stock lib/http/node.js files across every archived jibo-server-client
@@ -131,9 +129,13 @@ BACKUP_TLS_PATCHER_SHA256="0fee710b1dec524b8d4629deb19e8be9dc1013e161abed4180be3
 OTA_TLS_PATCHER_SHA256="51b71ff2e02569f203998b7d82c6e3f2743030a48bbc3abc149a66c6563061f1"
 SSM_WIFI_PATCHER_SHA256="01e806871ed64736e4717856aed1be49c4898723d8bb253d68cab860c9f64947"
 SETUP_TEXT_PATCHER_SHA256="edcc2971b932a41da80f9af286a74ce41cc213ccc90af429bfdf7e2a2c8989a1"
+CONFIG_PATCHER_SHA256="dd1842f47a91afda7b675c8adff3770a4732fcade6f1c78acfe7d16db41b013c"
 OTA_TRIGGER_SHA256="8454e5e68b8386e065463b3fab1123db99c3b8700ef400b9631a17eae44a76ff"
 
 cleanup_support() {
+  if [ -n "$CONFIG_PATCHER_REMOTE" ] && declare -F rsh >/dev/null 2>&1; then
+    rsh "rm -f '$CONFIG_PATCHER_REMOTE'" >/dev/null 2>&1 || true
+  fi
   [ -z "$SUPPORT_DIR" ] || rm -rf "$SUPPORT_DIR"
   [ -z "${SSH_DIR:-}" ] || close_ssh
 }
@@ -161,7 +163,7 @@ fetch_support_asset() {
 ensure_support_assets() {
   # A checked-out copy has both support files already. A standalone download
   # receives only the missing file(s), never overwrites a supplied custom CA.
-  if [ ! -r "$CLIENT_SOURCE" ] || [ ! -r "$CLIENT_V2_SOURCE" ] || [ ! -r "$BACKUP_TLS_PATCHER" ] || [ ! -r "$OTA_TLS_PATCHER" ] || [ ! -r "$SSM_WIFI_PATCHER" ] || [ ! -r "$SETUP_TEXT_PATCHER" ] || { [ -z "$ROOT_PEM_SRC" ] && [ ! -r "${SCRIPT_DIR}/robot-client/isrg-root-x1.pem" ]; }; then
+  if [ ! -r "$CLIENT_SOURCE" ] || [ ! -r "$CLIENT_V2_SOURCE" ] || [ ! -r "$BACKUP_TLS_PATCHER" ] || [ ! -r "$OTA_TLS_PATCHER" ] || [ ! -r "$SSM_WIFI_PATCHER" ] || [ ! -r "$SETUP_TEXT_PATCHER" ] || [ ! -r "$CONFIG_PATCHER" ] || { [ -z "$ROOT_PEM_SRC" ] && [ ! -r "${SCRIPT_DIR}/robot-client/isrg-root-x1.pem" ]; }; then
     SUPPORT_DIR="$(mktemp -d "${TMPDIR:-/tmp}/phoenix-repoint.XXXXXX")" || die "could not create a temporary support directory"
   fi
   if [ ! -r "$CLIENT_SOURCE" ]; then
@@ -201,6 +203,11 @@ ensure_support_assets() {
     mkdir -p "$SUPPORT_DIR/robot-client"
     SETUP_TEXT_PATCHER="$SUPPORT_DIR/robot-client/patch-oobe-setup-text.cjs"
     fetch_support_asset '/robot-client/patch-oobe-setup-text.cjs' "$SETUP_TEXT_PATCHER" "$SETUP_TEXT_PATCHER_SHA256"
+  fi
+  if [ ! -r "$CONFIG_PATCHER" ]; then
+    mkdir -p "$SUPPORT_DIR/robot-client"
+    CONFIG_PATCHER="$SUPPORT_DIR/robot-client/repoint-cloud-config.cjs"
+    fetch_support_asset '/robot-client/repoint-cloud-config.cjs' "$CONFIG_PATCHER" "$CONFIG_PATCHER_SHA256"
   fi
 }
 
@@ -254,6 +261,8 @@ fi
 if [ -n "$CLAIM_CODE" ] && [[ ! "$CLAIM_CODE" =~ ^[A-Za-z0-9_-]{43}$ ]]; then
   die "--claim-code must be the exact one-time code shown by the portal"
 fi
+[[ "$PUBLIC_SUFFIX" =~ ^([a-z0-9][a-z0-9-]*\.)+[a-z0-9][a-z0-9-]*$ ]] \
+  || die "--suffix must be a DNS domain such as jibo.io"
 
 # A bare address means the robot's root account; that is the only login a
 # stock Jibo has.
@@ -551,6 +560,7 @@ FOUND_PATHS="$(rsh 'for d in /usr/lib/node_modules /bin/jibo-ssm /usr/local/bin/
   done | grep "/jibo-server-client/lib/region_config.json$"' 2>/dev/null | tr -d '\r')"
 while IFS= read -r p; do
   [ -n "$p" ] || continue
+  [[ "$p" =~ ^/[A-Za-z0-9_./@-]+$ ]] || die "unsafe client config path discovered on the robot"
   case " ${CONFIG_PATHS[*]} " in *" $p "*) ;; *) CONFIG_PATHS+=("$p") ;; esac
 done <<< "$FOUND_PATHS"
 
@@ -563,16 +573,27 @@ for p in "${CONFIG_PATHS[@]}"; do
   if rsh "test -f '$p'" >/dev/null 2>&1; then
     handler="${p%/region_config.json}/http/node.js"
     handler_hash="$(rsh "sha256sum '$handler' 2>/dev/null" 2>/dev/null | awk '{print $1}')"
+    repaired=0
     case "$handler_hash" in
       "$STOCK_CLIENT_V3_SHA256"|"$CLIENT_SOURCE_SHA256") variant=3 ;;
       "$STOCK_CLIENT_V2_SHA256"|"$CLIENT_V2_SOURCE_SHA256") variant=2 ;;
       "") variant=none ;;
-      *) die "unrecognized HTTP client at ${handler} (sha256 ${handler_hash:0:16}…); nothing was changed" ;;
+      *)
+        # 5x1 changes only rejectUnauthorized: true -> false in an otherwise
+        # stock client. Reverse that edit in memory and compare with the two
+        # reviewed stock hashes; never accept an arbitrary unknown module.
+        restored_hash="$(rsh "sed 's/rejectUnauthorized: false/rejectUnauthorized: true/g' '$handler' | sha256sum" 2>/dev/null | awk '{print $1}')"
+        case "$restored_hash" in
+          "$STOCK_CLIENT_V3_SHA256") variant=3; repaired=1 ;;
+          "$STOCK_CLIENT_V2_SHA256") variant=2; repaired=1 ;;
+          *) die "unrecognized HTTP client at ${handler} (sha256 ${handler_hash:0:16}…); nothing was changed" ;;
+        esac ;;
     esac
     PRESENT+=("$p")
     HANDLER_VARIANT+=("$variant")
     com="$(rsh "grep -c 'jibo\.com' '$p' 2>/dev/null" 2>/dev/null | tr -d '\r')"
     case "$variant" in 2) label="2.x client" ;; 3) label="3.x client" ;; *) label="no HTTP handler" ;; esac
+    [ "$repaired" -eq 0 ] || label="${label}; third-party TLS bypass will be repaired"
     say "  present  ${p}  (jibo.com lines: ${com:-?}; ${label})"
   fi
 done
@@ -659,7 +680,8 @@ if [ "$OPT_RESIZE" -eq 1 ]; then
   say "  0. expand /opt ext4 in place on ${OPT_DEVICE} and verify at least 2 GiB free"
   say "     (filesystem growth is persistent and is not undone by --revert)"
 fi
-say "  1. back up and rewrite jibo.com -> jibo.io in ${#PRESENT[@]} client config file(s)"
+say "  1. back up and normalize ${#PRESENT[@]} client config file(s) to ${PUBLIC_SUFFIX},"
+say "     including third-party endpoints and credential-level overrides (keys preserved)"
 say "  2. install the public root into ${TRUST_BUNDLE} (+ ${TRUST_DIR}/isrg-root-x1.pem and its"
 say "     subject-hash symlink), remounting / read-write for the write and back to read-only after"
 say "  3. install the CA-accepting client (2.x or 3.x build, matching each copy) + its CA into"
@@ -710,7 +732,7 @@ else
     say "  Without BE, mode changes only after verified OTA downloads."
   fi
 fi
-say "  NOT touched: /etc/hosts, any private CA, server certs."
+say "  NOT touched: /etc/hosts, any private CA, server certs, existing robot keys."
 say "  After this the robot can reach ${REST_URL}, stream audio to the hub, and take an OTA"
 say "  update from it. A reboot is needed for the native services to reload their config."
 
@@ -720,10 +742,37 @@ say "  update from it. A reboot is needed for the native services to reload thei
 ensure_support_assets
 if [ "$START_OTA" -eq 1 ]; then ensure_ota_trigger; fi
 
+# Stage one reviewed Node 4-compatible config normalizer for both preflight and
+# apply. The public standalone script fetches this support file by SHA-256.
+CONFIG_PATCHER_REMOTE="$(rsh 'mktemp /tmp/phoenix-cloud-config.XXXXXX' 2>/dev/null | tr -d '\r')"
+[[ "$CONFIG_PATCHER_REMOTE" =~ ^/tmp/phoenix-cloud-config\.[A-Za-z0-9]+$ ]] \
+  || die "could not allocate a safe remote config helper path"
+rput "$CONFIG_PATCHER" "$CONFIG_PATCHER_REMOTE" || die "could not upload the cloud config helper"
+
+cloud_config() {
+  local kind="$1" file="$2" action="$3" out=""
+  local stamp_arg=""
+  [ "$action" = apply ] && stamp_arg="--stamp '$STAMP'"
+  [ "$action" = dry-run ] && stamp_arg="--dry-run"
+  out="$(rsh "node '$CONFIG_PATCHER_REMOTE' --kind '$kind' --file '$file' --region '$REGION' --suffix '$PUBLIC_SUFFIX' $stamp_arg" 2>&1 | tr -d '\r')" \
+    || { printf 'could not normalize %s at %s: %s\n' "$kind" "$file" "$out" >&2; return 1; }
+  printf '%s\n' "$out"
+}
+
 # Compatibility check: run both hash-guarded patchers in --dry-run against this
 # robot's own files. An unreviewed firmware version stops here, before a single
 # file has changed, instead of halfway through the apply below.
 step "Compatibility check"
+for p in "${PRESENT[@]}"; do
+  out="$(cloud_config region-config "$p" dry-run)" || die "client config compatibility check failed"
+  say "  cloud config ${p}: ${out}"
+done
+if [ "$HAS_CREDS" -eq 1 ]; then
+  out="$(cloud_config credentials /var/jibo/credentials.json dry-run)" || die "credential endpoint compatibility check failed"
+  say "  robot credential endpoint (keys hidden): ${out}"
+fi
+out="$(cloud_config notification /usr/local/etc/jibo-server-service.json dry-run)" || die "notification socket compatibility check failed"
+say "  notification socket suffix: ${out}"
 preflight_patcher() {
   local label="$1" source="$2"; shift 2
   local remote out
@@ -834,32 +883,13 @@ rsh 'set -eu
 ' >/dev/null 2>&1 || die "could not prepare /var/jibo/keys as a private directory"
 say "  /var/jibo/keys ready (mode 0700; existing key material preserved)"
 
-# 7b. region_config rewrite, in place, preserving mode and ownership.
-# `stat` does not exist on the robot (busybox has no such applet), so the mode and
-# owner are read from `ls -ln` instead and re-applied with chmod/chown.
+# 7b. Normalize all robot-facing cloud routes, not just the stock jibo.com
+# spelling. A third-party rule can otherwise outrank the wildcard region
+# pattern and keep a repointed robot talking to its former server.
 for p in "${PRESENT[@]}"; do
-  out="$(rsh "
-    set -e
-    f='$p'
-    [ -f \"\$f.prerepoint-${STAMP}.bak\" ] || cp -a \"\$f\" \"\$f.prerepoint-${STAMP}.bak\"
-    meta=\$(ls -ln \"\$f\" | awk '{print \$1, \$3, \$4}')
-    mode=\$(echo \"\$meta\" | cut -d' ' -f1 | cut -c2-10)
-    uid=\$(echo \"\$meta\" | cut -d' ' -f2)
-    gid=\$(echo \"\$meta\" | cut -d' ' -f3)
-    before=\$(grep -o 'jibo\.com' \"\$f\" | wc -l)
-    sed -i 's/jibo\.com/jibo\.io/g' \"\$f\"
-    # Modes on this platform are inconsistent across the six copies (seen: 644,
-    # 600 root-only, and 755 uid 2000). A root-only copy is fatal: the behaviour
-    # engine runs as the unprivileged skill user (uid 2000) and cannot read its
-    # own client config, so every skill that reads it fails to construct —
-    # Settings, IFTTT and surprises included. Normalise to world-readable rather
-    # than trying to preserve a mode that may be the bug.
-    chmod 644 \"\$f\" 2>/dev/null || true
-    chmod a+rX \"\$(dirname \"\$f\")\" 2>/dev/null || true
-    after=\$(grep -o 'jibo\.com' \"\$f\" | wc -l)
-    printf '  rewrote %s (%s -> %s jibo.com; mode now %s)\n' '$p' \"\$before\" \"\$after\" \"\$(ls -ln \"\$f\" | awk '{print \$1}')\"
-  " 2>&1 | tr -d '\r')" || die "failed to rewrite $p: $out"
-  printf '%s\n' "$out"
+  out="$(cloud_config region-config "$p" apply)" || die "failed to normalize $p"
+  say "  ${p}: ${out}"
+  rsh "chmod a+rX '$(dirname "$p")'" >/dev/null 2>&1 || true
   APPLIED+=("$p")
 done
 
@@ -1121,24 +1151,22 @@ out="$(rsh "
 printf '%s\n' "$out"
 [ "$HAS_JETSTREAM" -eq 0 ] || APPLIED+=("/usr/local/etc/jibo-jetstream-service.json")
 
-# 7c-quinquies. The notification socket. From 8.x on, the native server service
-# builds its socket host as <region> + NotificationSubsystem.serverURLSuffix
-# ("-socket.jibo.com") from its own config, not from any region_config.json, so
-# without this the robot keeps dialing the old cloud for push notifications.
-# 3.x and 5.x firmware has no such key and takes the host from the client configs.
-out="$(rsh "
-  set -e
-  F=/usr/local/etc/jibo-server-service.json
-  grep -q '\"serverURLSuffix\"[[:space:]]*:[[:space:]]*\"-socket\\.jibo\\.com\"' \"\$F\" 2>/dev/null \\
-    || { printf '  notification socket: no old-cloud suffix to change\\n'; exit 0; }
-  mount -o remount,rw /usr/local
-  [ -f \"\$F.prerepoint-${STAMP}.bak\" ] || cp -a \"\$F\" \"\$F.prerepoint-${STAMP}.bak\"
-  sed -i 's/-socket\\.jibo\\.com\"/-socket.${PUBLIC_SUFFIX}\"/' \"\$F\"
-  [ ${LOCAL_WAS_RO} -eq 0 ] || mount -o remount,ro /usr/local
-  printf '  notification socket -> <region>-socket.%s\\n' '${PUBLIC_SUFFIX}'
-" 2>&1 | tr -d '\r')" || die "could not point the notification socket at ${PUBLIC_SUFFIX}: $out"
-printf '%s\n' "$out"
-case "$out" in *'-socket.'*) APPLIED+=("/usr/local/etc/jibo-server-service.json notification socket") ;; esac
+# 7c-quinquies. The notification socket may have an old-cloud OR a third-party
+# suffix. On older firmware the key is absent and the client configs above win.
+out="$(cloud_config notification /usr/local/etc/jibo-server-service.json apply)" \
+  || die "could not point the notification socket at ${PUBLIC_SUFFIX}"
+say "  notification socket suffix: ${out}"
+[ "$out" = not-needed ] || APPLIED+=("/usr/local/etc/jibo-server-service.json notification socket")
+
+# 7c-sexies. Credential-level endpoint overrides outrank region_config.json.
+# Keep the access/secret keys and every unrelated field unchanged; the helper
+# makes the backup private and only updates routing/region/TLS options.
+if [ "$HAS_CREDS" -eq 1 ]; then
+  out="$(cloud_config credentials /var/jibo/credentials.json apply)" \
+    || die "could not replace the credential endpoint override"
+  say "  credential endpoint: ${out} (keys preserved and never printed)"
+  APPLIED+=("/var/jibo/credentials.json routing")
+fi
 
 # 7c-quater. Adoption.
 #
@@ -1225,14 +1253,19 @@ JSON
 
 # ── 8. Verify ───────────────────────────────────────────────────────────────
 step "Verify"
-say "  jibo.com references left in the patched files:"
+say "  cloud endpoint configuration:"
 for p in "${PRESENT[@]}"; do
-  case "$p" in *region_config.json)
-    n="$(rsh "grep -c 'jibo\.com' '$p' 2>/dev/null" 2>/dev/null | tr -d '\r')"
-    printf '    %-6s %s\n' "${n:-?}" "$p"
-    [ "$n" = 0 ] || die "the robot still has an old-cloud endpoint in $p" ;;
-  esac
+  out="$(cloud_config region-config "$p" dry-run)" || die "could not verify $p"
+  [ "$out" = already-patched ] || die "client config still contains another cloud endpoint: $p"
+  say "    Phoenix  ${p}"
 done
+if [ "$HAS_CREDS" -eq 1 ]; then
+  out="$(cloud_config credentials /var/jibo/credentials.json dry-run)" || die "could not verify credential routing"
+  [ "$out" = already-patched ] || die "the robot still has a third-party credential endpoint"
+  say "    Phoenix  /var/jibo/credentials.json routing (keys hidden)"
+fi
+out="$(cloud_config notification /usr/local/etc/jibo-server-service.json dry-run)" || die "could not verify notification routing"
+[ "$out" = already-patched ] || [ "$out" = not-needed ] || die "the notification socket still targets another cloud"
 CLIENT_HASH_V3="$(sha256_of "$CLIENT_SOURCE")"
 CLIENT_HASH_V2="$(sha256_of "$CLIENT_V2_SOURCE")"
 for i in "${!PRESENT[@]}"; do
