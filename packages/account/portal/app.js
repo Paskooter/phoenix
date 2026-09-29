@@ -3258,45 +3258,112 @@ async function renderInbox() {
    System
    ========================================================================== */
 
+// The parts of Jibo's software the update catalog publishes, in plain words.
+const SOFTWARE_PARTS = {
+  os: { name: 'Operating system', icon: 'chip', order: 0 },
+  services: { name: 'System services', icon: 'server', order: 1 },
+  '@be/be': { name: 'Skills and personality', icon: 'sparkles', order: 2 },
+  'oobe-config': { name: 'Setup screens', icon: 'wifi', order: 3 },
+};
+
+function fmtBytes(value) {
+  const bytes = Number(value);
+  if (!Number.isFinite(bytes) || bytes <= 0) return '';
+  if (bytes >= 1e9) return `${(bytes / 1e9).toFixed(1)} GB`;
+  if (bytes >= 1e6) return `${Math.round(bytes / 1e6)} MB`;
+  return `${Math.max(1, Math.round(bytes / 1e3))} KB`;
+}
+
 async function renderSystem() {
-  show(page('System', 'Software updates and connected services.', loading(4)));
+  const title = 'System';
+  const description = 'The software this server gives your Jibo, and the services connected to him.';
+  show(page(title, description, loading(4)));
 
   const [upd, ifttt] = await Promise.all([
     api('GET', '/api/update/status'),
     api('GET', '/api/ifttt'),
   ]);
+  const container = page(title, description);
 
-  const container = page('System', 'Software updates and connected services.');
+  /* -- Jibo software ------------------------------------------------------ */
 
-  const updates = upd.ok ? (upd.data.updates || []) : [];
-  container.append(card('Software updates (OTA)', {
-    sub: upd.ok ? `${updates.length} catalog entr${updates.length === 1 ? 'y' : 'ies'}` : null,
-  },
-    upd.ok
-      ? (updates.length
-        ? h('div', {}, ...updates.slice(0, 20).map((u) =>
-          row(u.subsystem || '?', `${u.fromVersion || '?'} → ${u.toVersion || '?'}`)))
-        : empty('No updates offered', 'The catalog is reachable but empty.', 'download'))
-      : errorBox('Could not reach the update catalog.', upd.data.error),
-    h('p', { class: 'field-hint' },
-      'This shows the catalog a robot would be offered. Updates are not pushed from here.')));
-
-  const iftttCard = card('IFTTT', {});
-  const iftttBody = iftttCard.querySelector('.card-body');
-  if (ifttt.ok) {
-    const id = ifttt.data.identity;
-    iftttBody.append(row('Identity', id && id.id ? String(id.id) : 'Not connected'));
-    for (const t of (ifttt.data.applets || [])) iftttBody.append(row('Trigger', t.text || t.id));
-    iftttBody.append(h('p', { class: 'field-hint' },
-      'IFTTT establishes and manages its own connection. This page reports the identity and triggers it has made available to Jibo.'));
-    if (ifttt.data.diagnostics) {
-      iftttBody.append(h('div', { class: 'notice notice-warn' }, icon('alert', 15),
-        h('div', { text: ifttt.data.diagnostics.message })));
+  // The newest release of each part: the catalog can hold more than one while a
+  // release is being replaced.
+  const newest = new Map();
+  for (const u of (upd.ok ? upd.data.updates || [] : [])) {
+    if (!u || !u.subsystem || !u.toVersion) continue;
+    const current = newest.get(u.subsystem);
+    if (!current || String(u.toVersion).localeCompare(String(current.toVersion), undefined, { numeric: true }) > 0) {
+      newest.set(u.subsystem, u);
     }
-  } else {
-    iftttBody.append(errorBox('Could not load IFTTT.', ifttt.data.error));
   }
-  container.append(iftttCard);
+  const parts = [...newest.values()].sort((a, b) => (SOFTWARE_PARTS[a.subsystem]?.order ?? 9) - (SOFTWARE_PARTS[b.subsystem]?.order ?? 9)
+    || a.subsystem.localeCompare(b.subsystem));
+
+  const softwareRow = (u) => {
+    const part = SOFTWARE_PARTS[u.subsystem] || { name: u.subsystem, icon: 'download' };
+    const meta = [u.created ? `Published ${fmtAgo(u.created)}` : '', fmtBytes(u.length)].filter(Boolean).join(' · ');
+    return h('li', { class: 'software-row' },
+      h('span', { class: 'software-ic' }, icon(part.icon, 17)),
+      h('div', { class: 'software-main' },
+        h('div', { class: 'software-name' }, h('b', { text: part.name }), h('span', { class: 'software-version', text: u.toVersion })),
+        meaningfulText(u.changes) ? h('p', { class: 'software-notes', text: u.changes }) : null,
+        meta ? h('span', { class: 'software-meta', text: meta }) : null));
+  };
+
+  const software = card('Jibo software', { sub: parts.length ? 'The latest release of each part, on this server' : null },
+    upd.ok
+      ? (parts.length
+        ? h('ul', { class: 'software-list' }, ...parts.map(softwareRow))
+        : empty('Nothing published yet', 'When this server publishes an update for Jibo, it appears here.', 'download'))
+      : errorBox('Could not reach the update service.', upd.data.error));
+  software.append(h('div', { class: 'card-foot software-foot' },
+    icon('refresh', 15),
+    h('span', {}, 'Jibo checks for these and installs them on his own. To check right away, say ',
+      h('b', {}, '“Hey Jibo, check for updates.”'))));
+  container.append(software);
+
+  /* -- connected services ------------------------------------------------- */
+
+  const connections = h('div', { class: 'service-list' });
+  if (!ifttt.ok) {
+    connections.append(errorBox('Could not load IFTTT.', ifttt.data.error));
+  } else {
+    const identity = ifttt.data.identity;
+    const connected = !!(identity && identity.id);
+    const applets = (ifttt.data.applets || []).filter((a) => meaningfulText(a?.text) || a?.id);
+    connections.append(h('div', { class: 'service' },
+      h('span', { class: 'service-ic' }, icon('link', 17)),
+      h('div', { class: 'service-main' },
+        h('div', { class: 'service-name' }, h('b', {}, 'IFTTT'),
+          connected
+            ? h('span', { class: 'pill pill-ok' }, h('span', { class: 'dot' }), 'Connected')
+            : h('span', { class: 'pill' }, 'Not connected')),
+        h('p', { class: 'service-text' }, connected
+          ? `${applets.length ? `${applets.length} applet${applets.length === 1 ? '' : 's'} can use Jibo.` : 'No applets use Jibo yet.'} IFTTT manages this connection itself.`
+          : 'Connect Jibo from IFTTT to let your applets use him. The connection is made and managed there, not here.'),
+        applets.length ? h('ul', { class: 'applet-list' },
+          ...applets.map((a) => h('li', {}, icon('arrow', 13), h('span', { text: meaningfulText(a.text) || String(a.id) })))) : null,
+        ifttt.data.diagnostics
+          ? h('div', { class: 'notice notice-warn' }, icon('alert', 15), h('div', { text: ifttt.data.diagnostics.message || 'IFTTT is unavailable right now.' }))
+          : null)));
+  }
+  container.append(card('Connected services', {}, connections));
+
+  /* -- about -------------------------------------------------------------- */
+
+  const github = document.querySelector('.site-header [data-brand-attr*="links.github"], [data-brand-attr*="links.github"]')?.getAttribute('href')
+    || 'https://github.com/Paskooter/phoenix';
+  const safeGithub = /^https:\/\//.test(github) ? github.replace(/\/+$/, '') : 'https://github.com/Paskooter/phoenix';
+  container.append(h('section', { class: 'card about-card' },
+    h('div', { class: 'card-body' },
+      h('div', { class: 'about-text' },
+        h('h3', {}, 'About Phoenix'),
+        h('p', {}, 'Phoenix is an open-source replacement for the cloud service Jibo was built to talk to. '
+          + 'Found a problem, or have an idea? The project lives on GitHub.')),
+      h('div', { class: 'row' },
+        h('a', { class: 'btn btn-sm', href: safeGithub, target: '_blank', rel: 'noopener' }, 'Source on GitHub'),
+        h('a', { class: 'btn btn-sm btn-quiet', href: `${safeGithub}/issues`, target: '_blank', rel: 'noopener' }, 'Report an issue')))));
 
   show(container);
 }

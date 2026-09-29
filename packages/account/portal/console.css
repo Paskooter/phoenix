@@ -725,6 +725,84 @@ body.console {
   .photo-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
+/* ==========================================================================
+   System
+   ========================================================================== */
+
+/* Jibo's software, one row per part. */
+.software-list { display: grid; margin: -.3rem 0; padding: 0; list-style: none; }
+.software-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: .9rem;
+  padding: .95rem 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.software-row:last-child { border-bottom: 0; }
+.software-ic, .service-ic {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.software-main { min-width: 0; display: grid; gap: .25rem; }
+.software-name { display: flex; align-items: baseline; flex-wrap: wrap; gap: .2rem .6rem; }
+.software-name b { font-weight: 600; letter-spacing: -.012em; color: var(--fg); }
+.software-version {
+  padding: .05rem .5rem;
+  border-radius: var(--radius-pill);
+  background: var(--panel-2);
+  border: 1px solid var(--border-soft);
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  color: var(--fg-dim);
+}
+.software-notes { max-width: 70ch; font-size: var(--t-sm); line-height: 1.55; color: var(--fg-dim); }
+.software-meta { font-size: var(--t-xs); color: var(--muted); }
+.software-foot {
+  display: flex;
+  align-items: flex-start;
+  gap: .6rem;
+  font-size: var(--t-sm);
+  line-height: 1.55;
+  color: var(--muted);
+}
+.software-foot svg { flex: none; margin-top: .2rem; color: var(--accent); }
+.software-foot b { color: var(--fg); font-weight: 600; }
+
+/* Services Jibo is connected to. */
+.service-list { display: grid; gap: 1rem; }
+.service { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .9rem; }
+.service-main { min-width: 0; display: grid; gap: .35rem; justify-items: start; }
+.service-name { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; }
+.service-name b { font-weight: 600; letter-spacing: -.012em; color: var(--fg); }
+.service-name .pill { padding: .1rem .55rem; }
+.service-text { max-width: 64ch; font-size: var(--t-sm); line-height: 1.55; color: var(--muted); }
+.applet-list { display: grid; gap: .4rem; margin: .35rem 0 0; padding: 0; list-style: none; }
+.applet-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: .5rem;
+  padding: .5rem .75rem;
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+  border: 1px solid var(--border-soft);
+  font-size: var(--t-sm);
+  color: var(--fg-dim);
+}
+.applet-list li svg { flex: none; margin-top: .2rem; color: var(--accent); }
+.service .notice { margin-top: .35rem; }
+
+/* About the project. */
+.about-card .card-body { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem 1.5rem; }
+.about-card .card-body > * + * { margin-top: 0; }
+.about-text { flex: 1 1 22rem; min-width: 0; }
+.about-text h3 { font-size: var(--t-base); letter-spacing: -.012em; margin-bottom: .25rem; }
+.about-text p { font-size: var(--t-sm); line-height: 1.55; color: var(--muted); }
+
 /* Get to know Jibo. */
 .say-card { border-color: var(--accent-line); background:
   radial-gradient(120% 140% at 100% 0%, var(--accent-soft), transparent 60%), var(--panel); }

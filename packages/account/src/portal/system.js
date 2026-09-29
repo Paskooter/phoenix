@@ -10,9 +10,11 @@ import { sendJson } from '@phoenix/common';
 import { classicCall, ClassicCallError } from './classicClient.js';
 import { requireUser } from './session.js';
 
-// The subsystems a Jibo OTA package can target. `main` is the catalog's default for an
-// omitted subsystem, so it is queried too — a deployment that publishes under it still shows up.
-const UPDATE_SUBSYSTEMS = ['os', 'services', 'skills', 'main'];
+// The subsystems a Jibo OTA package can target: the system image, its services, the BE
+// skill and the setup skill (the catalog's own names), plus `skills` and `main`, the
+// catalog's default for an omitted subsystem, so a deployment that publishes under
+// either still shows up.
+const UPDATE_SUBSYSTEMS = ['os', 'services', '@be/be', 'oobe-config', 'skills', 'main'];
 
 function reportError(res, error) {
   if (error instanceof ClassicCallError) {
@@ -45,9 +47,21 @@ export function portalSystemRoutes(store, options = {}) {
           target: 'Update_20160301.ListUpdates',
           body: { subsystem },
         })));
+        // What the console shows, not the robot's wire record: the package's signed
+        // download URL and hash are for the robot, not for a signed-in browser.
         const updates = [];
         for (const result of lists) {
-          if (Array.isArray(result.body)) updates.push(...result.body);
+          if (!Array.isArray(result.body)) continue;
+          for (const u of result.body) {
+            updates.push({
+              id: u._id,
+              subsystem: u.subsystem,
+              toVersion: u.toVersion,
+              changes: u.changes || '',
+              created: u.created || null,
+              length: u.length || null,
+            });
+          }
         }
         return { updates };
       } catch (error) {
