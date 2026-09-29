@@ -216,9 +216,9 @@ recipe. Also, package filenames are not version state: the version reporters
 A robot on its setup screen is not necessarily pointed at jibo.io. If it is
 still on stock endpoints, normal QR pairing cannot reach Phoenix. A setup
 screen does **not** prove that `/var/jibo/credentials.json` is absent: a USB
-flash may preserve it while removing BE. Once owner-authorized, key-based
-`root` SSH is available, use the detecting path **before rebooting away from
-SSH**:
+flash may preserve it while removing BE. Once the robot is in `int-developer`
+mode, so its `root` SSH is reachable (key, factory password, or a typed password),
+use the detecting path **before rebooting away from SSH**:
 
 ```bash
 curl --fail --remote-name https://jibo.io/robot-ota-repoint.sh
@@ -285,9 +285,13 @@ then generate the private command. On the public `jibo.io` deployment it first
 downloads the public-DNS repoint script and includes a 15-minute, one-time
 claim code:
 
-The helper deliberately uses non-interactive, key-based `root` SSH. Verify
-`ssh root@<robot-ip> true` succeeds without a password prompt before minting a
-claim code; it does not install or bypass robot access.
+For SSH, the helper logs in as `root` with an SSH key if one is installed, otherwise with
+the factory password `jibo`, and otherwise asks for the robot's root password once.
+All later steps reuse that one connection. SSH must be reachable, so the robot
+has to be in `int-developer` mode: in `normal` and `oobe` modes every firmware
+version's firewall rejects inbound connections. The helper does not change that
+mode except to set the next boot to OOBE (no credentials) or normal (after OTA).
+Put the robot in `int-developer` mode before minting a claim code.
 
 ```bash
 curl --fail --remote-name https://jibo.io/robot-ota-repoint.sh && \

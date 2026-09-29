@@ -5,8 +5,10 @@
  * use the system trust store by default; changing only the client used for
  * update discovery is therefore insufficient for the package download.
  *
- * This is deliberately hash-guarded. It only accepts the stock Release-13
- * downloader or this exact generated patch, never an arbitrary lookalike.
+ * This is deliberately hash-guarded. It only accepts a reviewed stock downloader
+ * or the exact output this patch generates from it, never an arbitrary lookalike.
+ * Stock downloaders differ between factory images only in progress reporting;
+ * the patched request is identical in each.
  */
 'use strict';
 
@@ -17,11 +19,25 @@ var path = require('path');
 var TARGET = '/usr/lib/node_modules/@jibo/jibo-ota-updater/src/download-update.js';
 var RECEIPT = '/var/lib/phoenix/jibo-ota-downloader-tls.json';
 var CA_PATH = '/etc/ssl/certs/ca-certificates.crt';
-var ORIGINAL_SHA256 = '33f6db1496baa3abd506a2ba9dad9b5cdf7567341e3e292e42cb3ed6f016003c';
-var PATCHED_SHA256 = '1a01b446575bc5da145a41e969ea110af62f144d5651ed5b7ca5aee8bfef826a';
+// Reviewed stock downloader -> the exact patched output this file produces from it.
+var REVIEWED = {
+  // jibo-ota-updater 1.3.0 in the RTM3 (3.3.x) factory image through 1.4.1 in 13.0.x
+  '33f6db1496baa3abd506a2ba9dad9b5cdf7567341e3e292e42cb3ed6f016003c':
+    '1a01b446575bc5da145a41e969ea110af62f144d5651ed5b7ca5aee8bfef826a',
+  // jibo-ota-updater 1.3.0 in the RTM2 (3.0.x) factory image
+  '447a2a5598ec13ea46367207ea594efd6774d785c97d5322200e5809d6d9acb2':
+    '6b9399b4d85213ba15c68224f0fae2c69ba787c207351184a65b6873452562b7'
+};
+var PATCHED = Object.keys(REVIEWED).map(function(original) { return REVIEWED[original]; });
 var EXECUTABLE_MODE = 0o755;
 var MARKER = 'JIBO_EXTRA_CA_CERTS';
 var ANCHOR = 'let req = http.get(argv.url, function(res) {';
+
+// Node 4.1 (factory RTM2/RTM3 images) predates Buffer.from(string): the name
+// resolves to TypedArray.from, which treats the encoding as a map function.
+function utf8Buffer(text) {
+  return typeof Buffer.alloc === 'function' ? Buffer.from(text, 'utf8') : new Buffer(text, 'utf8');
+}
 
 function sha256(bytes) {
   return crypto.createHash('sha256').update(bytes).digest('hex');
@@ -116,13 +132,15 @@ function apply(options) {
   var state;
   var output = null;
 
-  if (sourceHash === ORIGINAL_SHA256) {
-    output = Buffer.from(patchSource(source.toString('utf8'), CA_PATH), 'utf8');
-    if (sha256(output) !== PATCHED_SHA256) {
+  var patchedSha256 = sourceHash;
+  if (REVIEWED[sourceHash]) {
+    output = utf8Buffer(patchSource(source.toString('utf8'), CA_PATH));
+    patchedSha256 = REVIEWED[sourceHash];
+    if (sha256(output) !== patchedSha256) {
       throw new Error('generated OTA downloader patch does not match the reviewed pin');
     }
     state = 'patched';
-  } else if (sourceHash === PATCHED_SHA256 && source.toString('utf8').indexOf(MARKER) >= 0) {
+  } else if (PATCHED.indexOf(sourceHash) >= 0 && source.toString('utf8').indexOf(MARKER) >= 0) {
     state = priorMode === EXECUTABLE_MODE ? 'already-patched' : 'mode-repaired';
   } else {
     throw new Error('OTA downloader has an unsupported source hash: ' + sourceHash);
@@ -134,7 +152,7 @@ function apply(options) {
     state: state,
     dryRun: options.dryRun,
     sourceHash: sourceHash,
-    patchedSha256: PATCHED_SHA256,
+    patchedSha256: patchedSha256,
     modeBefore: priorMode.toString(8),
     modeAfter: EXECUTABLE_MODE.toString(8)
   };
@@ -144,7 +162,7 @@ function apply(options) {
     var backup = TARGET + '.phoenix-ota-tls.bak';
     if (fs.existsSync(backup)) {
       regularFile(backup, 'OTA downloader backup');
-      if (sha256(fs.readFileSync(backup)) !== ORIGINAL_SHA256) {
+      if (sha256(fs.readFileSync(backup)) !== sourceHash) {
         throw new Error('OTA downloader backup is not the reviewed original source');
       }
     } else {
@@ -152,11 +170,11 @@ function apply(options) {
     }
     writeAtomic(TARGET, output, EXECUTABLE_MODE);
     ensureSafeParent(RECEIPT);
-    writeAtomic(RECEIPT, Buffer.from(JSON.stringify({
+    writeAtomic(RECEIPT, utf8Buffer(JSON.stringify({
       kind: 'phoenix-ota-downloader-tls', target: TARGET, backup: backup,
-      originalSha256: ORIGINAL_SHA256, patchedSha256: PATCHED_SHA256,
+      originalSha256: sourceHash, patchedSha256: patchedSha256,
       originalMode: priorMode.toString(8), patchedMode: EXECUTABLE_MODE.toString(8)
-    }, null, 2) + '\n', 'utf8'), 0o600);
+    }, null, 2) + '\n'), 0o600);
   } else if (priorMode !== EXECUTABLE_MODE) {
     fs.chmodSync(TARGET, EXECUTABLE_MODE);
   }

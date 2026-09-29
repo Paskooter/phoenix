@@ -6,9 +6,11 @@
  * transfers. Never weaken TLS verification or install a server-specific trust
  * anchor here.
  *
- * The two stock source hashes are pinned from PlatformTeam/system-manager and
- * verified on a physical Release 13 robot. A changed helper is refused rather
- * than edited by a broad text substitution. This utility is Node 6-compatible.
+ * Each accepted stock source is pinned together with the exact output this
+ * patch produces from it: the Release 13 helpers (PlatformTeam/system-manager,
+ * verified on a physical robot, and unchanged from 8.x) and the 5.4.0 helpers.
+ * A changed helper is refused rather than edited by a broad text substitution.
+ * This utility is Node 4-compatible.
  */
 'use strict';
 
@@ -22,15 +24,35 @@ var DEFAULT_RECEIPT = '/var/lib/phoenix/jibo-system-backup-tls.json';
 var DEFAULT_CA_PATH = '/etc/ssl/certs/ca-certificates.crt';
 var BACKUP_NAME = 'jibo-system-backup';
 var RESTORE_NAME = 'jibo-system-restore';
-var BACKUP_ORIGINAL_SHA256 = 'd17fbf4150dee58a988fe5ee72071d4515ef74f29876215bf66de2601e33e522';
-var RESTORE_ORIGINAL_SHA256 = 'b5e7ec06c4ea72b641b8738b789a389575e250b152b3b6ecddd952d593e05ee6';
-// Filled by the release test below. Keep the post-patch hashes pinned too: a
-// second run accepts only our exact generated source, never a lookalike marker.
-var BACKUP_PATCHED_SHA256 = 'fa438f59b09dcdc863526aaa574f9e8939670c465b40ed83236dd5646ab881d5';
-var RESTORE_PATCHED_SHA256 = '7c48b4a15bc30405fc30570251071b6f0efaf7f3057546a2fc403a20b64beb03';
+// Reviewed stock helper -> the exact patched output this file produces from it.
+// Pinning the output too means a second run accepts only our generated source,
+// never a lookalike marker.
+var REVIEWED = {};
+REVIEWED[BACKUP_NAME] = {
+  // 8.x through 13.0.x
+  'd17fbf4150dee58a988fe5ee72071d4515ef74f29876215bf66de2601e33e522':
+    'fa438f59b09dcdc863526aaa574f9e8939670c465b40ed83236dd5646ab881d5',
+  // 5.4.0
+  'f61910006a9e4e45314bf40c050ece59951e23e15ea8ff7f86207e1c31fc30f9':
+    'a90bb493f25154c7c44f4544f97fafd81d6dea80a113ff3637fea36fafb78734'
+};
+REVIEWED[RESTORE_NAME] = {
+  // 8.x through 13.0.x
+  'b5e7ec06c4ea72b641b8738b789a389575e250b152b3b6ecddd952d593e05ee6':
+    '7c48b4a15bc30405fc30570251071b6f0efaf7f3057546a2fc403a20b64beb03',
+  // 5.4.0
+  'f3181d6d4b42e35cf588647981425bf7b6f1ee274eadbb9ae1cf1b29213a29bb':
+    '1ac1a5dfb4e075092f978686d2d8de3241ee1ad8a58c2764891c72073416f94a'
+};
 
 var MARK_BEGIN = '// >>> phoenix-system-backup-tls >>>';
 var MARK_END = '// <<< phoenix-system-backup-tls <<<';
+
+// Node 4.1 (factory RTM2/RTM3 images) predates Buffer.from(string): the name
+// resolves to TypedArray.from, which treats the encoding as a map function.
+function utf8Buffer(text) {
+  return typeof Buffer.alloc === 'function' ? Buffer.from(text, 'utf8') : new Buffer(text, 'utf8');
+}
 
 function sha256(bytes) {
   return crypto.createHash('sha256').update(bytes).digest('hex');
@@ -116,12 +138,11 @@ function patchRestore(source, caPath) {
     ].join('\n'));
 }
 
-function patchedHashFor(name) {
-  return name === BACKUP_NAME ? BACKUP_PATCHED_SHA256 : RESTORE_PATCHED_SHA256;
-}
-
-function originalHashFor(name) {
-  return name === BACKUP_NAME ? BACKUP_ORIGINAL_SHA256 : RESTORE_ORIGINAL_SHA256;
+// The reviewed original a patched hash was generated from, or null.
+function originalOfPatch(name, hash) {
+  var table = REVIEWED[name];
+  var match = Object.keys(table).filter(function(original) { return table[original] === hash; });
+  return match.length ? match[0] : null;
 }
 
 function buildPatched(name, source, caPath) {
@@ -133,17 +154,17 @@ function readTarget(name, root, caPath) {
   regularFile(filename, name);
   var source = fs.readFileSync(filename);
   var hash = sha256(source);
-  var originalHash = originalHashFor(name);
-  var patchedHash = patchedHashFor(name);
+  var originalHash = REVIEWED[name][hash] ? hash : originalOfPatch(name, hash);
+  var patchedHash = REVIEWED[name][hash] || hash;
   var state;
   var output = null;
-  if (hash === originalHash) {
-    output = Buffer.from(buildPatched(name, source.toString('utf8'), caPath), 'utf8');
+  if (REVIEWED[name][hash]) {
+    output = utf8Buffer(buildPatched(name, source.toString('utf8'), caPath));
     if (sha256(output) !== patchedHash) {
       throw new Error(name + ' generated patch hash does not match the reviewed pin');
     }
     state = 'original';
-  } else if (hash === patchedHash) {
+  } else if (originalHash) {
     state = 'patched';
   } else {
     throw new Error(name + ' has an unsupported source hash: ' + hash);
@@ -233,7 +254,7 @@ function apply(options) {
       kind: 'phoenix-system-backup-tls', version: VERSION, caPath: options.caPath,
       targets: targets.map(function(target) { return { name: target.name, path: target.path, backupPath: target.backupPath, originalSha256: target.originalHash, patchedSha256: target.patchedHash }; })
     };
-    writeAtomic(options.receipt, Buffer.from(JSON.stringify(receipt, null, 2) + '\n', 'utf8'), 0o600);
+    writeAtomic(options.receipt, utf8Buffer(JSON.stringify(receipt, null, 2) + '\n'), 0o600);
     result.receipt = options.receipt;
     return result;
   } catch (error) {

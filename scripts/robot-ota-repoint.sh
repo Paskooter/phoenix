@@ -97,19 +97,28 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # in a temporary local directory. This is deliberately not a curl|shell path.
 PUBLIC_ASSET_ORIGIN="${PHOENIX_REPOINT_ASSET_ORIGIN:-https://jibo.io}"
 CLIENT_SOURCE="${SCRIPT_DIR}/robot-client/node.js"
+# Factory RTM2/RTM3 images (platform 3.0.x/3.3.x) ship the 2.0-2.11 client, whose
+# HTTP handler predates the one node.js is built from; it gets its own variant.
+CLIENT_V2_SOURCE="${SCRIPT_DIR}/robot-client/node-v2.js"
 ROOT_PEM_SRC="${REGION_CA}"
 BACKUP_TLS_PATCHER="${SCRIPT_DIR}/robot-client/patch-system-backup-tls.cjs"
 OTA_TLS_PATCHER="${SCRIPT_DIR}/robot-client/patch-ota-downloader-tls.cjs"
 OTA_TRIGGER="${SCRIPT_DIR}/robot-client/trigger-ota.cjs"
 SUPPORT_DIR=""
 CLIENT_SOURCE_SHA256="29686ca0aec6b93b8b716b94fca443ce25e6e7e55e01e798be56bce920c66bac"
+CLIENT_V2_SOURCE_SHA256="22bb36bcc0c7ecedf64cca3c66b11c5d7959b3eba85990c739e77238c7b9c503"
+# The two stock lib/http/node.js files across every archived jibo-server-client
+# release: 2.0.0-2.11.x, and 2.12.0 through every 3.0.x.
+STOCK_CLIENT_V2_SHA256="81533de391dfba88fc40bedfc63ea30a77f8d032f9a8c23196db4cb3a44fa89b"
+STOCK_CLIENT_V3_SHA256="c3511dbc55c8a9ec3ac74a675a1245306b55c67fab65a3ecfe896ed01689997a"
 ROOT_PEM_SOURCE_SHA256="22b557a27055b33606b6559f37703928d3e4ad79f110b407d04986e1843543d1"
-BACKUP_TLS_PATCHER_SHA256="2063cf6d26344fc49548a1f691120f240524b976caa559930e52115857460762"
-OTA_TLS_PATCHER_SHA256="e2a2baf3da64e9c446adf1d51d025a4758b21cb7c7b7876ac775f29c124f561c"
+BACKUP_TLS_PATCHER_SHA256="0fee710b1dec524b8d4629deb19e8be9dc1013e161abed4180be3d2f2c28e2d8"
+OTA_TLS_PATCHER_SHA256="71fd99251474cff3ed4a993711d12069b74c0d2c653e04fedfe0218c0302beff"
 OTA_TRIGGER_SHA256="8454e5e68b8386e065463b3fab1123db99c3b8700ef400b9631a17eae44a76ff"
 
 cleanup_support() {
   [ -z "$SUPPORT_DIR" ] || rm -rf "$SUPPORT_DIR"
+  [ -z "${SSH_DIR:-}" ] || close_ssh
 }
 
 sha256_of() {
@@ -135,13 +144,18 @@ fetch_support_asset() {
 ensure_support_assets() {
   # A checked-out copy has both support files already. A standalone download
   # receives only the missing file(s), never overwrites a supplied custom CA.
-  if [ ! -r "$CLIENT_SOURCE" ] || [ ! -r "$BACKUP_TLS_PATCHER" ] || [ ! -r "$OTA_TLS_PATCHER" ] || { [ -z "$ROOT_PEM_SRC" ] && [ ! -r "${SCRIPT_DIR}/robot-client/isrg-root-x1.pem" ]; }; then
+  if [ ! -r "$CLIENT_SOURCE" ] || [ ! -r "$CLIENT_V2_SOURCE" ] || [ ! -r "$BACKUP_TLS_PATCHER" ] || [ ! -r "$OTA_TLS_PATCHER" ] || { [ -z "$ROOT_PEM_SRC" ] && [ ! -r "${SCRIPT_DIR}/robot-client/isrg-root-x1.pem" ]; }; then
     SUPPORT_DIR="$(mktemp -d "${TMPDIR:-/tmp}/phoenix-repoint.XXXXXX")" || die "could not create a temporary support directory"
   fi
   if [ ! -r "$CLIENT_SOURCE" ]; then
     mkdir -p "$SUPPORT_DIR/robot-client"
     CLIENT_SOURCE="$SUPPORT_DIR/robot-client/node.js"
     fetch_support_asset '/robot-client/node.js' "$CLIENT_SOURCE" "$CLIENT_SOURCE_SHA256"
+  fi
+  if [ ! -r "$CLIENT_V2_SOURCE" ]; then
+    mkdir -p "$SUPPORT_DIR/robot-client"
+    CLIENT_V2_SOURCE="$SUPPORT_DIR/robot-client/node-v2.js"
+    fetch_support_asset '/robot-client/node-v2.js' "$CLIENT_V2_SOURCE" "$CLIENT_V2_SOURCE_SHA256"
   fi
   if [ ! -r "$ROOT_PEM_SRC" ]; then
     ROOT_PEM_SRC="${SCRIPT_DIR}/robot-client/isrg-root-x1.pem"
@@ -202,8 +216,85 @@ if [ -n "$CLAIM_CODE" ] && [[ ! "$CLAIM_CODE" =~ ^[A-Za-z0-9_-]{43}$ ]]; then
   die "--claim-code must be the exact one-time code shown by the portal"
 fi
 
-SSH=(ssh -o BatchMode=yes -o ConnectTimeout=10 "$ROBOT")
+# A bare address means the robot's root account; that is the only login a
+# stock Jibo has.
+case "$ROBOT" in *@*) ;; *) ROBOT="root@${ROBOT}" ;; esac
+
+# ── SSH: authenticate once, then share that connection ───────────────────────
+# Do not assume a key is installed. A stock robot accepts root with the factory
+# password `jibo`, and many owners have never changed it. Try, in order: any key
+# or agent the user already has (never prompting), the factory login supplied
+# automatically, and finally an interactive prompt for the root password. The
+# first success opens one multiplexed master connection; every later command
+# and upload reuses it, so a password is entered at most once.
+DEFAULT_ROBOT_PASSWORD="jibo"
+SSH_DIR="$(mktemp -d /tmp/phoenix-ssh.XXXXXX)" || die "could not create a private SSH control directory"
+SSH_CONTROL="${SSH_DIR}/master"
+SSH_OPTS=(-o ConnectTimeout=10 -o ServerAliveInterval=15 -o StrictHostKeyChecking=accept-new
+  -o ControlPath="$SSH_CONTROL")
+SSH=(ssh "${SSH_OPTS[@]}" "$ROBOT")
 rsh() { "${SSH[@]}" "$@"; }
+# Uploads go through the same connection as `cat`, not scp: newer clients run
+# scp over SFTP, which not every firmware's sshd provides.
+rput() { rsh "cat > '$2'" < "$1"; }
+
+close_ssh() {
+  [ -S "$SSH_CONTROL" ] && ssh -o ControlPath="$SSH_CONTROL" -O exit "$ROBOT" >/dev/null 2>&1
+  rm -rf "$SSH_DIR"
+}
+
+open_master() {
+  # Authenticates in the foreground (so a prompt can be answered), then keeps
+  # the master in the background until close_ssh.
+  ssh "${SSH_OPTS[@]}" -o ControlMaster=yes -o ControlPersist=yes -f -N "$@" "$ROBOT" 2>"${SSH_DIR}/err"
+  local status=$?
+  [ "$status" -eq 0 ] && [ -S "$SSH_CONTROL" ] && return 0
+  if [ "$status" -eq 0 ]; then
+    die "this SSH client cannot share connections (multiplexing); run this from Linux, macOS, or WSL"
+  fi
+  return 1
+}
+
+ssh_failure_hint() {
+  if grep -q 'REMOTE HOST IDENTIFICATION HAS CHANGED' "${SSH_DIR}/err" 2>/dev/null; then
+    die "the robot's SSH host key changed (normal after a reflash). If this is your Jibo, run: ssh-keygen -R ${ROBOT#*@}"
+  fi
+  if grep -qiE 'timed out|no route|refused|could not resolve|unreachable' "${SSH_DIR}/err" 2>/dev/null; then
+    die "cannot reach ${ROBOT} over SSH: $(tail -1 "${SSH_DIR}/err")"
+  fi
+}
+
+connect_robot() {
+  if open_master -o BatchMode=yes; then SSH_AUTH="key"; return 0; fi
+  ssh_failure_hint
+
+  # The factory password, answered by an askpass helper instead of a person.
+  # SSH_ASKPASS_REQUIRE needs OpenSSH 8.4+; setsid covers older clients.
+  local askpass="${SSH_DIR}/askpass" setsid_cmd=()
+  printf '#!/bin/sh\nprintf "%%s\\n" "%s"\n' "$DEFAULT_ROBOT_PASSWORD" > "$askpass"
+  chmod 700 "$askpass"
+  # -w: wait for ssh, or setsid can return before the login has finished.
+  setsid -w true >/dev/null 2>&1 && setsid_cmd=(setsid -w)
+  if SSH_ASKPASS="$askpass" SSH_ASKPASS_REQUIRE=force DISPLAY="${DISPLAY:-phoenix:0}" \
+      "${setsid_cmd[@]}" ssh "${SSH_OPTS[@]}" -o ControlMaster=yes -o ControlPersist=yes -f -N \
+      -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no \
+      -o NumberOfPasswordPrompts=1 "$ROBOT" </dev/null 2>"${SSH_DIR}/err" && [ -S "$SSH_CONTROL" ]; then
+    SSH_AUTH="factory password"; return 0
+  fi
+  rm -f "$askpass"
+
+  # Opening it is the only real test: [ -r /dev/tty ] passes without a terminal.
+  { : </dev/tty; } 2>/dev/null \
+    || die "the robot refused key and factory-password login, and there is no terminal to ask for its root password"
+  say "  The robot did not accept an SSH key or the factory password."
+  say "  Enter the root password for ${ROBOT} (it is not stored or sent anywhere else)."
+  if open_master -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no \
+      -o NumberOfPasswordPrompts=3 </dev/tty; then
+    SSH_AUTH="password"; return 0
+  fi
+  ssh_failure_hint
+  die "could not log in to ${ROBOT} as root: $(tail -1 "${SSH_DIR}/err" 2>/dev/null)"
+}
 
 set_paired_mode_normal_if_ready() {
   local current_mode
@@ -224,7 +315,7 @@ run_native_ota() {
   local remote plan_output plan_hash count
   remote="$(rsh 'mktemp /tmp/phoenix-trigger-ota.XXXXXX' 2>/dev/null | tr -d '\r')"
   [[ "$remote" =~ ^/tmp/phoenix-trigger-ota\.[A-Za-z0-9]+$ ]] || die "could not allocate a safe remote OTA helper path"
-  scp -o BatchMode=yes -q "$OTA_TRIGGER" "${ROBOT}:${remote}" || die "could not upload the OTA helper"
+  rput "$OTA_TRIGGER" "$remote" || die "could not upload the OTA helper"
   plan_output="$(rsh "node '$remote' --plan fcs" 2>&1 | tr -d '\r')" \
     || die "could not plan the native OTA: $plan_output"
   printf '%s\n' "$plan_output"
@@ -248,13 +339,24 @@ run_native_ota() {
   rsh "rm -f '$remote'" >/dev/null 2>&1 || true
 }
 
-rsh 'true' >/dev/null 2>&1 || die "cannot reach ${ROBOT} over SSH"
+connect_robot
+rsh 'true' >/dev/null 2>&1 || die "logged in to ${ROBOT}, but the shared SSH connection is not usable"
 
 # ── 1. Establish the robot's identity and region ─────────────────────────────
 step "Robot"
 HOSTNAME_="$(rsh 'hostname' 2>/dev/null | tr -d '\r')"
 RELEASE="$(rsh 'jibo-version 2>/dev/null | head -1' 2>/dev/null | tr -d '\r')"
 MODE="$(rsh 'jibo-getmode 2>/dev/null' 2>/dev/null | tr -d '\r')"
+NODE_VERSION="$(rsh 'node -v 2>/dev/null' 2>/dev/null | tr -d '\r')"
+# Factory RTM2/RTM3 images have no system backup/restore helpers to patch.
+HAS_BACKUP_HELPERS=0
+if rsh 'test -f /usr/local/bin/jibo-system-backup || test -f /usr/local/bin/jibo-system-restore' >/dev/null 2>&1; then
+  HAS_BACKUP_HELPERS=1
+fi
+# Before the 12.x line audio turns are configured through the client configs
+# above; only later firmware has a separate jetstream hub config.
+HAS_JETSTREAM=0
+if rsh 'test -f /usr/local/etc/jibo-jetstream-service.json' >/dev/null 2>&1; then HAS_JETSTREAM=1; fi
 HAS_CREDS=0
 if rsh 'test -s /var/jibo/credentials.json' >/dev/null 2>&1; then HAS_CREDS=1; fi
 # A non-empty file is not necessarily a usable identity. Check its shape on the
@@ -298,6 +400,12 @@ if [ -z "$REGION" ]; then
     # OOBE does not have robot credentials. Its skill carries the authoritative
     # serverRegion it will use during SetupRobot, so match that exact value.
     REGION="$(rsh 'sed -n "s/.*\"serverRegion\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\".*/\1/p" /opt/jibo/Jibo/Skills/oobe-config/config.json 2>/dev/null | head -1' 2>/dev/null | tr -d '\r')"
+    # Factory RTM2/RTM3 (3.x) and 5.x setup skills name no region; their clients
+    # fall back to the production region, which is what this server serves.
+    if [ -z "$REGION" ]; then
+      REGION="api"
+      REGION_NOTE=" (default: this firmware's setup skill names no region)"
+    fi
   else
     # Do not echo the credential material sitting beside the region field.
     REGION="$(rsh 'sed -n "s/.*\"region\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\".*/\1/p" /var/jibo/credentials.json 2>/dev/null | head -1' 2>/dev/null | tr -d '\r')"
@@ -306,9 +414,15 @@ fi
 [ -n "$REGION" ] || die "could not determine the robot's region; pass --region"
 [[ "$REGION" =~ ^[a-z0-9][a-z0-9-]*$ ]] || die "invalid region name"
 say "  host      : ${HOSTNAME_:-unknown}"
+say "  login     : root via ${SSH_AUTH}"
+if [ "$SSH_AUTH" = "factory password" ]; then
+  say "  NOTE      : this Jibo still accepts the factory root password; anyone on your"
+  say "              network can log in to it. Consider changing it with passwd on the robot."
+fi
 say "  release   : ${RELEASE:-unknown}"
 say "  mode      : ${MODE:-unknown}"
-say "  region    : ${REGION:-unknown}"
+say "  region    : ${REGION:-unknown}${REGION_NOTE:-}"
+say "  node      : ${NODE_VERSION:-unknown}"
 REST_URL="https://${REGION}.${PUBLIC_SUFFIX}/"
 SOCKET_URL="wss://${REGION}-socket.${PUBLIC_SUFFIX}/"
 HUB_PREFIX="${REGION%-entrypoint}"
@@ -345,14 +459,37 @@ CONFIG_PATHS=(
   "/opt/jibo/Jibo/Skills/phoenix-be12-parity/node_modules/@jibo/jibo-server-client/lib/region_config.json"
   "/opt/jibo/Jibo/Skills/oobe-config/node_modules/@jibo/jibo-server-client/lib/region_config.json"
 )
+# Firmware bundles more copies than the fixed list names: 10.x nests nine more
+# inside jibo-ssm's own dependencies. Search the trees that hold Node clients and
+# keep the fixed list as a floor in case the robot's find cannot search.
+FOUND_PATHS="$(rsh 'for d in /usr/lib/node_modules /bin/jibo-ssm /usr/local/bin/jibo-ssm /opt/jibo/Jibo/Skills; do
+    [ -d "$d" ] && find "$d" -name region_config.json 2>/dev/null
+  done | grep "/jibo-server-client/lib/region_config.json$"' 2>/dev/null | tr -d '\r')"
+while IFS= read -r p; do
+  [ -n "$p" ] || continue
+  case " ${CONFIG_PATHS[*]} " in *" $p "*) ;; *) CONFIG_PATHS+=("$p") ;; esac
+done <<< "$FOUND_PATHS"
+
+# Each copy's HTTP handler decides which CA-accepting build it receives. Only the
+# two stock handlers (or an earlier install of ours) are recognized; anything
+# else stops here, before a single file has changed.
 PRESENT=()
+HANDLER_VARIANT=()
 for p in "${CONFIG_PATHS[@]}"; do
   if rsh "test -f '$p'" >/dev/null 2>&1; then
+    handler="${p%/region_config.json}/http/node.js"
+    handler_hash="$(rsh "sha256sum '$handler' 2>/dev/null" 2>/dev/null | awk '{print $1}')"
+    case "$handler_hash" in
+      "$STOCK_CLIENT_V3_SHA256"|"$CLIENT_SOURCE_SHA256") variant=3 ;;
+      "$STOCK_CLIENT_V2_SHA256"|"$CLIENT_V2_SOURCE_SHA256") variant=2 ;;
+      "") variant=none ;;
+      *) die "unrecognized HTTP client at ${handler} (sha256 ${handler_hash:0:16}…); nothing was changed" ;;
+    esac
     PRESENT+=("$p")
+    HANDLER_VARIANT+=("$variant")
     com="$(rsh "grep -c 'jibo\.com' '$p' 2>/dev/null" 2>/dev/null | tr -d '\r')"
-    say "  present  ${p}  (jibo.com lines: ${com:-?})"
-  else
-    say "  absent   ${p}"
+    case "$variant" in 2) label="2.x client" ;; 3) label="3.x client" ;; *) label="no HTTP handler" ;; esac
+    say "  present  ${p}  (jibo.com lines: ${com:-?}; ${label})"
   fi
 done
 [ "${#PRESENT[@]}" -gt 0 ] || die "no client region_config.json found on the robot"
@@ -441,14 +578,23 @@ fi
 say "  1. back up and rewrite jibo.com -> jibo.io in ${#PRESENT[@]} client config file(s)"
 say "  2. install the public root into ${TRUST_BUNDLE} (+ ${TRUST_DIR}/isrg-root-x1.pem and its"
 say "     subject-hash symlink), remounting / read-write for the write and back to read-only after"
-say "  3. install the CA-accepting client + its CA into every client copy (Node 6 ignores"
-say "     the system trust store, so this is the only way the Node client can verify TLS)"
+say "  3. install the CA-accepting client (2.x or 3.x build, matching each copy) + its CA into"
+say "     every client copy (this Node ignores the system trust store, so only this lets it verify TLS)"
 say "  4. link /etc/ssl/cert.pem -> ${TRUST_BUNDLE} (OpenSSL's default CAfile, which the"
 say "     stock image never shipped; without it the NATIVE hub client verifies nothing)"
-say "  5. patch system-manager backup and restore with that maintained public CA bundle"
-say "     (the stock Node 6 helpers bypass the patched server client)"
-say "  6. point the jetstream hub override at ${HUB_HOST}:443, so audio"
-say "     turns go to this server instead of wherever it was pointed before"
+if [ "$HAS_BACKUP_HELPERS" -eq 1 ]; then
+  say "  5. patch system-manager backup and restore with that maintained public CA bundle"
+  say "     (the stock Node helpers bypass the patched server client)"
+else
+  say "  5. (no system backup/restore helpers on this firmware; nothing to patch)"
+fi
+if [ "$HAS_JETSTREAM" -eq 1 ]; then
+  say "  6. point the jetstream hub override at ${HUB_HOST}:443, so audio"
+  say "     turns go to this server instead of wherever it was pointed before"
+  say "     (and the notification socket at <region>-socket.${PUBLIC_SUFFIX} where the server service names one)"
+else
+  say "  6. (no jetstream hub config on this firmware; its audio path uses the client configs in step 1)"
+fi
 say "  7. ensure /var/jibo/keys exists as a private directory (mode 0700; preserve existing keys)"
 if [ "$OOBE" -eq 1 ]; then
   say "  8. leave this unprovisioned robot unregistered; QR setup will create and link it later"
@@ -485,6 +631,34 @@ say "  update from it. A reboot is needed for the native services to reload thei
 # clean failure rather than a half-repointed machine.
 ensure_support_assets
 if [ "$START_OTA" -eq 1 ]; then ensure_ota_trigger; fi
+
+# Compatibility check: run both hash-guarded patchers in --dry-run against this
+# robot's own files. An unreviewed firmware version stops here, before a single
+# file has changed, instead of halfway through the apply below.
+step "Compatibility check"
+preflight_patcher() {
+  local label="$1" source="$2"; shift 2
+  local remote out
+  remote="$(rsh 'mktemp /tmp/phoenix-preflight.XXXXXX' 2>/dev/null | tr -d '\r')"
+  [[ "$remote" =~ ^/tmp/phoenix-preflight\.[A-Za-z0-9]+$ ]] || die "could not allocate a safe remote preflight path"
+  rput "$source" "$remote" || die "could not upload the ${label} check"
+  out="$(rsh "node '$remote' --dry-run $*; status=\$?; rm -f '$remote'; exit \$status" 2>&1 | tr -d '\r')" \
+    || die "this firmware's ${label} is not a reviewed version, so nothing was changed: ${out}"
+  case "$out" in
+    patched) out="reviewed stock version; ready to patch" ;;
+    already-patched) out="already patched" ;;
+    mode-repaired) out="already patched; its executable mode will be restored" ;;
+    *jibo-system-*)
+      # One "<helper>: original|patched" line per helper.
+      out="$(printf '%s\n' "$out" | sed -e 's/: original$/: reviewed stock version/' -e 's/: patched$/: already patched/' | paste -sd ';' - | sed 's/;/; /g')" ;;
+  esac
+  say "  ${label}: ${out}"
+}
+preflight_patcher "OTA downloader" "$OTA_TLS_PATCHER"
+if [ "$HAS_BACKUP_HELPERS" -eq 1 ]; then
+  preflight_patcher "backup/restore helpers" "$BACKUP_TLS_PATCHER" \
+    --root /usr/local/bin --receipt /var/lib/phoenix/jibo-system-backup-tls.json
+fi
 
 if [ "$DRY" -eq 1 ]; then
   say ""
@@ -595,38 +769,43 @@ done
 # and hands it to its https.Agent, so each copy needs both files. Install into EVERY copy:
 # the log client, the OTA updater and the skills each carry their own, and the OTA updater
 # is one of them -- miss it and the robot can never fetch the update that would fix it.
-if [ -r "$CLIENT_SOURCE" ]; then
-  CLIENT_HTTP_DIRS=""
-  for c in "${PRESENT[@]}"; do
-    CLIENT_HTTP_DIRS="${CLIENT_HTTP_DIRS} ${c%/lib/region_config.json}/lib/http"
+if [ -r "$CLIENT_SOURCE" ] && [ -r "$CLIENT_V2_SOURCE" ]; then
+  # "<http dir>:<2|3>" per copy, from the handler recognized during discovery.
+  CLIENT_HTTP_TARGETS=""
+  for i in "${!PRESENT[@]}"; do
+    [ "${HANDLER_VARIANT[$i]}" = none ] && continue
+    CLIENT_HTTP_TARGETS="${CLIENT_HTTP_TARGETS} ${PRESENT[$i]%/region_config.json}/http:${HANDLER_VARIANT[$i]}"
   done
   out="$(rsh "
     set -e
     changed=0
-    for d in ${CLIENT_HTTP_DIRS}; do
+    for t in ${CLIENT_HTTP_TARGETS}; do
+      d=\"\${t%:*}\"
       [ -f \"\$d/node.js\" ] || continue
       [ -f \"\$d/node.js.prerepoint-${STAMP}.bak\" ] || cp -a \"\$d/node.js\" \"\$d/node.js.prerepoint-${STAMP}.bak\"
-      printf '  client at %s -> CA-accepting build\n' \"\$d\"
+      printf '  client at %s -> CA-accepting build (%s.x)\n' \"\$d\" \"\${t##*:}\"
       changed=\$((changed+1))
     done
     echo \"  copies to update: \$changed\"
   " 2>&1 | tr -d '\r')" || die "failed to back up a client module: $out"
   printf '%s\n' "$out"
-  # Ship the module and the CA, then place them in every copy.
+  # Ship both builds and the CA, then place the matching build in every copy.
   rsh "mkdir -p /tmp/robot-client" >/dev/null 2>&1 || die "could not prepare robot staging directory"
-  scp -o BatchMode=yes -q "$CLIENT_SOURCE" "${ROBOT}:/tmp/robot-client/node.js" || die "could not upload the client module"
+  rput "$CLIENT_SOURCE" /tmp/robot-client/node-v3.js || die "could not upload the client module"
+  rput "$CLIENT_V2_SOURCE" /tmp/robot-client/node-v2.js || die "could not upload the 2.x client module"
   CA_SOURCE="${ROOT_PEM_SRC:-}"
   if [ -n "$CA_SOURCE" ] && [ -r "$CA_SOURCE" ]; then
-    scp -o BatchMode=yes -q "$CA_SOURCE" "${ROBOT}:/tmp/robot-client/phoenix-ca.pem" || die "could not upload the CA"
+    rput "$CA_SOURCE" /tmp/robot-client/phoenix-ca.pem || die "could not upload the CA"
   else
     say "  no CA file available to ship; the client will fall back to its built-in roots"
   fi
   out="$(rsh "
     set -e
     n=0
-    for d in ${CLIENT_HTTP_DIRS}; do
+    for t in ${CLIENT_HTTP_TARGETS}; do
+      d=\"\${t%:*}\"
       [ -d \"\$d\" ] || continue
-      cp -f /tmp/robot-client/node.js \"\$d/node.js\"
+      cp -f \"/tmp/robot-client/node-v\${t##*:}.js\" \"\$d/node.js\"
       chmod 644 \"\$d/node.js\"
       if [ -f /tmp/robot-client/phoenix-ca.pem ]; then
         cp -f /tmp/robot-client/phoenix-ca.pem \"\$d/phoenix-ca.pem\"
@@ -653,7 +832,7 @@ if [ "$HAVE_ROOT" -eq 0 ]; then
     HASH="$(openssl x509 -in "$ROOT_PEM_SRC" -noout -subject_hash_old 2>/dev/null | tr -d '\r')"
     [ -n "$HASH" ] || die "could not compute the subject hash from $ROOT_PEM_SRC"
     TMP_REMOTE="/tmp/.phoenix-isrg-root-${STAMP}-$$.pem"
-    scp -o BatchMode=yes -q "$ROOT_PEM_SRC" "${ROBOT}:${TMP_REMOTE}" || die "could not upload the root certificate"
+    rput "$ROOT_PEM_SRC" "$TMP_REMOTE" || die "could not upload the root certificate"
     out="$(rsh "
       set -e
       cp -a '$TRUST_BUNDLE' '$TRUST_BUNDLE.prerepoint-${STAMP}.bak' 2>/dev/null || true
@@ -708,7 +887,7 @@ APPLIED+=("/etc/ssl/cert.pem")
 [ -r "$OTA_TLS_PATCHER" ] || die "the OTA downloader TLS support file is unavailable"
 OTA_TLS_REMOTE="$(rsh 'mktemp /tmp/phoenix-ota-downloader-tls.XXXXXX' 2>/dev/null | tr -d '\r')"
 [[ "$OTA_TLS_REMOTE" =~ ^/tmp/phoenix-ota-downloader-tls\.[A-Za-z0-9]+$ ]] || die "could not allocate a safe remote OTA downloader patch path"
-scp -o BatchMode=yes -q "$OTA_TLS_PATCHER" "${ROBOT}:${OTA_TLS_REMOTE}" || die "could not upload the reviewed OTA downloader TLS patcher"
+rput "$OTA_TLS_PATCHER" "$OTA_TLS_REMOTE" || die "could not upload the reviewed OTA downloader TLS patcher"
 out="$(rsh "
   set -eu
   PATCH='$OTA_TLS_REMOTE'
@@ -730,9 +909,13 @@ APPLIED+=("/usr/bin/jibo-download-update explicit public CA + mode 0755")
 # (`request`) or download (`https`) paths trust the modern chain. The support
 # patcher pins the exact upstream sources and preserves rollback copies.
 [ -r "$BACKUP_TLS_PATCHER" ] || die "the system backup TLS support file is unavailable"
+# Factory RTM2/RTM3 images (platform 3.x) have no backup/restore helpers at all.
+if [ "$HAS_BACKUP_HELPERS" -eq 0 ]; then
+  say "  no system backup/restore helpers on this firmware; nothing to patch"
+else
 BACKUP_TLS_REMOTE="$(rsh 'mktemp /tmp/phoenix-system-backup-tls.XXXXXX' 2>/dev/null | tr -d '\r')"
 [[ "$BACKUP_TLS_REMOTE" =~ ^/tmp/phoenix-system-backup-tls\.[A-Za-z0-9]+$ ]] || die "could not allocate a safe remote backup TLS patch path"
-scp -o BatchMode=yes -q "$BACKUP_TLS_PATCHER" "${ROBOT}:${BACKUP_TLS_REMOTE}" || die "could not upload the reviewed system backup TLS patcher"
+rput "$BACKUP_TLS_PATCHER" "$BACKUP_TLS_REMOTE" || die "could not upload the reviewed system backup TLS patcher"
 out="$(rsh "
   set -eu
   PATCH='$BACKUP_TLS_REMOTE'
@@ -740,7 +923,7 @@ out="$(rsh "
     status=\$?
     trap - EXIT HUP INT TERM
     rm -f \"\$PATCH\"
-    mount -o remount,ro /usr/local 2>/dev/null || true
+    [ ${LOCAL_WAS_RO} -eq 0 ] || mount -o remount,ro /usr/local 2>/dev/null || true
     exit \$status
   }
   trap cleanup EXIT HUP INT TERM
@@ -751,6 +934,7 @@ out="$(rsh "
 " 2>&1 | tr -d '\r')" || die "could not apply the hash-guarded system backup/restore TLS patch"
 printf '%s\n' "$out"
 APPLIED+=("/usr/local/bin/jibo-system-{backup,restore} explicit public CA")
+fi
 
 # 7c-quater. The hub.
 #
@@ -788,11 +972,30 @@ out="$(rsh "
     fs.writeFileSync(p, JSON.stringify(d,null,2));
   \"
   chmod 644 \"\$F\"
-  mount -o remount,ro /usr/local
+  [ ${LOCAL_WAS_RO} -eq 0 ] || mount -o remount,ro /usr/local
   printf '  hub -> %s:443 (jetstream override)\n' '${HUB_HOST}'
 " 2>&1 | tr -d '\r')" || die "could not configure the jetstream hub: $out"
 printf '%s\n' "$out"
 APPLIED+=("/usr/local/etc/jibo-jetstream-service.json")
+
+# 7c-quinquies. The notification socket. From 8.x on, the native server service
+# builds its socket host as <region> + NotificationSubsystem.serverURLSuffix
+# ("-socket.jibo.com") from its own config, not from any region_config.json, so
+# without this the robot keeps dialing the old cloud for push notifications.
+# 3.x and 5.x firmware has no such key and takes the host from the client configs.
+out="$(rsh "
+  set -e
+  F=/usr/local/etc/jibo-server-service.json
+  grep -q '\"serverURLSuffix\"[[:space:]]*:[[:space:]]*\"-socket\\.jibo\\.com\"' \"\$F\" 2>/dev/null \\
+    || { printf '  notification socket: no old-cloud suffix to change\\n'; exit 0; }
+  mount -o remount,rw /usr/local
+  [ -f \"\$F.prerepoint-${STAMP}.bak\" ] || cp -a \"\$F\" \"\$F.prerepoint-${STAMP}.bak\"
+  sed -i 's/-socket\\.jibo\\.com\"/-socket.${PUBLIC_SUFFIX}\"/' \"\$F\"
+  [ ${LOCAL_WAS_RO} -eq 0 ] || mount -o remount,ro /usr/local
+  printf '  notification socket -> <region>-socket.%s\\n' '${PUBLIC_SUFFIX}'
+" 2>&1 | tr -d '\r')" || die "could not point the notification socket at ${PUBLIC_SUFFIX}: $out"
+printf '%s\n' "$out"
+case "$out" in *'-socket.'*) APPLIED+=("/usr/local/etc/jibo-server-service.json notification socket") ;; esac
 
 # 7c-quater. Adoption.
 #
@@ -886,11 +1089,14 @@ for p in "${PRESENT[@]}"; do
     [ "$n" = 0 ] || die "the robot still has an old-cloud endpoint in $p" ;;
   esac
 done
-CLIENT_HASH="$(sha256_of "$CLIENT_SOURCE")"
-for p in "${PRESENT[@]}"; do
-  client="${p%/lib/region_config.json}/lib/http/node.js"
+CLIENT_HASH_V3="$(sha256_of "$CLIENT_SOURCE")"
+CLIENT_HASH_V2="$(sha256_of "$CLIENT_V2_SOURCE")"
+for i in "${!PRESENT[@]}"; do
+  [ "${HANDLER_VARIANT[$i]}" = none ] && continue
+  client="${PRESENT[$i]%/lib/region_config.json}/lib/http/node.js"
+  expected="$CLIENT_HASH_V3"; [ "${HANDLER_VARIANT[$i]}" = 2 ] && expected="$CLIENT_HASH_V2"
   installed_hash="$(rsh "sha256sum '$client' 2>/dev/null" 2>/dev/null | awk '{print $1}')"
-  [ "$installed_hash" = "$CLIENT_HASH" ] || die "the CA-accepting client was not installed at $client"
+  [ "$installed_hash" = "$expected" ] || die "the CA-accepting client was not installed at $client"
 done
 
 if [ "$VERIFY" -eq 1 ]; then
