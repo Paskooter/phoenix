@@ -6,8 +6,9 @@
 //   Update_* -> ota service     (NET_ota,     default localhost:7015)
 // New services (settings, notification, key, …) register here as they land in later iterations.
 
-import { createService, sendJson, logger } from '@phoenix/common';
+import { createService, sendJson, logger, adminPurgeRoutes } from '@phoenix/common';
 import { statSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { DefaultPort } from '@phoenix/contracts';
 import {
   createGqaFileAttributionStore,
@@ -508,6 +509,45 @@ export function createClassicEntrypoint({ extra = [], tls, publicUrl, publicOrig
         caller,
       }), callerBoundary),
       ...backupBlobRoutes(backups), // PUT/GET /backup/blob — the self-hosted store the URLs point at
+      // Administrator removal of a robot or loop (Account calls this over loopback).
+      ...adminPurgeRoutes({
+        service: 'classic',
+        backupRoot: process.env.PHOENIX_DATA_DIR
+          ? join(process.env.PHOENIX_DATA_DIR, 'removal-backups')
+          : join(dirname(robots.dir), 'removal-backups'),
+        idDirectories: [
+          ['backups', backups.dir],
+          ['media', mediaStore.directory],
+          ['key-binaries', keyBinaryDir || process.env.ETCO_classic_keyBinaryDir],
+        ],
+        stores: [
+          { name: 'robots', file: robots.file, collections: () => ({ events: robots.events }), save: () => robots.persist() },
+          { name: 'notifications', file: hub.store.file,
+            collections: () => ({ tokens: hub.store.tokens, notifications: hub.store.notifications }), save: () => hub.store.flush() },
+          { name: 'keys', file: keys.file,
+            collections: () => ({ keys: keys.keys, backups: keys.backups, binaries: keys.binaries }), save: () => keys.flush() },
+          { name: 'media', file: mediaStore.file, collections: () => ({ records: mediaStore.records }), save: () => mediaStore._flush() },
+          { name: 'jot', file: jotStore.file,
+            collections: () => ({ messages: jotStore.messages, events: jotStore.events }), save: () => jotStore._flush() },
+          { name: 'person', file: personStore.file,
+            collections: () => ({
+              answers: personStore.answers, accountProperties: personStore.accountProperties,
+              loopProperties: personStore.loopProperties, holidays: personStore.holidays,
+            }),
+            save: () => personStore._flush() },
+          { name: 'ifttt', file: iftttStore.file,
+            collections: () => ({
+              identities: iftttStore.identities, triggers: iftttStore.triggers, actions: iftttStore.actions,
+              media: iftttStore.media, notifications: iftttStore.notifications,
+            }),
+            save: () => iftttStore._persist() },
+          { name: 'voiceTraining', file: voiceTrainingStore.file,
+            collections: () => ({ records: voiceTrainingStore.records }), save: () => voiceTrainingStore._flush() },
+          { name: 'push', file: pushRegistry.file, collections: () => ({ accounts: pushRegistry.accounts }), save: () => pushRegistry.flush() },
+          // The backup index is a cache of the per-loop directories moved above.
+          { name: 'backupIndex', file: null, collections: () => ({ index: backups.index }), save: () => {} },
+        ],
+      }),
       ...keyRoutes(keys, { membership: keyMembership, baseFor, binaryDir: keyBinaryDir, callerBoundary }), // POST /binaryRequest, /deleteBinaries, GET /key/binary
       ...verifiedDirectRoutes(logHttpRoutes(logStore, { callerBoundary }), callerBoundary),  // PUT/GET /log/upload|blob — the log/ASR/binary sink the URLs point at
       ...verifiedDirectRoutes(mediaBlobRoutes(mediaStore, { callerBoundary, loops: mediaLoops }), callerBoundary), // GET /media/blob/:path — the object bytes behind a Media url

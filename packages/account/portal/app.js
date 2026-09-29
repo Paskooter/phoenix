@@ -2325,8 +2325,8 @@ async function renderClaim() {
       h('p', { class: 'instruct' }, onJiboIo
         ? 'Use this whenever you are not sure what state Jibo is in: on a setup screen, or set up before.'
         : 'Use this for a Jibo that was set up before and still has his robot credentials.'),
-      h('p', { class: 'field-hint' }, 'This computer needs owner-authorized root SSH access to Jibo. Check that ',
-        h('code', {}, 'ssh root@<robot-ip> true'), ' works without asking for a password.'),
+      h('p', { class: 'field-hint' }, 'Put Jibo in ', h('code', {}, 'int-developer'),
+        ' mode first so this computer can reach him over SSH. The helper logs in as root with your SSH key if he has one, then with his factory password, and otherwise asks you for his root password.'),
       onJiboIo ? h('p', { class: 'field-hint' }, 'If Jibo still points at the original cloud, do this before scanning any QR code. Nothing here erases his calibration, keys, or credentials.') : null,
       onJiboIo ? h('p', { class: 'field-hint' }, 'Curious which path he will take? This preview needs no code and changes nothing:') : null,
       onJiboIo ? h('div', { class: 'restart-cmd' }, h('span', { class: 'prompt' }, '$'), h('code', { text: decisionPreview }), copyButton(() => decisionPreview)) : null),
@@ -2369,7 +2369,7 @@ function renderAdd() {
       h('button', { type: 'button', class: 'btn btn-primary', on: { click: () => chooseTarget(true) } }, 'Yes'),
       h('button', { type: 'button', class: 'btn', on: { click: () => chooseTarget(false) } }, 'No'),
       h('button', { type: 'button', class: 'btn', on: { click: () => chooseTarget(false) } }, 'I’m not sure')),
-    h('p', { class: 'field-hint' }, '“No” and “I’m not sure” use the same safe repoint check. You will need owner-authorized root SSH access.')),
+    h('p', { class: 'field-hint' }, '“No” and “I’m not sure” use the same safe repoint check. Jibo needs to be in int-developer mode so the helper can reach him over SSH.')),
   next,
   cloudName === 'jibo.io'
     ? h('p', { class: 'field-hint' }, 'Need more context? Read the ', h('a', { class: 'link', href: '/guide' }, 'setup guide'), '.')
@@ -3325,10 +3325,34 @@ async function renderAdminRobots() {
       row('Loop', rb.loopName || '—'),
       row('Owner', rb.ownerEmail || '—'),
       row('Access key', h('code', { text: rb.accessKeyId })),
-      row('Last seen', fmtDate(rb.lastSeen)))));
+      row('Last seen', fmtDate(rb.lastSeen)),
+      h('div', { class: 'member-actions' },
+        h('button', { type: 'button', class: 'btn btn-danger btn-sm', on: { click: () => removalDialog({ robot: rb.friendlyId }) } },
+          icon('trash', 14), 'Remove…')))));
     body.classList.add('member-grid');
   }
   container.append(robotCard);
+
+  // Loops, including any left behind without a robot.
+  const loops = await api('GET', '/api/admin/loops');
+  const loopList = loops.ok && Array.isArray(loops.data.loops) ? loops.data.loops : [];
+  const loopCard = card('Loops', { sub: `${loopList.length}` });
+  const loopBody = loopCard.querySelector('.card-body');
+  if (!loops.ok) loopBody.replaceChildren(errorBox('Could not list loops.', loops.data.error));
+  else if (!loopList.length) loopBody.replaceChildren(empty('No loops', 'Pairing a robot creates its loop.', 'users'));
+  else {
+    loopBody.replaceChildren(...loopList.map((loop) => h('div', { class: 'member-block' },
+      h('div', { class: 'member-name' }, icon('users', 15), loop.name || 'Unnamed loop'),
+      row('Robot', loop.robotFriendlyId || h('span', { class: 'pill pill-warn' }, 'none')),
+      row('Owner', loop.ownerEmail || '—'),
+      row('Members', String(loop.members)),
+      row('Loop id', h('code', { text: loop.id })),
+      h('div', { class: 'member-actions' },
+        h('button', { type: 'button', class: 'btn btn-danger btn-sm', on: { click: () => removalDialog({ loopId: loop.id }) } },
+          icon('trash', 14), 'Remove loop…')))));
+    loopBody.classList.add('member-grid');
+  }
+  container.append(loopCard);
 
   const result = h('pre', { class: 'json', hidden: true });
   const adoptForm = h('form', {},
@@ -3368,6 +3392,87 @@ async function renderAdminRobots() {
   });
 
   container.append(card('Manually adopt a robot', {}, adoptForm));
+}
+
+/**
+ * Remove a robot (and its loops) or a single loop from every service. Shows the
+ * server's own preview of what would go, and requires the robot's name or the
+ * loop id to be typed before anything is removed.
+ */
+function removalDialog(target) {
+  const title = h('h3', { text: target.robot ? `Remove ${target.robot}` : 'Remove loop' });
+  const content = h('div', { class: 'removal-body' }, loading(4));
+  const close = () => { dialog.close(); dialog.remove(); };
+  const cancel = h('button', { class: 'btn', type: 'button', on: { click: close } }, 'Cancel');
+  const confirmInput = h('input', { autocomplete: 'off', spellcheck: 'false', autocapitalize: 'off', disabled: true });
+  const remove = h('button', { class: 'btn btn-danger', type: 'button', disabled: true }, icon('trash', 15), 'Remove');
+  const confirmField = field('', confirmInput);
+  confirmField.hidden = true;
+  const dialog = h('dialog', { class: 'modal removal-modal' }, title, content, confirmField,
+    h('div', { class: 'row row-end', style: 'margin-top:1.25rem' }, cancel, remove));
+  dialog.addEventListener('cancel', (event) => { event.preventDefault(); close(); });
+  document.body.append(dialog);
+  dialog.showModal();
+
+  const countsText = (removed) => Object.entries(removed || {})
+    .map(([name, count]) => `${count} ${name.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase()}`).join(', ');
+  const serviceRows = (services) => (services || []).map((entry) => {
+    if (entry.skipped || entry.error) {
+      return row(prettyLabel(entry.service), h('span', { class: 'pill pill-warn' }, entry.skipped ? `skipped: ${entry.skipped}` : entry.error));
+    }
+    const parts = [...(entry.stores || []).map((store) => `${store.name} (${countsText(store.removed)})`),
+      ...(entry.directories || []).map((label) => `folder ${label}`)];
+    return row(prettyLabel(entry.service), parts.length ? parts.join('; ') : 'nothing stored');
+  });
+
+  void (async () => {
+    const preview = await apiRaw('POST', '/api/admin/removal/preview', target);
+    if (!preview.ok) { content.replaceChildren(errorBox('Could not prepare the removal.', preview.data.error)); return; }
+    const plan = preview.data;
+    const account = plan.account;
+    content.replaceChildren(
+      h('p', { class: 'field-hint' }, plan.kind === 'robot'
+        ? 'This removes the robot, every loop it belongs to, and everything the server stores for them. The owners\u2019 own accounts are kept. Afterwards the server has never heard of this robot, so it can be set up from scratch with a QR code.'
+        : 'This removes the loop and everything the server stores for it. Its robot account, if any, is kept.'),
+      h('div', { class: 'kv-list' },
+        account.robot ? row('Robot account', h('code', { text: account.robot.friendlyId })) : null,
+        ...account.loops.map((loop) => row('Loop', `${loop.name || 'Unnamed'} · ${loop.ownerEmail || 'no owner'} · ${loop.members} member${loop.members === 1 ? '' : 's'}`)),
+        Object.keys(account.removed).length || account.memberships
+          ? row('Other account records', [countsText(account.removed), account.memberships ? `${account.memberships} membership(s) in other loops` : ''].filter(Boolean).join(', '))
+          : null,
+        ...serviceRows(plan.services)),
+      h('p', { class: 'field-hint' }, 'Each service saves a backup copy under removal-backups/ before it removes anything.'));
+    confirmField.querySelector('.field-label').replaceChildren('Type ', h('code', { text: plan.confirmWith }), ' to confirm');
+    confirmField.hidden = false;
+    confirmInput.disabled = false;
+    confirmInput.focus();
+    confirmInput.addEventListener('input', () => {
+      remove.disabled = confirmInput.value.trim().toLowerCase() !== plan.confirmWith.toLowerCase();
+    });
+    remove.addEventListener('click', async () => {
+      remove.disabled = true;
+      cancel.disabled = true;
+      confirmInput.disabled = true;
+      const done = await apiRaw('POST', '/api/admin/removal', { ...target, confirm: confirmInput.value.trim() });
+      cancel.disabled = false;
+      if (!done.ok) {
+        content.prepend(errorBox('The removal did not complete.', done.data.error));
+        confirmInput.disabled = false;
+        return;
+      }
+      content.replaceChildren(
+        h('div', { class: 'notice notice-ok' }, icon('check', 16), h('div', {}, `${plan.label} was removed from this server.`)),
+        h('div', { class: 'kv-list' },
+          row('Account backup', h('code', { text: done.data.account.backupDir })),
+          ...(done.data.services || []).filter((entry) => entry.backupDir)
+            .map((entry) => row(`${prettyLabel(entry.service)} backup`, h('code', { text: entry.backupDir })))));
+      confirmField.hidden = true;
+      remove.hidden = true;
+      cancel.replaceChildren('Close');
+      cancel.addEventListener('click', () => renderAdminRobots(), { once: true });
+      notify(`${plan.label} removed`);
+    });
+  })();
 }
 
 /* -- Administrators -------------------------------------------------------- */

@@ -665,6 +665,8 @@ body.console {
   gap: .75rem;
   grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
 }
+/* The grid's gap spaces the blocks; a card body's stacking margin would offset every block after the first. */
+.card-body.member-grid > * + * { margin-top: 0; }
 
 .member-block {
   padding: 1.1rem 1.15rem;
@@ -1441,6 +1443,10 @@ pre.json {
   box-shadow: var(--shadow-lg);
   animation: fade-up .2s var(--ease-out);
 }
+.removal-modal { width: min(580px, calc(100vw - 2rem)); max-height: calc(100dvh - 2rem); overflow-y: auto; }
+.removal-body { display: grid; gap: .9rem; margin-top: .4rem; }
+.removal-body .kv .k { min-width: 8.5rem; }
+.removal-modal .field { margin-top: 1rem; }
 .modal::backdrop {
   background: rgba(0, 0, 0, .6);
   backdrop-filter: blur(3px);

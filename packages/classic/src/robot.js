@@ -138,6 +138,11 @@ export class RobotStore {
     writeFileSync(this.file, JSON.stringify({ events: this.events }));
   }
 
+  /** Rewrite the durable file from memory (the administrator's removal edits `events`). */
+  persist() {
+    this.#persist();
+  }
+
   /** Append one source-shaped event; returns the stored copy. */
   append(event) {
     const stored = clone(event);

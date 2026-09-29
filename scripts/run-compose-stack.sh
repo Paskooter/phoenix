@@ -285,6 +285,7 @@ if [ "${ACCOUNT:-1}" != "0" ]; then
   NET_classic=localhost:$(p 9012) \
   NET_ota=localhost:$(p 9010) \
   NET_hub=localhost:$(p 9000) \
+  NET_history=localhost:$(p 9006) \
     node packages/account/src/index.js > "$LOG_DIR/phx-compose-account.log"   2>&1 & JOB_PIDS[account]=$!
   ACCOUNT_URL="http://localhost:$(p 9011)"
 fi

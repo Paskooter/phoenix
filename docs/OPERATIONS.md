@@ -251,7 +251,12 @@ creates no server record, and leaves the next boot in OOBE. Reboot and perform
 QR setup; the stock OOBE flow automatically starts OTA after receiving new
 credentials. Its update manager cannot fetch updates before QR pairing because
 it requires `/var/jibo/credentials.json`.
-The helper requires passwordless key-based SSH; it does not acquire that access.
+Before it runs, put the robot in `int-developer` mode: in `normal` and `oobe`
+modes every firmware version's firewall rejects inbound SSH. The helper logs in as
+`root` with an SSH key if one is installed, otherwise with the factory password
+`jibo`, and otherwise asks for the robot's root password once; all later steps
+reuse that one connection. It changes the mode only for the next boot: OOBE when
+there are no credentials, normal after a verified OTA.
 Before repointing, it checks `/opt`: stock 13.0.0 can have a 300 MB ext4
 filesystem inside a 10 GB partition, leaving too little staging space for OTA.
 The dry run shows the proposed in-place expansion; `--yes` performs it and
@@ -312,10 +317,14 @@ curl --fail --remote-name https://jibo.io/robot-ota-repoint.sh && \
   bash ./robot-ota-repoint.sh --robot root@<robot-ip> --auto --claim-code <portal-code> --yes
 ```
 
-It uses key-based, non-interactive `root` SSH. Have the customer confirm
-`ssh root@<robot-ip> true` works without a password prompt before they create a
-short-lived code in the portal; the migration tool does not install or bypass
-that local access.
+For SSH, the helper logs in as `root` with an SSH key if one is installed, otherwise with
+the factory password `jibo`, and otherwise asks for the robot's root password once.
+All later steps reuse that one connection. SSH must be reachable, so the robot
+has to be in `int-developer` mode: in `normal` and `oobe` modes every firmware
+version's firewall rejects inbound connections. The helper does not change that
+mode except to set the next boot to OOBE (no credentials) or normal (after OTA).
+Have the customer put the robot in `int-developer` mode before they create a
+short-lived code in the portal.
 
 The code is one use and survives server-side only as a hash. The SSH script
 reads the existing `credentials.json` from the robot and sends it over HTTPS;
@@ -361,6 +370,26 @@ in OOBE mode. A clear installer rejection restores the prior mode.
 The separate household-snapshot importer is an operator migration tool, not a
 step in ordinary customer claims: it can carry legacy member/profile data and
 must be reviewed separately.
+
+### Removing a robot or loop
+
+To make the server forget a robot, for example before a reflashed robot is set up
+from scratch, use **Server admin → Robots**. Each robot has **Remove…** and each loop
+**Remove loop…**. The dialog first shows the server's own preview of what will go,
+then asks you to type the robot's name (or the loop id).
+
+- Removing a **robot** removes its robot account, every loop it belongs to, and
+  everything Classic and History hold for them: robot records, keys and backups,
+  media, messages, notification tokens, person data and skill history. Loop owners'
+  own accounts are kept.
+- Removing a **loop** removes that loop and its data; its robot account stays.
+
+Each service saves a backup first, under `$PHOENIX_DATA_DIR/removal-backups/removal-<time>-<service>/`:
+Account copies its store, and Classic and History copy their store files and move
+any per-loop folders (backups, media) there. If Classic cannot be reached, nothing
+is removed. The same operation is available to scripts as
+`POST /api/admin/removal/preview` and `POST /api/admin/removal` (`{ robot }` or
+`{ loopId }`, plus `confirm` for the removal), with an administrator session.
 
 ## Per-robot authentication
 

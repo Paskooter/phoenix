@@ -16,7 +16,7 @@
 
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createService, logger, parseServiceArgs, serviceCliPort, serviceHelp, runService } from '@phoenix/common';
+import { createService, logger, parseServiceArgs, serviceCliPort, serviceHelp, runService, adminPurgeRoutes } from '@phoenix/common';
 import { DefaultPort } from '@phoenix/contracts';
 import { HistoryStore, DB_CLIENT_STATE } from './store.js';
 import { validateEvent, validateQuery } from './validators.js';
@@ -76,6 +76,20 @@ export function createHistoryService(store = new HistoryStore()) {
     routes[`${method} /v1${path}`] = fn;
     routes[key] = fn;
   }
+  // Administrator removal of a robot (Account calls this over loopback). Skill
+  // launches carry the robot's friendly name as robotID.
+  Object.assign(routes, adminPurgeRoutes({
+    service: 'history',
+    backupRoot: process.env.PHOENIX_DATA_DIR
+      ? join(process.env.PHOENIX_DATA_DIR, 'removal-backups')
+      : join(dirname(store.file || historyStoreFile()), 'removal-backups'),
+    stores: [{
+      name: 'history',
+      file: store.file,
+      collections: () => ({ skillLaunches: store.skillLaunches, speech: store.speech }),
+      save: () => { if (store.file) store._flush(); },
+    }],
+  }));
   return createService({
     name: 'history',
     routes,

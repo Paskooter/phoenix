@@ -61,6 +61,7 @@ import { adminConfigRoutes } from './admin/configRoutes.js';
 import { adminOpsRoutes } from './admin/adminRoutes.js';
 import { adminLogRoutes } from './admin/logRoutes.js';
 import { adminVoiceTurnRoutes } from './admin/voiceTurnRoutes.js';
+import { adminRemovalRoutes } from './admin/removalRoutes.js';
 import { linkAdoptedRobotToOwner, robotAdoptionRoutes } from './robotAdoption.js';
 import { issueRobotClaim } from './robotClaim.js';
 
@@ -622,6 +623,7 @@ export function portalRoutes(store, options = {}) {
     ...adminOpsRoutes(store, { requireAdmin, sendJson, currentAccount: sessionUser }),
     ...adminLogRoutes(store, { requireAdmin, sendJson }),
     ...adminVoiceTurnRoutes(store, { requireAdmin, sendJson }),
+    ...adminRemovalRoutes(store, { requireAdmin, sendJson, ...(options.adminRemoval || {}) }),
 
     // Self-service adoption for a robot that already holds credentials. This one
     // is deliberately NOT session-guarded: the caller is the repoint script
