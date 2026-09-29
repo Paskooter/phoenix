@@ -22,14 +22,25 @@
 
 import { copyFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { net, purgeCollections, purgeNeedles, purgeStamp, requireInternalPeer } from '@phoenix/common';
+import { net, purgeBackupDir, purgeCollections, purgeNeedles, requireInternalPeer } from '@phoenix/common';
 import { classicBaseUrl } from '../portal/classicClient.js';
 
 // Account-store collections that can reference a robot or loop. `accounts` and `loops`
 // are handled explicitly; `settings` only by the robot's own entry, so an owner's
 // report settings are never caught by a stray mention.
-const SIDE_COLLECTIONS = ['tokens', 'sessions', 'notificationOutbox', 'webPushSubscriptions',
+export const SIDE_COLLECTIONS = ['tokens', 'sessions', 'notificationOutbox', 'webPushSubscriptions',
   'emailResets', 'phoneVerifications', 'oauthClients'];
+
+/** The other services that keep a robot's, a loop's or a person's records. Classic must answer. */
+export const defaultPeers = () => [
+  { name: 'classic', base: classicBaseUrl(), required: true },
+  { name: 'history', base: net('history', { required: false }), required: false },
+];
+
+/** Where removal and deletion backups go: beside the data, like every other service's. */
+export const defaultBackupRoot = (store) => (process.env.PHOENIX_DATA_DIR
+  ? join(process.env.PHOENIX_DATA_DIR, 'removal-backups')
+  : join(dirname(store.file), 'removal-backups'));
 
 function resolveTarget(store, body) {
   if (typeof body?.robot === 'string' && body.robot.trim()) {
@@ -116,34 +127,36 @@ async function callPeer(fetchImpl, base, body) {
   return data;
 }
 
+/**
+ * Send one purge request to each peer in turn. A required peer that fails throws,
+ * naming it, so the caller can stop before changing the account store; an optional
+ * one is reported instead.
+ */
+export async function purgePeers(peers, fetchImpl, body) {
+  const results = [];
+  for (const peer of peers) {
+    if (!peer.base) {
+      results.push({ service: peer.name, skipped: 'address not configured' });
+      continue;
+    }
+    try {
+      results.push({ service: peer.name, ...await callPeer(fetchImpl, peer.base, body) });
+    } catch (error) {
+      if (peer.required) throw Object.assign(new Error(`${peer.name}: ${error.message}`), { peer: peer.name });
+      results.push({ service: peer.name, error: error.message });
+    }
+  }
+  return results;
+}
+
 export function adminRemovalRoutes(store, {
   requireAdmin,
   sendJson,
   fetch: fetchImpl = globalThis.fetch,
-  peers = () => [
-    { name: 'classic', base: classicBaseUrl(), required: true },
-    { name: 'history', base: net('history', { required: false }), required: false },
-  ],
-  backupRoot = () => (process.env.PHOENIX_DATA_DIR
-    ? join(process.env.PHOENIX_DATA_DIR, 'removal-backups')
-    : join(dirname(store.file), 'removal-backups')),
+  peers = defaultPeers,
+  backupRoot = () => defaultBackupRoot(store),
 } = {}) {
-  const askPeers = async (target, dryRun) => {
-    const results = [];
-    for (const peer of peers()) {
-      if (!peer.base) {
-        results.push({ service: peer.name, skipped: 'address not configured' });
-        continue;
-      }
-      try {
-        results.push({ service: peer.name, ...await callPeer(fetchImpl, peer.base, { ids: target.ids, dryRun }) });
-      } catch (error) {
-        if (peer.required) throw Object.assign(new Error(`${peer.name}: ${error.message}`), { peer: peer.name });
-        results.push({ service: peer.name, error: error.message });
-      }
-    }
-    return results;
-  };
+  const askPeers = (target, dryRun) => purgePeers(peers(), fetchImpl, { ids: target.ids, dryRun });
 
   const preview = async ({ res, body }) => {
     const target = resolveTarget(store, body);
@@ -161,7 +174,7 @@ export function adminRemovalRoutes(store, {
     if (typeof body?.confirm !== 'string' || body.confirm.trim().toLowerCase() !== target.label.toLowerCase()) {
       return sendJson(res, 400, { error: `Type ${target.label} to confirm the removal` });
     }
-    const backupDir = join(backupRoot(), `removal-${purgeStamp()}-account`);
+    const backupDir = purgeBackupDir(backupRoot(), 'removal', 'account');
     mkdirSync(backupDir, { recursive: true, mode: 0o700 });
     copyFileSync(store.file, join(backupDir, 'store.json'));
     let services;

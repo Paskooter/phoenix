@@ -146,6 +146,15 @@ export async function disableBrowserPush(api) {
   return stored.data;
 }
 
+/**
+ * Drop this browser's subscription without telling the server: once the account
+ * is deleted there is nobody to tell, and the server has already forgotten it.
+ */
+export async function dropBrowserPush() {
+  const subscription = await currentSubscription();
+  if (subscription) await subscription.unsubscribe().catch(() => false);
+}
+
 // A browser can rotate a subscription after its endpoint expires. The service
 // worker tells an open console; the next account refresh attaches the new one.
 navigator.serviceWorker?.addEventListener('message', (event) => {

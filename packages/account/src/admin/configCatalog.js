@@ -199,6 +199,19 @@ export const SETTINGS = [
     help: 'Where member photos are stored on disk.',
   },
   {
+    key: 'PHOENIX_DELETION_BACKUP_DAYS',
+    label: 'Keep deleted-account backups (days)',
+    group: 'portal',
+    type: 'number',
+    default: '30',
+    min: 0,
+    max: 3650,
+    services: ['account', 'classic', 'history'],
+    help: 'When someone deletes their account, each service first saves a backup copy under '
+      + 'removal-backups/deletion-…, and deletes it after this many days. The privacy policy promises '
+      + 'deleted data only lingers in a backup briefly; 0 keeps none.',
+  },
+  {
     key: 'ETCO_account_mailFrom',
     label: 'Invitation sender address',
     group: 'portal',

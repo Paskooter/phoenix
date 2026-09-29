@@ -41,6 +41,9 @@ import { stubRegistrations } from './stubs.js';
 import { proxyMemberPhoto } from './photoProxy.js';
 import { PublicOriginError, configuredPublicOrigin } from './publicOrigin.js';
 import {
+  forgetIfttt, forgetJot, forgetKeys, forgetMedia, forgetNotifications, forgetPerson, forgetPushDevices, forgetVoiceTraining,
+} from './accountForget.js';
+import {
   cleanupVerifiedClassicRequest,
   createVerifiedClassicCaller,
   sendVerifiedCallerError,
@@ -523,27 +526,35 @@ export function createClassicEntrypoint({ extra = [], tls, publicUrl, publicOrig
         stores: [
           { name: 'robots', file: robots.file, collections: () => ({ events: robots.events }), save: () => robots.persist() },
           { name: 'notifications', file: hub.store.file,
-            collections: () => ({ tokens: hub.store.tokens, notifications: hub.store.notifications }), save: () => hub.store.flush() },
+            collections: () => ({ tokens: hub.store.tokens, notifications: hub.store.notifications }), save: () => hub.store.flush(),
+            forget: (ids, options) => forgetNotifications(hub.store, ids, options) },
           { name: 'keys', file: keys.file,
-            collections: () => ({ keys: keys.keys, backups: keys.backups, binaries: keys.binaries }), save: () => keys.flush() },
-          { name: 'media', file: mediaStore.file, collections: () => ({ records: mediaStore.records }), save: () => mediaStore._flush() },
+            collections: () => ({ keys: keys.keys, backups: keys.backups, binaries: keys.binaries }), save: () => keys.flush(),
+            forget: (ids, options) => forgetKeys(keys, ids, options) },
+          { name: 'media', file: mediaStore.file, collections: () => ({ records: mediaStore.records }), save: () => mediaStore._flush(),
+            forget: (ids, options) => forgetMedia(mediaStore, ids, options) },
           { name: 'jot', file: jotStore.file,
-            collections: () => ({ messages: jotStore.messages, events: jotStore.events }), save: () => jotStore._flush() },
+            collections: () => ({ messages: jotStore.messages, events: jotStore.events }), save: () => jotStore._flush(),
+            forget: (ids, options) => forgetJot(jotStore, ids, options) },
           { name: 'person', file: personStore.file,
             collections: () => ({
               answers: personStore.answers, accountProperties: personStore.accountProperties,
               loopProperties: personStore.loopProperties, holidays: personStore.holidays,
             }),
-            save: () => personStore._flush() },
+            save: () => personStore._flush(),
+            forget: (ids, options) => forgetPerson(personStore, ids, options) },
           { name: 'ifttt', file: iftttStore.file,
             collections: () => ({
               identities: iftttStore.identities, triggers: iftttStore.triggers, actions: iftttStore.actions,
               media: iftttStore.media, notifications: iftttStore.notifications,
             }),
-            save: () => iftttStore._persist() },
+            save: () => iftttStore._persist(),
+            forget: (ids, options) => forgetIfttt(iftttStore, ids, options) },
           { name: 'voiceTraining', file: voiceTrainingStore.file,
-            collections: () => ({ records: voiceTrainingStore.records }), save: () => voiceTrainingStore._flush() },
-          { name: 'push', file: pushRegistry.file, collections: () => ({ accounts: pushRegistry.accounts }), save: () => pushRegistry.flush() },
+            collections: () => ({ records: voiceTrainingStore.records }), save: () => voiceTrainingStore._flush(),
+            forget: (ids, options) => forgetVoiceTraining(voiceTrainingStore, ids, options) },
+          { name: 'push', file: pushRegistry.file, collections: () => ({ accounts: pushRegistry.accounts }), save: () => pushRegistry.flush(),
+            forget: (ids, options) => forgetPushDevices(pushRegistry, ids, options) },
           // The backup index is a cache of the per-loop directories moved above.
           { name: 'backupIndex', file: null, collections: () => ({ index: backups.index }), save: () => {} },
         ],

@@ -418,6 +418,34 @@ is removed. The same operation is available to scripts as
 `POST /api/admin/removal/preview` and `POST /api/admin/removal` (`{ robot }` or
 `{ loopId }`, plus `confirm` for the removal), with an administrator session.
 
+### Account deletion
+
+Anyone can delete their own account from **Account → Delete account…**. The
+console first shows what will go (`GET /api/me/deletion`), then asks for the
+password (`POST /api/me/delete`). Deleting an account removes:
+
+- the account, its sessions, sign-in and setup codes, notification subscriptions,
+  settings and photo;
+- every loop it owns, with everything stored for it, and each robot that was only
+  in those loops, exactly as **Remove…** does, so that robot can be set up again from
+  scratch; accounts without an email address that were only in those loops go too;
+- its place in other people's loops, and, in Classic and History, only what is its
+  own: messages it sent or that were only for it, its key copies, answers, holidays,
+  voice samples, uploads, IFTTT connection and skill history. Other people's
+  messages stay; they only lose it as a recipient or reader. A loop's key backup
+  stays even when this account made it, because a loop's owner can change.
+
+Other people who were in a deleted loop keep their accounts. The console suggests
+making one of them the owner first (**Loops → Owner → Transfer…**). The server's
+only administrator cannot delete their account.
+
+Each service saves a backup first, under `removal-backups/deletion-<time>-<service>/`,
+and deletes deletion backups after `PHOENIX_DELETION_BACKUP_DAYS` (default 30; `0`
+keeps none). Account prunes them at start-up and every six hours, and each service
+prunes its own when it starts and before each purge. Administrator `removal-…`
+backups are never pruned automatically. If Classic cannot be reached, nothing is
+deleted.
+
 ## Per-robot authentication
 
 The bundled development configuration disables Hub authentication with

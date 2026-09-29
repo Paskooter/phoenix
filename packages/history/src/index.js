@@ -16,7 +16,7 @@
 
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createService, logger, parseServiceArgs, serviceCliPort, serviceHelp, runService, adminPurgeRoutes } from '@phoenix/common';
+import { createService, logger, parseServiceArgs, serviceCliPort, serviceHelp, runService, adminPurgeRoutes, purgeCollections } from '@phoenix/common';
 import { DefaultPort } from '@phoenix/contracts';
 import { HistoryStore, DB_CLIENT_STATE } from './store.js';
 import { validateEvent, validateQuery } from './validators.js';
@@ -88,6 +88,9 @@ export function createHistoryService(store = new HistoryStore()) {
       file: store.file,
       collections: () => ({ skillLaunches: store.skillLaunches, speech: store.speech }),
       save: () => { if (store.file) store._flush(); },
+      // Each launch and each utterance is one event, so an event that names a
+      // person who deleted their account is theirs and goes whole.
+      forget: (ids, { dryRun }) => purgeCollections({ skillLaunches: store.skillLaunches, speech: store.speech }, ids, { dryRun }),
     }],
   }));
   return createService({

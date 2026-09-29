@@ -419,7 +419,7 @@ body.console {
 
 /* Forms inside cards: fields were stacked with no space between them. The
    inline .row forms (rename) and forms that lay themselves out are exempt. */
-.card-body form:not(.row):not(.jot-compose):not(.holiday-add):not(.add-person-form):not(.person-form):not(.link-form):not(.inline-edit) > * + * { margin-top: .9rem; }
+.card-body form:not(.row):not(.jot-compose):not(.holiday-add):not(.add-person-form):not(.person-form):not(.link-form):not(.inline-edit):not(.line-form) > * + * { margin-top: .9rem; }
 
 .card-head {
   display: flex;
@@ -1335,6 +1335,32 @@ body.console {
   .profile-photo-editor { align-items: flex-start; }
   .profile-photo-preview { width: 60px; height: 60px; font-size: 1.1rem; }
 }
+
+/* Account page: the photo and name lead, each setting below is one line with
+   its button, and a change opens under its own line. */
+.account-hero .card-body {
+  padding-block: 1.4rem;
+  background: radial-gradient(80% 160% at 0% 0%, var(--accent-soft), transparent 64%), var(--panel);
+}
+.account-hero .profile-photo-editor { padding-bottom: 0; border-bottom: 0; }
+.account-hero .profile-photo-text strong { font-size: var(--t-lg); letter-spacing: -.02em; }
+.line-form { display: grid; gap: .9rem; max-width: 40rem; padding: .9rem 0 .2rem; }
+.line-form .grid2 { margin: 0; }
+.setting-line-actions { gap: .5rem; justify-content: flex-end; }
+
+.danger-card .card-head h3 { color: var(--error); }
+.danger-line { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem 1.25rem; }
+.danger-line p { flex: 1 1 18rem; max-width: 52ch; font-size: var(--t-sm); line-height: 1.55; color: var(--fg-dim); }
+.danger-line .btn { flex: none; }
+
+.delete-form > .removal-body > p:first-child { color: var(--fg-dim); }
+.delete-list { display: grid; gap: .55rem; margin: 0; padding-inline-start: 1.15rem; }
+.delete-list li { font-size: var(--t-sm); line-height: 1.55; color: var(--fg-dim); }
+.delete-list li::marker { color: var(--error); }
+.delete-list strong { color: var(--fg); font-weight: 600; }
+.delete-form .field { margin-top: 1.1rem; }
+.delete-form .notice-error { margin-top: .9rem; }
+.delete-actions { margin-top: 1.25rem; }
 
 /* ==========================================================================
    Settings

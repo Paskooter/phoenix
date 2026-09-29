@@ -15,6 +15,7 @@ import { getBrandSync, initBrand, initTheme, pick } from '/brand.js';
 import {
   browserPushState,
   disableBrowserPush,
+  dropBrowserPush,
   enableBrowserPush,
   promptInstall,
   registerPortalServiceWorker,
@@ -1908,167 +1909,331 @@ function profilePhotoEditor(account) {
     input);
 }
 
+// Jibo's dialog says "he" for male, "she" for female and the person's name for
+// anything else, so those are the choices offered. An account can also hold the
+// original app's 'they' or 'other'; those show as Not set and are kept unless the
+// person picks something else.
+const GENDER_CHOICES = [['', 'Not set'], ['male', 'Male'], ['female', 'Female']];
+const genderChoice = (value) => (value === 'male' || value === 'female' ? value : '');
+
 async function renderProfile() {
-  show(page('Account', 'Your profile, password and email address.', loading(5)));
+  const title = 'Account';
+  const description = 'Your profile, your messages, and how you sign in.';
+  show(page(title, description, loading(5)));
 
   const meRes = await api('GET', '/api/me');
-  const container = page('Account', 'Your profile, password and email address.');
+  const container = page(title, description);
   if (!meRes.ok) { container.append(errorBox('Not signed in.')); return show(container); }
   const a = meRes.data.account;
 
-  const profileForm = h('form', {}, );
-  profileForm.append(
+  container.append(h('section', { class: 'card account-hero' }, h('div', { class: 'card-body' }, profilePhotoEditor(a))));
+
+  /* -- about you ---------------------------------------------------------- */
+
+  const initialGender = genderChoice(a.gender);
+  const aboutForm = h('form', { class: 'about-form' },
     h('div', { class: 'grid2' },
       field('First name', h('input', { name: 'firstName', value: a.firstName || '', autocomplete: 'given-name' })),
       field('Last name', h('input', { name: 'lastName', value: a.lastName || '', autocomplete: 'family-name' }))),
     h('div', { class: 'grid2' },
-      field('Birthday', h('input', {
-        type: 'date', name: 'birthdayDate',
-        value: isoDay(a.birthday),
-      })),
-      field('Pronouns', h('select', { name: 'gender' },
-        [['', '(not set)'], ['male', 'He / him'], ['female', 'She / her'], ['they', 'They / them'], ['other', 'Other']].map(([value, label]) =>
-          h('option', { value, selected: (a.gender || '') === value }, label))),
-        'Jibo uses this legacy preference when referring to you.')),
-    toggle('messagingAllowed', a.messagingAllowed ?? true, 'Receive Jibo messages',
-      'Let other people in your loops send you messages through the robot.'),
-    field('Message alerts', h('select', { name: 'jotNotificationMode' },
-      h('option', { value: 'tagged', selected: a.jotNotificationMode === 'tagged' }, 'Only when I am selected'),
-      h('option', { value: 'always', selected: a.jotNotificationMode === 'always' }, 'For every loop message'),
-      h('option', { value: 'none', selected: a.jotNotificationMode === 'none' }, 'Do not alert me')),
-    'Controls visible browser alerts after you enable notifications on this device.'),
-    h('div', { class: 'row', style: 'margin-top:1.25rem' },
-      h('button', { type: 'submit', class: 'btn btn-primary' }, 'Save changes')));
-
-  onSubmit(profileForm, async (e) => {
+      field('Birthday', h('input', { type: 'date', name: 'birthdayDate', value: isoDay(a.birthday) }),
+        'So Jibo can wish you a happy birthday.'),
+      field('Gender', h('select', { name: 'gender' },
+        ...GENDER_CHOICES.map(([value, label]) => h('option', { value, selected: initialGender === value }, label))),
+        'Jibo uses this when he talks about you.')),
+    h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn btn-primary' }, 'Save')));
+  onSubmit(aboutForm, async (e) => {
     e.preventDefault();
-    const fd = Object.fromEntries(new FormData(profileForm));
-    const res = await api('PUT', '/api/me', {
-      // Send the fields as typed so a cleared name is actually cleared.
+    const fd = Object.fromEntries(new FormData(aboutForm));
+    const body = {
+      // Sent as typed, so a cleared name is actually cleared.
       firstName: fd.firstName ?? '',
       lastName: fd.lastName ?? '',
-      gender: fd.gender || null,
-      // The control is a date picker; the API still stores epoch milliseconds.
+      // The control is a date picker; the API stores epoch milliseconds.
       birthday: fd.birthdayDate ? Date.parse(`${fd.birthdayDate}T00:00:00Z`) : null,
-      messagingAllowed: !!fd.messagingAllowed,
-      jotNotificationMode: fd.jotNotificationMode,
-    });
-    if (res.ok) { notify('Profile saved'); await refreshMe(); await renderProfile(); }
+    };
+    // Only a changed choice is sent, so a value this page does not offer is kept.
+    if ((fd.gender || '') !== initialGender) body.gender = fd.gender || null;
+    const res = await api('PUT', '/api/me', body);
+    if (res.ok) { notify('Saved'); await refreshMe(); await renderProfile(); }
     else notify(res.data.error || 'Could not save', 'error');
   });
+  container.append(card('About you', {}, aboutForm));
 
-  container.append(card('Profile', {}, profilePhotoEditor(a), profileForm));
+  /* -- messages ------------------------------------------------------------ */
 
-  const pwForm = h('form', {},
-    field('Current password', h('input', { name: 'currentPassword', type: 'password', required: true, autocomplete: 'current-password' })),
-    field('New password', h('input', { name: 'newPassword', type: 'password', minlength: 8, required: true, autocomplete: 'new-password' }),
-      'At least 8 characters.'),
-    h('div', { class: 'row', style: 'margin-top:1.25rem' },
-      h('button', { type: 'submit', class: 'btn btn-primary' }, 'Change password')));
-  onSubmit(pwForm, async (e) => {
-    e.preventDefault();
-    const res = await api('POST', '/api/me/password', Object.fromEntries(new FormData(pwForm)));
-    notify(res.ok ? 'Password changed' : (res.data.error || 'Could not change password'), res.ok ? 'ok' : 'error');
-    if (res.ok) pwForm.reset();
+  const alerts = h('select', { name: 'jotNotificationMode' },
+    h('option', { value: 'tagged', selected: a.jotNotificationMode === 'tagged' || !a.jotNotificationMode }, 'Only messages for me'),
+    h('option', { value: 'always', selected: a.jotNotificationMode === 'always' }, 'Every message in my loops'),
+    h('option', { value: 'none', selected: a.jotNotificationMode === 'none' }, 'None'));
+  let alertsValue = alerts.value;
+  alerts.addEventListener('change', async () => {
+    alerts.disabled = true;
+    const res = await api('PUT', '/api/me', { jotNotificationMode: alerts.value });
+    alerts.disabled = false;
+    if (res.ok) { alertsValue = alerts.value; notify('Saved'); }
+    else { alerts.value = alertsValue; notify(res.data.error || 'Could not save', 'error'); }
   });
-  container.append(card('Change password', {}, pwForm));
+  container.append(card('Messages', {},
+    h('div', { class: 'setting-list' },
+      h('div', { class: 'setting-row' }, liveSwitch({
+        checked: a.messagingAllowed ?? true,
+        label: 'Receive Jibo messages',
+        hint: 'People in your loops can leave you messages, and Jibo delivers them.',
+        save: (on) => api('PUT', '/api/me', { messagingAllowed: on }),
+        saved: (on) => (on ? 'Messages turned on' : 'Messages turned off'),
+      }))),
+    field('Browser alerts', alerts, 'Which new messages this browser alerts you about, once notifications are on below.')));
 
-  const mailForm = h('form', {},
-    field('Current password', h('input', { name: 'currentPassword', type: 'password', required: true, autocomplete: 'current-password' })),
-    field('New email address', h('input', { name: 'email', type: 'email', required: true })),
-    h('div', { class: 'row', style: 'margin-top:1.25rem' },
-      h('button', { type: 'submit', class: 'btn btn-primary' }, 'Change email')));
-  onSubmit(mailForm, async (e) => {
-    e.preventDefault();
-    const res = await api('POST', '/api/me/email', Object.fromEntries(new FormData(mailForm)));
-    notify(res.ok ? 'Check the new email address to confirm the change.' : (res.data.error || 'Could not change email'), res.ok ? 'ok' : 'error');
-    if (res.ok) mailForm.reset();
-  });
-  container.append(card('Change email address', {
-    sub: 'Your address stays unchanged until you confirm the link sent to the new inbox.',
-  }, mailForm));
+  /* -- sign-in -------------------------------------------------------------- */
 
-  // The PWA remains optional: all console functionality still works in the
-  // mobile browser. This card is the explicit, user-controlled place to
-  // install it or grant notification permission.
-  const pwaCard = card('Jibo app and notifications', {
-    sub: 'Install the console, then choose whether this browser may alert you.',
-  }, loading(3));
-  container.append(pwaCard);
+  let openLine = null;
+  const signIn = h('div', { class: 'setting-lines' });
+  const accountLine = (key, { label, value, hint, action, editor }) => {
+    const editing = openLine === key;
+    const button = h('button', { type: 'button', class: 'btn btn-sm', 'aria-expanded': String(editing) }, editing ? 'Cancel' : action);
+    button.addEventListener('click', () => {
+      openLine = editing ? null : key;
+      paintSignIn();
+      if (!editing) signIn.querySelector('.setting-line-editor input')?.focus();
+    });
+    return h('div', { class: `setting-line${editing ? ' is-editing' : ''}` },
+      h('div', { class: 'setting-line-text' },
+        h('span', { class: 'setting-line-label', text: label }),
+        h('span', { class: 'setting-line-value', text: value }),
+        hint ? h('span', { class: 'setting-line-hint', text: hint }) : null),
+      button,
+      editing ? h('div', {
+        class: 'setting-line-editor',
+        on: { keydown: (event) => { if (event.key === 'Escape') { openLine = null; paintSignIn(); } } },
+      }, editor()) : null);
+  };
+  const emailEditor = () => {
+    const form = h('form', { class: 'line-form' },
+      h('div', { class: 'grid2' },
+        field('New email address', h('input', { name: 'email', type: 'email', required: true, autocomplete: 'email' })),
+        field('Current password', h('input', { name: 'currentPassword', type: 'password', required: true, autocomplete: 'current-password' }))),
+      h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn btn-sm btn-primary' }, 'Send confirmation link')));
+    onSubmit(form, async (e) => {
+      e.preventDefault();
+      const res = await api('POST', '/api/me/email', Object.fromEntries(new FormData(form)));
+      if (!res.ok) { notify(res.data.error || 'Could not change email', 'error'); return; }
+      notify('Check the new address for a confirmation link.');
+      openLine = null;
+      paintSignIn();
+    });
+    return form;
+  };
+  const passwordEditor = () => {
+    const form = h('form', { class: 'line-form' },
+      h('div', { class: 'grid2' },
+        field('Current password', h('input', { name: 'currentPassword', type: 'password', required: true, autocomplete: 'current-password' })),
+        field('New password', h('input', { name: 'newPassword', type: 'password', minlength: 8, required: true, autocomplete: 'new-password' }),
+          'At least 8 characters.')),
+      h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn btn-sm btn-primary' }, 'Change password')));
+    onSubmit(form, async (e) => {
+      e.preventDefault();
+      const res = await api('POST', '/api/me/password', Object.fromEntries(new FormData(form)));
+      if (!res.ok) { notify(res.data.error || 'Could not change password', 'error'); return; }
+      notify('Password changed');
+      openLine = null;
+      paintSignIn();
+    });
+    return form;
+  };
+  function paintSignIn() {
+    signIn.replaceChildren(
+      accountLine('email', {
+        label: 'Email', value: a.email || '', action: 'Change…', editor: emailEditor,
+        hint: openLine === 'email' ? 'Your address stays the same until you confirm the link sent to the new one.' : '',
+      }),
+      accountLine('password', { label: 'Password', value: '••••••••', action: 'Change…', editor: passwordEditor }));
+  }
+  paintSignIn();
+  container.append(card('Sign-in', {}, signIn));
 
+  // The installable app stays optional: everything also works in a mobile
+  // browser. This card is the one place to install it or allow alerts.
+  const appLines = h('div', { class: 'setting-lines' }, loading(2));
+  container.append(card('App and notifications', {}, appLines));
+
+  /* -- delete account ------------------------------------------------------- */
+
+  const deleteCard = card('Delete account', {},
+    h('div', { class: 'danger-line' },
+      h('p', { text: 'Permanently delete your account and everything that’s only yours. You’ll be signed out everywhere.' }),
+      h('button', { type: 'button', class: 'btn btn-sm btn-danger', on: { click: deleteAccountDialog } }, 'Delete account…')));
+  deleteCard.classList.add('danger-card');
+  container.append(deleteCard);
   show(container);
 
-  const pwaBody = pwaCard.querySelector('.card-body');
   const state = await browserPushState(api);
   const capabilities = state.capabilities;
-  const installDetail = capabilities.installed
-    ? 'Installed on this device.'
-    : capabilities.canPromptInstall
-      ? 'Add the console to this device for a full-screen app experience.'
-      : capabilities.ios
-        ? 'In Safari, use Share → Add to Home Screen to install the Jibo app.'
-        : 'Use your browser’s Install app option to add the console to this device.';
-  const installButton = capabilities.canPromptInstall
-    ? h('button', {
-      type: 'button', class: 'btn btn-secondary',
-      on: { click: async () => {
-        const result = await promptInstall();
-        notify(result.accepted ? 'The app is being installed.' : 'Install was not completed.', result.accepted ? 'ok' : 'error');
-        await renderProfile();
-      } },
-    }, 'Install app')
-    : null;
-  const rows = [
-    row('App', h('span', { class: capabilities.installed ? 'pill pill-ok' : 'pill' },
-      capabilities.installed ? 'Installed' : 'Browser version')),
-    h('p', { class: 'field-hint' }, installDetail),
-    installButton,
-  ];
+  const line = ({ label, value, hint, actions = [] }) => h('div', { class: 'setting-line' },
+    h('div', { class: 'setting-line-text' },
+      h('span', { class: 'setting-line-label', text: label }), value,
+      hint ? h('span', { class: 'setting-line-hint', text: hint }) : null),
+    actions.length ? h('div', { class: 'row setting-line-actions' }, ...actions) : null);
+  const button = (label, onClick, cls = 'btn btn-sm') => h('button', { type: 'button', class: cls, on: { click: onClick } }, label);
 
+  const app = line({
+    label: 'App',
+    value: h('span', { class: capabilities.installed ? 'pill pill-ok' : 'pill' }, capabilities.installed ? 'Installed' : 'In the browser'),
+    hint: capabilities.installed ? 'Installed on this device.'
+      : capabilities.canPromptInstall ? 'Add the console to this device to open it like an app.'
+        : capabilities.ios ? 'In Safari, use Share → Add to Home Screen to install it.'
+          : 'Use your browser’s Install app option to add the console to this device.',
+    actions: capabilities.canPromptInstall ? [button('Install app', async () => {
+      const result = await promptInstall();
+      notify(result.accepted ? 'The app is being installed.' : 'Install was not completed.', result.accepted ? 'ok' : 'error');
+      await renderProfile();
+    })] : [],
+  });
+
+  let alertsLine;
   if (!capabilities.push) {
-    rows.push(h('div', { class: 'notice notice-error' }, icon('alert', 16),
-      h('div', {}, 'Browser notifications are unavailable here.',
-        h('div', { class: 'field-hint', style: 'margin-top:.3rem' },
-          capabilities.secure ? 'This browser does not provide the Web Push APIs.' : 'Open the console over HTTPS to use notifications.'))));
+    alertsLine = line({ label: 'Notifications', value: h('span', { class: 'pill' }, 'Unavailable'),
+      hint: capabilities.secure ? 'This browser can’t show notifications from websites.' : 'Open the console over HTTPS to use notifications.' });
   } else if (!state.server.ok || !state.server.data.available) {
-    rows.push(row('Notifications', h('span', { class: 'pill pill-warn' }, 'Not configured')),
-      h('p', { class: 'field-hint' }, state.server.ok
-        ? 'This server has not enabled browser notifications yet. Its operator can turn them on.'
-        : (state.server.data?.error || 'Could not check whether this server offers notifications.')));
+    alertsLine = line({ label: 'Notifications', value: h('span', { class: 'pill pill-warn' }, 'Not offered'),
+      hint: state.server.ok ? 'This server hasn’t turned on browser notifications. Its operator can.'
+        : (state.server.data?.error || 'Could not check whether this server offers notifications.') });
   } else if (state.permission === 'denied') {
-    rows.push(row('Notifications', h('span', { class: 'pill pill-warn' }, 'Blocked')),
-      h('p', { class: 'field-hint' }, 'Allow notifications for this site in your browser settings, then return here.'));
+    alertsLine = line({ label: 'Notifications', value: h('span', { class: 'pill pill-warn' }, 'Blocked'),
+      hint: 'Allow notifications for this site in your browser’s settings, then come back here.' });
   } else if (state.subscription) {
-    const actions = h('div', { class: 'row', style: 'margin-top:.9rem;gap:.65rem;flex-wrap:wrap' },
-      h('button', { type: 'button', class: 'btn btn-secondary', on: { click: async () => {
-        const result = await api('POST', '/api/web-push/test');
-        notify(result.ok ? 'Test notification requested.' : (result.data.error || 'Could not send a test notification.'), result.ok ? 'ok' : 'error');
-      } } }, 'Send test'),
-      h('button', { type: 'button', class: 'btn btn-danger', on: { click: async () => {
-        try {
-          await disableBrowserPush(api);
-          notify('Notifications disabled on this browser.');
-          await renderProfile();
-        } catch (error) { notify(error.message || 'Could not disable notifications.', 'error'); }
-      } } }, 'Disable here'));
-    rows.push(row('Notifications', h('span', { class: 'pill pill-ok' }, h('span', { class: 'dot dot-live' }), 'Enabled on this browser')),
-      h('p', { class: 'field-hint' }, 'New loop messages can alert this device. Notification previews never include message text.'), actions);
+    alertsLine = line({ label: 'Notifications', value: h('span', { class: 'pill pill-ok' }, h('span', { class: 'dot dot-live' }), 'On in this browser'),
+      hint: 'New messages can alert this device. Alerts never include the message itself.',
+      actions: [
+        button('Send a test', async () => {
+          const result = await api('POST', '/api/web-push/test');
+          notify(result.ok ? 'Test notification sent.' : (result.data.error || 'Could not send a test notification.'), result.ok ? 'ok' : 'error');
+        }),
+        button('Turn off', async () => {
+          try { await disableBrowserPush(api); notify('Notifications turned off in this browser.'); await renderProfile(); }
+          catch (error) { notify(error.message || 'Could not turn notifications off.', 'error'); }
+        }, 'btn btn-sm btn-danger'),
+      ] });
   } else {
-    rows.push(row('Notifications', h('span', { class: 'pill pill-warn' }, 'Off')),
-      h('p', { class: 'field-hint' }, capabilities.ios && !capabilities.installed
-        ? 'Install the app from Safari’s Share menu first, then enable notifications here.'
-        : 'Enable only if this is a device you trust.'),
-      h('button', { type: 'button', class: 'btn btn-primary', disabled: capabilities.ios && !capabilities.installed,
-        on: { click: async () => {
-          try {
-            await enableBrowserPush(api);
-            notify('Notifications enabled on this browser.');
-            await renderProfile();
-          } catch (error) { notify(error.message || 'Could not enable notifications.', 'error'); }
-        } },
-      }, 'Enable notifications'));
+    const blockedUntilInstalled = capabilities.ios && !capabilities.installed;
+    const enable = button('Turn on', async () => {
+      try { await enableBrowserPush(api); notify('Notifications turned on in this browser.'); await renderProfile(); }
+      catch (error) { notify(error.message || 'Could not turn notifications on.', 'error'); }
+    }, 'btn btn-sm btn-primary');
+    enable.disabled = blockedUntilInstalled;
+    alertsLine = line({ label: 'Notifications', value: h('span', { class: 'pill' }, 'Off'),
+      hint: blockedUntilInstalled ? 'Install the app from Safari’s Share menu first, then turn notifications on here.'
+        : 'Turn on only on a device you trust.',
+      actions: [enable] });
   }
-  pwaBody.replaceChildren(...rows.filter(Boolean));
+  appLines.replaceChildren(app, alertsLine);
+}
+
+/**
+ * Account deletion. The server first says what would go, in plain terms; nothing
+ * is deleted until the password is entered here. Afterwards the console returns
+ * to its signed-out start, saying the account is gone.
+ */
+function deleteAccountDialog() {
+  let busy = false;
+  const content = h('div', { class: 'removal-body' }, loading(3));
+  const password = h('input', { type: 'password', name: 'password', autocomplete: 'current-password', required: true });
+  const passwordField = field('Your password', password);
+  passwordField.hidden = true;
+  const problem = h('div', { class: 'notice notice-error', role: 'alert', hidden: true });
+  const cancel = h('button', { class: 'btn', type: 'button' }, 'Cancel');
+  const confirm = h('button', { class: 'btn btn-danger', type: 'submit', disabled: true }, 'Delete my account');
+  const form = h('form', { class: 'delete-form' },
+    h('h3', { text: 'Delete your account?' }),
+    content, passwordField, problem,
+    h('div', { class: 'row row-end delete-actions' }, cancel, confirm));
+  const dialog = h('dialog', { class: 'modal removal-modal' }, form);
+  const close = () => { dialog.close(); dialog.remove(); };
+  cancel.addEventListener('click', close);
+  dialog.addEventListener('cancel', (event) => { event.preventDefault(); if (!busy) close(); });
+  password.addEventListener('input', () => { confirm.disabled = !password.value; problem.hidden = true; });
+  document.body.append(dialog);
+  dialog.showModal();
+
+  const named = (loop) => loop.name || (loop.robot ? `${loop.robot}’s loop` : 'an unnamed loop');
+  const list = (names) => (names.length < 3 ? names.join(' and ')
+    : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`);
+
+  void (async () => {
+    const res = await apiRaw('GET', '/api/me/deletion');
+    if (!res.ok) {
+      content.replaceChildren(errorBox('Couldn’t check what deleting your account involves.', res.data.error));
+      return;
+    }
+    const plan = res.data;
+    if (plan.onlyAdministrator) {
+      content.replaceChildren(h('div', { class: 'notice notice-warn' }, icon('alert', 16),
+        h('div', {}, 'You’re the only administrator of this server. Make someone else an administrator before you delete your account.')));
+      cancel.textContent = 'Close';
+      confirm.hidden = true;
+      return;
+    }
+    const goes = [];
+    for (const loop of plan.loops) {
+      const others = loop.people === 1 ? 'The other person in it loses it too.' : `The ${loop.people} other people in it lose it too.`;
+      goes.push(h('li', {},
+        h('strong', { text: named(loop) }),
+        loop.robot
+          ? ', the loop you own, and its Jibo. Jibo forgets everyone in it and has to be set up again from scratch.'
+          : ', the loop you own, and everything in it.',
+        loop.people ? ` ${others}` : ''));
+    }
+    const joined = plan.memberships.filter((loop) => !loop.invited);
+    const invitations = plan.memberships.filter((loop) => loop.invited);
+    if (joined.length) {
+      goes.push(h('li', {}, 'Your place in ', h('strong', { text: list(joined.map(named)) }),
+        '. The messages you sent there go; everyone else’s messages and photos stay.'));
+    }
+    if (invitations.length) {
+      goes.push(h('li', {}, `Your ${invitations.length === 1 ? 'invitation' : 'invitations'} to `,
+        h('strong', { text: list(invitations.map(named)) }), '.'));
+    }
+    goes.push(h('li', {}, 'Your profile, your photo, your settings and anything you uploaded.'));
+    const shared = plan.loops.filter((loop) => loop.canHandOn);
+    content.replaceChildren(
+      h('p', { text: 'This can’t be undone. Deleting your account removes:' }),
+      h('ul', { class: 'delete-list' }, ...goes),
+      shared.length ? h('div', { class: 'notice' }, icon('users', 16),
+        h('div', {}, `To keep ${list(shared.map(named))} for the others, make one of them the owner first, in `,
+          h('a', { href: '#/loop', on: { click: close } }, 'Loops'), '.')) : null,
+      plan.backupDays > 0
+        ? h('p', { class: 'field-hint', text: `Backup copies that include your account are deleted within ${plan.backupDays} days.` })
+        : null);
+    passwordField.hidden = false;
+    password.focus();
+  })();
+
+  onSubmit(form, async (event) => {
+    event.preventDefault();
+    if (!password.value || busy) return;
+    busy = true;
+    for (const control of [password, cancel, confirm]) control.disabled = true;
+    confirm.textContent = 'Deleting…';
+    const res = await apiRaw('POST', '/api/me/delete', { password: password.value });
+    if (res.ok) {
+      close();
+      try { await dropBrowserPush(); } catch { /* no subscription or no service worker */ }
+      me = null;
+      badgesPainted = false;
+      authNotice = 'Your account has been deleted.';
+      if (location.hash && location.hash !== '#/') location.hash = '#/';
+      else route();
+      return;
+    }
+    busy = false;
+    password.disabled = false;
+    cancel.disabled = false;
+    confirm.disabled = false;
+    confirm.textContent = 'Delete my account';
+    problem.replaceChildren(icon('alert', 16), h('div', { text: res.data.error || 'Your account couldn’t be deleted.' }));
+    problem.hidden = false;
+    if (res.status === 401) password.select();
+  });
 }
 
 /* ==========================================================================

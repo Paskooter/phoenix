@@ -8,7 +8,7 @@ import { RobotReadClient } from './loopCreation.js';
 //   3. Admin face   — /api/admin/* gated by the account's isAdmin flag           [G.1]
 // Static portal UI served from ./portal                                          [G.4]
 
-import { createService, logger } from '@phoenix/common';
+import { createService, logger, pruneDeletionBackups } from '@phoenix/common';
 import { DefaultPort } from '@phoenix/contracts';
 import { getStore } from './store.js';
 import { portalRoutes } from './portalApi.js';
@@ -22,6 +22,7 @@ import { mediaPeerRoutes } from './mediaPeerRoutes.js';
 import { portalNotFound, staticRoutes } from './static.js';
 import { createSettingsProviders } from './settingsProviders.js';
 import { MemberPhotoStorage } from './memberPhotoStorage.js';
+import { defaultBackupRoot } from './admin/removalRoutes.js';
 import { pipeline } from 'node:stream/promises';
 import { openSync, readSync, closeSync } from 'node:fs';
 import { timingSafeEqual } from 'node:crypto';
@@ -498,10 +499,23 @@ export function createAccountService({
   service.calendarRefresh = calendarRefresh;
   service.invitationProviders = effectiveInvitationProviders;
   service.identityProviders = effectiveIdentityProviders;
+  // Account-deletion backups age out even when nobody deletes an account for a
+  // while. Where every service shares PHOENIX_DATA_DIR, this covers theirs too.
+  const pruneBackups = () => {
+    try { pruneDeletionBackups(defaultBackupRoot(store)); }
+    catch (error) { logger('account.deletion').warn('could not prune deletion backups', { error: error.message }); }
+  };
+  let pruneTimer = null;
   service.server.on('listening', () => {
     void calendarRefresh.start().catch(() => logger('account.calendar').error('iCal startup refresh failed'));
+    pruneBackups();
+    pruneTimer = setInterval(pruneBackups, 6 * 60 * 60 * 1000);
+    pruneTimer.unref?.();
   });
-  service.server.on('close', () => calendarRefresh.stop());
+  service.server.on('close', () => {
+    calendarRefresh.stop();
+    clearInterval(pruneTimer);
+  });
   void loopUpdatedOutbox.recover();
   const invitationEvents = effectiveInvitationProviders.eventSender;
   if (invitationEvents && typeof invitationEvents.recover === 'function') {

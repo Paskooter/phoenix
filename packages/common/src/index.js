@@ -27,7 +27,10 @@ export {
   verifyVoiceTurnTelemetryProof,
 } from './voiceTurnObservability.js';
 export { createService, sendText, sendJson, readJson, legacyJsonError } from './service.js';
-export { purgeNeedles, purgeCollections, backupBeforePurge, purgeStamp, requireInternalPeer, adminPurgeRoutes } from './recordPurge.js';
+export {
+  purgeNeedles, purgeCollections, backupBeforePurge, purgeStamp, purgeBackupDir, deletionBackupDays, pruneDeletionBackups,
+  requireInternalPeer, adminPurgeRoutes,
+} from './recordPurge.js';
 export * as jwt from './jwt.js';
 export * as ical from './ical.js';
 export {

@@ -12,6 +12,7 @@
 //   GET  /api/robots/setup/status?token=           -> pairing completion poll
 //   GET  /api/loop  / PUT /api/loop …              -> loops + members (see portal/loops.js)
 //   PUT /api/me  POST /api/me/password …           -> profile (see portal/profile.js)
+//   GET /api/me/deletion  POST /api/me/delete      -> delete your own account (portal/accountDeletion.js)
 //   GET/PUT /api/settings                          -> report-skill settings (settingsFace.js)
 //   GET /api/media · /api/people · /api/jot · /api/push · /api/notifications · /api/update/status
 //   GET /api/oauthclients · GET /api/ifttt         -> classic-fronted surfaces (portal/*)
@@ -20,7 +21,7 @@
 //   POST /api/admin/login   (REMOVED — the admin face is per-account now)
 //   GET  /api/admin/me   GET /api/admin/robots   POST /api/admin/adopt
 //
-// Twenty /api mounts live in src/portal/* — this file keeps the original routes and composes the
+// Most /api mounts live in src/portal/* — this file keeps the original routes and composes the
 // rest. The admin face is gated by the signed-in account's `isAdmin` flag, not a shared
 // ADMIN_PASSWORD: grant it with scripts/portal-grant-admin.mjs. A signed-out caller gets 401 and a
 // signed-in non-admin gets 403, so the console can tell them apart.
@@ -51,6 +52,7 @@ import { userFromSession as sessionUser, portalAccount } from './portal/session.
 import { classicBaseUrl, classicCall } from './portal/classicClient.js';
 import { portalLoopRoutes, visibleLoops } from './portal/loops.js';
 import { portalProfileRoutes } from './portal/profile.js';
+import { accountDeletionRoutes } from './portal/accountDeletion.js';
 import { portalRobotRoutes } from './portal/robots.js';
 import { portalMediaRoutes } from './portal/media.js';
 import { portalPeopleRoutes } from './portal/people.js';
@@ -609,6 +611,11 @@ export function portalRoutes(store, options = {}) {
     // -- the rest of the mobile-app surface ------------------------------------
     ...portalLoopRoutes(store, portal),
     ...portalProfileRoutes(store, { identityProviders: portal.identityProviders, photoProvider: portal.photoProvider }),
+    ...accountDeletionRoutes(store, {
+      loopUpdatedOutbox: portal.loopUpdatedOutbox,
+      photoProvider: portal.photoProvider,
+      ...(options.accountDeletion || {}),
+    }),
     ...portalRobotRoutes(store, portal),
     ...portalMediaRoutes(store, portal),
     ...portalPeopleRoutes(store, portal),
