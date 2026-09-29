@@ -151,6 +151,8 @@ const ICONS = {
   mic: 'M12 14.5a3 3 0 0 0 3-3v-5a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3ZM6 11.5a6 6 0 0 0 12 0M12 17.5V20.5',
   mail: 'M4.5 5.5h15a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1ZM4 6.5l8 6 8-6',
   userPlus: 'M14.5 20v-1.5A3.5 3.5 0 0 0 11 15H6a3.5 3.5 0 0 0-3.5 3.5V20M8.5 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM18.5 8v6M15.5 11h6',
+  sun: 'M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM12 2.5v2M12 19.5v2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M2.5 12h2M19.5 12h2M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4',
+  news: 'M5.5 4.5h10a1 1 0 0 1 1 1V18a2 2 0 0 0 2 2h-12a2 2 0 0 1-2-2V5.5a1 1 0 0 1 1-1ZM16.5 9h2a1 1 0 0 1 1 1v8a2 2 0 0 1-2 2M8 8.5h5M8 12h5M8 15.5h3',
 };
 
 const icon = (name, size = 16, className) => {
@@ -449,116 +451,262 @@ function householdSwitcher(context) {
    Overview
    ========================================================================== */
 
-async function renderHome() {
-  const container = page('Overview', 'Your loops at a glance.', loading(3));
-  show(container);
+// Things to say to Jibo, shared by the Overview and Get to know Jibo.
+const SAY_PHRASES = [
+  'What time is it?',
+  'What’s the weather?',
+  'What’s my personal report?',
+  'Tell me the news.',
+  'Take a picture.',
+  'Who was Ada Lovelace?',
+];
 
-  const [loops, robots] = await Promise.all([
+function greetingFor(date = new Date()) {
+  const hour = date.getHours();
+  if (hour >= 5 && hour < 12) return 'Good morning';
+  if (hour >= 12 && hour < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
+/** "just now", "5 minutes ago", "yesterday", or a date. */
+function fmtSince(value) {
+  const time = Number(value);
+  if (!Number.isFinite(time) || time <= 0) return '';
+  const minutes = Math.floor((Date.now() - time) / 60000);
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes} minute${minutes === 1 ? '' : 's'} ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+  return fmtAgo(time);
+}
+
+/** A clock time from the report's {hour, min}, in the viewer's own format. */
+function fmtClock({ hour, min } = {}) {
+  if (!Number.isInteger(Number(hour))) return '';
+  const date = new Date(2000, 0, 1, Number(hour), Number(min) || 0);
+  return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+}
+
+/** One line per part of the personal report: what Jibo will include, in words. */
+function reportSummary(s) {
+  const COMMUTE = { driving: 'Driving', walking: 'Walking', bicycling: 'Cycling', transit: 'Public transit' };
+  const topics = Object.entries(s.news?.categories || {}).filter(([, on]) => on)
+    .map(([name]) => name[0].toUpperCase() + name.slice(1));
+  const commuteReady = s.commute?.home?.lat != null && s.commute?.work?.lat != null;
+  const calendars = (s.calendar?.icalSubscriptions || []).filter((item) => item.enabled).length
+    + ['googlePersonal', 'googleWork', 'outlookPersonal', 'outlookWork'].filter((key) => s.calendar?.[key]).length;
+  const list = (items) => (items.length > 2 ? `${items.slice(0, 2).join(', ')} and ${items.length - 2} more` : items.join(' and '));
+  return [
+    { icon: 'sun', label: 'Weather', on: !!s.weather?.active,
+      value: s.weather?.active ? `On, in ${s.weather.celsius ? '°C' : '°F'}` : 'Off' },
+    { icon: 'news', label: 'News', on: !!s.news?.active && topics.length > 0,
+      value: !s.news?.active ? 'Off' : (topics.length ? list(topics) : 'No topics picked') },
+    { icon: 'pin', label: 'Commute', on: !!s.commute?.active && commuteReady,
+      value: !s.commute?.active ? 'Off' : (commuteReady
+        ? [COMMUTE[s.commute.mode] || 'Driving', fmtClock(s.commute.time) && `at ${fmtClock(s.commute.time)}`].filter(Boolean).join(' ')
+        : 'Home and work not set') },
+    { icon: 'calendar', label: 'Calendar', on: !!s.calendar?.active && calendars > 0,
+      value: !s.calendar?.active ? 'Off' : (calendars ? `${calendars} calendar${calendars === 1 ? '' : 's'}` : 'No calendar linked') },
+  ];
+}
+
+async function renderHome() {
+  show(page('Overview', '', loading(4)));
+
+  const [loops, robots, settings] = await Promise.all([
     api('GET', '/api/loop'),
     api('GET', '/api/robots'),
+    api('GET', '/api/settings'),
   ]);
 
-  const greeting = me?.firstName ? `Welcome back, ${me.firstName}.` : 'Welcome back.';
-  const body = page('Overview', greeting);
+  const body = page('Overview', 'Here’s how things look across your Jibos.');
+  const firstName = meaningfulText(me?.firstName);
+  body.querySelector('.page-head h2').textContent = `${greetingFor()}${firstName ? `, ${firstName}` : ''}`;
+  const subtitle = body.querySelector('.page-head p');
 
   // `GET /api/loop` answers { loops: [...] }, not a bare array.
   const loopList = loops.ok && Array.isArray(loops.data.loops) ? loops.data.loops : [];
   const robotList = robots.ok && Array.isArray(robots.data) ? robots.data : [];
-  const membershipState = (loop) => (loop.members || []).find((member) => String(member.accountId) === String(me?.id))?.status;
-  const usableLoops = loopList.filter((loop) => loop.canManage === true
-    || String(membershipState(loop) || '').toLowerCase() === 'accepted');
-  const pendingInvitations = loopList.filter((loop) => loop.canManage !== true
-    && String(membershipState(loop) || '').toLowerCase() === 'invited');
-  // Each loop also carries a member record for the robot itself; it is not a
-  // person and must not be counted as one.
-  const peopleOf = (l) => (l.members || []).filter((m) => !(m.accountId && m.accountId === l.robot));
-  const members = usableLoops.reduce((n, l) => n + peopleOf(l).length, 0);
-  const unlinked = usableLoops.reduce((n, l) => n + peopleOf(l).filter((m) => !m.account).length, 0);
+  const membershipState = (loop) => String((loop.members || [])
+    .find((member) => String(member.accountId) === String(me?.id))?.status || '').toLowerCase();
+  const usableLoops = loopList.filter((loop) => loop.canManage === true || membershipState(loop) === 'accepted');
+  const invitations = loopList.filter((loop) => loop.canManage !== true && membershipState(loop) === 'invited');
+  setBadge('badge-members', loopPeopleTotal(loopList));
+  setBadge('badge-robots', robotList.length);
 
-  // A brand-new account has no robot and no loop, and three zeros tell it
-  // nothing. Lead with the one thing to do next instead.
-  if (robots.ok && loops.ok && !robotList.length && !loopList.length) {
-    body.append(h('section', { class: 'card getting-started' },
-      h('div', { class: 'card-body' },
-        h('div', { class: 'getting-started-ic' }, icon('robot', 22)),
+  // The one sentence that matters most at a glance: is Jibo there?
+  const known = robotList.filter((robot) => typeof robot.connection?.connected === 'boolean');
+  const connected = known.filter((robot) => robot.connection.connected).length;
+  if (!robotList.length && !loopList.length) subtitle.textContent = 'Let’s get your Jibo online.';
+  else if (known.length && known.length === robotList.length) {
+    subtitle.textContent = robotList.length === 1
+      ? (connected ? `${robotName(robotList[0])} is connected right now.` : `${robotName(robotList[0])} isn’t connected right now.`)
+      : (connected ? `${connected} of your ${robotList.length} Jibos ${connected === 1 ? 'is' : 'are'} connected right now.`
+        : 'None of your Jibos are connected right now.');
+  }
+
+  const openLoop = (loopId) => { rememberActiveLoop(loopId); location.hash = '#/loop'; };
+  const sectionHead = (title, link) => h('div', { class: 'ov-head' },
+    h('h3', { text: title }),
+    link ? h('a', { class: 'ov-link', href: link.href }, link.label, icon('arrow', 13)) : null);
+
+  /* -- invitations ------------------------------------------------------- */
+
+  if (invitations.length) {
+    body.append(h('section', { class: 'card ov-invites' },
+      ...invitations.map((loop) => {
+        const people = loopPeople(loop);
+        const owner = people.find((person) => person.isOwner);
+        const joined = people.filter((person) => !person.invited).length;
+        const view = h('button', { type: 'button', class: 'btn btn-sm btn-primary', on: { click: () => openLoop(loop.id) } },
+          'View invitation');
+        return h('div', { class: 'ov-invite' },
+          robotAvatar(loop.avatarColor, 'md'),
+          h('div', { class: 'ov-invite-text' },
+            h('b', {}, `${owner?.name || 'Someone'} invited you to ${loop.name || 'their loop'}`),
+            h('span', {}, `${joined} ${joined === 1 ? 'person is' : 'people are'} in it. Join to see this Jibo’s gallery and inbox.`)),
+          view);
+      })));
+  }
+
+  if (!loops.ok) body.append(errorBox('Could not load your loops.', loops.data.error));
+  if (!robots.ok) body.append(errorBox('Could not load your robots.', robots.data.error));
+
+  /* -- a brand-new account --------------------------------------------------- */
+
+  const main = h('div', { class: 'ov-main' });
+  const aside = h('div', { class: 'ov-aside' });
+
+  if (robots.ok && loops.ok && !robotList.length && !usableLoops.length) {
+    const onJiboIo = /(^|\.)jibo\.io$/i.test(location.hostname);
+    main.append(h('section', { class: 'card ov-welcome' },
+      h('div', { class: 'ov-welcome-head' },
+        robotAvatar('blue', 'lg'),
         h('div', {},
           h('h3', {}, 'Bring your Jibo online'),
-          h('p', { class: 'field-hint' },
-            'Pair your robot with this account to create its loop. Everything else here — members, the '
-            + 'personal report, the gallery and messages — starts from that loop.')),
-        h('a', { class: 'btn btn-primary', href: '#/add' }, icon('plus', 15), 'Add a Jibo'))));
+          h('p', {}, 'Three steps, and he takes it from there.'))),
+      h('ol', { class: 'steps' },
+        h('li', {}, h('strong', {}, 'Open him up to SSH. '),
+          'The free ', h('a', { class: 'link', href: 'https://github.com/Paskooter/Jibo-DFU-Mod-Toolkit', target: '_blank', rel: 'noopener' }, 'DFU toolkit'),
+          ' puts Jibo in int-developer mode and onto your Wi-Fi.'),
+        h('li', {}, h('strong', {}, 'Add him here. '), 'Add a Jibo gives you one command to run on a computer on the same network.'),
+        h('li', {}, h('strong', {}, 'That’s it. '), 'Jibo updates himself, restarts, and joins your loop.')),
+      h('div', { class: 'row' },
+        h('a', { class: 'btn btn-primary', href: '#/add' }, icon('plus', 15), 'Add a Jibo'),
+        onJiboIo ? h('a', { class: 'btn btn-quiet', href: '/guide' }, 'Read the setup guide') : null)));
   }
 
-  body.append(h('div', { class: 'stat-grid' },
-    h('article', { class: 'stat' },
-      h('div', { class: 'label' }, icon('users', 14), 'Members'),
-      h('div', { class: 'value', text: String(members) }),
-      h('div', { class: 'note', text: `across ${usableLoops.length} loop${usableLoops.length === 1 ? '' : 's'}` })),
-    h('article', { class: 'stat' },
-      h('div', { class: 'label' }, icon('robot', 14), 'Robots'),
-      h('div', { class: 'value', text: String(robotList.length) }),
-      h('div', { class: 'note', text: robotList.length ? 'paired to this server' : 'none paired yet' })),
-    h('article', { class: 'stat' },
-      h('div', { class: 'label' }, icon('link', 14), 'Unlinked'),
-      h('div', { class: 'value', text: String(unlinked) }),
-      h('div', { class: 'note', text: unlinked ? 'members with no account' : 'every member is linked' }))));
+  /* -- your Jibos ------------------------------------------------------------- */
 
-  if (pendingInvitations.length) {
-    body.append(h('div', { class: 'notice notice-warn', style: 'margin-top:1rem' }, icon('users', 16),
-      h('div', {}, `${pendingInvitations.length} loop invitation${pendingInvitations.length === 1 ? '' : 's'} waiting. `,
-        h('a', { class: 'link', href: '#/loop' }, 'Review invitations'))));
+  if (robotList.length) {
+    const tile = (robot) => h('a', {
+      class: 'jibo-tile',
+      href: robot.canManage ? `#/robot/${encodeURIComponent(robot.loopId)}` : '#/robot',
+      title: robot.friendlyId,
+    },
+    robotAvatar(robot.avatarColor, 'md'),
+    h('span', { class: 'jibo-tile-text' },
+      h('b', { text: robotName(robot) }),
+      h('span', { text: robot.canManage ? 'Yours' : 'Shared with you' })),
+    h('span', { class: 'jibo-tile-foot' },
+      connectionStatus(robot.connection),
+      h('span', { class: 'jibo-tile-facts', text: robot.lastSeen ? `Seen ${fmtSince(robot.lastSeen)}` : 'Not seen yet' })));
+    main.append(h('section', { class: 'ov-section' },
+      sectionHead(robotList.length === 1 ? 'Your Jibo' : 'Your Jibos', { href: '#/robot', label: 'Robots' }),
+      h('div', { class: 'jibo-grid' },
+        ...robotList.map(tile),
+        h('a', { class: 'jibo-tile jibo-tile-add', href: '#/add' },
+          h('span', { class: 'jibo-add-ic' }, icon('plus', 18)),
+          h('span', { class: 'jibo-tile-text' }, h('b', {}, 'Add a Jibo'), h('span', {}, 'Bring another robot online'))))));
   }
 
-  // The single most common cause of "I had trouble fetching your personal
-  // settings" is a member with no account link, so say so here rather than
-  // making someone find it.
-  if (unlinked > 0) {
-    body.append(h('div', { class: 'notice notice-warn', style: 'margin-top:1rem' },
-      icon('alert', 16),
-      h('div', {},
-        h('div', {}, `${unlinked} member${unlinked === 1 ? ' has' : 's have'} no account linked.`),
-        h('div', { class: 'field-hint', style: 'margin-top:.3rem' },
-          'The robot cannot load a personal report for them until it is. '),
-        h('a', { class: 'link', href: '#/loop', style: 'display:inline-block;margin-top:.5rem' },
-          'Link them now'))));
-  }
-
-  body.append(h('h3', { style: 'margin:2rem 0 .9rem;font-size:var(--t-base)' }, 'Jump to'));
-  const quick = (href, label, iconName, note) => h('a', { class: 'quick', href },
-    h('span', { class: 'ic' }, icon(iconName, 16)),
-    h('span', {}, h('div', { text: label }),
-      note ? h('div', { class: 'field-hint', text: note }) : null),
-    icon('arrow', 15, 'arrow'));
-  body.append(h('div', { class: 'quick-grid' },
-    quick('#/loop', 'Loops', 'users', 'Members and account links'),
-    quick('#/settings', 'Personal report', 'sliders', 'Weather, news, commute'),
-    quick('#/robot', 'Robots', 'robot', 'Pairing and status'),
-    quick('#/tips', 'Get to know Jibo', 'sparkles', 'Things to try'),
-    quick('#/gallery', 'Gallery', 'image', 'What the robot captured')));
-
-  if (!loops.ok) body.append(h('div', { style: 'margin-top:1.5rem' }, errorBox('Could not load your loops.', loops.data.error)));
-  if (!robots.ok) body.append(h('div', { style: 'margin-top:1rem' }, errorBox('Could not load robots.', robots.data.error)));
+  /* -- loops ------------------------------------------------------------------- */
 
   if (usableLoops.length) {
-    const loopCard = card('Your loops', {});
-    for (const l of usableLoops) {
-      const n = peopleOf(l).length;
-      loopCard.querySelector('.card-body').append(row(
-        l.name, `${n} member${n === 1 ? '' : 's'} · ${l.robotFriendlyId || 'no robot'}`));
-    }
-    body.append(h('div', { style: 'margin-top:1.5rem' }, loopCard));
-  }
-  if (robotList.length) {
-    const robotCard = card('Robots', {});
-    for (const rb of robotList) {
-      robotCard.querySelector('.card-body').append(row(rb.friendlyId, meaningfulText(rb.loopName) || '—'));
-    }
-    body.append(h('div', { style: 'margin-top:1rem' }, robotCard));
+    main.append(h('section', { class: 'ov-section' },
+      sectionHead(usableLoops.length === 1 ? 'Your loop' : 'Your loops', { href: '#/loop', label: 'Loops' }),
+      h('div', { class: 'loop-list' }, ...usableLoops.map((loop) => {
+        const people = loopPeople(loop);
+        const joined = people.filter((person) => !person.invited);
+        const invited = people.length - joined.length;
+        const owner = people.find((person) => person.isOwner);
+        const facts = [`${joined.length} ${joined.length === 1 ? 'person' : 'people'}`];
+        if (invited) facts.push(`${invited} invited`);
+        facts.push(loop.canManage ? 'You own it' : `Owned by ${owner?.name || 'someone else'}`);
+        const shown = joined.slice(0, 5);
+        return h('button', { type: 'button', class: 'loop-row', on: { click: () => openLoop(loop.id) } },
+          h('span', { class: 'avatar-stack', 'aria-hidden': 'true' },
+            ...shown.map((person) => personAvatar(person.name, {
+              key: person.id, size: 'sm', photo: person.isMe ? safePhotoPath(me?.photoUrl) : null,
+            })),
+            joined.length > shown.length ? h('span', { class: 'person-avatar person-avatar-sm avatar-more' }, `+${joined.length - shown.length}`) : null),
+          h('span', { class: 'loop-row-text' },
+            h('b', { text: loop.name || 'Unnamed loop' }),
+            h('span', { text: facts.join(' · ') })),
+          icon('chevron', 16, 'loop-row-caret'));
+      }))));
   }
 
-  setBadge('badge-members', members);
-  setBadge('badge-robots', robotList.length);
+  // Photographs arrive after the rest of the page: they are the slowest thing
+  // to fetch, and the page is useful without them.
+  const photos = h('section', { class: 'ov-section', hidden: true });
+  main.append(photos);
+
+  /* -- your personal report ------------------------------------------------ */
+
+  const report = h('section', { class: 'card ov-report' },
+    h('div', { class: 'card-head' }, h('h3', {}, 'Your personal report'),
+      h('span', { class: 'spacer' }), h('a', { class: 'btn btn-sm', href: '#/settings' }, 'Edit')));
+  if (settings.ok && settings.data.settings) {
+    const rows = reportSummary(settings.data.settings);
+    report.append(h('div', { class: 'card-body' },
+      h('ul', { class: 'report-rows' }, ...rows.map((item) => h('li', { class: item.on ? 'is-on' : '' },
+        h('span', { class: 'report-ic' }, icon(item.icon, 15)),
+        h('span', { class: 'report-label', text: item.label }),
+        h('span', { class: 'report-value', text: item.value })))),
+      h('p', { class: 'field-hint' }, 'Ask “Hey Jibo, what’s my personal report?”',
+        settings.data.settings.offerProactively ? ' He also offers it when he recognizes you.' : '')));
+  } else {
+    report.append(h('div', { class: 'card-body' }, errorBox('Could not load your personal report settings.', settings.data?.error)));
+  }
+  aside.append(report);
+
+  /* -- things to try ------------------------------------------------------------ */
+
+  const day = Math.floor(Date.now() / 86400000);
+  const phrases = [0, 1, 2].map((i) => SAY_PHRASES[(day + i) % SAY_PHRASES.length]);
+  aside.append(h('section', { class: 'card say-card ov-say' },
+    h('div', { class: 'card-body' },
+      h('h3', {}, 'Say “Hey Jibo”, then ask'),
+      h('ul', { class: 'say-list' }, ...phrases.map((phrase) => h('li', {}, phrase))),
+      h('a', { class: 'ov-link', href: '#/tips' }, 'More things to try', icon('arrow', 13)))));
+
+  body.append(h('div', { class: 'ov-grid' }, main, aside));
   show(body);
+
+  if (usableLoops.length) loadRecentPhotos(usableLoops, photos, sectionHead);
+}
+
+/** Up to six of the newest photographs across the given loops, into `slot`. */
+async function loadRecentPhotos(loops, slot, sectionHead) {
+  const responses = await Promise.all(loops.map((loop) => api('GET', `/api/media?loopId=${encodeURIComponent(loop.id)}`)));
+  const items = responses.flatMap((result) => (result.ok ? (result.data.media || []) : []))
+    .filter((m) => !m.isDeleted && m.url && !m.reference && m.type !== 'video')
+    .map((m) => {
+      const thumbs = Array.isArray(m.thumbs) ? m.thumbs.filter((thumb) => thumb && thumb.url && thumb.path) : [];
+      const preview = thumbs.find((thumb) => thumb.type === 'thumb') || thumbs[0] || m;
+      const key = String(preview.path || '').split('/').pop();
+      return /^[A-Za-z0-9_-]+$/.test(key) ? { created: Number(m.created || 0), src: `/api/media/blob/${key}` } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.created - a.created)
+    .slice(0, 6);
+  if (!items.length || !slot.isConnected) return;
+  slot.replaceChildren(
+    sectionHead('Recent photos', { href: '#/gallery', label: 'Gallery' }),
+    h('div', { class: 'photo-strip' }, ...items.map((item) => h('a', { class: 'photo-tile', href: '#/gallery' },
+      h('img', { src: item.src, loading: 'lazy', alt: `Photo taken ${fmtDate(item.created)}` })))));
+  slot.hidden = false;
 }
 
 function setBadge(id, count) {
@@ -2562,14 +2710,7 @@ function robotBackupPanel(state) {
 
 function renderTips() {
   const body = page('Get to know Jibo', 'Things to try once your Jibo is connected, and where to set him up.');
-  const phrases = [
-    'What time is it?',
-    'What’s the weather?',
-    'What’s my personal report?',
-    'Tell me the news.',
-    'Take a picture.',
-    'Who was Ada Lovelace?',
-  ];
+  const phrases = SAY_PHRASES;
   const tip = (href, iconName, title, text) => h('a', { class: 'tip', href },
     h('span', { class: 'tip-ic' }, icon(iconName, 18)),
     h('span', { class: 'tip-title' }, title, icon('arrow', 14, 'arrow')),

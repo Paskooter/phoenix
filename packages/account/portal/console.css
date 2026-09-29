@@ -323,7 +323,6 @@ body.console {
   .card-body { padding: 1rem; }
   .card-foot { padding: .85rem 1rem; }
   .stat { padding: 1rem; }
-  .quick { min-height: 56px; padding: .8rem .9rem; }
   .btn { min-height: 44px; }
   input:not([type]), input[type="text"], input[type="email"], input[type="password"], input[type="search"],
   input[type="date"], input[type="time"], input[type="tel"], input[type="number"], input[type="url"], select { min-height: 44px; }
@@ -384,7 +383,7 @@ body.console {
 }
 
 @media (hover: none) {
-  .card-click:hover, .quick:hover { transform: none; }
+  .card-click:hover, .jibo-tile:hover { transform: none; }
 }
 .js .page { animation: page-in .3s var(--ease-out); }
 @keyframes page-in {
@@ -421,27 +420,6 @@ body.console {
 /* Forms inside cards: fields were stacked with no space between them. The
    inline .row forms (rename) and forms that lay themselves out are exempt. */
 .card-body form:not(.row):not(.jot-compose):not(.holiday-add):not(.add-person-form):not(.person-form):not(.link-form):not(.inline-edit) > * + * { margin-top: .9rem; }
-
-/* Overview call to action for an account with no robot yet. */
-.getting-started { border-color: var(--accent-line); }
-.getting-started .card-body {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-.getting-started .card-body > * + * { margin-top: 0; }
-.getting-started .card-body > div:nth-child(2) { flex: 1 1 18rem; min-width: 0; }
-.getting-started h3 { font-size: var(--t-base); margin-bottom: .25rem; }
-.getting-started-ic {
-  display: grid;
-  place-items: center;
-  width: 44px; height: 44px;
-  border-radius: 12px;
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
-  flex: none;
-}
 
 .card-head {
   display: flex;
@@ -545,37 +523,207 @@ body.console {
   .stat .note { font-size: .7rem; line-height: 1.35; }
 }
 
-/* Quick links on the overview. */
-.quick-grid {
+/* ==========================================================================
+   Overview
+   ========================================================================== */
+
+.ov-grid {
   display: grid;
-  gap: .75rem;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
 }
-.quick {
-  display: flex;
+@media (max-width: 1100px) { .ov-grid { grid-template-columns: minmax(0, 1fr); } }
+.ov-main, .ov-aside { display: grid; gap: 1.75rem; min-width: 0; align-content: start; }
+.ov-aside { gap: 1rem; }
+.ov-aside .card + .card { margin-top: 0; }
+.ov-section[hidden] { display: none; }
+
+.ov-head { display: flex; align-items: baseline; gap: 1rem; margin-bottom: .8rem; }
+.ov-head h3 { font-size: var(--t-base); font-weight: 620; letter-spacing: -.012em; }
+.ov-link {
+  display: inline-flex;
   align-items: center;
-  gap: .75rem;
-  padding: .9rem 1rem;
-  border-radius: var(--radius-sm);
+  gap: .3rem;
+  font-size: var(--t-sm);
+  font-weight: 560;
+  color: var(--muted);
+}
+.ov-head .ov-link { margin-inline-start: auto; }
+.ov-link:hover { color: var(--accent); text-decoration: none; }
+.ov-link svg { transition: transform var(--step) var(--ease-out); }
+.ov-link:hover svg { transform: translateX(2px); }
+
+/* Invitations waiting for an answer. */
+.ov-invites {
+  border-color: var(--accent-line);
+  background: radial-gradient(120% 180% at 0% 0%, var(--accent-soft), transparent 58%), var(--panel);
+}
+.ov-invite { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.3rem; }
+.ov-invite + .ov-invite { border-top: 1px solid var(--hairline); }
+.ov-invite-text { flex: 1; min-width: 0; display: grid; gap: .15rem; }
+.ov-invite-text b { font-weight: 600; color: var(--fg); letter-spacing: -.012em; }
+.ov-invite-text span { font-size: var(--t-sm); color: var(--muted); }
+.ov-invite .btn { flex: none; }
+
+/* A new account: three steps to a Jibo. */
+.ov-welcome {
+  padding: 1.5rem;
+  border-color: var(--accent-line);
+  background: radial-gradient(110% 150% at 100% 0%, var(--accent-soft), transparent 60%), var(--panel);
+}
+.ov-welcome-head { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.3rem; }
+.ov-welcome h3 { font-size: var(--t-lg); letter-spacing: -.02em; margin-bottom: .2rem; }
+.ov-welcome-head p { font-size: var(--t-sm); color: var(--muted); }
+.ov-welcome .steps { margin-bottom: 1.35rem; }
+
+/* Jibos at a glance. */
+.jibo-grid { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.jibo-tile {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  grid-template-areas: "avatar text" "foot foot";
+  align-items: center;
+  gap: .85rem;
+  padding: 1rem 1.1rem;
+  border-radius: var(--radius);
   background: var(--panel);
   border: 1px solid var(--border-soft);
-  font-size: var(--t-sm);
-  font-weight: 540;
-  transition: border-color var(--fast) var(--ease), transform var(--fast) var(--ease),
-              background var(--fast) var(--ease);
+  box-shadow: var(--edge);
+  color: inherit;
+  transition: border-color var(--fast) var(--ease), transform var(--fast) var(--ease), box-shadow var(--step) var(--ease);
 }
-.quick:hover { border-color: var(--accent-line); transform: translateY(-1px); background: var(--panel-2); }
-.quick .ic {
-  width: 30px; height: 30px;
-  flex: none;
+.jibo-tile:hover { border-color: var(--accent-line); transform: translateY(-1px); box-shadow: var(--shadow), var(--edge); text-decoration: none; }
+.jibo-tile:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.jibo-tile > .robot-avatar { grid-area: avatar; }
+.jibo-tile-text { grid-area: text; min-width: 0; display: grid; gap: .1rem; }
+.jibo-tile-text b {
+  font-weight: 620;
+  letter-spacing: -.014em;
+  color: var(--fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.jibo-tile-text span { font-size: var(--t-sm); color: var(--muted); }
+.jibo-tile-foot {
+  grid-area: foot;
+  align-self: end;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .4rem .75rem;
+  padding-top: .75rem;
+  border-top: 1px solid var(--hairline);
+}
+.jibo-tile-foot .pill { padding: .15rem .6rem; }
+.jibo-tile-facts { margin-inline-start: auto; font-size: var(--t-xs); color: var(--muted); }
+.jibo-tile-add {
+  grid-template-areas: "avatar text";
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto;
+  border-style: dashed;
+  border-color: var(--border);
+  background: transparent;
+  box-shadow: none;
+}
+/* Beside a single Jibo it fills the row; after a full row it becomes a slim row of its own. */
+.jibo-tile-add:nth-child(odd) { grid-column: 1 / -1; padding-block: .8rem; }
+.jibo-add-ic {
+  grid-area: avatar;
   display: grid;
   place-items: center;
-  border-radius: var(--radius-xs);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px dashed var(--accent-line);
   background: var(--accent-soft);
   color: var(--accent);
 }
-.quick .arrow { margin-inline-start: auto; color: var(--muted); transition: transform var(--step) var(--ease-out); }
-.quick:hover .arrow { transform: translateX(3px); }
+
+/* Loops: who is in each one. */
+.loop-list {
+  display: grid;
+  border-radius: var(--radius);
+  background: var(--panel);
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--edge);
+  overflow: hidden;
+}
+.loop-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: .95rem 1.1rem;
+  text-align: left;
+  transition: background var(--fast) var(--ease);
+}
+.loop-row + .loop-row { border-top: 1px solid var(--hairline); }
+.loop-row:hover { background: var(--panel-2); }
+.loop-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.loop-row .avatar-stack { flex: none; margin-top: 0; }
+.loop-row .avatar-stack .person-avatar + .person-avatar { margin-inline-start: -5px; }
+.loop-row:hover .avatar-stack .person-avatar { box-shadow: 0 0 0 2px var(--panel-2), inset 0 0 0 1px color-mix(in srgb, var(--tone) 30%, transparent); }
+.avatar-more { font-size: 11px; letter-spacing: 0; }
+.loop-row-text { flex: 1; min-width: 0; display: grid; gap: .1rem; }
+.loop-row-text b { font-weight: 600; letter-spacing: -.012em; color: var(--fg); }
+.loop-row-text span { font-size: var(--t-sm); color: var(--muted); }
+.loop-row-caret { flex: none; transform: rotate(-90deg); color: var(--muted); transition: transform var(--step) var(--ease-out); }
+.loop-row:hover .loop-row-caret { transform: rotate(-90deg) translateY(2px); color: var(--fg); }
+
+/* The newest photographs. */
+.photo-strip { display: grid; gap: .5rem; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.photo-tile {
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-soft);
+  background: var(--panel-2);
+}
+.photo-tile img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform var(--step) var(--ease-out); }
+.photo-tile:hover img { transform: scale(1.04); }
+
+/* The personal report, summarised. */
+.ov-report .card-head { padding-block: .8rem; }
+.report-rows { display: grid; margin: 0; padding: 0; list-style: none; }
+.report-rows li {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: .7rem;
+  padding: .6rem 0;
+  border-bottom: 1px solid var(--hairline);
+  font-size: var(--t-sm);
+}
+.report-rows li:first-child { padding-top: 0; }
+.report-ic {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--border-soft);
+  background: var(--panel-2);
+  color: var(--faint);
+}
+.report-rows li.is-on .report-ic { border-color: transparent; background: var(--accent-soft); color: var(--accent); }
+.report-label { font-weight: 600; color: var(--fg); }
+.report-value { text-align: right; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.report-rows li.is-on .report-value { color: var(--fg-dim); }
+
+.say-card.ov-say h3 { font-size: var(--t-base); letter-spacing: -.012em; }
+.say-card.ov-say .say-list li { font-size: var(--t-xs); padding: .38rem .75rem; }
+
+@media (max-width: 560px) {
+  .ov-invite { flex-wrap: wrap; padding: 1rem; }
+  .ov-invite .btn { width: 100%; }
+  .ov-welcome { padding: 1.15rem; }
+  .jibo-grid { grid-template-columns: minmax(0, 1fr); }
+  .loop-row { padding: .85rem 1rem; gap: .8rem; }
+  .photo-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
 
 /* Get to know Jibo. */
 .say-card { border-color: var(--accent-line); background:
