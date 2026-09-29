@@ -24,7 +24,7 @@ const FIRMWARE = {
 };
 
 function preview({ credentials, mode, claim = false, shape = 'ok', region = 'stg-entrypoint', auth = 'key', robot = 'root@192.0.2.15',
-  firmware = '13', handler, preflight = 'ok', hostKey = 'known' }) {
+  firmware = '13', handler, preflight = 'ok', hostKey = 'known', auto = true }) {
   const fw = FIRMWARE[firmware];
   const dir = mkdtempSync(join(tmpdir(), 'phoenix-repoint-test-'));
   const ssh = join(dir, 'ssh');
@@ -102,7 +102,7 @@ echo "ssh-keygen $*" >> "$PHOENIX_TEST_LOG"; rm -f "$PHOENIX_TEST_STALE_KEY"
   const staleKey = join(dir, 'stale-key');
   if (hostKey === 'changed') writeFileSync(staleKey, '');
   try {
-    return execFileSync('setsid', ['-w', 'bash', script, '--robot', robot, '--auto',
+    return execFileSync('setsid', ['-w', 'bash', script, ...(robot ? ['--robot', robot] : []), ...(auto ? ['--auto'] : []),
       ...(claim ? ['--claim-code', claimCode] : []), '--dry-run'], {
       encoding: 'utf8',
       env: { ...process.env, PATH: `${dir}:${process.env.PATH}`,
@@ -176,6 +176,18 @@ test('a bare robot address logs in as root', () => {
 test('a changed root password without a terminal stops with a clear message', () => {
   assert.throws(() => preview({ credentials: true, mode: 'normal', claim: true, auth: 'custom' }), (error) => {
     assert.match(String(error.stderr), /refused key and factory-password login, and there is no terminal/);
+    return true;
+  });
+});
+
+test("the console's command (a claim code alone) takes the credential-detecting path", () => {
+  const out = preview({ credentials: true, mode: 'oobe', claim: true, auto: false });
+  assert.match(out, /credentials present; adopt\/claim and start native OTA/);
+});
+
+test('no robot address and no terminal to ask for one stops with the usage hint', () => {
+  assert.throws(() => preview({ credentials: true, mode: 'normal', claim: true, auto: false, robot: '' }), (error) => {
+    assert.match(String(error.stderr), /--robot root@<ip> is required/);
     return true;
   });
 });

@@ -47,6 +47,10 @@
 #   robot-ota-repoint.sh --robot root@<ip> --auto [--claim-code <portal-code>] --yes
 #   robot-ota-repoint.sh --robot root@<ip> --full --phoenix https://... --yes
 #
+# The console's one-line form runs the published copy directly and asks for the
+# robot's address, since it has no --robot (a claim code implies --auto):
+#   bash <(curl -fsSL https://jibo.io/repoint) --claim-code <portal-code>
+#
 # Nothing is changed without showing a plan first. Every file edited is backed up
 # on the robot, and --revert restores the backups.
 
@@ -64,7 +68,14 @@ RECEIPT_DIR="/var/lib/phoenix"
 RECEIPT="${RECEIPT_DIR}/ota-repoint.json"
 STAMP="$(date -u +%Y%m%d-%H%M%S)"
 
-usage() { sed -n '2,50p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
+# Run as `bash <(curl ...)`, $0 is a pipe that has already been read: point at
+# the published copy instead, for help text and for the commands printed below.
+if [ -f "$0" ]; then SELF_CMD="$0"; else SELF_CMD="bash <(curl -fsSL https://jibo.io/repoint)"; fi
+usage() {
+  if [ -f "$0" ]; then sed -n '2,56p' "$0" | sed 's/^# \{0,1\}//'
+  else printf "Usage: see https://jibo.io/robot-ota-repoint.sh\n"; fi
+  exit "${1:-0}"
+}
 
 while [ $# -gt 0 ]; do
   case "${1}" in
@@ -94,7 +105,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # The portal publishes this script as a single download. A source checkout has
 # robot-client/ beside it, but a downloaded script does not. Fetch only the four
 # fixed support assets that the script needs, pin them by SHA-256, and keep them
-# in a temporary local directory. This is deliberately not a curl|shell path.
+# in a temporary local directory. They are pinned the same way when the script
+# itself runs straight from `bash <(curl ...)`.
 PUBLIC_ASSET_ORIGIN="${PHOENIX_REPOINT_ASSET_ORIGIN:-https://jibo.io}"
 CLIENT_SOURCE="${SCRIPT_DIR}/robot-client/node.js"
 # Factory RTM2/RTM3 images (platform 3.0.x/3.3.x) ship the 2.0-2.11 client, whose
@@ -209,6 +221,18 @@ if [ "$FULL" -eq 1 ]; then
   exec "$FULL_SCRIPT" ${ROBOT:+--robot "$ROBOT"} "${FULL_ARGS[@]}"
 fi
 
+# The console's command carries a claim code and nothing else: that is the
+# credential-detecting path it has always asked for.
+if [ -n "$CLAIM_CODE" ] && [ "$AUTO" -eq 0 ] && [ "$OOBE" -eq 0 ] && [ "$OTA_ONLY" -eq 0 ] \
+    && [ "$START_OTA" -eq 0 ] && [ "$REVERT" -eq 0 ]; then
+  AUTO=1
+fi
+if [ -z "$ROBOT" ] && { : </dev/tty; } 2>/dev/null; then
+  say "Jibo must be in int-developer mode and on this network."
+  printf "Jibo's IP address or hostname (your router's device list shows it): " >/dev/tty
+  read -r ROBOT </dev/tty || ROBOT=""
+  ROBOT="$(printf '%s' "$ROBOT" | tr -d '[:space:]')"
+fi
 [ -n "$ROBOT" ] || die "--robot root@<ip> is required (or --full for the complete repoint)"
 [ "$AUTO" -eq 0 ] || { [ "$OOBE" -eq 0 ] && [ "$OTA_ONLY" -eq 0 ] && [ "$START_OTA" -eq 0 ] && [ "$REVERT" -eq 0 ]; } \
   || die "--auto selects the credential path itself; do not combine it with --oobe, --ota-only, --start-ota, or --revert"
@@ -328,7 +352,7 @@ connect_robot() {
   # -w: wait for ssh, or setsid can return before the login has finished.
   setsid -w true >/dev/null 2>&1 && setsid_cmd=(setsid -w)
   if SSH_ASKPASS="$askpass" SSH_ASKPASS_REQUIRE=force DISPLAY="${DISPLAY:-phoenix:0}" \
-      "${setsid_cmd[@]}" ssh "${SSH_OPTS[@]}" -o ControlMaster=yes -o ControlPersist=yes -f -N \
+      ${setsid_cmd[@]+"${setsid_cmd[@]}"} ssh "${SSH_OPTS[@]}" -o ControlMaster=yes -o ControlPersist=yes -f -N \
       -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no \
       -o NumberOfPasswordPrompts=1 "$ROBOT" </dev/null 2>"${SSH_DIR}/err" && [ -S "$SSH_CONTROL" ]; then
     SSH_AUTH="factory password"; return 0
@@ -1227,7 +1251,7 @@ else
 fi
 say ""
 if [ "$OOBE" -eq 1 ]; then
-  say "  Restore endpoint configs only with: $0 --robot $ROBOT --oobe --revert"
+  say "  Restore endpoint configs only with: $SELF_CMD --robot $ROBOT --oobe --revert"
 else
-  say "  Restore endpoint configs only with: $0 --robot $ROBOT --revert"
+  say "  Restore endpoint configs only with: $SELF_CMD --robot $ROBOT --revert"
 fi

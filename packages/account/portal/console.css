@@ -1409,6 +1409,14 @@ button.ghost:hover { background: var(--panel-2); border-color: var(--accent-line
 .claim-qr-note p { color: var(--fg-dim); }
 .claim-qr-note .btn { margin-top: .4rem; }
 .restart-cmd { min-width: 0; }
+/* The one command on #/claim wraps instead of scrolling out of sight. */
+.restart-cmd.run-cmd { align-items: center; }
+.restart-cmd.run-cmd code { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.55; }
+.card-body > .claim-result:first-child { margin-top: 0; }
+.claim-code-note { display: flex; align-items: flex-start; gap: .4rem; }
+.claim-code-note svg { flex: none; margin-top: .2rem; }
+.segment.platform-switch { justify-self: start; min-width: min(20rem, 100%); margin-bottom: 0; }
+.segment.platform-switch[data-active="unix"] .seg-thumb { transform: translateX(calc(100% + .1rem)); }
 
 /* Raw payloads, shown rather than hidden — this is an operator's console. */
 pre.json {

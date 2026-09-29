@@ -2257,100 +2257,106 @@ function renderTips() {
    Claim an already-paired robot
    ========================================================================== */
 
+// Which shell the one-line command is written for. Windows runs it in WSL, which
+// the DFU toolkit that puts Jibo in int-developer mode already needs there.
+const CMD_PLATFORM_KEY = 'phoenix.cmdPlatform';
+function detectCmdPlatform() {
+  try {
+    const saved = localStorage.getItem(CMD_PLATFORM_KEY);
+    if (saved === 'windows' || saved === 'unix') return saved;
+  } catch {}
+  const name = navigator.userAgentData?.platform || navigator.platform || navigator.userAgent || '';
+  return /win/i.test(name) ? 'windows' : 'unix';
+}
+
+function repointCommand(code, platform) {
+  const run = `bash <(curl -fsSL https://jibo.io/repoint) --claim-code ${code}`;
+  // wsl -e passes the quoted line to bash unchanged from both PowerShell and CMD.
+  return platform === 'windows' ? `wsl -e bash -c "${run}"` : run;
+}
+
 async function renderClaim() {
-  const container = page('Connect or migrate a Jibo', /(^|\.)jibo\.io$/i.test(location.hostname)
-    ? 'One helper checks whether Jibo still has his credentials and takes the right setup path.'
+  const publicJiboIo = /(^|\.)jibo\.io$/i.test(location.hostname);
+  const container = page('Connect or migrate a Jibo', publicJiboIo
+    ? 'One command checks your Jibo and takes the right setup path.'
     : 'Link a Jibo that was set up before to this account, using the credentials he already has.');
   container.querySelector('.page-head').prepend(
     h('a', { class: 'link', href: '#/add', style: 'display:inline-flex;align-items:center;gap:.35rem;margin-bottom:.75rem' },
       icon('back', 14), 'Choose a different path'));
 
-  const result = h('div', { class: 'claim-result', hidden: true });
-  const request = h('button', { type: 'button', class: 'btn btn-primary' },
-    icon('link', 15), 'Create migration command');
-  request.addEventListener('click', async () => {
-    request.disabled = true;
+  const body = h('div', { class: 'claim-result' }, loading(2));
+  container.append(card('Run this on a computer on Jibo’s network', {}, body));
+  show(container);
+
+  const load = async () => {
+    body.replaceChildren(loading(2));
     const res = await api('POST', '/api/robots/claim-code', {});
-    request.disabled = false;
-    result.hidden = false;
     if (!res.ok) {
-      result.replaceChildren(errorBox('Could not create a migration command.', res.data?.error));
+      body.replaceChildren(errorBox('Could not create your command.', res.data?.error),
+        h('div', {}, h('button', { type: 'button', class: 'btn btn-sm', on: { click: load } }, 'Try again')));
       return;
     }
-    const publicJiboIo = /(^|\.)jibo\.io$/i.test(location.hostname);
-    const host = res.data.repointHost || '<server-ip>';
-    const adoptionUrl = `${location.origin}${res.data.adoptionPath || '/api/adopt-robot'}`;
-    // jibo.io uses the public-DNS/Let's Encrypt repointer, so a customer does
-    // not need a copy of the server CA. Other deployments retain the generic
-    // private-CA command and receive their configured public IP explicitly.
-    const scriptUrl = 'https://jibo.io/robot-ota-repoint.sh';
-    const command = publicJiboIo
-      ? [
-        `curl --fail --remote-name ${scriptUrl}`,
-        `bash ./robot-ota-repoint.sh --robot root@<robot-ip> --auto --claim-code ${res.data.code} --yes`,
-      ].join(' && ')
-      : [
-        'scripts/parity-robot/repoint-robot.sh',
-        '--robot root@<robot-ip>',
-        `--phoenix ${host}`,
-        `--claim-code ${res.data.code}`,
-        `--adoption-url ${adoptionUrl}`,
-        '--yes',
-      ].join(' ');
-    const previewCommand = command.replace(/ --yes$/, ' --dry-run');
-    const expiry = fmtDate(res.data.expires);
-    const commandBox = (text) => h('div', { class: 'restart-cmd' },
-      h('span', { class: 'prompt' }, '$'), h('code', { text }), copyButton(() => text));
-    // replaceChildren() would render a null as the text "null".
-    result.replaceChildren(...[
-      h('div', { class: 'notice notice-warn' }, icon('lock', 16),
-        h('div', {}, h('strong', {}, 'Private, one-use code. '),
-          `It expires ${expiry}. Don’t share it.`,
-          publicJiboIo ? ' It is only used if Jibo still has his robot credentials; otherwise QR setup links him instead.' : '')),
-      h('p', { class: 'field-hint' }, 'Run these on a computer that can SSH as root to Jibo, and replace only ',
-        h('code', {}, '<robot-ip>'), '. Never paste Jibo’s credentials into this site.',
-        publicJiboIo ? [' Each command downloads the public script first; you can ',
-          h('a', { class: 'link', href: scriptUrl, download: 'robot-ota-repoint.sh' }, 'inspect it'), ' before running anything.'] : null),
-      h('ol', { class: 'steps' },
-        h('li', {}, h('strong', {}, 'Preview. '), 'Changes nothing and shows which path the helper will take.', commandBox(previewCommand)),
-        h('li', {}, h('strong', {}, 'Apply. '), 'Run it before the code expires.', commandBox(command))),
-      !publicJiboIo && !res.data.repointHost ? h('p', { class: 'field-hint' },
-        'This server has not published its robot-repoint IP, so replace ', h('code', {}, '<server-ip>'),
-        ' with the public IP the robot should reach.') : null,
-      h('h4', { class: 'setting-group-title' }, 'What happens next'),
-      publicJiboIo
-        ? h('ul', { class: 'outcome-list' },
-          h('li', {}, h('strong', {}, 'Jibo still has credentials '), '(even if he shows a setup screen): he is linked to your account and starts updating. The update installs the BE skill if it is missing, and Jibo starts normally afterwards.'),
-          h('li', {}, h('strong', {}, 'No credentials: '), 'Jibo is prepared for setup. Reboot him and scan a new QR code; he updates by himself once setup finishes.'),
-          h('li', {}, 'Either way, his calibration and keys are kept, and the old cloud account and its people are not imported.'))
-        : h('ul', { class: 'outcome-list' },
-          h('li', {}, 'Jibo is linked to your account using the credentials he already has. The old cloud account and its people are not imported.')),
-      h('p', { class: 'field-hint' }, 'When it finishes, go to ', h('a', { class: 'link', href: '#/robot' }, 'Robots'), ' and refresh his status.'),
-      publicJiboIo ? h('div', { class: 'notice notice-accent claim-qr-note' }, icon('alert', 16),
-        h('div', {},
-          h('strong', {}, 'No credentials? Setup has to come first.'),
-          h('p', {}, 'Jibo’s updater only works once he has credentials, and QR setup is what issues them. A setup screen alone doesn’t mean they are gone, so never delete them to force this path.'),
-          h('a', { class: 'btn btn-sm', href: '#/add/new' }, icon('plus', 14), 'Continue to QR setup'))) : null,
-    ].filter(Boolean));
-  });
+    const { code, expires } = res.data;
+    const renewRow = h('p', { class: 'field-hint claim-code-note' },
+      icon('lock', 13), h('span', {}, `Private, one-use code for your account. It expires ${fmtDate(expires)}; opening this page again replaces it.`));
 
-  const onJiboIo = /(^|\.)jibo\.io$/i.test(location.hostname);
-  const decisionPreview = 'curl --fail --remote-name https://jibo.io/robot-ota-repoint.sh && bash ./robot-ota-repoint.sh --robot root@<robot-ip> --auto --dry-run';
-  container.append(
-    card('Before you start', {},
-      h('p', { class: 'instruct' }, onJiboIo
-        ? 'Use this whenever you are not sure what state Jibo is in: on a setup screen, or set up before.'
-        : 'Use this for a Jibo that was set up before and still has his robot credentials.'),
-      h('p', { class: 'field-hint' }, 'Put Jibo in ', h('code', {}, 'int-developer'),
-        ' mode first so this computer can reach him over SSH. The helper logs in as root with your SSH key if he has one, then with his factory password, and otherwise asks you for his root password.'),
-      onJiboIo ? h('p', { class: 'field-hint' }, 'If Jibo still points at the original cloud, do this before scanning any QR code. Nothing here erases his calibration, keys, or credentials.') : null,
-      onJiboIo ? h('p', { class: 'field-hint' }, 'Curious which path he will take? This preview needs no code and changes nothing:') : null,
-      onJiboIo ? h('div', { class: 'restart-cmd' }, h('span', { class: 'prompt' }, '$'), h('code', { text: decisionPreview }), copyButton(() => decisionPreview)) : null),
-    card('Get your migration command', {},
-      h('p', { class: 'instruct' }, 'Create the short-lived account-linking command only when you are ready to run it.'),
-      h('div', { class: 'row', style: 'margin-top:1.25rem' }, request),
-      result));
-  show(container);
+    if (!publicJiboIo) {
+      const host = res.data.repointHost || '<server-ip>';
+      const adoptionUrl = `${location.origin}${res.data.adoptionPath || '/api/adopt-robot'}`;
+      const command = ['scripts/parity-robot/repoint-robot.sh', '--robot root@<robot-ip>', `--phoenix ${host}`,
+        `--claim-code ${code}`, `--adoption-url ${adoptionUrl}`, '--yes'].join(' ');
+      body.replaceChildren(...[
+        h('p', { class: 'instruct' }, 'From a Phoenix checkout, replacing ', h('code', {}, '<robot-ip>'), ':'),
+        h('div', { class: 'restart-cmd run-cmd' }, h('code', { text: command }), copyButton(() => command)),
+        res.data.repointHost ? null : h('p', { class: 'field-hint' }, 'This server has not published its robot-repoint IP, so replace ',
+          h('code', {}, '<server-ip>'), ' with the public IP the robot should reach.'),
+        renewRow,
+      ].filter(Boolean));
+      return;
+    }
+
+    let platform = detectCmdPlatform();
+    const commandText = h('code');
+    const where = h('p', { class: 'field-hint' });
+    const segment = h('div', { class: 'segment platform-switch', role: 'tablist', 'aria-label': 'Your computer' });
+    const tabs = [['windows', 'Windows'], ['unix', 'macOS / Linux']].map(([value, label]) =>
+      h('button', { type: 'button', class: 'tab', role: 'tab', 'data-platform': value,
+        on: { click: () => { setPlatform(value, true); } } }, label));
+    segment.append(h('span', { class: 'seg-thumb', 'aria-hidden': 'true' }), ...tabs);
+    function setPlatform(value, remember) {
+      platform = value;
+      if (remember) { try { localStorage.setItem(CMD_PLATFORM_KEY, value); } catch {} }
+      segment.dataset.active = value;
+      for (const tab of tabs) {
+        const on = tab.dataset.platform === value;
+        tab.classList.toggle('active', on);
+        tab.setAttribute('aria-selected', String(on));
+      }
+      commandText.textContent = repointCommand(code, value);
+      where.replaceChildren(...(value === 'windows'
+        ? ['Paste it into PowerShell or Command Prompt. It runs in WSL, which the ',
+          h('a', { class: 'link', href: 'https://github.com/Paskooter/Jibo-DFU-Mod-Toolkit', target: '_blank', rel: 'noopener' }, 'DFU toolkit'),
+          ' already uses.']
+        : ['Paste it into a terminal.']));
+    }
+    setPlatform(platform, false);
+
+    body.replaceChildren(
+      h('p', { class: 'instruct' }, 'Jibo needs to be in ', h('strong', {}, 'int-developer'),
+        ' mode and on your Wi-Fi. The command asks for his IP address, shows what it will change, and waits for you to confirm.'),
+      segment,
+      h('div', { class: 'restart-cmd run-cmd' }, commandText, copyButton(() => commandText.textContent)),
+      where,
+      renewRow,
+      h('h4', { class: 'setting-group-title' }, 'What happens next'),
+      h('ul', { class: 'outcome-list' },
+        h('li', {}, h('strong', {}, 'Jibo was set up before: '), 'he is linked to your account and updates by himself.'),
+        h('li', {}, h('strong', {}, 'Jibo is new or reset: '), 'he is prepared for setup. Restart him and ',
+          h('a', { class: 'link', href: '#/add/new' }, 'scan a setup QR code'), '; he updates once setup finishes.')),
+      h('p', { class: 'field-hint' }, 'Either way, his calibration and identity are kept. When it finishes, check ',
+        h('a', { class: 'link', href: '#/robot' }, 'Robots'), '.'));
+  };
+  await load();
 }
 
 /* ==========================================================================

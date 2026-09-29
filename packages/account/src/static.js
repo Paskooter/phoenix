@@ -304,6 +304,9 @@ export function staticRoutes() {
     // by itself, instead of assuming the customer has a source checkout.
     'GET /robot-ota-repoint.sh': serveExternal(
       join(PROJECT_DIR, 'scripts/robot-ota-repoint.sh'), 'text/plain; charset=utf-8'),
+    // The short name the console's one-line command uses: bash <(curl -fsSL …/repoint)
+    'GET /repoint': serveExternal(
+      join(PROJECT_DIR, 'scripts/robot-ota-repoint.sh'), 'text/plain; charset=utf-8'),
     'GET /robot-client/node.js': serveExternal(
       join(PROJECT_DIR, 'scripts/robot-client/node.js'), 'text/plain; charset=utf-8'),
     'GET /robot-client/node-v2.js': serveExternal(

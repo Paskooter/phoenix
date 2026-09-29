@@ -331,9 +331,17 @@ and copies the one-time command the portal produces. It includes an
 expiring ownership code:
 
 ```bash
-curl --fail --remote-name https://jibo.io/robot-ota-repoint.sh && \
-  bash ./robot-ota-repoint.sh --robot root@<robot-ip> --auto --claim-code <portal-code> --yes
+# Linux / macOS (the portal detects the platform; the viewer can switch it)
+bash <(curl -fsSL https://jibo.io/repoint) --claim-code <portal-code>
+# Windows, from PowerShell or CMD, through WSL (which the DFU toolkit also needs)
+wsl -e bash -c "bash <(curl -fsSL https://jibo.io/repoint) --claim-code <portal-code>"
 ```
+
+The portal creates the code when the page opens; opening it again replaces the
+account's previous code. `/repoint` serves the same file as
+`/robot-ota-repoint.sh`. With no `--robot`, the helper asks for the robot's
+address on the terminal; a claim code alone implies `--auto`, and without
+`--yes` it shows its plan and waits for confirmation.
 
 For SSH, the helper logs in as `root` with an SSH key if one is installed, otherwise with
 the factory password `jibo`, and otherwise asks for the robot's root password once.
