@@ -25,6 +25,7 @@ import {
 import { requireUser } from './session.js';
 
 const own = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
+const AVATAR_COLORS = new Set(['blue', 'teal', 'violet', 'coral', 'gold', 'slate']);
 
 function fail(res, error) {
   const status = Number.isInteger(error?.statusCode) ? error.statusCode : 500;
@@ -103,6 +104,8 @@ function loopView(store, loop, viewerAccountId = null) {
     robot: loop.robot ?? null,
     robotFriendlyId: (robot && robot.friendlyId) || null,
     isSuspended: !!loop.isSuspended,
+    // The console color its owner picked for this loop's Jibo (Robots → General).
+    avatarColor: AVATAR_COLORS.has(loop.avatarColor) ? loop.avatarColor : 'blue',
     created: typeof loop.created === 'number' ? loop.created : null,
     updated: typeof loop.updated === 'number' ? loop.updated : null,
     canManage: includeSensitive,
@@ -410,6 +413,13 @@ export function portalLoopRoutes(store, options = {}) {
       }
       const member = requireLoopMember(res, loop, id);
       if (!member) return;
+      // A member who joined by being linked carries their name only on the
+      // account. Keep it on the member, or unlinking leaves a nameless person.
+      const previous = member.accountId ? store.accounts.get(member.accountId) : null;
+      const props = member.memberProperties || {};
+      if (previous && !props.firstName && !props.lastName && (previous.firstName || previous.lastName)) {
+        member.memberProperties = { ...props, firstName: previous.firstName || null, lastName: previous.lastName || null };
+      }
       member.accountId = undefined;
       saveLoop(store, loop, loopUpdatedOutbox);
       return { loop: loopView(store, loop, account._id) };

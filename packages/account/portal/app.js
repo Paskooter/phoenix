@@ -147,6 +147,10 @@ const ICONS = {
   wifi: 'M2.5 9a14 14 0 0 1 19 0M5.5 12.5a9.5 9.5 0 0 1 13 0M8.6 15.9a5 5 0 0 1 6.8 0M12 19.5h.01',
   trash: 'M4.5 7h15M9.5 7V4.5h5V7M6.5 7l.8 12a1.5 1.5 0 0 0 1.5 1.4h6.4a1.5 1.5 0 0 0 1.5-1.4l.8-12M10 11v5.5M14 11v5.5',
   chip: 'M8.5 4h7a4.5 4.5 0 0 1 4.5 4.5v7a4.5 4.5 0 0 1-4.5 4.5h-7A4.5 4.5 0 0 1 4 15.5v-7A4.5 4.5 0 0 1 8.5 4ZM9.5 9.5h5v5h-5zM12 4V1.5m0 21V20M4 12H1.5m21 0H20',
+  face: 'M12 20.5a8.5 8.5 0 1 0 0-17 8.5 8.5 0 0 0 0 17ZM9 10v.5M15 10v.5M8.8 14.2a4.3 4.3 0 0 0 6.4 0',
+  mic: 'M12 14.5a3 3 0 0 0 3-3v-5a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3ZM6 11.5a6 6 0 0 0 12 0M12 17.5V20.5',
+  mail: 'M4.5 5.5h15a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1ZM4 6.5l8 6 8-6',
+  userPlus: 'M14.5 20v-1.5A3.5 3.5 0 0 0 11 15H6a3.5 3.5 0 0 0-3.5 3.5V20M8.5 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM18.5 8v6M15.5 11h6',
 };
 
 const icon = (name, size = 16, className) => {
@@ -355,13 +359,7 @@ let badgesPainted = false;
 async function paintBadges() {
   const [loops, robots] = await Promise.all([apiRaw('GET', '/api/loop'), apiRaw('GET', '/api/robots')]);
   if (robots.ok && Array.isArray(robots.data)) setBadge('badge-robots', robots.data.length);
-  if (loops.ok && Array.isArray(loops.data.loops)) {
-    const people = loops.data.loops
-      .filter((loop) => loop.canManage === true || (loop.members || []).some((member) =>
-        String(member.accountId) === String(me?.id) && String(member.status || '').toLowerCase() === 'accepted'))
-      .reduce((n, loop) => n + (loop.members || []).filter((m) => !(m.accountId && m.accountId === loop.robot)).length, 0);
-    setBadge('badge-members', people);
-  }
+  if (loops.ok && Array.isArray(loops.data.loops)) setBadge('badge-members', loopPeopleTotal(loops.data.loops));
 }
 
 async function refreshMe() {
@@ -574,358 +572,699 @@ function setBadge(id, count) {
    Loops and members
    ========================================================================== */
 
-async function renderLoop() {
-  show(page('Loops', 'Members, account links, and the selected loop.', loading(5)));
+/* -- people -------------------------------------------------------------- */
+
+// Initials on a color chosen from the person's name, so a household looks the
+// same on every visit. Only the signed-in account's own photo is shown: the
+// photo route serves each account its own picture and nobody else's.
+const PERSON_TONES = 8;
+function personTone(key) {
+  let hash = 0;
+  for (const ch of String(key || '')) hash = (hash * 31 + ch.codePointAt(0)) >>> 0;
+  return hash % PERSON_TONES;
+}
+function initialsOf(name) {
+  const words = String(name || '').replace(/[“”"]/g, '').trim().split(/[\s@._-]+/).filter(Boolean);
+  return (words.slice(0, 2).map((word) => [...word][0]).join('') || '?').toUpperCase();
+}
+function personAvatar(name, { key = name, photo = null, size = 'md' } = {}) {
+  const el = h('span', { class: `person-avatar person-avatar-${size} tone-${personTone(key)}`, 'aria-hidden': 'true' },
+    initialsOf(name));
+  if (photo) {
+    el.style.backgroundImage = `url("${photo}")`;
+    el.classList.add('has-photo');
+  }
+  return el;
+}
+
+/** "today", "3 days ago", or a date, for when something happened. */
+function fmtAgo(value) {
+  const time = Number(value);
+  if (!Number.isFinite(time) || time <= 0) return '';
+  const days = Math.floor((Date.now() - time) / 86400000);
+  if (days < 1) return 'today';
+  if (days < 2) return 'yesterday';
+  if (days < 14) return `${days} days ago`;
+  return `on ${fmtDay(time)}`;
+}
+
+/** The people of a loop, in the order a household reads them. */
+function loopPeople(loop) {
+  const same = (a, b) => a != null && b != null && String(a) === String(b);
+  const fullName = (first, last) => [first, last].filter(Boolean).join(' ');
+  return (loop.members || [])
+    .filter((m) => !(m.accountId && same(m.accountId, loop.robot)))
+    .map((m) => {
+      const props = m.memberProperties || {};
+      const email = m.account?.email || props.email || null;
+      const name = fullName(props.firstName, props.lastName)
+        || fullName(m.account?.firstName, m.account?.lastName)
+        || m.nickname
+        || (email ? email.split('@')[0] : '')
+        || 'Unnamed person';
+      return {
+        m,
+        id: m.id,
+        name,
+        firstName: props.firstName || m.account?.firstName || name.split(' ')[0],
+        email,
+        nickname: meaningfulText(m.nickname),
+        phonetic: meaningfulText(m.phoneticName),
+        isOwner: same(m.accountId, loop.owner),
+        isMe: same(m.accountId, me?.id),
+        invited: String(m.status || '').toLowerCase() === 'invited',
+        hasAccount: !!m.account,
+        inactive: m.account?.isActive === false,
+        face: !!m.enrolled?.face,
+        voice: !!m.enrolled?.voice,
+        created: m.created,
+      };
+    })
+    .sort((a, b) => (Number(b.isOwner) - Number(a.isOwner)) || (Number(b.isMe) - Number(a.isMe))
+      || a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+}
+
+/** People across every loop the account can use, for the sidebar count. */
+function loopPeopleTotal(loops) {
+  return (loops || [])
+    .filter((loop) => loop.canManage === true || (loop.members || []).some((member) =>
+      String(member.accountId) === String(me?.id) && String(member.status || '').toLowerCase() === 'accepted'))
+    .reduce((n, loop) => n + (loop.members || []).filter((m) => !(m.accountId && m.accountId === loop.robot)).length, 0);
+}
+
+/** What Jibo knows about someone: two small marks, spelled out for screen readers. */
+function recognitionMarks(person) {
+  const mark = (known, iconName, label) => h('span', {
+    class: `recog-mark ${known ? 'is-known' : ''}`,
+    title: known ? `Jibo knows ${person.firstName}’s ${label.toLowerCase()}` : `Jibo hasn’t learned ${person.firstName}’s ${label.toLowerCase()} yet`,
+    'aria-label': `${label}: ${known ? 'known' : 'not learned yet'}`,
+  }, icon(iconName, 13), h('span', { class: 'recog-label' }, label));
+  return h('span', { class: 'recog' }, mark(person.face, 'face', 'Face'), mark(person.voice, 'mic', 'Voice'));
+}
+
+/* -- the page -------------------------------------------------------------- */
+
+// What stays put when the page redraws itself after a change: the open
+// person, the add form, and the scroll position. A fresh visit starts clean.
+let loopUi = { open: null, add: false, addMode: 'email', setting: null };
+
+async function renderLoop({ keep = false } = {}) {
+  if (!keep) loopUi = { open: null, add: false, addMode: 'email', setting: null };
+  const scrollBack = keep ? scrollY : null;
+  const title = 'Loops';
+  const description = 'The people around each Jibo, and what he knows about them.';
+  if (!keep) show(page(title, description, loading(5)));
 
   const context = await householdContext();
-  const container = page('Loops', 'Members, account links, and the selected loop.');
+  const container = page(title, description);
+  const finish = () => {
+    show(container);
+    if (scrollBack !== null) scrollTo({ top: scrollBack, left: 0, behavior: 'instant' });
+    const track = container.querySelector('.loop-tabs');
+    const current = track?.querySelector('[aria-current]');
+    if (current && track.scrollWidth > track.clientWidth) {
+      const offset = current.getBoundingClientRect().left - track.getBoundingClientRect().left;
+      track.scrollLeft += offset - (track.clientWidth - current.offsetWidth) / 2;
+    }
+  };
 
-  if (!context.ok) { container.append(errorBox('Could not load your loops.', context.error)); return show(container); }
+  if (!context.ok) { container.append(errorBox('Could not load your loops.', context.error)); return finish(); }
+  setBadge('badge-members', loopPeopleTotal(context.loops));
   const active = context.active;
   if (!active) {
-    container.append(empty('No loops yet', 'A loop is created when your first robot is paired.', 'users'));
-    return show(container);
+    container.append(card('', {},
+      empty('No loops yet', 'A loop is the household around one Jibo. It starts when you pair your first robot.', 'users'),
+      h('div', { class: 'row', style: 'justify-content:center;margin-top:0' },
+        h('a', { class: 'btn btn-primary', href: '#/add' }, icon('plus', 15), 'Add a Jibo'))));
+    return finish();
   }
 
-  const switcher = householdSwitcher(context);
-  if (switcher) container.append(switcher);
+  const tabs = loopTabs(context);
+  if (tabs) container.append(tabs);
 
-  // Capability is decided by the server with the loop projection. Keep the
-  // UI aligned with that authorization decision instead of deriving it from a
-  // record identifier returned for display/association purposes.
   const isOwner = active.canManage === true;
-  const myMembership = (active.members || []).find((member) => String(member.accountId) === String(me?.id));
-  const isInvited = !isOwner && String(myMembership?.status || '').toLowerCase() === 'invited';
-  const personName = (member, fallback = 'A loop member') => member?.nickname
-    || [member?.memberProperties?.firstName, member?.memberProperties?.lastName].filter(Boolean).join(' ')
-    || [member?.account?.firstName, member?.account?.lastName].filter(Boolean).join(' ')
-    || fallback;
+  const people = loopPeople(active);
+  const mine = people.find((person) => person.isMe);
+  const owner = people.find((person) => person.isOwner);
+  const refresh = () => renderLoop({ keep: true });
+  const color = robotColorOf(active.avatarColor);
 
-  // Source parity: a pending invitation is not a usable household. The
-  // original app takes the member to an explicit accept/decline screen rather
-  // than exposing owner-only controls that would fail with 403.
-  if (isInvited) {
-    const owner = (active.members || []).find((member) => String(member.accountId) === String(active.owner));
-    const accepted = (active.members || []).filter((member) => member.accountId
-      && String(member.accountId) !== String(active.robot)
-      && String(member.status || '').toLowerCase() === 'accepted');
-    const accept = h('button', { type: 'button', class: 'btn btn-primary' }, 'Accept invitation');
-    const decline = h('button', { type: 'button', class: 'btn btn-quiet' }, 'Decline');
-    accept.addEventListener('click', async () => {
-      accept.disabled = true;
-      const res = await api('POST', '/api/loop/accept', { loopId: active.id });
-      if (res.ok) { notify('You joined this loop.'); await renderLoop(); }
-      else { accept.disabled = false; notify(res.data.error || 'Could not accept invitation', 'error'); }
+  // A pending invitation is not a usable household yet: the original app took
+  // an invited member to an explicit accept/decline screen rather than showing
+  // controls that would fail with 403.
+  if (!isOwner && mine?.invited) {
+    container.append(invitationCard(active, people, owner, color));
+    return finish();
+  }
+
+  container.append(loopHero(active, people, { isOwner, owner, color }));
+  if (active.isSuspended) {
+    container.append(h('div', { class: 'notice notice-warn' }, icon('alert', 16),
+      h('div', {}, isOwner
+        ? 'This loop is suspended. Nobody can join it, and nobody in it can be changed, until you resume it.'
+        : 'This loop is suspended by its owner. Nobody can join it or be changed until it is resumed.'),
+      isOwner ? h('button', { type: 'button', class: 'btn btn-sm', style: 'margin-inline-start:auto', on: { click: () => setSuspended(false) } }, 'Resume') : null));
+  }
+
+  /* -- people ----------------------------------------------------------- */
+
+  const joined = people.filter((person) => !person.invited);
+  const invited = people.filter((person) => person.invited).sort((a, b) => Number(b.created || 0) - Number(a.created || 0));
+  const counts = [`${joined.length} ${joined.length === 1 ? 'person' : 'people'}`];
+  if (invited.length) counts.push(`${invited.length} invited`);
+
+  const list = h('div', { class: 'people-list' });
+  // replaceChildren() would render a null as the text "null".
+  const paintPeople = () => list.replaceChildren(...[
+    ...joined.map(personRow),
+    invited.length ? h('div', { class: 'people-group' }, 'Invited') : null,
+    ...invited.map(personRow),
+  ].filter(Boolean));
+  paintPeople();
+  const peopleCard = card('People', { sub: counts.join(' · ') },
+    list,
+    joined.length ? h('p', { class: 'people-note' },
+      'Jibo learns faces and voices on the robot itself. The green marks show what he already knows.') : null);
+  peopleCard.querySelector('.card-body').classList.add('people-body');
+  container.append(peopleCard);
+
+  /* -- add someone ------------------------------------------------------ */
+
+  let addCard = null;
+  if (isOwner && !active.isSuspended) {
+    addCard = h('section', { class: 'card add-person', id: 'add-person' });
+    paintAdd();
+    container.append(addCard);
+  }
+
+  /* -- loop settings ------------------------------------------------------ */
+
+  const settingsHost = h('div', { class: 'loop-settings' });
+  const paintSettings = () => settingsHost.replaceChildren(isOwner ? ownerSettings() : memberSettings());
+  paintSettings();
+  container.append(settingsHost);
+
+  finish();
+
+  /* -- rows ---------------------------------------------------------------- */
+
+  function personRow(person) {
+    const chips = [
+      person.isMe ? h('span', { class: 'pill pill-accent' }, 'You') : null,
+      person.isOwner ? h('span', { class: 'pill' }, 'Owner') : null,
+      person.inactive ? h('span', { class: 'pill pill-error' }, 'Account disabled') : null,
+    ].filter(Boolean);
+
+    const details = [];
+    if (person.nickname) details.push(`Jibo calls ${person.isMe ? 'you' : 'them'} “${person.nickname}”`);
+    if (person.invited) {
+      details.push(`Invited ${fmtAgo(person.created)}`.trim());
+      if (isOwner && person.email) details.push(person.email);
+    } else if (isOwner) {
+      details.push(person.hasAccount ? (person.email || 'Has an account') : 'No account');
+    } else if (!person.hasAccount) {
+      details.push('No account');
+    }
+
+    const canManage = isOwner && !active.isSuspended;
+    const panelId = `person-panel-${person.id}`;
+    const open = canManage && loopUi.open === person.id;
+    const toggle = canManage ? h('button', {
+      type: 'button',
+      class: `btn btn-sm person-manage-btn${open ? ' is-open' : ''}`,
+      'aria-expanded': String(open),
+      'aria-controls': panelId,
+      'aria-label': `${open ? 'Close' : 'Manage'} ${person.name}`,
+      on: { click: () => { loopUi.open = open ? null : person.id; paintPeople(); } },
+    }, h('span', { class: 'person-manage-label' }, open ? 'Done' : 'Manage'), icon('chevron', 14, 'person-manage-caret')) : null;
+
+    return h('div', { class: `person${open ? ' is-open' : ''}`, 'data-member': person.id },
+      h('div', { class: 'person-row' },
+        personAvatar(person.name, { key: person.id, photo: person.isMe ? safePhotoPath(me?.photoUrl) : null }),
+        h('div', { class: 'person-main' },
+          h('div', { class: 'person-name' }, h('span', { class: 'person-name-text', text: person.name }), ...chips),
+          details.length ? h('div', { class: 'person-sub', text: details.join(' · ') }) : null),
+        person.invited ? h('span') : recognitionMarks(person),
+        toggle || h('span')),
+      open ? managePanel(person, panelId) : null);
+  }
+
+  function managePanel(person, panelId) {
+    const sections = [];
+
+    // What Jibo calls them.
+    const nameForm = h('form', { class: 'person-form' },
+      field('Nickname', h('input', { name: 'nickname', value: person.nickname || '', placeholder: person.firstName, autocomplete: 'off' }),
+        'Leave empty to use their first name.'),
+      field('Pronunciation', h('input', { name: 'phoneticName', value: person.phonetic || '', placeholder: 'e.g. Nah-nah', autocomplete: 'off' }),
+        'Spell it the way it sounds, if Jibo says it wrong.'),
+      h('div', { class: 'person-form-actions' }, h('button', { type: 'submit', class: 'btn btn-sm btn-primary' }, 'Save')));
+    nameForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const fd = new FormData(nameForm);
+      const nickname = String(fd.get('nickname') || '').trim() || null;
+      const phoneticName = String(fd.get('phoneticName') || '').trim() || null;
+      const calls = [];
+      if (nickname !== person.nickname) calls.push(api('POST', '/api/loop/members/nickname', { loopId: active.id, id: person.id, nickname }));
+      if (phoneticName !== person.phonetic) calls.push(api('POST', '/api/loop/members/phonetic', { loopId: active.id, id: person.id, phoneticName }));
+      if (!calls.length) { notify('Nothing to save'); return; }
+      const results = await Promise.all(calls);
+      const failed = results.find((result) => !result.ok);
+      if (failed) { notify(failed.data.error || 'Could not save', 'error'); return; }
+      notify('Saved');
+      refresh();
     });
-    decline.addEventListener('click', async () => {
+    sections.push(h('div', { class: 'person-section' },
+      h('h4', { class: 'setting-group-title' }, person.isMe ? 'What Jibo calls you' : 'What Jibo calls them'), nameForm));
+
+    // Their account or invitation.
+    if (person.invited) {
+      const resend = h('button', { type: 'button', class: 'btn btn-sm' }, icon('mail', 14), 'Resend invitation');
+      resend.addEventListener('click', async () => {
+        resend.disabled = true;
+        const res = await api('POST', '/api/loop/invite', {
+          loopId: active.id,
+          email: person.email,
+          firstName: person.m.memberProperties?.firstName || undefined,
+          lastName: person.m.memberProperties?.lastName || undefined,
+        });
+        resend.disabled = false;
+        if (res.ok) { notify(`Invitation sent again to ${person.email}`); refresh(); }
+        else notify(res.data.error || 'Could not resend the invitation', 'error');
+      });
+      sections.push(h('div', { class: 'person-section' },
+        h('h4', { class: 'setting-group-title' }, 'Invitation'),
+        h('p', { class: 'person-section-text' }, person.email
+          ? `Sent to ${person.email} ${fmtAgo(person.created)}. They join by accepting it after signing in.`
+          : `Sent ${fmtAgo(person.created)}.`),
+        person.email ? h('div', { class: 'row' }, resend) : null));
+    } else if (!person.isOwner) {
+      sections.push(h('div', { class: 'person-section' },
+        h('h4', { class: 'setting-group-title' }, 'Account'),
+        ...(person.hasAccount ? linkedAccountSection(person) : accountLinker(person))));
+    }
+
+    if (!person.isOwner) {
+      const remove = h('button', { type: 'button', class: 'btn btn-sm btn-quiet btn-danger-quiet' },
+        icon('trash', 14), person.invited ? 'Cancel invitation' : `Remove ${person.firstName}`);
+      remove.addEventListener('click', () => removePerson(person));
+      sections.push(h('div', { class: 'person-panel-foot' }, remove));
+    } else {
+      sections.push(h('p', { class: 'person-panel-foot field-hint' },
+        person.isMe ? 'You own this loop. To hand it to someone else, use Transfer ownership below.' : 'The owner of this loop.'));
+    }
+    return h('div', { class: 'person-panel', id: panelId }, ...sections);
+  }
+
+  function linkedAccountSection(person) {
+    const unlink = h('button', { type: 'button', class: 'btn btn-sm' }, 'Unlink account');
+    unlink.addEventListener('click', async () => {
       const yes = await confirmDialog({
-        title: `Decline ${active.name}?`,
-        body: 'You will no longer see this loop. The owner can send another invitation later.',
-        confirmLabel: 'Decline invitation',
+        title: `Unlink ${person.firstName}’s account?`,
+        body: `${person.name} stays in the loop, but Jibo will stop giving them their personal report until an account is linked again.`,
+        confirmLabel: 'Unlink',
       });
       if (!yes) return;
-      decline.disabled = true;
-      const res = await api('POST', '/api/loop/decline', { loopId: active.id });
-      if (!res.ok) { decline.disabled = false; notify(res.data.error || 'Could not decline invitation', 'error'); return; }
-      rememberActiveLoop('');
-      location.hash = '#/';
-    });
-    container.append(card('Loop invitation', { sub: active.name },
-      h('p', {}, 'You have been invited to join this loop. Accept to see its Jibo, gallery, and inbox.'),
-      row('Invited by', personName(owner, 'The loop owner')),
-      accepted.length ? row('Current members', accepted.map((member) => personName(member)).join(', ')) : null,
-      h('div', { class: 'row', style: 'margin-top:1rem' }, accept, decline)));
-    show(container);
-    return;
-  }
-
-  /* -- the loop record ------------------------------------------------ */
-
-  const renameForm = isOwner ? h('form', { class: 'row', on: { submit: renameLoop } },
-    h('input', { name: 'name', value: active.name, required: true, 'aria-label': 'Loop name', style: 'flex:1;min-width:12rem' }),
-    h('button', { type: 'submit', class: 'btn' }, 'Rename')) : null;
-  const owner = (active.members || []).find((member) => String(member.accountId) === String(active.owner));
-
-  const loopCard = card(active.name, {
-    actions: isOwner ? [h('button', {
-      class: 'btn btn-sm btn-danger',
-      type: 'button',
-      on: { click: suspendLoop },
-    }, active.isSuspended ? 'Un-suspend' : 'Suspend')] : [],
-  },
-    active.isSuspended
-      ? h('div', { class: 'notice notice-warn' }, icon('alert', 16),
-        h('div', {}, 'This loop is suspended. Member edits are blocked while it is.'))
-      : null,
-    row('Loop ID', h('code', { text: active.id })),
-    row('Owner', isOwner
-      ? h('span', {}, 'You ', h('span', { class: 'pill pill-accent' }, 'owner'))
-      : personName(owner, 'Loop owner')),
-    row('Robot', active.robotFriendlyId || 'none paired'),
-    row('Status', active.isSuspended
-      ? h('span', { class: 'pill pill-error' }, 'Suspended')
-      : h('span', { class: 'pill pill-ok' }, h('span', { class: 'dot' }), 'Active')),
-    !isOwner ? h('p', { class: 'field-hint' }, 'You are a member of this loop. Its owner manages members and settings.') : null,
-    renameForm);
-  container.append(loopCard);
-
-  /* -- account linking ------------------------------------------------- */
-
-  const state = { picker: null, editId: null };
-
-  const searchInput = h('input', {
-    type: 'search',
-    name: 'email',
-    placeholder: 'Search accounts by email…',
-    'aria-label': 'Search accounts by email',
-    on: { input: debounce(searchAccounts, 250) },
-  });
-  const resultsBox = h('div', { class: 'link-results' });
-
-  const people = active.members.filter((m) => !(m.accountId && m.accountId === active.robot));
-  const unlinkedCount = people.filter((m) => !m.account).length;
-  setBadge('badge-members', people.length);
-
-  const membersCard = card('Members', {
-    sub: `${people.length} ${people.length === 1 ? 'person' : 'people'}`
-      + `${unlinkedCount ? ` · ${unlinkedCount} unlinked` : ''}`,
-  },
-    h('p', { class: 'field-hint' }, isOwner
-      ? 'Linking a member to an account is what lets the robot fetch that person’s own '
-        + 'weather, news and commute. Pick an account here, then press Link on the member. '
-        + 'Face and voice recognition are trained on Jibo itself, not from this console.'
-      : 'The loop owner manages member accounts and recognition settings.'),
-    isOwner ? h('div', { class: 'link-picker' }, searchInput, resultsBox) : null,
-    h('div', { class: 'member-list' }));
-  container.append(membersCard);
-
-  const listEl = membersCard.querySelector('.member-list');
-
-  function memberBlock(m) {
-    const linked = m.account;
-    // The loop carries a member record for the robot itself, whose "account" is
-    // the robot's own id with no email. Rendering it as a nameless person with
-    // a null address is just wrong, so it gets its own presentation and none of
-    // the person-only actions.
-    const isRobot = !!m.accountId && m.accountId === active.robot;
-    const name = isRobot
-      ? (active.robotFriendlyId || 'Robot')
-      : ([m.memberProperties?.firstName, m.memberProperties?.lastName].filter(Boolean).join(' ')
-        || (linked && [linked.firstName, linked.lastName].filter(Boolean).join(' '))
-        || '(no name)');
-
-    if (isRobot) {
-      return h('div', { class: 'member-block is-robot', 'data-member': m.id },
-        h('div', { class: 'member-name' },
-          icon('robot', 15),
-          name,
-          h('span', { class: 'pill pill-accent' }, 'robot')),
-        row('Joined', fmtDay(m.created)),
-        h('p', { class: 'field-hint' },
-          'This is the robot’s own place in the loop, not a person. '
-          + 'It is managed from the Robots page.'));
-    }
-
-    const accountLabel = isOwner && linked
-      ? (linked.email || linked.id || 'linked')
-        + (linked.isActive === false ? ' (inactive)' : '')
-      : (linked ? 'Linked account' : 'Not linked');
-
-    const children = [];
-
-    if (isOwner && state.editId === m.id) {
-      const form = h('form', {
-        class: 'edit-member',
-        on: {
-          submit: async (e) => {
-            e.preventDefault();
-            const fd = Object.fromEntries(new FormData(form));
-            const payload = {
-              loopId: active.id,
-              id: m.id,
-              nickname: fd.nickname || null,
-              phoneticName: fd.phoneticName || null,
-            };
-            const a = await api('POST', '/api/loop/members/nickname', payload);
-            const b = await api('POST', '/api/loop/members/phonetic', payload);
-            if (a.ok && b.ok) { notify('Saved'); state.editId = null; await renderLoop(); }
-            else notify(a.data.error || b.data.error || 'Could not save', 'error');
-          },
-        },
-      },
-        field('Nickname', h('input', { name: 'nickname', value: m.nickname || '' }),
-          'What the robot calls them.'),
-        field('Phonetic name', h('input', { name: 'phoneticName', value: m.phoneticName || '' }),
-          'Spell it how it sounds, if the robot says it wrong.'),
-        h('div', { class: 'row' },
-          h('button', { type: 'submit', class: 'btn btn-primary btn-sm' }, 'Save'),
-          h('button', {
-            type: 'button', class: 'btn btn-sm',
-            on: { click: () => { state.editId = null; paintMembers(); } },
-          }, 'Cancel')));
-      children.push(form);
-    }
-
-    const actions = [];
-    if (isOwner) {
-      actions.push(h('button', {
-        class: 'link', type: 'button',
-        on: { click: () => toggleLink(m) },
-      }, linked ? 'Unlink' : 'Link account'));
-      actions.push(h('button', {
-        class: 'link', type: 'button',
-        on: { click: () => { state.editId = state.editId === m.id ? null : m.id; paintMembers(); } },
-      }, 'Edit'));
-      actions.push(h('button', {
-        class: 'link danger', type: 'button',
-        on: { click: () => removeMember(m, name) },
-      }, 'Remove'));
-    } else if (String(m.accountId) === String(me?.id)) {
-      actions.push(h('button', {
-        class: 'link danger', type: 'button',
-        on: { click: () => leaveLoop(m) },
-      }, 'Leave loop'));
-    }
-
-    children.push(
-      h('div', { class: 'member-name' }, name,
-        h('span', { class: `status status-${m.status || 'invited'}`, text: m.status || 'invited' })),
-      row('Account', accountLabel),
-      row('Recognition record', `Face: ${m.enrolled?.face ? 'recorded' : 'not recorded'} · Voice: ${m.enrolled?.voice ? 'recorded' : 'not recorded'}`),
-      isOwner && !linked ? h('div', { class: 'member-unlinked-note' }, icon('alert', 13),
-        h('span', {}, 'No account linked — the robot cannot load their personal report.')) : null,
-      actions.length ? h('div', { class: 'member-actions' }, ...actions) : null);
-
-    return h('div', {
-      class: `member-block${linked ? '' : ' unlinked'}`,
-      'data-member': m.id,
-    }, ...children);
-  }
-
-  function paintMembers() {
-    // Members needing a link come first: they are the actionable ones, and on a
-    // twelve-person household they were otherwise scattered down the page. The
-    // robot's own record sorts last — it is never something to act on here.
-    const rank = (m) => (m.accountId && m.accountId === active.robot ? 2 : (m.account ? 1 : 0));
-    const ordered = [...active.members].sort((a, b) => rank(a) - rank(b));
-    listEl.replaceChildren(ordered.length
-      ? h('div', { class: 'member-grid' }, ...ordered.map(memberBlock))
-      : empty('No members yet', 'Invite someone below.', 'users'));
-  }
-  paintMembers();
-
-  /* -- invite ---------------------------------------------------------- */
-
-  if (isOwner) container.append(card('Invite a member', {},
-    h('form', {
-      class: 'invite-form',
-      on: {
-        submit: async (e) => {
-          e.preventDefault();
-          const fd = Object.fromEntries(new FormData(e.target));
-          const payload = { loopId: active.id };
-          for (const k of ['email', 'firstName', 'lastName']) if (fd[k]) payload[k] = fd[k];
-          const res = await api('POST', '/api/loop/invite', payload);
-          if (res.ok) { notify('Invitation sent'); await renderLoop(); }
-          else notify(res.data.error || 'Could not invite', 'error');
-        },
-      },
-    },
-      field('Email', h('input', { name: 'email', type: 'email', placeholder: 'them@example.com' })),
-      field('First name', h('input', { name: 'firstName' })),
-      field('Last name', h('input', { name: 'lastName' })),
-      h('button', { type: 'submit', class: 'btn btn-primary' }, 'Send invitation'))));
-
-  show(container);
-
-  /* -- actions --------------------------------------------------------- */
-
-  async function toggleLink(m) {
-    if (m.account) {
-      const res = await api('POST', '/api/loop/members/unlink', { loopId: active.id, id: m.id });
-      if (res.ok) { notify('Unlinked'); await renderLoop(); }
+      const res = await api('POST', '/api/loop/members/unlink', { loopId: active.id, id: person.id });
+      if (res.ok) { notify('Account unlinked'); refresh(); }
       else notify(res.data.error || 'Could not unlink', 'error');
+    });
+    return [
+      h('p', { class: 'person-section-text' },
+        person.email ? h('span', {}, 'Linked to ', h('strong', { text: person.email }), '. ') : null,
+        'Jibo uses this account for their personal report and messages.'),
+      h('div', { class: 'row' }, unlink),
+    ];
+  }
+
+  // Link an existing account to someone Jibo already knows, so he can give
+  // them their own personal report. The server only finds accounts by their
+  // exact address, or ones already in this owner's loops.
+  function accountLinker(person) {
+    const input = h('input', { type: 'email', name: 'email', placeholder: 'Their email address', 'aria-label': `Email address of ${person.name}’s account`, autocomplete: 'off', required: true });
+    const results = h('div', { class: 'link-results', 'aria-live': 'polite' });
+    const find = h('button', { type: 'submit', class: 'btn btn-sm' }, 'Find account');
+    const form = h('form', { class: 'link-form' }, input, find);
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const term = input.value.trim();
+      if (term.length < 3) { results.replaceChildren(h('p', { class: 'link-empty' }, 'Enter the address they sign in with.')); return; }
+      find.disabled = true;
+      const res = await api('GET', `/api/accounts/search?email=${encodeURIComponent(term)}`);
+      find.disabled = false;
+      if (!res.ok) { results.replaceChildren(h('p', { class: 'link-empty' }, res.data.error || 'Could not search accounts.')); return; }
+      const accounts = res.data.accounts || [];
+      if (!accounts.length) {
+        results.replaceChildren(h('p', { class: 'link-empty' },
+          'No account uses that address yet. Once they create one on this site, link it here.'));
+        return;
+      }
+      results.replaceChildren(...accounts.slice(0, 6).map((account) => {
+        const label = [account.firstName, account.lastName].filter(Boolean).join(' ') || account.email;
+        const link = h('button', { type: 'button', class: 'btn btn-sm btn-primary' }, icon('link', 14), 'Link');
+        link.addEventListener('click', async () => {
+          link.disabled = true;
+          const linked = await api('POST', '/api/loop/members/link', { loopId: active.id, id: person.id, accountId: account.id });
+          if (linked.ok) { notify(`${person.firstName} is now linked to ${account.email}`); refresh(); }
+          else { link.disabled = false; notify(linked.data.error || 'Could not link that account', 'error'); }
+        });
+        return h('div', { class: 'link-result' },
+          personAvatar(label, { key: account.id, size: 'sm' }),
+          h('div', { class: 'link-result-text' }, h('b', { text: label }), h('span', { text: account.email })),
+          link);
+      }));
+    });
+    return [
+      h('p', { class: 'person-section-text' },
+        'No account. Jibo still knows them, but can’t give them a personal report. If they have an account on this site, link it:'),
+      form,
+      results,
+    ];
+  }
+
+  /* -- add someone ----------------------------------------------------------- */
+
+  function openAdd(open) {
+    loopUi.add = open;
+    paintAdd();
+    if (open) {
+      addCard.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      addCard.querySelector('input[name=firstName]')?.focus({ preventScroll: true });
+    }
+  }
+
+  function paintAdd() {
+    if (!loopUi.add) {
+      addCard.replaceChildren(h('button', { type: 'button', class: 'add-person-tile', on: { click: () => openAdd(true) } },
+        h('span', { class: 'add-person-ic' }, icon('userPlus', 18)),
+        h('span', { class: 'add-person-text' },
+          h('b', {}, `Add someone to ${active.name}`),
+          h('span', {}, 'Invite them by email, or add a child or anyone else who won’t sign in.'))));
       return;
     }
-    if (!state.picker) { notify('Search for an account above and pick one first.', 'error'); return; }
-    const res = await api('POST', '/api/loop/members/link', {
-      loopId: active.id, id: m.id, accountId: state.picker.id,
+    const byEmail = loopUi.addMode === 'email';
+    const choice = (value, iconName, label, hint) => h('label', { class: `choice${loopUi.addMode === value ? ' is-selected' : ''}` },
+      h('input', { type: 'radio', name: 'mode', value, checked: loopUi.addMode === value,
+        on: { change: () => { loopUi.addMode = value; keepDraft(); paintAdd(); } } }),
+      h('span', { class: 'choice-ic' }, icon(iconName, 16)),
+      h('span', { class: 'choice-text' }, h('b', {}, label), h('span', {}, hint)));
+    const draft = loopUi.draft || {};
+    const form = h('form', { class: 'add-person-form' },
+      h('fieldset', { class: 'choices' },
+        h('legend', { class: 'field-label' }, 'How should they join?'),
+        h('div', { class: 'choice-grid' },
+          choice('email', 'mail', 'Invite by email', 'They get an email and join with their own account, so Jibo can give them a personal report.'),
+          choice('local', 'user', 'Add without an account', 'For children, or anyone who won’t sign in. Jibo can still learn their face and voice.'))),
+      h('div', { class: 'add-person-fields' },
+        field('First name', h('input', { name: 'firstName', required: true, autocomplete: 'off', value: draft.firstName || '' })),
+        field('Last name', h('input', { name: 'lastName', autocomplete: 'off', value: draft.lastName || '' }), 'Optional'),
+        byEmail ? field('Email', h('input', { name: 'email', type: 'email', required: true, autocomplete: 'off', placeholder: 'name@example.com', value: draft.email || '' })) : null),
+      h('div', { class: 'row' },
+        h('button', { type: 'submit', class: 'btn btn-primary' }, byEmail ? 'Send invitation' : 'Add to loop'),
+        h('button', { type: 'button', class: 'btn btn-quiet', on: { click: () => { loopUi.draft = null; openAdd(false); } } }, 'Cancel')));
+    function keepDraft() {
+      const fd = new FormData(form);
+      loopUi.draft = { firstName: fd.get('firstName') || '', lastName: fd.get('lastName') || '', email: fd.get('email') || draft.email || '' };
+    }
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const fd = new FormData(form);
+      const payload = { loopId: active.id, firstName: String(fd.get('firstName') || '').trim() };
+      const lastName = String(fd.get('lastName') || '').trim();
+      if (lastName) payload.lastName = lastName;
+      if (byEmail) payload.email = String(fd.get('email') || '').trim();
+      const button = form.querySelector('button[type=submit]');
+      button.disabled = true;
+      const res = await api('POST', '/api/loop/invite', payload);
+      button.disabled = false;
+      if (!res.ok) { notify(res.data.error || 'Could not add them', 'error'); return; }
+      notify(byEmail ? `Invitation sent to ${payload.email}` : `${payload.firstName} is now in ${active.name}`);
+      loopUi.add = false;
+      loopUi.draft = null;
+      refresh();
     });
-    if (res.ok) { notify(`Linked to ${state.picker.email}`); await renderLoop(); }
-    else notify(res.data.error || 'Could not link', 'error');
+    addCard.replaceChildren(
+      h('div', { class: 'card-head' }, h('h3', {}, 'Add someone'), h('span', { class: 'sub', text: active.name })),
+      h('div', { class: 'card-body' }, form));
   }
 
-  async function removeMember(m, name) {
-    const yes = await confirmDialog({
-      title: `Remove ${name}?`,
-      body: 'They will be removed from the loop. The robot will stop recognising them as a member.',
-      confirmLabel: 'Remove',
-    });
+  /* -- settings -------------------------------------------------------------- */
+
+  // One row of the settings card. With an editor, its button opens the editor
+  // in place; without one, the button acts at once (after its own confirmation).
+  function settingLine(key, { label, value = null, hint = null, action = null, onAction = null, editor = null, danger = false }) {
+    const editing = loopUi.setting === key;
+    let button = null;
+    if (action) {
+      button = h('button', {
+        type: 'button',
+        class: `btn btn-sm${danger && !editing ? ' btn-danger' : ''}`,
+        'aria-expanded': editor ? String(editing) : undefined,
+      }, editing ? 'Cancel' : action);
+      button.addEventListener('click', () => {
+        if (!editor) { onAction(); return; }
+        loopUi.setting = editing ? null : key;
+        paintSettings();
+        if (!editing) settingsHost.querySelector('.setting-line-editor input, .setting-line-editor select')?.focus();
+      });
+    }
+    return h('div', { class: `setting-line${editing ? ' is-editing' : ''}` },
+      h('div', { class: 'setting-line-text' },
+        h('span', { class: 'setting-line-label', text: label }),
+        value ? h('span', { class: 'setting-line-value' }, value) : null,
+        hint ? h('span', { class: 'setting-line-hint', text: hint }) : null),
+      button,
+      editing && editor ? h('div', {
+        class: 'setting-line-editor',
+        on: { keydown: (event) => { if (event.key === 'Escape') { loopUi.setting = null; paintSettings(); } } },
+      }, editor()) : null);
+  }
+
+  function technicalDetails() {
+    return h('details', { class: 'loop-tech' },
+      h('summary', {}, icon('chevron', 14, 'loop-tech-caret'), 'Technical details'),
+      h('div', { class: 'loop-tech-body' },
+        row('Loop ID', h('span', { class: 'mono-copy' }, h('code', { text: active.id }), copyButton(() => active.id))),
+        row('Jibo ID', active.robotFriendlyId ? h('code', { text: active.robotFriendlyId }) : 'No Jibo paired'),
+        active.created ? row('Created', fmtDay(active.created)) : null));
+  }
+
+  function ownerSettings() {
+    const candidates = people.filter((person) => !person.isMe && !person.invited && person.hasAccount && !person.inactive);
+    const lines = [
+      settingLine('name', {
+        label: 'Name',
+        value: h('span', { text: active.name }),
+        hint: 'Also Jibo’s name in this console, for everyone in the loop.',
+        action: 'Rename',
+        editor: () => {
+          const input = h('input', { name: 'name', value: active.name, required: true, maxlength: 80, 'aria-label': 'Loop name' });
+          const form = h('form', { class: 'inline-edit' }, input, h('button', { type: 'submit', class: 'btn btn-sm btn-primary' }, 'Save'));
+          form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const name = input.value.trim();
+            if (!name) return;
+            if (name === active.name) { loopUi.setting = null; paintSettings(); return; }
+            const res = await api('PUT', '/api/loop', { loopId: active.id, name });
+            if (res.ok) { notify('Renamed'); loopUi.setting = null; refresh(); }
+            else notify(res.data.error || 'Could not rename', 'error');
+          });
+          return form;
+        },
+      }),
+      settingLine('owner', {
+        label: 'Owner',
+        value: h('span', {}, 'You'),
+        hint: candidates.length
+          ? 'Hand this loop, and control of its Jibo’s settings, to someone else in it. You stay a member.'
+          : 'Only someone in this loop with their own account can become its owner.',
+        action: candidates.length ? 'Transfer…' : null,
+        editor: () => {
+          const select = h('select', { name: 'to', 'aria-label': 'New owner' },
+            ...candidates.map((person) => h('option', { value: person.m.accountId }, person.email ? `${person.name} (${person.email})` : person.name)));
+          const form = h('form', { class: 'inline-edit' }, select, h('button', { type: 'submit', class: 'btn btn-sm btn-danger' }, 'Transfer ownership'));
+          form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const target = candidates.find((person) => String(person.m.accountId) === select.value);
+            if (!target) return;
+            const yes = await confirmDialog({
+              title: `Make ${target.name} the owner?`,
+              body: `${target.name} will manage ${active.name} and its Jibo’s settings. You stay in the loop as a member, and only the new owner can undo this.`,
+              confirmLabel: 'Transfer ownership',
+            });
+            if (!yes) return;
+            const res = await api('POST', '/api/loop/transfer', { loopId: active.id, toAccountId: target.m.accountId });
+            if (res.ok) { notify(`${target.name} now owns ${active.name}`); loopUi.setting = null; refresh(); }
+            else notify(res.data.error || 'Could not transfer ownership', 'error');
+          });
+          return form;
+        },
+      }),
+      active.isSuspended
+        ? settingLine('suspend', {
+          label: 'Suspended',
+          hint: 'Nobody can join this loop or be changed in it until you resume it.',
+          action: 'Resume loop',
+          onAction: () => setSuspended(false),
+        })
+        : settingLine('suspend', {
+          label: 'Suspend loop',
+          hint: 'Freezes the loop: nobody can join it or be changed until you resume it.',
+          action: 'Suspend…',
+          onAction: () => setSuspended(true),
+          danger: true,
+        }),
+    ];
+    return card('Loop settings', {}, h('div', { class: 'setting-lines' }, ...lines), technicalDetails());
+  }
+
+  function memberSettings() {
+    const leave = mine ? settingLine('leave', {
+      label: 'Leave this loop',
+      hint: 'You’ll lose access to its Jibo’s gallery and inbox. The owner can invite you again.',
+      action: 'Leave…',
+      onAction: () => leaveLoop(),
+      danger: true,
+    }) : null;
+    return card('About this loop', {},
+      h('div', { class: 'setting-lines' },
+        settingLine('owner', {
+          label: 'Owner',
+          value: owner ? h('span', { text: owner.name }) : h('span', {}, 'Unknown'),
+          hint: 'The owner adds people and changes this loop’s settings.',
+        }),
+        leave),
+      technicalDetails());
+  }
+
+  /* -- actions ---------------------------------------------------------------- */
+
+  async function removePerson(person) {
+    const yes = await confirmDialog(person.invited
+      ? {
+        title: `Cancel ${person.firstName}’s invitation?`,
+        body: `The invitation${person.email ? ` sent to ${person.email}` : ''} will stop working. You can invite them again later.`,
+        confirmLabel: 'Cancel invitation',
+      }
+      : {
+        title: `Remove ${person.name}?`,
+        body: `${person.name} will no longer be part of ${active.name}, and Jibo will stop treating them as one of the family.`,
+        confirmLabel: 'Remove',
+      });
     if (!yes) return;
-    const res = await api('POST', '/api/loop/members/remove', { loopId: active.id, id: m.id });
-    if (res.ok) { notify('Member removed'); await renderLoop(); }
-    else notify(res.data.error || 'Could not remove', 'error');
+    const res = await api('POST', '/api/loop/members/remove', { loopId: active.id, id: person.id });
+    if (res.ok) { notify(person.invited ? 'Invitation cancelled' : `${person.name} was removed`); loopUi.open = null; refresh(); }
+    else notify(res.data.error || 'Could not remove them', 'error');
   }
 
-  async function leaveLoop(m) {
+  async function leaveLoop() {
     const yes = await confirmDialog({
       title: `Leave ${active.name}?`,
-      body: 'You will lose access to this loop’s Jibo, gallery, and inbox. The owner can invite you again later.',
+      body: 'You will lose access to this loop’s Jibo, gallery and inbox. The owner can invite you again later.',
       confirmLabel: 'Leave loop',
     });
     if (!yes) return;
-    const res = await api('POST', '/api/loop/members/remove', { loopId: active.id, id: m.id });
-    if (!res.ok) { notify(res.data.error || 'Could not leave loop', 'error'); return; }
+    const res = await api('POST', '/api/loop/members/remove', { loopId: active.id, id: mine.id });
+    if (!res.ok) { notify(res.data.error || 'Could not leave the loop', 'error'); return; }
     rememberActiveLoop('');
+    notify(`You left ${active.name}`);
     location.hash = '#/';
   }
 
-  async function renameLoop(e) {
-    e.preventDefault();
-    const name = new FormData(e.target).get('name');
-    const res = await api('PUT', '/api/loop', { loopId: active.id, name });
-    if (res.ok) { notify('Renamed'); await renderLoop(); }
-    else notify(res.data.error || 'Could not rename', 'error');
-  }
-
-  async function suspendLoop() {
-    if (!active.isSuspended) {
+  async function setSuspended(suspend) {
+    if (suspend) {
       const yes = await confirmDialog({
-        title: 'Suspend this loop?',
-        body: 'Member edits are blocked while a loop is suspended. You can un-suspend it again at any time.',
-        confirmLabel: 'Suspend',
+        title: `Suspend ${active.name}?`,
+        body: 'Nobody can join the loop, and nobody in it can be changed, until you resume it. Jibo keeps working for the people already in it.',
+        confirmLabel: 'Suspend loop',
       });
       if (!yes) return;
     }
-    const endpoint = active.isSuspended ? 'unsuspend' : 'suspend';
-    const res = await api('POST', `/api/loop/${endpoint}`, { loopId: active.id });
-    if (res.ok) { notify(active.isSuspended ? 'Un-suspended' : 'Suspended'); await renderLoop(); }
-    else notify(res.data.error || 'Could not change status', 'error');
+    const res = await api('POST', `/api/loop/${suspend ? 'suspend' : 'unsuspend'}`, { loopId: active.id });
+    if (res.ok) { notify(suspend ? 'Loop suspended' : 'Loop resumed'); loopUi.open = null; refresh(); }
+    else notify(res.data.error || 'Could not change the loop', 'error');
   }
+}
 
-  async function searchAccounts(ev) {
-    const term = ev.target.value.trim();
-    if (!term) { resultsBox.replaceChildren(); return; }
-    const res = await api('GET', `/api/accounts/search?email=${encodeURIComponent(term)}`);
-    if (!res.ok) { resultsBox.replaceChildren(); return; }
-    const accounts = res.data.accounts || [];
-    if (!accounts.length) {
-      resultsBox.replaceChildren(h('p', { class: 'map-result-empty' }, 'No matching account.'));
-      return;
-    }
-    resultsBox.replaceChildren(...accounts.slice(0, 8).map((a) => h('button', {
-      type: 'button',
-      class: 'account-opt',
-      on: {
-        click: () => {
-          state.picker = a;
-          searchInput.value = a.email;
-          resultsBox.replaceChildren(h('p', { class: 'map-result-empty' },
-            `Selected ${a.email} — now press Link on a member.`));
-        },
-      },
-    }, `${a.email}${a.firstName ? ` (${a.firstName})` : ''}`)));
-  }
+/** Every loop the account can see, when there is more than one. */
+function loopTabs(context) {
+  if (context.loops.length < 2) return null;
+  return h('nav', { class: 'subnav loop-tabs', 'aria-label': 'Your loops' },
+    ...context.loops.map((loop) => {
+      const membership = (loop.members || []).find((member) => String(member.accountId) === String(me?.id));
+      const invitation = loop.canManage !== true && String(membership?.status || '').toLowerCase() === 'invited';
+      const current = String(loop.id) === String(context.active.id);
+      return h('button', {
+        type: 'button',
+        class: current ? 'active' : '',
+        'aria-current': current ? 'page' : undefined,
+        on: { click: () => { if (!current) { rememberActiveLoop(loop.id); route(); } } },
+      }, robotAvatar(loop.avatarColor, 'xs'), h('span', { text: loop.name || 'Unnamed loop' }),
+      invitation ? h('span', { class: 'pill pill-warn loop-tab-pill' }, 'Invited') : null);
+    }));
+}
+
+/** The loop, told from the point of view of its Jibo. */
+function loopHero(loop, people, { isOwner, owner, color }) {
+  const joined = people.filter((person) => !person.invited).length;
+  const facts = [
+    `${joined} ${joined === 1 ? 'person' : 'people'}`,
+    isOwner ? 'You own this loop' : `Owned by ${owner?.name || 'someone else'}`,
+  ].join(' · ');
+  return h('section', { class: `card loop-hero robot-color-${color}` },
+    h('div', { class: 'loop-hero-main' },
+      robotAvatar(color, 'lg'),
+      h('div', { class: 'loop-hero-text' },
+        h('h2', { text: loop.name || 'Unnamed loop' }),
+        h('div', { class: 'loop-hero-meta' },
+          loop.robotFriendlyId
+            ? h('span', { class: 'robot-id loop-hero-id', text: loop.robotFriendlyId })
+            : h('span', { class: 'loop-hero-id' }, 'No Jibo paired'),
+          h('span', { class: 'loop-hero-facts', text: facts }),
+          loop.isSuspended ? h('span', { class: 'pill pill-warn' }, 'Suspended') : null))),
+    isOwner && loop.robot ? h('a', { class: 'btn btn-sm loop-hero-action', href: `#/robot/${encodeURIComponent(loop.id)}` },
+      icon('sliders', 14), 'Jibo’s settings') : null);
+}
+
+/** An invitation waiting for this account's answer. */
+function invitationCard(loop, people, owner, color) {
+  const joined = people.filter((person) => !person.invited);
+  const inviter = owner?.name || 'The loop owner';
+  const accept = h('button', { type: 'button', class: 'btn btn-primary' }, icon('check', 15), 'Accept invitation');
+  const decline = h('button', { type: 'button', class: 'btn btn-quiet' }, 'Decline');
+  accept.addEventListener('click', async () => {
+    accept.disabled = true;
+    const res = await api('POST', '/api/loop/accept', { loopId: loop.id });
+    if (res.ok) { notify(`Welcome to ${loop.name}`); renderLoop(); }
+    else { accept.disabled = false; notify(res.data.error || 'Could not accept the invitation', 'error'); }
+  });
+  decline.addEventListener('click', async () => {
+    const yes = await confirmDialog({
+      title: `Decline ${loop.name}?`,
+      body: 'You will no longer see this loop. The owner can send another invitation later.',
+      confirmLabel: 'Decline invitation',
+    });
+    if (!yes) return;
+    decline.disabled = true;
+    const res = await api('POST', '/api/loop/decline', { loopId: loop.id });
+    if (!res.ok) { decline.disabled = false; notify(res.data.error || 'Could not decline the invitation', 'error'); return; }
+    rememberActiveLoop('');
+    location.hash = '#/';
+  });
+  const others = joined.filter((person) => !person.isOwner);
+  const who = others.length
+    ? `${inviter} and ${others.length} ${others.length === 1 ? 'other person are' : 'others are'} already in it.`
+    : `${inviter} is in it so far.`;
+  return h('section', { class: `card loop-invite robot-color-${color}` },
+    robotAvatar(color, 'lg'),
+    h('p', { class: 'loop-invite-eyebrow' }, 'Invitation'),
+    h('h2', {}, `Join ${loop.name}?`),
+    h('p', { class: 'loop-invite-text' },
+      `${inviter} invited you to this Jibo’s loop. Join to see his gallery and inbox, and so Jibo can get to know you.`),
+    joined.length ? h('div', { class: 'avatar-stack', 'aria-hidden': 'true' },
+      ...joined.slice(0, 5).map((person) => personAvatar(person.name, { key: person.id, size: 'sm' }))) : null,
+    h('p', { class: 'field-hint' }, who),
+    h('div', { class: 'row loop-invite-actions' }, accept, decline));
 }
 
 function browserTimeZone(candidate) {

@@ -420,7 +420,7 @@ body.console {
 
 /* Forms inside cards: fields were stacked with no space between them. The
    inline .row forms (rename) and forms that lay themselves out are exempt. */
-.card-body form:not(.row):not(.invite-form):not(.edit-member):not(.jot-compose):not(.holiday-add) > * + * { margin-top: .9rem; }
+.card-body form:not(.row):not(.jot-compose):not(.holiday-add):not(.add-person-form):not(.person-form):not(.link-form):not(.inline-edit) > * + * { margin-top: .9rem; }
 
 /* Overview call to action for an account with no robot yet. */
 .getting-started { border-color: var(--accent-line); }
@@ -679,13 +679,6 @@ body.console {
   transition: border-color var(--fast) var(--ease);
 }
 .member-block:hover { border-color: var(--border); }
-/* An unlinked member is the actionable one — the reason a personal report
-   fails — so it is marked, not merely listed. */
-.member-block.unlinked { border-color: var(--warn-soft); background: var(--warn-soft); }
-/* The robot's own record is not a person and should not compete for attention
-   with the members who need something doing. */
-.member-block.is-robot { background: transparent; border-style: dashed; }
-.member-block.is-robot .member-name { color: var(--fg-dim); }
 
 .member-name {
   display: flex;
@@ -697,13 +690,6 @@ body.console {
 }
 .member-block .kv { padding: .25rem 0; border: 0; font-size: var(--t-xs); }
 .member-block .kv .k { min-width: 5rem; }
-.member-unlinked-note {
-  font-size: var(--t-xs);
-  color: var(--warn);
-  line-height: 1.5;
-  display: flex;
-  gap: .4rem;
-}
 .member-actions {
   display: flex;
   flex-wrap: wrap;
@@ -727,42 +713,358 @@ body.console {
 .status-invited, .status-pending { background: var(--warn-soft); color: var(--warn); }
 .status-removed, .status-suspended { background: var(--error-soft); color: var(--error); }
 
-/* Account search for the link tool. */
-.link-picker { position: relative; display: grid; gap: .5rem; }
-.link-results {
-  display: grid;
-  gap: 2px;
-  max-height: 210px;
-  overflow-y: auto;
+/* ==========================================================================
+   Loops: the people around one Jibo
+   ========================================================================== */
+
+/* Switching loops uses the same track as a robot's settings tabs. */
+.loop-tabs { margin-bottom: 1rem; }
+.loop-tabs button { gap: .5rem; }
+.loop-tabs .robot-avatar { box-shadow: none; }
+.loop-tab-pill { padding: .02rem .45rem; font-size: 11px; }
+@media (max-width: 640px) {
+  .subnav.loop-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-inline: -1rem;
+    border-radius: 0;
+    border-inline: 0;
+    padding-inline: .75rem;
+  }
+  .loop-tabs::-webkit-scrollbar { display: none; }
+  .loop-tabs button { min-height: 40px; }
 }
-.link-results:not(:empty) {
-  padding: .3rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+.robot-avatar.robot-avatar-xs { --size: 20px; }
+.robot-avatar-xs .robot-avatar-eye { box-shadow: none; }
+
+/* The loop, told from its Jibo: avatar, name, who is in it. */
+.loop-hero {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem 1.25rem;
+  padding: 1.4rem 1.4rem;
+  background:
+    radial-gradient(90% 180% at 0% 0%, color-mix(in srgb, var(--robot-color) 15%, transparent), transparent 62%),
+    var(--panel);
+}
+.loop-hero-main { display: flex; align-items: center; gap: 1.1rem; flex: 1 1 22rem; min-width: 0; }
+.loop-hero-text { min-width: 0; }
+.loop-hero h2 {
+  margin-bottom: .3rem;
+  font-size: var(--t-xl);
+  line-height: 1.15;
+  letter-spacing: -.026em;
+  overflow-wrap: anywhere;
+}
+.loop-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .25rem .5rem;
+  font-size: var(--t-sm);
+  color: var(--muted);
+}
+.loop-hero-meta .robot-id { font-size: var(--t-sm); }
+.loop-hero-facts::before { content: "·"; margin-inline-end: .5rem; color: var(--faint); }
+.loop-hero-action { flex: none; }
+.notice > .btn { flex: none; align-self: center; }
+
+/* People: one row each, the way a household reads them. */
+.card-body.people-body { padding: 0; }
+.card-body.people-body > * + * { margin-top: 0; }
+.people-list { display: grid; }
+.person { border-bottom: 1px solid var(--hairline); transition: background var(--fast) var(--ease); }
+.person.is-open { background: var(--panel-2); }
+.person-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: .9rem;
+  padding: .85rem 1.3rem;
+}
+.person-main { min-width: 0; display: grid; gap: .15rem; }
+.person-name {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .25rem .45rem;
+  font-weight: 600;
+  letter-spacing: -.012em;
+  color: var(--fg);
+}
+.person-name-text { overflow-wrap: anywhere; }
+.person-name .pill { padding: .02rem .45rem; font-size: 11px; font-weight: 580; }
+.person-sub {
+  font-size: var(--t-sm);
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.people-group {
+  padding: 1.1rem 1.3rem .45rem;
+  font-size: var(--t-xs);
+  font-weight: 620;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--hairline);
+}
+.people-note {
+  padding: .8rem 1.3rem;
+  font-size: var(--t-xs);
+  line-height: 1.5;
+  color: var(--muted);
   background: var(--panel-2);
 }
-.account-opt {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: .5rem .6rem;
-  border-radius: var(--radius-xs);
-  font-size: var(--t-sm);
-  font-weight: 460;
-  color: var(--fg-dim);
-}
-.account-opt:hover { background: var(--panel-3); color: var(--fg); text-decoration: none; }
 
-.edit-member {
+/* Initials on a color from the person's name; the signed-in person's photo. */
+.person-avatar {
+  --size: 40px;
+  --tone: #718098;
+  flex: none;
   display: grid;
-  gap: .75rem;
-  padding: .9rem;
-  border-radius: var(--radius-xs);
-  background: var(--panel);
-  border: 1px solid var(--border);
+  place-items: center;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--tone) 20%, var(--panel)) center / cover no-repeat;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone) 30%, transparent);
+  color: color-mix(in srgb, var(--tone) 72%, var(--fg));
+  font-size: calc(var(--size) * .36);
+  font-weight: 650;
+  letter-spacing: .01em;
+  user-select: none;
 }
+.person-avatar.has-photo { color: transparent; }
+.person-avatar-sm { --size: 30px; }
+.tone-0 { --tone: #4b85db; }
+.tone-1 { --tone: #1f9d93; }
+.tone-2 { --tone: #9966ce; }
+.tone-3 { --tone: #e0685f; }
+.tone-4 { --tone: #c9962a; }
+.tone-5 { --tone: #3f9d63; }
+.tone-6 { --tone: #d0578f; }
+.tone-7 { --tone: #718098; }
 
-.invite-form { display: grid; gap: .9rem; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); align-items: end; }
+/* What Jibo already knows about someone. */
+.recog { display: inline-flex; gap: .35rem; }
+.recog-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .2rem .55rem .2rem .45rem;
+  border-radius: var(--radius-pill);
+  border: 1px dashed var(--border);
+  font-size: var(--t-xs);
+  font-weight: 560;
+  color: var(--faint);
+}
+.recog-mark.is-known { border: 1px solid transparent; background: var(--ok-soft); color: var(--ok); }
+
+.person-manage-btn { gap: .35rem; min-width: 6.4rem; }
+.person-manage-caret { transition: transform var(--step) var(--ease-out); }
+.person-manage-btn.is-open .person-manage-caret { transform: rotate(180deg); }
+
+/* A person's details, opened in place under their row. */
+.person-panel {
+  display: grid;
+  gap: 1.15rem;
+  padding: .2rem 1.3rem 1.2rem calc(1.3rem + 40px + .9rem);
+}
+.person-section { display: grid; gap: .6rem; }
+.person-section .setting-group-title { margin: 0; }
+.person-section-text { max-width: 62ch; font-size: var(--t-sm); line-height: 1.55; color: var(--fg-dim); }
+.person-section-text strong { color: var(--fg); font-weight: 600; }
+.person-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+  align-items: start;
+  max-width: 40rem;
+}
+.person-form-actions { grid-column: 1 / -1; }
+.person-panel-foot { padding-top: .9rem; border-top: 1px solid var(--hairline); }
+.person-panel-foot .btn-quiet { margin-inline-start: -.7rem; }
+.btn-quiet.btn-danger-quiet { color: var(--error); }
+.btn-quiet.btn-danger-quiet:hover { background: var(--error-soft); color: var(--error); }
+
+.link-form { display: flex; gap: .5rem; max-width: 30rem; }
+.link-form input { flex: 1; min-width: 0; }
+.link-results { display: grid; gap: .5rem; max-width: 30rem; }
+.link-result {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  padding: .55rem .6rem .55rem .7rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-soft);
+  background: var(--panel);
+}
+.link-result-text { flex: 1; min-width: 0; display: grid; }
+.link-result-text b { font-size: var(--t-sm); font-weight: 600; color: var(--fg); }
+.link-result-text span { font-size: var(--t-xs); color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.link-empty { font-size: var(--t-sm); color: var(--muted); }
+
+/* Adding someone: a quiet tile that opens into a short form. */
+.add-person-tile {
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+  width: 100%;
+  padding: 1.05rem 1.3rem;
+  text-align: left;
+  transition: background var(--fast) var(--ease);
+}
+.add-person-tile:hover { background: var(--panel-2); }
+.add-person-tile:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.add-person-ic {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px dashed var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.add-person-text { display: grid; gap: .1rem; min-width: 0; }
+.add-person-text b { font-weight: 600; color: var(--fg); letter-spacing: -.012em; }
+.add-person-text span { font-size: var(--t-sm); color: var(--muted); }
+.add-person-form { display: grid; gap: 1.15rem; }
+.choices { min-width: 0; margin: 0; padding: 0; border: 0; }
+.choices legend { margin-bottom: .55rem; padding: 0; }
+.choice-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.choice {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  padding: .9rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  cursor: pointer;
+  transition: border-color var(--fast) var(--ease), background var(--fast) var(--ease), box-shadow var(--fast) var(--ease);
+}
+.choice:hover { border-color: var(--accent-line); }
+.choice.is-selected { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+.choice input { position: absolute; opacity: 0; width: 0; height: 0; }
+.choice:has(input:focus-visible) { box-shadow: var(--ring); }
+.choice-ic {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border-soft);
+  background: var(--panel);
+  color: var(--muted);
+}
+.choice.is-selected .choice-ic { border-color: var(--accent-line); color: var(--accent); }
+.choice-text { display: grid; gap: .2rem; min-width: 0; }
+.choice-text b { font-size: var(--t-sm); font-weight: 600; color: var(--fg); }
+.choice-text span { font-size: var(--t-xs); line-height: 1.5; color: var(--muted); }
+.add-person-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: .9rem; align-items: start; }
+
+/* Loop settings: one line per decision, with its button beside it. */
+.setting-lines { display: grid; }
+.setting-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .6rem 1rem;
+  padding: .95rem 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.setting-line:first-child { padding-top: .1rem; }
+.setting-line:last-child { border-bottom: 0; padding-bottom: .1rem; }
+.setting-line-text { min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: .15rem .6rem; }
+.setting-line-label { font-size: var(--t-sm); font-weight: 600; color: var(--fg); }
+.setting-line-value { font-size: var(--t-sm); color: var(--fg-dim); overflow-wrap: anywhere; }
+.setting-line-hint { flex-basis: 100%; font-size: var(--t-xs); line-height: 1.5; color: var(--muted); }
+.setting-line-editor { grid-column: 1 / -1; }
+.inline-edit { display: flex; gap: .5rem; max-width: 32rem; }
+.inline-edit input, .inline-edit select { flex: 1; min-width: 0; }
+
+.loop-tech { padding-top: .85rem; border-top: 1px solid var(--hairline); }
+.loop-tech summary {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  list-style: none;
+  cursor: pointer;
+  font-size: var(--t-sm);
+  font-weight: 560;
+  color: var(--muted);
+}
+.loop-tech summary::-webkit-details-marker { display: none; }
+.loop-tech summary:hover { color: var(--fg); }
+.loop-tech-caret { transform: rotate(-90deg); transition: transform var(--step) var(--ease-out); }
+.loop-tech[open] .loop-tech-caret { transform: none; }
+.loop-tech-body { margin-top: .4rem; }
+.loop-tech-body code { font-size: var(--t-xs); }
+.mono-copy { display: inline-flex; align-items: center; flex-wrap: wrap; gap: .6rem; }
+
+/* An invitation waiting for an answer. */
+.loop-invite {
+  display: grid;
+  justify-items: center;
+  gap: .55rem;
+  max-width: 36rem;
+  margin-inline: auto;
+  padding: 2.4rem 1.5rem 2rem;
+  text-align: center;
+  background:
+    radial-gradient(90% 70% at 50% 0%, color-mix(in srgb, var(--robot-color) 16%, transparent), transparent 72%),
+    var(--panel);
+}
+.loop-invite .robot-avatar { margin-bottom: .5rem; }
+.loop-invite-eyebrow {
+  font-size: var(--t-xs);
+  font-weight: 620;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.loop-invite h2 { font-size: var(--t-xl); letter-spacing: -.024em; }
+.loop-invite-text { max-width: 44ch; line-height: 1.55; color: var(--fg-dim); }
+.avatar-stack { display: flex; margin-top: .5rem; }
+.avatar-stack .person-avatar { box-shadow: 0 0 0 2px var(--panel), inset 0 0 0 1px color-mix(in srgb, var(--tone) 30%, transparent); }
+.avatar-stack .person-avatar + .person-avatar { margin-inline-start: -8px; }
+.loop-invite-actions { justify-content: center; margin-top: .75rem; }
+
+@media (max-width: 560px) {
+  .loop-hero { padding: 1.15rem; }
+  .loop-hero-main { flex-basis: 100%; }
+  .loop-hero-meta { flex-direction: column; align-items: flex-start; gap: .15rem; }
+  .loop-hero-facts::before { content: none; }
+  .person-row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: "avatar main action" "avatar recog action";
+    row-gap: .45rem;
+    padding: .8rem 1rem;
+  }
+  .person-row > :nth-child(1) { grid-area: avatar; align-self: start; }
+  .person-row > :nth-child(2) { grid-area: main; }
+  .person-row > :nth-child(3) { grid-area: recog; }
+  .person-row > :nth-child(4) { grid-area: action; }
+  .person-row > :nth-child(3):empty { display: none; }
+  .person-manage-label { display: none; }
+  .person-manage-btn { min-width: 0; width: 36px; padding-inline: 0; }
+  .person-panel { padding: .1rem 1rem 1.1rem; }
+  .person-form { grid-template-columns: minmax(0, 1fr); }
+  .people-group, .people-note { padding-inline: 1rem; }
+  .add-person-tile { padding: 1rem; }
+  .choice-grid { grid-template-columns: minmax(0, 1fr); }
+  .setting-line { grid-template-columns: minmax(0, 1fr); justify-items: start; }
+  .inline-edit { flex-wrap: wrap; }
+  .inline-edit input, .inline-edit select { flex-basis: 100%; }
+}
 
 /* Account photo, at the top of the Profile card. */
 .profile-photo-editor {

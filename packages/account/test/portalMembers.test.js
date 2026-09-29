@@ -107,6 +107,8 @@ test('unlink clears the accountId so the member is again anonymous to Settings',
   const after = un.body.loop.members.find((m) => m.id === member.id);
   assert.equal(after.accountId, null);
   assert.equal(after.account, null);
+  // The name lived only on the account; the member keeps it.
+  assert.equal(after.memberProperties.firstName, 'Link');
 });
 
 test('nickname + phonetic name edit and clear (null)', async () => {
