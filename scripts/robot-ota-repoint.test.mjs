@@ -24,7 +24,7 @@ const FIRMWARE = {
 };
 
 function preview({ credentials, mode, claim = false, shape = 'ok', region = 'stg-entrypoint', auth = 'key', robot = 'root@192.0.2.15',
-  firmware = '13', handler, preflight = 'ok', hostKey = 'known', auto = true }) {
+  firmware = '13', handler, preflight = 'ok', hostKey = 'known', auto = true, extra = [] }) {
   const fw = FIRMWARE[firmware];
   const dir = mkdtempSync(join(tmpdir(), 'phoenix-repoint-test-'));
   const ssh = join(dir, 'ssh');
@@ -103,7 +103,7 @@ echo "ssh-keygen $*" >> "$PHOENIX_TEST_LOG"; rm -f "$PHOENIX_TEST_STALE_KEY"
   if (hostKey === 'changed') writeFileSync(staleKey, '');
   try {
     return execFileSync('setsid', ['-w', 'bash', script, ...(robot ? ['--robot', robot] : []), ...(auto ? ['--auto'] : []),
-      ...(claim ? ['--claim-code', claimCode] : []), '--dry-run'], {
+      ...(claim ? ['--claim-code', claimCode] : []), ...extra, '--dry-run'], {
       encoding: 'utf8',
       env: { ...process.env, PATH: `${dir}:${process.env.PATH}`,
         PHOENIX_TEST_CREDS: credentials ? 'yes' : 'no', PHOENIX_TEST_MODE: mode,
@@ -183,6 +183,16 @@ test('a changed root password without a terminal stops with a clear message', ()
 test("the console's command (a claim code alone) takes the credential-detecting path", () => {
   const out = preview({ credentials: true, mode: 'oobe', claim: true, auto: false });
   assert.match(out, /credentials present; adopt\/claim and start native OTA/);
+});
+
+test('a new or reset robot is restarted into setup at the end; a set-up one is left to its OTA', () => {
+  const fresh = preview({ credentials: false, mode: 'int-developer', claim: true });
+  assert.match(fresh, /10\. reboot the robot into its setup screen once everything above has succeeded/);
+  const optedOut = preview({ credentials: false, mode: 'int-developer', claim: true, extra: ['--no-reboot'] });
+  assert.doesNotMatch(optedOut, /reboot the robot into its setup screen/);
+  const paired = preview({ credentials: true, mode: 'normal', claim: true });
+  assert.doesNotMatch(paired, /reboot the robot into its setup screen/);
+  assert.match(paired, /10\. ask the native system-manager to download and install the published OTA set \(reboots\)/);
 });
 
 test('no robot address and no terminal to ask for one stops with the usage hint', () => {

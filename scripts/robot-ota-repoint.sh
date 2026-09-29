@@ -43,7 +43,7 @@
 #                        [--claim-code <portal-code>] [--start-ota]
 #                        [--dry-run] [--yes] [--verify] [--revert]
 #   robot-ota-repoint.sh --robot root@<ip> --ota-only [--dry-run] [--yes]
-#   robot-ota-repoint.sh --robot root@<ip> --oobe --yes
+#   robot-ota-repoint.sh --robot root@<ip> --oobe --yes [--no-reboot]
 #   robot-ota-repoint.sh --robot root@<ip> --auto [--claim-code <portal-code>] --yes
 #   robot-ota-repoint.sh --robot root@<ip> --full --phoenix https://... --yes
 #
@@ -58,7 +58,7 @@ set -uo pipefail
 
 ROBOT=""; REGION=""; REGION_CA=""; DRY=0; ASSUME_YES=0; VERIFY=0; REVERT=0
 PUBLIC_SUFFIX="jibo.io"
-FULL=0; FULL_ARGS=(); CLAIM_CODE=""; OOBE=0; OTA_ONLY=0; START_OTA=0; AUTO=0
+FULL=0; FULL_ARGS=(); CLAIM_CODE=""; OOBE=0; OTA_ONLY=0; START_OTA=0; AUTO=0; REBOOT=1
 
 # The robot's own trust store. `bundle` is what OpenSSL reads; the individual PEM
 # plus the subject-hash symlink are how a cert is normally installed alongside it.
@@ -92,6 +92,7 @@ while [ $# -gt 0 ]; do
     --yes)       ASSUME_YES=1; shift ;;
     --verify)    VERIFY=1; shift ;;
     --revert)    REVERT=1; shift ;;
+    --no-reboot) REBOOT=0; shift ;;
     --full)      FULL=1; shift ;;
     -h|--help)   usage 0 ;;
     *)
@@ -683,6 +684,8 @@ fi
 say "  9. write a receipt to ${RECEIPT}"
 if [ "$START_OTA" -eq 1 ]; then
   say "  10. ask the native system-manager to download and install the published OTA set (reboots)"
+elif [ "$OOBE" -eq 1 ] && [ "$REBOOT" -eq 1 ]; then
+  say "  10. reboot the robot into its setup screen once everything above has succeeded"
 fi
 say ""
 if [ "$OOBE" -eq 1 ]; then
@@ -1157,7 +1160,8 @@ fi
 # Set its *next boot* to the real setup mode only after the repoint is complete.
 if [ "$OOBE" -eq 1 ]; then
   rsh 'jibo-setmode oobe' >/dev/null 2>&1 || die "could not set the next boot to OOBE"
-  say "  next boot mode set to OOBE (no reboot was triggered)"
+  if [ "$REBOOT" -eq 1 ]; then say "  next boot mode set to OOBE (Jibo restarts once the remaining steps succeed)"
+  else say "  next boot mode set to OOBE (no reboot was triggered)"; fi
 fi
 
 # 7d. Put / back the way it was found.
@@ -1218,9 +1222,15 @@ if [ "$OOBE" -eq 1 ]; then
   rsh 'test "$(jibo-getmode 2>/dev/null)" = oobe && test ! -s /var/jibo/credentials.json' \
     || die "OOBE state changed unexpectedly; do not continue to QR setup yet"
   say "  OOBE mode and absent credentials verified. No account claim was made."
-  say "  Reboot when ready, then use this site's QR setup flow to create and link"
-  say "  a fresh robot account. OOBE automatically requests the published OTA after"
-  say "  receiving credentials; wait for the update and BE installation to finish."
+  if [ "$REBOOT" -eq 1 ]; then
+    say "  Jibo is restarting now. When he shows his setup screen, use this site's QR"
+    say "  setup flow to create and link a fresh robot account."
+  else
+    say "  Reboot when ready, then use this site's QR setup flow to create and link"
+    say "  a fresh robot account."
+  fi
+  say "  OOBE automatically requests the published OTA after receiving credentials;"
+  say "  wait for the update and BE installation to finish."
 else
   if [ "$START_OTA" -eq 1 ]; then
     say "  saved boot mode preserved until the OTA downloads verify"
@@ -1252,6 +1262,13 @@ fi
 say ""
 if [ "$OOBE" -eq 1 ]; then
   say "  Restore endpoint configs only with: $SELF_CMD --robot $ROBOT --oobe --revert"
+  # Last, so every step above has succeeded (any failure has already exited).
+  # The already-set-up path needs no reboot here: its OTA reboots the robot.
+  # Scheduled in the background so this SSH session ends cleanly first.
+  if [ "$REBOOT" -eq 1 ]; then
+    rsh 'nohup sh -c "sleep 2; sync; reboot" >/dev/null 2>&1 </dev/null &' >/dev/null 2>&1 \
+      || say "  WARNING: could not restart Jibo; restart him yourself to reach the setup screen."
+  fi
 else
   say "  Restore endpoint configs only with: $SELF_CMD --robot $ROBOT --revert"
 fi

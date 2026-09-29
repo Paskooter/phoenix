@@ -2351,7 +2351,7 @@ async function renderClaim() {
       h('h4', { class: 'setting-group-title' }, 'What happens next'),
       h('ul', { class: 'outcome-list' },
         h('li', {}, h('strong', {}, 'Jibo was set up before: '), 'he is linked to your account and updates by himself.'),
-        h('li', {}, h('strong', {}, 'Jibo is new or reset: '), 'he is prepared for setup. Restart him and ',
+        h('li', {}, h('strong', {}, 'Jibo is new or reset: '), 'he restarts into his setup screen. Then ',
           h('a', { class: 'link', href: '#/add/new' }, 'scan a setup QR code'), '; he updates once setup finishes.')),
       h('p', { class: 'field-hint' }, 'Either way, his calibration and identity are kept. When it finishes, check ',
         h('a', { class: 'link', href: '#/robot' }, 'Robots'), '.'));

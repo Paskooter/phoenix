@@ -247,7 +247,8 @@ bash ./robot-ota-repoint.sh --robot root@<robot-ip> --auto --claim-code <portal-
 
 With credentials present, including on an OOBE screen, it adopts/claims them
 and starts the native OTA. With credentials absent, it ignores the claim code,
-creates no server record, and leaves the next boot in OOBE. Reboot and perform
+creates no server record, sets the next boot to OOBE and, after a fully
+successful run, reboots the robot into setup (`--no-reboot` skips that). Then perform
 QR setup; the stock OOBE flow automatically starts OTA after receiving new
 credentials. Its update manager cannot fetch updates before QR pairing because
 it requires `/var/jibo/credentials.json`.

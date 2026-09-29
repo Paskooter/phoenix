@@ -235,7 +235,8 @@ delete the credentials to force QR setup.
 
 If credentials are absent, the helper does **not** consume the claim code or
 create a server robot record. It reads the OOBE skill's `serverRegion`, repoints
-the robot, and selects OOBE for the next boot. Reboot after verification; create
+the robot, selects OOBE for the next boot and, once every step has verified,
+reboots it into the setup screen (`--no-reboot` leaves that to you); create
 a QR code in **Robots → Add a Jibo → New, unpaired Jibo: QR setup**. The stock
 update manager refuses to list updates before credentials exist, so an OTA
 **cannot** safely run before QR setup. After QR provisioning issues credentials,
