@@ -33,9 +33,24 @@ var SUFFIX_ANCHORS = [
   'this._jiboServerUrl = data.region + ".jibo.com";',
   'this._jiboServerUrl = this._wifiService.options.region + ".jibo.com";'
 ];
-// The file ships with CRLF line endings on at least the RTM3 image; match either.
-function requestAnchor(eol) {
-  return ['            host: this._jiboServerUrl,', "            path: '/'", '        };'].join(eol);
+// RTM3 through jibo-ssm 11 indent this request by 12 spaces; the published
+// jibo-ssm 12/13 builds indent it by 16. Both still use the same HTTPS check.
+// The file ships with CRLF on at least RTM3, so preserve its line endings too.
+function requestAnchor(eol, indent) {
+  var inner = new Array(indent + 1).join(' ');
+  var outer = new Array(indent - 3).join(' ');
+  return [inner + 'host: this._jiboServerUrl,', inner + "path: '/'", outer + '};'].join(eol);
+}
+
+function findRequestAnchor(source, eol) {
+  var matches = [12, 16].map(function(indent) {
+    return { indent: indent, text: requestAnchor(eol, indent) };
+  }).filter(function(candidate) {
+    return source.indexOf(candidate.text) >= 0;
+  });
+  if (matches.length !== 1) throw new Error('request anchor was not found exactly once');
+  exactlyOnce(source, matches[0].text, 'request anchor');
+  return matches[0];
 }
 var LATER_FIRMWARE = "this._jiboServerUrl = 'google.com';";
 
@@ -58,19 +73,21 @@ function patchSource(source, suffix, caPath) {
   if (!/^[a-z0-9][a-z0-9.-]*[a-z0-9]$/.test(suffix)) throw new Error('invalid server suffix: ' + suffix);
   SUFFIX_ANCHORS.forEach(function(anchor, index) { exactlyOnce(source, anchor, 'server url anchor ' + (index + 1)); });
   var eol = source.indexOf('\r\n') >= 0 ? '\r\n' : '\n';
-  exactlyOnce(source, requestAnchor(eol), 'request anchor');
+  var request = findRequestAnchor(source, eol);
+  var inner = new Array(request.indent + 1).join(' ');
+  var outer = new Array(request.indent - 3).join(' ');
   var output = source;
   SUFFIX_ANCHORS.forEach(function(anchor) {
     output = output.replace(anchor, anchor.replace('".jibo.com"', '".' + suffix + '"'));
   });
-  return output.replace(requestAnchor(eol), [
-    '            host: this._jiboServerUrl,',
-    "            path: '/',",
-    '            // ' + MARKER + ': Node 4 has no root for this server; use the robot\'s maintained bundle,',
-    '            // split into certificates because Node 4 reads only the first one of a PEM bundle.',
-    "            ca: require('fs').readFileSync(process.env.JIBO_EXTRA_CA_CERTS || '" + caPath + "', 'utf8')",
-    "                .match(/-----BEGIN CERTIFICATE-----[\\s\\S]+?-----END CERTIFICATE-----/g)",
-    '        };'
+  return output.replace(request.text, [
+    inner + 'host: this._jiboServerUrl,',
+    inner + "path: '/',",
+    inner + '// ' + MARKER + ': Node 4 has no root for this server; use the robot\'s maintained bundle,',
+    inner + '// split into certificates because Node 4 reads only the first one of a PEM bundle.',
+    inner + "ca: require('fs').readFileSync(process.env.JIBO_EXTRA_CA_CERTS || '" + caPath + "', 'utf8')",
+    inner + "    .match(/-----BEGIN CERTIFICATE-----[\\s\\S]+?-----END CERTIFICATE-----/g)",
+    outer + '};'
   ].join(eol));
 }
 

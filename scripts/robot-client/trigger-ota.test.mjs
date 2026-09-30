@@ -58,6 +58,8 @@ test('native OTA plans, downloads, and applies four subsystems without BE or OOB
   let rejectDownload = false;
   let rejectGet = false;
   let hangGet = false;
+  let busyGetCount = 0;
+  let managerError = null;
   let queriedSubsystems = ['os', 'services', 'oobe-config', '@be/be'];
   const server = createServer((req, res) => {
     let body = '';
@@ -67,6 +69,11 @@ test('native OTA plans, downloads, and applies four subsystems without BE or OOB
       res.setHeader('content-type', 'application/json');
       if (req.method === 'GET' && req.url === '/update/fcs') {
         if (hangGet) return; // model a helper killed while discovery is in flight
+        if (busyGetCount > 0) {
+          busyGetCount -= 1;
+          return res.end(JSON.stringify({ error: 'Service temporarily unavailable' }));
+        }
+        if (managerError) return res.end(JSON.stringify({ error: managerError }));
         // Simulate UpdateManager.checkForUpdates invoking the real absolute
         // jibo-get-update entrypoint for all four published subsystems.
         for (const subsystem of queriedSubsystems) {
@@ -149,6 +156,35 @@ test('native OTA plans, downloads, and applies four subsystems without BE or OOB
     assert.match(missingQuery.stderr, /did not query @be\/be through the full-refresh override/);
     assert.equal(readFileSync(queryPath, 'utf8'), originalQuery);
     queriedSubsystems = ['os', 'services', 'oobe-config', '@be/be'];
+
+    queriedSubsystems = [];
+    const noQueries = await run(['--plan', 'fcs'], env);
+    assert.notEqual(noQueries.code, 0);
+    assert.match(noQueries.stderr, /did not query os through the full-refresh override \(queries observed: none; updates offered: 4\)/);
+    assert.equal(readFileSync(queryPath, 'utf8'), originalQuery);
+    queriedSubsystems = ['os', 'services', 'oobe-config', '@be/be'];
+
+    managerError = 'query failed before os';
+    const managerFailure = await run(['--plan', 'fcs'], env);
+    assert.notEqual(managerFailure.code, 0);
+    assert.match(managerFailure.stderr, /update discovery failed: query failed before os/);
+    assert.doesNotMatch(managerFailure.stderr, /did not query os/);
+    assert.equal(readFileSync(queryPath, 'utf8'), originalQuery);
+    managerError = null;
+
+    busyGetCount = 1;
+    const busyThenReady = await run(['--plan', 'fcs'], env);
+    assert.equal(busyThenReady.code, 0, busyThenReady.stderr);
+    assert.equal(busyGetCount, 0);
+    assert.equal(readFileSync(queryPath, 'utf8'), originalQuery);
+
+    busyGetCount = 3;
+    const stillBusy = await run(['--plan', 'fcs'], env);
+    assert.notEqual(stillBusy.code, 0);
+    assert.match(stillBusy.stderr, /update discovery failed: Service temporarily unavailable/);
+    assert.equal(busyGetCount, 0);
+    assert.equal(readFileSync(queryPath, 'utf8'), originalQuery);
+    assert.equal(existsSync(queryStatePath), false);
 
     rejectGet = true;
     const failedGet = await run(['--plan', 'fcs'], env);

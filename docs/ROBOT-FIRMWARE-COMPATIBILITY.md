@@ -90,8 +90,16 @@ Probed from the ext4 images of each archived flash build with
 | Notification socket suffix | 8.x+ | never changed; only the jibo.io services OTA fixed it | rewritten, with a backup |
 | `/usr/local` read-write by default | 3.x–5.x | left read-only until reboot | restored to how it was found |
 | Any unreviewed patch target | future/unknown | discovered mid-apply | both patchers run in `--dry-run` as a compatibility check before any change |
-| Wi-Fi check names the old cloud | 3.x | setup stopped at "Can't connect to Jibo's server" (error 4) before asking for credentials | `patch-ssm-wifi-check.cjs` points it at this server and gives it the CA bundle; firmware that checks google.com is left alone |
+| Wi-Fi check names the old cloud | RTM3 and some later `jibo-ssm` builds | setup stopped at "Can't connect to Jibo's server" (error 4) before asking for credentials | `patch-ssm-wifi-check.cjs` points it at this server and gives it the CA bundle; the published `jibo-ssm` 12/13 request indentation is also recognized, while unknown layouts and firmware that checks google.com remain untouched |
 | Node 4 reads only the first certificate of a PEM bundle | 3.x | the OTA downloader (and the Wi-Fi check) could not verify this server even with the root installed | both split the bundle into certificates; robots with the earlier downloader patch are upgraded from the saved original |
+
+If native OTA planning stops after the repoint has already claimed a robot, do not
+reuse a spent claim code. The robot-side helper now reports the system-manager's
+own error before reporting a missing query, and names the subsystem queries it
+observed. A brief `Service temporarily unavailable` response is retried twice;
+other failures stop before any OTA install. Save that exact message and the
+robot's system-manager log for diagnosis. Once corrected, an already claimed
+robot can retry with `--ota-only --yes` without repeating adoption.
 
 ## Found on the first factory robot (Aero, RTM3 3.3.4, 2026-09-29)
 

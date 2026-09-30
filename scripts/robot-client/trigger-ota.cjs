@@ -246,18 +246,49 @@ function ensureIdle() {
   if (fs.existsSync(workStatePath)) throw new Error('an OTA work state already exists; do not start another update');
 }
 
+function requestDiscovery(filter, busyRetries) {
+  return request('GET', '/update/' + filter, null, null, 60000).then(function(data) {
+    // UpdateManager's timed mutex can briefly reject a concurrent check before
+    // it calls jibo-get-update at all. Retry only this explicit transient result,
+    // while the query override is still active; all other errors remain fatal.
+    if (data && data.error === 'Service temporarily unavailable' && busyRetries < 2) {
+      return new Promise(function(resolve) { setTimeout(resolve, 500 * (busyRetries + 1)); })
+        .then(function() { return requestDiscovery(filter, busyRetries + 1); });
+    }
+    return data;
+  });
+}
+
 function discoverFullRefresh(filter) {
   // UpdateManager.getUpdates() checks the cloud in-line on every GET. Keep the
   // replacement executable installed ONLY for that GET; its cached offers are
   // enough for the subsequent native download and install calls.
   installQueryOverride();
-  return request('GET', '/update/' + filter, null, null, 60000).then(function(data) {
+  return requestDiscovery(filter, 0).then(function(data) {
     var seen;
-    try { seen = fs.readFileSync(queryAuditPath, 'utf8').trim().split('\n'); }
+    try {
+      var audit = fs.readFileSync(queryAuditPath, 'utf8').trim();
+      seen = audit ? audit.split('\n') : [];
+    }
     finally { restoreQueryOverride(); }
+    // Stock UpdateHandler returns HTTP 200 even for a manager error. It can
+    // return before querying *any* subsystem (no credentials, busy manager) or
+    // after an earlier query fails. Report that cause, not a misleading "os
+    // was not queried" error. Never proceed without the full audited query set.
+    if (data && data.error) {
+      throw new Error('update discovery failed: ' +
+        (typeof data.error === 'string' ? data.error.slice(0, 200) : 'unspecified system-manager error'));
+    }
+    if (!data || !Array.isArray(data.updates)) {
+      throw new Error('system-manager did not return an update list (queries observed: ' +
+        (seen.length ? seen.join(', ') : 'none') + ')');
+    }
     ORDER.forEach(function(name) {
       if (seen.indexOf(name) === -1) {
-        throw new Error('system-manager did not query ' + name + ' through the full-refresh override');
+        throw new Error('system-manager did not query ' + name +
+          ' through the full-refresh override (queries observed: ' +
+          (seen.length ? seen.join(', ') : 'none') + '; updates offered: ' + data.updates.length +
+          '). Check the robot system-manager log; use --ota-only --dry-run for a read-only catalog preview.');
       }
     });
     return data;
@@ -282,8 +313,6 @@ function plan(filter) {
   ensureIdle();
   if (!/^[a-z0-9-]{1,30}$/.test(filter)) return Promise.reject(new Error('invalid OTA filter'));
   return discoverFullRefresh(filter).then(function(data) {
-    if (!data || !Array.isArray(data.updates)) throw new Error('system-manager did not return an update list');
-    if (data.error) throw new Error('update discovery failed: ' + data.error);
     var bySubsystem = {};
     data.updates.forEach(function(update) {
       if (!update || ORDER.indexOf(update.subsystem) === -1) {
