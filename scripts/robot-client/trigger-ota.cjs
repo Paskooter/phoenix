@@ -374,15 +374,42 @@ function printPlan(result) {
   console.log('PHOENIX_OTA_PLAN_HASH=' + result.hash);
 }
 
+function queryFailure(result, subsystem) {
+  // The stock get-update client prints {"error": ...} on stdout and exits 1.
+  // execFileSync discards that useful response in its generic child-process
+  // stack. Only expose selected diagnostic fields, never the full response or
+  // the credentials file, which may contain secret key material.
+  var error = null;
+  try { error = JSON.parse(result.stdout).error; } catch (ignored) { /* not JSON */ }
+  var details = [];
+  if (typeof error === 'string') details.push(error);
+  else if (error && typeof error === 'object') {
+    ['type', 'code', 'message'].forEach(function(key) {
+      if (typeof error[key] === 'string') details.push(error[key]);
+    });
+    if (error.data && typeof error.data.message === 'string') details.push(error.data.message);
+  }
+  if (!details.length && result.stderr) details.push(result.stderr.split('\n')[0]);
+  var detail = details.join(': ').replace(/[\r\n]+/g, ' ').slice(0, 300);
+  return new Error('stock OTA lookup for ' + subsystem + ' failed'
+    + (result.status === null ? '' : ' (exit ' + result.status + ')')
+    + (detail ? ': ' + detail : '; no diagnostic from stock client'));
+}
+
 function preview(filter) {
   ensureIdle();
   if (!/^[a-z0-9-]{1,30}$/.test(filter)) throw new Error('invalid OTA filter');
   console.log('Read-only full-refresh preview (no installed robot files changed):');
   ORDER.forEach(function(subsystem) {
-    var output = childProcess.execFileSync(queryPath, ['--credentials', credentialsPath,
+    var result = childProcess.spawnSync(queryPath, ['--credentials', credentialsPath,
       '--subsystem', subsystem, '--version', QUERY_VERSION, '--filter', filter],
-    { encoding: 'utf8', timeout: 60000 });
-    var update = JSON.parse(output);
+    { encoding: 'utf8', timeout: 60000, maxBuffer: 65536 });
+    if (result.error) throw new Error('stock OTA lookup for ' + subsystem
+      + ' could not run: ' + result.error.message);
+    if (result.status !== 0) throw queryFailure(result, subsystem);
+    var update;
+    try { update = JSON.parse(result.stdout); }
+    catch (error) { throw new Error('stock OTA lookup for ' + subsystem + ' returned invalid JSON'); }
     if (!update || update.subsystem !== subsystem
       || typeof update.toVersion !== 'string'
       || !/^[0-9]+\.[0-9]+\.[0-9]+$/.test(update.toVersion)

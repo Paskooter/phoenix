@@ -328,3 +328,31 @@ console.log(JSON.stringify({subsystem:s,toVersion:'13.0.7',length:1048576}));
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('read-only preview reports the stock client error without dumping credentials', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'phx-native-ota-preview-error-'));
+  const queryPath = join(dir, 'jibo-get-update');
+  const credentialsPath = join(dir, 'credentials.json');
+  const stockQuery = `#!/usr/bin/env node
+console.log(JSON.stringify({error:{type:'ERROR',data:{message:'Signature does not match'},
+  secretAccessKey:'must-not-be-printed'}}));
+process.exit(1);
+`;
+  writeFileSync(credentialsPath, '{"secretAccessKey":"also-must-not-be-printed"}');
+  writeFileSync(queryPath, stockQuery);
+  chmodSync(queryPath, 0o755);
+  try {
+    const result = await run(['--preview', 'fcs'], {
+      PHOENIX_ROBOT_OTA_QUERY_PATH: queryPath,
+      PHOENIX_ROBOT_OTA_CREDENTIALS_PATH: credentialsPath,
+      PHOENIX_ROBOT_OTA_STATE_PATH: join(dir, 'ota-work.json'),
+    });
+    assert.equal(result.code, 1);
+    assert.match(result.stderr, /stock OTA lookup for os failed \(exit 1\): ERROR: Signature does not match/);
+    assert.doesNotMatch(result.stderr, /must-not-be-printed/);
+    assert.doesNotMatch(result.stderr, /child_process\.js/);
+    assert.equal(readFileSync(queryPath, 'utf8'), stockQuery);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
