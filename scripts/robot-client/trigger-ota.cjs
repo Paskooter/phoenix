@@ -53,12 +53,21 @@ function isQueryWrapper(file) {
   catch (e) { if (e.code === 'ENOENT') return false; throw e; }
 }
 
+function rootMountIsReadOnly(mountInfo) {
+  // /proc/mounts on Jibo starts with the synthetic, writable "rootfs /"
+  // entry even when the real ext4 /dev/root mount is read-only. mountinfo
+  // identifies the actual mounted filesystem and its per-mount options.
+  var options = null;
+  mountInfo.split('\n').forEach(function(line) {
+    var fields = line.split(' - ')[0].split(' ');
+    if (fields[4] === '/') options = fields[5];
+  });
+  if (!options) throw new Error('could not determine root mount mode');
+  return options.split(',').indexOf('ro') !== -1;
+}
+
 function rootIsReadOnly() {
-  var root = fs.readFileSync('/proc/mounts', 'utf8').split('\n').filter(function(line) {
-    return line.split(' ')[1] === '/';
-  })[0];
-  if (!root) throw new Error('could not determine root mount mode');
-  return root.split(' ')[3].split(',').indexOf('ro') !== -1;
+  return rootMountIsReadOnly(fs.readFileSync('/proc/self/mountinfo', 'utf8'));
 }
 
 function withWritableQueryPath(fn) {
@@ -440,7 +449,11 @@ function main() {
   });
 }
 
-main().catch(function(error) {
-  console.error('OTA not confirmed: ' + error.message);
-  process.exitCode = 1;
-});
+if (require.main === module) {
+  main().catch(function(error) {
+    console.error('OTA not confirmed: ' + error.message);
+    process.exitCode = 1;
+  });
+} else {
+  module.exports = { rootMountIsReadOnly: rootMountIsReadOnly };
+}

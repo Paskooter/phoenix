@@ -391,6 +391,10 @@ original executable is restored before downloading, and installed version
 files are never falsified. Thus it accepts the server's latest
 OS/services/OOBE/BE packages even when another cloud used higher or identical
 version numbers. If any of the four is not offered, it stops before download.
+The query helper checks `/proc/self/mountinfo` for the real root mount: on
+stock 13.0.0, `/proc/mounts` also lists a synthetic writable `rootfs /` even
+while the ext4 root is read-only. It remounts the real root read-write only for
+the temporary query swap and restores its original read-only mode afterward.
 It checks known subsystem names, metadata and dependencies rather than pinning
 package versions, and refuses a pending OTA work state. For a
 paired robot, the helper sets the saved mode to `normal` only after all OTA

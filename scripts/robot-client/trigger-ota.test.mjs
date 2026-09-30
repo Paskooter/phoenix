@@ -6,9 +6,20 @@ import { mkdtempSync, writeFileSync, readFileSync, chmodSync, rmSync, existsSync
   symlinkSync, readlinkSync, lstatSync, renameSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
 const helper = fileURLToPath(new URL('./trigger-ota.cjs', import.meta.url));
+const require = createRequire(import.meta.url);
+
+test('root mount check ignores synthetic writable rootfs and tracks the real ext4 mount', () => {
+  const { rootMountIsReadOnly } = require(helper);
+  const prefix = '1 0 0:1 / / rw,relatime - rootfs rootfs rw\n';
+  assert.equal(rootMountIsReadOnly(prefix + '12 1 179:1 / / ro,relatime - ext4 /dev/root ro\n'), true);
+  assert.equal(rootMountIsReadOnly(prefix + '12 1 179:1 / / rw,relatime - ext4 /dev/root rw\n'), false);
+  assert.throws(() => rootMountIsReadOnly('13 12 0:5 / /dev rw - devtmpfs devtmpfs rw\n'),
+    /could not determine root mount mode/);
+});
 const updates = [
   { id: 'be-13.0.2-jibo-io-fcs', subsystem: '@be/be', toVersion: '13.0.2', length: 400, dependencies: { os: '13.0.7', services: '13.0.7' } },
   { id: 'os-13.0.7-fcs', subsystem: 'os', toVersion: '13.0.7', length: 100, dependencies: {} },
