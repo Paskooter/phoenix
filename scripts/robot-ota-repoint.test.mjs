@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdtempSync, writeFileSync, chmodSync, rmSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -45,6 +45,45 @@ test('notification apply remounts /usr/local after the hub step restored it read
   const restore = notificationStep.indexOf('restore_local_ro');
   assert.ok(remount >= 0 && remount < apply, 'remount before writing the notification config');
   assert.ok(restore > apply, 'restore the original read-only state after writing');
+});
+
+test('the approved repoint starts OTA without a second prompt; standalone OTA still asks', () => {
+  const source = readFileSync(script, 'utf8');
+  const otaFunction = source.match(/^run_native_ota\(\) \{[\s\S]*?^\}/m)?.[0];
+  assert.ok(otaFunction, 'native OTA function exists');
+  assert.match(source, /Apply this to %s, then install the native OTA updates and reboot\?/);
+  const run = (otaOnly, assumeYes) => spawnSync('bash', ['-c', `${otaFunction}
+
+ensure_ota_trigger() { :; }
+rput() { :; }
+say() { printf '%s\\n' "$*"; }
+die() { printf '%s\\n' "$*" >&2; exit 2; }
+rsh() {
+  case "$1" in
+    'mktemp /tmp/phoenix-trigger-ota.XXXXXX') echo /tmp/phoenix-trigger-ota.abc123 ;;
+    *'--plan fcs') printf 'PHOENIX_OTA_PLAN_HASH=%s\\nPHOENIX_OTA_UPDATE_COUNT=1\\n' '${'a'.repeat(64)}' ;;
+    *'--apply '*) echo OTA_APPLIED ;;
+    *'rm -f '*) : ;;
+    *) printf 'unexpected OTA probe: %s\\n' "$1" >&2; return 75 ;;
+  esac
+}
+ROBOT=root@test; OTA_TRIGGER=/dev/null; DRY=0; OTA_ONLY=${otaOnly}; ASSUME_YES=${assumeYes}
+run_native_ota
+`], { encoding: 'utf8', timeout: 5000 });
+
+  const claimed = run(0, 0);
+  assert.equal(claimed.status, 0, claimed.stderr);
+  assert.match(claimed.stdout, /OTA_APPLIED/);
+  assert.doesNotMatch(claimed.stdout, /Download and install these native OTA updates/);
+
+  const standalone = run(1, 0);
+  assert.equal(standalone.status, 0, standalone.stderr);
+  assert.match(standalone.stdout, /Download and install these native OTA updates/);
+  assert.doesNotMatch(standalone.stdout, /OTA_APPLIED/);
+
+  const explicit = run(1, 1);
+  assert.equal(explicit.status, 0, explicit.stderr);
+  assert.match(explicit.stdout, /OTA_APPLIED/);
 });
 
 function preview({ credentials, mode, claim = false, shape = 'ok', region = 'stg-entrypoint', auth = 'key', robot = 'root@192.0.2.15',

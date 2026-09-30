@@ -422,7 +422,9 @@ run_native_ota() {
     say "  dry run: no OTA download or installation started"
     return 0
   fi
-  if [ "$ASSUME_YES" -ne 1 ]; then
+  # The full repoint already showed an OTA/reboot step and received approval at
+  # the Apply prompt. Only standalone --ota-only needs its own confirmation.
+  if [ "$OTA_ONLY" -eq 1 ] && [ "$ASSUME_YES" -ne 1 ]; then
     printf 'Download and install these native OTA updates on %s (robot will reboot)? [y/N] ' "$ROBOT"
     read -r reply </dev/tty || reply=n
     case "$reply" in y|Y|yes|YES) ;; *) rsh "rm -f '$remote'" >/dev/null 2>&1 || true; say "OTA aborted; nothing downloaded"; return 0 ;; esac
@@ -820,7 +822,12 @@ if [ "$DRY" -eq 1 ]; then
 fi
 if [ "$ASSUME_YES" -ne 1 ]; then
   say ""
-  printf 'Apply this to %s? [y/N] ' "$ROBOT"; read -r reply </dev/tty || reply=n
+  if [ "$START_OTA" -eq 1 ]; then
+    printf 'Apply this to %s, then install the native OTA updates and reboot? [y/N] ' "$ROBOT"
+  else
+    printf 'Apply this to %s? [y/N] ' "$ROBOT"
+  fi
+  read -r reply </dev/tty || reply=n
   case "$reply" in y|Y|yes|YES) ;; *) say "aborted; nothing changed."; exit 0 ;; esac
 fi
 

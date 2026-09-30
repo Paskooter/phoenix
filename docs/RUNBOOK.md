@@ -318,7 +318,10 @@ The portal creates the code when the page opens; opening it again replaces the
 account's previous code. `/repoint` serves the same file as
 `/robot-ota-repoint.sh`. With no `--robot`, the helper asks for the robot's
 address on the terminal; a claim code alone implies `--auto`, and without
-`--yes` it shows its plan and waits for confirmation.
+`--yes` it shows its plan and waits for one confirmation. On the credentialed
+claim path, that approval also starts the planned native OTA and reboot after
+the claim succeeds; there is no second OTA prompt. Standalone `--ota-only`
+still asks before downloading unless `--yes` is supplied.
 
 On a previously repointed robot, check the dry-run's credential endpoint and
 client rows before confirming. For a custom old-cloud region not served by this
