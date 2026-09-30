@@ -42,6 +42,7 @@
 #                        [--claim-code <portal-code>] [--start-ota]
 #                        [--dry-run] [--yes] [--verify] [--revert]
 #   robot-ota-repoint.sh --robot root@<ip> --ota-only [--dry-run] [--yes]
+#   robot-ota-repoint.sh --robot root@<ip> --ota-plan
 #   robot-ota-repoint.sh --robot root@<ip> --oobe --yes [--no-reboot]
 #   robot-ota-repoint.sh --robot root@<ip> --auto [--claim-code <portal-code>] --yes
 #   robot-ota-repoint.sh --robot root@<ip> --full --phoenix https://... --yes
@@ -58,7 +59,7 @@ set -uo pipefail
 
 ROBOT=""; REGION=""; REGION_CA=""; DRY=0; ASSUME_YES=0; VERIFY=0; REVERT=0
 PUBLIC_SUFFIX="jibo.io"
-FULL=0; FULL_ARGS=(); CLAIM_CODE=""; OOBE=0; OTA_ONLY=0; START_OTA=0; AUTO=0; REBOOT=1
+FULL=0; FULL_ARGS=(); CLAIM_CODE=""; OOBE=0; OTA_ONLY=0; OTA_PLAN_ONLY=0; START_OTA=0; AUTO=0; REBOOT=1
 
 # The robot's own trust store. `bundle` is what OpenSSL reads; the individual PEM
 # plus the subject-hash symlink are how a cert is normally installed alongside it.
@@ -87,6 +88,7 @@ while [ $# -gt 0 ]; do
     --oobe)      OOBE=1; shift ;;
     --auto)      AUTO=1; shift ;;
     --ota-only)  OTA_ONLY=1; shift ;;
+    --ota-plan)  OTA_PLAN_ONLY=1; shift ;;
     --start-ota) START_OTA=1; shift ;;
     --dry-run)   DRY=1; shift ;;
     --yes)       ASSUME_YES=1; shift ;;
@@ -232,7 +234,7 @@ die()  { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 
 # ── Advanced path: hand off to the full repoint, unchanged ───────────────────
 if [ "$FULL" -eq 1 ]; then
-  [ "$OTA_ONLY" -eq 0 ] && [ "$START_OTA" -eq 0 ] && [ "$AUTO" -eq 0 ] || die "OTA/auto flags cannot be combined with --full"
+  [ "$OTA_ONLY" -eq 0 ] && [ "$OTA_PLAN_ONLY" -eq 0 ] && [ "$START_OTA" -eq 0 ] && [ "$AUTO" -eq 0 ] || die "OTA/auto flags cannot be combined with --full"
   SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
   FULL_SCRIPT="${SELF_DIR}/parity-robot/repoint-robot.sh"
   [ -x "$FULL_SCRIPT" ] || die "full repoint script not found: $FULL_SCRIPT"
@@ -242,7 +244,7 @@ fi
 
 # The console's command carries a claim code and nothing else: that is the
 # credential-detecting path it has always asked for.
-if [ -n "$CLAIM_CODE" ] && [ "$AUTO" -eq 0 ] && [ "$OOBE" -eq 0 ] && [ "$OTA_ONLY" -eq 0 ] \
+if [ -n "$CLAIM_CODE" ] && [ "$AUTO" -eq 0 ] && [ "$OOBE" -eq 0 ] && [ "$OTA_ONLY" -eq 0 ] && [ "$OTA_PLAN_ONLY" -eq 0 ] \
     && [ "$START_OTA" -eq 0 ] && [ "$REVERT" -eq 0 ]; then
   AUTO=1
 fi
@@ -253,10 +255,13 @@ if [ -z "$ROBOT" ] && { : </dev/tty; } 2>/dev/null; then
   ROBOT="$(printf '%s' "$ROBOT" | tr -d '[:space:]')"
 fi
 [ -n "$ROBOT" ] || die "--robot root@<ip> is required (or --full for the complete repoint)"
-[ "$AUTO" -eq 0 ] || { [ "$OOBE" -eq 0 ] && [ "$OTA_ONLY" -eq 0 ] && [ "$START_OTA" -eq 0 ] && [ "$REVERT" -eq 0 ]; } \
-  || die "--auto selects the credential path itself; do not combine it with --oobe, --ota-only, --start-ota, or --revert"
+[ "$AUTO" -eq 0 ] || { [ "$OOBE" -eq 0 ] && [ "$OTA_ONLY" -eq 0 ] && [ "$OTA_PLAN_ONLY" -eq 0 ] && [ "$START_OTA" -eq 0 ] && [ "$REVERT" -eq 0 ]; } \
+  || die "--auto selects the credential path itself; do not combine it with --oobe, --ota-only, --ota-plan, --start-ota, or --revert"
 [ "$OTA_ONLY" -eq 0 ] || { [ "$START_OTA" -eq 0 ] && [ "$OOBE" -eq 0 ] && [ "$REVERT" -eq 0 ] \
   && [ -z "$CLAIM_CODE" ]; } || die "--ota-only cannot be combined with repoint, OOBE, revert, or claim flags"
+[ "$OTA_PLAN_ONLY" -eq 0 ] || { [ "$OTA_ONLY" -eq 0 ] && [ "$START_OTA" -eq 0 ] && [ "$AUTO" -eq 0 ] \
+  && [ "$OOBE" -eq 0 ] && [ "$REVERT" -eq 0 ] && [ "$DRY" -eq 0 ] && [ -z "$CLAIM_CODE" ]; } \
+  || die "--ota-plan is a non-installing native OTA diagnostic; do not combine it with repoint, --dry-run, or a claim code"
 [ "$START_OTA" -eq 0 ] || { [ "$OOBE" -eq 0 ] && [ "$REVERT" -eq 0 ]; } \
   || die "--start-ota requires an already-paired robot and cannot be combined with --revert"
 if [ "$OOBE" -eq 1 ] && [ -n "$CLAIM_CODE" ]; then
@@ -422,13 +427,18 @@ run_native_ota() {
     return 0
   fi
   plan_output="$(rsh "node '$remote' --plan fcs" 2>&1 | tr -d '\r')" \
-    || die "could not plan the native OTA: $plan_output"
+    || { rsh "rm -f '$remote'" >/dev/null 2>&1 || true; die "could not plan the native OTA: $plan_output"; }
   printf '%s\n' "$plan_output"
   plan_hash="$(printf '%s\n' "$plan_output" | sed -n 's/^PHOENIX_OTA_PLAN_HASH=\([a-f0-9]*\)$/\1/p')"
   [[ "$plan_hash" =~ ^[a-f0-9]{64}$ ]] || die "OTA helper returned no valid plan hash"
   count="$(printf '%s\n' "$plan_output" | sed -n 's/^PHOENIX_OTA_UPDATE_COUNT=\([0-9]*\)$/\1/p')"
   [ "$count" = 4 ] || die "full-refresh OTA must include all four published subsystems"
   OTA_UPDATE_COUNT="$count"
+  if [ "$OTA_PLAN_ONLY" -eq 1 ]; then
+    rsh "rm -f '$remote'" >/dev/null 2>&1 || true
+    say "  plan only: no OTA packages downloaded or installed, no boot-mode change or reboot"
+    return 0
+  fi
   # The full repoint already showed an OTA/reboot step and received approval at
   # the Apply prompt. Only standalone --ota-only needs its own confirmation.
   if [ "$OTA_ONLY" -eq 1 ] && [ "$ASSUME_YES" -ne 1 ]; then
@@ -533,7 +543,7 @@ HUB_HOST="${HUB_PREFIX}-hub.${PUBLIC_SUFFIX}"
 say "  will call : ${REST_URL}"
 say "  socket    : ${SOCKET_URL}"
 
-if [ "$OTA_ONLY" -eq 1 ]; then
+if [ "$OTA_ONLY" -eq 1 ] || [ "$OTA_PLAN_ONLY" -eq 1 ]; then
   step "Native OTA (BE is not required)"
   run_native_ota
   exit 0

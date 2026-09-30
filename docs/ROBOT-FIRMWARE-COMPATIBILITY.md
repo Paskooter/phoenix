@@ -99,7 +99,10 @@ own error before reporting a missing query, and names the subsystem queries it
 observed. A brief `Service temporarily unavailable` response is retried twice;
 other failures stop before any OTA install. Save that exact message and the
 robot's system-manager log for diagnosis. Once corrected, an already claimed
-robot can retry with `--ota-only --yes` without repeating adoption.
+robot can retry with `--ota-only --yes` without repeating adoption. For a
+non-installing diagnostic, `--ota-plan` exercises that native manager query
+path and restores the temporary query override; `--ota-only --dry-run` checks
+the cloud catalog directly without changing robot files.
 
 ## Found on the first factory robot (Aero, RTM3 3.3.4, 2026-09-29)
 

@@ -380,12 +380,17 @@ maintenance through the BE-independent native system-manager:
 
 ```bash
 bash ./robot-ota-repoint.sh --robot root@<robot-ip> --ota-only --dry-run
+bash ./robot-ota-repoint.sh --robot root@<robot-ip> --ota-plan
 bash ./robot-ota-repoint.sh --robot root@<robot-ip> --ota-only --yes
 ```
 
-This previews the `fcs` catalog read-only, then pins the exact full-refresh
+The first command queries the `fcs` catalog directly without changing robot
+files. `--ota-plan` asks the native system-manager for an audited full-refresh
+plan without downloading, installing, changing boot mode, or rebooting; it
+temporarily wraps and restores `/usr/bin/jibo-get-update`, so use it to diagnose
+manager-specific query failures. The final command pins the exact full-refresh
 plan, asks the robot to download and checksum all four packages, and starts
-the normal rebooting installer. During each planning check the helper briefly
+the normal rebooting installer. During each native planning check the helper briefly
 wraps `/usr/bin/jibo-get-update` so only its cloud queries use `0.0.1`; the
 original executable is restored before downloading, and installed version
 files are never falsified. Thus it accepts the server's latest

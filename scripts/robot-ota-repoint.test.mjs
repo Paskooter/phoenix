@@ -67,7 +67,7 @@ rsh() {
     *) printf 'unexpected OTA probe: %s\\n' "$1" >&2; return 75 ;;
   esac
 }
-ROBOT=root@test; OTA_TRIGGER=/dev/null; DRY=0; OTA_ONLY=${otaOnly}; ASSUME_YES=${assumeYes}
+ROBOT=root@test; OTA_TRIGGER=/dev/null; DRY=0; OTA_ONLY=${otaOnly}; OTA_PLAN_ONLY=0; ASSUME_YES=${assumeYes}
 run_native_ota
 `], { encoding: 'utf8', timeout: 5000 });
 
@@ -104,12 +104,48 @@ rsh() {
     *) return 75 ;;
   esac
 }
-ROBOT=root@test; OTA_TRIGGER=/dev/null; DRY=1; OTA_ONLY=1; ASSUME_YES=1
+ROBOT=root@test; OTA_TRIGGER=/dev/null; DRY=1; OTA_ONLY=1; OTA_PLAN_ONLY=0; ASSUME_YES=1
 run_native_ota
 `], { encoding: 'utf8', timeout: 5000 });
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /PREVIEWED/);
   assert.match(result.stdout, /no firmware or configuration files changed/);
+});
+
+test('native OTA plan mode audits the manager but never downloads or installs', () => {
+  const source = readFileSync(script, 'utf8');
+  const otaFunction = source.match(/^run_native_ota\(\) \{[\s\S]*?^\}/m)?.[0];
+  assert.ok(otaFunction);
+  const result = spawnSync('bash', ['-c', `${otaFunction}
+ensure_ota_trigger() { :; }
+rput() { :; }
+say() { printf '%s\\n' "$*"; }
+die() { printf '%s\\n' "$*" >&2; exit 2; }
+rsh() {
+  case "$1" in
+    'mktemp /tmp/phoenix-trigger-ota.XXXXXX') echo /tmp/phoenix-trigger-ota.abc123 ;;
+    *'--plan fcs') printf 'PHOENIX_OTA_PLAN_HASH=%s\\nPHOENIX_OTA_UPDATE_COUNT=4\\n' '${'a'.repeat(64)}' ;;
+    *'--apply '*|*'--preview fcs') echo 'OTA must not run' >&2; return 75 ;;
+    *'rm -f '*) : ;;
+    *) return 75 ;;
+  esac
+}
+ROBOT=root@test; OTA_TRIGGER=/dev/null; DRY=0; OTA_ONLY=0; OTA_PLAN_ONLY=1; ASSUME_YES=0
+run_native_ota
+`], { encoding: 'utf8', timeout: 5000 });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /plan only: no OTA packages downloaded or installed/);
+  assert.doesNotMatch(result.stdout, /Download and install these native OTA updates/);
+});
+
+test('OTA plan mode rejects repoint and dry-run flags before connecting to a robot', () => {
+  for (const conflicting of [['--dry-run'], ['--claim-code', claimCode], ['--auto']]) {
+    const result = spawnSync('bash', [script, '--robot', 'root@192.0.2.15', '--ota-plan', ...conflicting],
+      { encoding: 'utf8', timeout: 5000 });
+    assert.equal(result.status, 1, result.stderr);
+    assert.match(result.stderr, /--ota-plan/);
+    assert.doesNotMatch(result.stdout, /== Robot/);
+  }
 });
 
 function preview({ credentials, mode, claim = false, shape = 'ok', region = 'stg-entrypoint', auth = 'key', robot = 'root@192.0.2.15',
