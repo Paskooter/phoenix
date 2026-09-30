@@ -61,7 +61,7 @@ die() { printf '%s\\n' "$*" >&2; exit 2; }
 rsh() {
   case "$1" in
     'mktemp /tmp/phoenix-trigger-ota.XXXXXX') echo /tmp/phoenix-trigger-ota.abc123 ;;
-    *'--plan fcs') printf 'PHOENIX_OTA_PLAN_HASH=%s\\nPHOENIX_OTA_UPDATE_COUNT=1\\n' '${'a'.repeat(64)}' ;;
+    *'--plan fcs') printf 'PHOENIX_OTA_PLAN_HASH=%s\\nPHOENIX_OTA_UPDATE_COUNT=4\\n' '${'a'.repeat(64)}' ;;
     *'--apply '*) echo OTA_APPLIED ;;
     *'rm -f '*) : ;;
     *) printf 'unexpected OTA probe: %s\\n' "$1" >&2; return 75 ;;
@@ -84,6 +84,32 @@ run_native_ota
   const explicit = run(1, 1);
   assert.equal(explicit.status, 0, explicit.stderr);
   assert.match(explicit.stdout, /OTA_APPLIED/);
+});
+
+test('standalone OTA dry run previews packages without starting the native installer', () => {
+  const source = readFileSync(script, 'utf8');
+  const otaFunction = source.match(/^run_native_ota\(\) \{[\s\S]*?^\}/m)?.[0];
+  assert.ok(otaFunction);
+  const result = spawnSync('bash', ['-c', `${otaFunction}
+ensure_ota_trigger() { :; }
+rput() { :; }
+say() { printf '%s\\n' "$*"; }
+die() { printf '%s\\n' "$*" >&2; exit 2; }
+rsh() {
+  case "$1" in
+    'mktemp /tmp/phoenix-trigger-ota.XXXXXX') echo /tmp/phoenix-trigger-ota.abc123 ;;
+    *'--preview fcs') echo PREVIEWED ;;
+    *'--plan fcs'|*'--apply '*) echo 'OTA must not run' >&2; return 75 ;;
+    *'rm -f '*) : ;;
+    *) return 75 ;;
+  esac
+}
+ROBOT=root@test; OTA_TRIGGER=/dev/null; DRY=1; OTA_ONLY=1; ASSUME_YES=1
+run_native_ota
+`], { encoding: 'utf8', timeout: 5000 });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /PREVIEWED/);
+  assert.match(result.stdout, /no firmware or configuration files changed/);
 });
 
 function preview({ credentials, mode, claim = false, shape = 'ok', region = 'stg-entrypoint', auth = 'key', robot = 'root@192.0.2.15',
@@ -197,7 +223,7 @@ test('OOBE screen with preserved credentials selects adoption and native OTA', (
   const out = preview({ credentials: true, mode: 'oobe', claim: true });
   assert.match(out, /credentials present; adopt\/claim and start native OTA/);
   assert.match(out, /prove possession with the robot's existing credentials/);
-  assert.match(out, /ask the native system-manager to download and install/);
+  assert.match(out, /temporarily report 0\.0\.1 only to OTA discovery, then download and install/);
   assert.doesNotMatch(out, /QR setup will create and link it later/);
 });
 
@@ -285,7 +311,8 @@ test('a new or reset robot is restarted into setup at the end; a set-up one is l
   assert.doesNotMatch(optedOut, /reboot the robot into its setup screen/);
   const paired = preview({ credentials: true, mode: 'normal', claim: true });
   assert.doesNotMatch(paired, /reboot the robot into its setup screen/);
-  assert.match(paired, /10\. ask the native system-manager to download and install the published OTA set \(reboots\)/);
+  assert.match(paired, /10\. temporarily report 0\.0\.1 only to OTA discovery, then download and install/);
+  assert.match(paired, /all four current OS, services, OOBE and BE packages \(reboots\)/);
 });
 
 test('the setup screens are pointed at the server, and an unreviewed skill does not stop the repoint', () => {

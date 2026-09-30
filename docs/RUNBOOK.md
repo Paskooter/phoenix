@@ -242,9 +242,14 @@ bash ./robot-ota-repoint.sh --robot root@<robot-ip> --auto --claim-code <portal-
 
 If credentials are present, even while showing OOBE, the helper preserves and
 adopts them, consumes the claim code to link the robot to the signed-in account,
-and starts the native OTA. It installs BE if absent and switches the next boot
-to normal only when BE is present or the OTA downloads are verified. Do not
-delete the credentials to force QR setup.
+and starts a full native OTA refresh. It requires the server to offer OS,
+services, OOBE and BE, even if another cloud installed equal or higher version
+numbers; all four packages are downloaded and checksum-verified before the
+installer reboots. The helper temporarily asks the OTA catalog as version
+`0.0.1` for those four subsystems, then restores the stock query executable
+before downloading. It does not change the installed version reporters or skill
+manifests. It switches the next boot to normal only after all downloads verify.
+Do not delete the credentials to force QR setup.
 
 If credentials are absent, the helper does **not** consume the claim code or
 create a server robot record. It reads the OOBE skill's `serverRegion`, repoints
@@ -346,9 +351,18 @@ read-only mount state after the failure.
 
 The current jibo.io catalog offers four subsystems: `os` 13.0.7,
 `services` 13.0.7, `oobe-config` 9.0.2, and `@be/be` 13.0.2. The OTA helper
-uses the latest applicable versions offered by the server catalog; it does not
-pin these numbers. It rejects unknown subsystems, malformed metadata, and
-incompatible dependencies, and rechecks the plan immediately before download.
+uses the latest compatible versions offered by the server catalog; it does not
+pin these numbers. For a credentialed SSH repoint or `--ota-only`, it requires
+all four offers, including for a robot already carrying higher version numbers.
+This deliberately reinstalls the OS into the inactive A/B slot and may take
+longer than an ordinary incremental update. Do not interrupt its install
+reboots. The credential-free QR/OOBE path is separate: it cannot query OTA
+until setup creates credentials, and the stock 13.0.0 baseline naturally
+receives all four current packages after that. The helper rejects unknown
+subsystems, malformed metadata, and incompatible dependencies, and rechecks
+the plan immediately before download. A failed discovery restores the original
+query executable; if the host was killed mid-query, its five-minute lease
+expires and a rerun recovers the original before another OTA attempt.
 Keep every offered package's exact-version dependencies aligned when publishing
 a newer OS/services pair: for example, OOBE 9.0.2 must require 13.0.7, not
 the superseded 13.0.6. Otherwise system-manager discovers packages but refuses

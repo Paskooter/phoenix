@@ -383,16 +383,28 @@ bash ./robot-ota-repoint.sh --robot root@<robot-ip> --ota-only --dry-run
 bash ./robot-ota-repoint.sh --robot root@<robot-ip> --ota-only --yes
 ```
 
-This previews the `fcs` catalog, pins that exact plan, then asks the robot to
-download and checksum the packages and start the normal rebooting installer.
-It accepts the latest applicable OS/services/OOBE/BE versions offered by the
-server, checking known subsystem names, metadata and dependencies rather than
-pinning version numbers. It refuses a pending OTA work state. For a
+This previews the `fcs` catalog read-only, then pins the exact full-refresh
+plan, asks the robot to download and checksum all four packages, and starts
+the normal rebooting installer. During each planning check the helper briefly
+wraps `/usr/bin/jibo-get-update` so only its cloud queries use `0.0.1`; the
+original executable is restored before downloading, and installed version
+files are never falsified. Thus it accepts the server's latest
+OS/services/OOBE/BE packages even when another cloud used higher or identical
+version numbers. If any of the four is not offered, it stops before download.
+It checks known subsystem names, metadata and dependencies rather than pinning
+package versions, and refuses a pending OTA work state. For a
 paired robot, the helper sets the saved mode to `normal` only after all OTA
 downloads pass checksum verification and immediately before asking the native
 installer to reboot. If BE is already installed, an ordinary repoint also
 sets the next-boot mode to `normal`; the unprovisioned `--oobe` path remains
 in OOBE mode. A clear installer rejection restores the prior mode.
+If interrupted during discovery, a short lease prevents a permanent false
+version report; rerunning after the original process exits restores the stock
+query executable before trying again. A full refresh intentionally reinstalls
+the OS and services even if their reported versions already match, so allow
+enough time and storage for the whole set. It does not delete third-party
+skills or reset `/var`; review those separately if a clean-room migration is
+required.
 
 The separate household-snapshot importer is an operator migration tool, not a
 step in ordinary customer claims: it can carry legacy member/profile data and

@@ -2995,7 +2995,7 @@ async function renderClaim() {
       renewRow,
       h('h4', { class: 'setting-group-title' }, 'What happens next'),
       h('ul', { class: 'outcome-list' },
-        h('li', {}, h('strong', {}, 'Jibo was set up before: '), 'he is linked to your account and updates by himself.'),
+        h('li', {}, h('strong', {}, 'Jibo was set up before: '), 'he is linked to your account, then downloads the latest OS, services, setup skill, and BE skill from this server. The full installation includes several restarts and can take a while.'),
         h('li', {}, h('strong', {}, 'Jibo is new or reset: '), 'he restarts into his setup screen. Then ',
           h('a', { class: 'link', href: '#/add/new' }, 'scan a setup QR code'), '; he updates once setup finishes.')),
       h('p', { class: 'field-hint' }, 'Either way, his calibration and identity are kept. When it finishes, check ',

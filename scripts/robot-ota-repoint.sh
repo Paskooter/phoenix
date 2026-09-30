@@ -12,6 +12,10 @@
 #   2. the publicly-trusted root (ISRG Root X1), CA-verifying Node clients,
 #      native downloader/backup TLS path, notification and Jetstream routes are
 #      prepared for *.jibo.io. Existing robot identity is preserved.
+#   3. on the paired/claimed OTA path, refresh all four published subsystems
+#      (OS, services, OOBE, BE) through the stock system-manager, regardless of
+#      the versions installed by another cloud. Only the OTA query briefly sees
+#      0.0.1; installed-version files and the compiled manager are untouched.
 #
 # Deliberately NOT done:
 #   * no /etc/hosts intercept
@@ -130,7 +134,7 @@ OTA_TLS_PATCHER_SHA256="51b71ff2e02569f203998b7d82c6e3f2743030a48bbc3abc149a66c6
 SSM_WIFI_PATCHER_SHA256="01e806871ed64736e4717856aed1be49c4898723d8bb253d68cab860c9f64947"
 SETUP_TEXT_PATCHER_SHA256="edcc2971b932a41da80f9af286a74ce41cc213ccc90af429bfdf7e2a2c8989a1"
 CONFIG_PATCHER_SHA256="dd1842f47a91afda7b675c8adff3770a4732fcade6f1c78acfe7d16db41b013c"
-OTA_TRIGGER_SHA256="8454e5e68b8386e065463b3fab1123db99c3b8700ef400b9631a17eae44a76ff"
+OTA_TRIGGER_SHA256="a2814b784c7027da26ae062b9f15c1b010839f48aada5a3f38264b8280269a45"
 
 cleanup_support() {
   if [ -n "$CONFIG_PATCHER_REMOTE" ] && declare -F rsh >/dev/null 2>&1; then
@@ -409,19 +413,22 @@ run_native_ota() {
   remote="$(rsh 'mktemp /tmp/phoenix-trigger-ota.XXXXXX' 2>/dev/null | tr -d '\r')"
   [[ "$remote" =~ ^/tmp/phoenix-trigger-ota\.[A-Za-z0-9]+$ ]] || die "could not allocate a safe remote OTA helper path"
   rput "$OTA_TRIGGER" "$remote" || die "could not upload the OTA helper"
+  if [ "$DRY" -eq 1 ]; then
+    plan_output="$(rsh "node '$remote' --preview fcs" 2>&1 | tr -d '\r')" \
+      || die "could not preview the full native OTA: $plan_output"
+    printf '%s\n' "$plan_output"
+    rsh "rm -f '$remote'" >/dev/null 2>&1 || true
+    say "  dry run: no firmware or configuration files changed; no OTA download or installation started"
+    return 0
+  fi
   plan_output="$(rsh "node '$remote' --plan fcs" 2>&1 | tr -d '\r')" \
     || die "could not plan the native OTA: $plan_output"
   printf '%s\n' "$plan_output"
   plan_hash="$(printf '%s\n' "$plan_output" | sed -n 's/^PHOENIX_OTA_PLAN_HASH=\([a-f0-9]*\)$/\1/p')"
   [[ "$plan_hash" =~ ^[a-f0-9]{64}$ ]] || die "OTA helper returned no valid plan hash"
   count="$(printf '%s\n' "$plan_output" | sed -n 's/^PHOENIX_OTA_UPDATE_COUNT=\([0-9]*\)$/\1/p')"
-  [[ "$count" =~ ^[0-4]$ ]] || die "OTA helper returned an invalid update count"
+  [ "$count" = 4 ] || die "full-refresh OTA must include all four published subsystems"
   OTA_UPDATE_COUNT="$count"
-  if [ "$DRY" -eq 1 ]; then
-    rsh "rm -f '$remote'" >/dev/null 2>&1 || true
-    say "  dry run: no OTA download or installation started"
-    return 0
-  fi
   # The full repoint already showed an OTA/reboot step and received approval at
   # the Apply prompt. Only standalone --ota-only needs its own confirmation.
   if [ "$OTA_ONLY" -eq 1 ] && [ "$ASSUME_YES" -ne 1 ]; then
@@ -529,10 +536,6 @@ say "  socket    : ${SOCKET_URL}"
 if [ "$OTA_ONLY" -eq 1 ]; then
   step "Native OTA (BE is not required)"
   run_native_ota
-  if [ "$DRY" -eq 0 ] && [ "${OTA_UPDATE_COUNT:-1}" -eq 0 ]; then
-    set_paired_mode_normal_if_ready
-    say "  No OTA reboot is pending; reboot when ready to start BE in normal mode."
-  fi
   exit 0
 fi
 
@@ -715,7 +718,8 @@ else
 fi
 say "  9. write a receipt to ${RECEIPT}"
 if [ "$START_OTA" -eq 1 ]; then
-  say "  10. ask the native system-manager to download and install the published OTA set (reboots)"
+  say "  10. temporarily report 0.0.1 only to OTA discovery, then download and install"
+  say "      all four current OS, services, OOBE and BE packages (reboots)"
 elif [ "$OOBE" -eq 1 ] && [ "$REBOOT" -eq 1 ]; then
   say "  10. reboot the robot into its setup screen once everything above has succeeded"
 fi
@@ -728,6 +732,9 @@ else
   if [ "$AUTO" -eq 1 ] && [ -z "$CLAIM_CODE" ]; then
     say "  Without a claim code, OTA and boot-mode changes are deferred so SSH stays available."
   elif [ "$START_OTA" -eq 1 ]; then
+    say "  A full OTA refresh replaces all four published subsystems, even at the same version."
+    say "  The OTA query override is removed before installation; the actual installed"
+    say "  versions stay truthful until their packages are replaced."
     say "  The saved next-boot mode changes only after OTA downloads verify."
   else
     say "  If BE is installed, the saved next-boot mode becomes normal."
@@ -1325,11 +1332,6 @@ else
   if [ "$START_OTA" -eq 1 ]; then
     step "Native OTA (BE is not required)"
     run_native_ota
-    if [ "${OTA_UPDATE_COUNT:-1}" -eq 0 ]; then
-      set_paired_mode_normal_if_ready
-      say "  No OTA was offered. If Jibo is still on its setup screen, reboot it"
-      say "  when ready so the already-installed BE starts in normal mode."
-    fi
   else
     if [ "$AUTO" -eq 1 ] && [ -z "$CLAIM_CODE" ]; then
       say "  Account ownership was not changed. If not yet linked, sign in and rerun"

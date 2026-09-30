@@ -1,8 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { createServer } from 'node:http';
-import { mkdtempSync, writeFileSync, readFileSync, chmodSync, rmSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, readFileSync, chmodSync, rmSync, existsSync,
+  symlinkSync, readlinkSync, lstatSync, renameSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -30,21 +31,47 @@ test('native OTA plans, downloads, and applies four subsystems without BE or OOB
   const creds = join(dir, 'credentials.json');
   const modePath = join(dir, 'mode.json');
   const setModeBin = join(dir, 'jibo-setmode');
+  const queryPath = join(dir, 'jibo-get-update');
+  const queryStatePath = join(dir, 'ota-query-override.json');
+  const originalQuery = '#!/usr/bin/env node\nconsole.log(JSON.stringify({args:process.argv.slice(2)}));\n';
   writeFileSync(creds, '{}');
   writeFileSync(modePath, JSON.stringify({ mode: 'int-developer' }));
   writeFileSync(setModeBin, '#!/bin/sh\nprintf \'{"mode":"%s"}\' "$1" > "$PHOENIX_ROBOT_OTA_MODE_PATH"\n');
   chmodSync(setModeBin, 0o755);
+  writeFileSync(queryPath, originalQuery);
+  chmodSync(queryPath, 0o755);
   const calls = [];
+  const queries = [];
   let offered = updates;
   let rejectPost = false;
   let rejectDownload = false;
+  let rejectGet = false;
+  let hangGet = false;
+  let queriedSubsystems = ['os', 'services', 'oobe-config', '@be/be'];
   const server = createServer((req, res) => {
     let body = '';
     req.on('data', (chunk) => { body += chunk; });
     req.on('end', () => {
       calls.push({ method: req.method, path: req.url, body: body ? JSON.parse(body) : null });
       res.setHeader('content-type', 'application/json');
-      if (req.method === 'GET' && req.url === '/update/fcs') return res.end(JSON.stringify({ updates: offered }));
+      if (req.method === 'GET' && req.url === '/update/fcs') {
+        if (hangGet) return; // model a helper killed while discovery is in flight
+        // Simulate UpdateManager.checkForUpdates invoking the real absolute
+        // jibo-get-update entrypoint for all four published subsystems.
+        for (const subsystem of queriedSubsystems) {
+          const query = spawnSync(queryPath, ['--credentials', creds, '--subsystem', subsystem,
+            '--version', '13.0.5', '--filter', 'fcs'], { encoding: 'utf8', env: {
+              ...process.env, PHOENIX_ROBOT_OTA_QUERY_PATH: queryPath,
+              PHOENIX_ROBOT_OTA_QUERY_STATE_PATH: queryStatePath,
+              PHOENIX_ROBOT_OTA_CREDENTIALS_PATH: creds,
+            } });
+          assert.equal(query.status, 0, query.stderr);
+          const args = JSON.parse(query.stdout).args;
+          queries.push({ subsystem, version: args[args.indexOf('--version') + 1] });
+        }
+        if (rejectGet) { res.statusCode = 503; return res.end('{}'); }
+        return res.end(JSON.stringify({ updates: offered }));
+      }
       if (req.method === 'PUT' && req.url === '/update/') {
         if (rejectDownload) {
           res.write(JSON.stringify({ id: updates[0].id, status: 'failed', reason: 'checksum mismatch' }) + '\n');
@@ -69,6 +96,8 @@ test('native OTA plans, downloads, and applies four subsystems without BE or OOB
     PHOENIX_ROBOT_OTA_BE_PATH: join(dir, 'missing-be'),
     PHOENIX_ROBOT_OTA_MODE_PATH: modePath,
     PHOENIX_ROBOT_OTA_SETMODE_BIN: setModeBin,
+    PHOENIX_ROBOT_OTA_QUERY_PATH: queryPath,
+    PHOENIX_ROBOT_OTA_QUERY_STATE_PATH: queryStatePath,
   };
   try {
     const plan = await run(['--plan', 'fcs'], env);
@@ -77,12 +106,19 @@ test('native OTA plans, downloads, and applies four subsystems without BE or OOB
     assert.ok(hash);
     assert.match(plan.stdout, /@be\/be -> 13\.0\.2/);
     assert.deepEqual(calls.map(({ method }) => method), ['GET']);
+    assert.deepEqual(queries.map((q) => q.version), Array(4).fill('0.0.1'));
+    assert.equal(readFileSync(queryPath, 'utf8'), originalQuery);
+    assert.equal(existsSync(queryPath + '.phoenix-ota-original'), false);
+    assert.equal(existsSync(queryStatePath), false);
 
     const apply = await run(['--apply', hash, 'fcs'], env);
     assert.equal(apply.code, 0, apply.stderr);
     assert.match(apply.stdout, /Native OTA accepted/);
     assert.equal(JSON.parse(readFileSync(modePath, 'utf8')).mode, 'normal');
     assert.deepEqual(calls.slice(1).map(({ method }) => method), ['GET', 'PUT', 'POST']);
+    assert.deepEqual(queries.map((q) => q.version), Array(8).fill('0.0.1'));
+    assert.equal(readFileSync(queryPath, 'utf8'), originalQuery,
+      'stock query executable is restored before the native install POST');
     assert.deepEqual(calls.at(-1).body.ids, [
       'os-13.0.7-fcs', 'services-13.0.7-fcs',
       'oobe-config-9.0.1-jibo-io-fcs', 'be-13.0.2-jibo-io-fcs',
@@ -91,8 +127,25 @@ test('native OTA plans, downloads, and applies four subsystems without BE or OOB
     offered = updates.filter((u) => u.subsystem !== '@be/be');
     const missingBe = await run(['--plan', 'fcs'], env);
     assert.notEqual(missingBe.code, 0);
-    assert.match(missingBe.stderr, /BE is absent but the server offered no BE update/);
+    assert.match(missingBe.stderr, /full refresh requires a published @be\/be OTA/);
+    assert.equal(readFileSync(queryPath, 'utf8'), originalQuery);
     assert.deepEqual(calls.at(-1).method, 'GET');
+
+    queriedSubsystems = ['os', 'services', 'oobe-config'];
+    offered = updates;
+    const missingQuery = await run(['--plan', 'fcs'], env);
+    assert.notEqual(missingQuery.code, 0);
+    assert.match(missingQuery.stderr, /did not query @be\/be through the full-refresh override/);
+    assert.equal(readFileSync(queryPath, 'utf8'), originalQuery);
+    queriedSubsystems = ['os', 'services', 'oobe-config', '@be/be'];
+
+    rejectGet = true;
+    const failedGet = await run(['--plan', 'fcs'], env);
+    assert.notEqual(failedGet.code, 0);
+    assert.match(failedGet.stderr, /system-manager HTTP 503/);
+    assert.equal(readFileSync(queryPath, 'utf8'), originalQuery);
+    assert.equal(existsSync(queryStatePath), false);
+    rejectGet = false;
 
     offered = updates;
     rejectPost = true;
@@ -152,8 +205,79 @@ test('native OTA plans, downloads, and applies four subsystems without BE or OOB
     const malformedBe = await run(['--plan', 'fcs'], env);
     assert.notEqual(malformedBe.code, 0);
     assert.match(malformedBe.stderr, /invalid OTA version/);
+
+    // Stock firmware often provides /usr/bin/jibo-get-update as a symlink to
+    // the npm-installed script; restoring must preserve that link exactly.
+    const stockTarget = join(dir, 'stock-get-update');
+    renameSync(queryPath, stockTarget);
+    symlinkSync(stockTarget, queryPath);
+    offered = updates;
+    const symlinkPlan = await run(['--plan', 'fcs'], env);
+    assert.equal(symlinkPlan.code, 0, symlinkPlan.stderr);
+    assert.equal(lstatSync(queryPath).isSymbolicLink(), true);
+    assert.equal(readlinkSync(queryPath), stockTarget);
+    assert.equal(existsSync(queryPath + '.phoenix-ota-original'), false);
+
+    hangGet = true;
+    const interrupted = spawn(process.execPath, [helper, '--plan', 'fcs'], {
+      env: { ...process.env, ...env }, stdio: 'ignore',
+    });
+    for (let i = 0; i < 80 && !existsSync(queryPath + '.phoenix-ota-original'); i++) {
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    assert.equal(existsSync(queryPath + '.phoenix-ota-original'), true,
+      'the stock query entrypoint was backed up during discovery');
+    interrupted.kill('SIGKILL');
+    await new Promise((resolve) => interrupted.on('close', resolve));
+    assert.equal(existsSync(queryStatePath), true, 'a crash leaves a short-lived lease');
+    const afterCrashQuery = spawnSync(queryPath, ['--credentials', creds, '--subsystem', 'os',
+      '--version', '13.0.5'], { encoding: 'utf8', env: { ...process.env, ...env } });
+    assert.equal(afterCrashQuery.status, 0, afterCrashQuery.stderr);
+    const afterCrashArgs = JSON.parse(afterCrashQuery.stdout).args;
+    assert.equal(afterCrashArgs[afterCrashArgs.indexOf('--version') + 1], '13.0.5',
+      'the wrapper stops spoofing as soon as its owner process is gone');
+    hangGet = false;
+    const recovered = await run(['--plan', 'fcs'], env);
+    assert.equal(recovered.code, 0, recovered.stderr);
+    assert.equal(lstatSync(queryPath).isSymbolicLink(), true,
+      'the next run recovers and ultimately restores the original symlink');
+    assert.equal(readlinkSync(queryPath), stockTarget);
+    assert.equal(existsSync(queryPath + '.phoenix-ota-original'), false);
+    assert.equal(existsSync(queryStatePath), false);
   } finally {
     await new Promise((resolve) => server.close(resolve));
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('read-only preview asks for current packages from 0.0.1 without patching the robot', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'phx-native-ota-preview-'));
+  const queryPath = join(dir, 'jibo-get-update');
+  const statePath = join(dir, 'ota-query-override.json');
+  const credentialsPath = join(dir, 'credentials.json');
+  const stockQuery = `#!/usr/bin/env node
+var a=process.argv.slice(2), s=a[a.indexOf('--subsystem')+1], v=a[a.indexOf('--version')+1];
+if(v!=='0.0.1') process.exit(2);
+console.log(JSON.stringify({subsystem:s,toVersion:'13.0.7',length:1048576}));
+`;
+  writeFileSync(credentialsPath, '{}');
+  writeFileSync(queryPath, stockQuery);
+  chmodSync(queryPath, 0o755);
+  try {
+    const result = await run(['--preview', 'fcs'], {
+      PHOENIX_ROBOT_OTA_QUERY_PATH: queryPath,
+      PHOENIX_ROBOT_OTA_QUERY_STATE_PATH: statePath,
+      PHOENIX_ROBOT_OTA_CREDENTIALS_PATH: credentialsPath,
+      PHOENIX_ROBOT_OTA_STATE_PATH: join(dir, 'ota-work.json'),
+    });
+    assert.equal(result.code, 0, result.stderr);
+    for (const name of ['os', 'services', 'oobe-config', '@be/be']) {
+      assert.match(result.stdout, new RegExp(name.replace('/', '\\/') + ' -> 13\\.0\\.7'));
+    }
+    assert.equal(readFileSync(queryPath, 'utf8'), stockQuery);
+    assert.equal(existsSync(queryPath + '.phoenix-ota-original'), false);
+    assert.equal(existsSync(statePath), false);
+  } finally {
     rmSync(dir, { recursive: true, force: true });
   }
 });
