@@ -334,6 +334,12 @@ uses `https://jibo.io/api/adopt-robot`. A successful repoint is not a successful
 claim unless the helper reports that the robot was claimed for the signed-in
 account. If linking fails, generate a fresh portal code and rerun the helper;
 the robot-side patches are idempotent. Do not continue to OTA on a failed claim.
+If an older helper stops at `could not point the notification socket` because
+`/usr/local` was read-only, it has not yet attempted adoption or OTA. Download
+the current helper, generate a fresh portal code, and rerun it; do not
+manually reset the robot or delete its credentials to recover from a partial
+repoint. Check that both `/` and `/usr/local` returned to their original
+read-only mount state after the failure.
 
 The current jibo.io catalog offers four subsystems: `os` 13.0.7,
 `services` 13.0.7, `oobe-config` 9.0.2, and `@be/be` 13.0.2. The OTA helper

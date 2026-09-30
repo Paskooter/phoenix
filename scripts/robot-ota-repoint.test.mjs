@@ -36,6 +36,17 @@ test('the reviewed 5x1 TLS edit reverses to the actual stock 3.x client bytes', 
   assert.equal(sha(modified.replaceAll('rejectUnauthorized: false', 'rejectUnauthorized: true')), STOCK_V3);
 });
 
+test('notification apply remounts /usr/local after the hub step restored it read-only', () => {
+  const source = readFileSync(script, 'utf8');
+  const notificationStep = source.split('# 7c-quinquies.')[1]?.split('# 7c-sexies.')[0];
+  assert.ok(notificationStep, 'notification apply step exists');
+  const remount = notificationStep.indexOf("rsh 'mount -o remount,rw /usr/local'");
+  const apply = notificationStep.indexOf('cloud_config notification /usr/local/etc/jibo-server-service.json apply');
+  const restore = notificationStep.indexOf('restore_local_ro');
+  assert.ok(remount >= 0 && remount < apply, 'remount before writing the notification config');
+  assert.ok(restore > apply, 'restore the original read-only state after writing');
+});
+
 function preview({ credentials, mode, claim = false, shape = 'ok', region = 'stg-entrypoint', auth = 'key', robot = 'root@192.0.2.15',
   firmware = '13', handler, normalizedHandler, credentialOverride = false, preflight = 'ok', hostKey = 'known', auto = true, extra = [], setupText = 'patched' }) {
   const fw = FIRMWARE[firmware];

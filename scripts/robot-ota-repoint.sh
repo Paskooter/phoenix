@@ -1153,10 +1153,18 @@ printf '%s\n' "$out"
 
 # 7c-quinquies. The notification socket may have an old-cloud OR a third-party
 # suffix. On older firmware the key is absent and the client configs above win.
+# The hub step restores /usr/local to its original read-only state. Remount it
+# for this separate write too; otherwise a present notification config fails
+# here after the rest of the robot has already been repointed.
+if [ "$LOCAL_WAS_RO" -eq 1 ]; then
+  rsh 'mount -o remount,rw /usr/local' >/dev/null 2>&1 \
+    || die "could not remount /usr/local read-write for the notification socket"
+fi
 out="$(cloud_config notification /usr/local/etc/jibo-server-service.json apply)" \
   || die "could not point the notification socket at ${PUBLIC_SUFFIX}"
 say "  notification socket suffix: ${out}"
 [ "$out" = not-needed ] || APPLIED+=("/usr/local/etc/jibo-server-service.json notification socket")
+restore_local_ro
 
 # 7c-sexies. Credential-level endpoint overrides outrank region_config.json.
 # Keep the access/secret keys and every unrelated field unchanged; the helper
