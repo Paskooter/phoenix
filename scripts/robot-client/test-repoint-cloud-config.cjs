@@ -51,6 +51,40 @@ test('stock credentials stay stock-shaped with their original service-readable m
   });
 });
 
+test('a failed OpenJibo domain-only repoint is repaired with api routing and the same keys', function() {
+  fixture(function(dir) {
+    var file = path.join(dir, 'credentials.json');
+    var source = { accessKeyId: 'A'.repeat(20), secretAccessKey: 'S'.repeat(40),
+      region: 'open-jibo', endpoint: 'https://open-jibo.jibo.io', wsendpoint: 'wss://open-jibo-socket.jibo.io' };
+    fs.writeFileSync(file, JSON.stringify(source));
+    assert.equal(helper.apply(options('credentials', file, false)), 'patched');
+    var result = JSON.parse(fs.readFileSync(file, 'utf8'));
+    assert.equal(result.region, 'api');
+    assert.equal(result.endpoint, 'https://api.jibo.io');
+    assert.equal(result.wsendpoint, 'wss://api-socket.jibo.io');
+    assert.equal(result.accessKeyId, source.accessKeyId);
+    assert.equal(result.secretAccessKey, source.secretAccessKey);
+    assert.equal(helper.apply(options('credentials', file, true)), 'already-patched');
+  });
+});
+
+test('the setup skill migrates its custom region and preserves other settings', function() {
+  fixture(function(dir) {
+    var file = path.join(dir, 'config.json');
+    assert.equal(helper.apply(options('setup', file, true)), 'not-needed');
+    var source = { serverRegion: 'open-jibo', otaFilter: 'fcs', settings: { keep: true } };
+    fs.writeFileSync(file, JSON.stringify(source), { mode: 0o644 });
+    assert.equal(helper.apply(options('setup', file, true)), 'patched');
+    assert.deepEqual(JSON.parse(fs.readFileSync(file, 'utf8')), source);
+    assert.equal(helper.apply(options('setup', file, false)), 'patched');
+    assert.deepEqual(JSON.parse(fs.readFileSync(file, 'utf8')), { ...source, serverRegion: 'api' });
+    assert.deepEqual(JSON.parse(fs.readFileSync(file + '.prerepoint-20260929-120000.bak', 'utf8')), source);
+    assert.equal(helper.apply(options('setup', file, false)), 'already-patched');
+    assert.deepEqual(helper.normalizeSetup({ otaFilter: 'rtm2Jinx' }, 'api'), { otaFilter: 'rtm2Jinx' });
+    assert.throws(function() { helper.normalizeSetup({ serverRegion: {} }, 'api'); }, /invalid setup region/);
+  });
+});
+
 test('third-party service rules and patterns are normalized while local/internal routes survive', function() {
   fixture(function(dir) {
     var file = path.join(dir, 'region_config.json');

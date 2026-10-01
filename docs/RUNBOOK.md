@@ -204,7 +204,12 @@ The same command also handles a robot previously pointed at another cloud,
 including the [5x1 repoint](https://scripts.5x1.com/pm) pattern: it replaces
 an explicit endpoint in `/var/jibo/credentials.json`, third-party client
 endpoint rules, the notification socket suffix, and the Jetstream override. It
-preserves the robot's access keys, secret, and existing credential-file mode;
+maps an automatically detected third-party region such as `open-jibo` to `api`
+and aligns the OOBE skill's `serverRegion` with that destination. Standard
+Phoenix regions are retained; an explicit `--region` selects a custom destination.
+This prevents a domain-only migration from creating an uncertified hostname
+such as `open-jibo.jibo.io`.
+It preserves the robot's access keys, secret, and existing credential-file mode;
 backups of credential contents are private (`0600`) on the robot. If the prior
 script disabled TLS verification in an otherwise stock Node client, this helper
 recognizes that *exact* edit and replaces it with Phoenix's CA-verifying client.
@@ -328,10 +333,19 @@ claim path, that approval also starts the planned native OTA and reboot after
 the claim succeeds; there is no second OTA prompt. Standalone `--ota-only`
 still asks before downloading unless `--yes` is supplied.
 
-On a previously repointed robot, check the dry-run's credential endpoint and
-client rows before confirming. For a custom old-cloud region not served by this
-Phoenix instance, specify `--region api` (or the correct configured Phoenix
-region); do not assume that the old provider's region name exists on jibo.io.
+On a previously repointed robot, check the dry-run's region, credential endpoint
+and client rows before confirming. Unknown automatically detected regions
+migrate to `api`; use `--region` only when intentionally selecting a different
+configured Phoenix region. `--ota-only` and `--ota-plan` use the robot's existing
+routing. Passing `--region api` to either diagnostic does not rewrite that
+routing. If a preview reports a certificate hostname mismatch for
+`open-jibo.jibo.io`, rerun the full repoint with the current script. An already
+claimed robot can repair routing and start the OTA without another claim code:
+
+```bash
+bash <(curl -fsSL https://jibo.io/repoint) --robot root@<robot-ip> --start-ota --yes
+```
+
 `--revert` restores only saved client region configs. It deliberately does not
 roll back credentials, CA trust, TLS clients, hub routing, or new pairing
 identity: reverting those automatically could resurrect a stale endpoint or

@@ -506,7 +506,7 @@ function main() {
 }
 
 if (require.main === module) {
-  main().catch(function(error) {
+  Promise.resolve().then(main).catch(function(error) {
     console.error('OTA not confirmed: ' + error.message);
     process.exitCode = 1;
   });

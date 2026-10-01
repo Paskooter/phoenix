@@ -135,8 +135,8 @@ BACKUP_TLS_PATCHER_SHA256="0fee710b1dec524b8d4629deb19e8be9dc1013e161abed4180be3
 OTA_TLS_PATCHER_SHA256="51b71ff2e02569f203998b7d82c6e3f2743030a48bbc3abc149a66c6563061f1"
 SSM_WIFI_PATCHER_SHA256="4b87a96f5d78d9d411b6485e3318dd03d6dcc17bf0478a354ab9e976b5671dfc"
 SETUP_TEXT_PATCHER_SHA256="edcc2971b932a41da80f9af286a74ce41cc213ccc90af429bfdf7e2a2c8989a1"
-CONFIG_PATCHER_SHA256="dd1842f47a91afda7b675c8adff3770a4732fcade6f1c78acfe7d16db41b013c"
-OTA_TRIGGER_SHA256="d6d3eda172c907d4e779fcebaea9dc91c936dea50ff16d029e536e21e2a45feb"
+CONFIG_PATCHER_SHA256="311facda74bebacf80f4aa2e00cebb5150cde554a1fb6061b50fb4b775773809"
+OTA_TRIGGER_SHA256="de8275df41413af28c9b2a70ce052057c7f690a0f13ca0b8efe5740a25e414b9"
 
 cleanup_support() {
   if [ -n "$CONFIG_PATCHER_REMOTE" ] && declare -F rsh >/dev/null 2>&1; then
@@ -522,6 +522,24 @@ if [ -z "$REGION" ]; then
     # Do not echo the credential material sitting beside the region field.
     REGION="$(rsh 'sed -n "s/.*\"region\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\".*/\1/p" /var/jibo/credentials.json 2>/dev/null | head -1' 2>/dev/null | tr -d '\r')"
   fi
+  # A third-party cloud can replace the region itself, not just its domain.
+  # Carrying e.g. open-jibo forward creates open-jibo.jibo.io, which has no
+  # public certificate or Phoenix route. Use the production destination for
+  # unknown automatically detected regions. An explicit --region remains an
+  # operator choice for custom deployments. OTA-only diagnostics use the
+  # existing robot configuration and must not imply it has been repaired.
+  if [ "$OTA_ONLY" -eq 0 ] && [ "$OTA_PLAN_ONLY" -eq 0 ]; then
+    if [ -z "$REGION" ]; then
+      REGION="api"
+      REGION_NOTE=" (default: this firmware names no region)"
+    else
+      [[ "$REGION" =~ ^[a-z0-9][a-z0-9-]*$ ]] || die "invalid region name"
+      case "$REGION" in
+        api|stg-entrypoint|alpha-entrypoint|dev-entrypoint|preprod-entrypoint|neo-entrypoint) ;;
+        *) REGION_NOTE=" (migrated from ${REGION})"; REGION="api" ;;
+      esac
+    fi
+  fi
 fi
 [ -n "$REGION" ] || die "could not determine the robot's region; pass --region"
 [[ "$REGION" =~ ^[a-z0-9][a-z0-9-]*$ ]] || die "invalid region name"
@@ -790,6 +808,8 @@ if [ "$HAS_CREDS" -eq 1 ]; then
   out="$(cloud_config credentials /var/jibo/credentials.json dry-run)" || die "credential endpoint compatibility check failed"
   say "  robot credential endpoint (keys hidden): ${out}"
 fi
+out="$(cloud_config setup /opt/jibo/Jibo/Skills/oobe-config/config.json dry-run)" || die "setup region compatibility check failed"
+say "  setup region: ${out}"
 out="$(cloud_config notification /usr/local/etc/jibo-server-service.json dry-run)" || die "notification socket compatibility check failed"
 say "  notification socket suffix: ${out}"
 preflight_patcher() {
@@ -916,6 +936,10 @@ for p in "${PRESENT[@]}"; do
   rsh "chmod a+rX '$(dirname "$p")'" >/dev/null 2>&1 || true
   APPLIED+=("$p")
 done
+out="$(cloud_config setup /opt/jibo/Jibo/Skills/oobe-config/config.json apply)" \
+  || die "could not point the setup skill at the selected region"
+say "  setup region: ${out}"
+[ "$out" = not-needed ] || APPLIED+=("/opt/jibo/Jibo/Skills/oobe-config/config.json")
 
 # 7b. Install the CA-accepting client, with the deployment CA beside it.
 # The robot runs Node 6.9.2, which predates NODE_EXTRA_CA_CERTS (added in 7.3) and ignores
@@ -1296,6 +1320,8 @@ if [ "$HAS_CREDS" -eq 1 ]; then
   [ "$out" = already-patched ] || die "the robot still has a third-party credential endpoint"
   say "    Phoenix  /var/jibo/credentials.json routing (keys hidden)"
 fi
+out="$(cloud_config setup /opt/jibo/Jibo/Skills/oobe-config/config.json dry-run)" || die "could not verify setup region"
+[ "$out" = already-patched ] || [ "$out" = not-needed ] || die "the setup skill still uses another region"
 out="$(cloud_config notification /usr/local/etc/jibo-server-service.json dry-run)" || die "could not verify notification routing"
 [ "$out" = already-patched ] || [ "$out" = not-needed ] || die "the notification socket still targets another cloud"
 CLIENT_HASH_V3="$(sha256_of "$CLIENT_SOURCE")"

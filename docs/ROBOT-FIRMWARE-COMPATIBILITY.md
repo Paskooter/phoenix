@@ -104,6 +104,18 @@ non-installing diagnostic, `--ota-plan` exercises that native manager query
 path and restores the temporary query override; `--ota-only --dry-run` checks
 the cloud catalog directly without changing robot files.
 
+A prior OpenJibo migration may have changed the region to `open-jibo`. Keeping
+that name while swapping the domain produced `open-jibo.jibo.io`, which fails
+certificate hostname verification. The full repoint now maps an unknown
+automatically detected region to `api` and updates both credential routing and
+the OOBE skill's region. Explicit `--region` choices are retained for custom
+deployments. OTA-only diagnostics do not repair routing: an already claimed
+robot with this error should rerun the full helper with `--start-ota --yes`,
+without reusing its spent claim code.
+Regression coverage exercises paired and QR setup plans, unchanged keys, and
+idempotent config repair. The stock Node 6 Jibo Update client resolves
+`api.jibo.io` after this repair; the affected robot's OTA rerun is still pending.
+
 ## Found on the first factory robot (Aero, RTM3 3.3.4, 2026-09-29)
 
 The first setup of a repointed RTM3 robot failed with "Can't connect to Jibo's server", and no

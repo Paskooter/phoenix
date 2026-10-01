@@ -149,7 +149,7 @@ test('OTA plan mode rejects repoint and dry-run flags before connecting to a rob
 });
 
 function preview({ credentials, mode, claim = false, shape = 'ok', region = 'stg-entrypoint', auth = 'key', robot = 'root@192.0.2.15',
-  firmware = '13', handler, normalizedHandler, credentialOverride = false, preflight = 'ok', hostKey = 'known', auto = true, extra = [], setupText = 'patched' }) {
+  firmware = '13', handler, normalizedHandler, credentialOverride = false, preflight = 'ok', hostKey = 'known', auto = true, extra = [], setupText = 'patched', destinationRegion = '' }) {
   const fw = FIRMWARE[firmware];
   const dir = mkdtempSync(join(tmpdir(), 'phoenix-repoint-test-'));
   const ssh = join(dir, 'ssh');
@@ -187,6 +187,9 @@ if [ "$master" = 1 ]; then
 fi
 [ -S "$control" ] || { echo "command without an authenticated master: \${*: -1}" >&2; exit 255; }
 cmd="\${*: -1}"
+if [[ "$cmd" == "node '/tmp/phoenix-cloud-config.abc123' --kind "* ]] && [ -n "$PHOENIX_TEST_DESTINATION" ]; then
+  [[ "$cmd" == *"--region '$PHOENIX_TEST_DESTINATION'"* ]] || { echo 'wrong destination passed to config helper' >&2; exit 76; }
+fi
 case "$cmd" in
   true) exit 0 ;;
   hostname*) echo Aero-Root-Okra-Knit ;;
@@ -204,6 +207,7 @@ case "$cmd" in
   "node '/tmp/phoenix-cloud-config.abc123' --kind "*'credentials'*'--dry-run')
     if [ "$PHOENIX_TEST_CREDENTIAL_OVERRIDE" = yes ]; then echo patched; else echo already-patched; fi ;;
   "node '/tmp/phoenix-cloud-config.abc123' --kind "*'notification'*'--dry-run') echo not-needed ;;
+  "node '/tmp/phoenix-cloud-config.abc123' --kind "*'setup'*'--dry-run') echo patched ;;
   'mktemp /tmp/phoenix-preflight.XXXXXX') echo /tmp/phoenix-preflight.abc123 ;;
   "cat > '/tmp/phoenix-preflight.abc123'") cat > /dev/null ;;
   "node '/tmp/phoenix-preflight.abc123' --dry-run --suffix 'jibo.io'"*)
@@ -244,6 +248,7 @@ echo "ssh-keygen $*" >> "$PHOENIX_TEST_LOG"; rm -f "$PHOENIX_TEST_STALE_KEY"
       env: { ...process.env, PATH: `${dir}:${process.env.PATH}`,
         PHOENIX_TEST_CREDS: credentials ? 'yes' : 'no', PHOENIX_TEST_MODE: mode,
         PHOENIX_TEST_CREDS_SHAPE: shape, PHOENIX_TEST_REGION: region,
+        PHOENIX_TEST_DESTINATION: destinationRegion,
         PHOENIX_TEST_AUTH: auth, PHOENIX_TEST_LOG: join(dir, 'ssh.log'),
         PHOENIX_TEST_RELEASE: fw.release, PHOENIX_TEST_NODE: fw.node, PHOENIX_TEST_BACKUP: fw.backup, PHOENIX_TEST_JETSTREAM: fw.jetstream, PHOENIX_TEST_SSM: fw.ssm,
         PHOENIX_TEST_HANDLER: handler ?? fw.handler, PHOENIX_TEST_FOUND: fw.found.join(' '),
@@ -283,6 +288,34 @@ test('5x1 TLS-bypassed stock client and credential endpoint can be converted wit
   assert.match(out, /robot credential endpoint \(keys hidden\): patched/);
   assert.match(out, /including third-party endpoints and credential-level overrides \(keys preserved\)/);
   assert.match(out, /point the jetstream hub override at neo-hub\.jibo\.io:443/);
+});
+
+test('an OpenJibo region migrates to api on both credentialed and QR setup paths', () => {
+  for (const credentials of [true, false]) {
+    const out = preview({ credentials, mode: 'int-developer', claim: true,
+      region: 'open-jibo', destinationRegion: 'api', credentialOverride: credentials });
+    assert.match(out, /region\s+: api \(migrated from open-jibo\)/);
+    assert.match(out, /will call : https:\/\/api\.jibo\.io\//);
+    assert.match(out, /socket\s+: wss:\/\/api-socket\.jibo\.io\//);
+    assert.match(out, /setup region: patched/);
+    assert.doesNotMatch(out, /https:\/\/open-jibo\.jibo\.io|open-jibo-hub\.jibo\.io/);
+  }
+});
+
+test('an explicit region is retained for a custom deployment', () => {
+  const out = preview({ credentials: true, mode: 'int-developer', region: 'open-jibo',
+    extra: ['--region', 'custom-entrypoint', '--suffix', 'cloud.example.com'],
+    destinationRegion: 'custom-entrypoint' });
+  assert.match(out, /will call : https:\/\/custom-entrypoint\.cloud\.example\.com\//);
+  assert.doesNotMatch(out, /migrated from/);
+});
+
+test('an already claimed OpenJibo robot can repair routing and restart OTA without a claim code', () => {
+  const out = preview({ credentials: true, mode: 'int-developer', region: 'open-jibo',
+    destinationRegion: 'api', auto: false, extra: ['--start-ota', '--yes'] });
+  assert.match(out, /will call : https:\/\/api\.jibo\.io\//);
+  assert.match(out, /verify\/register the robot's existing credentials without changing account ownership/);
+  assert.match(out, /all four current OS, services, OOBE and BE packages/);
 });
 
 test('a modified client that is not exactly the reviewed stock TLS edit still stops', () => {

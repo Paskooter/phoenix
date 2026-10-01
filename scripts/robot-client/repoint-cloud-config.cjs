@@ -25,7 +25,7 @@ function parseArgs(argv) {
       out[arg.slice(2)] = argv[++i];
     } else throw new Error('unknown argument: ' + arg);
   }
-  if (['region-config', 'credentials', 'notification'].indexOf(out.kind) < 0) throw new Error('invalid --kind');
+  if (['region-config', 'credentials', 'notification', 'setup'].indexOf(out.kind) < 0) throw new Error('invalid --kind');
   if (!out.file || !path.isAbsolute(out.file)) throw new Error('--file must be absolute');
   if (!/^[a-z0-9][a-z0-9-]*$/.test(out.region || '')) throw new Error('invalid --region');
   if (!/^(?:[a-z0-9][a-z0-9-]*\.)+[a-z0-9][a-z0-9-]*$/.test(out.suffix || '')) throw new Error('invalid --suffix');
@@ -92,6 +92,18 @@ function normalizeNotification(data, region, suffix) {
   return data;
 }
 
+function normalizeSetup(data, region) {
+  if (!object(data)) throw new Error('invalid setup config');
+  // Older setup skills omit serverRegion and use the client's api default.
+  // When present, it must agree with the selected destination; otherwise a
+  // prior OpenJibo region survives until QR setup issues new credentials.
+  if (data.serverRegion !== undefined) {
+    if (typeof data.serverRegion !== 'string') throw new Error('invalid setup region');
+    data.serverRegion = region;
+  }
+  return data;
+}
+
 function regularFile(filename) {
   var stat = fs.lstatSync(filename);
   if (!stat.isFile() || stat.isSymbolicLink()) throw new Error('refusing non-regular or symlinked file');
@@ -125,18 +137,19 @@ function writeAtomic(filename, bytes, stat, mode) {
 }
 
 function apply(options) {
-  if (options.kind === 'notification' && !fs.existsSync(options.file)) return 'not-needed';
+  if ((options.kind === 'notification' || options.kind === 'setup') && !fs.existsSync(options.file)) return 'not-needed';
   var stat = regularFile(options.file);
   var original = fs.readFileSync(options.file);
   var data = JSON.parse(original.toString('utf8'));
   var before = JSON.stringify(data);
   var normalizer = options.kind === 'region-config' ? normalizeRegionConfig
-    : options.kind === 'credentials' ? normalizeCredentials : normalizeNotification;
+    : options.kind === 'credentials' ? normalizeCredentials
+    : options.kind === 'setup' ? normalizeSetup : normalizeNotification;
   normalizer(data, options.region, options.suffix);
   // A skill-local client config must be readable by the unprivileged BE user;
   // some prior mods leave it root-only. Preserve the credential file's mode:
   // its service reader may run under a different UID on older firmware.
-  var mode = options.kind === 'region-config' ? 0o644 : (stat.mode & 0o777);
+  var mode = options.kind === 'region-config' || options.kind === 'setup' ? 0o644 : (stat.mode & 0o777);
   if (before === JSON.stringify(data)) {
     if ((stat.mode & 0o777) === mode) return 'already-patched';
     if (!options.dryRun) fs.chmodSync(options.file, mode);
@@ -158,4 +171,5 @@ if (require.main === module) {
 }
 
 module.exports = { parseArgs: parseArgs, normalizeRegionConfig: normalizeRegionConfig,
-  normalizeCredentials: normalizeCredentials, normalizeNotification: normalizeNotification, apply: apply };
+  normalizeCredentials: normalizeCredentials, normalizeNotification: normalizeNotification,
+  normalizeSetup: normalizeSetup, apply: apply };

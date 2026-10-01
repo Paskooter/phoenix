@@ -351,6 +351,8 @@ process.exit(1);
     assert.match(result.stderr, /stock OTA lookup for os failed \(exit 1\): ERROR: Signature does not match/);
     assert.doesNotMatch(result.stderr, /must-not-be-printed/);
     assert.doesNotMatch(result.stderr, /child_process\.js/);
+    assert.match(result.stderr, /^OTA not confirmed: stock OTA lookup for os failed/);
+    assert.doesNotMatch(result.stderr, /at queryFailure/);
     assert.equal(readFileSync(queryPath, 'utf8'), stockQuery);
   } finally {
     rmSync(dir, { recursive: true, force: true });
