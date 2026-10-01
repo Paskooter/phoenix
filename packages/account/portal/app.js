@@ -12,6 +12,7 @@
 import { qrSvg } from '/qr.js';
 import { createLocationPicker } from '/map.js';
 import { getBrandSync, initBrand, initTheme, pick } from '/brand.js';
+import { createLoopKeyClient } from '/loop-keys.js';
 import {
   browserPushState,
   disableBrowserPush,
@@ -62,6 +63,21 @@ const api = async (method, path, body) => {
   const result = await apiRaw(method, path, body);
   return seq === navSeq ? result : new Promise(() => {});
 };
+const loopKeys = createLoopKeyClient({ api: apiRaw });
+const keyRevocationChannel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('phoenix-private-access') : null;
+if (keyRevocationChannel) keyRevocationChannel.onmessage = async ({ data }) => {
+  if (!data || data.accountId !== me?.id) return;
+  if (data.type === 'logout') {
+    clearPrivateView(); await loopKeys.forgetAll(); await loopKeys.setAccount(null); me = null; void route();
+  } else if (data.type === 'forget' && typeof data.loopId === 'string') {
+    await loopKeys.forget(data.loopId);
+  }
+};
+const privateViewCleanup = new Set();
+function clearPrivateView() {
+  for (const cleanup of privateViewCleanup) cleanup();
+  privateViewCleanup.clear();
+}
 
 /* ==========================================================================
    DOM builder
@@ -368,6 +384,7 @@ async function paintBadges() {
 async function refreshMe() {
   const r = await api('GET', '/api/me');
   me = r.ok ? r.data.account : null;
+  await loopKeys.setAccount(me?.id || null);
   paintAccount();
   if (me && !badgesPainted) {
     badgesPainted = true;
@@ -697,7 +714,8 @@ async function loadRecentPhotos(loops, slot, sectionHead) {
       const thumbs = Array.isArray(m.thumbs) ? m.thumbs.filter((thumb) => thumb && thumb.url && thumb.path) : [];
       const preview = thumbs.find((thumb) => thumb.type === 'thumb') || thumbs[0] || m;
       const key = String(preview.path || '').split('/').pop();
-      return /^[A-Za-z0-9_-]+$/.test(key) ? { created: Number(m.created || 0), src: `/api/media/blob/${key}` } : null;
+      return /^[A-Za-z0-9_-]+$/.test(key) ? { ...preview, path: key,
+        loopId: m.loopId, created: Number(m.created || 0) } : null;
     })
     .filter(Boolean)
     .sort((a, b) => b.created - a.created)
@@ -706,7 +724,7 @@ async function loadRecentPhotos(loops, slot, sectionHead) {
   slot.replaceChildren(
     sectionHead('Recent photos', { href: '#/gallery', label: 'Gallery' }),
     h('div', { class: 'photo-strip' }, ...items.map((item) => h('a', { class: 'photo-tile', href: '#/gallery' },
-      h('img', { src: item.src, loading: 'lazy', alt: `Photo taken ${fmtDate(item.created)}` })))));
+      secureCapturePreview(item, { alt: `Photo taken ${fmtDate(item.created)}` })))));
   slot.hidden = false;
 }
 
@@ -2805,72 +2823,152 @@ function robotWifiPanel(state) {
   return host;
 }
 
-const PASSPHRASE_IV = new Uint8Array([10, 32, 101, 88, 3, 75, 46, 57, 94, 11, 27, 40, 6, 112, 51, 80]);
-const hex = (bytes) => [...new Uint8Array(bytes)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
-
 function robotBackupPanel(state) {
-  const body = h('div', {}, loading(3));
-  const intro = h('p', { class: 'field-hint' },
-    'Your loop’s encryption key is backed up locked with this passphrase. Jibo needs it to restore protected content after a reset or on a replacement robot.');
-  void (async () => {
-    const status = await api('GET', `/api/robot/backup-key/status?loopId=${encodeURIComponent(state.loopId)}`);
-    if (!status.ok) { body.replaceChildren(errorBox('Could not check your backup.', status.data.error)); return; }
-    if (!status.data.backupExists) {
-      body.replaceChildren(h('div', { class: 'notice' }, icon('lock', 16),
-        h('div', {}, h('strong', {}, 'No backup yet. '),
-          'The first backup has to come from a device that already holds the loop key. Phoenix cannot create one for you without breaking the original privacy protection.')));
-      return;
-    }
-    if (!window.crypto?.subtle) {
-      body.replaceChildren(errorBox('Changing the passphrase needs a secure (HTTPS) connection.'));
-      return;
-    }
-    const form = h('form', {},
-      field('Current passphrase', h('input', { type: 'password', name: 'current', required: true, autocomplete: 'off' })),
-      h('div', { class: 'grid2' },
-        field('New passphrase', h('input', { type: 'password', name: 'next', required: true, minlength: 12, autocomplete: 'new-password' }),
-          'At least 12 characters.'),
-        field('Confirm new passphrase', h('input', { type: 'password', name: 'confirm', required: true, autocomplete: 'new-password' }))),
-      h('div', { class: 'notice' }, icon('alert', 16),
-        h('div', {}, 'Your passphrases never leave this browser; the key is re-encrypted here. Keep the new one somewhere safe. If it is lost, restored content cannot be unlocked.')),
-      h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn btn-primary' }, 'Change passphrase')));
+  return loopPrivacyPanel({ id: state.loopId, name: state.name, canManage: true }, { manage: true });
+}
+
+function loopPrivacyPanel(loop, { manage = false } = {}) {
+  const statusText = h('span', { role: 'status', 'aria-live': 'polite' });
+  const retry = h('button', { class: 'btn btn-sm', type: 'button', on: { click: async () => {
+    try { await loopKeys.ensure(loop.id, { retry: true }); }
+    catch (error) { notify(error.message, 'error'); }
+  } } }, 'Connect to Jibo');
+  const rememberInput = h('input', { type: 'checkbox', on: { change: async (event) => {
+    try { await loopKeys.remember(loop.id, event.target.checked); }
+    catch (error) { event.target.checked = loopKeys.isRemembered(loop.id); notify(error.message, 'error'); }
+  } } });
+  const remember = h('label', { class: 'secure-remember' }, rememberInput, 'Remember on this device until sign-out');
+  const forget = h('button', { class: 'btn btn-ghost btn-sm', type: 'button', on: { click: async () => {
+    await loopKeys.forget(loop.id);
+    keyRevocationChannel?.postMessage({ type: 'forget', accountId: me?.id, loopId: loop.id });
+    notify('This device’s loop key was forgotten');
+  } } }, 'Forget this device’s key');
+  const recovery = h('div', { class: 'secure-recovery' }, loading(1));
+  const recoverySummary = h('summary', {}, 'Recovery and device access');
+  const details = h('details', { open: manage }, recoverySummary, recovery);
+  const panel = card(loop.name || 'Secure photos', { sub: 'Protected content stays encrypted on the server' },
+    h('div', { class: 'secure-key-status' }, icon('lock', 16), statusText),
+    h('div', { class: 'secure-key-controls' }, retry, remember, forget), details);
+  let backup = null;
+  let createForm = null;
+  let restoreForm = null;
+  const paint = () => {
+    const state = loopKeys.state(loop.id);
+    statusText.textContent = state.status === 'ready' ? 'Photos unlocked on this device'
+      : state.status === 'connecting' ? 'Connecting securely to Jibo…'
+        : state.error || 'Connect to Jibo to unlock protected photos';
+    retry.hidden = state.status === 'ready' || state.status === 'connecting';
+    retry.textContent = state.status === 'error' || state.status === 'waiting' ? 'Try again' : 'Connect to Jibo';
+    remember.hidden = forget.hidden = state.status !== 'ready';
+    rememberInput.checked = loopKeys.isRemembered(loop.id);
+    if (createForm) createForm.hidden = state.status !== 'ready';
+    if (restoreForm) restoreForm.hidden = state.status === 'ready';
+    recoverySummary.textContent = state.status === 'ready' && backup?.canManageRecovery && backup.backupExists === false
+      ? 'Create a recovery passphrase' : 'Recovery and device access';
+  };
+  const unsubscribe = loopKeys.subscribe((id) => { if (id === loop.id || id === null) paint(); });
+  privateViewCleanup.add(unsubscribe);
+  function passphraseForm(kind) {
+    const current = h('input', { type: 'password', name: 'current', required: true, autocomplete: 'off' });
+    const next = h('input', { type: 'password', name: 'next', required: true, minlength: 12, autocomplete: 'new-password' });
+    const confirm = h('input', { type: 'password', name: 'confirm', required: true, minlength: 12, autocomplete: 'new-password' });
+    const errorText = h('p', { class: 'secure-form-error', role: 'alert', hidden: true });
+    const form = h('form', { class: 'secure-passphrase-form' },
+      kind === 'change' ? field('Current recovery passphrase', current) : null,
+      field(kind === 'change' ? 'New recovery passphrase' : 'Recovery passphrase', next,
+        'Use at least 12 characters. This is separate from your account password.'),
+      field('Confirm recovery passphrase', confirm),
+      h('p', { class: 'field-hint' }, 'Save it somewhere safe. Encryption happens in this browser; your passphrase is not sent to Phoenix.'),
+      errorText,
+      h('button', { type: 'submit', class: 'btn btn-primary' }, kind === 'change' ? 'Change passphrase' : 'Create recovery passphrase'));
     onSubmit(form, async () => {
-      const fd = Object.fromEntries(new FormData(form));
-      if (fd.next.length < 12) { notify('The new passphrase needs at least 12 characters', 'error'); return; }
-      if (fd.next !== fd.confirm) { notify('The new passphrases do not match', 'error'); return; }
-      if (fd.next === fd.current) { notify('Choose a passphrase different from the current one', 'error'); return; }
+      errorText.hidden = true;
       try {
-        const encoder = new TextEncoder();
-        const oldBytes = encoder.encode(fd.current);
-        const newBytes = encoder.encode(fd.next);
-        const oldPasswordHash = hex(await crypto.subtle.digest('SHA-1', oldBytes));
-        const newPasswordHash = hex(await crypto.subtle.digest('SHA-1', newBytes));
-        const current = await api('POST', '/api/robot/backup-key/current', { loopId: state.loopId, passwordHash: oldPasswordHash });
-        if (!current.ok) throw new Error(current.data.error || 'Could not unlock backup');
-        const oldKey = await crypto.subtle.importKey('raw', await crypto.subtle.digest('SHA-256', oldBytes), 'AES-CBC', false, ['decrypt']);
-        const ciphertext = Uint8Array.from(atob(current.data.encryptedKey.replace(/\s/g, '')), (c) => c.charCodeAt(0));
-        const plaintext = new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-CBC', iv: PASSPHRASE_IV }, oldKey, ciphertext));
-        const rawKey = Uint8Array.from(atob(new TextDecoder().decode(plaintext).trim()), (c) => c.charCodeAt(0));
-        if (rawKey.length !== 32) throw new Error('The current backup could not be decoded safely');
-        rawKey.fill(0);
-        const newKey = await crypto.subtle.importKey('raw', await crypto.subtle.digest('SHA-256', newBytes), 'AES-CBC', false, ['encrypt', 'decrypt']);
-        const nextEncrypted = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-CBC', iv: PASSPHRASE_IV }, newKey, plaintext));
-        const check = new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-CBC', iv: PASSPHRASE_IV }, newKey, nextEncrypted));
-        if (check.length !== plaintext.length || check.some((byte, i) => byte !== plaintext[i])) throw new Error('Encryption check failed');
-        plaintext.fill(0);
-        check.fill(0);
-        const encryptedKey = btoa(String.fromCharCode(...nextEncrypted));
-        const changed = await api('POST', '/api/robot/backup-key/change', {
-          loopId: state.loopId, oldPasswordHash, newPasswordHash, encryptedKey,
-        });
-        if (!changed.ok) throw new Error(changed.data.error || 'Could not update backup');
-        form.reset();
-        notify('Backup passphrase changed');
-      } catch (error) { notify(error.message || 'Could not change backup passphrase', 'error'); }
+        if (next.value !== confirm.value) throw new Error('The passphrases do not match');
+        if (kind === 'change' && next.value === current.value) throw new Error('Choose a different passphrase');
+        if (kind === 'change') await loopKeys.changeBackup(loop.id, current.value, next.value);
+        else await loopKeys.createBackup(loop.id, next.value);
+        form.reset(); notify(kind === 'change' ? 'Recovery passphrase changed' : 'Recovery backup created');
+        await loadRecovery();
+      } catch (error) { errorText.textContent = error.message; errorText.hidden = false; }
     });
-    body.replaceChildren(form);
-  })();
-  return card('Backup passphrase', { sub: 'Protects your loop key backup' }, intro, body);
+    return form;
+  }
+  async function loadRecovery() {
+    try { backup = await loopKeys.backupStatus(loop.id); }
+    catch (error) { recovery.replaceChildren(errorBox('Could not check recovery.', error.message)); return; }
+    createForm = null;
+    restoreForm = null;
+    if (!backup.canManageRecovery) {
+      recovery.replaceChildren(h('p', { class: 'field-hint' }, 'Your loop owner manages the recovery passphrase. Bring Jibo online to unlock this device.'));
+    } else if (!backup.backupExists) {
+      createForm = passphraseForm('create');
+      recovery.replaceChildren(h('p', { class: 'field-hint' },
+        'Recovery not configured. Once Jibo securely shares his existing key, create a recovery passphrase here. Without a backup, losing every device holding the key means losing access to protected content.'), createForm);
+      if (manage) details.open = true;
+    } else {
+      const passphrase = h('input', { type: 'password', required: true, autocomplete: 'off' });
+      const restoreError = h('p', { class: 'secure-form-error', role: 'alert', hidden: true });
+      const restore = h('form', { class: 'secure-passphrase-form' }, field('Recovery passphrase', passphrase), restoreError,
+        h('button', { class: 'btn btn-primary', type: 'submit' }, 'Unlock with recovery passphrase'));
+      restoreForm = restore;
+      onSubmit(restore, async () => {
+        restoreError.hidden = true;
+        try { await loopKeys.restore(loop.id, passphrase.value); restore.reset(); notify('Photos unlocked on this device'); }
+        catch (error) { restoreError.textContent = error.message; restoreError.hidden = false; }
+      });
+      const change = h('details', {}, h('summary', {}, 'Change recovery passphrase'), passphraseForm('change'));
+      recovery.replaceChildren(h('p', { class: 'field-hint' }, 'Recovery protected. You can unlock this browser with your passphrase even when Jibo is offline.'), restore, change);
+    }
+    paint();
+  }
+  paint(); void loadRecovery();
+  void loopKeys.ensure(loop.id).catch(() => {});
+  return panel;
+}
+
+// Blob URLs exist only in this view. Never send plaintext images through an
+// HTTP endpoint/cache, and revoke them when navigating, forgetting or signing out.
+function secureCapturePreview(record, attrs = {}) {
+  const placeholder = h('span', { class: 'secure-media-placeholder', role: 'status' }, icon('lock', 20), h('span', {}, 'Unlocking…'));
+  const wrap = h('span', { class: 'secure-media' }, placeholder);
+  let objectUrl = null; let busy = false; let disposed = false; let reloadWhenReady = false;
+  const release = () => { if (objectUrl) URL.revokeObjectURL(objectUrl); objectUrl = null; };
+  const paintLocked = () => {
+    release();
+    placeholder.lastElementChild.textContent = loopKeys.state(record.loopId).status === 'connecting'
+      ? 'Connecting to Jibo…' : 'Photos locked';
+    wrap.replaceChildren(placeholder);
+  };
+  async function load() {
+    if (busy || objectUrl || disposed) return;
+    busy = true;
+    try {
+      const blob = await loopKeys.mediaBlob(record);
+      if (disposed) return;
+      objectUrl = URL.createObjectURL(blob);
+      const image = blob.type.startsWith('image/')
+        ? h('img', { ...attrs, src: objectUrl, loading: 'lazy', on: { error: () => {
+          release(); placeholder.lastElementChild.textContent = 'Image unavailable'; wrap.replaceChildren(placeholder);
+        } } })
+        : h('span', { class: 'secure-media-placeholder' }, icon('image', 20), 'Open recording');
+      wrap.replaceChildren(image);
+    } catch (error) {
+      if (!disposed) { placeholder.lastElementChild.textContent = record.isEncrypted && !loopKeys.has(record.loopId)
+        ? 'Photos locked — connect above' : 'Capture unavailable'; wrap.title = error.message; wrap.replaceChildren(placeholder); }
+    } finally { busy = false; if (reloadWhenReady && !disposed && !objectUrl && loopKeys.has(record.loopId)) {
+      reloadWhenReady = false; void load();
+    } else reloadWhenReady = false; }
+  }
+  const unsubscribe = loopKeys.subscribe((id) => {
+    if (id !== record.loopId && id !== null) return;
+    if (record.isEncrypted && !loopKeys.has(record.loopId)) paintLocked();
+    else if (busy) reloadWhenReady = true;
+    else void load();
+  });
+  privateViewCleanup.add(() => { disposed = true; release(); unsubscribe(); wrap.replaceChildren(placeholder); });
+  void load();
+  return wrap;
 }
 
 function renderTips() {
@@ -3151,6 +3249,7 @@ async function renderAddNew() {
    ========================================================================== */
 
 async function renderGallery() {
+  clearPrivateView();
   show(page('Gallery', 'Photographs and media captured across your loops.', loading(3)));
 
   const context = await householdContext();
@@ -3183,6 +3282,7 @@ async function renderGallery() {
       const preview = thumbs.find((thumb) => thumb.type === 'thumb') || thumbs[0] || m;
       return {
         ...m, loopId: loop.id, loopName: loop.name, previewPath: preview.path,
+        preview: { ...preview, loopId: loop.id },
         // Media.Remove is owner-only in the original service. A shared-loop
         // gallery stays readable, but must not offer a delete control that
         // cannot possibly alter the capture.
@@ -3195,6 +3295,7 @@ async function renderGallery() {
       h('div', {}, `Could not load media from ${failures.length} loop${failures.length === 1 ? '' : 's'}. The rest of your gallery is still shown.`)));
   }
   if (!items.length) {
+    container.append(...visibleLoops.map((loop) => loopPrivacyPanel(loop)));
     container.append(failures.length === responses.length
       ? errorBox('Could not load the gallery.', failures[0]?.result.data.error)
       : empty('Nothing captured yet', 'Photographs the robot takes will appear here.', 'image'));
@@ -3202,16 +3303,11 @@ async function renderGallery() {
   }
 
   const selected = new Map();
+  container.append(h('div', { class: 'secure-loop-panels' }, ...visibleLoops.map((loop) => loopPrivacyPanel(loop))));
   const deleteBtn = h('button', {
     class: 'btn btn-danger btn-sm', type: 'button', disabled: true,
     on: { click: removeSelected },
   }, 'Delete selected');
-
-  const imageUrl = (value) => {
-    const path = typeof value === 'string' ? value : (value?.path || '').split('/').pop();
-    if (!/^[A-Za-z0-9_-]+$/.test(path)) return '';
-    return `/api/media/blob/${path}`;
-  };
 
   const syncDelete = () => {
     deleteBtn.disabled = selected.size === 0;
@@ -3222,7 +3318,7 @@ async function renderGallery() {
     class: 'media-tile', 'data-path': m.path, 'data-loop': m.loopId,
   },
     h('button', { type: 'button', class: 'media-open', 'aria-label': `Open ${m.type} captured ${fmtDate(m.created)}`, on: { click: () => openMedia(m) } },
-      h('img', { src: imageUrl(m.previewPath), loading: 'lazy', alt: '' })),
+      secureCapturePreview(m.preview, { alt: `${m.type} captured ${fmtDate(m.created)}` })),
     m.canDelete ? h('label', { class: 'chip' },
       h('input', {
         type: 'checkbox',
@@ -3245,50 +3341,50 @@ async function renderGallery() {
   show(container);
 
   function openMedia(m) {
-    const share = typeof navigator.share === 'function'
-      ? h('button', {
-        type: 'button', class: 'btn btn-sm',
-        on: {
-          click: async (event) => {
-            event.stopPropagation();
-            try {
-              const response = await fetch(imageUrl(m));
-              if (!response.ok) throw new Error('The image is no longer available');
-              const blob = await response.blob();
-              const extension = m.type === 'recording' || m.type === 'audio' ? 'mp4' : 'jpg';
-              const file = new File([blob], `jibo-${m.path}.${extension}`, {
-                type: blob.type || (extension === 'mp4' ? 'video/mp4' : 'image/jpeg'),
-              });
-              const data = { title: 'Jibo capture', text: `${m.loopName || 'Jibo'} capture` };
-              if (!navigator.canShare || navigator.canShare({ files: [file] })) data.files = [file];
-              await navigator.share(data);
-            } catch (error) {
-              // Dismissing the native share sheet is not an error worth showing.
-              if (error?.name !== 'AbortError') notify(error?.message || 'Could not share this capture.', 'error');
-            }
-          },
-        },
-      }, icon('share', 14), 'Share') : null;
     const opener = document.activeElement;
-    // One exit path, so the Escape listener never outlives the viewer (it used
-    // to leak whenever the viewer was closed by a click) and focus returns to
-    // the tile that opened it.
+    let objectUrl = null; let blob = null; let closed = false;
+    const content = h('div', { class: 'capture-viewer-content', role: 'status' }, 'Unlocking capture…');
+    const share = h('button', { type: 'button', class: 'btn btn-sm', disabled: true, hidden: typeof navigator.share !== 'function',
+      on: { click: async () => {
+        if (!blob) return;
+        try {
+          const extension = blob.type.startsWith('image/') ? (blob.type === 'image/png' ? 'png' : 'jpg') : 'mp4';
+          const file = new File([blob], `jibo-${m.path}.${extension}`, { type: blob.type });
+          if (navigator.canShare && !navigator.canShare({ files: [file] })) throw new Error('This device cannot share this capture');
+          await navigator.share({ title: 'Jibo capture', files: [file] });
+        } catch (error) { if (error.name !== 'AbortError') notify(error.message || 'Could not share this capture', 'error'); }
+      } } }, icon('share', 14), 'Share');
+    const download = h('a', { class: 'btn btn-sm', hidden: true }, icon('download', 14), 'Download');
     const close = () => {
-      overlay.remove();
-      removeEventListener('keydown', onKey);
-      opener?.focus?.();
+      if (closed) return;
+      closed = true; overlay.remove(); removeEventListener('keydown', onKey);
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      blob = null; privateViewCleanup.delete(close); opener?.focus?.();
     };
     const onKey = (e) => { if (e.key === 'Escape') close(); };
     const overlay = h('div', {
       class: 'overlay', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Capture viewer', tabindex: '-1',
-      on: { click: (e) => { if (e.target === overlay || e.target.tagName !== 'IMG') close(); } },
-    },
-      h('img', { src: imageUrl(m), class: 'overlay-img', alt: `${m.type} captured ${fmtDate(m.created)}` }),
-      h('p', {}, `${m.loopName || 'Loop'} · ${m.type} · ${fmtDate(m.created)}`),
-      share);
-    addEventListener('keydown', onKey);
-    document.body.append(overlay);
-    overlay.focus();
+      on: { click: (e) => { if (e.target === overlay) close(); } },
+    }, content, h('p', {}, `${m.loopName || 'Loop'} · ${m.type} · ${fmtDate(m.created)}`),
+      h('div', { class: 'row' }, share, download, h('button', { type: 'button', class: 'btn btn-sm', on: { click: close } }, 'Close')));
+    const unsubscribe = loopKeys.subscribe((id) => { if ((id === null || id === m.loopId) && !loopKeys.has(m.loopId) && m.isEncrypted) close(); });
+    privateViewCleanup.add(close);
+    privateViewCleanup.add(unsubscribe);
+    addEventListener('keydown', onKey); document.body.append(overlay); overlay.focus();
+    void (async () => {
+      try {
+        const result = await loopKeys.mediaBlob(m);
+        if (closed) return;
+        blob = result; objectUrl = URL.createObjectURL(blob);
+        const tag = blob.type.startsWith('video/') ? 'video' : blob.type.startsWith('audio/') ? 'audio' : 'img';
+        const element = h(tag, { src: objectUrl, class: 'overlay-img', alt: `${m.type} captured ${fmtDate(m.created)}` });
+        if (tag !== 'img') element.controls = true;
+        element.addEventListener('error', () => { content.replaceChildren(errorBox('This capture could not be displayed.')); });
+        content.replaceChildren(element);
+        share.disabled = false;
+        download.href = objectUrl; download.download = `jibo-${m.path}.${blob.type.startsWith('image/') ? (blob.type === 'image/png' ? 'png' : 'jpg') : 'mp4'}`; download.hidden = false;
+      } catch (error) { if (!closed) content.replaceChildren(errorBox('Could not open this capture.', error.message)); }
+    })();
   }
 
   async function removeSelected() {
@@ -4513,10 +4609,13 @@ function initChrome() {
   });
 
   document.getElementById('logout')?.addEventListener('click', async () => {
+    clearPrivateView();
+    await loopKeys.forgetAll();
     // A sign-out is a reasonable expectation of privacy on a shared device.
     // Remove the browser's subscription before invalidating the session.
     try { await disableBrowserPush(apiRaw); } catch { /* no subscription or offline */ }
     await apiRaw('POST', '/api/logout');
+    keyRevocationChannel?.postMessage({ type: 'logout', accountId: me?.id });
     me = null;
     badgesPainted = false;
     // Changing the hash routes by itself; only an unchanged hash needs a nudge.
@@ -5017,6 +5116,7 @@ const ADMIN_ROUTES = {
 };
 
 async function route() {
+  clearPrivateView();
   navSeq += 1;
   stopPoll();
   await consumePublicMailAction();

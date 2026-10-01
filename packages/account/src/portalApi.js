@@ -55,6 +55,7 @@ import { portalProfileRoutes } from './portal/profile.js';
 import { accountDeletionRoutes } from './portal/accountDeletion.js';
 import { portalRobotRoutes } from './portal/robots.js';
 import { portalMediaRoutes } from './portal/media.js';
+import { portalLoopKeyRoutes } from './portal/loopKeys.js';
 import { portalPeopleRoutes } from './portal/people.js';
 import { portalMessagingRoutes } from './portal/messaging.js';
 import { portalSystemRoutes } from './portal/system.js';
@@ -618,6 +619,7 @@ export function portalRoutes(store, options = {}) {
     }),
     ...portalRobotRoutes(store, portal),
     ...portalMediaRoutes(store, portal),
+    ...portalLoopKeyRoutes(store, portal),
     ...portalPeopleRoutes(store, portal),
     ...portalMessagingRoutes(store, portal),
     ...portalSystemRoutes(store, portal),

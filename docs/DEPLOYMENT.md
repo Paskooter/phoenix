@@ -1500,6 +1500,14 @@ change. A proxy-only portal configuration needs no nginx source-path change.
 
 ## 12. Firewall and hardening
 
+Encrypted Gallery content is decrypted by the console, not the server. Keep
+the `/api/` proxy to Account intact, including the locally served pinned RSA
+asset at `/api/crypto/forge.js`. HTTPS is required for browser key exchange and
+recovery. Read [Browser loop keys](LOOP-KEYS.md) for the setup/recovery flow,
+original-client crypto compatibility, device storage, and privacy limitations.
+Neither a robot filesystem backup nor an account password substitutes for a
+recovery-passphrase backup of the loop's encryption key.
+
 ### Edge and private ports
 
 Only nginx's 80/443 should be reachable from the internet. The Compose `ports`

@@ -1607,6 +1607,19 @@ button.ghost:hover { background: var(--panel-2); border-color: var(--accent-line
   cursor: zoom-in;
 }
 .media-open img { display: block; }
+.secure-media { display: grid; width: 100%; height: 100%; min-height: 120px; }
+.secure-media-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 18px; color: var(--muted); font-size: 13px; text-align: center; background: var(--panel); }
+.secure-loop-panels { display: grid; gap: 16px; margin-bottom: 24px; }
+.secure-key-status { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.secure-key-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.secure-remember { display: inline-flex; align-items: center; gap: 9px; font-size: 13px; cursor: pointer; }
+.secure-remember input { width: 18px; height: 18px; accent-color: var(--accent); }
+.secure-recovery { margin-top: 16px; }
+.secure-passphrase-form { display: grid; gap: 12px; max-width: 520px; margin: 16px 0; }
+.secure-form-error { color: var(--danger); margin: 0; }
+.capture-viewer-content { max-width: 92vw; max-height: 78vh; }
+.secure-key-controls [hidden], .secure-passphrase-form[hidden] { display: none; }
+@media (max-width: 600px) { .secure-key-controls .btn { min-height: 44px; } .secure-remember { min-height: 44px; } }
 .media-open:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .media-caption {
   padding: .5rem .65rem;

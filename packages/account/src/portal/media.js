@@ -5,6 +5,7 @@
 
 import { sendJson, signSigV4 } from '@phoenix/common';
 import { pipeline } from 'node:stream/promises';
+import { randomUUID } from 'node:crypto';
 import {
   classicBaseUrl, classicCall, ClassicCallError, DEFAULT_REGION, DEFAULT_SERVICE,
 } from './classicClient.js';
@@ -146,7 +147,10 @@ export function portalMediaRoutes(store, options = {}) {
         const signed = signSigV4({
           method: 'GET',
           path: blobPath,
-          headers: { host: new URL(classicBase).host },
+          // SigV4 dates have one-second resolution. Reopening an image (or
+          // loading it as both preview and full-size) must not reuse a signature
+          // and trip Classic's replay protection. Keep the nonce signed.
+          headers: { host: new URL(classicBase).host, 'x-phoenix-request-id': randomUUID() },
           body: '',
           accessKeyId: account.accessKeyId,
           secretAccessKey: account.secretAccessKey,
@@ -161,7 +165,8 @@ export function portalMediaRoutes(store, options = {}) {
         return;
       }
       if (!upstream.ok) { res.writeHead(upstream.status); res.end(); return; }
-      res.writeHead(200, { 'content-type': upstream.headers.get('content-type') || 'application/octet-stream' });
+      res.writeHead(200, { 'content-type': upstream.headers.get('content-type') || 'application/octet-stream',
+        'cache-control': 'private, no-store', 'x-content-type-options': 'nosniff' });
       await pipeline(upstream.body, res);
     },
   };

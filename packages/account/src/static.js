@@ -11,6 +11,7 @@
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { dirname, join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 import { renderBrandedHtml } from './brandRender.js';
 
 const SOURCE_DIR = dirname(fileURLToPath(import.meta.url));
@@ -20,6 +21,7 @@ const PORTAL_DIR = join(SOURCE_DIR, '../portal');
 // current working directory, so a systemd service cannot accidentally serve a
 // different checkout after an operator changes WorkingDirectory.
 const PROJECT_DIR = join(SOURCE_DIR, '../../..');
+const require = createRequire(import.meta.url);
 
 /**
  * The instance's own public origin, e.g. `https://jibo.io`.
@@ -262,6 +264,7 @@ export function staticRoutes() {
     'theme.css', 'site.css', 'console.css',
     // scripts
     'app.js', 'pwa.js', 'site.js', 'site-render.js', 'brand.js', 'qr.js', 'map.js',
+    'loop-crypto.js', 'loop-keys.js',
     // vendored
     'vendor/leaflet.js', 'vendor/leaflet.css',
     // assets and metadata
@@ -284,6 +287,10 @@ export function staticRoutes() {
     // hash; /admin is kept because it is where the admin surface has always
     // lived.
     'GET /app': page('app.html'),
+    // /api is proxied to Account even in nginx deployments serving portal JS
+    // directly from disk. This fixed public asset is the pinned RSA library,
+    // not a crypto endpoint; it never accepts or processes user key material.
+    'GET /api/crypto/forge.js': serveExternal(require.resolve('node-forge/dist/forge.min.js'), 'text/javascript; charset=utf-8'),
     // Root scope is intentional: the worker owns only the console app shell,
     // but its Push click handler must be able to open /app from any page.
     'GET /sw.js': serve('sw.js'),

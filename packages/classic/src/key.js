@@ -82,6 +82,7 @@ export const KEY_ERRORS = Object.freeze({
     statusCode: 403,
   },
   BACKUP_NOT_FOUND: { code: 'BACKUP_NOT_FOUND', message: 'Backup not found', statusCode: 404 },
+  BACKUP_ALREADY_EXISTS: { code: 'BACKUP_ALREADY_EXISTS', message: 'A recovery backup already exists', statusCode: 409 },
   BACKUP_PASSWORD_WRONG: {
     code: 'BACKUP_PASSWORD_WRONG', message: 'Backup password is wrong', statusCode: 409,
   },
@@ -626,12 +627,16 @@ export function makeKeyHandler(store = new KeyStore(), {
       case 'backup': {
         const invalid = requiredString(b, 'loopId') || requiredString(b, 'encryptedKey') || optionalString(b, 'passwordHash');
         if (invalid) return void sendBadData(res, invalid);
+        if (b.ifAbsent !== undefined && typeof b.ifAbsent !== 'boolean') return void sendBadData(res, 'ifAbsent must be boolean');
         let loop;
         try { loop = await loopOf(b.loopId); } catch (error) { return void sendAmzError(res, error); }
         if (loop === null) return void refuse(res, 'ONLY_OWNER_CAN_BACKUP_RESTORE');
         if (loop && caller && String(loop.owner) !== String(caller)) {
           return void refuse(res, 'ONLY_OWNER_CAN_BACKUP_RESTORE');
         }
+        // Additive portal create-only option. Stock Backup callers retain their
+        // original replace semantics. No await between this check and commit.
+        if (b.ifAbsent && store.restore(b.loopId)) return void refuse(res, 'BACKUP_ALREADY_EXISTS');
         const backup = store.backup({
           loopId: b.loopId, accountId, encryptedKey: b.encryptedKey, passwordHash: b.passwordHash,
         });
