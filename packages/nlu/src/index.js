@@ -19,6 +19,7 @@ import { envLayaConfig, getLayaClient, layaFallback } from './layaFallback.js';
 import { selectValidResult, isFallbackResultValid, isParserResultValid, resolveHybridNLU } from './fallbackArbitration.js';
 import { parseRequestDetailedAsync } from './requestParser.js';
 import { getCompiledFstRuntime } from './compiledFstRuntime.js';
+import { decideCommand, getDecisionClient } from './decisionLayer.js';
 
 /**
  * Parse an utterance into an NLUResult, mirroring the reference
@@ -159,12 +160,14 @@ export function start(port = Number(process.env.PORT) || DefaultPort.nlu) {
         // A live-era `external` request has its own Dialogflow attachment
         // contract, including its deliberately preserved error boundary.  It
         // is not a safe place to substitute an intent-only Laya result.
-        const nlu = body.data.external
-          ? parsed.nlu
-          : await resolveHybridNLU(
-            { nlu: parsed.nlu, priority: parsed.priority },
-            () => parserFallback(body.data),
-          );
+        if (body.data.external) return message(ResponseType.NLU, parsed.nlu);
+        // The decision layer reviews a global turn's parse first; when it keeps
+        // the parse, the source arbitration and its (disabled) fallbacks run as before.
+        const decided = await decideCommand(body.data, parsed);
+        const nlu = decided || await resolveHybridNLU(
+          { nlu: parsed.nlu, priority: parsed.priority },
+          () => parserFallback(body.data),
+        );
         return message(ResponseType.NLU, nlu); // { type:'NLU', msgID, ts, data: NLUResult }
       },
       // Reference StateRequestHandler: GET /state -> ServiceStateData. Phoenix's
@@ -177,6 +180,7 @@ export function start(port = Number(process.env.PORT) || DefaultPort.nlu) {
         dialogflowClient: 'CLOSED',
         llmClient: getLLMClient().state,
         layaClient: getLayaClient().enabled ? 'READY' : 'DISABLED',
+        decisionClient: getDecisionClient().enabled ? 'READY' : 'DISABLED',
       }),
     },
   });

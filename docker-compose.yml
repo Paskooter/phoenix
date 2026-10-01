@@ -87,6 +87,12 @@ services:
       - PORT=8080
       - ETCO_parser_llmUrl=${LLM_URL:-}
       - ETCO_parser_llmModel=${LLM_MODEL:-google/gemma-4-e4b}
+      - ETCO_parser_decisionEngine=${ETCO_parser_decisionEngine:-}
+      - ETCO_parser_decisionApiKey=${ETCO_parser_decisionApiKey:-}
+      - ETCO_parser_decisionModel=${ETCO_parser_decisionModel:-}
+      - ETCO_parser_decisionTimeoutMs=${ETCO_parser_decisionTimeoutMs:-}
+      - ETCO_parser_decisionMinProbability=${ETCO_parser_decisionMinProbability:-}
+      - ETCO_parser_decisionOverrideProbability=${ETCO_parser_decisionOverrideProbability:-}
 
   history:
     <<: *phoenix-defaults

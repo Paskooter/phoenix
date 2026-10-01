@@ -1,0 +1,205 @@
+# Decision-layer evaluation set (docs/DECISION-LAYER.md). Every utterance was invented for
+# this file; none comes from a robot or a person. Format: expected command | utterance.
+# scripts/decision-layer-eval.mjs holds out every third utterance of each label; tune only
+# against the dev split, and run the held-out split once per change.
+time | what time is it
+time | do you know what time it is
+time | what's the time right now
+time | can you tell me the time please
+time | how late is it
+time | got the time
+time | what time do you have
+time | is it noon yet
+date | what day is it today
+date | what's the date today
+date | what's today's date
+date | which day of the week is it
+date | what is the date
+date | what's the day today
+date | is today tuesday
+date | tell me today's date
+date | what month is it
+weather_today | will it rain today
+weather_today | what's the weather like
+weather_today | do i need an umbrella today
+weather_today | how hot is it going to be today
+weather_today | what's the temperature
+weather_today | is it cold outside
+weather_today | what's the forecast for today
+weather_today | is it sunny out
+weather_today | should i wear a jacket today
+weather_tomorrow | what's the weather tomorrow
+weather_tomorrow | will it rain tomorrow
+weather_tomorrow | is it going to be cold tomorrow
+weather_tomorrow | what's tomorrow's forecast
+weather_tomorrow | do i need an umbrella tomorrow
+weather_tomorrow | how warm will it be tomorrow
+news | tell me the news
+news | any news today
+news | what's happening in the world
+news | give me the headlines
+news | what's going on in the news
+news | read me the latest headlines
+news | catch me up on current events
+news | what are today's top stories
+report | what's my personal report
+report | give me my report
+report | brief me on my day
+report | give me my morning briefing
+report | what's my daily update
+report | run my personal report
+calendar | what's on my calendar
+calendar | what's on my schedule today
+calendar | do i have any appointments today
+calendar | what meetings do i have
+calendar | am i busy today
+calendar | what's my agenda
+commute | how's my commute
+commute | how's the traffic
+commute | how long will it take to get to work
+commute | is there traffic on my way to work
+commute | what's my drive like this morning
+commute | how bad is traffic right now
+photo | take a picture
+photo | take a photo of me
+photo | snap a picture
+photo | can you take my picture
+photo | take a selfie with me
+photo | grab a photo of us
+photo | capture this moment
+photo | take a pic
+gallery | show me my photos
+gallery | show me pictures
+gallery | open the photo gallery
+gallery | let me see the pictures you took
+gallery | can i see my pictures
+gallery | show me the photos you've taken
+who_am_i | who am i
+who_am_i | do you know who i am
+who_am_i | do you recognize me
+who_am_i | what's my name
+who_am_i | can you tell who i am
+who_am_i | guess who this is
+what_can_you_do | what can you do
+what_can_you_do | what are you able to do
+what_can_you_do | what kind of things can you help with
+what_can_you_do | what skills do you have
+what_can_you_do | how can you help me
+what_can_you_do | what should i ask you
+game | let's play a game
+game | can we play something
+game | i want to play a game
+game | play a game with me
+game | let's play
+game | do you know any games
+dance | dance
+dance | dance for me
+dance | show me your moves
+dance | can you bust a move
+dance | let's see you dance
+dance | do a little dance
+sing | sing me a song
+sing | sing something
+sing | can you sing
+sing | sing a song for me
+sing | i want to hear you sing
+sing | do you know any songs you could sing
+joke | tell me a joke
+joke | make me laugh
+joke | do you know any jokes
+joke | tell me something funny
+joke | say something funny
+joke | i need a laugh
+fun_fact | tell me a fun fact
+fun_fact | tell me something interesting
+fun_fact | teach me something new
+fun_fact | do you know any cool facts
+fun_fact | share a random fact
+fun_fact | give me a fun fact
+volume_up | turn up the volume
+volume_up | louder
+volume_up | speak up
+volume_up | i can't hear you
+volume_up | turn it up
+volume_up | could you talk louder
+volume_down | turn down the volume
+volume_down | quieter please
+volume_down | you're too loud
+volume_down | lower your voice
+volume_down | turn it down a bit
+volume_down | not so loud
+knowledge | who was ada lovelace
+knowledge | how tall is mount everest
+knowledge | what is the capital of japan
+knowledge | how far away is the moon
+knowledge | what's twelve times thirty four
+knowledge | what does serendipity mean
+knowledge | who invented the telephone
+knowledge | how many legs does a spider have
+knowledge | what is the speed of light
+knowledge | who painted the mona lisa
+knowledge | what's the biggest planet
+knowledge | how many people live in canada
+knowledge | what is a black hole
+knowledge | who is albert einstein
+knowledge | when did world war two end
+knowledge | what's the tallest building in the world
+knowledge | how do airplanes fly
+knowledge | who wrote romeo and juliet
+knowledge | what's two plus two
+knowledge | what language do they speak in brazil
+knowledge | how many days are in a leap year
+knowledge | what is photosynthesis
+knowledge | who was the first person on the moon
+knowledge | what's the boiling point of water
+knowledge | how old is the universe
+knowledge | what is the largest ocean
+knowledge | where is the eiffel tower
+knowledge | what time zone is tokyo in
+knowledge | how many ounces in a pound
+knowledge | who is the author of harry potter
+chitchat | how are you
+chitchat | what's your name
+chitchat | how old are you
+chitchat | are you a robot
+chitchat | who made you
+chitchat | what's your favorite color
+chitchat | do you like music
+chitchat | do you have any pets
+chitchat | i love you
+chitchat | thank you
+chitchat | tell me about yourself
+chitchat | are you happy
+chitchat | do you dream
+chitchat | what's your favorite food
+chitchat | do you like dogs
+chitchat | are you alive
+chitchat | you're funny
+chitchat | i'm bored
+chitchat | good job
+chitchat | welcome back
+chitchat | do you have feelings
+chitchat | what's the meaning of life
+chitchat | who's your best friend
+chitchat | i'm hungry
+chitchat | i had a long day
+chitchat | do you like the weather
+chitchat | are you smart
+chitchat | can you dream
+chitchat | what do you think about humans
+chitchat | do you get lonely
+none | order me a pizza
+none | call my mom
+none | turn on the kitchen lights
+none | send an email to my boss
+none | book a flight to paris
+none | blorp fizzle wump
+none | um
+none | never mind
+none | buy more paper towels
+none | add milk to my shopping list
+none | lock the front door
+none | text john i'm running late
+none | start the car
+none | what's my bank balance
+none | navigate to the nearest gas station

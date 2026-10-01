@@ -1,5 +1,9 @@
 # Private Laya intent fallback
 
+> For collapsing paraphrases onto Jibo's commands, use the
+> [decision layer](DECISION-LAYER.md) instead: it passed its held-out
+> evaluation where this Laya profile did not.
+
 Phoenix can use a self-hosted Laya classifier as a fallback after the robot's
 deterministic parser. This prototype is not a replacement for grammar/entity
 parsing: it has no entity extraction, and an entityless candidate allowlist
