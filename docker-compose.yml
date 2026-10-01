@@ -107,6 +107,7 @@ services:
     command: node packages/data/src/index.js
     environment:
       - PORT=8080
+      - TOMTOM_API_KEY=${TOMTOM_API_KEY:-}
       - ETCO_data_credentialsFile=${LASSO_CREDENTIALS_FILE:-/phoenix/packages/data/data/credentials.json}
     volumes:
       # Calendar/OAuth credential material is state, not application source.

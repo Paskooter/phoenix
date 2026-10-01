@@ -1,7 +1,7 @@
 // Data-relay service (Pegasus lasso equivalent). Milestone M4.
 //
 // Implemented: weather (/v1/dark_sky, Open-Meteo), news (/v1/ap_news, RSS→AP), maps
-// (/v1/google_maps, ORS) — all via the relay framework with the {relayData,lassoDataFromRedis}
+// (/v1/google_maps, TomTom) — all via the relay framework with the {relayData,lassoDataFromRedis}
 // envelope + cache; credential CRUD (/v1/credential); calendar (/v1/{google,outlook}_calendar,
 // OAuth token exchange/refresh/invalidation + pluggable events provider). Reference:
 // docs/atlas/packages/lasso.md, message-protocol.md §9.

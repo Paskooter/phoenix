@@ -282,7 +282,18 @@ robot's permanent `accessKeyId`/`secretAccessKey`, which the robot writes to
 from-scratch reimplementation of the robot's `oobe-config` format — see `packages/account/portal/qr.js`.)
 
 The **Personal report → Commute** map supports pin placement, browser-location
-permission, and address search. Address search runs only when the user presses
+permission, and address search. Commute travel times and live traffic require a
+valid `TOMTOM_API_KEY` in the deployment's private `.env` or `PHOENIX_ENV_FILE`.
+The native launcher exports it to Lasso/Data; Compose passes it to the `lasso`
+container. After changing it, restart the native supervisor, or recreate the
+Compose service with `docker compose up -d --force-recreate lasso`.
+Address search uses a separate provider: successfully finding and saving an
+address does not prove that routing is configured. A missing key makes
+`/v1/google_maps` return `401` with `TOMTOM_API_KEY is not configured`, which the
+robot describes as the commute provider being unavailable. Keep the key in the
+persistent production config when switching release checkouts; do not commit it.
+
+Address search runs only when the user presses
 **Search** or Enter; typing alone makes no network request. Account authenticates
 the request, caches results for 24 hours, limits each account to 12 searches per
 minute, and serializes provider requests at least 1.1 seconds apart per Account

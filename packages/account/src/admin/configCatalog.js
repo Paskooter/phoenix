@@ -623,17 +623,8 @@ export const SETTINGS = [
     type: 'secret',
     default: null,
     services: ['data'],
-    help: 'Traffic and travel-time data for the commute section. Without it the robot can still describe '
-      + 'the route but not the delay.',
-  },
-  {
-    key: 'ETCO_data_orsKey',
-    label: 'OpenRouteService key',
-    group: 'report',
-    type: 'secret',
-    default: null,
-    services: ['data'],
-    help: 'Routing provider key, used for directions where TomTom is not configured.',
+    help: 'Required for commute travel times and live traffic. Without a valid key the commute '
+      + 'provider is unavailable, even if address search and saved commute settings work.',
   },
   {
     key: 'ETCO_data_calendarUpstreamUrl',

@@ -699,6 +699,10 @@ PARAKEET_URL=http://<private-asr-host>:6972
 #LLM_URL=http://<private-llm-host>:1234/v1
 #LLM_MODEL=google/gemma-4-e4b
 
+# Optional commute provider, required if users enable commute reports.
+# Address search is separate and does not validate this routing key.
+#TOMTOM_API_KEY=your-private-tomtom-routing-key
+
 # Durable paths inside the Compose bind mount.
 ETCO_account_dataFile=/phoenix/packages/account/data/store.json
 PHOTO_DIRECTORY=/phoenix/packages/account/data/member-photos
