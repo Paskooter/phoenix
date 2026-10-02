@@ -3,6 +3,7 @@ import { EventEmitter } from 'node:events';
 import fs from 'node:fs';
 import path from 'node:path';
 import { FLACDecoder } from '@wasm-audio-decoders/flac';
+import { OggOpusTimeline } from './oggOpusTimeline.js';
 
 export const AUDIO_ENCODINGS = Object.freeze({
   LINEAR16: 'LINEAR16',
@@ -18,7 +19,8 @@ const MAX_FLAC_OUTPUT_BYTES = 4 * 1024 * 1024;
 const MAX_OGG_PAGE_BYTES = 27 + 255 + (255 * 255);
 // Retain a bounded startup prefix until the first PCM reaches ASR. A microphone
 // page can arrive between ffmpeg's early EOF and its close callback, so this
-// prefix must cover more than just the two Opus header pages.
+// prefix must cover more than just the two Opus header pages. Partial pages
+// wait in the bounded container parser until they can be validated and sent.
 const MAX_OGG_PRIMER_BYTES = 2 * MAX_OGG_PAGE_BYTES;
 const MAX_OGG_STARTUP_RESTARTS = 2;
 
@@ -109,7 +111,7 @@ function decoderArgs(sampleRate) {
  * page boundaries so end-of-input can distinguish a complete Ogg stream from
  * a prefix that ffmpeg happens to decode successfully.
  */
-function parseOggPages(buffer, state, force = false) {
+function parseOggPages(buffer, state, force = false, pages = null) {
   let offset = 0;
   while (buffer.length - offset > 0) {
     const remaining = buffer.length - offset;
@@ -147,6 +149,7 @@ function parseOggPages(buffer, state, force = false) {
     }
     state.oggPages += 1;
     if ((buffer[offset + 5] & 0x04) !== 0) state.oggSawEos = true;
+    pages?.push(buffer.subarray(offset, pageEnd));
     offset = pageEnd;
   }
   if (force && buffer.length - offset > 0) {
@@ -249,6 +252,7 @@ export class StreamingAudioDecoder extends EventEmitter {
     // Codec/container numbers only: never retain comments, serial IDs or audio
     // in diagnostics. Three page headers distinguish startup format failures.
     this.oggPageInfo = [];
+    this.oggTimeline = new OggOpusTimeline();
     this.oggSawEos = false;
     this.oggPrimer = Buffer.alloc(0);
     this.oggPrimerComplete = true;
@@ -382,8 +386,9 @@ export class StreamingAudioDecoder extends EventEmitter {
   /**
    * A clean decoder exit before any PCM can be replayed without dropping or
    * duplicating speech, including an audio page that raced the close callback.
-   * Requeue ALL retained input, including unsent/partial pages. Never replay a
-   * truncated primer, EOS-marked input, or audio already delivered to ASR.
+   * Requeue all complete pages already sent; an incomplete page stays in the
+   * parser until its remainder arrives. Never replay a truncated primer,
+   * EOS-marked input, or audio already delivered to ASR.
    */
   _rewindOggStartup() {
     if (this.encoding !== AUDIO_ENCODINGS.OGG_OPUS
@@ -432,38 +437,45 @@ export class StreamingAudioDecoder extends EventEmitter {
     if (chunk.length === 0) return true;
     this._capture(chunk);
     if (this.encoding === AUDIO_ENCODINGS.FLAC) return this._writeFlac(chunk);
-    if (this.queuedBytes + chunk.length > MAX_PENDING_INPUT_BYTES) {
+    if (this.queuedBytes + this.oggBuffer.length + chunk.length > MAX_PENDING_INPUT_BYTES) {
       const err = new AudioDecodeError(`Audio decoder input queue exceeded ${MAX_PENDING_INPUT_BYTES} bytes`);
       this._fail(err);
       throw err;
-    }
-    // Retain an exact startup prefix, or disable replay entirely on overflow.
-    // A silently truncated prefix must never be passed to a replacement child.
-    if (this.decodedBytes === 0 && this.oggPrimerComplete) {
-      if (this.oggPrimer.length + chunk.length <= MAX_OGG_PRIMER_BYTES) {
-        this.oggPrimer = Buffer.concat([this.oggPrimer, chunk]);
-      } else {
-        this.oggPrimerComplete = false;
-        this.oggPrimer = Buffer.alloc(0);
-      }
     }
     // A header-only process exit clears `child` but leaves the listening turn
     // open. Restart only on fresh audio, avoiding a process-respawn loop while
     // the robot is quietly waiting for an answer.
     if (!this.child) this._startOggProcess();
+    const pages = [];
     try {
       this.oggBuffer = this.oggBuffer.length === 0
         ? Buffer.from(chunk)
         : Buffer.concat([this.oggBuffer, chunk]);
-      this.oggBuffer = parseOggPages(this.oggBuffer, this);
+      this.oggBuffer = parseOggPages(this.oggBuffer, this, false, pages);
     } catch (err) {
       this._fail(err);
       throw err;
     }
-    for (let offset = 0; offset < chunk.length; offset += MAX_INPUT_CHUNK_BYTES) {
-      this.queue.push(chunk.subarray(offset, Math.min(offset + MAX_INPUT_CHUNK_BYTES, chunk.length)));
+    for (const page of pages) {
+      const normalized = this.oggTimeline.normalize(page);
+      if (normalized !== page && this.oggTimeline.normalizedPages === 1) {
+        this.log.info?.('Normalized Ogg Opus timestamp origin');
+      }
+      // Replay the exact bytes sent to ffmpeg, including repaired timestamps.
+      // A partial page stays in oggBuffer until its remaining bytes arrive.
+      if (this.decodedBytes === 0 && this.oggPrimerComplete) {
+        if (this.oggPrimer.length + normalized.length <= MAX_OGG_PRIMER_BYTES) {
+          this.oggPrimer = Buffer.concat([this.oggPrimer, normalized]);
+        } else {
+          this.oggPrimerComplete = false;
+          this.oggPrimer = Buffer.alloc(0);
+        }
+      }
+      for (let offset = 0; offset < normalized.length; offset += MAX_INPUT_CHUNK_BYTES) {
+        this.queue.push(normalized.subarray(offset, Math.min(offset + MAX_INPUT_CHUNK_BYTES, normalized.length)));
+      }
+      this.queuedBytes += normalized.length;
     }
-    this.queuedBytes += chunk.length;
     this._flush();
     return this.queuedBytes < MAX_PENDING_INPUT_BYTES;
   }
