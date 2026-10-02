@@ -509,10 +509,6 @@ export class ParakeetASRSession {
     this.finalizeReason = 'max-speech';
     this.pcmPending = Buffer.alloc(0);
     await this._finalize({ mode: 'cancel' });
-    // The reference reports MAX_SPEECH_TIMEOUT when its incremental seam supplies
-    // the words at this point; the batch result this session resolves with carries
-    // the same annotation so the robot sees the same turn shape.
-    if (this.lastResult && !this.lastResult.annotation) this.lastResult.annotation = 'MAX_SPEECH_TIMEOUT';
     return this.lastResult ? this.lastResult.text : undefined;
   }
 
@@ -684,9 +680,10 @@ export class ParakeetASRSession {
    * the reference's batch behavior).
    */
   _emitFinalResult(transcript, confidence) {
-    // Deliver exactly one wire EOS before the transcript, including when the
-    // provisional silence boundary was held back for a possible relisten.
-    this._emitEOS();
+    // A max-speech timer settles the transcript without a speech endpoint.
+    // Other boundaries deliver one EOS, including a provisional silence boundary
+    // held back for a possible relisten.
+    if (this.finalizeReason !== 'max-speech') this._emitEOS();
     const text = transcript || '';
     const result = {
       text,
@@ -697,6 +694,9 @@ export class ParakeetASRSession {
     if (text && this.fastEOSRegex && this.fastEOSRegex.test(text)) {
       result.annotation = 'FAST_EOS';
     }
+    // Set this before onResult/start() observe it; finalizeNow's continuation
+    // runs after the start() consumer and is too late to annotate that result.
+    if (this.finalizeReason === 'max-speech' && !result.annotation) result.annotation = 'MAX_SPEECH_TIMEOUT';
     this.lastResult = result;
     // Where a turn's wall clock actually goes. The pause a speaker notices is the
     // silence wait plus the recognition round trip; logging only a total leaves

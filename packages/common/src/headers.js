@@ -20,7 +20,7 @@ export function readTrace(req) {
     transId: h[TraceHeaders.transId],
     robotId: h[TraceHeaders.robotId],
     loggingConfig: h[TraceHeaders.loggingConfig],
-    turnId: typeof turnId === 'string' && TURN_ID.test(turnId) ? turnId : undefined,
+    ...(typeof turnId === 'string' && TURN_ID.test(turnId) ? { turnId } : {}),
   };
 }
 

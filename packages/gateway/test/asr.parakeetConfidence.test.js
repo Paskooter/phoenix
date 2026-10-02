@@ -65,6 +65,25 @@ test('a server-reported confidence is passed through, not overwritten', async ()
   assert.equal(result.confidence, 0.93);
 });
 
+test('max-speech results carry their annotation and confidence before delivery, without EOS', async () => {
+  await withServer({ transcript: 'unfinished request', confidence: 0.42 }, async (url) => {
+    const session = new ParakeetASRSession(url, { lang: 'en-US' }, SILENT_LOG);
+    let endpoints = 0;
+    let delivered;
+    session.onEndOfSpeech(() => { endpoints += 1; });
+    session.onResult((result) => { delivered = { ...result }; });
+    const started = session.start().then((result) => ({ ...result }));
+    const pcm = speech();
+    for (let i = 0; i < pcm.length; i += 3200) session.provideAudio(pcm.slice(i, i + 3200));
+    const finalized = session.finalizeNow();
+    const expected = { text: 'unfinished request', confidence: 0.42, annotation: 'MAX_SPEECH_TIMEOUT' };
+    assert.deepEqual(await started, expected);
+    assert.deepEqual(delivered, expected);
+    assert.equal(await finalized, expected.text);
+    assert.equal(endpoints, 0);
+  });
+});
+
 test('confidence nested in the hypothesis is also honoured', async () => {
   const result = await withServer(
     { transcript: { text: 'hello', confidence: 0.42 } },
