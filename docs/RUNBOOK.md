@@ -697,8 +697,13 @@ set. Keys stay server-side. The default model is
 No robot OTA is required.
 
 The first refresh runs asynchronously after Lasso starts; it can take several
-minutes to prepare all eleven categories. Jibo uses RSS for any category without
-ready briefings. Changing a key or model restarts Lasso and permits an immediate
+minutes to prepare all eleven categories. The worker publishes each story as soon
+as it is ready and takes turns between categories, starting with general news.
+This is one shared **United States national edition**, with US publisher and
+US location-entity filters in every category. The legacy international category
+also uses the domestic selection. There are no per-robot location editions.
+Categories without ready briefings are skipped; worldwide RSS is not substituted.
+Changing a key or model restarts Lasso and permits an immediate
 retry without resetting that day's spending ledger. The feature flag also
 restarts the personal report skill. Missing or rejected keys never stop Lasso's
 other services.
@@ -707,7 +712,7 @@ For the operator, `GET /v1/news_briefings/status` on the **private Lasso listene
 reports ready story counts, refresh errors, next refresh times and daily spending.
 It contains no keys or full source articles. Do not add a public nginx route for
 this listener. `GET /v1/news_briefings?sourceID=42206` returns the cached science
-edition; HTTP 503 means the caller should use the existing feed. GET and HEAD
+edition; HTTP 503 means that category has no ready US briefing. GET and HEAD
 never trigger provider or model calls.
 
 Native deployments keep the cache and budget at
@@ -722,7 +727,7 @@ UTC daily cap is a ceiling, not expected usage. A custom non-OpenRouter model
 endpoint must independently enforce the same token-price limit.
 
 Back up the cache together with other durable state. A corrupt/unwritable file
-pauses paid refreshes and falls back to RSS; inspect the service log and restore
+pauses paid refreshes; inspect the service log and restore
 the last good file. Do not delete the spending ledger to force a same-day retry.
 To roll back speech behavior, turn **News briefings** off and apply the restarts.
 The existing RSS endpoint and original speech templates remain available.

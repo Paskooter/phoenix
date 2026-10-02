@@ -4,6 +4,7 @@ import { newsHttpUrl, plainNewsText, newsWordCount, classifyNewsContent } from '
 // Provider-specific requests stop here. The worker consumes normalized articles,
 // so a later LumenFeed adapter does not change generation, storage, or the skill.
 export const WORLD_NEWS_ENDPOINT = 'https://api.worldnewsapi.com/search-news';
+export const NEWS_EDITION = 'us-national-v1';
 const PUBLISHERS = {
   'bbc.co.uk': 'BBC News', 'bbc.com': 'BBC News', 'apnews.com': 'Associated Press',
   'reuters.com': 'Reuters', 'npr.org': 'NPR', 'cnn.com': 'CNN', 'cbsnews.com': 'CBS News',
@@ -36,14 +37,15 @@ export async function boundedJson(response, maxBytes = 2 * 1024 * 1024) {
 export function worldNewsQuery(category, config, now) {
   const query = new URLSearchParams({
     language: 'en', number: String(config.candidatesPerCategory),
+    'source-country': 'us', entities: 'LOC:USA',
     sort: 'publish-time', 'sort-direction': 'DESC',
     'earliest-publish-date': new Date(now - config.maxAgeMs).toISOString().slice(0, 19).replace('T', ' '),
     'latest-publish-date': new Date(now).toISOString().slice(0, 19).replace('T', ' '),
   });
-  if (category === 'national') query.set('source-countries', config.country);
-  else if (category === 'international') query.set('text', 'international OR diplomacy OR global');
-  else if (category === 'strange') query.set('text', 'unusual OR quirky OR bizarre');
-  else if (category !== 'general') query.set('categories', category);
+  // Publisher country alone does not make an article domestic: also require
+  // a US location entity. Legacy world/general IDs now use this US selection.
+  if (category === 'strange') query.set('text', 'unusual OR quirky OR bizarre');
+  else if (!['general', 'national', 'international'].includes(category)) query.set('categories', category);
   return query;
 }
 
@@ -104,6 +106,7 @@ export function createWorldNewsProvider(config, { fetchImpl = fetch } = {}) {
       const data = await boundedJson(response);
       if (!Array.isArray(data.news)) throw new Error('Invalid World News response');
       return { articles: data.news.slice(0, config.candidatesPerCategory)
+        .filter(raw => raw && String(raw.source_country || '').toLowerCase() === 'us')
         .map(raw => normalizeWorldArticle(raw, { now, maxAgeMs: config.maxAgeMs })).filter(Boolean),
       quotaLeft: response.headers.get('x-api-quota-left') };
     },

@@ -286,8 +286,14 @@ worker summarizes it with the pinned OpenRouter model
 `deepseek/deepseek-v4.1-flash`. All eleven categories refresh every twelve hours.
 Each has up to five prepared stories, shared across people and robots. The
 provider adapter is separate from generation and storage so it can be replaced.
-The legacy `/v1/ap_news` contract remains the fallback for each unavailable
-category and the default when the feature is disabled.
+Every category now uses the same US national edition: both US publishers and a
+US location entity are required. The legacy international category uses domestic
+selection too. Changing editions drops worldwide snapshots but retains daily
+spend and reusable article drafts. Each validated story becomes readable during
+the refresh, with candidates interleaved across categories to reduce cold-start
+waiting. An unavailable category is skipped, so worldwide RSS cannot reappear
+during warm-up. The legacy `/v1/ap_news` contract remains the default when the
+feature is disabled.
 
 Each story has three sentences targeting 50–60 words (validated at 48–62), with
 publisher attribution, source paragraph references, and no model-supplied markup.

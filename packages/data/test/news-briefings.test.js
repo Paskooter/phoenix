@@ -34,9 +34,13 @@ function fixture(t, overrides = {}) {
 
 test('World News queries all categories within a bounded date window; credentials only in headers', async () => {
   const config = newsBriefingConfig(env);
-  assert.equal(worldNewsQuery('national', config, newsTime).get('source-countries'), 'us');
+  for (const category of ['general', 'national', 'international', 'technology', 'business', 'sports', 'science', 'health', 'politics', 'strange', 'entertainment']) {
+    const query = worldNewsQuery(category, config, newsTime);
+    assert.equal(query.get('source-country'), 'us');
+    assert.equal(query.get('entities'), 'LOC:USA');
+  }
   assert.equal(worldNewsQuery('technology', config, newsTime).get('categories'), 'technology');
-  assert.match(worldNewsQuery('international', config, newsTime).get('text'), /diplomacy/);
+  assert.equal(worldNewsQuery('international', config, newsTime).has('text'), false);
   assert.match(worldNewsQuery('strange', config, newsTime).get('text'), /quirky/);
   assert.equal(worldNewsQuery('general', config, newsTime).has('categories'), false);
   const provider = createWorldNewsProvider(config, { fetchImpl: async (url, options) => {
@@ -45,7 +49,8 @@ test('World News queries all categories within a bounded date window; credential
     assert.ok(!url.href.includes('fixture-world-key'));
     assert.equal(options.headers['x-api-key'], env.WORLD_NEWS_API_KEY);
     assert.equal(options.redirect, 'error');
-    return Response.json({ news: [worldArticle, null, { ...worldArticle, text: 'Just a headline.' }] });
+    return Response.json({ news: [worldArticle, null, { ...worldArticle, text: 'Just a headline.' },
+      { ...worldArticle, source_country: 'in' }, { ...worldArticle, source_country: undefined }] });
   } });
   const result = await provider.fetchCategory('science', { now: newsTime });
   assert.equal(result.articles.length, 1);
@@ -151,6 +156,22 @@ test('known changed sources cannot fall back to their old generated version', as
   await worker.refresh();
   assert.equal(worker.items(42206).length, 0);
   assert.equal(worker.items(42208).length, 0);
+});
+
+test('changing the shared edition drops worldwide snapshots without resetting paid usage', async t => {
+  const f = fixture(t);
+  await f.worker.refresh();
+  const saved = JSON.parse(readFileSync(f.config.file));
+  delete saved.edition; // pre-US release
+  writeFileSync(f.config.file, JSON.stringify(saved));
+  const restarted = createNewsBriefingWorker(f.options);
+  t.after(() => restarted.stop());
+  assert.deepEqual(restarted.items(42206), []);
+  assert.deepEqual(restarted.status().budget, saved.budget);
+  await restarted.refresh();
+  assert.equal(restarted.items(42206).length, 1);
+  assert.equal(f.calls.model, 1, 'the same now-US-selected article can reuse its validated draft');
+  assert.equal(restarted.status().edition, 'us-national-v1');
 });
 
 test('failed refreshes retain good snapshots only until the original freshness deadline', async t => {
@@ -263,4 +284,33 @@ test('fixing credentials allows a retry without resetting daily spending', async
   await fixed.refresh();
   assert.equal(f.calls.provider, 2);
   assert.ok(fixed.status().budget.points > 3.2);
+});
+
+test('first stories become readable while later candidates are still generating, across categories', async t => {
+  const f = fixture(t);
+  let release; let reached;
+  const paused = new Promise(resolve => { reached = resolve; });
+  const barrier = new Promise(resolve => { release = resolve; });
+  const order = [];
+  const worker = createNewsBriefingWorker({ ...f.options, provider: {
+    ...f.options.provider, fetchCategory: async category => ({ articles: [
+      article({ url: `https://nasa.gov/${category}-one` }), article({ url: `https://nasa.gov/${category}-two` }),
+    ] }),
+  }, generate: async (source, category, context) => {
+    order.push(category);
+    if (order.length === 3) { reached(); await barrier; }
+    return f.options.generate(source, category, context);
+  } });
+  t.after(() => worker.stop());
+  const refresh = worker.refresh();
+  await paused;
+  try {
+    assert.notEqual(order[0], order[1], 'the first category cannot exhaust all its candidates first');
+    assert.equal(worker.items(42206).length, 1);
+    assert.equal(worker.items(42208).length, 1);
+    const saved = JSON.parse(readFileSync(f.config.file));
+    assert.equal(saved.categories[42206].items.length, 1, 'an interruption retains the first ready story');
+  } finally { release(); await refresh; }
+  assert.equal(worker.items(42206).length, 2);
+  assert.equal(worker.items(42208).length, 2);
 });

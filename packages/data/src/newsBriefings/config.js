@@ -23,7 +23,6 @@ export function newsBriefingConfig(env = process.env) {
   return {
     enabled: briefingsEnabled(env), provider: env.PHOENIX_NEWS_PROVIDER || 'worldnews',
     apiKey: env.WORLD_NEWS_API_KEY || '', llm, openRouter,
-    country: /^[a-z]{2}$/i.test(env.PHOENIX_NEWS_COUNTRY || '') ? env.PHOENIX_NEWS_COUNTRY.toLowerCase() : 'us',
     file: env.PHOENIX_NEWS_BRIEFINGS_FILE || join(env.PHOENIX_DATA_DIR
       || fileURLToPath(new URL('../../data/', import.meta.url)), 'news/briefings.json'),
     intervalMs: number(env.PHOENIX_NEWS_REFRESH_HOURS, 12, 6, 24) * 3600000,

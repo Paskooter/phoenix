@@ -5,7 +5,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { NEWS_BANNED_KEYWORDS } from '@phoenix/contracts';
 import { NewsMimLogic, newsParse } from '../src/report/news.js';
 
 const CLEAN_SUMMARY = 'A clean summary about ordinary things.';
@@ -109,11 +109,7 @@ function parserHeadlines(summary) {
 }
 
 test('S-10 BANNED_KEYWORDS is the exact 361-word set from the pinned NewsParse.ts', () => {
-  const moduleSource = readFileSync(new URL('../src/report/news.js', import.meta.url), 'utf8');
-  const declaration = moduleSource.match(/const BANNED_KEYWORDS = new Set\(\[[\s\S]*?\]\);/);
-  assert.ok(declaration, 'BANNED_KEYWORDS declaration');
-  const keywords = [...declaration[0].matchAll(/"((?:\\.|[^"\\])*)"/g)]
-    .map((match) => JSON.parse('"' + match[1] + '"'));
+  const keywords = [...NEWS_BANNED_KEYWORDS];
   assert.equal(keywords.length, 361);
   assert.equal(new Set(keywords).size, 361);
   const digest = createHash('sha256').update([...new Set(keywords)].sort().join('\n')).digest('hex');

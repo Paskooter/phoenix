@@ -14,7 +14,7 @@ export const newsDraft = {
 export const newsTime = Date.parse('2026-10-02T12:00:00Z');
 export const worldArticle = {
   id: 1, title: 'A satellite maps coastal waters', url: 'https://www.nasa.gov/fixture-news',
-  publish_date: '2026-10-02 10:00:00',
+  publish_date: '2026-10-02 10:00:00', source_country: 'us',
   text: newsSpeech.sentences.join(' ') + ' ' + newsSpeech.sentences.join(' '),
 };
 export const newsBriefing = {

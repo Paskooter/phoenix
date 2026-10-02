@@ -263,7 +263,7 @@ export class LassoClient {
       if (/^(true|1)$/i.test(process.env.PHOENIX_NEWS_BRIEFINGS_ENABLED || '') && sourceID) {
         try {
           // This endpoint only reads a pre-generated snapshot. Keep a short
-          // timeout so an unavailable briefing never delays the RSS fallback.
+          // timeout so an unavailable category cannot delay the other stories.
           const response = await fetch(`${lassoBase()}/v1/news_briefings?sourceID=${sourceID}`, {
             headers: requestHeaders(data), signal: AbortSignal.timeout(1800), redirect: 'error',
           });
@@ -276,7 +276,12 @@ export class LassoClient {
           briefing.items.forEach(validateNewsBriefing);
           newsBase.briefings = briefing.items;
           return newsBase;
-        } catch { /* A missing, stale or invalid snapshot falls back per category. */ }
+        } catch {
+          // The shared edition is US-only. The legacy RSS feeds are worldwide;
+          // using them here would silently undo that selection while warming up.
+          newsBase.briefings = [];
+          return newsBase;
+        }
       }
       try {
         const res = await requestLasso('/v1/ap_news', { sourceID }, data);

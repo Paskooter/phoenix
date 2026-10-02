@@ -50,7 +50,7 @@ test('briefing cards show headline, source, category and close the last card', a
   assert.equal(view.defaultSelect.removeAll, true);
 });
 
-test('Lasso reads shared briefings first, falls back on unavailable or malformed snapshots, and preserves opt-out behavior', async t => {
+test('Lasso skips unavailable shared categories without reading worldwide RSS and preserves opt-out behavior', async t => {
   const prior = { NET_lasso: process.env.NET_lasso, PHOENIX_NEWS_BRIEFINGS_ENABLED: process.env.PHOENIX_NEWS_BRIEFINGS_ENABLED };
   let mode = 'ready';
   const calls = [];
@@ -80,8 +80,8 @@ test('Lasso reads shared briefings first, falls back on unavailable or malformed
   assert.deepEqual(calls.splice(0), ['/v1/news_briefings']);
   for (mode of ['unavailable', 'invalid']) {
     const [item] = await LassoClient.fetchAPNews(data, prefs);
-    assert.ok(item.data.feed.entry);
-    assert.deepEqual(calls.splice(0), ['/v1/news_briefings', '/v1/ap_news']);
+    assert.deepEqual(item.briefings, []);
+    assert.deepEqual(calls.splice(0), ['/v1/news_briefings']);
   }
   process.env.PHOENIX_NEWS_BRIEFINGS_ENABLED = 'false';
   await LassoClient.fetchAPNews(data, prefs);
