@@ -93,7 +93,7 @@ function decoderArgs(sampleRate) {
   return [
     '-nostdin',
     '-hide_banner',
-    '-loglevel', 'error',
+    '-loglevel', 'warning',
     '-f', 'ogg',
     '-i', 'pipe:0',
     '-ac', '1',
@@ -131,6 +131,20 @@ function parseOggPages(buffer, state, force = false) {
       throw new AudioDecodeError('OGG page exceeds the decoder limit');
     }
     if (pageEnd > buffer.length) break;
+    if (state.oggPageInfo.length < 3) {
+      const body = buffer.subarray(segmentTableEnd, pageEnd);
+      const opusHead = body.subarray(0, 8).toString('ascii') === 'OpusHead';
+      state.oggPageInfo.push({
+        bytes: pageEnd - offset, flags: buffer[offset + 5],
+        sequence: buffer.readUInt32LE(offset + 18),
+        granule: buffer.readBigInt64LE(offset + 6).toString(),
+        segments: segmentCount,
+        ...(opusHead && body.length >= 19 ? {
+          opusVersion: body[8], channels: body[9], preSkip: body.readUInt16LE(10),
+          inputRate: body.readUInt32LE(12), mapping: body[18],
+        } : {}),
+      });
+    }
     state.oggPages += 1;
     if ((buffer[offset + 5] & 0x04) !== 0) state.oggSawEos = true;
     offset = pageEnd;
@@ -232,6 +246,9 @@ export class StreamingAudioDecoder extends EventEmitter {
     this.stderr = Buffer.alloc(0);
     this.oggBuffer = Buffer.alloc(0);
     this.oggPages = 0;
+    // Codec/container numbers only: never retain comments, serial IDs or audio
+    // in diagnostics. Three page headers distinguish startup format failures.
+    this.oggPageInfo = [];
     this.oggSawEos = false;
     this.oggPrimer = Buffer.alloc(0);
     this.oggPrimerComplete = true;
@@ -344,6 +361,11 @@ export class StreamingAudioDecoder extends EventEmitter {
         this._settleFinishSuccess();
         this.emit('finish');
       } else {
+        if (this.decodedBytes === 0) this.log.warn?.('Audio decoder exited without PCM', {
+          oggPages: this.oggPages, pages: this.oggPageInfo,
+          inputEnded: this.inputEnded, stdinEnded: child.stdin.writableEnded,
+          diagnostic: detail,
+        });
         // A clean exit does not prove the robot sent EOS: startup exits can race
         // incoming pages. Recover only while every byte is retained and no PCM
         // has reached ASR; otherwise report the actual container diagnostics.
