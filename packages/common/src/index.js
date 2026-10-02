@@ -29,6 +29,7 @@ export {
   verifyVoiceTurnTelemetryProof,
 } from './voiceTurnObservability.js';
 export { createService, sendText, sendJson, readJson, legacyJsonError } from './service.js';
+export { createDeploymentActivity } from './deploymentActivity.js';
 export {
   purgeNeedles, purgeCollections, backupBeforePurge, purgeStamp, purgeBackupDir, deletionBackupDays, pruneDeletionBackups,
   requireInternalPeer, adminPurgeRoutes,

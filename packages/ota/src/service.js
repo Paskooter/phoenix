@@ -32,7 +32,7 @@
 import { createReadStream } from 'node:fs';
 import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
 import { pipeline } from 'node:stream/promises';
-import { createService, SIGV4_ERRORS, SigV4Error, verifySigV4 } from '@phoenix/common';
+import { createService, createDeploymentActivity, SIGV4_ERRORS, SigV4Error, verifySigV4 } from '@phoenix/common';
 import { parseTarget, sendAmz, sendAmzError, sendBoom, credentialsFrom } from './awsJson.js';
 import {
   AUTHORIZED_UNDER_ADMIN,
@@ -336,7 +336,12 @@ export function createOtaService({
     return `${base}/ota/package?id=${encodeURIComponent(entry.id)}&expires=${expires}&signature=${signature}`;
   };
 
-  const dispatch = async ({ req, res, body, log }) => {
+  const deploymentActivity = createDeploymentActivity('ota');
+  const unavailable = res => {
+    res.writeHead(503, { 'content-type': 'text/plain; charset=utf-8', 'retry-after': '5', 'cache-control': 'no-store' });
+    res.end('Server restarting; retry shortly');
+  };
+  const dispatchOperation = async ({ req, res, body, log }) => {
     const op = parseTarget(req);
     const baseUrl = baseFor(req);
     const urlForEntry = (entry) => packageUrl(entry, baseUrl);
@@ -450,6 +455,13 @@ export function createOtaService({
       return void sendAmzError(res, 500, 'InternalFailure', err.message);
     }
   };
+  const dispatch = async context => {
+    if (parseTarget(context.req) !== 'CreateUpdate') return dispatchOperation(context);
+    const end = deploymentActivity.begin('ota-upload');
+    if (!end) return unavailable(context.res);
+    try { return await dispatchOperation(context); }
+    finally { end(); }
+  };
   // CreateUpdate ships the package as the request entity, so its route must bypass the JSON
   // parser and hand the handler the raw stream (the source routed it to a stream handler).
   dispatch.rawBody = (req) => parseTarget(req) === 'CreateUpdate';
@@ -480,6 +492,8 @@ export function createOtaService({
         res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
         return void res.end('no such package');
       }
+      const end = deploymentActivity.begin('ota-download');
+      if (!end) return unavailable(res);
       res.writeHead(200, {
         'content-type': 'application/octet-stream',
         'content-length': entry.length,
@@ -490,9 +504,11 @@ export function createOtaService({
       } catch (err) {
         // Client hung up mid-download, or read error after headers were sent — nothing to do but log.
         log.warn?.('ota package stream interrupted', { id, error: err.message });
-      }
+      } finally { end(); }
     },
   };
 
-  return createService({ name: 'ota', routes });
+  const service = createService({ name: 'ota', routes });
+  service.server.once('close', () => deploymentActivity.stop());
+  return service;
 }

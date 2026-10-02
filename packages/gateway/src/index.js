@@ -12,6 +12,7 @@
 import { WebSocketServer } from 'ws';
 import {
   createService,
+  createDeploymentActivity,
   logger,
   jwt,
   parseServiceArgs,
@@ -119,6 +120,7 @@ export async function createGateway(config = loadConfig()) {
   config = await config;
   initializeVoiceTurnStorage();
   const log = logger('gateway');
+  const deploymentActivity = createDeploymentActivity('hub', { log });
   const components = buildComponents(config);
   const settingsSkills = config.skills.filter(skill => !!skill.settings);
   const listSkills = () => ({ skills: config.skills });
@@ -152,6 +154,16 @@ export async function createGateway(config = loadConfig()) {
     },
   });
 
+  service.server.once('close', () => deploymentActivity.stop());
+  const admit = (info, cb) => {
+    const end = deploymentActivity.begin('voice');
+    if (!end) return cb(false, 503, 'Server restarting; retry shortly', { 'Retry-After': '5' });
+    info.req._endDeploymentActivity = end;
+    // Failed upgrades never get a transaction. Accepted connections release
+    // their count when tx.done settles, including cancellation and failures.
+    info.req.socket.once('close', () => { if (!info.req._deploymentConnected) end(); });
+    cb(true, 200, '');
+  };
   const wss = new WebSocketServer({
     server: service.server,
     verifyClient: (info, cb) => {
@@ -161,22 +173,23 @@ export async function createGateway(config = loadConfig()) {
       const pathOk = LISTEN_PATHS.has(url) || PROACTIVE_PATHS.has(url);
       if (config.disableAuth) {
         if (!pathOk) return cb(false, 404, `WebSocket url '${info.req.url}' has no handler`);
-        return cb(true, 200, '');
+        return admit(info, cb);
       }
       const { error, auth } = checkAuthentication(info.req.headers, config.hubTokenSecret);
       if (error) { log.warn('ws auth failed', { error }); return cb(false, 401, error); }
       info.req._auth = auth;
       if (!pathOk) return cb(false, 404, `WebSocket url '${info.req.url}' has no handler`);
-      if (!config.accountUrl) return cb(true, 200, ''); // shared-secret-only mode
+      if (!config.accountUrl) return admit(info, cb); // shared-secret-only mode
       // Per-robot account validation (async — ws supports a deferred cb).
       verifyAgainstAccount(auth, config.accountUrl, log, { timeoutMs: config.accountVerifyTimeoutMs }).then((r) => {
         if (r.error) { log.warn('ws account check failed', { error: r.error }); return cb(false, 401, r.error); }
-        cb(true, 200, '');
+        admit(info, cb);
       });
     },
   });
 
   wss.on('connection', (ws, req) => {
+    req._deploymentConnected = true;
     ws._auth = req._auth || null;
     ws._jiboHeaders = req.headers;
     ws._remoteAddress = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').toString();
@@ -224,6 +237,7 @@ export async function createGateway(config = loadConfig()) {
       const wrote = response.write({ type: ResponseType.ERROR, msgID: newMsgId(), ts: now(), final: true, data: { code: err.code, message: err.message }, timings: { total: now() - tx.startTime } });
       if (wrote !== false) tx.markErrorResponse?.();
     });
+    tx.done.then(req._endDeploymentActivity, req._endDeploymentActivity);
   });
 
   return { service, wss, components };

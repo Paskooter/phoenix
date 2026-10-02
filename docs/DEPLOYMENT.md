@@ -1406,6 +1406,37 @@ the worktree creation, lockfile-only production dependency install, atomic
 symlink switch, service restart, and loopback health sweep. It restores the
 previous symlink automatically if restart or health checks fail.
 
+All agents must deploy through this script. It stages the release before touching
+the running service, takes a shared deployment lock, and waits for every active
+Hub voice/proactive transaction and OTA upload/download to finish. It then
+observes **60 continuous seconds without activity**. Each new turn or transfer
+resets the minute. Missing/stale telemetry or a one-hour timeout aborts activation;
+the script never forces a restart because it has waited too long.
+
+After the quiet minute, a short renewable admission lease prevents a new turn or
+transfer from racing the restart. Hub and OTA must acknowledge the lease before
+activation. During this brief window new work receives 503 with `Retry-After: 5`;
+already admitted work is never cancelled by the guard. The lease stays active
+through startup checks and rollback, is removed on completion, and expires after
+15 seconds if the deployer crashes. Health checks continue to work. Runtime
+counters contain only counts, timestamps and process identity under
+`PHOENIX_RUNTIME_DIR/deployment/`. Set `PHOENIX_DEPLOY_RUNTIME_DIR` for the deploy
+command if the launcher's runtime directory differs from `/var/lib/phoenix/run`.
+
+The first rollout from an older release bootstraps by observing its persisted
+voice-turn records and established Hub/OTA connections for the same full minute,
+then rechecking immediately before activation. Older processes cannot acknowledge
+the new admission lease; subsequent deployments require the full protocol. OTA
+protection covers server transfers, including backpressure and upload processing.
+It cannot observe a robot's local flashing/reboot after the download; the quiet
+minute also provides a gap after the last transfer. Routine update checks with no
+download do not count as active transfers.
+
+`PHOENIX_DEPLOY_NO_RESTART=1` stages only: it leaves both the live service and
+`current` untouched. Do not deploy with direct service restarts, console restart
+commands or manual symlink changes. The console's operator-initiated service
+restart control is separate from this release deployment workflow.
+
 This is the recommended native layout (replace `/srv/phoenix` with the stable
 host path chosen for the installation):
 
@@ -1469,7 +1500,10 @@ values. Do not use `git clean`, `git reset --hard`, or a blind recursive copy
 over the old checkout: doing so can erase real robot media, account records, or
 the instance's guide/branding overlay.
 
-Create the first active release from the clean manager checkout:
+For a **first installation only**, while the unit is stopped and `current` does
+not exist, stage the initial release and start it once. No running installation
+exists yet to provide activity counters. This offline bootstrap is the only
+manual link creation; use the guarded deployment command for every later release.
 
 ```sh
 cd /srv/phoenix
@@ -1478,7 +1512,10 @@ sudo PHOENIX_RELEASE_ROOT=/srv/phoenix/releases \
   PHOENIX_CURRENT_LINK=/srv/phoenix/current \
   PHOENIX_SERVICE=phoenix-native.service \
   PHOENIX_NPM_BIN="$(command -v npm)" \
+  PHOENIX_DEPLOY_NO_RESTART=1 \
   scripts/deploy-native-release.sh origin/main
+sudo ln -s "/srv/phoenix/releases/$(git rev-parse origin/main)" /srv/phoenix/current
+sudo systemctl start phoenix-native.service
 ```
 
 If Node came from NVM or another per-user installation, `sudo` may intentionally
@@ -1926,18 +1963,21 @@ robot trust path, remains an operator acceptance test.
      /srv/phoenix/scripts/deploy-native-release.sh <reviewed-commit-or-origin/main>
    ```
 
-   The script installs dependencies only in the new detached worktree, switches
-   `current` atomically, and reverts that switch if any local `9000`, `9010`,
-   `9011`, or `9012` health endpoint does not recover. It never modifies
-   `/var/lib/phoenix` or `/etc/phoenix`.
+   The script installs dependencies only in the new detached worktree, waits for
+   a full quiet minute, switches `current` atomically, and reverts that switch if
+   any local `9000`, `9010`, `9011`, or `9012` health endpoint does not recover.
+   It writes only temporary deployment coordination under the runtime directory;
+   durable application data and `/etc/phoenix` remain untouched.
 4. Validate `.env`, all public URL values, the region/SAN list, and OTA package
    paths. Never change `HUB_TOKEN_SECRET` casually; doing so invalidates existing
    hub tokens and must be coordinated with robot reauthentication.
 5. Run `docker compose config --quiet`, build, and start the staged revision.
    Run the local health sweep and the nginx/WS/OTA checks before declaring it
    live.
-6. Switch the `current` symlink or checkout path only after checks pass, then
-   restart the systemd unit. Reload nginx only after `nginx -t` succeeds.
+6. Native releases are already activated and health-checked by the guarded script
+   in step 3; do not switch the symlink or restart the unit again. For other
+   launchers, preserve the same activity/quiet-window guard before activation.
+   Reload nginx only after `nginx -t` succeeds.
 7. If the serving certificate was reissued under the **same CA**, reload nginx.
    Do not regenerate the CA. If the CA changes, re-provision every robot before
    removing the old trust anchor.

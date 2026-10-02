@@ -1,0 +1,41 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import http from 'node:http';
+import { once } from 'node:events';
+import { mkdtempSync, readFileSync, writeFileSync, rmSync, openSync, ftruncateSync, closeSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { setTimeout as delay } from 'node:timers/promises';
+import { createOtaService } from '../src/service.js';
+
+test('OTA download stays active through backpressure; drain prevents new downloads and uploads', { timeout: 5000 }, async t => {
+  const directory = mkdtempSync(join(tmpdir(), 'ota-deploy-'));
+  const file = join(directory, 'fixture.bin');
+  const fd = openSync(file, 'w'); ftruncateSync(fd, 64 * 1024 * 1024); closeSync(fd);
+  const prior = process.env.PHOENIX_RUNTIME_DIR;
+  process.env.PHOENIX_RUNTIME_DIR = directory;
+  const service = createOtaService({ catalog: { findById: id => id === 'fixture' ? { _file: file, length: 64 * 1024 * 1024 } : null } });
+  t.after(async () => {
+    service.server.closeAllConnections();
+    await new Promise(resolve => service.server.close(resolve));
+    if (prior === undefined) delete process.env.PHOENIX_RUNTIME_DIR; else process.env.PHOENIX_RUNTIME_DIR = prior;
+    rmSync(directory, { recursive: true, force: true });
+  });
+  await service.listen(0, '127.0.0.1');
+  const base = `http://127.0.0.1:${service.server.address().port}`;
+  const state = () => JSON.parse(readFileSync(join(directory, 'deployment', 'ota.json')));
+  const request = http.get(base + '/ota/package?id=fixture');
+  const [response] = await once(request, 'response');
+  response.pause();
+  assert.equal(state().active['ota-download'], 1);
+  writeFileSync(join(directory, 'deployment', 'drain.json'), JSON.stringify({ version: 1, id: 'fixture', expiresAt: Date.now() + 15000 }));
+  const denied = await fetch(base + '/ota/package?id=fixture');
+  assert.equal(denied.status, 503); await denied.text();
+  const upload = await fetch(base, { method: 'POST', headers: { 'x-amz-target': 'Update_20160301.CreateUpdate' }, body: 'fixture' });
+  assert.equal(upload.status, 503); await upload.text();
+  assert.equal(state().active['ota-download'], 1);
+  request.destroy(); response.destroy();
+  for (let i = 0; i < 100 && state().active['ota-download']; i++) await delay(10);
+  assert.equal(state().active['ota-download'], 0, 'aborted and completed streams both release their count');
+  assert.equal(state().drainId, 'fixture');
+});

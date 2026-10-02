@@ -4,9 +4,9 @@
 # The script is intentionally run from a clean repository clone on the server,
 # not from the active `current` symlink.  It creates a detached Git worktree,
 # installs exactly the lockfile's production dependencies, atomically replaces
-# `current`, restarts the service, and rolls the symlink back if local health
-# checks fail.  It never touches PHOENIX_DATA_DIR, the environment file, or old
-# releases; those are durable operator-owned state.
+# `current` after a full quiet minute, restarts the service, and rolls back if health
+# checks fail. Only runtime deployment coordination files change alongside the
+# release; durable application data, environment files and old releases remain.
 #
 # Typical production use:
 #   cd /opt/phoenix
@@ -53,6 +53,10 @@ if [[ -e "$CURRENT_LINK" && ! -L "$CURRENT_LINK" ]]; then
 fi
 
 mkdir -p "$RELEASE_ROOT"
+# Every agent uses the same lock. Never build over or activate alongside a
+# second deployment, even if it selected another commit.
+exec 9>"${CURRENT_LINK}.deploy.lock"
+flock -n 9 || die "another deployment is in progress; retry after it completes"
 
 if [[ -e "$RELEASE_DIR" ]]; then
   [[ -f "$RELEASE_DIR/.git" || -d "$RELEASE_DIR/.git" ]] \
@@ -80,62 +84,14 @@ if [[ -L "$CURRENT_LINK" ]]; then
   [[ -d "$PREVIOUS" ]] || die "current link target does not exist: $PREVIOUS"
 fi
 
-NEXT_LINK="${CURRENT_LINK}.next.$$"
-cleanup_next() { [[ -L "$NEXT_LINK" ]] && unlink "$NEXT_LINK" || true; }
-trap cleanup_next EXIT
-ln -s "$RELEASE_DIR" "$NEXT_LINK"
-mv -Tf "$NEXT_LINK" "$CURRENT_LINK"
-
-rollback() {
-  echo "release deploy: activation failed; restoring the previous release" >&2
-  if [[ -n "$PREVIOUS" ]]; then
-    ln -s "$PREVIOUS" "$NEXT_LINK"
-    mv -Tf "$NEXT_LINK" "$CURRENT_LINK"
-    systemctl restart "$SERVICE" || true
-  else
-    unlink "$CURRENT_LINK" || true
-  fi
-}
-
 if [[ "$NO_RESTART" = 1 ]]; then
-  trap - EXIT
-  echo "release deploy: staged and activated $COMMIT (restart skipped)"
+  echo "release deploy: staged $COMMIT (current link and live service unchanged)"
   exit 0
 fi
 
-if ! systemctl restart "$SERVICE"; then
-  rollback
-  exit 1
+GUARD_ARGS=()
+if [[ -n "$PREVIOUS" && ! -f "$PREVIOUS/packages/common/src/deploymentActivity.js" ]]; then
+  GUARD_ARGS+=(--legacy)
 fi
-
-# All these listeners are loopback-only.  Requiring each one makes a release
-# fail closed when the launcher is alive but a child process exited immediately.
-HEALTH_URLS="${PHOENIX_HEALTHCHECK_URLS:-http://127.0.0.1:9000/healthcheck http://127.0.0.1:9010/healthcheck http://127.0.0.1:9011/healthcheck http://127.0.0.1:9012/healthcheck}"
-healthy=0
-# A populated OTA catalog hashes large OS/services/skill archives before it
-# starts listening. Give that bounded startup work enough time to finish; a
-# too-short window falsely rolls back an otherwise healthy release.
-HEALTH_ATTEMPTS="${PHOENIX_HEALTHCHECK_ATTEMPTS:-90}"
-[[ "$HEALTH_ATTEMPTS" =~ ^[1-9][0-9]*$ ]] || die "PHOENIX_HEALTHCHECK_ATTEMPTS must be a positive integer"
-for _attempt in $(seq 1 "$HEALTH_ATTEMPTS"); do
-  if systemctl is-active --quiet "$SERVICE"; then
-    all_ok=1
-    for url in $HEALTH_URLS; do
-      # A brief connection refusal is normal while systemd is replacing the
-      # process tree. Keep retries quiet; only the final rollback message is
-      # actionable to an operator.
-      curl --fail --silent --connect-timeout 2 --max-time 5 "$url" >/dev/null || all_ok=0
-    done
-    if [[ "$all_ok" = 1 ]]; then healthy=1; break; fi
-  fi
-  sleep 1
-done
-
-if [[ "$healthy" != 1 ]]; then
-  rollback
-  exit 1
-fi
-
-trap - EXIT
-echo "release deploy: active $COMMIT"
-echo "release deploy: previous ${PREVIOUS:-none}"
+node "$RELEASE_DIR/scripts/deployment-quiescence.mjs" "${GUARD_ARGS[@]}" -- \
+  bash "$RELEASE_DIR/scripts/activate-native-release.sh" "$RELEASE_DIR" "$CURRENT_LINK" "$SERVICE" "$PREVIOUS"
