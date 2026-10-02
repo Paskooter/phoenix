@@ -263,6 +263,25 @@ node scripts/portal-grant-admin.mjs --email you@example.com
 
 Every partial surface is labelled **partial in the UI**, not only here.
 
+### Browser checks
+
+The browser smoke tests use Playwright as a development dependency and disposable
+local services and stores. They cover signup, QR pairing, report settings, admin
+adoption, mobile and desktop layouts, profile editing, password changes, account
+deletion across tabs, email verification, and encrypted gallery recovery.
+
+```sh
+npm ci
+npx playwright install chromium
+npm run test:portal
+```
+
+Set `CHROME_BIN` to use an already installed Chromium. Set `PORTAL_SMOKE_OUT` or
+`EMAIL_VERIFICATION_SMOKE_OUT` to a local directory to save layout screenshots.
+The tests need no sibling checkout, live server, mailbox, or robot. Backend peers
+outside the fixtures are unavailable, so the console also exercises their visible
+error states.
+
 ### What each surface calls
 
 - **Surfaces owned by the account service** (household, members, account, settings, oauth

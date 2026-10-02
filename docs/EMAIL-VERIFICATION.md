@@ -102,8 +102,9 @@ PHOENIX_ENV_FILE=/dev/null node --test \
 
 The SMTP integration test uses a local test relay. The browser smoke uses a
 temporary store and in-memory mail sink; it contacts no production mailbox or
-robot. Puppeteer/Chrome come from the sibling `jibo-web-sim` project, as with
-the existing portal smoke:
+robot. Install the repository's development dependencies with `npm ci`, then
+Chromium with `npx playwright install chromium` (or set `CHROME_BIN` to an
+existing Chromium executable):
 
 ```sh
 node scripts/portal-email-verification-smoke.mjs

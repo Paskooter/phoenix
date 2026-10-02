@@ -14,6 +14,7 @@
     "prepare": "node scripts/parity-progress.mjs --install-hook",
     "test": "npm run test:unit && npm run parity:check && npm run parity:gate",
     "test:unit": "node --test",
+    "test:portal": "node scripts/portal-smoke.mjs && node scripts/portal-email-verification-smoke.mjs && node scripts/portal-loop-key-smoke.mjs",
     "build:robot-wifi-patcher": "node scripts/build-robot-wifi-patcher.mjs",
     "test:robot-repoint": "node scripts/build-robot-wifi-patcher.mjs --check && node --test scripts/robot-client/*.test.mjs scripts/robot-client/test-*.cjs scripts/robot-ota-repoint.test.mjs packages/account/test/repointStaticAsset.test.js",
     "parity:status": "node scripts/parity-status.mjs",
@@ -43,6 +44,7 @@
   "devDependencies": {
     "acorn": "8.15.0",
     "jsqr": "^1.4.0",
+    "playwright": "1.63.0",
     "terser": "5.44.0",
     "typescript": "2.5.3"
   }
