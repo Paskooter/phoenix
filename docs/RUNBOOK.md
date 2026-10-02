@@ -530,6 +530,14 @@ test ! -L /var/jibo/keys && { test ! -e /var/jibo/keys || test -d /var/jibo/keys
 install -d -m 0700 /var/jibo/keys
 ```
 
+For helper compatibility failures, see
+[Robot firmware compatibility](ROBOT-FIRMWARE-COMPATIBILITY.md#patch-policy-and-runtime-regression-gate-2026-10-02).
+Wi-Fi checks are syntax-validated across layouts, while client/downloader/backup
+executable replacements keep reviewed source pins. Test **apply** on real Node
+4.1.2 and 6.9.2 before publishing; a successful dry-run will not catch old
+filesystem/Buffer API incompatibilities. Unsupported preflight code must stop
+without deleting credentials or bypassing TLS verification.
+
 Do not delete or copy `/var/jibo/keys` between robots: its contents are
 robot-specific UGC/key material. A backup/OTA error immediately after repointing
 should therefore be checked against both this directory and the robot's STS

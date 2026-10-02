@@ -110,10 +110,21 @@ function regularFile(filename) {
   return stat;
 }
 
+// Node 4.1.2's writeFileSync accepts paths, not descriptors. Keep the exclusive
+// open and fsync guarantees, and handle short writes rather than reopening it.
+function writeAllSync(fd, bytes) {
+  var offset = 0;
+  while (offset < bytes.length) {
+    var written = fs.writeSync(fd, bytes, offset, bytes.length - offset, null);
+    if (written <= 0) throw new Error('could not complete file write');
+    offset += written;
+  }
+}
+
 function writePrivateBackup(filename, bytes, mode) {
   var fd = fs.openSync(filename, 'wx', mode);
   try {
-    fs.writeFileSync(fd, bytes);
+    writeAllSync(fd, bytes);
     fs.fsyncSync(fd);
   } finally { fs.closeSync(fd); }
   fs.chmodSync(filename, mode);
@@ -124,7 +135,7 @@ function writeAtomic(filename, bytes, stat, mode) {
   var fd = fs.openSync(temporary, 'wx', mode);
   try {
     try {
-      fs.writeFileSync(fd, bytes);
+      writeAllSync(fd, bytes);
       fs.fsyncSync(fd);
     } finally { fs.closeSync(fd); }
     fs.chownSync(temporary, stat.uid, stat.gid);
@@ -158,9 +169,10 @@ function apply(options) {
   if (options.dryRun) return 'patched';
   var backup = options.file + '.prerepoint-' + options.stamp + '.bak';
   writePrivateBackup(backup, original, options.kind === 'credentials' ? 0o600 : mode);
-  // Factory Node 4 does not provide Buffer.from(string).
+  // Node 4 inherits TypedArray.from, whose second argument is a callback, not
+  // an encoding. Buffer.alloc distinguishes the actual Buffer.from API.
   var serialized = JSON.stringify(data, null, 2) + '\n';
-  var encoded = typeof Buffer.from === 'function' ? Buffer.from(serialized, 'utf8') : new Buffer(serialized, 'utf8');
+  var encoded = typeof Buffer.alloc === 'function' ? Buffer.from(serialized, 'utf8') : new Buffer(serialized, 'utf8');
   writeAtomic(options.file, encoded, stat, mode);
   return 'patched';
 }

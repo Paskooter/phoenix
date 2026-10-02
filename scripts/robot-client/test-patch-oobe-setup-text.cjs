@@ -61,7 +61,9 @@ assert.strictEqual(patcher.patchBundle(bundled.source, 'jibo.io').count, 0);
 // On a robot: a missing skill is not an error, and unreviewed artwork is refused
 // before anything is written.
 var script = path.join(__dirname, 'patch-oobe-setup-text.cjs');
-var root = fs.mkdtempSync(path.join(os.tmpdir(), 'oobe-text-'));
+// The modern harness supplies an isolated directory when using factory Node 4,
+// whose filesystem API predates mkdtempSync. This is test-only, not robot code.
+var root = process.env.PHOENIX_TEST_OOBE_ROOT || fs.mkdtempSync(path.join(os.tmpdir(), 'oobe-text-'));
 assert.ok(/^not-needed/.test(childProcess.execFileSync(process.execPath, [script, '--root', root, '--dry-run'], { encoding: 'utf8' })));
 fs.mkdirSync(path.join(root, 'assets'));
 fs.mkdirSync(path.join(root, 'assets', 'oobe'));

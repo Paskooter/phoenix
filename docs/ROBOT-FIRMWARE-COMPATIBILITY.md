@@ -3,8 +3,10 @@
 The repoint helper has to work on whatever firmware a robot arrives with, including a
 robot that is new in its box. This page records what differs between firmware versions
 in the places the helper touches, how the helper handles each difference, and what is
-still unverified. It was compiled on 2026-09-28 from the archived flash builds, the
+still unverified. The initial survey was compiled on 2026-09-28 from archived flash builds, the
 archived npm registry, and a dry run against the physical test robot (13.0.7).
+The 2026-10-02 update adds real Node 4.1.2/6.9.2 apply tests and a syntax-based
+Wi-Fi patcher; the user-reported 12.10.0 variant still awaits its exact source.
 
 ## Which firmware robots actually run
 
@@ -36,6 +38,7 @@ Probed from the ext4 images of each archived flash build with
 | 10.5.7 | 6.9.2 | 3.x (14) | A | A | — | yes | stg-entrypoint |
 | 11.7.0 | 6.9.2 | 3.x (14) | A | A | — | yes | stg-entrypoint |
 | 12.9.0 | 6.9.2 | 3.x (5) | A | A | yes | yes | stg-entrypoint |
+| 12.10.0 (20180823 production archive) | 6.9.2 | 3.x (global client inspected) | A | A | not re-probed | not re-probed | not re-probed |
 | 13.0.0 (Last Dance) | 6.9.2 | 3.x (5) | A | A | yes | yes | stg-entrypoint |
 
 - **OTA downloader** (`@jibo/jibo-ota-updater/src/download-update.js`): **A** is the
@@ -80,7 +83,7 @@ Probed from the ext4 images of each archived flash build with
 |---|---|---|---|
 | Robot has no SSH key installed | all, out of the box | stopped: "cannot reach robot" | logs in with a key if there is one, then the factory password, then prompts once; one shared connection for every step |
 | Newer SSH clients run `scp` over SFTP | client-side | relied on scp | uploads with `cat` over the shared connection |
-| Node 4.1.2 lacks `Buffer.from(string)` | 3.x | both patchers crashed | fallback to `new Buffer`; every robot-side helper checked on a real Node 4.1.2 |
+| Node 4.1.2 inherits incompatible `TypedArray.from` and lacks descriptor `writeFileSync` | 3.x | config dry-run passed, then apply crashed | detect `Buffer.alloc` instead; exclusive descriptor writes use a short-write-safe `fs.writeSync` loop; test actual apply, not just load |
 | 2.x server client | 3.x | the 3.x build was installed and **crashed on load**, taking every Node client offline while the hash check still passed | `node-v2.js`, chosen per copy by the stock handler's hash; an unrecognized handler stops before any change |
 | Extra nested client copies | 10.x+, BE skills | missed, left on jibo.com | searched with `find`, merged with the fixed list |
 | OTA downloader B | RTM2, 5.4.0 | stopped halfway through the apply | reviewed pin added |
@@ -90,7 +93,7 @@ Probed from the ext4 images of each archived flash build with
 | Notification socket suffix | 8.x+ | never changed; only the jibo.io services OTA fixed it | rewritten, with a backup |
 | `/usr/local` read-write by default | 3.x–5.x | left read-only until reboot | restored to how it was found |
 | Any unreviewed patch target | future/unknown | discovered mid-apply | both patchers run in `--dry-run` as a compatibility check before any change |
-| Wi-Fi check names the old cloud | RTM3 and some later `jibo-ssm` builds | setup stopped at "Can't connect to Jibo's server" (error 4) before asking for credentials | `patch-ssm-wifi-check.cjs` points it at this server and gives it the CA bundle; the published `jibo-ssm` 12/13 request indentation is also recognized, while unknown layouts and firmware that checks google.com remain untouched |
+| Wi-Fi check names the old cloud or a previous instance | RTM3 and some later `jibo-ssm` builds | setup failed; exact anchors rejected differently formatted or partly repointed code | parse the Wi-Fi class, hostname assignments and HTTPS root-check options; normalize the selected destination and split public CA bundle regardless of indentation/quotes; leave google.com checks unchanged; refuse unknown expressions/options before applying |
 | Node 4 reads only the first certificate of a PEM bundle | 3.x | the OTA downloader (and the Wi-Fi check) could not verify this server even with the root installed | both split the bundle into certificates; robots with the earlier downloader patch are upgraded from the saved original |
 
 If native OTA planning stops after the repoint has already claimed a robot, do not
@@ -162,10 +165,71 @@ request ever reached the server. On the robot:
 3. **The 3.x setup skill against Phoenix's setup API.** `oobe-config` 4.2.2 (RTM2) predates
    the version Phoenix was built against.
 4. **Builds not probed individually** (3.0.8, 3.0.10, 6.x, 7.x and point releases). They are
-   covered by the hash checks: anything that differs stops at the compatibility check with
-   nothing changed. Probe such a build and add its pins if it turns up.
+   checked against reviewed executable variants, JSON schemas and Wi-Fi syntax;
+   an unsupported target stops at preflight with nothing changed. This is not a
+   claim of hardware-tested support for every release. Probe such a build when
+   it turns up; add a structural fixture or reviewed executable pins as needed.
 
 ## Re-running the survey
+
+### Patch policy and runtime regression gate (2026-10-02)
+
+Do not remove all source pins to accommodate a new release. Different files need
+different validation:
+
+- Cloud JSON uses validated schemas; credentials and existing keys are preserved.
+- The Wi-Fi patch uses JavaScript syntax, not whole-file pins or exact text
+  anchors. It accepts the stock region-plus-domain expressions and literal hosts,
+  including mixed old/partially repointed branches. It verifies one Wi-Fi class,
+  one HTTPS root check, and an unmodified literal options object. It refuses
+  arbitrary hostname expressions, ambiguous classes/requests, unsafe TLS flags,
+  agents, unknown CA overrides and mutations of the request options. Comments,
+  strings elsewhere, quotes, whitespace, trailing commas and LF/CRLF are not
+  patch anchors. Explicitly selecting the destination region also avoids
+  resurrecting an obsolete `dev1-entrypoint`/`open-jibo` hostname.
+- Server-client, downloader and backup/restore executable replacements retain
+  reviewed input/output pins. The saved originals from surveyed 3.0.9, 3.3.4,
+  5.4.0, 8.19.0, 10.5.7 and newly extracted 12.10.0 use the existing two variants;
+  the reported failures did not require relaxing these pins.
+- **Public support-asset pins are not firmware pins.** They must match the exact
+  published helpers. `repointStaticAsset.test.js` checks every support route and
+  SHA against the shell script, preventing a stale bundle/publication.
+
+Edit `scripts/robot-client-src/patch-ssm-wifi-check.cjs`, not the generated robot
+copy. `npm run build:robot-wifi-patcher` embeds Acorn 8.15.0 (MIT) in a standalone
+Node-4-compatible file; the robot needs no parser installation or npm access.
+Update `SSM_WIFI_PATCHER_SHA256` after rebuilding. Never execute the SSM file to
+detect compatibility; the parser inspects syntax only. Preserve mode/owner,
+saved original, and repeat-run/repoint-to-another-instance behavior.
+
+Before publishing robot-helper changes, run both real legacy runtimes, not just
+the modern server Node. Obtain the archived x64 binaries from nodejs.org and
+verify their archives against that release's official `SHASUMS256.txt`:
+
+```bash
+PHOENIX_TEST_NODE4=/path/to/node-v4.1.2-linux-x64/bin/node \
+PHOENIX_TEST_NODE6=/path/to/node-v6.9.2-linux-x64/bin/node \
+  npm run test:robot-repoint
+```
+
+Unset runtime variables skip those two explicit checks, so a run with skips is
+**not** the release verification gate. Always-on API-emulation tests additionally
+exercise all four JSON kinds, short writes and zero-write failure. The real
+runtime checks execute config apply, idempotence and each patcher's synthetic
+tests. They do not replace hardware testing of the complete native OTA.
+The dedicated `robot-repoint.yml` CI workflow supplies both verified legacy
+runtimes whenever helpers, their builder, static publication or lockfile change.
+
+The inspected 12.10.0 production SSM file has SHA-256
+`da785e908a79e1953547b79c7943f94d033a3b68bf988be1ae3841e6cdbdcd53`.
+It patches successfully with the structural helper under Node 4.1.2 and 6.9.2.
+The reported robot hash
+`b0809e59adb0e9b857f46de3eab6726501038cf02d6eff1731a832335e5ae32d`
+is different; do not label that exact variant verified until its source arrives.
+If a preflight still fails, request only the affected source file (never
+credentials or keys), release, Node version, diagnostic SHA and complete error.
+Add a structural fixture or a reviewed executable variant as appropriate.
+Do not ask the owner to delete credentials or start again from factory firmware.
 
 ```bash
 tools/firmware-compat/fetch-probe.sh /tmp/fw-survey \

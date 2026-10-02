@@ -1,0 +1,52 @@
+name: Robot repoint compatibility
+on:
+  push:
+    paths:
+      - '.github/workflows/robot-repoint.yml'
+      - 'scripts/robot-client/**'
+      - 'scripts/robot-client-src/**'
+      - 'scripts/build-robot-wifi-patcher.mjs'
+      - 'scripts/robot-ota-repoint*'
+      - 'packages/account/src/static.js'
+      - 'packages/account/test/repointStaticAsset.test.js'
+      - 'package*.json'
+  pull_request:
+    paths:
+      - '.github/workflows/robot-repoint.yml'
+      - 'scripts/robot-client/**'
+      - 'scripts/robot-client-src/**'
+      - 'scripts/build-robot-wifi-patcher.mjs'
+      - 'scripts/robot-ota-repoint*'
+      - 'packages/account/src/static.js'
+      - 'packages/account/test/repointStaticAsset.test.js'
+      - 'package*.json'
+permissions:
+  contents: read
+jobs:
+  legacy-runtime:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Fetch and verify factory Node runtimes
+        shell: bash
+        run: |
+          set -euo pipefail
+          robot_runtime_dir=$(mktemp -d "$RUNNER_TEMP/robot-node.XXXXXX")
+          for version in 4.1.2 6.9.2; do
+            archive="node-v$version-linux-x64.tar.xz"
+            curl --fail --silent --show-error --proto '=https' --tlsv1.2 \
+              "https://nodejs.org/dist/v$version/$archive" -o "$robot_runtime_dir/$archive"
+            curl --fail --silent --show-error --proto '=https' --tlsv1.2 \
+              "https://nodejs.org/dist/v$version/SHASUMS256.txt" -o "$robot_runtime_dir/SHASUMS256.txt"
+            (cd "$robot_runtime_dir"; awk -v artifact="$archive" '$2 == artifact {print}' SHASUMS256.txt | sha256sum --check --strict)
+            tar -xJf "$robot_runtime_dir/$archive" -C "$robot_runtime_dir"
+          done
+          echo "PHOENIX_TEST_NODE4=$robot_runtime_dir/node-v4.1.2-linux-x64/bin/node" >> "$GITHUB_ENV"
+          echo "PHOENIX_TEST_NODE6=$robot_runtime_dir/node-v6.9.2-linux-x64/bin/node" >> "$GITHUB_ENV"
+      - run: npm run test:robot-repoint

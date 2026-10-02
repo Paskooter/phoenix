@@ -133,9 +133,9 @@ STOCK_CLIENT_V3_SHA256="c3511dbc55c8a9ec3ac74a675a1245306b55c67fab65a3ecfe896ed0
 ROOT_PEM_SOURCE_SHA256="22b557a27055b33606b6559f37703928d3e4ad79f110b407d04986e1843543d1"
 BACKUP_TLS_PATCHER_SHA256="0fee710b1dec524b8d4629deb19e8be9dc1013e161abed4180be3d2f2c28e2d8"
 OTA_TLS_PATCHER_SHA256="51b71ff2e02569f203998b7d82c6e3f2743030a48bbc3abc149a66c6563061f1"
-SSM_WIFI_PATCHER_SHA256="4b87a96f5d78d9d411b6485e3318dd03d6dcc17bf0478a354ab9e976b5671dfc"
+SSM_WIFI_PATCHER_SHA256="29dce60e9bf9d5cec56688b576c36c0c4662ccb3a17bc2fb83df6a5d654421f6"
 SETUP_TEXT_PATCHER_SHA256="edcc2971b932a41da80f9af286a74ce41cc213ccc90af429bfdf7e2a2c8989a1"
-CONFIG_PATCHER_SHA256="311facda74bebacf80f4aa2e00cebb5150cde554a1fb6061b50fb4b775773809"
+CONFIG_PATCHER_SHA256="103e333e630892d3b98bb27b75502e970d21ac796ffeafa1032cbbb864dbba04"
 OTA_TRIGGER_SHA256="de8275df41413af28c9b2a70ce052057c7f690a0f13ca0b8efe5740a25e414b9"
 
 cleanup_support() {
@@ -796,8 +796,10 @@ cloud_config() {
   printf '%s\n' "$out"
 }
 
-# Compatibility check: run both hash-guarded patchers in --dry-run against this
-# robot's own files. An unreviewed firmware version stops here, before a single
+# Compatibility check: validate every target before applying. TLS client and
+# downloader/backup code use source pins; Wi-Fi uses parsed syntax and config
+# uses schemas, so harmless release formatting does not require new pins.
+# An unsupported target stops here, before a single
 # file has changed, instead of halfway through the apply below.
 step "Compatibility check"
 for p in "${PRESENT[@]}"; do
@@ -832,7 +834,7 @@ preflight_patcher() {
   say "  ${label}: ${out}"
 }
 preflight_patcher "OTA downloader" "$OTA_TLS_PATCHER"
-preflight_patcher "Wi-Fi server check" "$SSM_WIFI_PATCHER" --suffix "$PUBLIC_SUFFIX"
+preflight_patcher "Wi-Fi server check" "$SSM_WIFI_PATCHER" --suffix "$PUBLIC_SUFFIX" --region "$REGION"
 if [ "$HAS_BACKUP_HELPERS" -eq 1 ]; then
   preflight_patcher "backup/restore helpers" "$BACKUP_TLS_PATCHER" \
     --root /usr/local/bin --receipt /var/lib/phoenix/jibo-system-backup-tls.json
@@ -1106,7 +1108,7 @@ out="$(rsh "
   }
   trap cleanup EXIT HUP INT TERM
   mount -o remount,rw /usr/local
-  node \"\$PATCH\" --suffix '${PUBLIC_SUFFIX}'
+  node \"\$PATCH\" --suffix '${PUBLIC_SUFFIX}' --region '${REGION}'
 " 2>&1 | tr -d '\r')" || die "could not apply the Wi-Fi server check patch: $out"
 say "  Wi-Fi server check: ${out}"
 case "$out" in patched|already-patched) APPLIED+=("jibo-ssm Wi-Fi server check -> ${PUBLIC_SUFFIX}") ;; esac
