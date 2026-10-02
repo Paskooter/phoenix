@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { PassThrough, Readable } from 'node:stream';
-import { accountMediaLoops, MediaStore, mediaBlobRoutes } from '../src/media.js';
+import { accountMediaLoops, MediaStore, mediaBlobRoutes, makeMediaHandler } from '../src/media.js';
 import { VERIFIED_CALLER } from '../src/caller.js';
 
 test('Media resolves loop authority only through the authenticated Account peer', async () => {
@@ -43,6 +43,119 @@ test('Media fails closed when its Account peer rejects or malforms a response', 
   assert.equal(await peer.members('loop-1'), undefined);
   assert.equal(await peer.accountLoops('member-1'), undefined);
   assert.equal(await peer.ownedLoops('member-1'), undefined);
+});
+
+test('Media reports distinct Account failure reasons without household or transport details', async (t) => {
+  const cases = [
+    { name: 'missing loop', status: 404, body: { statusCode: 404, error: 'Not Found', message: 'Loop not found' }, reason: 'loop_not_found' },
+    { name: 'missing route', status: 404, body: { message: 'private-fixture-route' }, reason: 'http_error' },
+    { name: 'peer authentication', status: 401, body: { error: 'private-fixture-token' }, reason: 'http_error' },
+    { name: 'peer unavailable', status: 503, body: { message: 'private-fixture-host' }, reason: 'http_error' },
+    { name: 'malformed JSON', status: 200, raw: 'private-fixture-body', reason: 'invalid_json' },
+    { name: 'malformed shape', status: 200, body: { members: 'private-fixture-member' }, reason: 'invalid_response' },
+    { name: 'timeout', error: new DOMException('private-fixture-url', 'TimeoutError'), reason: 'timeout' },
+    { name: 'body timeout', status: 200, bodyError: new DOMException('private-fixture-url', 'AbortError'), reason: 'timeout' },
+    { name: 'connection failure', error: new TypeError('private-fixture-url'), reason: 'transport_error' },
+  ];
+  for (const fixture of cases) await t.test(fixture.name, async () => {
+    const messages = [];
+    const peer = accountMediaLoops({
+      base: 'http://private-fixture-host', token: 'private-fixture-token',
+      log: { warn: (message, fields) => messages.push({ message, ...fields }) },
+      fetcher: async () => {
+        if (fixture.error) throw fixture.error;
+        if (fixture.bodyError) return { ok: true, status: fixture.status, json: async () => { throw fixture.bodyError; } };
+        return new Response(fixture.raw ?? JSON.stringify(fixture.body), { status: fixture.status });
+      },
+    });
+    assert.equal(await peer.members('private-fixture-loop'), undefined, 'failure must not grant membership');
+    assert.deepEqual(messages, [{
+      message: 'media account lookup failed', event: 'media_account_lookup_failed',
+      operation: 'members', reason: fixture.reason,
+      ...(fixture.status === undefined ? {} : { status: fixture.status }),
+    }]);
+    assert.doesNotMatch(JSON.stringify(messages), /private-fixture/);
+  });
+});
+
+function captureLog() {
+  const messages = [];
+  const log = Object.fromEntries(['info', 'warn', 'error'].map(level => [level,
+    (message, fields) => messages.push({ level, message, ...fields })]));
+  return { log, messages };
+}
+
+test('a missing Account loop explains a Media.List 503 in the request log and stays fail-closed', async () => {
+  const { log, messages } = captureLog();
+  const loops = accountMediaLoops({
+    base: 'http://private-fixture-host', token: 'private-fixture-token',
+    log: { warn: () => assert.fail('the request logger should receive the peer diagnostic') },
+    fetcher: async () => new Response(JSON.stringify({
+      statusCode: 404, error: 'Not Found', message: 'Loop not found',
+    }), { status: 404 }),
+  });
+  const handler = makeMediaHandler({ store: {}, loops, callerBoundary: true });
+  const sink = responseSink();
+  const completed = sink.result();
+  await handler({ req: verifiedRequest('private-fixture-account'), res: sink.res,
+    body: { loopIds: ['private-fixture-loop'] }, op: 'List', log });
+  const result = await completed;
+  assert.equal(result.statusCode, 503);
+  assert.equal(JSON.parse(result.body).__type, 'ACCOUNT_SERVICE_UNAVAILABLE');
+  assert.equal(messages.find(row => row.event === 'media_account_lookup_failed')?.reason, 'loop_not_found');
+  assert.deepEqual(messages.find(row => row.event === 'media_request_failed'), {
+    level: 'error', message: 'media request failed', event: 'media_request_failed',
+    operation: 'list', status: 503, errorCode: 'ACCOUNT_SERVICE_UNAVAILABLE',
+  });
+  assert.doesNotMatch(JSON.stringify(messages), /private-fixture/);
+});
+
+test('orphan thumbnail rejection is visible without storing bytes or leaking media identifiers', async () => {
+  const { log, messages } = captureLog();
+  const store = {
+    maxBytes: 1024, find: () => null, findByThumbPath: () => null,
+    writeBlob: () => assert.fail('an orphan thumbnail must not be stored'),
+  };
+  const handler = makeMediaHandler({ store, callerBoundary: true, baseFor: 'https://api.example.test',
+    loops: { members: () => ['private-fixture-account'] } });
+  const req = { ...verifiedRequest('private-fixture-account'), headers: {
+    'x-loop-id': 'private-fixture-loop', 'x-path': 'private-fixture-thumb',
+    'x-type': 'thumb', 'x-reference': 'private-fixture-parent',
+  } };
+  const sink = responseSink();
+  const completed = sink.result();
+  await handler({ req, res: sink.res, op: 'Create', log });
+  const result = await completed;
+  assert.equal(result.statusCode, 404);
+  assert.equal(JSON.parse(result.body).__type, 'REFERENCE_NOT_FOUND');
+  assert.deepEqual(messages.find(row => row.event === 'media_request_failed'), {
+    level: 'warn', message: 'media request rejected', event: 'media_request_failed',
+    operation: 'create', status: 404, errorCode: 'REFERENCE_NOT_FOUND', type: 'thumb',
+  });
+  assert.doesNotMatch(JSON.stringify(messages), /private-fixture/);
+});
+
+test('Media logs a storage failure code without its private path or exception message', async () => {
+  const { log, messages } = captureLog();
+  const store = {
+    maxBytes: 1024, find: () => null, findByThumbPath: () => null, created: () => 1,
+    putObject: async () => { throw Object.assign(new Error('private-fixture-path'), { code: 'ENOSPC' }); },
+  };
+  const handler = makeMediaHandler({ store, callerBoundary: true, baseFor: 'https://api.example.test',
+    loops: { members: () => ['private-fixture-account'] } });
+  const req = { ...verifiedRequest('private-fixture-account'), headers: {
+    'x-loop-id': 'private-fixture-loop', 'x-path': 'private-fixture-photo', 'x-type': 'image',
+  } };
+  const sink = responseSink();
+  const completed = sink.result();
+  await handler({ req, res: sink.res, op: 'Create', log });
+  const result = await completed;
+  assert.equal(result.statusCode, 500);
+  assert.equal(JSON.parse(result.body).__type, 'InternalFailure');
+  const failure = messages.find(row => row.event === 'media_request_failed');
+  assert.equal(failure.level, 'error');
+  assert.equal(failure.cause, 'ENOSPC');
+  assert.doesNotMatch(JSON.stringify(messages), /private-fixture/);
 });
 
 function verifiedRequest(accountId, path) {

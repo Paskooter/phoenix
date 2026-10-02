@@ -1663,6 +1663,23 @@ to its retained history. Unmatched requests and other 4xx responses are warnings
 without throwing. Classic 5xx entries include a bounded operation name, never
 request bodies or credentials.
 
+Media failures also include a `media_request_failed` event with the operation,
+status, and allow-listed error code. An orphan thumbnail appears as
+`REFERENCE_NOT_FOUND`; recovering it requires the original photo before retrying
+the thumbnail. A `media_account_lookup_failed` event distinguishes an explicit
+`loop_not_found` response from an HTTP error, timeout, transport failure, or
+malformed peer response. These diagnostics omit loop/account IDs, media paths,
+request bodies, tokens, and raw exception text. The membership checks and wire
+errors are unchanged. A media-list 503 can therefore mean a stale loop reference;
+check the accompanying reason before concluding that Account is down.
+
+Robot-uploaded events in `classic/logs/events.jsonl` are a separate stream from
+the service log console. Their legacy default level searches for the lowercase
+word `error`, so it can misclassify native `[Error]` lines or messages mentioning
+`error-service`. Review the embedded component/severity and original timestamps,
+and account for repeated uploads and System Manager's mirrored native messages.
+The ingestion timestamp alone does not establish when a device failure occurred.
+
 Gateway voice-turn timings are separate: when `PHOENIX_DATA_DIR` is configured,
 the gateway saves its allow-listed timing projection to
 `observability/voice-turns.json` with mode 0600 and restores it after a restart.

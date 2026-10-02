@@ -37,6 +37,7 @@ import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { pipeline } from 'node:stream/promises';
 import { DefaultPort } from '@phoenix/contracts';
+import { logger } from '@phoenix/common';
 import { sendAmz, sendAmzError, accessKeyIdFromAuth, ValidationException } from './awsJson.js';
 import { verifiedCallerFromRequest } from './caller.js';
 import { canonicalPublicOrigin } from './publicOrigin.js';
@@ -78,6 +79,7 @@ export function accountMediaLoops({
   fetcher = globalThis.fetch,
   token = process.env.ETCO_account_internalPeerToken,
   timeoutMs = ACCOUNT_TIMEOUT_MS,
+  log: peerLog = logger('classic.media.account'),
 } = {}) {
   const request = async (path, options = {}) => {
     const url = new URL(path, `${String(base).replace(/\/+$/, '')}/`);
@@ -88,35 +90,64 @@ export function accountMediaLoops({
     });
   };
   const array = (value) => Array.isArray(value) ? value.map(String) : undefined;
+  const timedOut = (error) => error?.name === 'TimeoutError' || error?.name === 'AbortError';
+  // Keep failures closed, but distinguish a stale/deleted loop from a peer
+  // outage. Never log the URL (it contains household IDs), response body,
+  // credential, or exception text supplied by the HTTP client.
+  const lookup = async (operation, path, options, select, log) => {
+    let status;
+    const failed = (reason) => {
+      log?.warn?.('media account lookup failed', {
+        event: 'media_account_lookup_failed', operation, reason,
+        ...(status === undefined ? {} : { status }),
+      });
+      return undefined;
+    };
+    try {
+      const res = await request(path, options);
+      status = res.status;
+      if (!res.ok) {
+        if (operation === 'members' && status === 404) {
+          let body;
+          try { body = await res.json(); } catch (error) {
+            if (timedOut(error)) return failed('timeout');
+            // An unrecognized 404 is still a peer failure.
+          }
+          if (body?.statusCode === 404 && body?.error === 'Not Found' && body?.message === 'Loop not found') {
+            return failed('loop_not_found');
+          }
+        }
+        return failed('http_error');
+      }
+      let body;
+      try { body = await res.json(); } catch (error) {
+        return failed(timedOut(error) ? 'timeout'
+          : error?.name === 'SyntaxError' ? 'invalid_json' : 'transport_error');
+      }
+      const ids = select(body);
+      return ids === undefined ? failed('invalid_response') : ids;
+    } catch (error) {
+      return failed(timedOut(error) ? 'timeout' : 'transport_error');
+    }
+  };
 
   return {
-    async members(loopId) {
-      try {
-        const res = await request(`/loopMembers?loopId=${encodeURIComponent(String(loopId))}`);
-        if (!res.ok) return undefined;
-        return array((await res.json())?.members);
-      } catch { return undefined; }
+    async members(loopId, { log = peerLog } = {}) {
+      return lookup('members', `/loopMembers?loopId=${encodeURIComponent(String(loopId))}`,
+        {}, body => array(body?.members), log);
     },
-    async accountLoops(accountId) {
-      try {
-        const id = String(accountId);
-        const res = await request('/listAssociatedLoops', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ accountsIds: [id] }),
-        });
-        if (!res.ok) return undefined;
-        const result = await res.json();
-        return result && typeof result === 'object' && !Array.isArray(result)
-          ? array(result[id]) : undefined;
-      } catch { return undefined; }
+    async accountLoops(accountId, { log = peerLog } = {}) {
+      const id = String(accountId);
+      return lookup('accountLoops', '/listAssociatedLoops', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ accountsIds: [id] }),
+      }, body => body && typeof body === 'object' && !Array.isArray(body)
+        ? array(body[id]) : undefined, log);
     },
-    async ownedLoops(accountId) {
-      try {
-        const res = await request(`/ownedLoops?accountId=${encodeURIComponent(String(accountId))}`);
-        if (!res.ok) return undefined;
-        return array((await res.json())?.loops);
-      } catch { return undefined; }
+    async ownedLoops(accountId, { log = peerLog } = {}) {
+      return lookup('ownedLoops', `/ownedLoops?accountId=${encodeURIComponent(String(accountId))}`,
+        {}, body => array(body?.loops), log);
     },
   };
 }
@@ -189,6 +220,21 @@ export const MEDIA_ERRORS = {
 export const AUTHORIZED_UNDER_ADMIN = { code: 'AUTHORIZED_UNDER_ADMIN', statusCode: 401, message: 'Must be authorized under admin account' };
 
 function fail(code) { const err = new Error(code); Object.assign(err, MEDIA_ERRORS[code]); throw err; }
+
+function sendMediaFailure(res, error, log, operation, details = {}) {
+  const response = error.statusCode ? error
+    : { code: 'InternalFailure', statusCode: 500, message: 'Internal server error' };
+  const fields = {
+    event: 'media_request_failed', operation, status: response.statusCode,
+    errorCode: Object.hasOwn(MEDIA_ERRORS, error.code) ? error.code : 'InternalFailure',
+    ...details,
+  };
+  // Filesystem failures are actionable without disclosing the path or media.
+  if (['ENOSPC', 'EIO', 'EROFS', 'EACCES', 'ENOENT'].includes(error.code)) fields.cause = error.code;
+  if (response.statusCode >= 500) log?.error?.('media request failed', fields);
+  else log?.warn?.('media request rejected', fields);
+  return sendAmzError(res, response);
+}
 
 const sameId = (a, b) => a != null && b != null && String(a) === String(b);
 
@@ -438,36 +484,36 @@ export function makeMediaHandler({ store, baseFor, accountResolver, loops, crede
     if (callerBoundary) return null;
     return (typeof accountResolver === 'function' ? accountResolver(req, body) : accessKeyIdFromAuth(req)) || 'anon';
   };
-  const loopMemberIds = async (loopId) => {
+  const loopMemberIds = async (loopId, log) => {
     if (!loops || typeof loops.members !== 'function') return callerBoundary ? undefined : null;
     try {
-      const ids = await loops.members(loopId);
+      const ids = await loops.members(loopId, { log });
       return ids === undefined || ids === null ? undefined : ids;
     } catch {
       return undefined;
     }
   };
-  const accountLoopIds = async (accountId) => {
+  const accountLoopIds = async (accountId, log) => {
     if (!loops || typeof loops.accountLoops !== 'function') return callerBoundary ? undefined : null;
     try {
-      const ids = await loops.accountLoops(accountId);
+      const ids = await loops.accountLoops(accountId, { log });
       return ids === undefined || ids === null ? undefined : ids;
     } catch {
       return undefined;
     }
   };
-  const ownerLoopIds = async (accountId) => {
+  const ownerLoopIds = async (accountId, log) => {
     if (!loops || typeof loops.ownedLoops !== 'function') return callerBoundary ? undefined : null;
     try {
-      const ids = await loops.ownedLoops(accountId);
+      const ids = await loops.ownedLoops(accountId, { log });
       return ids === undefined || ids === null ? undefined : ids;
     } catch {
       return undefined;
     }
   };
 
-  async function requireMembership(loopId, accountId) {
-    const members = await loopMemberIds(loopId);
+  async function requireMembership(loopId, accountId, log) {
+    const members = await loopMemberIds(loopId, log);
     if (members === undefined) {
       if (callerBoundary) fail('ACCOUNT_SERVICE_UNAVAILABLE');
       return; // configured source failed; an unguarded compatibility entrypoint may continue
@@ -504,7 +550,7 @@ export function makeMediaHandler({ store, baseFor, accountResolver, loops, crede
     return meta;
   }
 
-  async function create({ req, res }) {
+  async function create({ req, res, log }) {
     const accountId = accountIdOf(req, null);
     if (typeof accountId !== 'string' || !SAFE_PATH.test(accountId)) {
       return void sendAmzError(res, ValidationException, 'Invalid caller identity');
@@ -530,7 +576,7 @@ export function makeMediaHandler({ store, baseFor, accountResolver, loops, crede
       });
     }
     try {
-      await requireMembership(loopId, accountId);
+      await requireMembership(loopId, accountId, log);
       if (store.find(path) || store.findByThumbPath(path)) fail('MEDIA_ALREADY_EXISTS');
       const base = objectBaseUrl(baseFor, req);
       if (reference) {
@@ -554,12 +600,11 @@ export function makeMediaHandler({ store, baseFor, accountResolver, loops, crede
       return void sendAmz(res, 200, toJSON(record));
     } catch (error) {
       if (typeof req?.resume === 'function' && !req.readableEnded) req.resume();
-      return void sendAmzError(res, error.statusCode ? error
-        : { code: 'InternalFailure', statusCode: 500, message: 'Internal server error' });
+      return void sendMediaFailure(res, error, log, 'create', { type });
     }
   }
 
-  async function list({ req, res, body }) {
+  async function list({ req, res, body, log }) {
     const loopIds = requireStringArray(body, 'loopIds');
     if (!loopIds) return void sendAmzError(res, ValidationException, 'Invalid or missing loopIds');
     const after = typeof body.after === 'number' ? body.after : undefined;
@@ -567,7 +612,7 @@ export function makeMediaHandler({ store, baseFor, accountResolver, loops, crede
     const limit = Math.min(typeof body.limit === 'number' && body.limit > 0 ? Math.floor(body.limit) : MEDIA_PAGE_DEFAULT, MEDIA_PAGE_MAX);
     const accountId = accountIdOf(req, body);
     try {
-      for (const loopId of loopIds) await requireMembership(loopId, accountId);
+      for (const loopId of loopIds) await requireMembership(loopId, accountId, log);
       // Source: sortOrder -1 unless an `after` marker is given on its own; limit; then reverse the
       // -1 pass, so the answered page is always ascending by created.
       const sortOrder = (!before && after) ? 1 : -1;
@@ -581,19 +626,18 @@ export function makeMediaHandler({ store, baseFor, accountResolver, loops, crede
       if (sortOrder === -1) mediaList = mediaList.reverse();
       return void sendAmz(res, 200, mediaList);
     } catch (error) {
-      return void sendAmzError(res, error.statusCode ? error
-        : { code: 'InternalFailure', statusCode: 500, message: 'Internal server error' });
+      return void sendMediaFailure(res, error, log, 'list');
     }
   }
 
-  async function get({ req, res, body }) {
+  async function get({ req, res, body, log }) {
     const paths = requireStringArray(body, 'paths');
     if (!paths) return void sendAmzError(res, ValidationException, 'Invalid or missing paths');
     const accountId = accountIdOf(req, body);
     try {
       const records = store.get(paths).filter((record) => record.isDeleted !== true);
       const mediaList = expandMedia(records);
-      const loops = await accountLoopIds(accountId);
+      const loops = await accountLoopIds(accountId, log);
       if (loops === undefined) fail('ACCOUNT_SERVICE_UNAVAILABLE');
       if (loops === null) return void sendAmz(res, 200, mediaList);
       const accessible = new Set(loops.map(String));
@@ -606,17 +650,16 @@ export function makeMediaHandler({ store, baseFor, accountResolver, loops, crede
       if (mediaList.length !== mediaListFiltered.length) fail('MEDIA_MUST_BE_MEMBER');
       return void sendAmz(res, 200, mediaListFiltered);
     } catch (error) {
-      return void sendAmzError(res, error.statusCode ? error
-        : { code: 'InternalFailure', statusCode: 500, message: 'Internal server error' });
+      return void sendMediaFailure(res, error, log, 'get');
     }
   }
 
-  async function remove({ req, res, body }) {
+  async function remove({ req, res, body, log }) {
     const paths = requireStringArray(body, 'paths');
     if (!paths) return void sendAmzError(res, ValidationException, 'Invalid or missing paths');
     const accountId = accountIdOf(req, body);
     try {
-      const owned = await ownerLoopIds(accountId);
+      const owned = await ownerLoopIds(accountId, log);
       if (owned === undefined) fail('ACCOUNT_SERVICE_UNAVAILABLE');
       const ownedSet = owned === null ? null : new Set(owned.map(String));
       // Source Remove query: `path: { $in: paths }` (parents only) + $or(accountId, owner loops).
@@ -632,8 +675,7 @@ export function makeMediaHandler({ store, baseFor, accountResolver, loops, crede
       store.removeBlobs(candidates);
       return void sendAmz(res, 200, mediaList);
     } catch (error) {
-      return void sendAmzError(res, error.statusCode ? error
-        : { code: 'InternalFailure', statusCode: 500, message: 'Internal server error' });
+      return void sendMediaFailure(res, error, log, 'remove');
     }
   }
 
