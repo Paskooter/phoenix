@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { newsHttpUrl, plainNewsText, newsWordCount, classifyNewsContent } from '@phoenix/contracts';
+import { newsHttpUrl, plainNewsText, newsWordCount, classifyNewsContent, isOpinionNews } from '@phoenix/contracts';
 
 // Provider-specific requests stop here. The worker consumes normalized articles,
 // so a later LumenFeed adapter does not change generation, storage, or the skill.
@@ -51,6 +51,7 @@ export function worldNewsQuery(category, config, now) {
 
 export function normalizeWorldArticle(raw, { now, maxAgeMs }) {
   if (!raw || typeof raw !== 'object') return null;
+  if (isOpinionNews(raw)) return null;
   const url = newsHttpUrl(raw.url);
   const title = plainNewsText(raw.title, 240);
   const fullText = plainNewsText(raw.text);

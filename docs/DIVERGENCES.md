@@ -295,6 +295,15 @@ waiting. An unavailable category is skipped, so worldwide RSS cannot reappear
 during warm-up. The legacy `/v1/ap_news` contract remains the default when the
 feature is disabled.
 
+Opinion pieces, editorials, op-eds and commentary are excluded using explicit
+title/URL/provider labels before generation and title/URL labels on cached reads.
+The versioned generation prompt also asks the model to reject unlabeled opinion
+or advocacy instead of extracting its claims into apparent straight reporting.
+It requires impartial language and attributed claims, rejects loaded framing and
+unsupported inferences, and forbids invented counterarguments or artificial
+balance. These are model instructions, not a claim of guaranteed neutrality or
+independent fact checking of the source.
+
 Each story has three sentences targeting 50–60 words (validated at 48–62), with
 publisher attribution, source paragraph references, and no model-supplied markup.
 The renderer produces only Jibo's `style set="neutral|enthusiastic"` and

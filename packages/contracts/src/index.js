@@ -10,3 +10,4 @@ export * as messages from './messages.js';
 export * from './llmProvider.js';
 export * from './newsContent.js';
 export * from './newsBriefing.js';
+export * from './newsEditorial.js';
