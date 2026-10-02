@@ -509,11 +509,11 @@ test('header-only OGG listen starts wait for later microphone pages', { skip: !F
     // ffmpeg's header-only exit is version-dependent, so construct the exact
     // state its close handler sees rather than making this regression test
     // depend on the runner's ffmpeg version. The production close handler
-    // invokes _rewindHeaderOnlyOgg() only for this narrow condition.
+    // invokes _rewindOggStartup() before any decoded audio reaches ASR.
     decoder.started = true;
     decoder.oggPages = 2;
     decoder.oggPrimer = Buffer.from(OGG_OPUS.subarray(0, headersEnd));
-    assert.equal(decoder._rewindHeaderOnlyOgg(), true);
+    assert.equal(decoder._rewindOggStartup(), true);
     assert.equal(decoder.failed, false);
     assert.equal(failure, null);
 
