@@ -60,7 +60,7 @@ import { portalPeopleRoutes } from './portal/people.js';
 import { portalMessagingRoutes } from './portal/messaging.js';
 import { portalSystemRoutes } from './portal/system.js';
 import { portalAddressSearchRoutes } from './portal/addressSearch.js';
-import { adminConfigRoutes } from './admin/configRoutes.js';
+import { adminSettingsRoutes } from './admin/settingsRoutes.js';
 import { adminOpsRoutes } from './admin/adminRoutes.js';
 import { adminLogRoutes } from './admin/logRoutes.js';
 import { adminVoiceTurnRoutes } from './admin/voiceTurnRoutes.js';
@@ -628,8 +628,25 @@ export function portalRoutes(store, options = {}) {
     // The admin surface's configuration and operations routes. Each re-checks
     // requireAdmin itself, exactly as the routes above do — being mounted here
     // grants nothing on its own.
-    ...adminConfigRoutes(store, { requireAdmin, sendJson }),
-    ...adminOpsRoutes(store, { requireAdmin, sendJson, currentAccount: sessionUser }),
+    ...adminSettingsRoutes(store, {
+      requireAdmin, sendJson, currentAccount: sessionUser, ...(options.adminSettings || {}),
+    }),
+    ...adminOpsRoutes(store, {
+      requireAdmin,
+      sendJson,
+      currentAccount: sessionUser,
+      // Whether a robot is connected, asked the same way its owner's Robots page asks.
+      presence: async (robot) => {
+        const result = await robotConnectionStatus(portal.classicCall || classicCall, {
+          base: portal.classicBase,
+          account: robot,
+          target: 'Notification_20150505.GetStatus',
+          body: { accountId: robot._id },
+        });
+        return typeof result?.body?.connected === 'boolean' ? result.body.connected : null;
+      },
+      ...(options.adminOps || {}),
+    }),
     ...adminLogRoutes(store, { requireAdmin, sendJson }),
     ...adminVoiceTurnRoutes(store, { requireAdmin, sendJson }),
     ...adminRemovalRoutes(store, { requireAdmin, sendJson, ...(options.adminRemoval || {}) }),

@@ -137,6 +137,7 @@ const ICONS = {
   home: 'M3.5 10.5 12 3.5l8.5 7M5.5 9.5V20h13V9.5',
   users: 'M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20M10 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM20 20v-1.5a3.5 3.5 0 0 0-2.6-3.4M15.4 4.6a3.5 3.5 0 0 1 0 6.8',
   sliders: 'M4 7h10M18 7h2M4 17h4M12 17h8M4 12h2M10 12h10M16 5v4M10 15v4M8 10v4',
+  search: 'M10.5 17.5a7 7 0 1 0 0-14 7 7 0 0 0 0 14ZM20 20l-4.6-4.6',
   robot: 'M8 4h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8a4 4 0 0 1 4-4ZM9.5 10.5h.01M14.5 10.5h.01M9 15h6',
   sparkles: 'm12 2 1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8L12 2ZM19 17l.7 1.3L21 19l-1.3.7L19 21l-.7-1.3L17 19l1.3-.7L19 17ZM4 16l.6 1.4L6 18l-1.4.6L4 20l-.6-1.4L2 18l1.4-.6L4 16Z',
   image: 'M4 5.5h16v13H4zM4 15l4.5-4.5 4 4 3-3L20 16M15.5 9.5h.01',
@@ -3632,8 +3633,9 @@ async function renderSystem() {
 /* ==========================================================================
    Administration
    ==========================================================================
-   Four surfaces under #/admin: the server's own status, the configuration
-   editor, adopted robots, and who else is an administrator.
+   Six pages under #/admin for the people who run this server: an overview of
+   how it is doing, its settings, every robot, everyone with an account, how
+   long voice turns take, and the live log.
 
    Administrator access is a property of the signed-in account and the server
    re-checks it on every /api/admin/* route, so nothing here grants anything —
@@ -3641,24 +3643,25 @@ async function renderSystem() {
    ========================================================================== */
 
 const ADMIN_TABS = [
-  { hash: '#/admin', label: 'Status', icon: 'server' },
-  { hash: '#/admin/config', label: 'Configuration', icon: 'sliders' },
+  { hash: '#/admin', label: 'Overview', icon: 'server' },
+  { hash: '#/admin/settings', label: 'Settings', icon: 'sliders' },
+  { hash: '#/admin/robots', label: 'Robots', icon: 'robot' },
+  { hash: '#/admin/people', label: 'People', icon: 'users' },
   { hash: '#/admin/voice-turns', label: 'Voice turns', icon: 'clock' },
   { hash: '#/admin/logs', label: 'Logs', icon: 'message' },
-  { hash: '#/admin/robots', label: 'Robots', icon: 'robot' },
-  { hash: '#/admin/admins', label: 'Administrators', icon: 'users' },
 ];
 
-/** The admin page frame: heading, sub-navigation, and a body to fill. */
+/** The admin page frame: heading, the admin tabs, and a body to fill. */
 function adminPage(active, title, description) {
   const container = page(title, description);
-  const nav = h('nav', { class: 'subnav', 'aria-label': 'Administration' },
+  const nav = h('nav', { class: 'subnav admin-tabs', 'aria-label': 'Server administration' },
     ...ADMIN_TABS.map((tab) => h('a', {
       href: tab.hash,
       class: tab.hash === active ? 'active' : '',
       'aria-current': tab.hash === active ? 'page' : null,
-    }, icon(tab.icon, 15), tab.label)));
+    }, icon(tab.icon, 15), h('span', { text: tab.label }))));
   container.querySelector('.page-head').after(nav);
+  container.classList.add('admin-page');
   return container;
 }
 
@@ -3671,15 +3674,14 @@ async function adminGate(container) {
   if (access.ok) return true;
 
   if (access.status === 403) {
-    container.append(card('Not an administrator', { sub: me ? (me.email || '') : '' },
+    container.append(card('This account isn’t an administrator', { sub: me ? (me.email || '') : '' },
       h('p', { class: 'field-hint' },
-        'This account is not an administrator, so the server-wide admin surface is not available '
-        + 'to it. An existing administrator can grant access from the Administrators tab, or from '
-        + 'the command line:'),
+        'Only administrators can manage the server. An administrator can make you one from the People '
+        + 'tab, or, on the server itself:'),
       h('div', { class: 'restart-cmd' },
         h('span', { class: 'prompt' }, '$'),
-        h('code', { text: 'node scripts/portal-grant-admin.mjs --email ' + (me?.email || 'you@example.com') }),
-        copyButton(() => 'node scripts/portal-grant-admin.mjs --email ' + (me?.email || 'you@example.com')))));
+        h('code', { text: `node scripts/portal-grant-admin.mjs --email ${me?.email || 'you@example.com'}` }),
+        copyButton(() => `node scripts/portal-grant-admin.mjs --email ${me?.email || 'you@example.com'}`))));
   } else {
     container.append(errorBox('Could not check administrator access.', access.data.error));
   }
@@ -3707,521 +3709,861 @@ function copyButton(get) {
   return button;
 }
 
-/* -- Status ---------------------------------------------------------------- */
-
-async function renderAdminStatus() {
-  const container = adminPage('#/admin', 'Administration', 'What this server is doing right now.');
-  show(container);
-  if (!(await adminGate(container))) return;
-
-  container.append(loading(4));
-  const res = await api('GET', '/api/admin/status');
-  container.querySelector('.loading-rows')?.remove();
-
-  if (!res.ok) { container.append(errorBox('Could not read server status.', res.data.error)); return; }
-  const d = res.data;
-
-  const hours = Math.floor(d.runtime.uptimeSeconds / 3600);
-  const mins = Math.floor((d.runtime.uptimeSeconds % 3600) / 60);
-  const uptime = hours ? `${hours}h ${mins}m` : `${mins}m`;
-
-  container.append(h('div', { class: 'stat-grid' },
-    h('article', { class: 'stat' },
-      h('div', { class: 'label' }, icon('clock', 14), 'Uptime'),
-      h('div', { class: 'value', text: uptime }),
-      h('div', { class: 'note', text: `since ${fmtDate(d.runtime.startedAt)}` })),
-    h('article', { class: 'stat' },
-      h('div', { class: 'label' }, icon('users', 14), 'Accounts'),
-      h('div', { class: 'value', text: String(d.store.accounts) }),
-      h('div', { class: 'note', text: `${d.store.loops ?? 0} loop${d.store.loops === 1 ? '' : 's'}` })),
-    h('article', { class: 'stat' },
-      h('div', { class: 'label' }, icon('robot', 14), 'Robots'),
-      h('div', { class: 'value', text: String(d.store.robots ?? 0) }),
-      h('div', { class: 'note', text: 'adopted on this server' })),
-    h('article', { class: 'stat' },
-      h('div', { class: 'label' }, icon('chip', 14), 'Memory'),
-      h('div', { class: 'value', text: `${d.runtime.memoryMb} MB` }),
-      h('div', { class: 'note', text: `Node ${d.runtime.node}` }))));
-
-  container.append(card('This process', {},
-    row('Node', d.runtime.node),
-    row('Platform', d.runtime.platform),
-    row('Process ID', String(d.runtime.pid)),
-    row('Working directory', h('code', { text: d.runtime.cwd })),
-    row('Configuration file', d.config.envFileExists
-      ? h('span', {}, h('code', { text: d.config.envFile }),
-        h('span', { class: 'pill' }, `${d.config.envFileKeys} set`))
-      : h('span', { class: 'pill pill-warn' }, `none at ${d.config.envFile}`)),
-    row('Branding override', d.config.brandingFile
-      ? h('code', { text: d.config.brandingFile })
-      : h('span', { class: 'muted' }, 'none — using the shipped defaults'))));
-
-  // Peers: a real probe, not a reading of the configuration.
-  const peerCard = card('Peer services', {
-    sub: d.peers.length ? `${d.peers.filter((p) => p.reachable).length} of ${d.peers.length} reachable` : null,
-  });
-  const peerBody = peerCard.querySelector('.card-body');
-  if (!d.peers.length) {
-    peerBody.replaceChildren(empty('No peers configured',
-      'Service addresses are set with the NET_ settings on the Configuration tab. Without them this '
-      + 'service runs alone.', 'link'));
-  } else {
-    peerBody.replaceChildren(...d.peers.map((p) => h('div', { class: 'peer' },
-      h('span', { class: 'who', text: p.label }),
-      h('span', { class: 'target', text: p.target }),
-      p.reachable
-        ? h('span', { class: 'pill pill-ok' }, h('span', { class: 'dot' }), `${p.status} · ${p.ms} ms`)
-        : h('span', { class: 'pill pill-error' }, p.error || 'unreachable'))));
-    peerBody.append(h('p', { class: 'field-hint', style: 'margin-top:.75rem' },
-      'Each of these was requested just now. A service that is configured but unreachable is shown '
-      + 'unreachable — nothing here is inferred from the configuration alone.'));
-  }
-  container.append(peerCard);
+/** "Answers", "Answers and Hub", "Answers, Hub and Logs". */
+function listText(names) {
+  if (names.length < 3) return names.join(' and ');
+  return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
 }
 
-/* -- Configuration --------------------------------------------------------- */
-
-/** Commands for restarting a set of services, in each of the ways this stack runs. */
-function restartInstructions(serviceIds, services) {
-  const compose = serviceIds.map((id) => services[id]?.compose).filter(Boolean);
-  return [
-    {
-      how: 'Docker Compose',
-      cmd: `docker compose restart ${compose.join(' ')}`,
-    },
-    {
-      how: 'systemd user units',
-      cmd: 'systemctl --user restart phoenix-robot@<instance>',
-    },
-    {
-      how: 'Run directly',
-      cmd: serviceIds.map((id) => `node ${services[id]?.script || ''}`).filter(Boolean).join('\n'),
-    },
-  ];
+/**
+ * Name a set of services the way a sentence needs it: "Answers", "Answers and
+ * History", "every service", or "5 services" once a list would be a paragraph.
+ */
+function servicesPhrase(ids, labelOf, everyId = []) {
+  if (everyId.length && everyId.every((id) => ids.includes(id))) return 'every service';
+  if (ids.length > 3) return `${ids.length} services`;
+  return listText(ids.map(labelOf));
 }
 
-async function renderAdminConfig() {
-  const container = adminPage('#/admin/config', 'Configuration',
-    'Every setting this stack reads from its environment.');
-  show(container);
-  if (!(await adminGate(container))) return;
+/** How long something has been running: "3 minutes", "5 hours", "12 days". */
+function fmtUptime(since) {
+  const ms = Date.now() - Number(since);
+  if (!Number.isFinite(ms) || ms < 0) return '';
+  const minutes = Math.floor(ms / 60000);
+  if (minutes < 1) return 'under a minute';
+  if (minutes < 60) return `${minutes} minute${minutes === 1 ? '' : 's'}`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 48) return `${hours} hour${hours === 1 ? '' : 's'}`;
+  const days = Math.floor(hours / 24);
+  return `${days} day${days === 1 ? '' : 's'}`;
+}
 
-  container.append(loading(6));
-  const res = await api('GET', '/api/admin/config');
-  container.querySelector('.loading-rows')?.remove();
-  if (!res.ok) { container.append(errorBox('Could not load the configuration.', res.data.error)); return; }
+const fmtDuration = (ms) => (!Number.isFinite(ms) ? '—' : ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(ms < 10000 ? 1 : 0)} s`);
 
-  const { groups, settings, services, envFile } = res.data;
+/* -- Restarting services ----------------------------------------------------- */
 
-  // Pending edits, keyed by setting. A row is dirty while its value differs
-  // from what the server reported.
-  const edits = new Map();
-  const rows = new Map();
-
-  container.append(h('div', { class: 'notice' }, icon('alert', 15),
-    h('div', {},
-      h('div', {}, 'Changes are written to ', h('code', { text: envFile.path }), '.'),
-      h('div', { class: 'field-hint', style: 'margin-top:.3rem' },
-        'Services read these values when they start, so a change takes effect after you restart the '
-        + 'services each setting names. Nothing here is applied to a running process.'))));
-
-  /* toolbar ------------------------------------------------------------- */
-  const search = h('input', {
-    type: 'search', class: 'search', placeholder: `Search ${settings.length} settings…`,
-    'aria-label': 'Search settings',
+/**
+ * Restart services through the launcher and show each one come back. Asks
+ * first, explaining what a restart interrupts. Resolves true when every service
+ * is running and answering again, false when it was cancelled or one did not.
+ */
+async function restartServices(ids, labels = {}, everyId = []) {
+  const name = (id) => labels[id] || id;
+  const hub = ids.includes('hub');
+  const self = ids.includes('account');
+  const phrase = servicesPhrase(ids, name, everyId);
+  const yes = await confirmDialog({
+    title: `Restart ${phrase}?`,
+    body: [
+      hub ? 'Robots talking to Jibo right now will be cut off for a few seconds, then reconnect by themselves.' : null,
+      self ? 'This page reconnects by itself.' : null,
+      !hub && !self ? 'It takes a few seconds; anything using it waits until it is back.' : null,
+    ].filter(Boolean).join(' '),
+    confirmLabel: ids.length === 1 ? 'Restart' : 'Restart them',
+    danger: false,
   });
-  const onlyModified = h('label', { class: 'chip' },
-    h('input', { type: 'checkbox' }), h('span', { class: 'chip-mark' }), h('span', {}, 'Modified'));
-  const onlySet = h('label', { class: 'chip' },
-    h('input', { type: 'checkbox' }), h('span', { class: 'chip-mark' }), h('span', {}, 'Set'));
+  if (!yes) return false;
 
-  container.append(h('div', { class: 'cfg-toolbar' }, search, onlySet, onlyModified));
+  const steps = new Map(ids.map((id) => [id, {
+    el: h('li', { class: 'restart-step is-waiting' },
+      h('span', { class: 'restart-step-mark', 'aria-hidden': 'true' }),
+      h('span', { class: 'restart-step-name', text: name(id) }),
+      h('span', { class: 'restart-step-state', text: 'Stopping' })),
+    done: false,
+    failed: false,
+  }]));
+  const title = h('h3', { text: ids.length === 1 ? `Restarting ${name(ids[0])}` : 'Restarting services' });
+  const note = h('p', { class: 'field-hint', text: '' });
+  const closeBtn = h('button', { class: 'btn', type: 'button', disabled: true }, 'Close');
+  const dialog = h('dialog', { class: 'modal restart-modal' }, title,
+    h('ul', { class: 'restart-steps', role: 'list' }, ...[...steps.values()].map((s) => s.el)),
+    note,
+    h('div', { class: 'row row-end', style: 'margin-top:1.1rem' }, closeBtn));
+  let finished = false;
+  let resolveDone;
+  const done = new Promise((resolve) => { resolveDone = resolve; });
+  const close = () => { dialog.close(); dialog.remove(); resolveDone(finished && [...steps.values()].every((s) => s.done)); };
+  closeBtn.addEventListener('click', close);
+  dialog.addEventListener('cancel', (event) => { event.preventDefault(); if (finished) close(); });
+  document.body.append(dialog);
+  dialog.showModal();
 
-  /* layout -------------------------------------------------------------- */
-  const index = h('nav', { class: 'cfg-index', 'aria-label': 'Setting groups' });
-  const list = h('div', {});
-  container.append(h('div', { class: 'cfg-layout' }, index, list));
-
-  const byGroup = new Map(groups.map((g) => [g.id, []]));
-  for (const s of settings) byGroup.get(s.group)?.push(s);
-
-  for (const group of groups) {
-    const items = byGroup.get(group.id) || [];
-    if (!items.length) continue;
-    index.append(h('a', { href: `#cfg-${group.id}`, 'data-group': group.id },
-      h('span', { text: group.label }), h('span', { class: 'n', text: String(items.length) })));
-
-    const section = h('section', { class: 'cfg-group', id: `cfg-${group.id}`, 'data-group': group.id },
-      h('header', {}, h('h3', { text: group.label }), h('p', { text: group.blurb })),
-      h('div', { class: 'cfg-list' }, ...items.map(settingRow)));
-    list.append(section);
-  }
-
-  const noMatches = h('p', { class: 'cfg-empty', hidden: true }, 'No setting matches that search.');
-  list.append(noMatches);
-
-  /* save bar ------------------------------------------------------------ */
-  const summary = h('p', {}, 'No changes yet.');
-  const saveBtn = h('button', { class: 'btn btn-primary', type: 'button', disabled: true }, 'Save changes');
-  const discardBtn = h('button', { class: 'btn', type: 'button', hidden: true }, 'Discard');
-  // Hidden until there is something to save. A permanent bar reading "no
-  // changes yet" is a quarter of a phone screen spent saying nothing.
-  const saveBar = h('div', { class: 'save-bar', hidden: true }, summary, discardBtn, saveBtn);
-  container.append(saveBar);
-
-  saveBtn.addEventListener('click', save);
-  discardBtn.addEventListener('click', () => {
-    for (const key of [...edits.keys()]) revert(key);
-  });
-
-  /* ---------------------------------------------------------------- rows */
-
-  function settingRow(spec) {
-    const badges = h('span', { class: 'cfg-badges' });
-    if (spec.source === 'environment') badges.append(h('span', { class: 'pill pill-warn' }, 'environment'));
-    else if (spec.source === 'file') badges.append(h('span', { class: 'pill pill-accent' }, 'configured'));
-    else badges.append(h('span', { class: 'pill' }, 'default'));
-    if (spec.danger) badges.append(h('span', { class: 'pill pill-error' }, icon('alert', 11), 'sensitive'));
-
-    const control = h('div', { class: 'cfg-control' });
-    let input;
-
-    if (spec.type === 'bool') {
-      input = h('select', {},
-        h('option', { value: '' }, spec.default === null ? 'Not set' : `Not set (${spec.default})`),
-        h('option', { value: 'true' }, 'true'),
-        h('option', { value: 'false' }, 'false'));
-      input.value = spec.value || '';
-    } else if (spec.type === 'enum') {
-      input = h('select', {}, ...(spec.options || []).map((o) =>
-        h('option', { value: o.value }, o.label)));
-      input.value = spec.value || '';
-    } else {
-      input = h('input', {
-        type: spec.type === 'number' ? 'number' : 'text',
-        value: spec.value || '',
-        placeholder: spec.placeholder || (spec.default != null ? `default: ${spec.default}` : 'not set'),
-        autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false',
-      });
-      if (spec.type === 'secret') {
-        input.setAttribute('data-secret', '');
-        input.setAttribute('type', 'text');
-      }
-      if (spec.min != null) input.setAttribute('min', spec.min);
-      if (spec.max != null) input.setAttribute('max', spec.max);
-    }
-
-    if (spec.locked) input.disabled = true;
-    input.addEventListener('input', () => onEdit(spec, input));
-    input.addEventListener('change', () => onEdit(spec, input));
-    control.append(input);
-
-    // Secrets: reveal what is actually set, and offer a strong replacement.
-    if (spec.type === 'secret' && !spec.locked) {
-      if (spec.hasValue) {
-        control.append(h('button', {
-          class: 'btn btn-sm', type: 'button',
-          on: {
-            // currentTarget is null once the event has finished dispatching,
-            // so the button is captured before the request is awaited.
-            click: async (e) => {
-              const button = e.currentTarget;
-              button.disabled = true;
-              const res2 = await api('POST', '/api/admin/config/reveal', { key: spec.key });
-              button.disabled = false;
-              if (!res2.ok) { notify(res2.data.error || 'Could not reveal', 'error'); return; }
-              input.value = res2.data.value;
-              button.remove();
-              onEdit(spec, input);
-            },
-          },
-        }, icon('eye', 14), 'Reveal'));
-      }
-      control.append(h('button', {
-        class: 'btn btn-sm', type: 'button',
-        on: {
-          click: async () => {
-            const res2 = await api('POST', '/api/admin/config/generate', {});
-            if (!res2.ok) { notify(res2.data.error || 'Could not generate', 'error'); return; }
-            input.value = res2.data.value;
-            onEdit(spec, input);
-          },
-        },
-      }, icon('refresh', 14), 'Generate'));
-    }
-
-    const revertLink = h('button', {
-      class: 'link revert', type: 'button', hidden: true,
-      on: { click: () => revert(spec.key) },
-    }, 'Revert');
-
-    const foot = h('div', { class: 'cfg-foot' },
-      spec.services?.length
-        ? h('span', { class: 'restart' }, icon('refresh', 12),
-          `Needs restart: ${spec.services.map((s) => services[s]?.label || s).join(', ')}`)
-        : null,
-      spec.default != null ? h('span', {}, `Default: ${spec.default}`) : h('span', {}, 'No default'),
-      revertLink);
-
-    const item = h('div', {
-      class: `cfg-item${spec.locked ? ' locked' : ''}`,
-      'data-key': spec.key,
-      'data-search': `${spec.key} ${spec.label} ${spec.help}`.toLowerCase(),
-    },
-      h('div', { class: 'cfg-head' },
-        h('span', { class: 'name', text: spec.label }),
-        h('span', { class: 'cfg-key', text: spec.key }),
-        badges),
-      h('p', { class: 'cfg-help', text: spec.help }),
-      control,
-      spec.locked
-        ? h('div', { class: 'cfg-locked-note' }, icon('lock', 13),
-          h('span', {}, 'Set in the process environment, which always overrides the configuration '
-            + 'file. Editing it here would have no effect, so it is read-only. Change it where the '
-            + 'service is launched.'))
-        : null,
-      // An environment variable shadowing a different configured value is
-      // exactly the situation that wastes an afternoon. Say it out loud.
-      (!spec.locked && spec.fileValue != null && spec.fileValue !== spec.value)
-        ? h('div', { class: 'cfg-locked-note' }, icon('alert', 13),
-          h('span', {}, `The file says "${spec.fileValue}" but the running process has `
-            + `"${spec.value || 'nothing'}". Restart to pick the file value up.`))
-        : null,
-      foot);
-
-    rows.set(spec.key, { item, input, spec, revertLink });
-    return item;
-  }
-
-  function onEdit(spec, input) {
-    const next = String(input.value ?? '');
-    const original = spec.value === '••••••••' ? null : (spec.value || '');
-    // A masked secret has no comparable original, so any typing counts.
-    const dirty = original === null ? next !== '' && next !== '••••••••' : next !== original;
-
-    if (dirty) edits.set(spec.key, next);
-    else edits.delete(spec.key);
-
-    const row = rows.get(spec.key);
-    row.item.classList.toggle('dirty', dirty);
-    row.revertLink.hidden = !dirty;
-    paintSaveBar();
-  }
-
-  function revert(key) {
-    const row = rows.get(key);
-    if (!row) return;
-    row.input.value = row.spec.value === '••••••••' ? '' : (row.spec.value || '');
-    edits.delete(key);
-    row.item.classList.remove('dirty');
-    row.revertLink.hidden = true;
-    paintSaveBar();
-  }
-
-  function paintSaveBar() {
-    const n = edits.size;
-    saveBtn.disabled = n === 0;
-    discardBtn.hidden = n === 0;
-    saveBar.hidden = n === 0;
-    if (!n) return;
-
-    const affected = new Set();
-    for (const key of edits.keys()) {
-      for (const s of rows.get(key)?.spec.services || []) affected.add(services[s]?.label || s);
-    }
-    summary.replaceChildren(
-      h('strong', { text: `${n} change${n === 1 ? '' : 's'}` }),
-      ` — will need a restart of ${[...affected].join(', ')}.`);
-  }
-
-  async function save() {
-    saveBtn.disabled = true;
-    saveBtn.textContent = 'Saving…';
-    const changes = Object.fromEntries(edits);
-    const result = await api('PUT', '/api/admin/config', { changes });
-    saveBtn.textContent = 'Save changes';
-
-    if (!result.ok) {
-      const errors = result.data.errors || {};
-      for (const [key, message] of Object.entries(errors)) {
-        const row = rows.get(key);
-        if (!row) continue;
-        row.input.setAttribute('aria-invalid', 'true');
-        row.item.querySelector('.cfg-help').after(h('p', { class: 'error', 'data-field-error': '' }, message));
-      }
-      notify(result.data.error || 'Could not save', 'error');
-      saveBtn.disabled = false;
-      return;
-    }
-
-    notify(`Saved ${result.data.applied.length + result.data.cleared.length} setting(s)`);
-    showRestartPanel(result.data);
-    await renderAdminConfig();
-  }
-
-  function showRestartPanel(data) {
-    const ids = data.restartRequired || [];
-    if (!ids.length) return;
-    const dialog = h('dialog', { class: 'modal', style: 'width:min(560px,calc(100vw - 2rem))' },
-      h('h3', {}, 'Saved — now restart to apply'),
-      h('p', {}, `Written to ${data.path}. These services read the settings you changed and are `
-        + 'still running with the old values:'),
-      h('div', { class: 'row', style: 'margin:.85rem 0' },
-        ...ids.map((id) => h('span', { class: 'pill pill-accent' }, services[id]?.label || id))),
-      h('p', { class: 'field-hint' },
-        'Restart them the way this stack is run here — these are the usual three:'),
-      h('div', { class: 'restart-panel', style: 'margin-top:.75rem' },
-        ...restartInstructions(ids, services).map((r) => h('div', {},
-          h('div', { class: 'restart-how', text: r.how }),
-          h('div', { class: 'restart-cmd' },
-            h('span', { class: 'prompt' }, '$'),
-            h('code', { text: r.cmd }),
-            copyButton(() => r.cmd))))),
-      data.backup
-        ? h('p', { class: 'field-hint', style: 'margin-top:1rem' },
-          `The previous file was copied to ${data.backup}.`)
-        : null,
-      h('div', { class: 'row row-end', style: 'margin-top:1.25rem' },
-        h('button', {
-          class: 'btn btn-primary', type: 'button',
-          on: { click: () => { dialog.close(); dialog.remove(); } },
-        }, 'Done')));
-    document.body.append(dialog);
-    dialog.showModal();
-  }
-
-  /* ------------------------------------------------------------- filters */
-
-  const applyFilter = () => {
-    const term = search.value.trim().toLowerCase();
-    const wantModified = onlyModified.querySelector('input').checked;
-    const wantSet = onlySet.querySelector('input').checked;
-    let shown = 0;
-
-    for (const [key, { item, spec }] of rows) {
-      const matches = !term || item.dataset.search.includes(term);
-      const modifiedOk = !wantModified || edits.has(key);
-      const setOk = !wantSet || spec.hasValue;
-      const visible = matches && modifiedOk && setOk;
-      item.hidden = !visible;
-      if (visible) shown += 1;
-    }
-    // Hide a group heading whose settings are all filtered out.
-    for (const section of list.querySelectorAll('.cfg-group')) {
-      section.hidden = ![...section.querySelectorAll('.cfg-item')].some((i) => !i.hidden);
-    }
-    noMatches.hidden = shown > 0;
+  const setStep = (id, state, text) => {
+    const step = steps.get(id);
+    step.el.className = `restart-step is-${state}`;
+    step.el.querySelector('.restart-step-state').textContent = text;
+    step.done = state === 'done' || state === 'warn';
+    step.failed = state === 'failed';
   };
 
-  search.addEventListener('input', debounce(applyFilter, 120));
-  onlyModified.querySelector('input').addEventListener('change', applyFilter);
-  onlySet.querySelector('input').addEventListener('change', applyFilter);
+  const start = await apiRaw('POST', '/api/admin/services/restart', { services: ids });
+  if (!start.ok) {
+    for (const id of ids) setStep(id, 'failed', 'Not restarted');
+    note.textContent = start.data?.error || 'The restart couldn’t be requested.';
+    finished = true;
+    closeBtn.disabled = false;
+    return done;
+  }
+  const requestedAt = Number(start.data.requestedAt) || Date.now();
+  const deadline = Date.now() + 75_000;
+  while (Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 700));
+    const list = await apiRaw('GET', '/api/admin/services');
+    if (!list.ok) {
+      note.textContent = self ? 'Waiting for the console to come back…' : 'Checking…';
+      continue;
+    }
+    note.textContent = '';
+    for (const id of ids) {
+      const service = (list.data.services || []).find((s) => s.id === id);
+      if (!service) continue;
+      const restarted = Number(service.startedAt) >= requestedAt - 1000;
+      if (!restarted) setStep(id, 'waiting', service.state === 'restarting' ? 'Stopping' : 'Waiting');
+      else if (service.state === 'stopped') setStep(id, 'failed', 'Didn’t start');
+      else if (service.state === 'running' && service.healthy && service.safeMode) setStep(id, 'warn', 'Running without saved settings');
+      else if (service.state === 'running' && service.healthy) setStep(id, 'done', 'Running');
+      else setStep(id, 'starting', 'Starting');
+    }
+    if ([...steps.values()].every((s) => s.done || s.failed)) break;
+  }
+  for (const [id, step] of steps) if (!step.done && !step.failed) setStep(id, 'failed', 'Not back yet');
+  const failed = [...steps.values()].filter((s) => s.failed).length;
+  const warned = [...steps.values()].some((s) => s.el.classList.contains('is-warn'));
+  title.textContent = failed
+    ? `${failed === ids.length ? 'The restart' : 'Part of the restart'} didn’t work`
+    : (ids.length === 1 ? `${name(ids[0])} restarted` : 'Restarted');
+  note.textContent = failed
+    ? 'A service that doesn’t come back usually says why in the Logs tab.'
+    : warned ? 'A service stopped right after starting with your saved settings, so it was started without them. Check its settings.'
+      : 'Everything is running with the latest settings.';
+  finished = true;
+  closeBtn.disabled = false;
+  closeBtn.classList.add('btn-primary');
+  closeBtn.focus();
+  return done;
+}
 
-  // Highlight the group currently on screen in the index.
-  if ('IntersectionObserver' in window) {
-    const io = new IntersectionObserver((entries) => {
+/* -- Overview ---------------------------------------------------------------- */
+
+function serviceTone(service) {
+  if (service.state === 'restarting') return 'busy';
+  if (service.state !== 'running') return 'down';
+  if (service.healthy === false) return 'down';
+  if (service.safeMode) return 'warn';
+  return service.healthy ? 'up' : 'unknown';
+}
+
+function serviceStatusText(service) {
+  if (service.state === 'restarting') return 'Restarting';
+  if (service.state !== 'running') return 'Stopped';
+  if (service.healthy === false) return 'Not answering';
+  return 'Running';
+}
+
+async function renderAdminOverview() {
+  const container = adminPage('#/admin', 'Your server', 'How Phoenix is running, and anything that needs you.');
+  show(container);
+  if (!(await adminGate(container))) return;
+  const body = h('div', { class: 'adm-overview' }, loading(5));
+  container.append(body);
+
+  let labels = {};
+  const load = async ({ quiet = false } = {}) => {
+    const res = await api('GET', '/api/admin/overview');
+    if (!res.ok) {
+      if (!quiet) body.replaceChildren(errorBox('Could not read the server’s status.', res.data.error));
+      return;
+    }
+    labels = Object.fromEntries((res.data.services || []).map((s) => [s.id, s.label]));
+    body.replaceChildren(...overviewParts(res.data));
+  };
+
+  const restart = async (ids) => {
+    const list = ids === 'all' ? Object.keys(labels) : ids;
+    if (!list.length) return;
+    await restartServices(list, labels, Object.keys(labels));
+    await load({ quiet: true });
+  };
+
+  function overviewParts(d) {
+    const services = d.services || [];
+    const main = services.filter((s) => !s.minor);
+    const down = main.filter((s) => serviceTone(s) === 'down');
+    const attention = d.attention || [];
+    // The hero answers one question, is it running; everything else is in the list below it.
+    const tone = down.length || attention.some((a) => a.level === 'error') ? 'error' : 'ok';
+    const release = d.phoenix?.release;
+    const heroTitle = !main.length ? 'Phoenix is running'
+      : down.length ? `${down.length} ${down.length === 1 ? 'service isn’t' : 'services aren’t'} running`
+        : 'Everything’s running';
+    const facts = [
+      main.length ? `${main.length - down.length} of ${main.length} services up` : null,
+      d.counts.online !== null ? `${d.counts.online} of ${d.counts.robots} ${d.counts.robots === 1 ? 'robot' : 'robots'} online`
+        : `${d.counts.robots} ${d.counts.robots === 1 ? 'robot' : 'robots'}`,
+      `${d.counts.people} ${d.counts.people === 1 ? 'person' : 'people'}`,
+    ].filter(Boolean);
+
+    const hero = h('section', { class: `card adm-hero adm-tone-${tone}` },
+      h('div', { class: 'adm-hero-main' },
+        h('span', { class: 'adm-hero-mark', 'aria-hidden': 'true' }, icon(tone === 'ok' ? 'check' : 'alert', 22)),
+        h('div', { class: 'adm-hero-text' },
+          h('h2', { text: heroTitle }),
+          h('p', {},
+            release ? h('span', {}, 'Phoenix ', h('code', { text: release.commit })) : 'Phoenix',
+            d.phoenix?.startedAt ? ` · running for ${fmtUptime(d.phoenix.startedAt)}` : '',
+            d.phoenix?.node ? ` · Node ${d.phoenix.node.replace(/^v/, '')}` : ''))),
+      h('ul', { class: 'adm-hero-facts', role: 'list' }, ...facts.map((fact) => h('li', { text: fact }))));
+
+    const parts = [hero];
+
+    if (attention.length) {
+      const serious = attention.some((a) => a.level !== 'info');
+      const list = h('ul', { class: 'adm-attention', role: 'list' }, ...attention.map((item) => {
+        const action = item.action;
+        let button = null;
+        if (action?.restart && d.control?.available) {
+          button = h('button', { type: 'button', class: `btn btn-sm${item.level === 'error' ? ' btn-primary' : ''}`,
+            on: { click: () => restart(action.restart) } }, action.label);
+        } else if (action?.href) {
+          button = h('a', { class: 'btn btn-sm', href: action.href }, action.label);
+        }
+        return h('li', { class: `adm-attention-item is-${item.level}` },
+          h('span', { class: 'adm-attention-ic', 'aria-hidden': 'true' }, icon(item.level === 'info' ? 'sparkles' : 'alert', 15)),
+          h('div', { class: 'adm-attention-text' }, h('strong', { text: item.title }), item.body ? h('span', { text: item.body }) : null),
+          button);
+      }));
+      const attentionCard = card(serious ? 'Needs your attention' : 'Worth knowing', {}, list);
+      attentionCard.classList.add('adm-attention-card');
+      parts.push(attentionCard);
+    }
+
+    /* services */
+    const serviceRow = (s) => {
+      const tone2 = serviceTone(s);
+      const meta = [];
+      if (s.state === 'running' && s.startedAt) meta.push(`up ${fmtUptime(s.startedAt)}`);
+      if (s.state === 'running' && s.latencyMs !== null && s.latencyMs !== undefined) meta.push(`${s.latencyMs} ms`);
+      const tags = [];
+      if (s.safeMode && s.state === 'running') tags.push(h('span', { class: 'pill pill-warn', text: 'Without saved settings' }));
+      if (s.pendingSettings) tags.push(h('span', { class: 'pill pill-accent', text: `${s.pendingSettings} change${s.pendingSettings === 1 ? '' : 's'} to apply` }));
+      return h('li', { class: `adm-service is-${tone2}` },
+        h('span', { class: 'adm-service-dot', title: serviceStatusText(s), 'aria-hidden': 'true' }),
+        h('div', { class: 'adm-service-main' },
+          h('div', { class: 'adm-service-name' }, h('strong', { text: s.label }), ...tags),
+          h('span', { class: 'adm-service-desc', text: s.description })),
+        h('div', { class: 'adm-service-meta' },
+          h('span', { class: 'adm-service-state', text: serviceStatusText(s) }),
+          meta.length ? h('span', { text: meta.join(' · ') }) : null),
+        d.control?.available ? h('button', {
+          type: 'button', class: 'icon-btn adm-service-restart', title: `Restart ${s.label}`, 'aria-label': `Restart ${s.label}`,
+          on: { click: () => restart([s.id]) },
+        }, icon('refresh', 15)) : null);
+    };
+    const servicesBody = [];
+    if (!services.length) {
+      servicesBody.push(h('p', { class: 'field-hint',
+        text: d.control?.available === false
+          ? 'This server’s services aren’t run by Phoenix’s launcher, so their status isn’t available here.'
+          : 'No services are reported.' }));
+    } else {
+      servicesBody.push(h('ul', { class: 'adm-services', role: 'list' }, ...main.map(serviceRow)));
+      const minor = services.filter((s) => s.minor);
+      if (minor.length) {
+        servicesBody.push(h('details', { class: 'adm-more' },
+          h('summary', {}, icon('chevron', 14, 'adm-more-caret'), `Developer skills (${minor.length})`),
+          h('ul', { class: 'adm-services', role: 'list' }, ...minor.map(serviceRow))));
+      }
+    }
+    const servicesCard = card('Services', {
+      sub: main.length ? `${main.length - down.length} of ${main.length} running` : null,
+      actions: d.control?.available && services.length ? [h('button', { type: 'button', class: 'btn btn-sm',
+        on: { click: () => restart('all') } }, icon('refresh', 14), 'Restart all…')] : null,
+    }, ...servicesBody);
+    servicesCard.classList.add('adm-services-card');
+
+    /* activity */
+    const v = d.voice;
+    let activity;
+    if (!v) {
+      activity = h('p', { class: 'field-hint', text: 'Voice timing isn’t available from the voice gateway right now.' });
+    } else if (!v.turns) {
+      activity = h('div', { class: 'adm-activity' },
+        h('div', { class: 'adm-big' }, h('strong', { text: '0' }), h('span', { text: 'voice turns in the last hour' })),
+        h('p', { class: 'field-hint', text: 'Nobody has talked to a Jibo on this server in the last hour.' }));
+    } else {
+      const total = Math.max(1, v.understood + v.missed + v.failed);
+      const share = (n) => `${((n / total) * 100).toFixed(1)}%`;
+      activity = h('div', { class: 'adm-activity' },
+        h('div', { class: 'adm-big' }, h('strong', { text: String(v.turns) }),
+          h('span', { text: `voice turn${v.turns === 1 ? '' : 's'} in the last hour` })),
+        h('div', { class: 'adm-split', role: 'img', 'aria-label': `${v.understood} understood, ${v.missed} not understood, ${v.failed} failed` },
+          h('span', { class: 'is-ok', style: `width:${share(v.understood)}` }),
+          h('span', { class: 'is-miss', style: `width:${share(v.missed)}` }),
+          h('span', { class: 'is-fail', style: `width:${share(v.failed)}` })),
+        h('ul', { class: 'adm-legend', role: 'list' },
+          h('li', { class: 'is-ok' }, `${v.understood} understood`),
+          h('li', { class: 'is-miss' }, `${v.missed} not understood`),
+          v.failed ? h('li', { class: 'is-fail' }, `${v.failed} failed`) : null),
+        h('dl', { class: 'adm-facts' },
+          h('div', {}, h('dt', { text: 'Typical reply' }), h('dd', { text: fmtDuration(v.medianMs) })),
+          h('div', {}, h('dt', { text: 'Slowest 10%' }), h('dd', { text: fmtDuration(v.p90Ms) }))));
+    }
+    const activityCard = card('Voice activity', { actions: [h('a', { class: 'ov-link', href: '#/admin/voice-turns' }, 'Details', icon('arrow', 13))] }, activity);
+
+    /* people, robots, loops */
+    const countRow = (href, iconName, label, value, note) => h('a', { class: 'adm-count', href },
+      h('span', { class: 'adm-count-ic' }, icon(iconName, 16)),
+      h('span', { class: 'adm-count-label', text: label }),
+      h('span', { class: 'adm-count-note', text: note || '' }),
+      h('strong', { text: String(value) }),
+      icon('chevron', 14, 'adm-count-go'));
+    const countsCard = card('On this server', {},
+      h('div', { class: 'adm-counts' },
+        countRow('#/admin/people', 'users', 'People', d.counts.people, `${d.counts.admins} administrator${d.counts.admins === 1 ? '' : 's'}`),
+        countRow('#/admin/robots', 'robot', 'Robots', d.counts.robots, d.counts.online !== null ? `${d.counts.online} online now` : ''),
+        countRow('#/admin/robots', 'home', 'Loops', d.counts.loops, '')));
+
+    /* storage */
+    let storageCard = null;
+    if (d.disk && d.disk.total > 0) {
+      const used = d.disk.total - d.disk.free;
+      const pct = Math.min(100, Math.max(0, (used / d.disk.total) * 100));
+      storageCard = card('Storage', {},
+        h('div', { class: 'adm-disk' },
+          h('div', { class: 'adm-big' }, h('strong', { text: fmtBytes(d.disk.free) }), h('span', { text: `free of ${fmtBytes(d.disk.total)}` })),
+          h('div', { class: `adm-meter${pct > 90 ? ' is-full' : pct > 75 ? ' is-high' : ''}`, role: 'meter',
+            'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(Math.round(pct)), 'aria-label': 'Disk used' },
+          h('span', { style: `width:${pct.toFixed(1)}%` })),
+          h('p', { class: 'field-hint' }, 'Data is kept in ', h('code', { text: d.disk.path }))));
+    }
+
+    parts.push(h('div', { class: 'adm-columns' },
+      h('div', { class: 'adm-col-main' }, servicesCard),
+      h('div', { class: 'adm-col-side' }, activityCard, countsCard, storageCard)));
+    return parts;
+  }
+
+  await load();
+  stopPoll();
+  pollTimer = setInterval(() => {
+    // Only refresh while nobody is looking at a dialog.
+    if (!document.querySelector('dialog[open]')) load({ quiet: true });
+  }, 20_000);
+}
+
+/* -- Settings ---------------------------------------------------------------- */
+
+const adminSettingsUi = { open: null, search: '', advanced: new Set(), serverOpen: false };
+
+function settingDisplayValue(s) {
+  const unit = s.unit ? ` ${s.unit}` : '';
+  const effective = s.value ?? (s.source === 'default' ? s.default : null);
+  if (s.type === 'secret') {
+    if (!s.isSet) return h('span', { class: 'setting-value is-empty', text: 'Not set' });
+    return h('span', { class: 'setting-value' }, h('span', { class: 'pill' }, icon('lock', 11), 'Set'),
+      s.hint ? h('span', { class: 'setting-secret-hint', text: `ends in ${s.hint}` }) : null);
+  }
+  if (s.type === 'bool') {
+    const on = (effective ?? 'false') === 'true';
+    return h('span', { class: `setting-value${s.source === 'default' ? ' is-default' : ''}`, text: on ? 'On' : 'Off' });
+  }
+  if (s.type === 'enum') {
+    const option = (s.options || []).find((o) => o.value === (effective ?? ''));
+    return h('span', { class: `setting-value${s.source === 'default' ? ' is-default' : ''}`, text: option ? option.label : String(effective ?? '') });
+  }
+  if (effective === null || effective === undefined || effective === '') {
+    return h('span', { class: 'setting-value is-empty', text: s.type === 'number' && s.placeholder === 'Built-in' ? 'Built-in' : 'Not set' });
+  }
+  const mono = ['url', 'host', 'string', 'email', 'path'].includes(s.type);
+  return h('span', { class: `setting-value${mono ? ' is-mono' : ''}${s.source === 'default' ? ' is-default' : ''}`, title: String(effective) },
+    `${effective}${s.type === 'number' ? unit : ''}`);
+}
+
+function settingSourceTag(s, serverFile) {
+  if (s.source === 'console') return h('span', { class: 'pill pill-accent', title: 'Saved in the console', text: 'Set here' });
+  if (s.source === 'server') return h('span', { class: 'pill', title: serverFile?.path ? `From ${serverFile.path}` : 'From the server', text: 'Server' });
+  // A default value is shown muted instead: a tag means someone chose the value.
+  return null;
+}
+
+async function renderAdminSettings(params) {
+  const container = adminPage('#/admin/settings', 'Settings',
+    'How this server behaves. A change takes effect when the services that use it restart, which you can do right here.');
+  show(container);
+  if (!(await adminGate(container))) return;
+
+  const body = h('div', { class: 'adm-settings-page' }, loading(6));
+  container.append(body);
+  const res = await api('GET', '/api/admin/settings');
+  if (!res.ok) { body.replaceChildren(errorBox('Could not load the settings.', res.data.error)); return; }
+  let data = res.data;
+  if (!data.control?.available) {
+    const sub = container.querySelector('.page-head p');
+    if (sub) sub.textContent = 'How this server behaves, and where each value comes from.';
+  }
+  const ui = adminSettingsUi;
+  ui.open = null;
+  const focusGroup = params?.get('group') || null;
+
+  const serviceLabel = (id) => data.services?.[id]?.label || id;
+  const byGroup = () => {
+    const map = new Map(data.groups.map((g) => [g.id, []]));
+    for (const s of data.settings) map.get(s.group)?.push(s);
+    return map;
+  };
+
+  const save = async (key, value) => {
+    const result = await api('PUT', '/api/admin/settings', { changes: { [key]: value } });
+    if (!result.ok) return result;
+    data = result.data;
+    ui.open = null;
+    const restart = result.data.restart || [];
+    if (!result.data.saved?.length) notify('No change — that was already the value.');
+    else if (restart.length) {
+      const phrase = servicesPhrase(restart, serviceLabel, data.running || []);
+      notify(`Saved. ${phrase[0].toUpperCase()}${phrase.slice(1)} ${restart.length === 1 || phrase === 'every service' ? 'needs' : 'need'} a restart to use it.`);
+    }
+    else notify('Saved.');
+    paint();
+    return result;
+  };
+
+  const restartPending = async (ids) => {
+    const ok = await restartServices(ids, Object.fromEntries(ids.map((id) => [id, serviceLabel(id)])), data.running || []);
+    const fresh = await api('GET', '/api/admin/settings');
+    if (fresh.ok) { data = fresh.data; paint(); }
+    return ok;
+  };
+
+  /* one editable setting ------------------------------------------------ */
+  function editorFor(s) {
+    const error = h('p', { class: 'error setting-error', role: 'alert', hidden: true });
+    const showError = (message) => { error.textContent = message; error.hidden = !message; };
+    const fallbackLabel = s.overrides ? 'Use the server’s value' : 'Reset to default';
+    const fallback = s.source === 'console'
+      ? h('button', { type: 'button', class: 'btn btn-sm btn-quiet', on: { click: async (event) => {
+        event.currentTarget.disabled = true;
+        const out = await save(s.key, null);
+        if (!out.ok) showError(out.data?.errors?.[s.key] ? `This ${out.data.errors[s.key]}.` : (out.data?.error || 'Could not save.'));
+      } } }, fallbackLabel)
+      : null;
+
+    let form;
+    if (s.type === 'enum') {
+      const current = s.value ?? (s.source === 'default' ? (s.default ?? '') : '');
+      const choices = (s.options || []).map((o) => h('label', { class: `choice${o.value === current ? ' is-selected' : ''}` },
+        h('input', { type: 'radio', name: `setting-${s.key}`, value: o.value, checked: o.value === current,
+          on: { change: () => {
+            for (const label of form.querySelectorAll('.choice')) label.classList.toggle('is-selected', label.querySelector('input').checked);
+          } } }),
+        h('span', { class: 'choice-text' }, h('b', { text: o.label }), o.hint ? h('span', { text: o.hint }) : null)));
+      form = h('form', { class: 'line-form setting-editor' },
+        h('div', { class: `choice-grid${choices.length > 2 ? ' choice-grid-wide' : ''}` }, ...choices),
+        error,
+        h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn btn-sm btn-primary' }, 'Save'), fallback));
+      onSubmit(form, async (event) => {
+        event.preventDefault();
+        const picked = form.querySelector('input[type=radio]:checked');
+        if (!picked) return;
+        const out = await save(s.key, picked.value);
+        if (!out.ok) showError(out.data?.errors?.[s.key] ? `This ${out.data.errors[s.key]}.` : (out.data?.error || 'Could not save.'));
+      });
+      return form;
+    }
+
+    const secret = s.type === 'secret';
+    const input = h('input', {
+      name: 'value',
+      type: secret ? 'password' : s.type === 'email' ? 'email' : s.type === 'url' ? 'url' : 'text',
+      inputmode: s.type === 'number' ? 'decimal' : null,
+      value: secret ? '' : (s.value ?? ''),
+      placeholder: secret ? (s.isSet ? 'Paste the new value' : 'Paste it here') : (s.placeholder || (s.default ? String(s.default) : '')),
+      autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false',
+      'aria-label': s.label,
+    });
+    const showBtn = secret ? h('button', { type: 'button', class: 'btn btn-sm btn-quiet', on: { click: () => {
+      input.type = input.type === 'password' ? 'text' : 'password';
+      showBtn.textContent = input.type === 'password' ? 'Show' : 'Hide';
+    } } }, 'Show') : null;
+    form = h('form', { class: 'line-form setting-editor' },
+      h('div', { class: 'setting-input' }, input, s.unit ? h('span', { class: 'setting-unit', text: s.unit }) : null, showBtn),
+      error,
+      h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn btn-sm btn-primary' }, 'Save'), fallback));
+    input.addEventListener('input', () => showError(''));
+    onSubmit(form, async (event) => {
+      event.preventDefault();
+      const value = input.value.trim();
+      if (!value) { showError(secret ? 'Paste a value, or cancel.' : (s.source === 'console' ? `Leave it empty with “${fallbackLabel}”.` : 'Type a value, or cancel.')); return; }
+      const out = await save(s.key, value);
+      if (!out.ok) {
+        const message = out.data?.errors?.[s.key];
+        showError(message ? `This ${message}.` : (Object.values(out.data?.errors || {})[0] || out.data?.error || 'Could not save.'));
+      }
+    });
+    return form;
+  }
+
+  function settingLine(s) {
+    const editable = s.editable && data.control.available;
+    const editing = ui.open === s.key;
+    const warning = (data.warnings || []).find((w) => w.key === s.key);
+    const pending = (s.pending || []).filter(Boolean);
+
+    let action = null;
+    if (editable && s.type === 'bool') {
+      const on = ((s.value ?? (s.source === 'default' ? s.default : null)) ?? 'false') === 'true';
+      const input = h('input', { type: 'checkbox', checked: on, 'aria-label': s.label });
+      action = h('label', { class: 'switch switch-compact' }, input, h('span', { class: 'track' }));
+      input.addEventListener('change', async () => {
+        input.disabled = true;
+        const out = await save(s.key, input.checked ? 'true' : 'false');
+        if (!out.ok) { input.checked = !input.checked; input.disabled = false; notify(out.data?.error || 'Could not save that.', 'error'); }
+      });
+    } else if (editable) {
+      const hasValue = s.isSet || s.type === 'enum' || (s.default !== null && s.default !== undefined && s.default !== '');
+      const label = editing ? 'Cancel' : s.type === 'secret' ? (s.isSet ? 'Replace…' : 'Add…') : (hasValue ? 'Change…' : 'Set…');
+      action = h('button', { type: 'button', class: 'btn btn-sm', 'aria-expanded': String(editing), on: { click: () => {
+        ui.open = editing ? null : s.key;
+        paint();
+        if (!editing) body.querySelector(`[data-key="${s.key}"] .setting-editor input:not([type=radio])`)?.focus();
+      } } }, label);
+    }
+
+    const notes = [];
+    if (s.overrides) {
+      notes.push(h('span', { class: 'setting-note' }, 'Replaces the server’s value',
+        s.serverValue ? h('span', {}, ' (', h('code', { text: s.serverValue }), ')') : null, '.'));
+    }
+    if (pending.length) {
+      notes.push(h('span', { class: 'setting-note is-pending' }, h('span', { class: 'dot', 'aria-hidden': 'true' }),
+        `Waiting for ${listText(pending.map(serviceLabel))} to restart.`));
+    }
+    if (warning) notes.push(h('span', { class: 'setting-note is-warn' }, icon('alert', 12), warning.message));
+
+    return h('div', { class: `setting-line adm-setting${editing ? ' is-editing' : ''}${pending.length ? ' is-pending' : ''}`, 'data-key': s.key,
+      'data-search': `${s.label} ${s.help} ${s.key}`.toLowerCase() },
+      h('div', { class: 'setting-line-text' },
+        h('span', { class: 'setting-line-label', text: s.label }),
+        settingDisplayValue(s),
+        settingSourceTag(s, data.serverFile),
+        h('span', { class: 'setting-line-hint', text: s.help }),
+        ...notes),
+      action ? h('div', { class: 'setting-line-actions' }, action) : null,
+      editing ? h('div', { class: 'setting-line-editor', on: { keydown: (event) => {
+        if (event.key === 'Escape') { ui.open = null; paint(); }
+      } } }, editorFor(s)) : null);
+  }
+
+  function serverLine(s) {
+    return h('div', { class: 'adm-server-line', 'data-key': s.key, 'data-search': `${s.label} ${s.help} ${s.key}`.toLowerCase() },
+      h('div', { class: 'adm-server-label' }, h('strong', { text: s.label }), h('span', { text: s.help })),
+      h('div', { class: 'adm-server-value' }, settingDisplayValue(s), settingSourceTag(s, data.serverFile)));
+  }
+
+  /** The settings only the server's file can change: there to look up, so folded away. */
+  function serverSection(serverGroups, groups) {
+    if (!serverGroups.length) return null;
+    const count = serverGroups.reduce((n, g) => n + groups.get(g.id).length, 0);
+    const section = h('details', { class: 'adm-server', open: ui.serverOpen,
+      on: { toggle: () => { ui.serverOpen = section.open; } } },
+    h('summary', { class: 'adm-server-intro' },
+      h('span', { class: 'adm-server-intro-text' },
+        h('h2', { text: 'Installed with the server' }),
+        h('span', { class: 'adm-server-intro-sub' }, 'Addresses, keys, storage and software. Change them in ',
+          data.serverFile?.path ? h('code', { text: data.serverFile.path }) : 'the server’s environment file',
+          ' on the server, then restart Phoenix.')),
+      h('span', { class: 'adm-server-toggle' },
+        h('span', { class: 'adm-server-show', text: `Show ${count}` }),
+        h('span', { class: 'adm-server-hide', text: 'Hide' }),
+        icon('chevron', 14, 'adm-more-caret'))),
+    ...serverGroups.map((g) => groupCard(g, groups.get(g.id))));
+    return section;
+  }
+
+  function pendingText(ids) {
+    const phrase = servicesPhrase(ids, serviceLabel, data.running || []);
+    const subject = `${phrase[0].toUpperCase()}${phrase.slice(1)}`;
+    return `${subject} ${ids.length === 1 || phrase === 'every service' ? 'is' : 'are'} still running without them.`;
+  }
+
+  /** Which services a group's changes restart, briefly. */
+  function restartsText(services) {
+    const running = data.running || [];
+    if (running.length && running.every((id) => services.includes(id))) return 'Restarts every service';
+    if (services.length > 3) return 'Restarts several services';
+    return `Restarts ${listText(services.map(serviceLabel))}`;
+  }
+
+  function groupCard(group, items) {
+    const services = [...new Set(items.flatMap((s) => s.restart || []))];
+    const basic = items.filter((s) => !s.advanced);
+    const advanced = items.filter((s) => s.advanced);
+    const showAll = ui.advanced.has(group.id) || advanced.some((s) => s.key === ui.open || s.source === 'console');
+    const kids = [];
+    if (group.editable) {
+      kids.push(h('div', { class: 'setting-lines' }, ...basic.map(settingLine)));
+      if (advanced.length) {
+        const more = h('details', { class: 'adm-more', open: showAll,
+          on: { toggle: () => { if (more.open) ui.advanced.add(group.id); else ui.advanced.delete(group.id); } } },
+        h('summary', {}, icon('chevron', 14, 'adm-more-caret'), `More settings (${advanced.length})`),
+        h('div', { class: 'setting-lines' }, ...advanced.map(settingLine)));
+        kids.push(more);
+      }
+    } else {
+      kids.push(h('div', { class: 'adm-server-lines' }, ...items.map(serverLine)));
+    }
+    return h('section', { class: `card adm-group${group.editable ? '' : ' is-server'}`, id: `adm-group-${group.id}`, 'data-group': group.id },
+      h('header', { class: 'adm-group-head' },
+        h('span', { class: 'adm-group-ic', 'aria-hidden': 'true' }, icon(group.icon || 'sliders', 17)),
+        h('div', {}, h('h3', { text: group.label }), h('p', { text: group.blurb })),
+        group.editable && services.length && data.control.available
+          ? h('span', { class: 'adm-group-restarts', text: restartsText(services) }) : null),
+      h('div', { class: 'card-body' }, ...kids));
+  }
+
+  function historyCard() {
+    if (!data.history?.length) return null;
+    const settingsByKey = new Map(data.settings.map((s) => [s.key, s]));
+    const show2 = (key, value) => {
+      const s = settingsByKey.get(key);
+      if (value === null || value === undefined) return 'nothing';
+      if (s?.type === 'enum') return (s.options || []).find((o) => o.value === value)?.label || value;
+      if (s?.type === 'bool') return value === 'true' ? 'on' : 'off';
+      return `${value}${s?.unit ? ` ${s.unit}` : ''}`;
+    };
+    const verb = { set: 'set', changed: 'changed', replaced: 'replaced', removed: 'removed' };
+    const rows = data.history.slice(0, 12).flatMap((entry) => entry.changes.map((change) => h('li', { class: 'adm-history-item' },
+      h('span', { class: 'adm-history-what' },
+        h('strong', { text: change.label }), ' ',
+        change.action === 'changed' ? `changed from ${show2(change.key, change.from)} to ${show2(change.key, change.to)}`
+          : change.action === 'set' && change.to !== undefined ? `set to ${show2(change.key, change.to)}`
+            : verb[change.action] || change.action),
+      h('span', { class: 'adm-history-who', text: [entry.by, fmtSince(entry.at)].filter(Boolean).join(' · ') }))));
+    const c = card('Recent changes', {}, h('ul', { class: 'adm-history', role: 'list' }, ...rows));
+    c.classList.add('adm-history-card');
+    return c;
+  }
+
+  /* the whole page ------------------------------------------------------- */
+  const search = h('input', { type: 'search', class: 'adm-search', placeholder: 'Search settings', 'aria-label': 'Search settings', value: ui.search });
+  search.addEventListener('input', debounce(() => { ui.search = search.value.trim().toLowerCase(); applySearch(); }, 120));
+
+  function applySearch() {
+    const term = ui.search;
+    let shown = 0;
+    for (const line of body.querySelectorAll('[data-search]')) {
+      const visible = !term || line.dataset.search.includes(term);
+      line.hidden = !visible;
+      if (visible) shown += 1;
+    }
+    for (const section of body.querySelectorAll('.adm-group')) {
+      const any = [...section.querySelectorAll('[data-search]')].some((line) => !line.hidden);
+      section.hidden = !any;
+      // A match among the advanced or server settings opens them.
+      if (term && any) section.querySelectorAll('details.adm-more').forEach((d) => { if ([...d.querySelectorAll('[data-search]')].some((l) => !l.hidden)) d.open = true; });
+      const fold = section.closest('details.adm-server');
+      if (term && any && fold) fold.open = true;
+    }
+    const none = body.querySelector('.adm-search-empty');
+    if (none) none.hidden = shown > 0;
+  }
+
+  function paint() {
+    const groups = byGroup();
+    const editableGroups = data.groups.filter((g) => g.editable && groups.get(g.id)?.length);
+    const serverGroups = data.groups.filter((g) => !g.editable && groups.get(g.id)?.length);
+    const pendingIds = [...new Set(data.settings.flatMap((s) => s.pending || []))]
+      .filter((id) => (data.running || []).includes(id));
+
+    const notices = [];
+    if (!data.control.available) {
+      notices.push(h('div', { class: 'notice' }, icon('lock', 15),
+        h('div', {}, h('strong', { text: 'Settings are read-only here' }), h('div', { class: 'field-hint', text: data.control.message }))));
+    }
+    if (data.settingsError) notices.push(errorBox(data.settingsError, 'Saving a setting starts a fresh file.'));
+
+    const pendingBar = pendingIds.length ? h('div', { class: 'adm-pending', role: 'status' },
+      h('span', { class: 'adm-pending-dot', 'aria-hidden': 'true' }),
+      h('div', { class: 'adm-pending-text' },
+        h('strong', { text: 'Restart to apply your changes' }),
+        h('span', { text: pendingText(pendingIds) })),
+      h('button', { type: 'button', class: 'btn btn-primary btn-sm', on: { click: () => restartPending(pendingIds) } }, icon('refresh', 14), 'Restart now')) : null;
+
+    const navLink = (g) => h('a', { href: `#/admin/settings?group=${g.id}`, 'data-group': g.id, on: { click: (event) => {
+      event.preventDefault();
+      jumpTo(g.id);
+    } } }, icon(g.icon || 'sliders', 14), h('span', { text: g.label }),
+    groups.get(g.id).some((s) => s.source === 'console') ? h('span', { class: 'adm-nav-dot', title: 'Has settings saved here' }) : null);
+    const nav = h('nav', { class: 'adm-settings-nav', 'aria-label': 'Setting groups' },
+      ...editableGroups.map(navLink),
+      serverGroups.length ? h('span', { class: 'adm-nav-heading', text: 'Installed with the server' }) : null,
+      ...serverGroups.map(navLink));
+
+    const main = h('div', { class: 'adm-settings-main' },
+      h('div', { class: 'adm-search-row' }, icon('search', 15), search),
+      h('p', { class: 'adm-search-empty', hidden: true, text: 'No setting matches that.' }),
+      ...editableGroups.map((g) => groupCard(g, groups.get(g.id))),
+      serverSection(serverGroups, groups),
+      historyCard());
+
+    body.replaceChildren(...notices, pendingBar || '', h('div', { class: 'adm-settings' }, nav, main));
+    applySearch();
+    observeGroups(nav);
+  }
+
+  function jumpTo(id) {
+    const target = body.querySelector(`#adm-group-${id}`);
+    if (!target) return;
+    const fold = target.closest('details.adm-server');
+    if (fold && !fold.open) fold.open = true;
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    target.classList.remove('is-flash');
+    void target.offsetWidth;
+    target.classList.add('is-flash');
+    history.replaceState(null, '', `#/admin/settings?group=${id}`);
+  }
+
+  let observer = null;
+  function observeGroups(nav) {
+    observer?.disconnect();
+    if (!('IntersectionObserver' in window)) return;
+    observer = new IntersectionObserver((entries) => {
       for (const entry of entries) {
         if (!entry.isIntersecting) continue;
         const id = entry.target.dataset.group;
-        for (const a of index.querySelectorAll('a')) a.classList.toggle('current', a.dataset.group === id);
+        for (const a of nav.querySelectorAll('a')) a.classList.toggle('current', a.dataset.group === id);
       }
-    }, { rootMargin: '-20% 0px -70% 0px' });
-    for (const section of list.querySelectorAll('.cfg-group')) io.observe(section);
+    }, { rootMargin: '-25% 0px -65% 0px' });
+    for (const section of body.querySelectorAll('.adm-group')) observer.observe(section);
   }
+
+  paint();
+  if (focusGroup) requestAnimationFrame(() => jumpTo(focusGroup));
 }
 
-/* -- Robots ---------------------------------------------------------------- */
+/* -- Robots ------------------------------------------------------------------ */
 
 async function renderAdminRobots() {
-  const container = adminPage('#/admin/robots', 'Robots',
-    'Every robot adopted on this server, across all loops.');
+  const container = adminPage('#/admin/robots', 'Robots', 'Every Jibo on this server, with its loop and owner.');
   show(container);
   if (!(await adminGate(container))) return;
+  const body = h('div', { class: 'adm-robots' }, loading(4));
+  container.append(body);
 
-  container.append(loading(3));
-  const robots = await api('GET', '/api/admin/robots');
-  container.querySelector('.loading-rows')?.remove();
+  const res = await api('GET', '/api/admin/fleet');
+  if (!res.ok) { body.replaceChildren(errorBox('Could not list the robots.', res.data.error)); return; }
+  const { robots, loops } = res.data;
+  const state = { search: '', filter: 'all' };
 
-  const list = robots.ok && Array.isArray(robots.data) ? robots.data : [];
-  const robotCard = card('Adopted robots', { sub: `${list.length}` });
-  const body = robotCard.querySelector('.card-body');
-  if (!robots.ok) body.replaceChildren(errorBox('Could not list robots.', robots.data.error));
-  else if (!list.length) {
-    body.replaceChildren(empty('No robots adopted',
-      'Adopt one below, or pair a new robot from the Robots page.', 'robot'));
-  } else {
-    body.replaceChildren(...list.map((rb) => h('div', { class: 'member-block' },
-      h('div', { class: 'member-name' }, icon('robot', 15), rb.friendlyId),
-      row('Loop', rb.loopName || '—'),
-      row('Owner', rb.ownerEmail || '—'),
-      row('Access key', h('code', { text: rb.accessKeyId })),
-      row('Last seen', fmtDate(rb.lastSeen)),
-      h('div', { class: 'member-actions' },
-        h('button', { type: 'button', class: 'btn btn-danger btn-sm', on: { click: () => removalDialog({ robot: rb.friendlyId }) } },
-          icon('trash', 14), 'Remove…')))));
-    body.classList.add('member-grid');
-  }
-  container.append(robotCard);
+  const online = robots.filter((r) => r.online === true).length;
+  const known = robots.some((r) => r.online !== null);
+  const statusPill = (r) => (r.online === true
+    ? h('span', { class: 'pill pill-ok' }, h('span', { class: 'dot dot-live' }), 'Online')
+    : r.online === false
+      ? h('span', { class: 'pill', title: r.lastSeen ? `Last seen ${fmtDate(r.lastSeen)}` : 'Not seen yet' },
+        r.lastSeen ? `Last seen ${fmtSince(r.lastSeen)}` : 'Not seen yet')
+      : h('span', { class: 'pill pill-quiet', text: 'Unknown' }));
 
-  // Loops, including any left behind without a robot.
-  const loops = await api('GET', '/api/admin/loops');
-  const loopList = loops.ok && Array.isArray(loops.data.loops) ? loops.data.loops : [];
-  const loopCard = card('Loops', { sub: `${loopList.length}` });
-  const loopBody = loopCard.querySelector('.card-body');
-  if (!loops.ok) loopBody.replaceChildren(errorBox('Could not list loops.', loops.data.error));
-  else if (!loopList.length) loopBody.replaceChildren(empty('No loops', 'Pairing a robot creates its loop.', 'users'));
-  else {
-    loopBody.replaceChildren(...loopList.map((loop) => h('div', { class: 'member-block' },
-      h('div', { class: 'member-name' }, icon('users', 15), loop.name || 'Unnamed loop'),
-      row('Robot', loop.robotFriendlyId || h('span', { class: 'pill pill-warn' }, 'none')),
-      row('Owner', loop.ownerEmail || '—'),
-      row('Members', String(loop.members)),
-      row('Loop id', h('code', { text: loop.id })),
-      h('div', { class: 'member-actions' },
-        h('button', { type: 'button', class: 'btn btn-danger btn-sm', on: { click: () => removalDialog({ loopId: loop.id }) } },
-          icon('trash', 14), 'Remove loop…')))));
-    loopBody.classList.add('member-grid');
-  }
-  container.append(loopCard);
+  const robotRow = (r) => h('li', { class: 'adm-row', 'data-search': `${r.name || ''} ${r.friendlyId} ${r.owner?.name || ''} ${r.owner?.email || ''}`.toLowerCase(),
+    'data-online': String(r.online) },
+  robotAvatar(r.color, 'sm'),
+  h('div', { class: 'adm-row-main' },
+    h('strong', { text: r.name || r.friendlyId }),
+    h('span', { class: 'adm-row-sub' },
+      r.name ? h('code', { text: r.friendlyId }) : null,
+      r.owner ? `${r.name ? ' · ' : ''}${r.owner.name || r.owner.email}` : (r.name ? '' : 'No loop'),
+      r.loopId ? ` · ${r.people} ${r.people === 1 ? 'person' : 'people'}` : '')),
+  statusPill(r),
+  h('button', { type: 'button', class: 'btn btn-sm btn-quiet btn-danger-quiet', on: { click: () => removalDialog({ robot: r.friendlyId }) } },
+    icon('trash', 14), h('span', { class: 'hide-sm', text: 'Remove…' })));
 
+  const loopRow = (l) => h('li', { class: 'adm-row', 'data-search': `${l.name || ''} ${l.robot || ''} ${l.owner?.name || ''} ${l.owner?.email || ''}`.toLowerCase() },
+    robotAvatar(l.color, 'sm'),
+    h('div', { class: 'adm-row-main' },
+      h('strong', { text: l.name || 'Unnamed loop' }),
+      h('span', { class: 'adm-row-sub' },
+        l.owner ? (l.owner.name || l.owner.email) : 'No owner',
+        ` · ${l.people} ${l.people === 1 ? 'person' : 'people'}`,
+        l.invited ? ` · ${l.invited} invited` : '',
+        l.robot ? '' : ' · no robot')),
+    l.suspended ? h('span', { class: 'pill pill-warn', text: 'Suspended' }) : h('span', {}),
+    h('button', { type: 'button', class: 'btn btn-sm btn-quiet btn-danger-quiet', on: { click: () => removalDialog({ loopId: l.id }) } },
+      icon('trash', 14), h('span', { class: 'hide-sm', text: 'Remove…' })));
+
+  const robotList = h('ul', { class: 'adm-list', role: 'list' }, ...robots.map(robotRow));
+  const noMatch = h('p', { class: 'adm-search-empty', hidden: true, text: 'No robot matches that.' });
+  const search = h('input', { type: 'search', class: 'adm-search', placeholder: 'Search by name, owner or email', 'aria-label': 'Search robots' });
+  const chip = (value, label) => h('button', { type: 'button', class: `chip-btn${state.filter === value ? ' is-active' : ''}`, 'data-filter': value,
+    on: { click: () => { state.filter = value; apply(); } } }, label);
+  const chips = known ? h('div', { class: 'chip-row' }, chip('all', `All ${robots.length}`), chip('online', `Online ${online}`), chip('offline', `Offline ${robots.length - online}`)) : null;
+  const apply = () => {
+    state.search = search.value.trim().toLowerCase();
+    let shown = 0;
+    for (const row of robotList.children) {
+      const matches = !state.search || row.dataset.search.includes(state.search);
+      const filterOk = state.filter === 'all' || (state.filter === 'online' ? row.dataset.online === 'true' : row.dataset.online !== 'true');
+      row.hidden = !(matches && filterOk);
+      if (!row.hidden) shown += 1;
+    }
+    noMatch.hidden = shown > 0 || !robots.length;
+    chips?.querySelectorAll('.chip-btn').forEach((b) => b.classList.toggle('is-active', b.dataset.filter === state.filter));
+  };
+  search.addEventListener('input', debounce(apply, 100));
+
+  const robotsCard = card('Every robot', { sub: known ? `${online} of ${robots.length} online` : `${robots.length}` },
+    robots.length ? h('div', { class: 'adm-toolbar' }, search, chips) : null,
+    robots.length ? robotList : empty('No robots yet', 'A robot appears here once someone sets it up or migrates it to this server.', 'robot'),
+    noMatch);
+  robotsCard.classList.add('adm-list-card');
+
+  const orphans = loops.filter((l) => !l.robot);
+  // Most loops are their robot's; the list matters for removing one loop, or one left without a robot.
+  const loopsCard = h('details', { class: 'card adm-disclosure adm-list-card', open: orphans.length > 0 },
+    h('summary', {}, h('span', { class: 'adm-group-ic', 'aria-hidden': 'true' }, icon('home', 16)),
+      h('div', {}, h('strong', { text: `Loops (${loops.length})` }),
+        h('span', { text: orphans.length ? `${orphans.length} without a robot` : 'The household around each Jibo. Remove one here without removing its robot.' })),
+      icon('chevron', 15, 'adm-more-caret')),
+    h('div', { class: 'card-body' },
+      loops.length ? h('ul', { class: 'adm-list', role: 'list' }, ...loops.map(loopRow)) : empty('No loops', 'Setting up a robot creates its loop.', 'users')));
+
+  /* manual adoption, for the rare robot that predates everything else */
   const result = h('pre', { class: 'json', hidden: true });
-  const adoptForm = h('form', {},
+  const adoptForm = h('form', { class: 'adm-adopt' },
     h('p', { class: 'field-hint' },
-      'For a robot that completed setup against the original cloud years ago. This mints fresh '
-      + 'credentials and a loop, and shows you exactly what to write to the robot.'),
+      'For a robot that finished setup with the original cloud years ago and can’t run the migration command. '
+      + 'This creates its credentials and a loop, and shows what to write to the robot.'),
     h('div', { class: 'grid2' },
-      field('Robot name', h('input', {
-        name: 'friendlyId', placeholder: 'castle-cylinder-fig-quilt', required: true,
-        autocapitalize: 'off', spellcheck: 'false',
-      }), 'The four-word name the robot reports.'),
-      field('Owner email', h('input', { name: 'ownerEmail', type: 'email', placeholder: 'optional' }),
-        'An existing account. Leave blank to use the synthetic adopted owner.')),
-    h('label', { class: 'check-row' },
-      h('input', { name: 'transferExisting', type: 'checkbox' }),
-      h('span', {}, 'Transfer a robot already owned by another Phoenix account (administrator-confirmed).')),
-    h('div', { class: 'row', style: 'margin-top:1.25rem' },
-      h('button', { type: 'submit', class: 'btn btn-primary' }, 'Adopt robot')),
+      field('Robot name', h('input', { name: 'friendlyId', placeholder: 'castle-cylinder-fig-quilt', required: true, autocapitalize: 'off', spellcheck: 'false' }),
+        'The four-word name the robot reports.'),
+      field('Owner email', h('input', { name: 'ownerEmail', type: 'email', placeholder: 'Optional' }),
+        'Someone with an account here. Leave it empty to adopt it without an owner.')),
+    h('label', { class: 'check-row' }, h('input', { name: 'transferExisting', type: 'checkbox' }),
+      h('span', {}, 'Move it here even if another account on this server owns it')),
+    h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn btn-primary' }, 'Adopt robot')),
     result);
-
   onSubmit(adoptForm, async (e) => {
     e.preventDefault();
     const fd = Object.fromEntries(new FormData(adoptForm));
-    const res = await api('POST', '/api/admin/adopt', {
-      friendlyId: fd.friendlyId, ownerEmail: fd.ownerEmail || undefined,
-      transferExisting: fd.transferExisting === 'on',
+    const out = await api('POST', '/api/admin/adopt', {
+      friendlyId: fd.friendlyId, ownerEmail: fd.ownerEmail || undefined, transferExisting: fd.transferExisting === 'on',
     });
     result.hidden = false;
-    if (!res.ok) { result.textContent = `Error: ${res.data.error}`; return; }
-    result.textContent = [
-      '# Write this to /var/jibo/credentials.json on the robot:',
-      JSON.stringify(res.data.credentialsJson, null, 2),
-      '', '# Then point the robot at this server:',
-      ...(res.data.instructions || []),
-    ].join('\n');
+    if (!out.ok) { result.textContent = `Error: ${out.data.error}`; return; }
+    result.textContent = ['# Write this to /var/jibo/credentials.json on the robot:',
+      JSON.stringify(out.data.credentialsJson, null, 2), '', '# Then point the robot at this server:',
+      ...(out.data.instructions || [])].join('\n');
     notify('Robot adopted');
   });
+  const adopt = h('details', { class: 'card adm-disclosure' },
+    h('summary', {}, h('span', { class: 'adm-group-ic', 'aria-hidden': 'true' }, icon('plus', 16)),
+      h('div', {}, h('strong', { text: 'Adopt a robot by hand' }), h('span', { text: 'Only for a robot that can’t be migrated with the repoint command.' })),
+      icon('chevron', 15, 'adm-more-caret')),
+    h('div', { class: 'card-body' }, adoptForm));
 
-  container.append(card('Manually adopt a robot', {}, adoptForm));
+  body.replaceChildren(robotsCard, orphans.length ? h('div', { class: 'notice notice-warn' }, icon('alert', 15),
+    h('div', {}, `${orphans.length} ${orphans.length === 1 ? 'loop has' : 'loops have'} no robot. Remove ${orphans.length === 1 ? 'it' : 'them'} if nobody needs ${orphans.length === 1 ? 'it' : 'them'}.`)) : '',
+  loopsCard, adopt);
+  apply();
 }
 
 /**
@@ -4230,7 +4572,7 @@ async function renderAdminRobots() {
  * loop id to be typed before anything is removed.
  */
 function removalDialog(target) {
-  const title = h('h3', { text: target.robot ? `Remove ${target.robot}` : 'Remove loop' });
+  const title = h('h3', { text: target.robot ? `Remove ${target.robot}?` : 'Remove this loop?' });
   const content = h('div', { class: 'removal-body' }, loading(4));
   const close = () => { dialog.close(); dialog.remove(); };
   const cancel = h('button', { class: 'btn', type: 'button', on: { click: close } }, 'Cancel');
@@ -4262,8 +4604,8 @@ function removalDialog(target) {
     const account = plan.account;
     content.replaceChildren(
       h('p', { class: 'field-hint' }, plan.kind === 'robot'
-        ? 'This removes the robot, every loop it belongs to, and everything the server stores for them. The owners\u2019 own accounts are kept. Afterwards the server has never heard of this robot, so it can be set up from scratch with a QR code.'
-        : 'This removes the loop and everything the server stores for it. Its robot account, if any, is kept.'),
+        ? 'This removes the robot, every loop it belongs to, and everything the server keeps for them. The owners’ own accounts stay. Afterwards the server has never heard of this robot, so it can be set up again from scratch.'
+        : 'This removes the loop and everything the server keeps for it. Its robot, if any, stays.'),
       h('div', { class: 'kv-list' },
         account.robot ? row('Robot account', h('code', { text: account.robot.friendlyId })) : null,
         ...account.loops.map((loop) => row('Loop', `${loop.name || 'Unnamed'} · ${loop.ownerEmail || 'no owner'} · ${loop.members} member${loop.members === 1 ? '' : 's'}`)),
@@ -4271,7 +4613,7 @@ function removalDialog(target) {
           ? row('Other account records', [countsText(account.removed), account.memberships ? `${account.memberships} membership(s) in other loops` : ''].filter(Boolean).join(', '))
           : null,
         ...serviceRows(plan.services)),
-      h('p', { class: 'field-hint' }, 'Each service saves a backup copy under removal-backups/ before it removes anything.'));
+      h('p', { class: 'field-hint' }, 'Each service saves a backup under removal-backups/ before it removes anything.'));
     confirmField.querySelector('.field-label').replaceChildren('Type ', h('code', { text: plan.confirmWith }), ' to confirm');
     confirmField.hidden = false;
     confirmInput.disabled = false;
@@ -4305,81 +4647,108 @@ function removalDialog(target) {
   })();
 }
 
-/* -- Administrators -------------------------------------------------------- */
+/* -- People ------------------------------------------------------------------ */
 
-async function renderAdminAdmins() {
-  const container = adminPage('#/admin/admins', 'Administrators',
-    'Who can reach this surface. Access is a flag on the account, checked on every request.');
+async function renderAdminPeople() {
+  const container = adminPage('#/admin/people', 'People',
+    'Everyone with an account on this server, and who can manage it.');
   show(container);
   if (!(await adminGate(container))) return;
+  const body = h('div', { class: 'adm-people' }, loading(4));
+  container.append(body);
 
-  container.append(loading(3));
   const res = await api('GET', '/api/admin/admins');
-  container.querySelector('.loading-rows')?.remove();
-  if (!res.ok) { container.append(errorBox('Could not list accounts.', res.data.error)); return; }
-
+  if (!res.ok) { body.replaceChildren(errorBox('Could not list accounts.', res.data.error)); return; }
   const { accounts, adminCount } = res.data;
+  const state = { filter: 'all' };
 
-  if (adminCount === 1) {
-    container.append(h('div', { class: 'notice notice-warn' }, icon('alert', 15),
-      h('div', {},
-        h('div', {}, 'This instance has one administrator.'),
-        h('div', { class: 'field-hint', style: 'margin-top:.3rem' },
-          'If that account is lost, admin access is recovered only from the command line with '
-          + 'scripts/portal-grant-admin.mjs. Granting a second administrator avoids that.'))));
-  }
-
-  const listCard = card('Accounts', { sub: `${adminCount} of ${accounts.length} are administrators` });
-  const body = listCard.querySelector('.card-body');
-
-  body.replaceChildren(...accounts.map((a) => {
+  const personRow2 = (a) => {
     const isSelf = me && a.id === me.id;
     const name = [a.firstName, a.lastName].filter(Boolean).join(' ');
-    return h('div', { class: `member-block${a.isAdmin ? '' : ' '}`.trim() },
-      h('div', { class: 'member-name' },
-        h('span', { class: 'avatar', style: 'width:24px;height:24px;font-size:10px' },
-          (name || a.email || '?').slice(0, 2).toUpperCase()),
-        name || a.email || a.id,
-        a.isAdmin ? h('span', { class: 'pill pill-accent' }, 'administrator') : null,
-        isSelf ? h('span', { class: 'pill' }, 'you') : null),
-      row('Email', a.email || '—'),
-      row('Active', a.isActive ? 'yes' : 'no'),
-      h('div', { class: 'member-actions' },
-        h('button', {
-          class: a.isAdmin ? 'link danger' : 'link', type: 'button',
-          on: { click: () => setAdmin(a, !a.isAdmin) },
-        }, a.isAdmin ? 'Revoke admin' : 'Make administrator')));
-  }));
-  body.classList.add('member-grid');
-  container.append(listCard);
+    const actions = [];
+    if (a.isAdmin && !isSelf) {
+      actions.push(h('button', { type: 'button', class: 'btn btn-sm btn-quiet btn-danger-quiet', on: { click: () => setAdmin(a, false) } }, 'Remove administrator'));
+    } else if (!a.isAdmin) {
+      actions.push(h('button', { type: 'button', class: 'btn btn-sm', on: { click: () => setAdmin(a, true) } }, 'Make administrator'));
+    }
+    return h('li', { class: 'adm-row', 'data-search': `${name} ${a.email}`.toLowerCase(), 'data-admin': String(a.isAdmin), 'data-active': String(a.isActive) },
+      personAvatar(name || a.email, { key: a.id, size: 'sm' }),
+      h('div', { class: 'adm-row-main' },
+        h('strong', {}, name || a.email,
+          isSelf ? h('span', { class: 'pill', text: 'You' }) : null),
+        h('span', { class: 'adm-row-sub' },
+          name ? a.email : null,
+          `${name ? ' · ' : ''}${a.loops ? `in ${a.loops} loop${a.loops === 1 ? '' : 's'}` : 'in no loop'}`,
+          a.created ? ` · joined ${fmtDay(a.created)}` : '')),
+      h('div', { class: 'adm-row-tags' },
+        a.isAdmin ? h('span', { class: 'pill pill-accent' }, icon('lock', 11), 'Administrator') : null,
+        a.isActive ? null : h('span', { class: 'pill pill-warn', text: 'Not confirmed' })),
+      h('div', { class: 'adm-row-actions' }, ...actions));
+  };
 
-  container.append(card('From the command line', {},
-    h('p', { class: 'field-hint' },
-      'The same flag, for when nobody can sign in to this page:'),
-    ...[
-      'node scripts/portal-grant-admin.mjs --list',
-      'node scripts/portal-grant-admin.mjs --email you@example.com',
-      'node scripts/portal-grant-admin.mjs --email you@example.com --revoke',
-    ].map((cmd) => h('div', { class: 'restart-cmd' },
-      h('span', { class: 'prompt' }, '$'), h('code', { text: cmd }), copyButton(() => cmd)))));
+  const list = h('ul', { class: 'adm-list', role: 'list' }, ...accounts.map(personRow2));
+  const noMatch = h('p', { class: 'adm-search-empty', hidden: true, text: 'Nobody matches that.' });
+  const search = h('input', { type: 'search', class: 'adm-search', placeholder: 'Search by name or email', 'aria-label': 'Search people' });
+  const pending = accounts.filter((a) => !a.isActive).length;
+  const chip = (value, label) => h('button', { type: 'button', class: `chip-btn${state.filter === value ? ' is-active' : ''}`, 'data-filter': value,
+    on: { click: () => { state.filter = value; apply(); } } }, label);
+  const chips = h('div', { class: 'chip-row' },
+    chip('all', `Everyone ${accounts.length}`), chip('admins', `Administrators ${adminCount}`),
+    pending ? chip('pending', `Not confirmed ${pending}`) : null);
+  const apply = () => {
+    const term = search.value.trim().toLowerCase();
+    let shown = 0;
+    for (const item of list.children) {
+      const ok = (!term || item.dataset.search.includes(term))
+        && (state.filter === 'all' || (state.filter === 'admins' ? item.dataset.admin === 'true' : item.dataset.active === 'false'));
+      item.hidden = !ok;
+      if (ok) shown += 1;
+    }
+    noMatch.hidden = shown > 0;
+    chips.querySelectorAll('.chip-btn').forEach((b) => b.classList.toggle('is-active', b.dataset.filter === state.filter));
+  };
+  search.addEventListener('input', debounce(apply, 100));
+
+  const parts = [];
+  if (adminCount === 1) {
+    parts.push(h('div', { class: 'notice notice-warn' }, icon('alert', 15),
+      h('div', {}, h('strong', { text: 'You’re the only administrator' }),
+        h('div', { class: 'field-hint', text: 'If you lose access to your account, nobody can manage this server from here. Make someone you trust an administrator too.' }))));
+  }
+  const peopleCard = card('Accounts', { sub: `${accounts.length} ${accounts.length === 1 ? 'person' : 'people'} · ${adminCount} administrator${adminCount === 1 ? '' : 's'}` },
+    h('div', { class: 'adm-toolbar' }, search, chips), list, noMatch);
+  peopleCard.classList.add('adm-list-card');
+  parts.push(peopleCard);
+
+  parts.push(h('details', { class: 'card adm-disclosure' },
+    h('summary', {}, h('span', { class: 'adm-group-ic', 'aria-hidden': 'true' }, icon('lock', 16)),
+      h('div', {}, h('strong', { text: 'If nobody can sign in' }), h('span', { text: 'Grant or remove access from the server’s command line.' })),
+      icon('chevron', 15, 'adm-more-caret')),
+    h('div', { class: 'card-body' },
+      h('p', { class: 'field-hint', text: 'Run these in Phoenix’s folder on the server:' }),
+      ...['node scripts/portal-grant-admin.mjs --list',
+        'node scripts/portal-grant-admin.mjs --email you@example.com',
+        'node scripts/portal-grant-admin.mjs --email you@example.com --revoke',
+      ].map((cmd) => h('div', { class: 'restart-cmd' }, h('span', { class: 'prompt' }, '$'), h('code', { text: cmd }), copyButton(() => cmd))))));
+
+  body.replaceChildren(...parts);
+  apply();
 
   async function setAdmin(account, grant) {
-    const label = account.email || account.id;
+    const label = [account.firstName, account.lastName].filter(Boolean).join(' ') || account.email;
     const yes = await confirmDialog({
-      title: grant ? `Make ${label} an administrator?` : `Revoke ${label}'s access?`,
+      title: grant ? `Make ${label} an administrator?` : `Remove ${label} as an administrator?`,
       body: grant
-        ? 'They will be able to read and change every setting on this server, adopt robots, and grant '
-          + 'administrator access to others.'
-        : 'They will lose access to the admin surface immediately — the flag is checked on every '
-          + 'request, so there is no session to wait out.',
-      confirmLabel: grant ? 'Make administrator' : 'Revoke',
+        ? 'They’ll be able to change this server’s settings, restart its services, remove robots and loops, and make others administrators.'
+        : 'They lose access to these pages straight away; the check happens on every request.',
+      confirmLabel: grant ? 'Make administrator' : 'Remove',
       danger: !grant,
     });
     if (!yes) return;
     const out = await api('POST', '/api/admin/admins', { email: account.email, grant });
     if (!out.ok) { notify(out.data.error || 'Could not change access', 'error'); return; }
-    notify(grant ? 'Administrator access granted' : 'Administrator access revoked');
-    await renderAdminAdmins();
+    notify(grant ? `${label} is now an administrator` : `${label} is no longer an administrator`);
+    await renderAdminPeople();
   }
 }
 
@@ -4666,7 +5035,7 @@ const ROUTES = {
   '#/add/new': renderAddNew,
 };
 
-/* -- Voice-turn latency ---------------------------------------------------- */
+/* -- Voice turns ------------------------------------------------------------- */
 
 const fmtMs = (value) => Number.isFinite(value) ? `${Math.round(value).toLocaleString()} ms` : '—';
 
@@ -4684,6 +5053,22 @@ const VOICE_STAGE_LABELS = Object.freeze({
   response_ready: 'Final response ready',
   http_request: 'Service request',
 });
+
+const VOICE_OUTCOME_LABELS = Object.freeze({
+  skill: 'Answered', listen: 'Handled on Jibo', redirect: 'Redirected', ok: 'Done', matched: 'Matched',
+  unmatched: 'Not understood', remote_error: 'Service error', timeout: 'Timed out', error: 'Error',
+  cancelled: 'Cancelled', abandoned: 'Abandoned',
+});
+
+function voiceOutcome(turn) {
+  const route = (turn.stages || []).find((stage) => stage.stage === 'route');
+  if (turn.outcome === 'listen' && route?.outcome === 'unmatched') return { label: 'Not understood', tone: 'warn' };
+  if (['error', 'timeout', 'remote_error', 'abandoned', 'cancelled'].includes(turn.outcome)) {
+    return { label: VOICE_OUTCOME_LABELS[turn.outcome], tone: 'error' };
+  }
+  if (!turn.outcome) return { label: 'In progress', tone: 'quiet' };
+  return { label: VOICE_OUTCOME_LABELS[turn.outcome] || 'Done', tone: 'ok' };
+}
 
 function voiceStageLabel(stage) {
   return VOICE_STAGE_LABELS[stage] || 'Recorded stage';
@@ -4774,34 +5159,32 @@ function asrTimingList(asr) {
 /** A purpose-built telemetry view; it never reads or renders raw log lines. */
 async function renderAdminVoiceTurns() {
   const container = adminPage('#/admin/voice-turns', 'Voice turns',
-    'Recent gateway latency, without speech or identity data.');
+    'How long Jibo takes to answer, step by step. Never what was said, or who said it.');
   show(container);
   if (!(await adminGate(container))) return;
 
   const state = { range: '3600000', turnId: '', outcome: '', stage: '', loading: false, expanded: new Set() };
+  const summary = h('div', { class: 'adm-voice-summary' });
   const body = h('div', { class: 'voice-turn-results' }, loading(5));
-  const status = h('span', { class: 'note', text: 'Loading recent turns…' });
+  const status = h('span', { class: 'adm-toolbar-status', text: 'Loading…' });
   const idInput = h('input', {
-    type: 'search', class: 'voice-turn-id', placeholder: 'Exact turn ID (UUID)',
+    type: 'search', class: 'adm-search', placeholder: 'Find a turn by its ID',
     'aria-label': 'Find an exact voice turn ID',
   });
   const rangeSelect = h('select', { 'aria-label': 'Time range' },
-    ...[['900000', 'Last 15 minutes'], ['3600000', 'Last hour'], ['21600000', 'Last 6 hours'], ['0', 'Retained turns']]
+    ...[['900000', 'Last 15 minutes'], ['3600000', 'Last hour'], ['21600000', 'Last 6 hours'], ['0', 'Everything kept']]
       .map(([value, label]) => h('option', { value, selected: value === state.range }, label)));
-  const outcomeSelect = h('select', { 'aria-label': 'Filter by outcome' }, h('option', { value: '' }, 'All outcomes'));
-  const stageSelect = h('select', { 'aria-label': 'Filter by stage' }, h('option', { value: '' }, 'All stages'));
-  const refresh = h('button', { class: 'btn btn-quiet', type: 'button' }, icon('refresh', 14), 'Refresh');
+  const outcomeSelect = h('select', { 'aria-label': 'Filter by outcome' }, h('option', { value: '' }, 'Every outcome'));
+  const stageSelect = h('select', { 'aria-label': 'Filter by stage' }, h('option', { value: '' }, 'Every stage'));
+  const refresh = h('button', { class: 'btn btn-sm btn-quiet', type: 'button' }, icon('refresh', 14), 'Refresh');
 
-  const toolbar = h('div', { class: 'voice-turn-toolbar' },
-    h('label', { class: 'log-control' }, 'Time', rangeSelect),
-    h('label', { class: 'log-control voice-turn-search' }, 'Turn ID', idInput),
-    h('label', { class: 'log-control' }, 'Outcome', outcomeSelect),
-    h('label', { class: 'log-control' }, 'Stage', stageSelect),
-    h('span', { class: 'spacer' }), refresh, status);
-  container.append(toolbar, body);
-  container.append(h('p', { class: 'note voice-turn-note' },
-    'Shows only the gateway process’s bounded timing projection. It contains no transcript, audio, '
-      + 'robot/account identity, credentials, or raw log lines.'));
+  const listCard = card('Recent turns', { actions: [status, refresh] },
+    h('div', { class: 'adm-toolbar' }, rangeSelect, outcomeSelect, stageSelect, idInput),
+    body);
+  listCard.classList.add('adm-list-card', 'adm-voice-card');
+  container.append(summary, listCard, h('p', { class: 'adm-footnote' },
+    icon('lock', 12), 'Timing only: no transcript, audio, robot or account identity, credentials or log lines. '
+      + 'The voice gateway keeps the most recent turns for a limited time (Settings → Logs and data).'));
 
   function options(select, values, selected, allLabel) {
     const current = select.value || selected || '';
@@ -4810,7 +5193,25 @@ async function renderAdminVoiceTurns() {
     const offered = [...select.options].slice(1).map((option) => option.value);
     if (offered.length === values.length && offered.every((value, i) => value === values[i])) return;
     select.replaceChildren(h('option', { value: '' }, allLabel),
-      ...values.map((value) => h('option', { value, selected: value === current }, value)));
+      ...values.map((value) => h('option', { value, selected: value === current },
+        select === outcomeSelect ? (VOICE_OUTCOME_LABELS[value] || value) : voiceStageLabel(value))));
+  }
+
+  function paintSummary(turns) {
+    if (!turns.length) { summary.replaceChildren(); return; }
+    const finished = turns.filter((t) => Number.isFinite(t.totalMs) && voiceOutcome(t).tone !== 'error');
+    const times = finished.map((t) => t.totalMs).sort((a, b) => a - b);
+    const pick = (p) => (times.length ? times[Math.min(times.length - 1, Math.floor(times.length * p))] : null);
+    const understood = turns.filter((t) => (t.stages || []).some((s) => s.stage === 'route' && s.outcome === 'matched')).length;
+    const failed = turns.filter((t) => voiceOutcome(t).tone === 'error').length;
+    const asr = turns.map((t) => (t.stages || []).find((s) => s.stage === 'asr')?.durationMs).filter(Number.isFinite).sort((a, b) => a - b);
+    const tile = (label, value, note) => h('div', { class: 'adm-tile' }, h('span', { class: 'adm-tile-label', text: label }),
+      h('strong', { text: value }), note ? h('span', { class: 'adm-tile-note', text: note }) : null);
+    summary.replaceChildren(
+      tile('Turns', String(turns.length), 'in this view'),
+      tile('Typical reply', fmtDuration(pick(0.5)), `slowest 10%: ${fmtDuration(pick(0.9))}`),
+      tile('Understood', `${Math.round((understood / turns.length) * 100)}%`, `${understood} of ${turns.length}`),
+      tile('Listening', fmtDuration(asr.length ? asr[Math.floor(asr.length / 2)] : null), failed ? `${failed} failed` : 'speech to text'));
   }
 
   function draw(turns) {
@@ -4826,13 +5227,12 @@ async function renderAdminVoiceTurns() {
     for (const turnId of state.expanded) {
       if (!visibleTurnIds.has(turnId)) state.expanded.delete(turnId);
     }
+    paintSummary(turns);
     if (!turns.length) {
-      body.replaceChildren(empty('No voice turns match', 'Try a wider time range or clear a filter.', 'clock'));
+      body.replaceChildren(empty('No voice turns here', 'Try a longer time range, or clear a filter. Turns appear as people talk to their Jibo.', 'clock'));
       return;
     }
     const list = h('div', { class: 'voice-turn-list', role: 'list' });
-    list.append(h('div', { class: 'voice-turn-head', role: 'row' },
-      h('span', {}, 'Time'), h('span', {}, 'Turn'), h('span', {}, 'Total'), h('span', {}, 'Outcome')));
     for (const turn of turns) {
       const stages = turn.stages || [];
       const turnStartedAt = numericTime(turn.startedAt);
@@ -4865,50 +5265,49 @@ async function renderAdminVoiceTurns() {
       });
       const timeline = h('div', { class: 'voice-turn-timeline' },
         h('div', { class: 'voice-timeline-heading' },
-          h('div', {}, h('strong', { text: 'Turn timing waterfall' }),
+          h('div', {}, h('strong', { text: 'Step by step' }),
             h('p', { id: scaleId, class: 'field-hint', text: scale === null
-              ? 'This older retained turn does not include temporal stage bounds.'
-              : `The main path is one elapsed-time tape from turn start to ${fmtMs(scale)}. Extra lanes appear only for real overlap; background work is grouped separately.` })),
+              ? 'This older turn doesn’t record when each step started.'
+              : `From the start of the turn to ${fmtMs(scale)}. Work running alongside the reply is shown separately.` })),
           h('div', { class: 'voice-timeline-axis', 'aria-hidden': 'true' },
-            h('span', { text: 'Turn start · 0 ms' }), h('span', { text: scale === null ? 'Timing unavailable' : `End · ${fmtMs(scale)}` })) ),
+            h('span', { text: '0 ms' }), h('span', { text: scale === null ? '' : fmtMs(scale) }))),
         scale !== null && h('div', { class: 'voice-waterfall', 'aria-describedby': scaleId },
           h('div', { class: 'voice-waterfall-section' },
-            h('div', { class: 'voice-waterfall-section-title', text: 'Main response path' }),
+            h('div', { class: 'voice-waterfall-section-title', text: 'Reply' }),
             mainStages.length
               ? [
                 tapeLanes(mainLanes, turnStartedAt, scale, completionOffset, 'Overlap lane'),
                 tapeDetails(mainStages, turnStartedAt),
               ]
-              : h('p', { class: 'field-hint', text: 'No positioned main-path stages were recorded.' })),
+              : h('p', { class: 'field-hint', text: 'No timed steps were recorded for the reply.' })),
           backgroundStages.length && h('div', { class: 'voice-waterfall-section voice-waterfall-background' },
-            h('div', { class: 'voice-waterfall-section-title', text: 'Background / overlapping work' }),
-            h('p', { class: 'field-hint', text: 'These spans may continue after the final response is ready.' }),
+            h('div', { class: 'voice-waterfall-section-title', text: 'Alongside the reply' }),
+            h('p', { class: 'field-hint', text: 'This work may finish after the reply is ready.' }),
             tapeLanes(backgroundLanes, turnStartedAt, scale, completionOffset, 'Background lane'),
             tapeDetails(backgroundStages, turnStartedAt)),
           h('div', { class: 'voice-completion-note' },
             h('span', { class: 'voice-completion-dot', 'aria-hidden': 'true' }),
-            h('strong', { text: `Final response ready · +${fmtMs(Math.max(0, (completionAt || turnStartedAt) - turnStartedAt))}` }),
-            h('span', { text: 'Completion milestone; it is not a duration bar.' })),
-          unavailableStages > 0 && h('p', { class: 'field-hint', text: `${unavailableStages} older stage timing record${unavailableStages === 1 ? '' : 's'} cannot be positioned on this tape.` })),
-        h('div', { class: 'voice-timeline-legend', 'aria-label': 'Timeline colour legend' },
-          h('span', { text: 'Colour key:' }),
+            h('strong', { text: `Reply ready at +${fmtMs(Math.max(0, (completionAt || turnStartedAt) - turnStartedAt))}` })),
+          unavailableStages > 0 && h('p', { class: 'field-hint', text: `${unavailableStages} older step${unavailableStages === 1 ? '' : 's'} can’t be placed on this timeline.` })),
+        h('div', { class: 'voice-timeline-legend', 'aria-label': 'Colour key' },
           h('span', { class: 'voice-legend voice-tone-asr', text: 'Speech' }),
-          h('span', { class: 'voice-legend voice-tone-language', text: 'Language / context' }),
+          h('span', { class: 'voice-legend voice-tone-language', text: 'Understanding' }),
           h('span', { class: 'voice-legend voice-tone-skill', text: 'Skill' }),
-          h('span', { class: 'voice-legend voice-tone-response', text: 'Response' }),
+          h('span', { class: 'voice-legend voice-tone-response', text: 'Reply' }),
           h('span', { class: 'voice-legend voice-tone-background', text: 'Background' })));
       if (turn.asr) {
         timeline.append(h('div', { class: 'voice-asr' },
-          h('div', { class: 'voice-asr-heading' }, h('strong', { text: 'ASR phase breakdown' }),
-            h('span', { class: 'field-hint', text: 'Provider-reported elapsed components, not separate timestamped spans.' })),
+          h('div', { class: 'voice-asr-heading' }, h('strong', { text: 'Speech recognition' }),
+            h('span', { class: 'field-hint', text: 'As the recognizer reported them.' })),
           asrTimingList(turn.asr)));
       }
-      else timeline.append(h('p', { class: 'field-hint', text: 'No server-side ASR breakdown for this turn.' }));
+      const outcome = voiceOutcome(turn);
       detail.append(h('summary', { class: 'voice-turn-row' },
-        h('span', { text: fmtDate(turn.startedAt) }),
-        h('code', { text: turn.turnId }),
-        h('strong', { text: fmtMs(turn.totalMs) }),
-        h('span', { class: 'pill', text: turn.outcome || 'in progress' })), timeline);
+        h('span', { class: 'voice-turn-time', text: fmtDate(turn.startedAt) }),
+        h('span', { class: `pill pill-${outcome.tone}`, text: outcome.label }),
+        h('strong', { class: 'voice-turn-total', text: fmtDuration(turn.totalMs) }),
+        h('code', { class: 'voice-turn-id', text: turn.turnId }),
+        icon('chevron', 14, 'voice-turn-caret')), timeline);
       list.append(detail);
     }
     body.replaceChildren(list);
@@ -4929,13 +5328,14 @@ async function renderAdminVoiceTurns() {
     refresh.disabled = false;
     if (!res.ok) {
       status.textContent = 'Unavailable';
-      body.replaceChildren(errorBox('Could not load voice-turn telemetry.', res.data.error || 'Try refresh.'));
+      summary.replaceChildren();
+      body.replaceChildren(errorBox('Voice timing isn’t available from the voice gateway.', res.data.error || 'Try again in a moment.'));
       return;
     }
-    options(outcomeSelect, res.data.outcomes || [], state.outcome, 'All outcomes');
-    options(stageSelect, res.data.stages || [], state.stage, 'All stages');
+    options(outcomeSelect, res.data.outcomes || [], state.outcome, 'Every outcome');
+    options(stageSelect, res.data.stages || [], state.stage, 'Every stage');
     draw(res.data.turns || []);
-    status.textContent = `${(res.data.turns || []).length} shown · ${res.data.retained} retained`;
+    status.textContent = `Updated ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' })}`;
   }
 
   const apply = () => {
@@ -4956,6 +5356,8 @@ async function renderAdminVoiceTurns() {
   pollTimer = setInterval(() => load(), 5000);
 }
 
+/* -- Logs -------------------------------------------------------------------- */
+
 /**
  * The server's own log lines, live.
  *
@@ -4965,47 +5367,55 @@ async function renderAdminVoiceTurns() {
  * a one-second cursor poll is a few hundred bytes and reads as live.
  *
  * What it can show is bounded by the deployment: in the colocated stack every
- * service shares one process, so this is a whole-server view, while under docker
- * compose each container has its own process and only the account service's
- * lines appear here.
+ * service shares one process, so this is a whole-server view, while under the
+ * native launcher or docker compose each service has its own process and only
+ * the account service's lines appear here.
  *
  * The level selector filters what was recorded. It cannot reveal lines the
- * service suppressed at its own LOG_LEVEL — run the service at debug to see
- * debug lines.
+ * service suppressed at its own LOG_LEVEL — set Log detail to Everything in
+ * Settings to see debug lines.
  */
 async function renderAdminLogs() {
-  const container = adminPage('#/admin/logs', 'Logs', 'What this server is doing, as it happens.');
+  const container = adminPage('#/admin/logs', 'Logs', 'What the console’s service is writing, as it happens.');
   show(container);
   if (!(await adminGate(container))) return;
 
-  const state = { cursor: 0, level: '', ns: '', paused: false, shown: 0, dropped: 0, inFlight: false, generation: 0 };
+  const state = { cursor: 0, level: '', ns: '', find: '', paused: false, shown: 0, dropped: 0, inFlight: false, generation: 0 };
 
   const list = h('div', { class: 'log-list', role: 'log', 'aria-live': 'polite' });
-  const status = h('span', { class: 'note', text: 'connecting…' });
+  const status = h('span', { class: 'adm-toolbar-status', text: 'Connecting…' });
+  const levels = [['', 'All'], ['error', 'Errors'], ['warn', 'Warnings'], ['info', 'Info'], ['debug', 'Debug']];
+  const levelSeg = h('div', { class: 'seg', role: 'radiogroup', 'aria-label': 'Lowest level shown' },
+    ...levels.map(([value, label]) => h('button', {
+      type: 'button', role: 'radio', 'aria-checked': String(value === state.level), class: value === state.level ? 'is-active' : '',
+      'data-level': value, on: { click: () => {
+        state.level = value;
+        for (const b of levelSeg.children) { b.classList.toggle('is-active', b.dataset.level === value); b.setAttribute('aria-checked', String(b.dataset.level === value)); }
+        applyFilter();
+      } },
+    }, label)));
+  const nsInput = h('input', { type: 'search', class: 'adm-search', placeholder: 'Service, e.g. account', 'aria-label': 'Only lines from this service' });
+  const findInput = h('input', { type: 'search', class: 'adm-search', placeholder: 'Find in lines', 'aria-label': 'Only lines containing' });
 
-  const levelSelect = h('select', { class: 'log-level' },
-    ...[['', 'All levels'], ['error', 'Error and above'], ['warn', 'Warn and above'],
-      ['info', 'Info and above'], ['debug', 'Debug and above']]
-      .map(([value, label]) => h('option', { value, selected: value === state.level }, label)));
-
-  const nsInput = h('input', {
-    type: 'search', class: 'log-ns', placeholder: 'namespace, e.g. gateway',
-    'aria-label': 'Filter by namespace prefix',
-  });
-
-  function appendLine(line) {
-    const time = new Date(line.t);
-    const stamp = Number.isNaN(time.getTime()) ? '' : time.toLocaleTimeString();
+  function lineText(line) {
     const extras = Object.entries(line)
       .filter(([k]) => !['t', 'level', 'ns', 'msg', 'seq'].includes(k))
       .map(([k, v]) => `${k}=${typeof v === 'object' ? JSON.stringify(v) : v}`)
       .join(' ');
-    const el = h('div', { class: `log-line log-${line.level}` },
+    return { extras, all: `${line.ns || ''} ${line.msg || ''} ${extras}`.toLowerCase() };
+  }
+
+  function appendLine(line) {
+    const time = new Date(line.t);
+    const stamp = Number.isNaN(time.getTime()) ? '' : time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const { extras, all } = lineText(line);
+    const el = h('div', { class: `log-line log-${line.level}`, 'data-text': all },
       h('span', { class: 'log-time', text: stamp }),
       h('span', { class: `log-badge log-badge-${line.level}`, text: line.level }),
       h('span', { class: 'log-ns-name', text: line.ns || '' }),
       h('span', { class: 'log-msg', text: line.msg }),
       extras ? h('span', { class: 'log-extras', text: extras }) : null);
+    el.hidden = !!state.find && !all.includes(state.find);
     list.append(el);
     state.shown += 1;
   }
@@ -5013,14 +5423,9 @@ async function renderAdminLogs() {
   // Newest at the bottom, like a terminal. Only auto-scroll if the reader is
   // already at the bottom, so scrolling back to read something is not yanked
   // away by the next line.
-  function atBottom() {
-    return list.scrollHeight - list.scrollTop - list.clientHeight < 40;
-  }
-
-  function trim() {
-    // Keep the DOM bounded no matter how long the tab is left open.
-    while (list.childElementCount > 500) list.firstElementChild.remove();
-  }
+  const atBottom = () => list.scrollHeight - list.scrollTop - list.clientHeight < 40;
+  // Keep the DOM bounded no matter how long the tab is left open.
+  const trim = () => { while (list.childElementCount > 500) list.firstElementChild.remove(); };
 
   async function tick() {
     // A slow response must not overlap the next one-second tick: both would
@@ -5036,20 +5441,16 @@ async function renderAdminLogs() {
     finally { state.inFlight = false; }
     // A filter changed while this was in flight; its lines belong to the old view.
     if (generation !== state.generation) { tick(); return; }
-    if (!res.ok) {
-      status.textContent = res.data?.error || 'could not read the log';
-      return;
-    }
+    if (!res.ok) { status.textContent = res.data?.error || 'Could not read the log'; return; }
     const stick = atBottom();
     state.cursor = res.data.cursor;
     const events = res.data.events || [];
     for (const line of events) appendLine(line);
     if (events.length) trim();
-    const noun = state.shown === 1 ? 'line' : 'lines';
-    status.textContent = state.paused
-      ? `paused — ${state.shown} ${noun}`
-      : `${state.shown} ${noun} · ${res.data.buffered} buffered in this process`
-        + (res.data.dropped > state.dropped ? ` · ${res.data.dropped - state.dropped} dropped since last poll` : '');
+    if (!list.childElementCount) list.append(h('p', { class: 'log-empty', text: 'Nothing logged yet at this level.' }));
+    else list.querySelector('.log-empty')?.remove();
+    status.textContent = state.paused ? 'Paused'
+      : `${state.shown} line${state.shown === 1 ? '' : 's'}${res.data.dropped > state.dropped ? ` · ${res.data.dropped - state.dropped} dropped` : ''}`;
     state.dropped = res.data.dropped;
     if (events.length && stick) list.scrollTop = list.scrollHeight;
   }
@@ -5057,7 +5458,6 @@ async function renderAdminLogs() {
   // A filter change re-reads from the start of the buffer, because the filter
   // changes which lines exist as far as this view is concerned.
   function applyFilter() {
-    state.level = levelSelect.value;
     state.ns = nsInput.value.trim();
     state.cursor = 0;
     state.shown = 0;
@@ -5065,54 +5465,47 @@ async function renderAdminLogs() {
     list.replaceChildren();
     tick();
   }
+  nsInput.addEventListener('input', debounce(applyFilter, 300));
+  findInput.addEventListener('input', debounce(() => {
+    state.find = findInput.value.trim().toLowerCase();
+    for (const line of list.querySelectorAll('.log-line')) line.hidden = !!state.find && !line.dataset.text.includes(state.find);
+  }, 120));
 
-  levelSelect.addEventListener('change', applyFilter);
-  let nsTimer = null;
-  nsInput.addEventListener('input', () => {
-    clearTimeout(nsTimer);
-    nsTimer = setTimeout(applyFilter, 300);
-  });
-
-  const pause = h('button', { class: 'btn btn-quiet', type: 'button', text: 'Pause' });
+  const pause = h('button', { class: 'btn btn-sm btn-quiet', type: 'button' }, icon('clock', 14), 'Pause');
   pause.addEventListener('click', () => {
     state.paused = !state.paused;
-    pause.textContent = state.paused ? 'Resume' : 'Pause';
+    pause.replaceChildren(icon(state.paused ? 'refresh' : 'clock', 14), state.paused ? 'Resume' : 'Pause');
+    status.textContent = state.paused ? 'Paused' : status.textContent;
     if (!state.paused) tick();
   });
+  const clear = h('button', { class: 'btn btn-sm btn-quiet', type: 'button', on: { click: () => { list.replaceChildren(); state.shown = 0; } } }, 'Clear');
 
-  const clear = h('button', { class: 'btn btn-quiet', type: 'button', text: 'Clear' });
-  clear.addEventListener('click', () => { list.replaceChildren(); state.shown = 0; });
-
-  const toolbar = h('div', { class: 'log-toolbar' },
-    h('label', { class: 'log-control' }, 'Level', levelSelect),
-    h('label', { class: 'log-control' }, 'Namespace', nsInput),
-    h('div', { class: 'log-actions' }, pause, clear, status));
-
-  const wrap = h('div', { class: 'log-panel' }, toolbar, list);
-  container.append(wrap);
+  const logCard = card('Live log', { actions: [status, pause, clear] },
+    h('div', { class: 'adm-toolbar' }, levelSeg, nsInput, findInput),
+    list);
+  logCard.classList.add('adm-log-card');
+  container.append(logCard, h('p', { class: 'adm-footnote' },
+    icon('alert', 12), 'Only lines this service wrote appear here; each service keeps its own log file on the server. '
+      + 'Debug lines appear only when Log detail is set to Everything (Settings → Logs and data).'));
 
   await tick();
   stopPoll();
   pollTimer = setInterval(tick, 1000);
-
-  container.append(h('p', { class: 'note' },
-    'Only lines this process logged appear here. The level selector filters what '
-    + 'was recorded — it cannot reveal lines the service suppressed, so run it at '
-    + 'LOG_LEVEL=debug to see debug output.'));
 }
 
 /**
  * The admin area. Kept out of ROUTES because reaching it does not require the
  * signed-in-and-nav-highlighted treatment the household surfaces get: the
- * server decides who may see it, and it has its own sub-navigation.
+ * server decides who may see it, and it has its own sub-navigation. A route may
+ * carry a query (#/admin/settings?group=mail), which is passed to its renderer.
  */
 const ADMIN_ROUTES = {
-  '#/admin': renderAdminStatus,
-  '#/admin/config': renderAdminConfig,
+  '#/admin': renderAdminOverview,
+  '#/admin/settings': renderAdminSettings,
+  '#/admin/robots': renderAdminRobots,
+  '#/admin/people': renderAdminPeople,
   '#/admin/voice-turns': renderAdminVoiceTurns,
   '#/admin/logs': renderAdminLogs,
-  '#/admin/robots': renderAdminRobots,
-  '#/admin/admins': renderAdminAdmins,
 };
 
 async function route() {
@@ -5125,22 +5518,26 @@ async function route() {
   const requestedHash = (location.pathname === '/admin' && !location.hash) ? '#/admin' : (location.hash || '#/');
   // Preserve bookmarks for the former People and technical Messages pages.
   // Both now have a single, user-facing destination.
-  const legacyRoute = { '#/people': '#/loop', '#/messaging': '#/inbox' }[requestedHash];
+  const legacyRoute = {
+    '#/people': '#/loop', '#/messaging': '#/inbox', '#/admin/config': '#/admin/settings', '#/admin/admins': '#/admin/people',
+  }[requestedHash];
   const hash = legacyRoute || requestedHash;
   if (legacyRoute) history.replaceState(null, '', legacyRoute);
+  // An admin page may carry a query after its route: #/admin/settings?group=mail.
+  const [adminRoute, adminQuery = ''] = hash.split('?');
 
   await refreshMe();
 
-  if (ADMIN_ROUTES[hash]) {
+  if (ADMIN_ROUTES[adminRoute]) {
     // Administrator access follows the signed-in account, so there is nothing to
     // unlock here: a signed-out visitor gets the sign-in screen instead, and a
     // signed-in non-admin is told so rather than being asked for a password.
     if (!me) return renderAuth();
     shell.hidden = false;
     authRoot.hidden = true;
-    paintNav(hash);
+    paintNav(adminRoute);
     try {
-      await ADMIN_ROUTES[hash]();
+      await ADMIN_ROUTES[adminRoute](new URLSearchParams(adminQuery));
     } catch (error) {
       show(page('Something went wrong', '',
         errorBox('This page failed to render.', String(error?.message || error))));

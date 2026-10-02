@@ -1,1022 +1,1083 @@
-// The settings catalogue behind the admin console's Configuration surface.
+// The settings catalogue behind the console's Settings page.
 //
-// Every entry describes one environment variable that an operator may reasonably
-// want to change: what it is, what it defaults to, which services read it, and
-// what has to happen before a change takes effect.
+// Every entry is one environment variable a Phoenix service reads, described the
+// way an administrator thinks about it. There are two kinds:
 //
-// Two things this file is deliberately careful about.
+//   * Editable settings are part of what Phoenix does: speech recognition, how
+//     Jibo understands and answers, the personal report, email, logging. An
+//     administrator changes them from the console. The console saves them in the
+//     data directory (consoleSettings.js), layered over the server's environment
+//     file, and the launcher applies them when it starts the services that read
+//     them. `restart` names exactly those services, so the console restarts no
+//     more than it has to.
 //
-// 1. **Nothing here is applied live.** Services resolve these at startup, so a
-//    change written to .env takes effect when the services that read it are next
-//    restarted. Each entry names those services and the console says so plainly
-//    rather than implying the value is already in force.
+//   * Server settings are part of how this server is installed: its public
+//     addresses, secrets shared between services, where data is stored, which
+//     parser runtime it uses. A wrong value here can stop robots connecting or
+//     the console starting, so the console only shows them. They are changed in
+//     the server's environment file, then Phoenix is restarted.
 //
-// 2. **Defaults are the real ones or absent.** Where the default is stated it was
-//    read out of the code that consumes the variable. Where the behaviour is
-//    "unset means the launcher decides" the default is null and the console shows
-//    "not set" rather than inventing a value.
+// Only settings the launcher passes through to the services that use them are
+// editable: a value the launcher overrides for a service would be saved and then
+// never used, which is worse than not offering it.
 //
-// Adding a setting: append it to the group it belongs to. The console needs no
-// change — it renders whatever this file declares.
+// Adding a setting: add it to the group it belongs to. The console renders
+// whatever this file declares.
 
-/** Service identifiers, used for "what to restart" and for grouping. */
+/**
+ * The services the native launcher runs (scripts/run-compose-stack.sh), by the
+ * names it gives them. These are what the console can restart.
+ */
 export const SERVICES = {
-  account: { label: 'Account', compose: 'account', script: 'packages/account/src/index.js' },
-  gateway: { label: 'Gateway / hub', compose: 'hub', script: 'packages/gateway/src/index.js' },
-  classic: { label: 'Classic', compose: 'classic', script: 'packages/classic/src/index.js' },
-  nlu: { label: 'NLU / parser', compose: 'parser', script: 'packages/nlu/src/index.js' },
-  skills: { label: 'Skills', compose: 'answer-skill', script: 'packages/skills/src/index.js' },
-  data: { label: 'Data / lasso', compose: 'lasso', script: 'packages/data/src/index.js' },
-  history: { label: 'History', compose: 'history', script: 'packages/history/src/index.js' },
-  ota: { label: 'OTA', compose: 'ota', script: 'packages/ota/src/index.js' },
+  hub: {
+    label: 'Voice gateway',
+    description: 'Robots connect here. It streams what they hear to recognition, understanding and the skills.',
+  },
+  parser: {
+    label: 'Language understanding',
+    description: 'Works out what someone asked for.',
+  },
+  'answer-skill': {
+    label: 'Answers',
+    description: 'Answers general questions.',
+  },
+  'report-skill': {
+    label: 'Personal report',
+    description: 'Reads each person’s weather, news, commute and calendar.',
+  },
+  'chitchat-skill': {
+    label: 'Conversation',
+    description: 'Jibo’s personality: small talk, jokes, songs and dances.',
+  },
+  'color-skill': {
+    label: 'Color skill',
+    description: 'A short conversation about favorite colors.',
+  },
+  history: {
+    label: 'History',
+    description: 'Remembers which skills ran, so Jibo can follow up.',
+  },
+  lasso: {
+    label: 'Data relay',
+    description: 'Fetches weather, news, commute times and calendars.',
+  },
+  classic: {
+    label: 'Robot cloud API',
+    description: 'The robot’s front door for its account, photos, messages, backups and updates.',
+  },
+  account: {
+    label: 'Console and accounts',
+    description: 'This website, sign-in, households and robot setup.',
+  },
+  ota: {
+    label: 'Software updates',
+    description: 'Serves update packages to robots.',
+  },
+  'example-skill': {
+    label: 'Example skill',
+    description: 'A developer template. Robots never use it.',
+    minor: true,
+  },
+  'template-skill': {
+    label: 'Template skill',
+    description: 'A developer template. Robots never use it.',
+    minor: true,
+  },
 };
 
+export const SERVICE_IDS = Object.keys(SERVICES);
+
+/** Every service, for settings that all of them read (the log level). */
+const EVERY_SERVICE = SERVICE_IDS;
+
+/** Groups, in the order the console shows them. `editable: false` groups are read-only. */
 export const GROUPS = [
-  {
-    id: 'portal',
-    label: 'Portal and account',
-    blurb: 'The console you are reading, the account store behind it, and how robots are identified.',
-    icon: 'user',
-  },
-  {
-    id: 'auth',
-    label: 'Authentication',
-    blurb: 'How robots prove who they are. Getting these wrong is how a robot stops connecting.',
-    icon: 'lock',
-  },
   {
     id: 'speech',
     label: 'Speech recognition',
-    blurb: 'Where audio from the robot is turned into text.',
+    blurb: 'Turning what people say to Jibo into text.',
     icon: 'mic',
+    editable: true,
   },
   {
-    id: 'llm',
+    id: 'understanding',
+    label: 'Understanding',
+    blurb: 'Working out what someone meant when Jibo’s own grammar isn’t sure.',
+    icon: 'message',
+    editable: true,
+  },
+  {
+    id: 'answers',
+    label: 'Answers',
+    blurb: 'Where Jibo looks things up when someone asks him a question.',
+    icon: 'sparkles',
+    editable: true,
+  },
+  {
+    id: 'model',
     label: 'Language model',
-    blurb: 'The optional OpenAI-compatible endpoint used by the answer skill and as a parser fallback.',
-    icon: 'sparkle',
-  },
-  {
-    id: 'nlu',
-    label: 'NLU runtime',
-    blurb: 'Which parser implementation runs. The AST runtime is the default and needs no configuration.',
+    blurb: 'An OpenAI-compatible model, for the services set to use one.',
     icon: 'chip',
+    editable: true,
   },
   {
     id: 'report',
     label: 'Personal report',
-    blurb: 'Weather, news, commute and calendar — the data behind what the robot reads out.',
-    icon: 'sliders',
+    blurb: 'Data behind the report Jibo reads to each person.',
+    icon: 'sun',
+    editable: true,
   },
   {
-    id: 'classic',
-    label: 'Classic services',
-    blurb: 'Where the Classic entrypoint keeps its state, and how long it waits on upstreams.',
-    icon: 'server',
+    id: 'mail',
+    label: 'Email',
+    blurb: 'How this server sends invitations, confirmations and password resets.',
+    icon: 'mail',
+    editable: true,
   },
   {
-    id: 'ota',
-    label: 'Software updates',
-    blurb: 'The update server that serves subsystem packages to robots.',
-    icon: 'download',
-  },
-  {
-    id: 'discovery',
-    label: 'Service discovery',
-    blurb: 'Where each service finds the others. The bundled launchers set these; override only to split hosts.',
-    icon: 'link',
-  },
-  {
-    id: 'logging',
-    label: 'Logging',
-    blurb: 'How much the services write, and how often they sample.',
+    id: 'data',
+    label: 'Logs and data',
+    blurb: 'What this server writes down, and for how long it keeps it.',
     icon: 'inbox',
+    editable: true,
+  },
+  {
+    id: 'addresses',
+    label: 'Addresses',
+    blurb: 'How robots and browsers reach this server.',
+    icon: 'link',
+    editable: false,
+  },
+  {
+    id: 'security',
+    label: 'Security',
+    blurb: 'Secrets the services share, and who may connect.',
+    icon: 'lock',
+    editable: false,
+  },
+  {
+    id: 'storage',
+    label: 'Storage',
+    blurb: 'Where this server keeps its data and logs.',
+    icon: 'download',
+    editable: false,
+  },
+  {
+    id: 'software',
+    label: 'Software',
+    blurb: 'Which implementations run, and the site’s own pages.',
+    icon: 'server',
+    editable: false,
   },
 ];
 
+export const GROUP_IDS = new Set(GROUPS.map((group) => group.id));
+
 /**
  * @typedef {object} Setting
- * @property {string}   key       the environment variable name
- * @property {string}   label     short human name
- * @property {string}   group     one of GROUPS[].id
- * @property {string}   type      string|secret|bool|number|url|path|enum
- * @property {string?}  default   the real default, or null when unset means "launcher decides"
- * @property {string}   help      what it does and what happens if you change it
- * @property {string[]} services  which services must restart for a change to apply
- * @property {boolean} [danger]   true when a wrong value breaks robot connectivity
- * @property {Array}   [options]  for type 'enum'
+ * @property {string}   key        the environment variable
+ * @property {string}   label      short human name
+ * @property {string}   group      one of GROUPS[].id
+ * @property {string}   type       string|secret|bool|number|url|host|email|enum|path
+ * @property {boolean} [editable]  true when the console may change it (its group must be editable)
+ * @property {string[]} [restart]  launcher services that read it (editable settings only)
+ * @property {string?} [default]   the built-in value, as shown, or null when there is none to show
+ * @property {string}   help       what it does, and what changing it does
+ * @property {boolean} [advanced]  hidden under "More settings" until asked for
+ * @property {Array}   [options]   for type 'enum': {value, label, hint?}
  * @property {string}  [placeholder]
- * @property {number}  [min] @property {number} [max]
+ * @property {number}  [min] @property {number} [max] @property {boolean} [integer]
+ * @property {string}  [unit]      shown after a number: 'ms', 'days'
  */
 
 /** @type {Setting[]} */
 export const SETTINGS = [
-  /* ── Portal and account ────────────────────────────────────────────────── */
-  {
-    key: 'PORT',
-    label: 'Account service port',
-    group: 'portal',
-    type: 'number',
-    default: '7016',
-    min: 1,
-    max: 65535,
-    services: ['account'],
-    help: 'The port this console and the account API listen on. Behind a reverse proxy this is the '
-      + 'port nginx proxies to, not the one people visit.',
-  },
-  {
-    key: 'ETCO_account_region',
-    label: 'Robot region',
-    group: 'portal',
-    type: 'string',
-    default: 'api',
-    danger: true,
-    services: ['account'],
-    help: 'Written into an adopted robot’s credentials.json. The robot builds <region>.jibo.com and '
-      + '<region>-socket.jibo.com from it, and the serving certificate must cover the same region '
-      + '(PHOENIX_TLS_REGIONS). Change these together or the robot rejects the server. "api" is what a '
-      + 'physical Jibo reports.',
-  },
-  {
-    key: 'ETCO_account_dataFile',
-    label: 'Account store file',
-    group: 'portal',
-    type: 'path',
-    default: 'packages/account/data/store.json',
-    danger: true,
-    services: ['account'],
-    help: 'Where accounts, households, robots, tokens and sessions persist. Pointing this at a new path '
-      + 'starts from an empty store — every account and paired robot appears to vanish until it is '
-      + 'pointed back.',
-  },
-  {
-    key: 'ETCO_account_secureCookies',
-    label: 'Secure session cookies',
-    group: 'portal',
-    type: 'bool',
-    default: 'false',
-    services: ['account'],
-    help: 'Marks the session cookie Secure, so browsers only send it over HTTPS. Turn this on once the '
-      + 'console is served over TLS. Turning it on while serving over plain HTTP makes sign-in fail.',
-  },
-  {
-    key: 'ETCO_account_portalUrl',
-    label: 'Portal public URL',
-    group: 'portal',
-    type: 'url',
-    default: null,
-    services: ['account'],
-    help: 'The externally reachable address of this console, used in invitation links. Leave unset to '
-      + 'derive it from the request.',
-  },
-  {
-    key: 'PHOENIX_BRANDING_FILE',
-    label: 'Branding override file',
-    group: 'portal',
-    type: 'path',
-    default: null,
-    services: ['account'],
-    help: 'A JSON file whose keys are merged over portal/branding.json — the product name, logo, accent '
-      + 'colour and every string on the public site. Leave unset to use the shipped defaults.',
-  },
-  {
-    key: 'PHOTO_PUBLIC_URL',
-    label: 'Member photo public URL',
-    group: 'portal',
-    type: 'url',
-    default: null,
-    services: ['account', 'classic'],
-    help: 'The externally reachable origin that forwards GET /member-photos/:key. Must be an address the '
-      + 'robot can actually reach — not account:8080, not localhost.',
-  },
-  {
-    key: 'PHOTO_DIRECTORY',
-    label: 'Member photo directory',
-    group: 'portal',
-    type: 'path',
-    default: 'packages/account/data/member-photos',
-    services: ['account'],
-    help: 'Where member photos are stored on disk.',
-  },
-  {
-    key: 'PHOENIX_DELETION_BACKUP_DAYS',
-    label: 'Keep deleted-account backups (days)',
-    group: 'portal',
-    type: 'number',
-    default: '30',
-    min: 0,
-    max: 3650,
-    services: ['account', 'classic', 'history'],
-    help: 'When someone deletes their account, each service first saves a backup copy under '
-      + 'removal-backups/deletion-…, and deletes it after this many days. The privacy policy promises '
-      + 'deleted data only lingers in a backup briefly; 0 keeps none.',
-  },
-  {
-    key: 'ETCO_account_mailFrom',
-    label: 'Invitation sender address',
-    group: 'portal',
-    type: 'string',
-    default: null,
-    placeholder: 'phoenix@example.com',
-    services: ['account'],
-    help: 'The From address on household invitation emails. Unset means invitations are not emailed.',
-  },
-  {
-    key: 'ETCO_account_smsUrl',
-    label: 'SMS gateway URL',
-    group: 'portal',
-    type: 'url',
-    default: null,
-    services: ['account'],
-    help: 'Optional endpoint for sending invitations by text message. Unset disables SMS invitations.',
-  },
-  {
-    key: 'ETCO_account_smsTimeoutMs',
-    label: 'SMS timeout (ms)',
-    group: 'portal',
-    type: 'number',
-    default: null,
-    min: 100,
-    max: 120000,
-    services: ['account'],
-    help: 'How long to wait on the SMS gateway before giving up.',
-  },
-
-  /* ── Authentication ────────────────────────────────────────────────────── */
-  {
-    key: 'HUB_TOKEN_SECRET',
-    label: 'Hub token secret',
-    group: 'auth',
-    type: 'secret',
-    default: 'dev-hub-token-secret',
-    danger: true,
-    services: ['gateway', 'account'],
-    help: 'Signs and verifies the short-lived tokens robots use to reach the hub. Change it for any '
-      + 'deployment that is not a private LAN. Changing it invalidates every token already issued, so '
-      + 'robots reconnect. The gateway and the account service must agree — restart both together.',
-  },
-  {
-    key: 'DISABLE_AUTH',
-    label: 'Accept unauthenticated robots',
-    group: 'auth',
-    type: 'bool',
-    default: 'false',
-    danger: true,
-    services: ['gateway'],
-    help: 'When true the hub accepts robots without verifying a token. This is a LAN convenience for '
-      + 'bring-up only: with it on, anything that can reach the port can talk to your household. Set it '
-      + 'false for any real deployment.',
-  },
-  {
-    key: 'WEB_TOKEN_SECRET',
-    label: 'Web token secret',
-    group: 'auth',
-    type: 'secret',
-    default: null,
-    danger: true,
-    services: ['gateway', 'account'],
-    help: 'Signs tokens issued to web clients. Leave unset unless you are running the web client path.',
-  },
-  {
-    key: 'ETCO_hub_accountUrl',
-    label: 'Hub → account verify URL',
-    group: 'auth',
-    type: 'url',
-    default: null,
-    services: ['gateway'],
-    help: 'When set (and unauthenticated robots are disabled) the hub checks each token’s accessKeyId '
-      + 'against the account service, so deactivating a robot revokes it immediately. The bundled '
-      + 'launchers wire this automatically; set it only when running the hub standalone.',
-  },
-  {
-    key: 'ETCO_hub_accountVerifyTimeoutMs',
-    label: 'Account verify timeout (ms)',
-    group: 'auth',
-    type: 'number',
-    default: '5000',
-    min: 100,
-    max: 60000,
-    services: ['gateway'],
-    help: 'Bounds the whole verification response, body included. Too low and robots fail to connect '
-      + 'under load; too high and a dead account service stalls every connection attempt.',
-  },
-  {
-    key: 'PHOENIX_TLS_REGIONS',
-    label: 'TLS certificate regions',
-    group: 'auth',
-    type: 'string',
-    default: 'api',
-    danger: true,
-    services: ['account', 'classic'],
-    help: 'Which <region>.jibo.com names the serving certificate is issued for. Must cover the robot '
-      + 'region above, or the robot rejects the connection.',
-  },
-
-  /* ── Speech recognition ────────────────────────────────────────────────── */
-  {
-    key: 'ETCO_server_asrProvider',
-    label: 'Speech provider',
-    group: 'speech',
-    type: 'enum',
-    default: null,
-    options: [
-      { value: '', label: 'Default (Parakeet)' },
-      { value: 'google', label: 'Google Speech (mock address below)' },
-    ],
-    services: ['gateway'],
-    help: 'Which recognition backend the hub streams audio to. Unset uses the Parakeet path.',
-  },
+  /* ── Speech recognition ─────────────────────────────────────────────── */
   {
     key: 'PARAKEET_URL',
-    label: 'Parakeet ASR URL',
+    label: 'Recognition server',
     group: 'speech',
     type: 'url',
+    editable: true,
+    restart: ['hub'],
     default: null,
     placeholder: 'http://192.168.1.252:6972',
-    services: ['gateway'],
-    help: 'The Parakeet speech service (POST /transcribe). Unset means the launcher probes the real '
-      + 'endpoint below and otherwise falls back to a mock, which transcribes nothing useful.',
-  },
-  {
-    key: 'REAL_PARAKEET',
-    label: 'Parakeet probe URL',
-    group: 'speech',
-    type: 'url',
-    default: null,
-    placeholder: 'http://192.168.1.252:6972',
-    services: ['gateway'],
-    help: 'Probed by the launchers when the URL above is unset: if it answers, it is used; if not, the '
-      + 'mock is.',
-  },
-  {
-    key: 'ETCO_server_parakeetUrl',
-    label: 'Parakeet URL (ETCO form)',
-    group: 'speech',
-    type: 'url',
-    default: null,
-    services: ['gateway'],
-    help: 'The source-shaped name for the same setting. Use whichever your launcher sets; do not set both '
-      + 'to different values.',
+    help: 'The Parakeet server that turns what people say into text. Phoenix sends it each recording '
+      + '(POST /transcribe). Without one, Jibo hears “Hey Jibo” but not the question.',
   },
   {
     key: 'PHOENIX_ASR_SILENCE_EOS_MS',
-    label: 'End-of-speech silence (ms)',
+    label: 'Pause that ends a question',
     group: 'speech',
     type: 'number',
+    unit: 'ms',
+    integer: true,
+    editable: true,
+    restart: ['hub'],
     default: null,
-    min: 100,
-    max: 10000,
-    services: ['gateway'],
-    help: 'How long a pause ends an utterance. Lower cuts people off mid-sentence; higher makes the robot '
-      + 'feel slow to answer.',
+    min: 150,
+    max: 5000,
+    placeholder: 'Built-in',
+    help: 'How long someone must stop talking before Jibo decides they have finished. Shorter feels '
+      + 'snappier but cuts off people who pause mid-sentence.',
   },
   {
     key: 'PHOENIX_ASR_NOISE_MARGIN',
     label: 'Noise margin',
     group: 'speech',
-    type: 'string',
-    default: null,
-    services: ['gateway'],
-    help: 'How far above the measured noise floor audio must rise to count as speech. Raise it in a noisy '
-      + 'room if the robot keeps waking to nothing.',
-  },
-  {
-    key: 'PHOENIX_ASR_CAPTURE_DIR',
-    label: 'Audio capture directory',
-    group: 'speech',
-    type: 'path',
-    default: null,
-    services: ['gateway'],
-    help: 'When set, recognised audio is written here for debugging. This records people in the room — '
-      + 'leave it unset unless you are actively diagnosing something, and clear it afterwards.',
-  },
-  {
-    key: 'PHOENIX_FFMPEG',
-    label: 'ffmpeg binary',
-    group: 'speech',
-    type: 'path',
-    default: null,
-    placeholder: 'ffmpeg',
-    services: ['gateway'],
-    help: 'Path to ffmpeg, used for audio conversion. Unset means whatever is on PATH.',
+    type: 'number',
+    editable: true,
+    advanced: true,
+    restart: ['hub'],
+    default: '1.8',
+    min: 1,
+    max: 10,
+    help: 'How far above the room’s background noise sound must rise to count as speech. Raise it in a '
+      + 'noisy room if Jibo keeps listening to nothing.',
   },
 
-  /* ── Language model ────────────────────────────────────────────────────── */
+  /* ── Understanding ──────────────────────────────────────────────────── */
   {
-    key: 'LLM_URL',
-    label: 'LLM endpoint',
-    group: 'llm',
-    type: 'url',
-    default: null,
-    placeholder: 'http://192.168.1.252:1234/v1',
-    services: ['skills', 'nlu'],
-    help: 'An OpenAI-compatible endpoint (LM Studio, Ollama, vLLM …) used by the answer skill and as a '
-      + 'parser fallback. Unset means the robot answers only from its own dialog library.',
+    key: 'ETCO_parser_decisionEngine',
+    label: 'Decision layer',
+    group: 'understanding',
+    type: 'enum',
+    editable: true,
+    restart: ['parser'],
+    default: '',
+    options: [
+      { value: '', label: 'Off', hint: 'Only Jibo’s own grammar decides.' },
+      { value: 'jev', label: 'Jev, through OpenRouter',
+        hint: 'Recognizes other ways of saying a command, like “what day is it today”.' },
+    ],
+    help: 'Reviews what Jibo’s grammar made of each request and maps other phrasings onto his '
+      + 'commands. It sends the text of reviewed requests to OpenRouter and TypeSafe, so the privacy '
+      + 'policy has to say so first. See docs/DECISION-LAYER.md.',
   },
   {
-    key: 'LLM_MODEL',
-    label: 'LLM model',
-    group: 'llm',
+    key: 'ETCO_parser_decisionApiKey',
+    label: 'Decision layer key',
+    group: 'understanding',
+    type: 'secret',
+    editable: true,
+    restart: ['parser'],
+    default: null,
+    help: 'An OpenRouter key for the decision layer. Without one the layer stays off.',
+  },
+  {
+    key: 'ETCO_parser_decisionModel',
+    label: 'Decision model',
+    group: 'understanding',
     type: 'string',
-    default: null,
-    placeholder: 'google/gemma-4-e4b',
-    services: ['skills', 'nlu'],
-    help: 'The model name to request from that endpoint.',
+    editable: true,
+    advanced: true,
+    restart: ['parser'],
+    default: 'typesafe/jev-1.13',
+    help: 'Pinned to the model the decision layer was evaluated with. Re-run the evaluation '
+      + '(scripts/decision-layer-eval.mjs) before changing it.',
   },
   {
-    key: 'REAL_LLM',
-    label: 'LLM probe URL',
-    group: 'llm',
-    type: 'url',
-    default: null,
-    services: ['skills', 'nlu'],
-    help: 'Probed by the launchers when the endpoint above is unset.',
+    key: 'ETCO_parser_decisionTimeoutMs',
+    label: 'Decision time limit',
+    group: 'understanding',
+    type: 'number',
+    unit: 'ms',
+    integer: true,
+    editable: true,
+    advanced: true,
+    restart: ['parser'],
+    default: '800',
+    min: 50,
+    max: 5000,
+    help: 'A slower answer keeps the grammar’s own result, so Jibo never waits long for it.',
   },
   {
-    key: 'ETCO_answer_llmUrl',
-    label: 'Answer-skill LLM URL',
-    group: 'llm',
-    type: 'url',
-    default: null,
-    services: ['skills'],
-    help: 'Overrides the endpoint for the answer skill specifically.',
+    key: 'ETCO_parser_decisionMinProbability',
+    label: 'Decision confidence',
+    group: 'understanding',
+    type: 'number',
+    editable: true,
+    advanced: true,
+    restart: ['parser'],
+    default: '0.5',
+    min: 0,
+    max: 1,
+    help: 'How sure the decision layer must be to replace a result the grammar wasn’t sure of.',
   },
   {
-    key: 'ETCO_parser_llmEnabled',
-    label: 'Parser LLM fallback',
-    group: 'llm',
-    type: 'bool',
-    default: 'false',
-    services: ['nlu'],
-    help: 'Lets the parser fall back to the language model when the grammar does not match. Enabled '
-      + 'automatically when an endpoint is configured; set it true to force it on.',
+    key: 'ETCO_parser_decisionOverrideProbability',
+    label: 'Override confidence',
+    group: 'understanding',
+    type: 'number',
+    editable: true,
+    advanced: true,
+    restart: ['parser'],
+    default: '0.9',
+    min: 0,
+    max: 1,
+    help: 'How sure it must be to replace a confident grammar result that isn’t a command.',
   },
   {
     key: 'ETCO_parser_layaEnabled',
-    label: 'Private Laya intent fallback',
-    group: 'nlu',
+    label: 'Laya intent classifier',
+    group: 'understanding',
     type: 'bool',
+    editable: true,
+    restart: ['parser'],
     default: 'false',
-    services: ['nlu'],
-    help: 'Uses the private Laya classifier after a non-HIGH grammar parse. Keep disabled until the GPU service, '
-      + 'token, and replay evaluation are verified. This is not an Internet-facing endpoint.',
+    help: 'Asks a private Laya classifier when the grammar isn’t confident. Leave it off until the '
+      + 'classifier, its token and the replay evaluation are verified. It must never be reachable '
+      + 'from the internet.',
   },
   {
     key: 'ETCO_parser_layaUrl',
-    label: 'Private Laya URL',
-    group: 'nlu',
+    label: 'Laya address',
+    group: 'understanding',
     type: 'url',
+    editable: true,
+    restart: ['parser'],
     default: null,
     placeholder: 'http://192.168.1.252:6973',
-    services: ['nlu'],
-    help: 'LAN/VPN URL of the authenticated Laya service. Do not use a public address or public reverse proxy.',
+    help: 'The classifier’s address on your private network or VPN.',
   },
   {
     key: 'ETCO_parser_layaToken',
-    label: 'Private Laya token',
-    group: 'nlu',
+    label: 'Laya token',
+    group: 'understanding',
     type: 'secret',
+    editable: true,
+    restart: ['parser'],
     default: null,
-    services: ['nlu'],
-    help: 'Bearer token shared only with the private Laya container. It is required even on a private network.',
+    help: 'The token shared with the classifier. It is required even on a private network.',
   },
   {
     key: 'ETCO_parser_layaProfile',
     label: 'Laya profile',
-    group: 'nlu',
+    group: 'understanding',
     type: 'string',
+    editable: true,
+    advanced: true,
+    restart: ['parser'],
     default: 'phoenix-core',
-    services: ['nlu'],
-    help: 'The server-owned hierarchical profile. The current safe profile accepts only entityless launch/global intents.',
+    help: 'Which set of intents the classifier may choose from. The default only allows simple commands.',
   },
   {
     key: 'ETCO_parser_layaTimeoutMs',
-    label: 'Laya timeout (ms)',
-    group: 'nlu',
+    label: 'Laya time limit',
+    group: 'understanding',
     type: 'number',
+    unit: 'ms',
+    integer: true,
+    editable: true,
+    advanced: true,
+    restart: ['parser'],
     default: '700',
-    services: ['nlu'],
-    help: 'Per-utterance private classifier deadline (50–2000 ms). Timeouts safely leave the deterministic result intact.',
+    min: 50,
+    max: 2000,
+    help: 'A slower answer leaves the grammar’s result in place.',
   },
   {
     key: 'ETCO_parser_layaMinConfidence',
-    label: 'Laya minimum candidate probability',
-    group: 'nlu',
+    label: 'Laya confidence',
+    group: 'understanding',
     type: 'number',
+    editable: true,
+    advanced: true,
+    restart: ['parser'],
     default: '0.85',
-    services: ['nlu'],
-    help: 'Minimum selected candidate probability (not Laya entropy confidence); lower-probability leaf selections are rejected.',
+    min: 0,
+    max: 1,
+    help: 'How likely the classifier’s choice must be before Jibo acts on it.',
   },
   {
     key: 'ETCO_parser_layaSecondaryFallback',
-    label: 'Laya secondary fallback',
-    group: 'nlu',
+    label: 'After Laya finds nothing',
+    group: 'understanding',
     type: 'enum',
+    editable: true,
+    advanced: true,
+    restart: ['parser'],
     default: 'none',
     options: [
-      { value: 'none', label: 'No secondary classifier (default)' },
-      { value: 'llm', label: 'LLM after Laya no-match' },
+      { value: 'none', label: 'Stop there' },
+      { value: 'llm', label: 'Ask the language model' },
     ],
-    services: ['nlu'],
-    help: 'Leave at none to remove language-model intent classification. LLM remains independently available to answer skills.',
+    help: 'Whether the language model gets a last try at working out the request.',
   },
+
+  /* ── Answers ────────────────────────────────────────────────────────── */
   {
-    key: 'ETCO_parser_decisionEngine',
-    label: 'Decision layer',
-    group: 'nlu',
+    key: 'PHOENIX_GQA_DEFAULT_PROFILE',
+    label: 'How Jibo answers questions',
+    group: 'answers',
     type: 'enum',
-    default: null,
+    editable: true,
+    restart: ['answer-skill'],
+    default: '',
     options: [
-      { value: '', label: 'Off (default)' },
-      { value: 'jev', label: 'Jev through OpenRouter' },
+      { value: '', label: 'Look it up',
+        hint: 'Wikipedia, DuckDuckGo and Wolfram|Alpha, as the original Jibo did.' },
+      { value: 'phoenix-answer', label: 'Ask the language model',
+        hint: 'Uses the language model settings below.' },
     ],
-    services: ['nlu'],
-    help: 'Reviews each global turn\'s grammar parse and maps other ways of saying a command ("what day is it '
-      + 'today") onto the command. Sends the text of reviewed turns to OpenRouter and TypeSafe, so say so in '
-      + 'your privacy policy first. See docs/DECISION-LAYER.md.',
+    help: 'Who answers questions like “Who was Ada Lovelace?” or “How far away is the moon?”.',
   },
   {
-    key: 'ETCO_parser_decisionApiKey',
-    label: 'Decision layer API key',
-    group: 'nlu',
+    key: 'ETCO_gqa_wolframKey',
+    label: 'Wolfram|Alpha app ID',
+    group: 'answers',
     type: 'secret',
+    editable: true,
+    restart: ['answer-skill'],
     default: null,
-    services: ['nlu'],
-    help: 'An OpenRouter key. Without one the decision layer stays off.',
+    help: 'Lets Jibo answer measurements, distances, populations and arithmetic. Get one at '
+      + 'developer.wolframalpha.com; a free app ID allows 2,000 questions a month.',
   },
   {
-    key: 'ETCO_parser_decisionTimeoutMs',
-    label: 'Decision timeout (ms)',
-    group: 'nlu',
-    type: 'number',
-    default: '800',
-    min: 50,
-    max: 5000,
-    services: ['nlu'],
-    help: 'A slower answer keeps the grammar\'s parse.',
-  },
-  {
-    key: 'ETCO_parser_decisionMinProbability',
-    label: 'Decision minimum probability',
-    group: 'nlu',
-    type: 'number',
-    default: '0.5',
-    min: 0,
-    max: 1,
-    services: ['nlu'],
-    help: 'How sure the engine must be to replace a missed, LOW or catch-all-question parse.',
-  },
-  {
-    key: 'ETCO_parser_decisionOverrideProbability',
-    label: 'Decision override probability',
-    group: 'nlu',
-    type: 'number',
-    default: '0.9',
-    min: 0,
-    max: 1,
-    services: ['nlu'],
-    help: 'How sure the engine must be to replace a confident grammar parse that is not a command.',
-  },
-  {
-    key: 'PHOENIX_LLM_CATALOG',
-    label: 'LLM catalogue file',
-    group: 'llm',
-    type: 'path',
-    default: null,
-    services: ['skills'],
-    help: 'A JSON file describing available models, used to pick among several.',
-  },
-
-  /* ── NLU runtime ───────────────────────────────────────────────────────── */
-  {
-    key: 'PHOENIX_NLU_RUNTIME',
-    label: 'Parser runtime',
-    group: 'nlu',
-    type: 'enum',
-    default: 'ast',
-    danger: true,
-    options: [
-      { value: '', label: 'AST (default)' },
-      { value: 'compiled-fst', label: 'Compiled FST — requires an installed snapshot' },
-    ],
-    services: ['nlu'],
-    help: 'The AST runtime is the default and needs nothing else set. Selecting compiled-fst without a '
-      + 'successfully installed snapshot stops the parser from starting — install first, then switch.',
-  },
-  {
-    key: 'PHOENIX_NLU_COMPILED_SNAPSHOT_MANIFEST',
-    label: 'Compiled snapshot manifest',
-    group: 'nlu',
-    type: 'path',
-    default: null,
-    placeholder: 'runtime/nlu-snapshot-v1/profile.json',
-    services: ['nlu'],
-    help: 'The profile.json of an installed snapshot bundle. Install with '
-      + 'scripts/install-nlu-snapshot.mjs to a new versioned directory, then point this at it.',
-  },
-  {
-    key: 'PHOENIX_NLU_SNAPSHOT_DIR',
-    label: 'Compiled snapshot directory',
-    group: 'nlu',
-    type: 'path',
-    default: null,
-    placeholder: './runtime/nlu-snapshot-v1',
-    services: ['nlu'],
-    help: 'The host directory the compose overlay mounts. Used with docker-compose.nlu-snapshot.yml.',
-  },
-  {
-    key: 'PHOENIX_NLU_COMPILED_FST',
-    label: 'Compiled FST path',
-    group: 'nlu',
-    type: 'path',
-    default: null,
-    services: ['nlu'],
-    help: 'An alternative compiled profile. Do not combine this with a snapshot manifest — choose one.',
-  },
-  {
-    key: 'PHOENIX_NLU_COMPILED_FACTORY_DIR',
-    label: 'Compiled factory directory',
-    group: 'nlu',
-    type: 'path',
-    default: null,
-    services: ['nlu'],
-    help: 'Part of the non-snapshot compiled profile. Mutually exclusive with a snapshot manifest.',
-  },
-  {
-    key: 'PHOENIX_NLU_COMPILED_RULES_DIR',
-    label: 'Compiled rules directory',
-    group: 'nlu',
-    type: 'path',
-    default: null,
-    services: ['nlu'],
-    help: 'Part of the non-snapshot compiled profile. Mutually exclusive with a snapshot manifest.',
-  },
-
-  /* ── Personal report ───────────────────────────────────────────────────── */
-  {
-    key: 'prefsFromConfig',
-    label: 'Read prefs from config file',
-    group: 'report',
-    type: 'bool',
-    default: 'false',
-    services: ['skills'],
-    help: 'Reads resources/report-prefsConfig.json instead of per-user settings, which is what enables '
-      + 'the commute and calendar sections in a bare local run.',
-  },
-  {
-    key: 'NET_settings',
-    label: 'Settings service',
-    group: 'report',
+    key: 'ETCO_gqa_wikiUserAgent',
+    label: 'Wikipedia identity',
+    group: 'answers',
     type: 'string',
-    default: null,
-    services: ['skills'],
-    help: 'Where the report skill fetches a speaker’s personal settings. The bundled launchers '
-      + 'route to the private Account service by default (account:8080 in Compose, localhost:9011 natively).',
+    editable: true,
+    restart: ['answer-skill'],
+    default: 'wikipedia (https://github.com/goldsmith/Wikipedia/)',
+    placeholder: 'PhoenixJibo/1.0 (https://example.com; you@example.com)',
+    help: 'How Phoenix introduces itself to Wikipedia. Wikipedia throttles the original shared name, so '
+      + 'give your own, with a web address or email it can contact.',
   },
   {
-    key: 'TOMTOM_API_KEY',
-    label: 'TomTom API key',
-    group: 'report',
-    type: 'secret',
-    default: null,
-    services: ['data'],
-    help: 'Required for commute travel times and live traffic. Without a valid key the commute '
-      + 'provider is unavailable, even if address search and saved commute settings work.',
+    key: 'ETCO_gqa_providerTimeoutMs',
+    label: 'Wikipedia and DuckDuckGo time limit',
+    group: 'answers',
+    type: 'number',
+    unit: 'ms',
+    integer: true,
+    editable: true,
+    advanced: true,
+    restart: ['answer-skill'],
+    default: '3000',
+    min: 0,
+    max: 20000,
+    help: 'How long the first sources get before Wolfram|Alpha is asked as well.',
   },
   {
-    key: 'ETCO_data_calendarUpstreamUrl',
-    label: 'Calendar upstream URL',
-    group: 'report',
-    type: 'url',
-    default: null,
-    services: ['data'],
-    help: 'Where calendar events are fetched from. Unset means the calendar section has nothing to read.',
-  },
-  {
-    key: 'ETCO_data_calendarUpstreamToken',
-    label: 'Calendar upstream token',
-    group: 'report',
-    type: 'secret',
-    default: null,
-    services: ['data'],
-    help: 'Bearer token for the calendar upstream.',
-  },
-  {
-    key: 'ETCO_data_calendarFixtureDir',
-    label: 'Calendar fixture directory',
-    group: 'report',
-    type: 'path',
-    default: null,
-    services: ['data'],
-    help: 'Serves calendar events from files on disk instead of an upstream. Useful for testing the '
-      + 'report without wiring a real calendar.',
-  },
-  {
-    key: 'ETCO_data_oauthSecretsDir',
-    label: 'OAuth secrets directory',
-    group: 'report',
-    type: 'path',
-    default: null,
-    services: ['data'],
-    help: 'Where Google/Outlook client secrets are read from for calendar access.',
-  },
-  {
-    key: 'ETCO_data_credentialsFile',
-    label: 'Data credentials file',
-    group: 'report',
-    type: 'path',
-    default: null,
-    services: ['data'],
-    help: 'Stored per-user upstream credentials for the data service.',
+    key: 'ETCO_gqa_wolframGroupTimeoutMs',
+    label: 'Wolfram|Alpha time limit',
+    group: 'answers',
+    type: 'number',
+    unit: 'ms',
+    integer: true,
+    editable: true,
+    advanced: true,
+    restart: ['answer-skill'],
+    default: '4000',
+    min: 0,
+    max: 20000,
+    help: 'How long Wolfram|Alpha gets before Jibo says he couldn’t find an answer.',
   },
   {
     key: 'ETCO_gqa_wikiApi',
-    label: 'Wikipedia API endpoint',
-    group: 'report',
+    label: 'Wikipedia address',
+    group: 'answers',
     type: 'url',
-    default: null,
-    services: ['skills'],
-    help: 'Where general-question answers are looked up. Unset uses the public Wikipedia endpoint.',
+    editable: true,
+    advanced: true,
+    restart: ['answer-skill'],
+    default: 'https://en.wikipedia.org/w/api.php',
+    help: 'The MediaWiki API Phoenix looks articles up in.',
   },
   {
-    key: 'ETCO_gqa_wikiTimeoutMs',
-    label: 'Wikipedia timeout (ms)',
-    group: 'report',
-    type: 'number',
-    default: null,
-    min: 100,
-    max: 60000,
-    services: ['skills'],
-    help: 'How long to wait on that lookup before the robot says it does not know.',
-  },
-  {
-    key: 'ETCO_gqa_attributionFile',
-    label: 'GQA attribution file',
-    group: 'report',
-    type: 'path',
-    default: null,
-    services: ['skills'],
-    help: 'Where answer attributions persist. Give each Classic process its own path — the local '
-      + 'snapshot store is single-writer.',
+    key: 'ETCO_gqa_duckDuckGoApi',
+    label: 'DuckDuckGo address',
+    group: 'answers',
+    type: 'url',
+    editable: true,
+    advanced: true,
+    restart: ['answer-skill'],
+    default: 'https://api.duckduckgo.com/',
+    help: 'The instant-answer API Phoenix asks alongside Wikipedia.',
   },
 
-  /* ── Classic services ──────────────────────────────────────────────────── */
+  /* ── Language model ─────────────────────────────────────────────────── */
   {
-    key: 'ETCO_classic_upstreamTimeoutMS',
-    label: 'Upstream timeout (ms)',
-    group: 'classic',
-    type: 'number',
-    default: '10000',
-    min: 100,
-    max: 60000,
-    services: ['classic'],
-    help: 'How long the Classic entrypoint waits on a backend. Values above 60000 are clamped to it, and '
-      + 'anything non-positive falls back to 10000.',
-  },
-  {
-    key: 'ETCO_classic_publicUrl',
-    label: 'Classic public URL',
-    group: 'classic',
+    key: 'LLM_URL',
+    label: 'Endpoint',
+    group: 'model',
     type: 'url',
+    editable: true,
+    restart: ['parser', 'answer-skill'],
     default: null,
-    services: ['classic'],
-    help: 'The externally reachable origin for Classic, used when building URLs the robot will fetch.',
+    placeholder: 'https://openrouter.ai/api/v1',
+    help: 'An OpenAI-compatible API: OpenRouter, LM Studio, Ollama, vLLM. Used by Answers when it is set '
+      + 'to ask the language model, and by Understanding as a last resort.',
   },
   {
-    key: 'ETCO_classic_mediaDir',
-    label: 'Media directory',
-    group: 'classic',
-    type: 'path',
-    default: null,
-    services: ['classic'],
-    help: 'Where photographs the robot captures are stored. This is the household’s gallery — put it '
-      + 'somewhere that gets backed up.',
+    key: 'LLM_MODEL',
+    label: 'Model',
+    group: 'model',
+    type: 'string',
+    editable: true,
+    restart: ['parser', 'answer-skill'],
+    default: 'google/gemma-4-e4b',
+    help: 'The model to ask for at that endpoint.',
   },
   {
-    key: 'ETCO_classic_mediaBaseUrl',
-    label: 'Media base URL',
-    group: 'classic',
-    type: 'url',
+    key: 'PHOENIX_LLM_API_KEY',
+    label: 'API key',
+    group: 'model',
+    type: 'secret',
+    editable: true,
+    restart: ['parser', 'answer-skill'],
     default: null,
-    services: ['classic'],
-    help: 'The origin media URLs are built from.',
-  },
-  {
-    key: 'ETCO_classic_notificationFile',
-    label: 'Notification snapshot file',
-    group: 'classic',
-    type: 'path',
-    default: null,
-    services: ['classic'],
-    help: 'Where notification state persists. Choose a private, durable path for a real deployment.',
-  },
-  {
-    key: 'ETCO_classic_jotFile',
-    label: 'Jot message file',
-    group: 'classic',
-    type: 'path',
-    default: null,
-    services: ['classic'],
-    help: 'Where Jibo loop messages persist.',
-  },
-  {
-    key: 'ETCO_classic_personFile',
-    label: 'Person catalogue file',
-    group: 'classic',
-    type: 'path',
-    default: null,
-    services: ['classic'],
-    help: 'Where the person catalogue — who the robot knows and what it has learned — persists.',
-  },
-  {
-    key: 'ETCO_classic_pushFile',
-    label: 'Push registration file',
-    group: 'classic',
-    type: 'path',
-    default: null,
-    services: ['classic'],
-    help: 'Where device push registrations persist.',
-  },
-  {
-    key: 'ETCO_classic_voiceTrainingFile',
-    label: 'Voice training file',
-    group: 'classic',
-    type: 'path',
-    default: null,
-    services: ['classic'],
-    help: 'Where voice enrolment records persist.',
-  },
-  {
-    key: 'ETCO_classic_iftttFile',
-    label: 'IFTTT state file',
-    group: 'classic',
-    type: 'path',
-    default: null,
-    services: ['classic'],
-    help: 'Where IFTTT identity and trigger rows persist.',
-  },
-  {
-    key: 'ETCO_classic_backupDir',
-    label: 'Backup directory',
-    group: 'classic',
-    type: 'path',
-    default: null,
-    services: ['classic'],
-    help: 'Where robot backups are written.',
-  },
-  {
-    key: 'ETCO_classic_robotDir',
-    label: 'Robot state directory',
-    group: 'classic',
-    type: 'path',
-    default: null,
-    services: ['classic'],
-    help: 'Where per-robot Classic state is kept.',
-  },
-  {
-    key: 'ETCO_classic_logDir',
-    label: 'Classic log directory',
-    group: 'classic',
-    type: 'path',
-    default: null,
-    services: ['classic'],
-    help: 'Where Classic writes its logs.',
+    help: 'Sent as a bearer token. Leave it empty for a local model that needs none.',
   },
 
-  /* ── Software updates ──────────────────────────────────────────────────── */
+  /* ── Personal report ────────────────────────────────────────────────── */
+  {
+    key: 'TOMTOM_API_KEY',
+    label: 'TomTom key',
+    group: 'report',
+    type: 'secret',
+    editable: true,
+    restart: ['lasso'],
+    default: null,
+    help: 'Commute times and live traffic. Without a key, Jibo can’t tell anyone how long their commute '
+      + 'will take. Weather and news need no key.',
+  },
+  {
+    key: 'ETCO_data_calendarUpstreamUrl',
+    label: 'Calendar service',
+    group: 'report',
+    type: 'url',
+    editable: true,
+    advanced: true,
+    restart: ['lasso'],
+    default: null,
+    help: 'A service that serves people’s calendar events to the report. Without one, Jibo reads only '
+      + 'calendars people subscribe to from the console.',
+  },
+  {
+    key: 'ETCO_data_calendarUpstreamToken',
+    label: 'Calendar service token',
+    group: 'report',
+    type: 'secret',
+    editable: true,
+    advanced: true,
+    restart: ['lasso'],
+    default: null,
+    help: 'The bearer token for that calendar service.',
+  },
+
+  /* ── Email ──────────────────────────────────────────────────────────── */
+  {
+    key: 'ETCO_account_mailFrom',
+    label: 'Sender address',
+    group: 'mail',
+    type: 'email',
+    editable: true,
+    restart: ['account'],
+    default: 'no-reply@jibo.com',
+    placeholder: 'phoenix@example.com',
+    help: 'The From address on every email this server sends. Use one your mail server may send as.',
+  },
+  {
+    key: 'ETCO_account_mailSmtpHost',
+    label: 'Mail server',
+    group: 'mail',
+    type: 'host',
+    editable: true,
+    restart: ['account'],
+    default: null,
+    placeholder: 'smtp.example.com',
+    help: 'The SMTP server that delivers email. Without one, nobody can confirm a new account or reset a '
+      + 'password by email.',
+  },
+  {
+    key: 'ETCO_account_mailSmtpPort',
+    label: 'Mail server port',
+    group: 'mail',
+    type: 'number',
+    integer: true,
+    editable: true,
+    restart: ['account'],
+    default: null,
+    min: 1,
+    max: 65535,
+    placeholder: '587',
+    help: 'Usually 587, or 465 when the connection is encrypted from the start.',
+  },
+  {
+    key: 'ETCO_account_mailSmtpSecure',
+    label: 'Encrypted from the start',
+    group: 'mail',
+    type: 'bool',
+    editable: true,
+    restart: ['account'],
+    default: 'false',
+    help: 'On for port 465. Off for 587, where the connection is upgraded with STARTTLS.',
+  },
+  {
+    key: 'ETCO_account_mailSmtpUser',
+    label: 'Mail username',
+    group: 'mail',
+    type: 'string',
+    editable: true,
+    restart: ['account'],
+    default: null,
+    help: 'The account this server signs in to the mail server with.',
+  },
+  {
+    key: 'ETCO_account_mailSmtpPassword',
+    label: 'Mail password',
+    group: 'mail',
+    type: 'secret',
+    editable: true,
+    restart: ['account'],
+    default: null,
+    help: 'That account’s password, or an app password.',
+  },
+  {
+    key: 'ETCO_account_mailSmtpRequireTLS',
+    label: 'Require STARTTLS',
+    group: 'mail',
+    type: 'bool',
+    editable: true,
+    advanced: true,
+    restart: ['account'],
+    default: 'false',
+    help: 'Refuse to send if the mail server won’t upgrade the connection to an encrypted one.',
+  },
+  {
+    key: 'ETCO_account_mailSmtpTimeoutMs',
+    label: 'Mail time limit',
+    group: 'mail',
+    type: 'number',
+    unit: 'ms',
+    integer: true,
+    editable: true,
+    advanced: true,
+    restart: ['account'],
+    default: null,
+    min: 1000,
+    max: 120000,
+    help: 'How long to wait for the mail server before giving up on a message.',
+  },
+  {
+    key: 'ETCO_account_smsUrl',
+    label: 'Text message gateway',
+    group: 'mail',
+    type: 'url',
+    editable: true,
+    advanced: true,
+    restart: ['account'],
+    default: null,
+    help: 'An HTTP endpoint that sends phone-number confirmation codes by text. Without one, phone '
+      + 'numbers can’t be confirmed.',
+  },
+
+  /* ── Logs and data ──────────────────────────────────────────────────── */
+  {
+    key: 'LOG_LEVEL',
+    label: 'Log detail',
+    group: 'data',
+    type: 'enum',
+    editable: true,
+    restart: EVERY_SERVICE,
+    default: 'info',
+    options: [
+      { value: 'error', label: 'Errors only' },
+      { value: 'warn', label: 'Errors and warnings' },
+      { value: 'info', label: 'Normal', hint: 'Recommended.' },
+      { value: 'debug', label: 'Everything', hint: 'For diagnosing a problem. Fills disks over time.' },
+    ],
+    help: 'How much every service writes to its log, and so what the Logs page can show.',
+  },
+  {
+    key: 'PHOENIX_VOICE_TURN_RETAIN_MS',
+    label: 'Keep voice-turn timings for',
+    group: 'data',
+    type: 'enum',
+    editable: true,
+    restart: ['hub'],
+    default: '3600000',
+    options: [
+      { value: '900000', label: '15 minutes' },
+      { value: '3600000', label: '1 hour' },
+      { value: '21600000', label: '6 hours' },
+      { value: '86400000', label: '24 hours' },
+    ],
+    help: 'How far back the Voice turns page reaches. Timings never include what was said or who said it.',
+  },
+  {
+    key: 'PHOENIX_DELETION_BACKUP_DAYS',
+    label: 'Keep deleted accounts’ backups for',
+    group: 'data',
+    type: 'number',
+    unit: 'days',
+    integer: true,
+    editable: true,
+    restart: ['account', 'classic', 'history'],
+    default: '30',
+    min: 0,
+    max: 3650,
+    help: 'When someone deletes their account, each service first saves a backup, then deletes it after '
+      + 'this many days. The privacy policy promises deleted data lingers only briefly. 0 keeps none.',
+  },
+
+  /* ── Addresses (server) ─────────────────────────────────────────────── */
+  {
+    key: 'PHOENIX_SITE_URL',
+    label: 'Website',
+    group: 'addresses',
+    type: 'url',
+    default: null,
+    help: 'The public address of this site, used in links it sends.',
+  },
+  {
+    key: 'ETCO_account_portalUrl',
+    label: 'Console address',
+    group: 'addresses',
+    type: 'url',
+    default: null,
+    help: 'Where invitation and password-reset links point.',
+  },
+  {
+    key: 'CLASSIC_PUBLIC_URL',
+    label: 'Robot cloud address',
+    group: 'addresses',
+    type: 'url',
+    default: null,
+    help: 'The HTTPS origin robots reach the Robot cloud API at.',
+  },
   {
     key: 'OTA_PUBLIC_URL',
-    label: 'OTA public URL',
-    group: 'ota',
+    label: 'Update download address',
+    group: 'addresses',
     type: 'url',
     default: null,
-    danger: true,
-    services: ['ota'],
-    help: 'The externally reachable base URL a robot downloads update packages from. Unset derives it '
-      + 'from the request Host, which is usually right behind a proxy and wrong behind NAT. A robot that '
-      + 'cannot fetch the package fails the upgrade partway.',
+    help: 'Where robots download update packages from. A robot that can’t reach it fails an update partway.',
+  },
+  {
+    key: 'PHOTO_PUBLIC_URL',
+    label: 'Photo address',
+    group: 'addresses',
+    type: 'url',
+    default: null,
+    help: 'The public origin member photos are served from. Robots fetch them here.',
+  },
+  {
+    key: 'ETCO_account_repointHost',
+    label: 'Repoint address',
+    group: 'addresses',
+    type: 'string',
+    default: null,
+    help: 'The public IP the repoint command points a robot at.',
+  },
+  {
+    key: 'ETCO_account_region',
+    label: 'Robot region',
+    group: 'addresses',
+    type: 'string',
+    default: 'api',
+    help: 'Written into a robot’s credentials. It builds <region>.jibo.com from it, so the certificate '
+      + 'must cover the same name.',
+  },
+  {
+    key: 'PHOENIX_TLS_REGIONS',
+    label: 'Certificate regions',
+    group: 'addresses',
+    type: 'string',
+    default: 'api',
+    help: 'Which <region>.jibo.com names the serving certificate covers.',
+  },
+
+  /* ── Security (server) ──────────────────────────────────────────────── */
+  {
+    key: 'HUB_TOKEN_SECRET',
+    label: 'Robot token secret',
+    group: 'security',
+    type: 'secret',
+    default: null,
+    help: 'Signs the tokens robots use to reach the voice gateway. Changing it disconnects every robot '
+      + 'until it signs in again.',
+  },
+  {
+    key: 'DISABLE_AUTH',
+    label: 'Accept robots without a token',
+    group: 'security',
+    type: 'bool',
+    default: 'false',
+    help: 'Only for bringing up a robot on a private network. Production refuses to start with it on.',
+  },
+  {
+    key: 'ETCO_account_internalPeerToken',
+    label: 'Service-to-service token',
+    group: 'security',
+    type: 'secret',
+    default: null,
+    help: 'Lets the services trust each other’s requests.',
+  },
+  {
+    key: 'ETCO_ota_internalPeerToken',
+    label: 'Update service token',
+    group: 'security',
+    type: 'secret',
+    default: null,
+    help: 'Lets the Robot cloud API ask the update service for its catalog.',
+  },
+  {
+    key: 'ETCO_ota_packageBearerSecret',
+    label: 'Package link secret',
+    group: 'security',
+    type: 'secret',
+    default: null,
+    help: 'Signs the download links in update offers. Without its own, the robot token secret is used.',
+  },
+  {
+    key: 'ETCO_account_secureCookies',
+    label: 'Secure session cookies',
+    group: 'security',
+    type: 'bool',
+    default: 'true',
+    help: 'Sign-in cookies are sent only over HTTPS.',
+  },
+  {
+    key: 'ETCO_account_csrfOrigins',
+    label: 'Trusted origins',
+    group: 'security',
+    type: 'string',
+    default: null,
+    help: 'Origins allowed to make changes through the console API.',
+  },
+  {
+    key: 'ETCO_account_webPushPublicKey',
+    label: 'Browser notification key',
+    group: 'security',
+    type: 'string',
+    default: null,
+    help: 'The public half of the key that signs browser notifications.',
+  },
+  {
+    key: 'ETCO_account_webPushPrivateKey',
+    label: 'Browser notification private key',
+    group: 'security',
+    type: 'secret',
+    default: null,
+    help: 'Generate a pair with scripts/generate-web-push-vapid.mjs.',
+  },
+  {
+    key: 'PHOENIX_REQUIRE_PRODUCTION_CONFIG',
+    label: 'Production checks',
+    group: 'security',
+    type: 'bool',
+    default: 'false',
+    help: 'Refuses to start without secrets, robot authentication and fixed HTTPS addresses.',
+  },
+  {
+    key: 'PHOENIX_BIND_HOST',
+    label: 'Listening address',
+    group: 'security',
+    type: 'string',
+    default: '127.0.0.1',
+    help: 'The address every service listens on. Only the reverse proxy should face the internet.',
+  },
+
+  /* ── Storage (server) ───────────────────────────────────────────────── */
+  {
+    key: 'PHOENIX_DATA_DIR',
+    label: 'Data directory',
+    group: 'storage',
+    type: 'path',
+    default: null,
+    help: 'Accounts, photos, messages, robot backups, update packages and settings saved here.',
+  },
+  {
+    key: 'PHOENIX_LOG_DIR',
+    label: 'Log directory',
+    group: 'storage',
+    type: 'path',
+    default: '/tmp',
+    help: 'Where each service writes its log file.',
+  },
+  {
+    key: 'ETCO_account_dataFile',
+    label: 'Account store',
+    group: 'storage',
+    type: 'path',
+    default: null,
+    help: 'Accounts, households, robots and sessions.',
+  },
+  {
+    key: 'PHOTO_DIRECTORY',
+    label: 'Member photos',
+    group: 'storage',
+    type: 'path',
+    default: null,
+    help: 'Profile and member photos.',
   },
   {
     key: 'ETCO_ota_dataDir',
-    label: 'OTA package directory',
-    group: 'ota',
+    label: 'Update packages',
+    group: 'storage',
     type: 'path',
-    default: 'packages/ota/data',
-    services: ['ota'],
-    help: 'Where the subsystem packages being served live.',
+    default: null,
+    help: 'The packages robots download.',
   },
   {
     key: 'ETCO_ota_manifest',
-    label: 'OTA manifest',
-    group: 'ota',
+    label: 'Update catalog',
+    group: 'storage',
     type: 'path',
-    default: 'packages/ota/manifest.json',
-    services: ['ota'],
-    help: 'The catalogue describing which versions are offered to which robots.',
+    default: null,
+    help: 'Which versions are offered to which robots.',
   },
 
-  /* ── Service discovery ─────────────────────────────────────────────────── */
-  ...[
-    ['NET_classic', 'Classic', 'classic', ['account']],
-    ['NET_parser', 'Parser / NLU', 'parser', ['gateway']],
-    ['NET_history', 'History', 'history', ['gateway']],
-    ['NET_data', 'Data', 'lasso', ['skills']],
-    ['NET_lasso', 'Lasso', 'lasso', ['skills']],
-    ['NET_skills', 'Skills host', 'answer-skill', ['gateway']],
-    ['NET_ota', 'OTA', 'ota', ['classic']],
-    ['NET_account', 'Account', 'account', ['gateway', 'classic']],
-    ['NET_hub', 'Hub', 'hub', ['skills']],
-    ['NET_person', 'Person', 'classic', ['skills']],
-    ['NET_robotread', 'Robot read', 'classic', ['skills']],
-  ].map(([key, label, compose, services]) => ({
-    key,
-    label: `${label} address`,
-    group: 'discovery',
-    type: 'string',
-    default: null,
-    services,
-    placeholder: `${compose}:8080`,
-    help: `Where to reach the ${label} service — host:port, or a full URL. http:// is added when the `
-      + 'scheme is missing. The bundled launchers set this; override it only to split services across '
-      + 'hosts.',
-  })),
-
-  /* ── Logging ───────────────────────────────────────────────────────────── */
+  /* ── Software (server) ──────────────────────────────────────────────── */
   {
-    key: 'LOG_LEVEL',
-    label: 'Log level',
-    group: 'logging',
-    type: 'enum',
-    default: 'info',
-    options: [
-      { value: 'error', label: 'error — failures only' },
-      { value: 'warn', label: 'warn — failures and warnings' },
-      { value: 'info', label: 'info (default)' },
-      { value: 'debug', label: 'debug — verbose, noisy' },
-    ],
-    services: Object.keys(SERVICES),
-    help: 'How much every service writes. Debug is genuinely noisy and will fill a disk over weeks; use '
-      + 'it while diagnosing, not as a standing setting.',
+    key: 'PHOENIX_NLU_RUNTIME',
+    label: 'Grammar runtime',
+    group: 'software',
+    type: 'string',
+    default: 'ast',
+    help: 'Which implementation runs Jibo’s grammars. compiled-fst needs an installed snapshot.',
   },
   {
-    key: 'ETCO_log_probability',
-    label: 'Log sampling probability',
-    group: 'logging',
+    key: 'ETCO_server_asrProvider',
+    label: 'Speech provider',
+    group: 'software',
     type: 'string',
+    default: 'parakeet',
+    help: 'Which recognition backend the voice gateway uses.',
+  },
+  {
+    key: 'PHOENIX_BRANDING_FILE',
+    label: 'Branding',
+    group: 'software',
+    type: 'path',
     default: null,
-    placeholder: '0.1',
-    services: Object.keys(SERVICES),
-    help: 'Samples high-volume log lines, between 0 and 1. Unset logs everything at the chosen level.',
+    help: 'Wording and design merged over the shipped site.',
+  },
+  {
+    key: 'PHOENIX_PAGES_DIR',
+    label: 'Custom pages',
+    group: 'software',
+    type: 'path',
+    default: null,
+    help: 'Pages served in place of the built-in landing, guide and legal pages.',
+  },
+  {
+    key: 'PHOENIX_ASR_CAPTURE_DIR',
+    label: 'Audio capture',
+    group: 'software',
+    type: 'path',
+    default: null,
+    help: 'When set, recordings are written here for debugging. It records people in the room.',
   },
 ];
 
 /** Settings by key, for validation and lookup. */
 export const BY_KEY = new Map(SETTINGS.map((s) => [s.key, s]));
 
-/** Which secrets must never be sent to the browser unless explicitly revealed. */
+/** Keys the console may change. */
+export const EDITABLE_KEYS = new Set(SETTINGS.filter((s) => s.editable).map((s) => s.key));
+
+export const isEditable = (key) => EDITABLE_KEYS.has(key);
 export const isSecret = (key) => BY_KEY.get(key)?.type === 'secret';
 
+const HOST = /^(?=.{1,253}$)(?!-)[A-Za-z0-9-]{1,63}(?<!-)(\.(?!-)[A-Za-z0-9-]{1,63}(?<!-))*\.?$/;
+const IPV4 = /^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}$/;
+const EMAIL = /^[^\s@<>"']+@[^\s@<>"']+\.[^\s@<>"']+$/;
+
 /**
- * Validate one value against its declared type.
- * @returns {string|null} an error message, or null when the value is acceptable
+ * Validate one value against its declared type. An empty value always passes:
+ * it means "not set here", so the server's own value or the default applies.
+ * @returns {string|null} what is wrong, or null when the value is acceptable
  */
 export function validate(key, value) {
   const spec = BY_KEY.get(key);
-  if (!spec) return `${key} is not a known setting`;
-  const v = String(value ?? '').trim();
-  if (v === '') return null; // clearing a setting is always allowed: it returns to the default
+  if (!spec) return 'is not a setting this server knows';
+  const v = String(value ?? '');
+  if (v.trim() === '') return null;
+  if (/[\0\r\n]/.test(v)) return 'must be on one line';
+  if (v.length > 2048) return 'is too long';
+  if (v !== v.trim()) return 'must not start or end with a space';
 
   switch (spec.type) {
     case 'number': {
       if (!/^-?\d+(\.\d+)?$/.test(v)) return 'must be a number';
       const n = Number(v);
-      if (spec.min != null && n < spec.min) return `must be at least ${spec.min}`;
-      if (spec.max != null && n > spec.max) return `must be at most ${spec.max}`;
+      if (spec.integer && !Number.isInteger(n)) return 'must be a whole number';
+      if (spec.min != null && n < spec.min) return `must be at least ${spec.min.toLocaleString('en-US')}`;
+      if (spec.max != null && n > spec.max) return `must be at most ${spec.max.toLocaleString('en-US')}`;
       return null;
     }
     case 'bool':
-      return /^(true|false)$/i.test(v) ? null : 'must be true or false';
-    case 'url':
-      // host:port is accepted throughout this codebase; http:// is added when missing.
+      return /^(true|false)$/.test(v) ? null : 'must be on or off';
+    case 'url': {
       if (/\s/.test(v)) return 'must not contain spaces';
-      if (/^https?:\/\//.test(v)) {
-        try { new URL(v); return null; } catch { return 'is not a valid URL'; }
+      if (!/^https?:\/\//i.test(v)) return 'must start with http:// or https://';
+      try {
+        const url = new URL(v);
+        return url.hostname ? null : 'needs a host name';
+      } catch {
+        return 'is not a valid web address';
       }
-      return /^[A-Za-z0-9._-]+(:\d+)?(\/.*)?$/.test(v) ? null : 'must be a URL or host:port';
+    }
+    case 'host':
+      return HOST.test(v) || IPV4.test(v) ? null : 'must be a host name like smtp.example.com';
+    case 'email':
+      return EMAIL.test(v) ? null : 'must be an email address like phoenix@example.com';
     case 'enum': {
       const allowed = (spec.options || []).map((o) => o.value);
-      return allowed.includes(v) ? null : `must be one of: ${allowed.filter(Boolean).join(', ')}`;
+      return allowed.includes(v) ? null : 'is not one of the choices';
     }
-    case 'path':
-      return /[\n\r\0]/.test(v) ? 'must not contain newlines' : null;
     default:
-      return /[\n\r\0]/.test(v) ? 'must not contain newlines' : null;
+      return null;
   }
+}
+
+/**
+ * Problems that only show when settings are read together. `values` is every
+ * setting as the services would see it after a restart: saved here, else the
+ * server's, else unset. Errors block a save; warnings are shown beside it.
+ * @returns {{errors: Record<string,string>, warnings: Array<{key:string, message:string}>}}
+ */
+export function checkTogether(values) {
+  const errors = {};
+  const warnings = [];
+  const has = (key) => String(values[key] ?? '').trim() !== '';
+
+  // The account service refuses to start when SMTP is half-configured without a
+  // host (smtpMail.js smtpConfigFromEnv). Saving that would lock everyone out of
+  // the console, so it is not allowed.
+  const smtpFields = ['ETCO_account_mailSmtpPort', 'ETCO_account_mailSmtpSecure', 'ETCO_account_mailSmtpUser',
+    'ETCO_account_mailSmtpPassword', 'ETCO_account_mailSmtpRequireTLS'];
+  if (!has('ETCO_account_mailSmtpHost') && smtpFields.some(has)) {
+    errors.ETCO_account_mailSmtpHost = 'is needed once any other mail server setting is set';
+  }
+
+  if (values.ETCO_parser_decisionEngine === 'jev' && !has('ETCO_parser_decisionApiKey') && !has('OPENROUTER_API_KEY')) {
+    warnings.push({ key: 'ETCO_parser_decisionApiKey',
+      message: 'The decision layer is on but has no key, so it stays off.' });
+  }
+  if (values.ETCO_parser_layaEnabled === 'true' && (!has('ETCO_parser_layaUrl') || !has('ETCO_parser_layaToken'))) {
+    warnings.push({ key: 'ETCO_parser_layaEnabled',
+      message: 'Laya is on but needs both an address and a token.' });
+  }
+  if (values.PHOENIX_GQA_DEFAULT_PROFILE === 'phoenix-answer' && !has('LLM_URL')) {
+    warnings.push({ key: 'PHOENIX_GQA_DEFAULT_PROFILE',
+      message: 'Answers is set to ask a language model, but no endpoint is set.' });
+  }
+  if (values.ETCO_parser_layaSecondaryFallback === 'llm' && !has('LLM_URL')) {
+    warnings.push({ key: 'ETCO_parser_layaSecondaryFallback',
+      message: 'This asks a language model, but no endpoint is set.' });
+  }
+  return { errors, warnings };
 }
 
 /** Every service that must restart for this set of changed keys. */
 export function servicesFor(keys) {
   const out = new Set();
-  for (const key of keys) for (const s of BY_KEY.get(key)?.services || []) out.add(s);
-  return [...out];
+  for (const key of keys) for (const s of BY_KEY.get(key)?.restart || []) out.add(s);
+  return SERVICE_IDS.filter((id) => out.has(id));
 }

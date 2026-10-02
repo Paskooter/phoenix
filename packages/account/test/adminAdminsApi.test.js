@@ -56,13 +56,14 @@ test('the listing carries identity only, never credentials', async () => {
   for (const a of accounts) {
     assert.deepEqual(
       Object.keys(a).sort(),
-      ['created', 'email', 'firstName', 'id', 'isActive', 'isAdmin', 'lastName'],
+      ['created', 'email', 'firstName', 'id', 'isActive', 'isAdmin', 'lastName', 'loops'],
     );
+    assert.equal(a.loops, 0, 'how many loops they belong to, as a count');
   }
 });
 
 test('granting makes the flag real, and the promoted account can use the surface', async () => {
-  const before = await call('GET', '/api/admin/config', null, 'second');
+  const before = await call('GET', '/api/admin/settings', null, 'second');
   assert.equal(before.status, 403);
 
   const res = await call('POST', '/api/admin/admins', { email: 'second@example.com', grant: true });
@@ -72,7 +73,7 @@ test('granting makes the flag real, and the promoted account can use the surface
   assert.equal(store.accountByEmail('second@example.com').isAdmin, true);
 
   // Read per request, so it applies immediately to the session already open.
-  assert.equal((await call('GET', '/api/admin/config', null, 'second')).status, 200);
+  assert.equal((await call('GET', '/api/admin/settings', null, 'second')).status, 200);
 });
 
 test('granting twice is a no-op rather than an error', async () => {
@@ -92,7 +93,7 @@ test('revoking someone else works, and takes effect on their open session', asyn
   const res = await call('POST', '/api/admin/admins', { email: 'second@example.com', grant: false });
   assert.equal(res.status, 200);
   assert.equal(res.body.changed, true);
-  assert.equal((await call('GET', '/api/admin/config', null, 'second')).status, 403);
+  assert.equal((await call('GET', '/api/admin/settings', null, 'second')).status, 403);
 });
 
 test('the last administrator cannot be removed, leaving nobody able to get in', async () => {

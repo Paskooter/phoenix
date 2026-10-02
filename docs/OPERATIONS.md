@@ -92,6 +92,47 @@ Optional env (LAN ASR/LLM, like the reference override file):
 PARAKEET_URL=http://<host>:6972 LLM_URL=http://<host>:1234/v1 docker compose up
 ```
 
+## Settings and restarts from the admin console
+
+**Server admin → Settings** (`/admin#/admin/settings`) changes the settings an operator tunes
+day to day: speech recognition, the decision layer and Laya, answer sources, the language
+model, the personal report's keys, email, logging and data retention. **Server admin →
+Overview** shows every service with its uptime and restarts any of them.
+
+Both need the native launcher (`scripts/run-compose-stack.sh`, which the production systemd
+unit runs). Under Docker, or a service started by hand, the console shows the same settings
+read-only, with where each value comes from.
+
+- **The environment file is never written.** A setting saved in the console goes to
+  `<data dir>/config/console-settings.json` (`PHOENIX_DATA_DIR`, else `packages/account/data`;
+  override with `PHOENIX_CONSOLE_SETTINGS_FILE`). The launcher layers it over the environment
+  file each time it starts a service, so a saved value wins, and **Use the server's value**
+  removes it again. Only settings the console offers can be set this way; addresses, security
+  secrets, storage paths and the release stay in the environment file, and the console lists them
+  read-only under **Installed with the server**.
+- **A change applies when the services that read it restart.** The console says which ones,
+  keeps a **Restart now** bar up until they have, and restarts only those: it appends their
+  names to `<data dir>/run/restart-request` (`PHOENIX_RUNTIME_DIR` moves the run directory) and
+  signals the launcher (`SIGUSR1`), which stops each one and starts it again from its original
+  environment with the files read afresh. Nothing else restarts, and robots reconnect by
+  themselves.
+- **A bad saved value cannot take the server down.** A service that exits with an error within
+  20 seconds of starting with console settings is started once more without them, and the
+  Overview says so (*running without your saved settings*). Fix or remove the value, then
+  restart that service. A service that stops for any other reason is reported, not restarted;
+  systemd restarts the whole stack if the launcher itself fails.
+- **What is running:** `<data dir>/run/services.json` lists each service's pid, port, start
+  time, and the settings revision it started with. The console reads it to show what is still
+  waiting for a restart.
+- **The file itself** is private (`0600`), written atomically, and keeps the last hundred
+  changes with who made them. Secret values never appear in that history, in the page, or in
+  any response; the console shows only that a secret is set, and the last four characters of a
+  long key it manages.
+
+To start every service without the console's settings, for example while recovering from a
+bad value by hand, start the stack with `PHOENIX_CONSOLE_SETTINGS=off` (a restart from the
+console applies them again), or move the file aside.
+
 ## OTA update server (robot firmware revival)
 
 A robot stuck on its 2017 factory platform (e.g. RTM3 OS/services **3.3.4**) predates the

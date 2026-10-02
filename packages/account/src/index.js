@@ -354,6 +354,9 @@ export function createAccountService({
   webPushConfig,
   webPushSender,
   addressSearchService,
+  // Test seams for the admin surface: launcher control, health probes, robot presence.
+  adminSettings,
+  adminOps,
 } = {}) {
   // The source Settings controller is always the production algorithm. Explicit provider
   // injection is reserved for tests; normal construction uses Phoenix storage/NET seams.
@@ -451,6 +454,8 @@ export function createAccountService({
       webPush: effectiveWebPush,
       addressSearchService,
       photoProvider,
+      adminSettings,
+      adminOps,
     }), // REST /api/* (sessions)
     ...settingsPeerRoutes(store), // internal Account client seams used by source Settings
     ...backupPeerRoutes(store),   // internal Account client seam used by source Backup (getLoop)
