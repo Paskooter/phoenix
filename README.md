@@ -15,7 +15,7 @@ system runs on Node with nothing to download.
 | | |
 |---|---|
 | **Runtime** | Node.js ≥ 20, ESM JavaScript, npm workspaces |
-| **Dependencies** | one runtime dependency (`ws`) |
+| **Dependencies** | npm workspaces with lockfile-pinned dependencies for HTTP, WebSockets, cryptography, Web Push and audio decoding |
 | **Tests** | Node's built-in test runner, plus a production parity gate |
 | **Ports** | hub 9000 · report 9003 · chitchat 9004 · parser 9005 · history 9006 · data/lasso 9007 · color 9008 · answer 9009 · OTA 9010 · account+portal 9011 · Classic entrypoint 9012 |
 
@@ -48,7 +48,7 @@ system runs on Node with nothing to download.
 ## Quick start
 
 ```bash
-npm install                      # links the workspaces; only `ws` is external
+npm ci                           # installs the lockfile and links the workspaces
 bash scripts/run-compose-stack.sh
 ```
 

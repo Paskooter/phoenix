@@ -119,6 +119,11 @@ export function installHook(root) {
   if (current.error) throw current.error;
   if (current.status !== 0 && current.status !== 1) throw new Error(current.stderr.trim());
   if (current.stdout.trim() && current.stdout.trim() !== '.githooks') {
+    const hook = resolve(root, git(root, ['rev-parse', '--git-path', 'hooks/pre-commit']).trim());
+    // An absolute hooksPath can point at the primary checkout from a linked
+    // worktree. Keep it when it already runs our exact hook; npm ci should not
+    // fail or rewrite shared Git configuration just because the path differs.
+    if (existsSync(hook) && readFileSync(hook, 'utf8') === readFileSync(resolve(root, '.githooks/pre-commit'), 'utf8')) return;
     throw new Error('Existing core.hooksPath preserved. Add `node scripts/parity-progress.mjs --staged` to its pre-commit hook.');
   }
   if (!current.stdout.trim() && existsSync(resolve(root, git(root, ['rev-parse', '--git-path', 'hooks/pre-commit']).trim()))) {

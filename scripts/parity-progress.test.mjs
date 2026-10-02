@@ -71,4 +71,21 @@ test('real pre-commit hook uses staged tasks and preserves unstaged README and l
   assert.match(readFileSync(join(root, 'docs/parity/progress.svg'), 'utf8'), /100\.0%/);
   assert.equal(JSON.parse(readFileSync(tasks, 'utf8')).tasks[1].status, 'verified');
   assert.equal(git('diff', '--cached', '--name-only').trim(), '');
+
+  // Operators can use an absolute path so every linked worktree shares the
+  // same checked-in hook. Re-running npm's prepare must preserve that choice.
+  const absoluteHooks = join(root, '.githooks');
+  git('config', '--local', 'core.hooksPath', absoluteHooks);
+  const linked = join(root, 'linked');
+  git('worktree', 'add', '--detach', linked, 'HEAD');
+  run(process.execPath, [join(linked, 'scripts/parity-progress.mjs'), '--install-hook']);
+  assert.equal(git('config', '--local', '--get', 'core.hooksPath').trim(), absoluteHooks);
+
+  const custom = join(root, 'custom-hooks');
+  mkdirSync(custom);
+  writeFileSync(join(custom, 'pre-commit'), '#!/bin/sh\nexit 0\n');
+  git('config', '--local', 'core.hooksPath', custom);
+  const refused = spawnSync(process.execPath, ['scripts/parity-progress.mjs', '--install-hook'], { cwd: linked, encoding: 'utf8' });
+  assert.notEqual(refused.status, 0, 'unrelated hooks still require manual integration');
+  assert.equal(git('config', '--local', '--get', 'core.hooksPath').trim(), custom);
 });
