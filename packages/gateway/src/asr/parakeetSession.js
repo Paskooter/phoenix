@@ -177,6 +177,8 @@ export class ParakeetASRSession {
     this.decoder = null;
     this.decoderError = null;
     this.pcmPending = Buffer.alloc(0);
+    this.relistenPcm = [];
+    this.relistenBytes = 0;
     this.pcmCarry = null;
     this.finalizeReason = null;
 
@@ -215,7 +217,8 @@ export class ParakeetASRSession {
   getLastIncremental() { return this.lastResult; }
 
   provideAudio(audioBuffer) {
-    if (this.stopped || this.state === 'FINALIZING' || this.state === 'DONE') return;
+    if (this.stopped || this.state === 'DONE'
+      || (this.state === 'FINALIZING' && !this._shouldRelisten())) return;
     if (!Buffer.isBuffer(audioBuffer)) throw new AudioFormatError('ASR audio frames must be Buffers');
     if (audioBuffer.length === 0) return;
     // LINEAR16 never reaches StreamingAudioDecoder, so its capture lives here;
@@ -252,10 +255,12 @@ export class ParakeetASRSession {
   }
 
   _consumePcm(audioBuffer) {
-    // A caller stop is an end-of-input drain; VAD/max-buffer EOS is a
-    // cancellation boundary and drops PCM arriving after that boundary.
+    // Keep audio after a provisional silence boundary until recognition decides
+    // whether to relisten. Confirmed endpoints and buffer limits still discard
+    // later audio; a caller stop drains complete frames already accepted.
     if (this.state === 'FINALIZING') {
       if (this.finalizeReason === 'stop') this._appendEndOfInputPcm(audioBuffer);
+      else if (this._shouldRelisten()) this._holdRelistenPcm(audioBuffer);
       return;
     }
     if (this.state === 'DONE' || audioBuffer.length === 0) return;
@@ -286,6 +291,23 @@ export class ParakeetASRSession {
       ? null
       : pcm.subarray(pcm.length - 1);
     this._sendStreamAudio(pcm);
+  }
+
+  _holdRelistenPcm(pcm) {
+    if (!pcm.length) return;
+    if (this.relistenBytes + pcm.length > MAX_BUFFER_BYTES) {
+      this._handleAudioError(new AudioDecodeError('ASR pending relisten audio exceeded the buffer limit'));
+      return;
+    }
+    this.relistenPcm.push(pcm);
+    this.relistenBytes += pcm.length;
+  }
+
+  _resumeRelistenPcm() {
+    const pcm = Buffer.concat(this.relistenPcm, this.relistenBytes);
+    this.relistenPcm = [];
+    this.relistenBytes = 0;
+    this._consumePcm(pcm);
   }
 
   _appendEndOfInputPcm(audioBuffer = Buffer.alloc(0)) {
@@ -422,6 +444,7 @@ export class ParakeetASRSession {
   stop() {
     if (this.stopped) return;
     this.stopped = true;
+    if (this.state === 'FINALIZING') this._closeDecoder();
     if (this.state !== 'FINALIZING' && this.state !== 'DONE') {
       if (this.sosFired) {
         if (!this.eosFired) {
@@ -481,6 +504,7 @@ export class ParakeetASRSession {
     this.eosAt = Date.now();
     this.state = 'FINALIZING';
     this.finalizeReason = reason;
+    if (this._shouldRelisten()) this._holdRelistenPcm(this.pcmPending);
     this.pcmPending = Buffer.alloc(0);
     this.log.debug?.(`EOS detected (${reason}), finalizing with ${this.chunks.length} chunks`);
     // A silence boundary is provisional until Parakeet returns words. If it
@@ -490,6 +514,7 @@ export class ParakeetASRSession {
     if (reason !== 'silence') this._emitEOS();
     this._finalize({ mode: 'cancel' }).catch((err) => {
       this.log.error?.('Parakeet finalize failed: ' + err.message);
+      this._closeDecoder();
       this.state = 'DONE';
       if (this.rejectStart) this.rejectStart(err);
     });
@@ -584,9 +609,11 @@ export class ParakeetASRSession {
       } finally {
         if (this.decoder === decoder) this._closeDecoder();
       }
-    } else {
+    } else if (!this._shouldRelisten()) {
       this._closeDecoder();
     }
+    // An empty result may resume this same microphone container. Recreating a
+    // decoder here loses its headers and leaves later encoded frames unusable.
     // The streaming socket (if one was opening) has no part in a batch POST.
     this._closeStream();
     return this._finalizeBatchWork(mode);
@@ -615,6 +642,7 @@ export class ParakeetASRSession {
     // instead of ending the turn with an empty no-match result.
     if (!transcript && this._shouldRelisten()) {
       this._resetForRelisten();
+      this._resumeRelistenPcm();
       return;
     }
     // Prefer the server's confidence; fall back to the historical synthetic
@@ -632,7 +660,7 @@ export class ParakeetASRSession {
       } finally {
         if (this.decoder === decoder) this._closeDecoder();
       }
-    } else {
+    } else if (!this._shouldRelisten()) {
       this._closeDecoder();
     }
     if (mode === 'end-of-input') this._appendEndOfInputPcm();
@@ -668,6 +696,7 @@ export class ParakeetASRSession {
     if (!final.text && this._shouldRelisten()) {
       this._resetForRelisten();
       this._restartStream();
+      this._resumeRelistenPcm();
       return;
     }
     this._emitFinalResult(final.text, final.confidence);
@@ -680,6 +709,7 @@ export class ParakeetASRSession {
    * the reference's batch behavior).
    */
   _emitFinalResult(transcript, confidence) {
+    this._closeDecoder();
     // A max-speech timer settles the transcript without a speech endpoint.
     // Other boundaries deliver one EOS, including a provisional silence boundary
     // held back for a possible relisten.
@@ -1042,6 +1072,8 @@ export class ParakeetASRSession {
   }
 
   _closeDecoder() {
+    this.relistenPcm = [];
+    this.relistenBytes = 0;
     this.pendingEncodedChunks = [];
     this.pendingEncodedBytes = 0;
     if (this.decoder) {
