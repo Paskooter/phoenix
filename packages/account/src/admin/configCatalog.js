@@ -260,7 +260,7 @@ export const SETTINGS = [
     group: 'understanding',
     type: 'secret',
     editable: true,
-    restart: ['parser'],
+    restart: ['parser', 'lasso'],
     default: null,
     help: 'An OpenRouter key for the decision layer. Without one the layer stays off.',
   },
@@ -527,12 +527,43 @@ export const SETTINGS = [
     group: 'model',
     type: 'secret',
     editable: true,
-    restart: ['parser', 'answer-skill'],
+    restart: ['parser', 'answer-skill', 'lasso'],
     default: null,
     help: 'Sent as a bearer token. Leave it empty for a local model that needs none.',
   },
 
   /* ── Personal report ────────────────────────────────────────────────── */
+  {
+    key: 'PHOENIX_NEWS_BRIEFINGS_ENABLED', label: 'News briefings', group: 'report',
+    type: 'bool', editable: true, restart: ['lasso', 'report-skill'], default: 'false',
+    help: 'Prepare shared, expressive news stories for Jibo, about twenty to thirty seconds each. '
+      + 'Refreshes twice daily. Needs a World News key and an OpenRouter key; uses the existing feed while stories are unavailable.',
+  },
+  {
+    key: 'WORLD_NEWS_API_KEY', label: 'World News API key', group: 'report',
+    type: 'secret', editable: true, restart: ['lasso'], default: null,
+    help: 'Article text for news briefings. Get a key at worldnewsapi.com. The default schedule is designed for the free daily quota.',
+  },
+  {
+    key: 'PHOENIX_NEWS_REFRESH_HOURS', label: 'News refresh interval', group: 'report',
+    type: 'number', editable: true, restart: ['lasso'], default: '12', min: 6, max: 24, unit: 'hours',
+    help: 'Refresh all categories on this interval. Shared stories are reused across people and robots.',
+  },
+  {
+    key: 'PHOENIX_NEWS_DAILY_LLM_USD', label: 'News model daily budget', group: 'report',
+    type: 'number', editable: true, restart: ['lasso'], default: '0.15', min: 0, max: 5, unit: 'USD',
+    help: 'Daily spending allowance for generating news, with reservations before each request. Zero pauses generation.',
+  },
+  {
+    key: 'ETCO_news_llmModel', label: 'News model', group: 'report',
+    type: 'string', editable: true, advanced: true, restart: ['lasso'], default: 'deepseek/deepseek-v4.1-flash',
+    help: 'An OpenRouter model supporting structured JSON output. Generation enforces a low token-price ceiling.',
+  },
+  {
+    key: 'ETCO_news_llmApiKey', label: 'News model key', group: 'report',
+    type: 'secret', editable: true, advanced: true, restart: ['lasso'], default: null,
+    help: 'Optional OpenRouter key just for news. Otherwise reuses the shared model key or the decision layer key.',
+  },
   {
     key: 'TOMTOM_API_KEY',
     label: 'TomTom key',
@@ -542,7 +573,7 @@ export const SETTINGS = [
     restart: ['lasso'],
     default: null,
     help: 'Commute times and live traffic. Without a key, Jibo can’t tell anyone how long their commute '
-      + 'will take. Weather and news need no key.',
+      + 'will take. Weather and the basic RSS news feed need no key.',
   },
   {
     key: 'ETCO_data_calendarUpstreamUrl',
@@ -1047,6 +1078,9 @@ export function checkTogether(values) {
   const errors = {};
   const warnings = [];
   const has = (key) => String(values[key] ?? '').trim() !== '';
+  if (values.PHOENIX_NEWS_BRIEFINGS_ENABLED === 'true' && !has('WORLD_NEWS_API_KEY')) {
+    warnings.push({ key: 'WORLD_NEWS_API_KEY', message: 'News briefings need a World News key. Jibo will use the basic feed until one is added.' });
+  }
 
   // The account service refuses to start when SMTP is half-configured without a
   // host (smtpMail.js smtpConfigFromEnv). Saving that would lock everyone out of

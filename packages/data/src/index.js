@@ -18,6 +18,7 @@ import { validateMaps, mapsKey, fetchMaps } from './maps.js';
 import { CredentialStore, credentialHandlers } from './credentials.js';
 import { createCalendarHandler, createUpstreamCalendarProvider } from './calendar.js';
 import { createOAuthProvider } from './oauth.js';
+import { createNewsBriefingWorker } from './newsBriefings/worker.js';
 
 /**
  * Build the OAuth provider from a secrets directory when one is configured.
@@ -98,7 +99,8 @@ function calendarUpstreamProvider(serviceName) {
  *   newsPolling mirrors the source APNewsConfig (LassoService.ts:28-32); when it is
  *   omitted the ETCO_lasso_apNews* environment wins, and polling stays off by default.
  */
-export function createDataService({ cache = new TTLCache(), calendarCache, weatherGet, newsGet, mapsGet, weatherProvider, newsProvider, mapsProvider, credentialStore, oauth, oauthSecretsDir, googleCalendarProvider, outlookCalendarProvider, newsPolling } = {}) {
+export function createDataService({ cache = new TTLCache(), calendarCache, weatherGet, newsGet, mapsGet, weatherProvider, newsProvider, mapsProvider, credentialStore, oauth, oauthSecretsDir, googleCalendarProvider, outlookCalendarProvider, newsPolling, newsBriefings } = {}) {
+  const briefings = createNewsBriefingWorker(newsBriefings);
   const oauthProvider = oauth || oauthFromEnv(oauthSecretsDir) || null;
   const store = credentialStore || new CredentialStore({ oauth: oauthProvider });
   if (oauthProvider) store.oauth = oauthProvider;
@@ -143,6 +145,9 @@ export function createDataService({ cache = new TTLCache(), calendarCache, weath
       'HEAD /v1/dark_sky': weather,
       'GET /v1/ap_news': news,
       'HEAD /v1/ap_news': news,
+      'GET /v1/news_briefings': briefings.handle,
+      'HEAD /v1/news_briefings': briefings.handle,
+      'GET /v1/news_briefings/status': briefings.handleStatus,
       'GET /v1/google_maps': maps,
       'HEAD /v1/google_maps': maps,
       'GET /v1/google_calendar': googleCal,
@@ -159,6 +164,12 @@ export function createDataService({ cache = new TTLCache(), calendarCache, weath
   // relay cache+TTL as a live request, starts on the first listen(), and is cleared when
   // that server closes. `service.newsPoller` is the handle to poll/stop it explicitly.
   installNewsPolling(service, { cache, get: newsGet, ...(newsPolling || {}) });
+  service.newsBriefings = briefings;
+  // Load shared snapshots before accepting traffic, but never wait for a model
+  // or provider during startup. HTTP requests cannot trigger generation.
+  briefings.load();
+  service.server.once('listening', () => briefings.start());
+  service.server.once('close', () => void briefings.stop());
 
   return service;
 }

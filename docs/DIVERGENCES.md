@@ -278,6 +278,47 @@ association. RSS/Atom field mapping, absent summaries, and refreshed cached
 speech are covered by the data tests. This is a replacement-provider mapping;
 the real AP consumer contract remains unchanged.
 
+## D06c — shared generated news briefings (opt-in, 2026-10-02)
+
+`PHOENIX_NEWS_BRIEFINGS_ENABLED=true` enables a separate, versioned
+`/v1/news_briefings` path. World News API supplies article text; a scheduled Lasso
+worker summarizes it with the pinned OpenRouter model
+`deepseek/deepseek-v4.1-flash`. All eleven categories refresh every twelve hours.
+Each has up to five prepared stories, shared across people and robots. The
+provider adapter is separate from generation and storage so it can be replaced.
+The legacy `/v1/ap_news` contract remains the fallback for each unavailable
+category and the default when the feature is disabled.
+
+Each story has three sentences targeting 50–60 words (validated at 48–62), with
+publisher attribution, source paragraph references, and no model-supplied markup.
+The renderer produces only Jibo's `style set="neutral|enthusiastic"` and
+`break size="0.35"` tags. Separate MIMs retain the native news animations, avoid
+the original AP-only introduction and nested pitch, and disable automatic voice
+styling. This targets 20–30 seconds; actual timing still needs a robot listening
+test. Validation checks structure, evidence IDs, length and markup, not factual
+entailment. The model is instructed to preserve source uncertainty and skip
+articles lacking sufficient information.
+
+The original adult/banned keyword sets apply to the full source text before
+prompt truncation, as well as generated speech. Adult classification survives
+summarization. Stories do not require image metadata: the new view shows the
+title, publisher and category. Selection retains the original category/story
+counts and suppresses duplicate selected story URLs across categories.
+
+Atomic private snapshots and daily spending reservations live under
+`PHOENIX_DATA_DIR/news/briefings.json`, outside releases. HTTP reads never fetch
+providers or call models. The worker caps World News requests at forty points
+per UTC day and model spending at $0.15 per UTC day by default; OpenRouter calls
+also enforce token-price ceilings. One validation repair is allowed. Failures
+retain last good stories until their original publication/generation age reaches
+thirty-six hours. Changed source revisions invalidate older summaries. Corrupt
+storage stops paid refreshes instead of silently resetting the spend ledger.
+
+Coverage: `packages/data/test/news-briefings.test.js`,
+`packages/skills/test/newsBriefings.test.js`, and
+`packages/account/test/adminNewsConfig.test.js`. Operational setup is in the
+[runbook](RUNBOOK.md#shared-news-briefings).
+
 ## D07b — no traffic model (CLOSED 2026-09-15, OpenRouteService replaced by TomTom)
 OpenRouteService has no traffic model at all, so `duration_in_traffic` always equalled `duration`,
 `extraMins` was always 0, and the report skill's commute quality could never select Poor or

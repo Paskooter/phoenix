@@ -8,6 +8,7 @@ import { reportLassoURL } from './env.js';
 import http from 'node:http';
 import https from 'node:https';
 import zlib from 'node:zlib';
+import { NEWS_BRIEFING_VERSION, validateNewsBriefing } from '@phoenix/contracts';
 
 const msToSeconds = (ms) => ms / 1000;
 
@@ -259,6 +260,24 @@ export class LassoClient {
 
     return Promise.all(baseNewsItems.map(async (newsBase) => {
       const { sourceID } = newsBase.category;
+      if (/^(true|1)$/i.test(process.env.PHOENIX_NEWS_BRIEFINGS_ENABLED || '') && sourceID) {
+        try {
+          // This endpoint only reads a pre-generated snapshot. Keep a short
+          // timeout so an unavailable briefing never delays the RSS fallback.
+          const response = await fetch(`${lassoBase()}/v1/news_briefings?sourceID=${sourceID}`, {
+            headers: requestHeaders(data), signal: AbortSignal.timeout(1800), redirect: 'error',
+          });
+          if (!response.ok) { await response.body?.cancel(); throw new Error('Briefings unavailable'); }
+          const briefing = (await response.json()).relayData;
+          if (briefing?.version !== NEWS_BRIEFING_VERSION || briefing.category !== newsBase.category.name
+              || !Array.isArray(briefing.items) || !briefing.items.length || briefing.items.length > 10) {
+            throw new Error('Invalid briefing snapshot');
+          }
+          briefing.items.forEach(validateNewsBriefing);
+          newsBase.briefings = briefing.items;
+          return newsBase;
+        } catch { /* A missing, stale or invalid snapshot falls back per category. */ }
+      }
       try {
         const res = await requestLasso('/v1/ap_news', { sourceID }, data);
         const newsXML = extractResponseData(res, 'AP News');

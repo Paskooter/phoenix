@@ -26,6 +26,30 @@ export async function newsViews(items) {
     categoryText.text = titleCase(item.category);
     if (item.category === STRANGE_CATEGORY) categoryText.text += ' News';
 
+    if (item.briefing) {
+      // World News does not supply trustworthy image dimensions. A title card
+      // needs no extra fetch and works for stories with no photograph at all.
+      headlineConfig.componentConfigs = headlineConfig.componentConfigs.filter(c => c !== headlineClip);
+      categoryClip.position.y = 0;
+      categoryClip.transform.scaleY = 2;
+      categoryText.style.fontSize = '50';
+      categoryText.position.y = 610;
+      const title = clone(categoryText);
+      title.id = 'briefingTitle';
+      title.text = item.briefing.title;
+      title.style = { ...title.style, fontSize: '48', wordWrap: true, wordWrapWidth: 1040, letterSpacing: 0 };
+      title.position.y = 320;
+      title.targetAnchor.y = 0.5;
+      const publisher = clone(categoryText);
+      publisher.id = 'briefingPublisher';
+      publisher.text = item.briefing.publisher;
+      publisher.style.fontSize = '30';
+      publisher.position.y = 500;
+      headlineConfig.componentConfigs.push(title, publisher);
+      headlineConfig.viewConfig.id += `_${index}`;
+      return headlineConfig;
+    }
+
     headlineClip.assets[0].src = item.image.source;
     // Keep the source's parseInt call shape. In particular, the reference
     // accepts the legacy 0x-prefixed dimensions using JavaScript's inferred
