@@ -54,10 +54,10 @@ const CHEVRON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" cla
   + '<path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>';
 
 /** An external link opens in a new tab and carries no opener; a portal path does not. */
-function linkHtml(href, label) {
+function linkHtml(href, label, className = '') {
   if (!safeBrandUrl(href)) return `<span>${escapeHtml(label)}</span>`;
   const external = /^https?:/i.test(href);
-  return `<a href="${escapeAttr(href)}"${external ? ' target="_blank" rel="noopener"' : ''}>${escapeHtml(label)}</a>`;
+  return `<a href="${escapeAttr(href)}"${className ? ` class="${escapeAttr(className)}"` : ''}${external ? ' target="_blank" rel="noopener"' : ''}>${escapeHtml(label)}</a>`;
 }
 
 /**
@@ -92,8 +92,10 @@ export const SITE_LISTS = {
   },
   faq: {
     path: 'faq.items',
-    item: (f) => text(f?.q) && `<details data-reveal><summary><span>${escapeHtml(f.q)}</span>${CHEVRON}</summary>`
-      + `<div class="answer"><p>${escapeHtml(text(f.a))}</p></div></details>`,
+    item: (f, brand) => text(f?.q) && `<details data-reveal><summary><span>${escapeHtml(f.q)}</span>${CHEVRON}</summary>`
+      + `<div class="answer"><p>${escapeHtml(text(f.a))}</p>`
+      + (text(f.cta?.label) ? `<p class="answer-action">${linkHtml(pick(brand, f.cta.hrefFrom), f.cta.label, 'btn btn-ghost btn-sm')}</p>` : '')
+      + `</div></details>`,
   },
   steps: {
     // `prompt` defaults to "$"; an empty string drops it (a phrase to say to
@@ -129,7 +131,7 @@ export function renderSiteList(name, brand) {
   const spec = SITE_LISTS[name];
   const items = spec && pick(brand, spec.path);
   if (!Array.isArray(items) || !items.length) return null;
-  const html = items.map((item) => spec.item(item) || '').join('');
+  const html = items.map((item) => spec.item(item, brand) || '').join('');
   return html || null;
 }
 

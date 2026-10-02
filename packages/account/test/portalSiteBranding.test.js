@@ -118,6 +118,22 @@ test('branded footer links are checked, and external ones open in a new tab', ()
   assert.ok(html.includes('<a href="/terms">Terms</a>'));
 });
 
+test('FAQ actions follow the instance link and keep branding text and URLs safe', () => {
+  const html = renderSiteList('faq', {
+    links: { discord: 'https://discord.gg/instance-community', unsafe: 'javascript:alert(1)' },
+    faq: { items: [
+      { q: 'Plain question', a: 'Plain answer' },
+      { q: 'Need help?', a: 'Ask other owners.', cta: { label: 'Join <our> community', hrefFrom: 'links.discord' } },
+      { q: 'Unsafe link?', a: 'No script.', cta: { label: 'Unsafe', hrefFrom: 'links.unsafe' } },
+      { q: 'Missing link?', a: 'No destination.', cta: { label: 'Missing', hrefFrom: 'links.missing' } },
+    ] },
+  });
+  assert.ok(html.includes('<p>Plain answer</p></div></details>'), 'plain FAQ items retain their markup');
+  assert.ok(html.includes('<a href="https://discord.gg/instance-community" class="btn btn-ghost btn-sm" target="_blank" rel="noopener">Join &lt;our&gt; community</a>'));
+  assert.ok(!html.includes('javascript:') && !html.includes('<our>'));
+  assert.ok(html.includes('<span>Unsafe</span>') && html.includes('<span>Missing</span>'));
+});
+
 test('the shipped landing page renders completely and idempotently from its own defaults', () => {
   const once = renderBrandedHtml(INDEX, DEFAULTS);
   assert.equal(renderBrandedHtml(once, DEFAULTS), once, 'rendering a rendered page changes nothing');

@@ -119,6 +119,29 @@ body.console {
 
 .sidebar-foot { margin-top: auto; padding-top: 1rem; }
 
+.console-help {
+  padding: 1rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+}
+.console-help strong { font-size: var(--t-sm); font-weight: 600; }
+.console-help p { margin-top: .35rem; color: var(--fg-dim); font-size: var(--t-sm); line-height: 1.6; }
+.console-help a {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: 44px;
+  color: var(--accent);
+  font-size: var(--t-sm);
+  font-weight: 560;
+}
+.console-help a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.console-help a svg { flex: none; }
+.sidebar-help { margin: 0 .15rem .75rem; padding: .75rem .85rem .25rem; }
+.sidebar-help p { font-size: var(--t-xs); }
+.auth-help { margin-top: 1.5rem; }
+
 /* The account chip, bottom-left, with a menu. */
 .account-chip {
   display: flex;

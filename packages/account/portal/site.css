@@ -638,6 +638,28 @@ main > .section:last-child { padding-bottom: 0; }
 
 .install-cta { margin-top: 1.5rem; }
 
+.setup-help {
+  margin-top: 1.5rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--border-soft);
+  border-inline-start: 2px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: var(--bg-soft);
+}
+.setup-help strong { font-size: var(--t-base); font-weight: 600; color: var(--fg); }
+.setup-help p { margin-top: .35rem; font-size: var(--t-sm); color: var(--fg-dim); line-height: 1.6; }
+.community-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  min-height: 44px;
+  font-size: var(--t-sm);
+  font-weight: 560;
+  color: var(--accent);
+}
+.community-link svg { flex: none; }
+.community-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+
 .terminal {
   border-radius: var(--radius);
   background: var(--bg-soft);
@@ -753,6 +775,8 @@ main > .section:last-child { padding-bottom: 0; }
 }
 /* Content slides down rather than snapping. */
 .js .faq details[open] .answer { animation: fade-up .3s var(--ease-out); }
+.faq .answer-action { margin-top: 1rem; }
+.faq .answer-action a { min-height: 44px; }
 
 /* ==========================================================================
    Closing CTA
@@ -796,6 +820,46 @@ main > .section:last-child { padding-bottom: 0; }
 }
 
 /* ==========================================================================
+   Community
+   ========================================================================== */
+
+.community-section { padding-block: 0; }
+.community-band {
+  display: grid;
+  align-items: center;
+  gap: 2.5rem;
+  padding: clamp(1.5rem, 1rem + 3vw, 3.5rem);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(125deg, var(--panel), var(--bg-soft) 65%, var(--accent-soft));
+}
+@media (min-width: 760px) {
+  .community-band { grid-template-columns: minmax(0, 1.4fr) minmax(240px, 1fr); gap: 3rem; }
+}
+.community-copy h2 { margin-block: .8rem 1rem; font-size: var(--t-2xl); line-height: 1.15; letter-spacing: -.03em; }
+.community-copy h2 > span { display: block; }
+.community-body { max-width: 50ch; font-size: var(--t-base); color: var(--fg-dim); line-height: 1.7; }
+.community-benefits { display: grid; gap: .75rem; margin: 1.5rem 0 0; padding: 0; list-style: none; }
+.community-benefits li { display: flex; align-items: center; gap: .7rem; font-size: var(--t-sm); color: var(--fg-dim); }
+.community-benefits svg { flex: none; color: var(--accent); }
+.community-invite { display: grid; justify-items: center; gap: 1.25rem; text-align: center; }
+.community-mark {
+  display: grid;
+  place-items: center;
+  width: 112px;
+  height: 112px;
+  border: 1px solid var(--accent-line);
+  border-radius: 32px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  box-shadow: 0 0 60px var(--accent-soft);
+  transform: rotate(-5deg);
+}
+.community-mark svg { transform: rotate(5deg); }
+.community-invite .btn { width: 100%; max-width: 300px; }
+.community-invite p { max-width: 30ch; font-size: var(--t-sm); color: var(--fg-dim); line-height: 1.6; }
+
+/* ==========================================================================
    Footer
    ========================================================================== */
 
@@ -821,6 +885,20 @@ main > .section:last-child { padding-bottom: 0; }
   line-height: 1.65;
   max-width: 42ch;
 }
+.footer-join { margin-top: 1rem; min-height: 44px; }
+.footer-community {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid var(--border-soft);
+}
+.footer-community strong { font-size: var(--t-base); font-weight: 600; }
+.footer-community p { margin-top: .35rem; font-size: var(--t-sm); color: var(--fg-dim); line-height: 1.6; }
+.footer-community .btn { flex: none; min-height: 44px; }
+.error-help { margin-top: 1.5rem; }
 .footer-col h4 {
   font-size: var(--t-xs);
   font-weight: 620;

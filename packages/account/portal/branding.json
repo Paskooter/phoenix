@@ -12,6 +12,7 @@
     "how": "How it works",
     "status": "Status",
     "faq": "FAQ",
+    "community": "Community",
     "signIn": "Sign in",
     "cta": "Open console"
   },
@@ -172,6 +173,14 @@
       {
         "q": "What does it cost?",
         "a": "Nothing. There is no company, no subscription and nothing to buy. You run it on your own hardware, and the electricity bill is between you and your robot."
+      },
+      {
+        "q": "Where can I get help or meet other Jibo owners?",
+        "a": "Join our Discord community to ask about setup, pairing, and getting your Jibo talking again. It's also a place to share your robot's latest adventures and follow Phoenix updates. Everyone from first-time owners to experienced tinkerers is welcome.",
+        "cta": {
+          "label": "Get help on Discord",
+          "hrefFrom": "links.discord"
+        }
       }
     ]
   },
@@ -180,6 +189,26 @@
     "body": "If you already have Phoenix running, the console is one click away. If you don't, everything you need is in the repository.",
     "primary": "Open the console",
     "secondary": "Read the documentation"
+  },
+  "community": {
+    "eyebrow": "Community",
+    "title": "A little robot.",
+    "titleAccent": "A whole community.",
+    "body": "You don't have to figure it all out alone. Meet other Jibo owners and Phoenix tinkerers, trade ideas, and help keep these little robots talking.",
+    "help": "Get help with setup",
+    "share": "Share your Jibo moments",
+    "updates": "Follow Phoenix updates",
+    "cta": "Join us on Discord",
+    "note": "For Jibo owners, builders, and curious humans. Come say hello.",
+    "helpTitle": "Need a hand?",
+    "helpBody": "Ask the community about setup, pairing, or getting your Jibo talking again.",
+    "helpCta": "Get help on Discord",
+    "consoleBody": "Setup help, shared ideas, and other Jibo owners.",
+    "footerTitle": "Find your people.",
+    "footerBody": "Jibo stories, setup help, and Phoenix updates. Come say hello.",
+    "footerCta": "Join Discord",
+    "errorBody": "Still need a hand finding your way?",
+    "errorCta": "Ask on Discord"
   },
   "footer": {
     "blurb": "A clean-room reimplementation of the cloud service that gave a discontinued social robot its voice. Independent, non-commercial, and self-hosted.",
@@ -256,6 +285,7 @@
     "signUpBody": "This account lives on this server only."
   },
   "links": {
+    "discord": "https://discord.gg/FyDVYQ6FfV",
     "github": "https://github.com/Paskooter/phoenix",
     "releases": "https://github.com/Paskooter/phoenix/releases",
     "issues": "https://github.com/Paskooter/phoenix/issues",
