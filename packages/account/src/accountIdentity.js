@@ -41,6 +41,7 @@ import {
 import { stagePhotoDigest } from './loopMemberPhotos.js';
 import { listMembers, LOOP_MEMBERSHIP_ERRORS, removeLoop } from './loopMembership.js';
 import { bumpAccountSessionVersion } from './sessions.js';
+import { markEmailVerified } from './emailVerification.js';
 
 export const ACCOUNT_PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)[A-Za-z\d-_!$%@#£€*?&\(\)\^]{8,}$/;
 const ACCOUNT_MINIMAL_AGE = 13;
@@ -374,6 +375,7 @@ export function normalizeIdentityProviders(input = undefined) {
     portalUrl: options.portalUrl === undefined ? '' : String(options.portalUrl),
     campaign: options.campaign && typeof options.campaign === 'object' ? options.campaign : {},
     emailReset: options.emailReset || null,
+    emailVerification: options.emailVerification || null,
     emailResetComplete: options.emailResetComplete || null,
     passwordChanged: options.passwordChanged || null,
     sms: options.sms || options.smsProvider || null,
@@ -1113,6 +1115,7 @@ export function confirmEmailReset(store, code, providers = undefined) {
   const previousAccount = snapshotAccount(account);
   const previousResets = [...store.emailResets.values()].map((row) => snapshotAccount(row));
   const next = { ...account, email: emailReset.email, updated: Date.now() };
+  markEmailVerified(next);
   bumpAccountSessionVersion(next);
   persistAccount(store, next, previousAccount);
   resetAccessKeys(store, next._id);
@@ -1624,15 +1627,16 @@ export function activateByCode(store, activationCode) {
   if (!activationCode) fail(ACCOUNT_ERRORS.ACTIVATION_CODE_NOT_FOUND);
   const account = [...store.accounts.values()].find((row) => row.activationCode === activationCode);
   if (!account) fail(ACCOUNT_ERRORS.ACTIVATION_CODE_NOT_FOUND);
-  return activateById(store, account._id);
+  return activateById(store, account._id, true);
 }
 
-function activateById(store, accountId) {
+function activateById(store, accountId, mailboxProved = false) {
   const account = findById(store, accountId);
   if (account.isActive) fail(ACCOUNT_ERRORS.ACCOUNT_ACTIVATED);
   const previous = snapshotAccount(account);
   delete account.activationCode;
   account.isActive = true;
+  if (mailboxProved) markEmailVerified(account);
   account.updated = Date.now();
   persistAccount(store, account, previous);
   return account;
@@ -1689,6 +1693,7 @@ export function passwordReset(store, code, password, providers = undefined) {
   delete account.passwordResetExpiresAt;
   account.isActive = true;
   account.updated = Date.now();
+  markEmailVerified(account);
   bumpAccountSessionVersion(account);
   persistAccount(store, account, previous);
   sendPasswordChangedNotice(providers, account);

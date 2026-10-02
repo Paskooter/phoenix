@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en" data-title-template="Verify email — %s">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Verify email — Phoenix</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/theme.css">
+  <link rel="stylesheet" href="/console.css">
+</head>
+<body class="console verification-page">
+  <main class="card verification-link-card">
+    <div class="card-body">
+      <a href="/" class="brand" data-brand="wordmark">Phoenix</a>
+      <h1 id="verification-title">Verify your email</h1>
+      <p id="verification-message" role="status">Confirm your email address for your account. This link can be used once.</p>
+      <button id="verification-confirm" type="button" class="btn btn-primary btn-lg">Verify email address</button>
+      <p><a href="/app#/profile" id="verification-continue">Go to your account</a></p>
+      <p class="field-hint">If the link has expired, sign in to request another email from Account settings, or use the resend option on the sign-in screen.</p>
+    </div>
+  </main>
+  <script type="module" src="/email-verify.js"></script>
+</body>
+</html>

@@ -265,6 +265,7 @@ export function staticRoutes() {
     // scripts
     'app.js', 'pwa.js', 'site.js', 'site-render.js', 'brand.js', 'qr.js', 'map.js',
     'loop-crypto.js', 'loop-keys.js',
+    'email-verification.js', 'email-verify.js', 'verify-email.html',
     // vendored
     'vendor/leaflet.js', 'vendor/leaflet.css',
     // assets and metadata
@@ -299,6 +300,7 @@ export function staticRoutes() {
     // browser exchanges the single-use code with the same-origin API, so a
     // reverse proxy never needs to expose a token-bearing dynamic GET route.
     'GET /activate': page('app.html'),
+    'GET /verify-email': page('verify-email.html'),
     'GET /reset': page('app.html'),
     'GET /confirmemailreset': page('app.html'),
 

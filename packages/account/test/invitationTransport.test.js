@@ -16,6 +16,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
 import { SmtpMailProvider, normalizeSmtpConfig } from '../src/smtpMail.js';
+import { createAccountService, Store } from '../src/index.js';
 
 function listen(server) {
   return new Promise((resolve, reject) => {
@@ -222,6 +223,56 @@ function decodeQuotedPrintable(value) {
   }
   return Buffer.from(bytes).toString('utf8');
 }
+
+test('signup SMTP wiring delivers usable verification links in escaped HTML and plain text', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'phx-verification-smtp-'));
+  const relay = noEightBitFixture({ maxLineLength: 998 });
+  let accountServer;
+  try {
+    const port = await listen(relay.server);
+    const smtp = { host: '127.0.0.1', port, secure: false, ignoreTLS: true, timeoutMs: 3000 };
+    const store = new Store(join(directory, 'store.json'));
+    accountServer = await createAccountService({
+      store, invitationSmtp: smtp, identitySmtp: smtp,
+      invitationProviders: { portalUrl: 'https://portal.fixture.test' },
+    }).listen(0);
+    const base = `http://127.0.0.1:${accountServer.address().port}`;
+    const signup = await fetch(`${base}/api/signup`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email: 'mailbox@fixture.test', password: 'ValidPass1', firstName: 'Zoë <img src=x>' }),
+    });
+    assert.equal(signup.status, 202);
+    assert.equal((await signup.json()).emailSent, true, 'signup waits for real SMTP acceptance');
+    assert.equal(relay.messages.length, 1);
+    const message = relay.messages[0].toString('ascii');
+    assert.match(message, /Subject: Verify your email/);
+    const boundary = /boundary="([^"]+)"/.exec(message)[1];
+    const parts = {};
+    for (const part of message.split(`--${boundary}`)) {
+      const type = /Content-Type: text\/(plain|html)/.exec(part)?.[1];
+      if (!type) continue;
+      const split = part.indexOf('\r\n\r\n');
+      const body = part.slice(split + 4);
+      parts[type] = /Content-Transfer-Encoding: quoted-printable/.test(part.slice(0, split))
+        ? decodeQuotedPrintable(body) : body;
+    }
+    assert.match(parts.plain, /mailbox@fixture.test/);
+    assert.match(parts.plain, /https:\/\/portal\.fixture\.test\/verify-email#token=[a-f0-9]{64}/);
+    assert.doesNotMatch(parts.plain, /\{(?:url|email|firstName)\}/);
+    assert.match(parts.html, /Zoë &lt;img src=x&gt;/);
+    assert.doesNotMatch(parts.html, /<img src=x>/);
+    const token = /#token=([a-f0-9]{64})/.exec(parts.plain)[1];
+    const confirmed = await fetch(`${base}/api/email-verification/confirm`, {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token }),
+    });
+    assert.equal(confirmed.status, 200);
+    assert.equal(store.accountByEmail('mailbox@fixture.test').emailVerified, true);
+  } finally {
+    if (accountServer) { accountServer.closeAllConnections?.(); await close(accountServer); }
+    await close(relay.server);
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
 
 test('SMTP transport negotiates STARTTLS and the advertised LOGIN mechanism', async () => {
   const directory = mkdtempSync(join(tmpdir(), 'phx-a04-smtp-starttls-'));

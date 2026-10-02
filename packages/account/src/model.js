@@ -138,7 +138,7 @@ export function verifyWebToken(token, secret) {
 
 /** A human owner account. */
 export function createOwnerAccount(store, {
-  email, password, firstName = '', lastName = '', isActive = true,
+  email, password, firstName = '', lastName = '', isActive = true, emailActivationPending = false,
 }) {
   if (store.accountByEmail(email)) throw Object.assign(new Error('An account with that email already exists'), { code: 'ACCOUNT_EXISTS' });
   const account = {
@@ -149,11 +149,15 @@ export function createOwnerAccount(store, {
     firstName, lastName,
     ...fillAccessKeys(),
     isActive: !!isActive,
+    ...(emailActivationPending ? { emailActivationPending: true } : {}),
     sessionVersion: 0,
     created: Date.now(),
   };
   store.accounts.set(account._id, account);
-  store.flush();
+  try { store.flush(); } catch (error) {
+    store.accounts.delete(account._id);
+    throw error;
+  }
   return account;
 }
 

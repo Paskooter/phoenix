@@ -14,6 +14,7 @@ import { join } from 'node:path';
 
 export const MAIL_SUBJECTS = Object.freeze({
   activation: 'Account Activation',
+  emailVerification: 'Verify your email',
   emailReset: 'Your new email',
   emailResetComplete: 'Your email has changed',
   invitation: 'Invitation',
@@ -71,6 +72,13 @@ function renderHtml(template, options) {
     }
   }
   return html;
+}
+
+function renderVerificationTemplate(template, options, html = false) {
+  const escape = (value) => String(value).replace(/[&<>"']/g,
+    (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+  return template.replace(/\{([a-zA-Z]+)\}/g, (placeholder, name) => own(options, name)
+    ? (html ? escape(options[name]) : String(options[name])) : placeholder);
 }
 
 function normalizeCrlf(value) {
@@ -597,11 +605,12 @@ function multipartMessage({ from, to, subject, text, html }) {
 
 /** A source-shaped MailController backed by a configured local SMTP relay. */
 export class SmtpMailProvider {
-  constructor({ template, smtp, fromAddress = DEFAULT_FROM, templateDir = DEFAULT_TEMPLATE_DIR } = {}) {
+  constructor({ template, smtp, fromAddress = DEFAULT_FROM, templateDir = DEFAULT_TEMPLATE_DIR, interpolateText = false } = {}) {
     this.template = template;
     this.smtp = normalizeSmtpConfig(smtp);
     this.fromAddress = fromAddress || DEFAULT_FROM;
     this.templateDir = templateDir;
+    this.interpolateText = interpolateText;
     // Match source startup behavior: templates are read when the controller is
     // constructed, so a bad deployment path fails explicitly before requests.
     this.templateHtmlContent = readTemplate(templateDir, template, 'html');
@@ -614,12 +623,14 @@ export class SmtpMailProvider {
       throw new Error('Subject not specified for the template');
     }
     const recipient = envelopeAddress(to, 'to');
-    const html = renderHtml(this.templateHtmlContent, options);
+    const html = this.interpolateText
+      ? renderVerificationTemplate(this.templateHtmlContent, options, true)
+      : renderHtml(this.templateHtmlContent, options);
     const data = multipartMessage({
       from: this.fromAddress,
       to: recipient,
       subject: MAIL_SUBJECTS[this.template],
-      text: this.templateTextContent,
+      text: this.interpolateText ? renderVerificationTemplate(this.templateTextContent, options) : this.templateTextContent,
       html,
     });
     return smtpSend(this.smtp, {
@@ -647,5 +658,6 @@ export function createSmtpAccountMailProviders({ smtp, fromAddress, templateDir 
     ...createSmtpMailProviders({ smtp: config, fromAddress, templateDir }),
     emailReset: new SmtpMailProvider({ template: 'emailReset', smtp: config, fromAddress, templateDir }),
     emailResetComplete: new SmtpMailProvider({ template: 'emailResetComplete', smtp: config, fromAddress, templateDir }),
+    emailVerification: new SmtpMailProvider({ template: 'emailVerification', smtp: config, fromAddress, templateDir, interpolateText: true }),
   };
 }

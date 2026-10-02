@@ -73,6 +73,47 @@ function copySafeQuery(source) {
 }
 
 /**
+ * Fetch one page of the hub's timing telemetry with the server-held proof, and
+ * reduce it to the allow-listed projection. Used by the voice-turns route and by
+ * the admin overview's activity summary.
+ * @returns {Promise<{ok: true, page: object} | {ok: false, status: number, error: string}>}
+ */
+export async function fetchVoiceTurnPage({ env = process.env, query = new URLSearchParams(), fetchImpl = fetch } = {}) {
+  const base = hubUrl(env);
+  const secret = env.HUB_TOKEN_SECRET || env.ETCO_server_hubTokenSecret || '';
+  if (!base || !secret) return { ok: false, status: 503, error: 'voice turn telemetry is unavailable' };
+
+  const target = new URL('/v1/admin/voice-turns', base);
+  target.search = copySafeQuery(query).toString();
+  const timestamp = String(Date.now());
+  const nonce = randomBytes(24).toString('base64url');
+  const proof = voiceTurnTelemetryProof(secret, {
+    method: 'GET', target: `${target.pathname}${target.search}`, timestamp, nonce,
+  });
+  if (!proof) return { ok: false, status: 503, error: 'voice turn telemetry is unavailable' };
+  try {
+    const peer = await fetchImpl(target, {
+      headers: {
+        'x-phoenix-voice-turn-proof': proof,
+        'x-phoenix-voice-turn-timestamp': timestamp,
+        'x-phoenix-voice-turn-nonce': nonce,
+      },
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+    if (!peer.ok) {
+      return peer.status === 400
+        ? { ok: false, status: 400, error: 'invalid voice turn filter' }
+        : { ok: false, status: 503, error: 'voice turn telemetry is unavailable' };
+    }
+    // The hub endpoint is already an allow-listed projection. Do not pass
+    // through an arbitrary upstream diagnostic body on a bad response.
+    return { ok: true, page: safePage(await peer.json()) };
+  } catch {
+    return { ok: false, status: 503, error: 'voice turn telemetry is unavailable' };
+  }
+}
+
+/**
  * The Account service owns browser authentication. The hub only accepts an
  * HMAC proof derived from the deployment's HUB_TOKEN_SECRET; it sees neither
  * cookies nor user/account identity.
@@ -81,36 +122,9 @@ export function adminVoiceTurnRoutes(store, { requireAdmin, sendJson, env = proc
   return {
     'GET /api/admin/voice-turns': async ({ req, res, url }) => {
       if (!requireAdmin(store, req, res)) return;
-      const base = hubUrl(env);
-      const secret = env.HUB_TOKEN_SECRET || env.ETCO_server_hubTokenSecret || '';
-      if (!base || !secret) return sendJson(res, 503, { error: 'voice turn telemetry is unavailable' });
-
-      const target = new URL('/v1/admin/voice-turns', base);
-      target.search = copySafeQuery(url.searchParams).toString();
-      const timestamp = String(Date.now());
-      const nonce = randomBytes(24).toString('base64url');
-      const proof = voiceTurnTelemetryProof(secret, {
-        method: 'GET', target: `${target.pathname}${target.search}`, timestamp, nonce,
-      });
-      if (!proof) return sendJson(res, 503, { error: 'voice turn telemetry is unavailable' });
-      try {
-        const peer = await fetchImpl(target, {
-          headers: {
-            'x-phoenix-voice-turn-proof': proof,
-            'x-phoenix-voice-turn-timestamp': timestamp,
-            'x-phoenix-voice-turn-nonce': nonce,
-          },
-          signal: AbortSignal.timeout(TIMEOUT_MS),
-        });
-        if (!peer.ok) return sendJson(res, peer.status === 400 ? 400 : 503, {
-          error: peer.status === 400 ? 'invalid voice turn filter' : 'voice turn telemetry is unavailable',
-        });
-        // The hub endpoint is already an allow-listed projection. Do not pass
-        // through an arbitrary upstream diagnostic body on a bad response.
-        return safePage(await peer.json());
-      } catch {
-        return sendJson(res, 503, { error: 'voice turn telemetry is unavailable' });
-      }
+      const result = await fetchVoiceTurnPage({ env, query: url.searchParams, fetchImpl });
+      if (!result.ok) return sendJson(res, result.status, { error: result.error });
+      return result.page;
     },
   };
 }

@@ -2,6 +2,7 @@
 // original /api/login — one identity system, reused by every new route.
 import { getSession } from '../sessions.js';
 import { sendJson } from '@phoenix/common';
+import { isEmailVerified } from '../emailVerification.js';
 
 /** The logged-in human account, or null (session absent / not a user session). */
 export function userFromSession(store, req) {
@@ -27,6 +28,8 @@ export function portalAccount(account) {
     lastName: account.lastName,
     gender: account.gender,
     isActive: !!account.isActive,
+    emailVerified: isEmailVerified(account),
+    emailVerifiedAt: isEmailVerified(account) ? account.emailVerifiedAt || null : null,
     // Drives the console's admin navigation. It is a display flag, not a
     // capability: every admin route re-checks the account server-side, so a
     // hand-edited client cannot grant itself anything.

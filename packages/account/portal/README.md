@@ -20,6 +20,7 @@ continues to work whether or not it is installed.
 | `/` | `index.html` | Public landing page |
 | `/terms`, `/privacy`, `/security` | the legal pages | Static, no session needed |
 | `/app` | `app.html` | The console. Hash routes beneath it (`#/loop`, `#/settings`, …) |
+| `/verify-email` | `verify-email.html` | Explicit confirmation of the token in an emailed URL fragment |
 | `/admin` | `app.html` | The admin surface, available to accounts with `isAdmin`. Sub-routes: `#/admin` (status), `#/admin/config`, `#/admin/robots`, `#/admin/admins` |
 | `/branding.json` | branding, merged | See **Branding** below |
 | `/api/*` | the REST face | Unchanged |
@@ -121,10 +122,12 @@ URLs as other branded links. Existing FAQ items with just `q` and `a` continue t
 | `../src/brandRender.js` | Renders the merged branding into each page the account service serves |
 | `console.css` / `app.js` | The signed-in console |
 | `brand.js` | Branding loader and the theme switch, shared by both |
-| `../src/admin/configCatalog.js` | Every settable environment variable: type, default, help, which services read it |
-| `../src/admin/envFile.js` | Reads and rewrites `.env`, preserving every comment |
-| `../src/admin/configRoutes.js` | `GET/PUT /api/admin/config`, reveal and generate |
-| `../src/admin/adminRoutes.js` | `/api/admin/admins` and `/api/admin/status` |
+| `../src/admin/configCatalog.js` | Every setting the console shows: whether it can change it, type, default, help, which services read it |
+| `../src/admin/consoleSettings.js` | The file settings saved in the console live in, with their history |
+| `../src/admin/envFile.js` | Reads the server's environment file to show where a value comes from; never writes it |
+| `../src/admin/settingsRoutes.js` | `GET/PUT /api/admin/settings`, `GET /api/admin/services`, `POST /api/admin/services/restart` |
+| `../src/admin/launcherControl.js` | The launcher's run state, service probes, and restart requests |
+| `../src/admin/adminRoutes.js` | `/api/admin/overview`, `/api/admin/fleet`, `/api/admin/admins` |
 | `branding.json` | Every configurable string, the logo and the accent |
 | `qr.js` | Robot-pairing QR renderer — **carried over unchanged** |
 | `map.js` | Commute location picker |
@@ -177,6 +180,18 @@ site to the Home Screen from Safari.
   - The pairing flow — `POST /api/robots/setup`, `GET /api/robots/setup/status`, and the
     multi-frame QR renderer in `qr.js` — is carried over verbatim.
 
+### Email verification
+
+When SMTP is configured, new portal signups receive a verification email before
+sign-in. Existing active accounts show a prominent warning until their current
+address is verified. Account displays the verification status and a resend
+button, shared with the warning's countdown. Resends are limited to one per
+minute, five per hour, and twenty per day per account. The sign-in screen also
+offers resend for people who have not confirmed their signup yet.
+
+See [Email verification](../../../docs/EMAIL-VERIFICATION.md) for configuration,
+link handling, legacy accounts, limits, and local tests.
+
 ## The admin surface
 
 Reached at `/app#/admin` (or `/admin`) by an account whose `isAdmin` flag is set. It appears in
@@ -184,40 +199,46 @@ the sidebar only for such an account, but that is presentation: every `/api/admi
 re-checks the flag server-side on each request, so a hand-edited client grants itself nothing,
 and a revoke takes effect immediately with no stale session to wait out.
 
-Four tabs:
+Six tabs:
 
-| Tab | What it does |
-|---|---|
-| **Status** | This process (Node, platform, uptime, memory, working directory), which configuration file is in use, store counts, and a live probe of every configured peer service |
-| **Configuration** | Every environment variable the stack reads — see below |
-| **Robots** | Every robot adopted on this server across all households, plus manual adoption |
-| **Administrators** | Who has the flag; grant and revoke it |
+| Tab | Route | What it does |
+|---|---|---|
+| **Overview** | `#/admin` | Whether everything is running, what needs attention (only one administrator, no speech recognition or email, a full disk, a service running without its saved settings), every service with its uptime and a restart button, the last hour of voice turns, and counts |
+| **Settings** | `#/admin/settings` | The settings the console can change, grouped, with where each value comes from — see below |
+| **Robots** | `#/admin/robots` | Every robot on this server with its loop, owner and whether it is online; removing a robot or loop, and adopting one by hand |
+| **People** | `#/admin/people` | Every account, and who is an administrator; grant and revoke it |
+| **Voice turns** | `#/admin/voice-turns` | Per-turn timing, step by step, never what was said ([VOICE-TURN-OBSERVABILITY.md](../../../docs/VOICE-TURN-OBSERVABILITY.md)) |
+| **Logs** | `#/admin/logs` | This service's log as it is written, filtered by level, service and text |
 
-### Configuration
+The original shortcuts in the page table are retained: `#/admin/config` forwards to
+Settings and `#/admin/admins` forwards to People.
+
+### Settings
 
 The catalogue lives in `src/admin/configCatalog.js` — one entry per setting, with its type,
-real default, help text, and which services read it. Adding a setting there is the only change
-needed; the console renders whatever the catalogue declares.
+real default, help text, which services read it, and whether the console may change it. Adding
+a setting there is the only change needed; the page renders whatever the catalogue declares.
 
-Three things this surface is careful about, because getting them wrong wastes an afternoon:
+- **The console never writes the server's environment file.** What an administrator saves goes
+  to its own file, `<data dir>/config/console-settings.json` (`src/admin/consoleSettings.js`),
+  which the launcher layers over the environment file whenever it starts a service. Removing a
+  saved value falls back to the server's. Addresses, security secrets, storage paths and the
+  release are shown read-only, because they belong to how the server was installed.
+- **A change applies when the services that read it restart, and the console restarts them.**
+  After a save it names the services still running without the change and offers **Restart
+  now**, which restarts only those (`POST /api/admin/services/restart`). The launcher records
+  which settings revision each service started with (`<data dir>/run/services.json`), so the
+  page knows exactly what is still waiting. Without the launcher (Docker, a service run by
+  hand), the page is read-only and says why.
+- **A bad value cannot lock anyone out.** Values are validated one by one and together (mail
+  settings without a mail server would stop the account service starting), and a service that
+  still fails right after starting with saved settings is started again without them.
+- **Secrets never leave the server.** The page learns only whether a secret is set (and, for a
+  long key the console manages, its last four characters); a new value can be pasted in, never
+  read back. History records that a secret was replaced, never its value.
 
-- **Nothing is applied live.** Services resolve these at startup. A save writes to `.env` and
-  then names the services still running with the old value, with the restart command for Docker
-  Compose, systemd user units, and running the service directly. It never implies the change is
-  already in force.
-- **A value pinned by a real environment variable is shown read-only**, with the reason.
-  `dotenv.js` only fills keys the environment left unset, so editing such a key would write a
-  line that never takes effect. The console knows which is which because `dotEnvLoaded()`
-  records what the loader actually filled, rather than inferring it by comparison.
-- **Secrets never ride along with the catalogue.** They arrive masked; an administrator reveals
-  one by name, one at a time, and can generate a strong replacement.
-
-Writes go through `src/admin/envFile.js`, which preserves the file byte for byte apart from the
-lines it owns: an existing key is rewritten in place, a commented-out key is uncommented in
-place, clearing a key comments it out rather than leaving `KEY=`, and a key that appears nowhere
-is appended under a marked section. Writes are atomic and keep one `.bak`. A rejected batch
-writes nothing at all — a half-applied configuration change is worse than none, because you
-cannot tell which half landed.
+Operating details — the files, the restart protocol and the safe start — are in
+[OPERATIONS.md](../../../docs/OPERATIONS.md#settings-and-restarts-from-the-admin-console).
 
 Granting admin from the command line still works and is the way back in if nobody can sign in:
 

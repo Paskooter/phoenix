@@ -14,6 +14,8 @@ const store = new Store(join(dir, 'store.json'));
 const sent = [];
 const jars = new Map();
 let server; let base;
+let now = Date.now();
+const activationToken = (mail) => new URLSearchParams(new URL(mail.options.url).hash.slice(1)).get('token');
 
 async function call(method, path, body, jar = 'default') {
   const res = await fetch(`${base}${path}`, {
@@ -29,6 +31,7 @@ async function call(method, path, body, jar = 'default') {
 before(async () => {
   server = await createAccountService({
     store,
+    emailVerificationNow: () => now,
     invitationProviders: {
       portalUrl: 'http://portal.fixture.test',
       activation: { send(to, options) { sent.push({ template: 'activation', to, options }); } },
@@ -57,23 +60,26 @@ test('portal sign-up sends a one-time activation link and cannot sign in before 
   assert.equal(jars.has('default'), false, 'inactive accounts receive no session cookie');
   const account = store.accountByEmail('mail-owner@fixture.test');
   assert.equal(account.isActive, false);
-  assert.match(account.activationCode, /^[0-9a-f]{32}$/);
+  assert.match(activationToken(sent[0]), /^[0-9a-f]{64}$/);
   assert.equal(sent.length, 1);
   assert.equal(sent[0].template, 'activation');
   assert.equal(sent[0].to, account.email);
-  assert.match(sent[0].options.url, /\/activate\?code=/);
+  assert.match(sent[0].options.url, /\/verify-email#token=/);
 
   const loginBefore = await call('POST', '/api/login', { email: account.email, password: 'ValidPass1' }, 'before');
   assert.equal(loginBefore.status, 401);
 
-  const firstCode = account.activationCode;
+  const firstCode = activationToken(sent[0]);
+  now += 60 * 1000;
   const resend = await call('POST', '/api/signup/resend', { email: account.email });
   assert.equal(resend.status, 202);
-  assert.notEqual(account.activationCode, firstCode, 'resend invalidates the earlier activation link');
+  const secondCode = activationToken(sent[1]);
+  assert.notEqual(secondCode, firstCode, 'resend invalidates the earlier activation link');
 
-  const verified = await call('POST', '/api/signup/verify', { code: account.activationCode });
+  const verified = await call('POST', '/api/signup/verify', { code: secondCode });
   assert.equal(verified.status, 200);
-  assert.equal(account.isActive, true);
+  assert.equal(store.accounts.get(account._id).isActive, true);
+  assert.equal(store.accounts.get(account._id).emailVerified, true);
   assert.equal(account.activationCode, undefined);
   const loginAfter = await call('POST', '/api/login', { email: account.email, password: 'ValidPass1' }, 'after');
   assert.equal(loginAfter.status, 200);

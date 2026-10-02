@@ -166,7 +166,7 @@
         <button class="account-chip" id="account-chip" type="button"
                 aria-haspopup="menu" aria-expanded="false">
           <span class="avatar" id="avatar">?</span>
-          <span class="who"><b id="who-name">—</b><span id="who-email"></span></span>
+          <span class="who"><b id="who-name">—</b><span id="who-email"></span><span id="who-email-status" class="email-status"></span></span>
           <svg class="caret-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true">
             <path d="m8 10 4 4 4-4" stroke="currentColor" stroke-width="1.8"
                   stroke-linecap="round" stroke-linejoin="round" /></svg>
@@ -224,6 +224,7 @@
       </button>
     </header>
 
+    <section id="email-verification-banner" class="notice notice-warn email-verification-banner" role="region" aria-label="Email verification" hidden></section>
     <main id="app" class="page" tabindex="-1"></main>
 
     <!-- The primary destinations stay within thumb reach on a phone. The

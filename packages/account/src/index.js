@@ -229,6 +229,7 @@ function createConfiguredIdentityProviders({
       templateDir: firstDefined(options.templateDir, templateDir),
     });
     if (!own(options, 'emailReset')) normalized.emailReset = mail.emailReset;
+    if (!own(options, 'emailVerification')) normalized.emailVerification = mail.emailVerification;
     if (!own(options, 'emailResetComplete')) normalized.emailResetComplete = mail.emailResetComplete;
     if (!own(options, 'passwordChanged')) normalized.passwordChanged = mail.passwordChanged;
   }
@@ -350,10 +351,14 @@ export function createAccountService({
   calendarRefreshOptions,
   repointHost,
   portalRequireEmailVerification,
+  emailVerificationNow,
   webPushService,
   webPushConfig,
   webPushSender,
   addressSearchService,
+  // Test seams for the admin surface: launcher control, health probes, robot presence.
+  adminSettings,
+  adminOps,
 } = {}) {
   // The source Settings controller is always the production algorithm. Explicit provider
   // injection is reserved for tests; normal construction uses Phoenix storage/NET seams.
@@ -447,10 +452,13 @@ export function createAccountService({
       identityProviders: effectiveIdentityProviders,
       mailProviders: effectiveInvitationProviders,
       requireEmailVerification: portalRequireEmailVerification,
+      emailVerificationNow,
       repointHost,
       webPush: effectiveWebPush,
       addressSearchService,
       photoProvider,
+      adminSettings,
+      adminOps,
     }), // REST /api/* (sessions)
     ...settingsPeerRoutes(store), // internal Account client seams used by source Settings
     ...backupPeerRoutes(store),   // internal Account client seam used by source Backup (getLoop)

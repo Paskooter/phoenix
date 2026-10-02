@@ -1,1 +1,5 @@
 store.json*
+# Written by the native launcher: running services, and restart requests from the console.
+run/
+# Settings saved from the admin console (scripts/console-settings-env.mjs reads them).
+config/
