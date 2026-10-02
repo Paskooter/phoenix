@@ -51,6 +51,7 @@
   font-weight: 520;
   color: var(--fg-dim);
   position: relative;
+  white-space: nowrap;
 }
 .site-nav a:hover { color: var(--fg); background: var(--panel-2); }
 /* The section the reader is actually in, tracked by the scroll spy. */
@@ -110,12 +111,12 @@
 .mobile-nav a:hover { color: var(--fg); }
 .mobile-nav .btn { margin-top: 1.25rem; }
 
-@media (max-width: 880px) {
+@media (max-width: 1000px) {
   .site-nav { display: none; }
   .nav-toggle { display: grid; }
   .header-actions .desktop-only { display: none; }
 }
-@media (min-width: 881px) {
+@media (min-width: 1001px) {
   .mobile-nav { display: none; }
 }
 
