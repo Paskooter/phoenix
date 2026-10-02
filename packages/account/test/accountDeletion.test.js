@@ -65,6 +65,12 @@ async function household(t) {
   store.settings.set(String(leaver._id), { _id: String(leaver._id), data: { report: 'theirs' } });
   store.settings.set(`lasso:${leaver._id}`, { _id: `lasso:${leaver._id}`, data: {} });
   store.settings.set(String(stayer._id), { _id: String(stayer._id), data: { report: 'kept' } });
+  for (const account of [leaver, stayer]) {
+    store.emailVerifications.set(account._id, {
+      _id: account._id, email: account.email, tokenHash: 'a'.repeat(64),
+      requests: [Date.now()], expiresAt: Date.now() + 60_000,
+    });
+  }
   store.flush();
 
   process.env.ETCO_classic_accountDataFile = store.file;
@@ -168,6 +174,7 @@ test('deleting an account removes it, its loops and robot, and only its own reco
   assert.match(stopped.body.error, /nothing was changed/);
   assert.ok(h.store.accounts.has(ids.L));
   assert.ok(h.store.loops.has(ids.amberId));
+  assert.ok(h.store.emailVerifications.has(ids.L));
   process.env.NET_classic = classicAddress;
 
   const deleted = await call('leaver', 'POST', '/api/me/delete', { password: 'leaver-password-1' });
@@ -189,6 +196,8 @@ test('deleting an account removes it, its loops and robot, and only its own reco
     assert.equal(store.settings.has(ids.L), false);
     assert.equal(store.settings.has(`lasso:${ids.L}`), false);
     assert.ok(store.settings.has(ids.S));
+    assert.equal(store.emailVerifications.has(ids.L), false);
+    assert.equal(store.emailVerifications.get(ids.S)?.email, 'stayer@fixture.test');
     assert.equal([...store.sessions.values()].some((session) => String(session.accountId) === ids.L), false);
   }
   // Stayer keeps their loop, their robot and the admin their account; the loop no longer lists Leaver.
@@ -247,7 +256,16 @@ test('the only administrator cannot delete their account', async (t) => {
   assert.equal(refused.body.code, 'ONLY_ADMINISTRATOR');
   assert.ok(h.store.accounts.has(String(h.admin._id)));
 
+  // A deactivated administrator cannot sign in and cannot keep the console
+  // accessible after its last active administrator leaves.
+  h.stayer.isAdmin = true;
+  h.stayer.isActive = false;
+  h.store.flush();
+  assert.equal((await call('admin', 'GET', '/api/me/deletion')).body.onlyAdministrator, true);
+  assert.equal((await call('admin', 'POST', '/api/me/delete', { password: 'admin-password-1' })).status, 409);
+
   // With a second administrator, the first can go.
+  h.stayer.isActive = true;
   h.store.accounts.get(String(h.stayer._id)).isAdmin = true;
   const deleted = await call('admin', 'POST', '/api/me/delete', { password: 'admin-password-1' });
   assert.equal(deleted.status, 200, JSON.stringify(deleted.body));

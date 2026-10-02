@@ -86,7 +86,7 @@ function removalIds(plan) {
 function onlyAdministrator(store, account) {
   if (!account.isAdmin) return false;
   return ![...store.accounts.values()].some((other) => other.isAdmin && !sameId(other._id, account._id)
-    && other.isDeleted !== true && !isRobot(other));
+    && other.isDeleted !== true && other.isActive !== false && !isRobot(other));
 }
 
 const activeLoop = (loop) => loop.isDeleted !== true;
@@ -166,6 +166,8 @@ function applyPlan(store, plan, loopUpdatedOutbox) {
   for (const personId of people) {
     store.settings.delete(personId);
     store.settings.delete(`lasso:${personId}`);
+    // Verification rows are keyed by account ID, with no accountId field.
+    store.emailVerifications.delete(personId);
   }
   for (const robotId of robotIds) store.settings.delete(robotId);
 

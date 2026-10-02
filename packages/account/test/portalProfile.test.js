@@ -9,6 +9,7 @@ import { tmpdir } from 'node:os';
 const { createAccountService, Store } = await import('../src/index.js');
 const { createOwnerAccount, verifyPassword } = await import('../src/model.js');
 const { MemberPhotoStorage } = await import('../src/memberPhotoStorage.js');
+const { updatePhoto } = await import('../src/accountIdentity.js');
 
 const dir = mkdtempSync(join(tmpdir(), 'phx-portal-profile-'));
 const store = new Store(join(dir, 'store.json'));
@@ -111,6 +112,47 @@ test('invalid profile values are rejected without mutating', async () => {
   const badNotificationMode = await call('PUT', '/api/me', { jotNotificationMode: 'unrestricted' });
   assert.equal(badNotificationMode.status, 400);
   assert.equal(JSON.stringify(store.accounts.get(owner._id)), before);
+});
+
+test('a rejected profile update preserves all earlier fields in memory and on disk', async () => {
+  const before = structuredClone(store.accounts.get(owner._id));
+  for (const invalid of [{ lastName: 42 }, { gender: 'invalid' }, { birthday: 'invalid' },
+    { phoneNumber: 42 }, { messagingAllowed: 'yes' }, { jotNotificationMode: 'invalid' }]) {
+    const result = await call('PUT', '/api/me', { firstName: 'Rejected change', ...invalid });
+    assert.equal(result.status, 400);
+    assert.deepEqual(store.accounts.get(owner._id), before);
+    assert.deepEqual(new Store(store.file).accounts.get(owner._id), before);
+  }
+});
+
+test('a failed profile write does not leave an unsaved profile in memory', async () => {
+  const before = structuredClone(store.accounts.get(owner._id));
+  const flush = store.flush;
+  store.flush = () => { throw new Error('fixture storage failure'); };
+  try {
+    const result = await call('PUT', '/api/me', { firstName: 'Unsaved change' });
+    assert.equal(result.status, 500);
+    assert.deepEqual(store.accounts.get(owner._id), before);
+    assert.deepEqual(new Store(store.file).accounts.get(owner._id), before);
+  } finally { store.flush = flush; }
+});
+
+test('a profile edit survives a photo upload that was already in progress', async () => {
+  let finishUpload;
+  const uploaded = new Promise((resolve) => { finishUpload = resolve; });
+  const pending = updatePhoto(store, { ownerId: owner._id, photoProvider: {
+    createPublic: () => uploaded,
+    async remove() {},
+  } });
+  try {
+    const result = await call('PUT', '/api/me', { firstName: 'Concurrent fixture' });
+    assert.equal(result.status, 200);
+  } finally {
+    finishUpload({ url: 'https://photos.fixture.test/overlapping-upload' });
+    await pending;
+  }
+  assert.equal(store.accounts.get(owner._id).firstName, 'Concurrent fixture');
+  assert.equal(new Store(store.file).accounts.get(owner._id).firstName, 'Concurrent fixture');
 });
 
 test('change password: wrong current 401, success keeps the new credential', async () => {

@@ -208,7 +208,7 @@ const fmtDay = (v) => (v ? new Date(Number(v) || v).toLocaleDateString(undefined
 /** `YYYY-MM-DD` for a date input, or '' for a missing or unparseable value. */
 const isoDay = (v) => {
   const date = new Date(Number(v));
-  return v && !Number.isNaN(date.getTime()) ? date.toISOString().slice(0, 10) : '';
+  return v !== null && v !== undefined && v !== '' && !Number.isNaN(date.getTime()) ? date.toISOString().slice(0, 10) : '';
 };
 
 // Some old Robot_20160225 records serialize unset optional fields as the
@@ -2064,9 +2064,14 @@ async function renderProfile() {
       e.preventDefault();
       const res = await api('POST', '/api/me/password', Object.fromEntries(new FormData(form)));
       if (!res.ok) { notify(res.data.error || 'Could not change password', 'error'); return; }
-      notify('Password changed');
-      openLine = null;
-      paintSignIn();
+      // The server invalidates every session, including this one. Clear local
+      // private content and explain the next step instead of leaving a dead form.
+      clearPrivateView();
+      await loopKeys.forgetAll();
+      keyRevocationChannel?.postMessage({ type: 'logout', accountId: me?.id });
+      badgesPainted = false;
+      authNotice = 'Password changed. Sign in with your new password.';
+      await route();
     });
     return form;
   };
@@ -2246,7 +2251,11 @@ function deleteAccountDialog() {
     const res = await apiRaw('POST', '/api/me/delete', { password: password.value });
     if (res.ok) {
       close();
-      try { await dropBrowserPush(); } catch { /* no subscription or no service worker */ }
+      clearPrivateView();
+      await loopKeys.forgetAll();
+      await loopKeys.setAccount(null);
+      keyRevocationChannel?.postMessage({ type: 'logout', accountId: me?.id });
+      void dropBrowserPush().catch(() => {});
       me = null;
       badgesPainted = false;
       authNotice = 'Your account has been deleted.';

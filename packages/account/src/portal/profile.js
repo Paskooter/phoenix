@@ -52,8 +52,11 @@ export function portalProfileRoutes(store, { identityProviders = undefined, phot
   uploadPhoto.rawBody = true;
   return {
     'PUT /api/me': ({ req, res, body }) => {
-      const account = requireUser(store, req, res);
-      if (!account) return;
+      const previous = requireUser(store, req, res);
+      if (!previous) return;
+      // Validate the entire edit before publishing it. The stored account is a
+      // shared object; mutating it while validating leaks rejected changes.
+      const account = { ...previous };
       const input = body || {};
       if (input.firstName !== undefined) {
         if (typeof input.firstName !== 'string') return badRequest(res, 'firstName must be a string');
@@ -92,7 +95,17 @@ export function portalProfileRoutes(store, { identityProviders = undefined, phot
         account.jotNotificationMode = input.jotNotificationMode;
       }
       account.updated = Date.now();
-      store.flush();
+      // Preserve the shared object's identity: a photo upload may already hold
+      // it while awaiting storage, and must see these newly committed fields.
+      const before = { ...previous };
+      Object.assign(previous, account);
+      try { store.flush(); } catch (error) {
+        for (const key of Object.keys(account)) {
+          if (Object.hasOwn(before, key)) previous[key] = before[key];
+          else delete previous[key];
+        }
+        throw error;
+      }
       return { account: portalAccount(account) };
     },
 
