@@ -10,6 +10,38 @@ body.console {
   -webkit-tap-highlight-color: transparent;
 }
 
+.email-verification-banner {
+  margin: 1.25rem clamp(1rem, 4vw, 3rem) 0;
+  padding: 1.1rem 1.25rem;
+  gap: 1rem;
+  align-items: flex-start;
+  border: 1px solid var(--warn);
+}
+.email-verification-banner > svg { flex: none; margin-top: .15rem; }
+.email-verification-copy { flex: 1; min-width: 0; }
+.email-verification-copy strong { display: block; font-size: var(--t-lg); }
+.email-verification-copy p { margin: .35rem 0 0; overflow-wrap: anywhere; }
+.email-verification-actions { display: flex; gap: .6rem; flex-wrap: wrap; align-items: center; }
+.email-verification-banner .email-verification-actions { flex: none; align-self: center; }
+.email-verification-banner .field-hint { color: inherit; opacity: .85; }
+.email-verification-card.is-unverified { border-color: var(--warn); }
+.email-verification-card .card-body > p { margin-bottom: 1rem; overflow-wrap: anywhere; }
+.who .email-status.is-unverified { color: var(--warn); }
+.who .email-status.is-verified { color: var(--ok); }
+.verification-page { display: grid; place-items: center; min-height: 100dvh; padding: 1.5rem; }
+.verification-link-card { width: min(100%, 34rem); }
+.verification-link-card .card-body { padding: clamp(1.5rem, 4vw, 2.5rem); }
+.verification-link-card h1 { margin: 1.5rem 0 1rem; }
+.verification-link-card p { margin: 1rem 0; }
+@media (max-width: 1100px) {
+  .email-verification-banner { flex-wrap: wrap; }
+  .email-verification-banner .email-verification-actions { margin-left: 2.5rem; }
+}
+@media (max-width: 600px) {
+  .email-verification-banner > svg { display: none; }
+  .email-verification-banner .email-verification-actions { margin-left: 0; width: 100%; }
+}
+
 .shell {
   display: grid;
   grid-template-columns: 248px minmax(0, 1fr);

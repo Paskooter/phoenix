@@ -13,6 +13,7 @@ import { qrSvg } from '/qr.js';
 import { createLocationPicker } from '/map.js';
 import { getBrandSync, initBrand, initTheme, pick } from '/brand.js';
 import { createLoopKeyClient } from '/loop-keys.js';
+import { createEmailVerificationUi } from '/email-verification.js';
 import {
   browserPushState,
   disableBrowserPush,
@@ -374,6 +375,10 @@ function confirmDialog({ title, body, confirmLabel = 'Confirm', danger = true })
 
 let me = null;
 let badgesPainted = false;
+const emailVerificationUi = createEmailVerificationUi({
+  api: apiRaw, h, icon, notify, getAccount: () => me,
+  refreshAccount: async () => { await refreshMe(); if (location.hash === '#/profile') await renderProfile(); },
+});
 
 /** Fill the sidebar counts once per session, whichever page was opened first. */
 async function paintBadges() {
@@ -401,6 +406,7 @@ async function refreshMe() {
 function paintAccount() {
   shell.hidden = !me;
   authRoot.hidden = !!me;
+  emailVerificationUi.paintBanner(document.getElementById('email-verification-banner'), me);
   if (!me) return;
   const avatar = document.getElementById('avatar');
   avatar.textContent = initials(me);
@@ -410,6 +416,9 @@ function paintAccount() {
   document.getElementById('who-name').textContent =
     [me.firstName, me.lastName].filter(Boolean).join(' ') || me.email;
   document.getElementById('who-email').textContent = me.email || '';
+  const emailStatus = document.getElementById('who-email-status');
+  emailStatus.textContent = me.emailVerified ? 'Email verified' : 'Email not verified';
+  emailStatus.className = me.emailVerified ? 'email-status is-verified' : 'email-status is-unverified';
 
   // The Administration section only appears for an account that has the flag.
   // This is presentation, not protection: every /api/admin route re-checks it
@@ -1946,6 +1955,7 @@ async function renderProfile() {
   const a = meRes.data.account;
 
   container.append(h('section', { class: 'card account-hero' }, h('div', { class: 'card-body' }, profilePhotoEditor(a))));
+  container.append(emailVerificationUi.accountCard(a));
 
   /* -- about you ---------------------------------------------------------- */
 
@@ -4758,6 +4768,7 @@ async function renderAdminPeople() {
 
 let authNotice = '';
 let pendingActivationEmail = '';
+let authResendUntil = 0;
 let publicMailAction = null;
 
 function clearPublicMailUrl() {
@@ -4862,7 +4873,7 @@ function renderAuth() {
     email.required = next !== 'reset';
     password.required = next !== 'recovery';
     forgot.hidden = next !== 'login';
-    resend.hidden = !(pendingActivationEmail && (next === 'login' || next === 'signup'));
+    resend.hidden = !(next === 'login' || next === 'signup');
     title.textContent = COPY[next].title;
     sub.textContent = COPY[next].sub;
     submit.textContent = COPY[next].cta;
@@ -4874,11 +4885,30 @@ function renderAuth() {
     tab.addEventListener('click', () => { authNotice = ''; setMode(tab.dataset.tab); });
   }
   forgot.addEventListener('click', () => { authNotice = ''; setMode('recovery'); });
+  let resendTimer = null;
+  const paintResend = () => {
+    if (!resend.isConnected) { clearInterval(resendTimer); return; }
+    const seconds = Math.max(0, Math.ceil((authResendUntil - Date.now()) / 1000));
+    resend.disabled = seconds > 0;
+    resend.textContent = seconds ? `Resend verification email in ${seconds}s` : 'Resend verification email';
+    if (!seconds && resendTimer) { clearInterval(resendTimer); resendTimer = null; }
+  };
+  paintResend();
+  if (authResendUntil > Date.now()) resendTimer = setInterval(paintResend, 1000);
   resend.addEventListener('click', async () => {
+    const recipient = email.value.trim() || pendingActivationEmail;
+    if (!recipient || !email.reportValidity()) {
+      setMessage('Enter your email address first.', true);
+      return;
+    }
     resend.disabled = true;
-    const res = await api('POST', '/api/signup/resend', { email: pendingActivationEmail });
-    resend.disabled = false;
-    setMessage(res.ok ? 'If that address has a pending account, a new confirmation link was sent.'
+    const res = await api('POST', '/api/signup/resend', { email: recipient });
+    if (res.ok || res.status === 429) {
+      authResendUntil = Date.now() + (Number(res.data.retryAfterSeconds) || 60) * 1000;
+      if (!resendTimer) resendTimer = setInterval(paintResend, 1000);
+    }
+    paintResend();
+    setMessage(res.ok ? 'If this address needs verification, an email will be sent when the resend limit allows it. Check your inbox and spam folder.'
       : (res.data.error || 'Could not resend the confirmation email.'), !res.ok);
   });
 
@@ -4902,7 +4932,12 @@ function renderAuth() {
     }
     if (mode === 'signup' && res.data.verificationRequired) {
       pendingActivationEmail = fd.email;
-      authNotice = 'Check your inbox and follow the confirmation link before signing in.';
+      authNotice = res.data.emailSent
+        ? 'Check your inbox and follow the verification link before signing in.'
+        : 'Your account was created, but the verification email could not be sent. Request another email in a minute.';
+      authResendUntil = Date.now() + 60000;
+      paintResend();
+      if (!resendTimer) resendTimer = setInterval(paintResend, 1000);
       setMode('login');
       return;
     }

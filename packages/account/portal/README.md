@@ -20,6 +20,7 @@ continues to work whether or not it is installed.
 | `/` | `index.html` | Public landing page |
 | `/terms`, `/privacy`, `/security` | the legal pages | Static, no session needed |
 | `/app` | `app.html` | The console. Hash routes beneath it (`#/loop`, `#/settings`, …) |
+| `/verify-email` | `verify-email.html` | Explicit confirmation of the token in an emailed URL fragment |
 | `/admin` | `app.html` | The admin surface, available to accounts with `isAdmin`. Sub-routes: `#/admin` (status), `#/admin/config`, `#/admin/robots`, `#/admin/admins` |
 | `/branding.json` | branding, merged | See **Branding** below |
 | `/api/*` | the REST face | Unchanged |
@@ -165,6 +166,18 @@ site to the Home Screen from Safari.
   - `POST /api/token` — unchanged, original two-argument contract.
   - The pairing flow — `POST /api/robots/setup`, `GET /api/robots/setup/status`, and the
     multi-frame QR renderer in `qr.js` — is carried over verbatim.
+
+### Email verification
+
+When SMTP is configured, new portal signups receive a verification email before
+sign-in. Existing active accounts show a prominent warning until their current
+address is verified. Account displays the verification status and a resend
+button, shared with the warning's countdown. Resends are limited to one per
+minute, five per hour, and twenty per day per account. The sign-in screen also
+offers resend for people who have not confirmed their signup yet.
+
+See [Email verification](../../../docs/EMAIL-VERIFICATION.md) for configuration,
+link handling, legacy accounts, limits, and local tests.
 
 ## The admin surface
 

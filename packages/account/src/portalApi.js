@@ -43,7 +43,6 @@ import {
   compareAccountPassword,
   confirmEmailReset,
   passwordReset,
-  sendActivation,
   sendPasswordReset,
 } from './accountIdentity.js';
 import { createSession, destroySession, getSession, sessionCookie, clearCookie } from './sessions.js';
@@ -52,6 +51,8 @@ import { userFromSession as sessionUser, portalAccount } from './portal/session.
 import { classicBaseUrl, classicCall } from './portal/classicClient.js';
 import { portalLoopRoutes, visibleLoops } from './portal/loops.js';
 import { portalProfileRoutes } from './portal/profile.js';
+import { requestEmailVerification, confirmEmailVerification } from './emailVerification.js';
+import { emailVerificationContext, emailVerificationRoutes, allowVerificationRequest, resendPublicVerification } from './portal/emailVerification.js';
 import { accountDeletionRoutes } from './portal/accountDeletion.js';
 import { portalRobotRoutes } from './portal/robots.js';
 import { portalMediaRoutes } from './portal/media.js';
@@ -234,6 +235,7 @@ function requireAdmin(store, req, res) {
 
 /** @param {import('./store.js').Store} store @returns route map fragment for createService */
 export function portalRoutes(store, options = {}) {
+  const verification = emailVerificationContext(options);
   const portal = {
     loopUpdatedOutbox: options.loopUpdatedOutbox,
     invitationProviders: options.invitationProviders,
@@ -243,7 +245,7 @@ export function portalRoutes(store, options = {}) {
     // their prior local-only sign-up behavior. A normal deployment with a real
     // activation provider requires proof of control of the mailbox.
     requireEmailVerification: options.requireEmailVerification === undefined
-      ? !!options.mailProviders?.activation
+      ? !!verification.mail
       : options.requireEmailVerification === true,
     classicBase: options.classicBase || classicBaseUrl(),
     classicCall: options.classicCall,
@@ -253,7 +255,7 @@ export function portalRoutes(store, options = {}) {
   };
   const repointHost = String(options.repointHost || process.env.ETCO_account_repointHost || '').trim();
   return {
-    'POST /api/signup': ({ req, res, body }) => {
+    'POST /api/signup': async ({ req, res, body }) => {
       const { email, password, firstName = '' } = body || {};
       const rate = checkPortalAuthRate(req, email);
       if (tooManyPortalAuth(res, rate)) return;
@@ -262,6 +264,10 @@ export function portalRoutes(store, options = {}) {
         || password.length > 1024 || typeof firstName !== 'string' || firstName.length > 200) {
         return sendJson(res, 400, { error: 'a valid email and a password of 8-1024 characters are required' });
       }
+      if (!allowVerificationRequest(store, req, res, verification)) return;
+      if (portal.requireEmailVerification && !verification.mail) {
+        return sendJson(res, 503, { error: 'Email verification is temporarily unavailable. Please try again later.' });
+      }
       let account;
       try {
         account = createOwnerAccount(store, {
@@ -269,34 +275,40 @@ export function portalRoutes(store, options = {}) {
           password,
           firstName: firstName.trim(),
           isActive: !portal.requireEmailVerification,
+          emailActivationPending: portal.requireEmailVerification,
         });
-        if (portal.requireEmailVerification) sendActivation(store, account, undefined, portal.mailProviders);
       } catch (err) {
         return sendJson(res, err.code === 'ACCOUNT_EXISTS' ? 409 : 500, { error: err.message });
       }
       clearPortalAuthRate(rate.key);
+      let emailSent = false;
+      if (verification.mail) {
+        try {
+          const delivery = await requestEmailVerification(store, account, { ...verification, now: verification.now() });
+          emailSent = delivery.sent;
+        } catch { /* The account exists; offer resend rather than losing the signup. */ }
+      }
       if (portal.requireEmailVerification) {
         return sendJson(res, 202, {
           verificationRequired: true,
           email: account.email,
+          emailSent,
         });
       }
       const session = createSession(store, { kind: 'user', accountId: account._id });
-      return withCookie(res, sessionCookie(session), 200, { account: portalAccount(account) });
+      return withCookie(res, sessionCookie(session), 200, { account: portalAccount(account), emailSent });
     },
 
     // Deliberately returns the same result whether an address is unknown,
     // active, deleted, or pending. It is safe to expose from the auth screen
     // without becoming an account-enumeration endpoint.
-    'POST /api/signup/resend': ({ req, res, body }) => {
+    'POST /api/signup/resend': async ({ req, res, body }) => {
       const email = normalizedPortalEmail(body?.email);
       const rate = checkPortalAuthRate(req, email);
       if (tooManyPortalAuth(res, rate)) return;
       if (!validPortalEmail(email)) return sendJson(res, 400, { error: 'a valid email is required' });
-      const account = store.accountByEmail(email);
-      if (portal.requireEmailVerification && account && account.isDeleted !== true && !account.isActive) {
-        try { sendActivation(store, account, undefined, portal.mailProviders); } catch { /* generic reply */ }
-      }
+      if (!allowVerificationRequest(store, req, res, verification)) return;
+      resendPublicVerification(store, email, verification);
       return sendJson(res, 202, { ok: true });
     },
 
@@ -304,8 +316,10 @@ export function portalRoutes(store, options = {}) {
       const code = typeof body?.code === 'string' ? body.code : '';
       const rate = checkPortalAuthRate(req, code);
       if (tooManyPortalAuth(res, rate)) return;
+      if (!allowVerificationRequest(store, req, res, verification, 'confirm')) return;
       try {
-        activateByCode(store, code);
+        if (/^[a-f0-9]{64}$/.test(code)) confirmEmailVerification(store, code, { now: verification.now() });
+        else activateByCode(store, code);
         clearPortalAuthRate(rate.key);
         return sendJson(res, 200, { ok: true });
       } catch (error) {
@@ -612,6 +626,7 @@ export function portalRoutes(store, options = {}) {
     // -- the rest of the mobile-app surface ------------------------------------
     ...portalLoopRoutes(store, portal),
     ...portalProfileRoutes(store, { identityProviders: portal.identityProviders, photoProvider: portal.photoProvider }),
+    ...emailVerificationRoutes(store, verification),
     ...accountDeletionRoutes(store, {
       loopUpdatedOutbox: portal.loopUpdatedOutbox,
       photoProvider: portal.photoProvider,

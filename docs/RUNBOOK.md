@@ -63,11 +63,13 @@ and `PHOENIX_SITE_URL` to the same public HTTPS origin, then configure
 the complete set). For a submission relay on port 587, use
 `ETCO_account_mailSmtpSecure=false` and `ETCO_account_mailSmtpRequireTLS=true`.
 
-With SMTP configured, new portal accounts receive an activation link and cannot
+With SMTP configured, new portal accounts receive a verification link and cannot
 sign in until they confirm it. The same relay delivers household invitations,
 password-reset links, email-change confirmation, and password/email-change
 security notices. The confirmation and reset links are single-use; reset links
-expire after one hour and email-change links after 24 hours.
+expire after one hour, and verification/email-change links after 24 hours.
+Existing unverified accounts see a console warning and can resend from Account.
+See [Email verification](EMAIL-VERIFICATION.md) for resend limits and recovery.
 
 Verify the relay's sender identity/domain first, then make one disposable test
 account and complete the activation link. Check spam/junk as well as the inbox.

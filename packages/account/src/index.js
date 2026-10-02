@@ -229,6 +229,7 @@ function createConfiguredIdentityProviders({
       templateDir: firstDefined(options.templateDir, templateDir),
     });
     if (!own(options, 'emailReset')) normalized.emailReset = mail.emailReset;
+    if (!own(options, 'emailVerification')) normalized.emailVerification = mail.emailVerification;
     if (!own(options, 'emailResetComplete')) normalized.emailResetComplete = mail.emailResetComplete;
     if (!own(options, 'passwordChanged')) normalized.passwordChanged = mail.passwordChanged;
   }
@@ -350,6 +351,7 @@ export function createAccountService({
   calendarRefreshOptions,
   repointHost,
   portalRequireEmailVerification,
+  emailVerificationNow,
   webPushService,
   webPushConfig,
   webPushSender,
@@ -450,6 +452,7 @@ export function createAccountService({
       identityProviders: effectiveIdentityProviders,
       mailProviders: effectiveInvitationProviders,
       requireEmailVerification: portalRequireEmailVerification,
+      emailVerificationNow,
       repointHost,
       webPush: effectiveWebPush,
       addressSearchService,
