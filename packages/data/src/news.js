@@ -2,6 +2,8 @@
 // AP's paid feed is gone; fetch free RSS (BBC/NPR) by category and re-emit XML in the AP-feed
 // shape report-skill's NewsParse expects after xml2js. Provider image metadata is retained when
 // the feed supplies a URL and both dimensions; no dimensions or image URL are inferred.
+// The provider description supplies the spoken ExtendedHeadLine: AP used a sentence-length
+// brief here, distinct from its short title and longer summary (APNewsTestData.ts).
 // relayData is the XML string. Cache TTL 65m.
 //
 // Reference (pegasus @5c0a7390539663ba749d360de348a428c088505c, mirror jiboV2/pegasus):
@@ -265,11 +267,15 @@ function rightsTag(rights) {
 }
 
 function apEntry(item, { rights = '', author = '' } = {}) {
-  const headline = escapeXml(item.title);
+  const title = escapeXml(item.title);
+  // NewsParse.ts:136 speaks ExtendedHeadLine, not <title> or <summary>. RSS titles
+  // are terse; the provider's cleaned description is the closest AP brief equivalent.
+  // Keep the summary separately for the source's content filters/missing-data checks.
+  const headline = escapeXml(item.description || item.title);
   const summary = item.description ? `\n    <summary>${escapeXml(item.description)}</summary>` : '';
   return `
   <entry>
-    <title>${headline}</title>${authorTag(author)}${rightsTag(rights)}${summary}
+    <title>${title}</title>${authorTag(author)}${rightsTag(rights)}${summary}
     <apcm:ContentMetadata>
       <apcm:ExtendedHeadLine>${headline}</apcm:ExtendedHeadLine>
     </apcm:ContentMetadata>${item.image ? imageContent(item.image) : ''}

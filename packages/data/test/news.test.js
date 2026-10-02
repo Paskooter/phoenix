@@ -80,11 +80,18 @@ test('parseRssItems preserves Atom enclosure dimensions and does not infer missi
   });
 });
 
-test('buildApFeedXml emits the AP feed shape (apcm:ExtendedHeadLine + summary)', () => {
+test('buildApFeedXml maps the provider description to the spoken AP extended headline', () => {
   const xml = buildApFeedXml(parseRssItems(RSS, 10));
   assert.match(xml, /xmlns:apcm="http:\/\/ap\.org\/schemas/);
-  assert.match(xml, /<apcm:ExtendedHeadLine>Mars rover finds water<\/apcm:ExtendedHeadLine>/);
+  assert.match(xml, /<title>Mars rover finds water<\/title>/);
+  assert.match(xml, /<apcm:ExtendedHeadLine>Big news from Mars &amp; beyond<\/apcm:ExtendedHeadLine>/);
   assert.match(xml, /<summary>Big news from Mars &amp; beyond<\/summary>/);
+});
+
+test('fetchNews maps an Atom summary to the spoken extended headline', async () => {
+  const xml = await fetchNews({ sourceID: 42209 }, { get: async () => ATOM_WITH_IMAGE });
+  assert.match(xml, /<title>Atom enclosure story<\/title>/);
+  assert.match(xml, /<apcm:ExtendedHeadLine>Atom summary<\/apcm:ExtendedHeadLine>/);
 });
 
 test('buildApFeedXml does not invent a summary when the provider omits it', () => {

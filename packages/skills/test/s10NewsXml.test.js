@@ -1,9 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseXml } from '../src/report/xml.js';
-import { newsParse } from '../src/report/news.js';
+import { newsParse, NewsMimLogic } from '../src/report/news.js';
 import { newsViews } from '../src/report/newsViews.js';
 import { fetchNews, parseRssItems } from '../../data/src/news.js';
+import { generateSlimSequence, PromptCategory, PromptSubCategory } from '../src/index.js';
 
 // The pinned AP fixture (packages/test-utils/src/lasso-test/APNewsTestData.ts at
 // 5c0a7390539663ba749d360de348a428c088505c) uses these same xml2js defaults:
@@ -201,7 +202,9 @@ test('S10 RSS adapter round-trips provider stories into the AP preview slot with
   assert.equal(header['apcm:ContentMetadata'][0]['apcm:ExtendedHeadLine'][0], 'Provider & Headlines');
 
   const firstStory = parsed.entry[1];
+  assert.equal(firstStory.title[0], 'RSS One & More');
   assert.equal(firstStory.summary[0], 'One & summary');
+  assert.equal(firstStory['apcm:ContentMetadata'][0]['apcm:ExtendedHeadLine'][0], 'One & summary');
   const firstRefs = firstStory.content[0].nitf[0].body[0]['body.content'][0].media[0]['media-reference'];
   assert.equal(firstRefs[0], '');
   assert.deepEqual(firstRefs[1].$, {
@@ -218,13 +221,55 @@ test('S10 RSS adapter round-trips provider stories into the AP preview slot with
   assert.equal(parsed.entry[3].content, undefined, 'provider media gap stays a gap');
 
   const selected = newsParse([{ category: { name: 'general' }, data: { feed: parsed } }]);
-  assert.deepEqual(selected.general.map((item) => item.headline), ['RSS Two']);
+  assert.deepEqual(selected.general.map((item) => item.headline), ['Second summary']);
   assert.deepEqual(selected.general[0].image, {
     source: 'https://cdn.test/two.jpg', width: '300', height: '512',
   });
   const views = await newsViews(selected.general);
   assert.equal(views[0].componentConfigs[0].assets[0].src, 'https://cdn.test/two.jpg');
   assert.equal(views[0].componentConfigs[0].transform.scaleX, 720 / 512);
+});
+
+test('S10 RSS descriptions reach the robot speech sequence with the source pauses and story count', async () => {
+  const stories = [
+    { title: 'Earlier bulletin', description: 'An earlier bulletin from the provider.' },
+    { title: 'Rover finds ice', description: 'Scientists say a Mars rover has found buried ice that could help future missions learn more about the planet.' },
+    { title: 'New rail service', description: 'A new rail route will connect two coastal towns, giving residents a direct service when it opens next month.' },
+    { title: 'Library hours extended', description: 'The city library will open on Sundays after a community campaign raised enough money to fund the extra hours.' },
+  ];
+  const rss = `<rss><channel><title>Provider news</title>${stories.map((story, index) => `
+    <item><title>${story.title}</title><description><![CDATA[<p>${story.description}</p>]]></description>
+      <media:thumbnail url="https://cdn.test/story-${index}.jpg" width="512" height="300" />
+    </item>`).join('')}</channel></rss>`;
+  const relay = await fetchNews({ sourceID: 42209 }, { get: async () => rss });
+  const data = {
+    local: { news: newsParse([{ category: { name: 'general' }, data: parseXml(relay) }]), views: {} },
+    runtime: {
+      perception: {}, loop: { users: [] }, location: { iso: '2026-10-02T12:00:00Z' },
+    },
+    skill: { session: { data: { _personalReport: { singleSkill: 'news' } } } },
+  };
+  await new NewsMimLogic('News Logic').exit(data);
+  const sequence = await generateSlimSequence({
+    category: PromptCategory.ENTRY, subCategory: PromptSubCategory.ANNOUNCEMENT,
+    index: 1, noMatch: 0, noInput: 0,
+  }, {
+    mimDataProvider: data.local.mimPaths,
+    promptDataProvider: () => ({ news: data.local.news }),
+    viewDataProvider: () => data.local,
+  }, data, { rng: () => 0 });
+
+  assert.deepEqual(sequence.children.map((slim) => slim.config.play.meta.mim_id), [
+    'NewsIntro', 'NewsHeadline', 'NewsHeadline', 'NewsHeadline', 'NewsOutro',
+  ]);
+  // The source parser skips the first complete entry after filtering the digest.
+  // Preserve that selection while proving that each spoken story is the description.
+  for (const [index, slim] of sequence.children.slice(1, 4).entries()) {
+    assert.equal(slim.config.play.esml,
+      `<anim cat='news' meta='news-stinger' nonBlocking='true' /><break size='0.75'/><pitch band='0.9'><pitch mult='0.95'>${stories[index + 1].description}</pitch></pitch>`);
+    assert.equal(slim.config.display.view.context.data.componentConfigs[0].assets[0].src,
+      `https://cdn.test/story-${index + 1}.jpg`);
+  }
 });
 
 test('S10 RSS adapter keeps empty and malformed provider responses on their source boundaries', async () => {

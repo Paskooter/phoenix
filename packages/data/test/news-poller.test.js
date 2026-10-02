@@ -41,7 +41,7 @@ const FEED = `<?xml version="1.0"?><rss version="2.0" xmlns:media="http://search
   </channel>
 </rss>`;
 
-const FEED_UPDATED = FEED.replace('<title>First story</title>', '<title>Updated story</title>');
+const FEED_UPDATED = FEED.replace('<description>One description</description>', '<description>Updated description</description>');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const listen = async (service) => {
@@ -136,7 +136,7 @@ test('D06/5 the init poll warms every category key with the relay cache shape an
     assert.equal(entry.lassoDataFromRedis, true, `${key} is stored as a cache result`);
     assert.equal(typeof entry.lassoInsertedIntoRedisAt, 'string');
     assert.equal(new Date(entry.lassoInsertedIntoRedisAt).toISOString(), entry.lassoInsertedIntoRedisAt);
-    assert.match(entry.relayData, /<apcm:ExtendedHeadLine>First story<\/apcm:ExtendedHeadLine>/);
+    assert.match(entry.relayData, /<apcm:ExtendedHeadLine>One description<\/apcm:ExtendedHeadLine>/);
     const ttl = cache.m.get(key).exp - Date.now();
     assert.ok(ttl > 65 * 60 * 1000 - 2000 && ttl <= 65 * 60 * 1000, `${key} TTL is 3900 s, got ${ttl}`);
   }
@@ -182,9 +182,9 @@ test('D06/7 the interval re-polls and replaces the cached payload (original poll
   await poller.start();
   try {
     const first = cache.get('ap_news:42209');
-    assert.match(first.relayData, /First story/);
+    assert.match(first.relayData, /<apcm:ExtendedHeadLine>One description<\/apcm:ExtendedHeadLine>/);
     body = FEED_UPDATED;
-    const replaced = await waitFor(() => /Updated story/.test(cache.get('ap_news:42209').relayData));
+    const replaced = await waitFor(() => /<apcm:ExtendedHeadLine>Updated description<\/apcm:ExtendedHeadLine>/.test(cache.get('ap_news:42209').relayData));
     assert.ok(replaced, 'the hourly interval re-fetched and re-cached the category');
     assert.equal(cache.m.size, 11, 'still exactly the eleven category keys');
   } finally { poller.stop(); }

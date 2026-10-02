@@ -248,6 +248,36 @@ concurrent `start()` calls -> 22 fetches), fixed it by memoising the in-flight s
 re-verified: 3 concurrent starts -> 11 fetches, later sequential start still a no-op.
 LESSON: an `if (guard)` set only AFTER an await does not guard anything.
 
+## D06b — replacement news feed spoke short titles (FIXED 2026-10-02)
+
+The original report speaks `apcm:ExtendedHeadLine`, a sentence-length story brief.
+AP also supplied a short title and a longer summary; the summary was used for
+content filtering. The RSS adapter copied the short RSS title into both `<title>`
+and `apcm:ExtendedHeadLine`, leaving the fuller description only in `<summary>`.
+Consequently, the robot read the terse title even though the provider supplied
+more context.
+
+The adapter now maps the cleaned provider description to `apcm:ExtendedHeadLine`
+and retains the original title and summary fields. A missing description still
+leaves `<summary>` absent, preserving the source parser's missing-data behavior.
+The source MIMs, 0.75-second lead-in, pitch, story counts, images, and content
+filters are unchanged.
+
+Evidence: the pinned Pegasus `5c0a739` [NewsParse.ts](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/report-skill/src/subskills/news/NewsParse.ts)
+selects `ExtendedHeadLine` at line 136. Its archived `APNewsTestData.ts` payload,
+normalized in `scripts/parity-s10-source-diff/ap-fixtures.json`, contains ten
+stories averaging 23.3 words in that field (11–37), versus 71.2 in the full
+summary (40–91). A ten-story sample from the configured BBC general feed on
+2026-10-02 averaged 11.7 words per title and 18.6 per description. These are
+sample measurements, not duration guarantees. Jibo's [AP content tuning ticket](https://pvindex.org/jira.jibo.com/browse/JIBO-2714.html)
+also records the move toward one-sentence extended headlines.
+
+Regression coverage follows RSS through the AP adapter, NewsParse, NewsMimLogic,
+and the rendered robot speech sequence, including the original pauses and image
+association. RSS/Atom field mapping, absent summaries, and refreshed cached
+speech are covered by the data tests. This is a replacement-provider mapping;
+the real AP consumer contract remains unchanged.
+
 ## D07b — no traffic model (CLOSED 2026-09-15, OpenRouteService replaced by TomTom)
 OpenRouteService has no traffic model at all, so `duration_in_traffic` always equalled `duration`,
 `extraMins` was always 0, and the report skill's commute quality could never select Poor or
