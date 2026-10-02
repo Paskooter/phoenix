@@ -75,6 +75,54 @@ test('news pins its model independently and only reuses the decision key for Ope
   assert.equal(newsBriefingConfig({ ...env, PHOENIX_NEWS_DAILY_POINTS: '1000' }).dailyPoints, 45);
 });
 
+test('opinion articles are removed before normalization or model spending, including a changed cached source', async t => {
+  assert.equal(article({ title: 'Opinion: A new direction' }), null);
+  assert.equal(article({ url: 'https://www.nasa.gov/opinion/fixture' }), null);
+  assert.equal(article({ category: 'opinion' }), null);
+  const f = fixture(t);
+  await f.worker.refresh();
+  assert.equal(f.calls.model, 1);
+  f.clock.time += 12 * 3600000;
+  f.setArticles([{ ...article(), title: 'Editorial: A new direction' }]);
+  await f.worker.refresh();
+  assert.equal(f.calls.model, 1, 'the generator never receives known opinion pieces');
+  assert.deepEqual(f.worker.items(42206), []);
+});
+
+test('already cached opinion titles and sections stop playing without waiting for refresh', async t => {
+  const f = fixture(t);
+  await f.worker.refresh();
+  const saved = JSON.parse(readFileSync(f.config.file));
+  const original = saved.categories['42206'].items[0];
+  saved.categories['42206'].items.push(
+    { ...structuredClone(original), id: 'b'.repeat(64), title: 'The FCC Targeting Disney is Another Trump Attack on Press Freedom | Opinion' },
+    { ...structuredClone(original), id: 'c'.repeat(64), url: 'https://fixture.test/opinion/untagged-title' },
+  );
+  writeFileSync(f.config.file, JSON.stringify(saved));
+  const restarted = createNewsBriefingWorker(f.options);
+  t.after(() => restarted.stop());
+  assert.deepEqual(restarted.items(42206).map(item => item.id), [original.id]);
+  assert.equal(restarted.status().categories.science.stories, 1);
+  assert.deepEqual(restarted.status().budget, saved.budget);
+  assert.equal(f.calls.model, 1, 'filtering stored snapshots does not call a model');
+});
+
+test('policy changes retain factual snapshots at the spending limit but drop reclassified sources', async t => {
+  for (const atLimit of [true, false]) {
+    const f = fixture(t, { maxLlmCalls: atLimit ? 1 : 220 });
+    await f.worker.refresh();
+    const worker = createNewsBriefingWorker({ ...f.options,
+      config: { ...f.config, llm: { ...f.config.llm, model: 'replacement-model' } },
+      ...(atLimit ? {} : { generate: async () => null }),
+    });
+    t.after(() => worker.stop());
+    await worker.refresh();
+    assert.equal(worker.items(42206).length, atLimit ? 1 : 0);
+    assert.equal(worker.items(42208).length, atLimit ? 1 : 0);
+    assert.equal(f.calls.model, 1);
+  }
+});
+
 test('drafts enforce length, evidence, attribution and safe Jibo markup without inventing padding', () => {
   const source = article();
   const draft = parseBriefingDraft(JSON.stringify(newsDraft), source, 'science');

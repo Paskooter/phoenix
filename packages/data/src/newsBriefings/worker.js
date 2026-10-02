@@ -3,7 +3,7 @@ import { dirname } from 'node:path';
 import { createHash, randomBytes } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 import { sendJson } from '@phoenix/common';
-import { NEWS_BRIEFING_VERSION, NEWS_PROMPT_VERSION, classifyNewsContent, validateNewsBriefing } from '@phoenix/contracts';
+import { NEWS_BRIEFING_VERSION, NEWS_PROMPT_VERSION, classifyNewsContent, validateNewsBriefing, isOpinionNews } from '@phoenix/contracts';
 import { CATEGORIES } from '../news.js';
 import { newsBriefingConfig } from './config.js';
 import { createWorldNewsProvider, NEWS_EDITION } from './worldNews.js';
@@ -103,9 +103,13 @@ export function createNewsBriefingWorker({
     return null;
   }
 
-  const fresh = item => now() - Date.parse(item.publishedAt) < config.maxAgeMs
+  const fresh = item => !isOpinionNews(item) && now() - Date.parse(item.publishedAt) < config.maxAgeMs
     && now() - Date.parse(item.generatedAt) < config.maxAgeMs
     && Date.parse(item.publishedAt) <= now() + 300000 && Date.parse(item.generatedAt) <= now() + 300000;
+
+  function dropArticle(id) {
+    for (const cat of Object.values(state.categories)) cat.items = cat.items.filter(item => item.id !== id);
+  }
 
   function items(sourceID) {
     load();
@@ -173,11 +177,14 @@ export function createNewsBriefingWorker({
         const flags = article.flags || classifyNewsContent(article.title + ' ' + article.fullText);
         const key = [NEWS_PROMPT_VERSION, config.llm.model, article.id, article.contentHash].join(':');
         let cached = state.articles[key];
-        const excluded = flags.banned || /\bcorrection:/i.test(article.title);
-        if (excluded || !cached) {
+        const excluded = flags.banned || isOpinionNews(article) || /\bcorrection:/i.test(article.title);
+        const knownRevision = cached || Object.keys(state.articles)
+          .some(prior => prior.endsWith(`:${article.id}:${article.contentHash}`));
+        if (excluded || !knownRevision) {
           // Once we know a source changed, stop serving its older version,
-          // even if the replacement cannot be summarized successfully.
-          for (const prior of Object.values(state.categories)) prior.items = prior.items.filter(item => item.id !== article.id);
+          // even if the replacement fails. A prompt/model change alone must
+          // not delete factual snapshots when the paid budget is exhausted.
+          dropArticle(article.id);
         }
         if (excluded) continue;
         if (!cached || cached.expiresAt <= now() || (cached.item && !fresh(cached.item))) {
@@ -215,8 +222,12 @@ export function createNewsBriefingWorker({
           }) : null;
           cached = { item, expiresAt: Math.min(now(), Date.parse(article.publishedAt)) + config.maxAgeMs };
           state.articles[key] = cached;
+          if (!item) dropArticle(article.id);
           persist();
         }
+        // A new policy can reclassify an unchanged source as unusable. Do not
+        // retain its older briefing simply because the article text is identical.
+        if (!cached.item) dropArticle(article.id);
         if (cached.item) {
           // A shared story can appear in several categories; tone must stay
           // restrained when a light story is selected for a serious category.

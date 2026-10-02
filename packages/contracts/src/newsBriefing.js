@@ -1,6 +1,6 @@
 // Versioned public briefing contract. Only this renderer creates Jibo ESML.
 export const NEWS_BRIEFING_VERSION = 1;
-export const NEWS_PROMPT_VERSION = 'jibo-news-1';
+export const NEWS_PROMPT_VERSION = 'jibo-news-2';
 export const newsWordCount = (text) => (String(text).match(/[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*/gu) || []).length;
 
 export function plainNewsText(value, max = 16000) {

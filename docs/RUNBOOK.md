@@ -703,6 +703,15 @@ This is one shared **United States national edition**, with US publisher and
 US location-entity filters in every category. The legacy international category
 also uses the domestic selection. There are no per-robot location editions.
 Categories without ready briefings are skipped; worldwide RSS is not substituted.
+Opinion/editorial/op-ed/commentary labels in titles, URL sections and provider
+metadata are excluded before generation. Cached stories are filtered on reads
+too, so an older opinion briefing cannot keep playing until the next refresh.
+The model also rejects argumentative commentary without an explicit label;
+this semantic check is an additional safeguard, not guaranteed genre detection.
+The summarizer must use impartial, factual language, attribute disputed claims,
+preserve uncertainty, remove loaded framing, and decline unsupported stories.
+It must not invent opposing claims or create artificial balance. These rules
+reduce editorial slant; one-source summaries cannot guarantee zero bias.
 Changing a key or model restarts Lasso and permits an immediate
 retry without resetting that day's spending ledger. The feature flag also
 restarts the personal report skill. Missing or rejected keys never stop Lasso's

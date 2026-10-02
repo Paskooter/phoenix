@@ -19,6 +19,18 @@ export const BRIEFING_SCHEMA = {
 };
 
 const SYSTEM = `Write a short news briefing for Jibo, a friendly home robot.
+Use reported news only. Reject opinion pieces, editorials, op-eds, personal columns,
+and advocacy or commentary, including articles whose argument is not labeled in the title.
+For those sources return usable=false, tone=neutral, sentences=[]. Do not turn an opinion
+article into apparent straight reporting by extracting only its factual-sounding claims.
+Report impartially, regardless of the people, parties, countries, or organizations involved.
+Lead with documented events and actions. Remove loaded adjectives, partisan slogans,
+praise, blame, sensationalism, persuasion, and the source's political framing.
+Attribute disputed assertions to their speakers. Clearly distinguish verified events,
+allegations, proposals, predictions, and interpretations; never promote a claim into a fact.
+Do not invent an opposing view, give unsupported claims equal weight for artificial balance,
+or infer motives, blame, causes, or consequences the evidence does not establish.
+If stripping the argument leaves too little supported reporting, return usable=false.
 Write exactly THREE sentences, about seventeen to twenty words each, fifty to sixty words TOTAL.
 This should take twenty to thirty seconds to speak. Brevity is essential.
 Tell what happened, add ONE concrete detail, then useful context or what happens next.
