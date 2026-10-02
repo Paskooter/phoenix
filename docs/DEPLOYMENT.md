@@ -1642,6 +1642,54 @@ sudo tail -f /var/log/nginx/access.log /var/log/nginx/error.log
 Prefer a logrotate or Docker json-file size/retention policy. Do not log `.env`,
 Authorization headers, QR payloads, account stores, or robot credentials.
 
+For native deployments, the launcher appends to
+`PHOENIX_LOG_DIR/phx-compose-*.log`, including after a complete stack restart.
+Install [`deploy/logrotate/phoenix`](../deploy/logrotate/phoenix) as
+`/etc/logrotate.d/phoenix`, changing its `phoenix` user/group and storage paths
+to match the service unit. It rotates service logs and robot-uploaded
+`classic/logs/events.jsonl` daily, compresses old files, and keeps seven rotations
+with a seven-day maximum archive age. Check it with `logrotate --debug` and
+ensure the host's daily `logrotate.timer` is enabled. The service log stream
+uses `copytruncate` because running children keep their output file open;
+rotation does not restart the robots' cloud services.
+
+With `PHOENIX_LOG_DIR` configured, the administrator Logs page reads all native
+services and their retained rotations. Filters search the last seven days and
+show the latest matching lines. Reads and the browser view remain bounded;
+the page reports unreadable or clipped files so operators can inspect the full
+files over SSH. A deployment changes the polling cursor and the view reconnects
+to its retained history. Unmatched requests and other 4xx responses are warnings;
+5xx responses are errors, including handlers that return an error response
+without throwing. Classic 5xx entries include a bounded operation name, never
+request bodies or credentials.
+
+Gateway voice-turn timings are separate: when `PHOENIX_DATA_DIR` is configured,
+the gateway saves its allow-listed timing projection to
+`observability/voice-turns.json` with mode 0600 and restores it after a restart.
+`PHOENIX_VOICE_TURN_FILE` can select another private path. Retention defaults to
+24 hours (`PHOENIX_VOICE_TURN_RETAIN_MS`, capped at one day); expired turns are
+removed during reads and by an idle cleanup every minute. The additional
+10,000-turn safety cap can be lowered with `PHOENIX_VOICE_TURN_BUFFER_MAX`.
+Snapshots are atomic and coalesce updates for up to 250 ms; an abrupt stop in
+that interval can lose the latest partial update. Timing events are not also
+copied into the longer-lived service logs in this mode. No recordings,
+transcripts, account IDs, or robot IDs enter this timing store.
+
+The native launcher defaults `ETCO_log_storeAsrAudio=false`, which declines
+legacy ASR diagnostic upload requests and rejects previously issued ASR upload
+URLs. Keep `PHOENIX_ASR_CAPTURE_DIR` unset to avoid the separate, opt-in gateway
+audio capture. This policy does not remove voice enrollment data or other robot
+media. For the public edge, install
+[`deploy/nginx/phoenix-observability.conf`](../deploy/nginx/phoenix-observability.conf)
+in nginx's `http` context and enable its dedicated access/error paths in each
+Phoenix virtual host as described in that file. Create `/var/log/nginx/phoenix`
+and install [`deploy/logrotate/phoenix-nginx`](../deploy/logrotate/phoenix-nginx)
+for seven-day rotation without changing other sites' logs. Validate with
+`nginx -t` before reloading. The access format records upstream status and
+Classic operation names without request bodies, authorization headers, cookies,
+client addresses, or query strings. Nginx's native error log can include request
+URLs, so keep the directory restricted to operators.
+
 For a deployment health sweep, use the host-local backends before testing nginx:
 
 **Operator step — not run here:**

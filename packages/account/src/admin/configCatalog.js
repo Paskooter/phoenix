@@ -699,14 +699,15 @@ export const SETTINGS = [
     type: 'enum',
     editable: true,
     restart: ['hub'],
-    default: '3600000',
+    default: '86400000',
     options: [
       { value: '900000', label: '15 minutes' },
       { value: '3600000', label: '1 hour' },
       { value: '21600000', label: '6 hours' },
       { value: '86400000', label: '24 hours' },
     ],
-    help: 'How far back the Voice turns page reaches. Timings never include what was said or who said it.',
+    help: 'How far back the Voice turns page reaches. Native deployments keep timings across restarts. '
+      + 'They never include recordings, what was said, or who said it.',
   },
   {
     key: 'PHOENIX_DELETION_BACKUP_DAYS',

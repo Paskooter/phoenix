@@ -28,7 +28,8 @@
 // as Backup's self-hosted blobs), and the events/binary/ASR payloads are stored under a
 // process-lifetime local dir (default `$TMPDIR/phx-logs`). The dead S3 bucket name is
 // replaced by the constant `VIRTUAL_BUCKET` in the `path`/`bucketName` fields. The source
-// had no server-side retention (S3 lifecycle owned it); Phoenix likewise never deletes.
+// had no server-side retention (S3 lifecycle owned it); native installations
+// rotate the event stream with the operator's logrotate policy.
 // (DIVERGENCES: self-hosted upload sink, no SNS fan-out on SetLevel, dead Kinesis.)
 
 import { createReadStream, appendFileSync, mkdirSync, closeSync, openSync, readSync, statSync } from 'node:fs';
@@ -358,7 +359,7 @@ export function makeLogHandler(store, baseFn, { callerBoundary } = {}) {
         if (b.metadata !== undefined && !plainObject(b.metadata)) {
           return void sendLogError(res, boomBadData('child "metadata" fails because ["metadata" must be an object]'));
         }
-        if (!selectForAsr(b.trackingId)) return void sendAmzError(res, REQUEST_THROTTLED);
+        if (process.env.ETCO_log_storeAsrAudio === 'false' || !selectForAsr(b.trackingId)) return void sendAmzError(res, REQUEST_THROTTLED);
         const { id: accountId } = credentialsFrom(req, !!callerBoundary);
         const date = new Date();
         const day = `year=${date.getFullYear()}/month=${date.getMonth()}/day=${date.getDate()}`;
@@ -428,6 +429,10 @@ export function logHttpRoutes(store, { callerBoundary = false } = {}) {
     if (!callerOwnsKey(req, key)) {
       req.resume?.();
       return void sendAmzError(res, { code: 'ACCESS_DENIED', statusCode: 403, message: 'Log object belongs to another account' });
+    }
+    if (process.env.ETCO_log_storeAsrAudio === 'false' && key.startsWith(`${ASR_BUCKET_PATH}/`)) {
+      req.resume?.();
+      return void sendAmzError(res, REQUEST_THROTTLED);
     }
     const contentLength = declaredContentLength(req);
     if (contentLength !== null && contentLength > store.maxBytes) {

@@ -1,0 +1,15 @@
+# Dedicated Phoenix edge logs. Does not change other nginx sites' retention.
+/var/log/nginx/phoenix/*.log {
+    daily
+    rotate 7
+    maxage 7
+    missingok
+    ifempty
+    compress
+    delaycompress
+    create 0640 www-data adm
+    sharedscripts
+    postrotate
+        invoke-rc.d nginx rotate >/dev/null 2>&1
+    endscript
+}

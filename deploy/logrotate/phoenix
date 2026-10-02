@@ -1,0 +1,26 @@
+# Native service user: change phoenix to the account in your systemd unit.
+/var/log/phoenix/phx-compose-*.log {
+    daily
+    rotate 7
+    maxage 7
+    missingok
+    ifempty
+    compress
+    delaycompress
+    copytruncate
+    su phoenix phoenix
+}
+
+# Robot-uploaded diagnostic events also need bounded retention. Each append
+# opens the file, so this stream can rotate without copytruncate or a restart.
+/var/lib/phoenix/classic/logs/events.jsonl {
+    daily
+    rotate 7
+    maxage 7
+    missingok
+    ifempty
+    compress
+    delaycompress
+    create 0600 phoenix phoenix
+    su phoenix phoenix
+}

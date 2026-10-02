@@ -12,8 +12,9 @@
 // service boundary for one admin screen. A poll is a few hundred bytes a second
 // and cannot regress the request path.
 //
-// WHAT THIS CAN AND CANNOT SEE. The buffer is in-process (packages/common/src/log.js),
-// so its coverage follows the deployment shape:
+// With PHOENIX_LOG_DIR configured, the native log reader includes every service
+// and its retained rotations, surviving Account and whole-stack restarts.
+// Without that directory the in-process buffer remains available:
 //
 //   * colocated stack (scripts/parity-robot/authenticated-stack.mjs) — every
 //     service runs in ONE process, so this carries the hub, ASR, NLU, skills,
@@ -30,12 +31,14 @@
 // Administrator-only, like every other /api/admin route.
 
 import { recentLogs } from '@phoenix/common';
+import { createFileLogReader } from './fileLogs.js';
 
 const LEVEL_NAMES = ['error', 'warn', 'info', 'debug'];
 
-export function adminLogRoutes(store, { requireAdmin, sendJson }) {
+export function adminLogRoutes(store, { requireAdmin, sendJson, env = process.env }) {
+  const readFiles = env.PHOENIX_LOG_DIR ? createFileLogReader(env.PHOENIX_LOG_DIR) : null;
   return {
-    'GET /api/admin/logs': ({ req, res, url }) => {
+    'GET /api/admin/logs': async ({ req, res, url }) => {
       if (!requireAdmin(store, req, res)) return;
 
       const sinceRaw = url.searchParams.get('since');
@@ -52,12 +55,17 @@ export function adminLogRoutes(store, { requireAdmin, sendJson }) {
       const ns = url.searchParams.get('ns') || null;
       const limit = Number(url.searchParams.get('limit')) || 200;
 
-      const page = recentLogs({ since, level: levelParam || null, ns, limit });
+      let page;
+      try {
+        page = readFiles ? await readFiles({ since: sinceRaw || 0, level: levelParam || null, ns, limit })
+          : { ...recentLogs({ since, level: levelParam || null, ns, limit }), scope: 'process' };
+      } catch {
+        return sendJson(res, 503, { error: 'Retained service logs are unavailable' });
+      }
       return {
         ...page,
         // What the caller actually has to know to interpret the result.
         levels: LEVEL_NAMES,
-        scope: 'process',
         levelIsFilterOnly: true,
       };
     },

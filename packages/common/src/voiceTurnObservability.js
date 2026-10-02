@@ -6,10 +6,14 @@
 // skill payloads, account/robot IDs, URLs, or error messages.
 
 import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
+import { mkdirSync, readFileSync, statSync, writeFileSync, renameSync, unlinkSync } from 'node:fs';
+import { writeFile, rename, unlink } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+import { logger } from './log.js';
 
 const TURN_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const MAX_TURNS = Math.max(20, Math.min(1000, Number(process.env.PHOENIX_VOICE_TURN_BUFFER_MAX) || 200));
-const RETAIN_MS = Math.max(60_000, Math.min(24 * 60 * 60 * 1000, Number(process.env.PHOENIX_VOICE_TURN_RETAIN_MS) || 60 * 60 * 1000));
+const MAX_TURNS = Math.max(20, Math.min(10000, Number(process.env.PHOENIX_VOICE_TURN_BUFFER_MAX) || 10000));
+const RETAIN_MS = Math.max(60_000, Math.min(24 * 60 * 60 * 1000, Number(process.env.PHOENIX_VOICE_TURN_RETAIN_MS) || 24 * 60 * 60 * 1000));
 const MAX_QUERY_LIMIT = 100;
 const STAGES = new Set(['context_wait', 'asr', 'nlu', 'route', 'skill', 'skill_redirect', 'history_launch', 'history_speech', 'response_ready', 'http_request']);
 const OUTCOMES = new Set(['ok', 'matched', 'unmatched', 'remote_error', 'timeout', 'error', 'cancelled', 'abandoned', 'listen', 'skill', 'redirect']);
@@ -18,14 +22,99 @@ const OUTCOMES = new Set(['ok', 'matched', 'unmatched', 'remote_error', 'timeout
 // purpose-built, allow-listed projection for the admin UI; no log messages or
 // arbitrary logger fields ever enter it.
 const turns = new Map();
+let storage = null;
+let dirty = false;
+let pendingWrite = null;
+let writeTimer = null;
+const storageLog = logger('voice-telemetry');
+
+function configuredFile() {
+  return process.env.PHOENIX_VOICE_TURN_FILE
+    || (process.env.PHOENIX_DATA_DIR ? join(process.env.PHOENIX_DATA_DIR, 'observability/voice-turns.json') : null);
+}
+function storageError(error) {
+  storageLog.error('voice timing storage failed', { code: error?.code || 'INVALID_TELEMETRY_FILE' });
+}
+function snapshot() { return JSON.stringify({ version: 1, turns: [...turns.values()].map(publicTurn) }) + '\n'; }
+function changed() {
+  if (!storage) return;
+  dirty = true;
+  if (!writeTimer) writeTimer = setTimeout(() => { writeTimer = null; void flushVoiceTurns(); }, 250).unref();
+}
+
+/** Flush only the fixed timing projection, never logger fields or audio. */
+export async function flushVoiceTurns() {
+  if (!storage) return;
+  if (pendingWrite) { await pendingWrite; return flushVoiceTurns(); }
+  if (!dirty) return;
+  dirty = false;
+  const temporary = `${storage}.${process.pid}.tmp`;
+  const contents = snapshot();
+  pendingWrite = (async () => {
+    try {
+      await writeFile(temporary, contents, { mode: 0o600 });
+      await rename(temporary, storage);
+    } catch (error) {
+      dirty = true;
+      storageError(error);
+      await unlink(temporary).catch(() => {});
+    }
+  })();
+  await pendingWrite;
+  pendingWrite = null;
+}
+
+function restoreTurn(value, now) {
+  if (!validTurnId(value?.turnId) || !Number.isFinite(value.startedAt)
+    || value.startedAt < now - RETAIN_MS || value.startedAt > now + 60_000) return null;
+  const stages = (Array.isArray(value.stages) ? value.stages : []).slice(0, 128)
+    .filter(stage => STAGES.has(stage?.stage) && OUTCOMES.has(stage?.outcome))
+    .map(stage => ({ stage: stage.stage, startedAt: number(stage.startedAt), endedAt: number(stage.endedAt), durationMs: number(stage.durationMs), outcome: stage.outcome }));
+  const asr = value.asr && typeof value.asr === 'object' ? {
+    audioMs: number(value.asr.audioMs), silenceWaitMs: number(value.asr.silenceWaitMs), recognizeMs: number(value.asr.recognizeMs),
+  } : null;
+  return { turnId: value.turnId, startedAt: Math.round(value.startedAt),
+    completedAt: number(value.completedAt), totalMs: number(value.totalMs),
+    outcome: OUTCOMES.has(value.outcome) ? value.outcome : null, stages, asr };
+}
+
+/** Called only by the gateway. Other services must never write its snapshot. */
+export function initializeVoiceTurnStorage() {
+  const file = configuredFile();
+  if (!file || storage) return;
+  try {
+    mkdirSync(dirname(file), { recursive: true, mode: 0o700 });
+    try {
+      if (statSync(file).size > 64 * 1024 * 1024) throw new Error('oversize telemetry');
+      const saved = JSON.parse(readFileSync(file, 'utf8'));
+      if (saved.version !== 1 || !Array.isArray(saved.turns)) throw new Error('invalid telemetry');
+      for (const value of saved.turns.slice(-MAX_TURNS)) {
+        const turn = restoreTurn(value, Date.now());
+        if (turn && !turns.has(turn.turnId)) turns.set(turn.turnId, turn);
+      }
+    } catch (error) { if (error.code !== 'ENOENT') storageError(error); }
+    storage = file;
+    cleanup();
+    changed(); // also removes expired or unexpected fields from the on-disk file
+    setInterval(() => { cleanup(); if (dirty) void flushVoiceTurns(); }, 60_000).unref();
+    process.once('exit', () => {
+      if (!dirty && !pendingWrite) return;
+      const temporary = `${storage}.${process.pid}.exit.tmp`;
+      try { writeFileSync(temporary, snapshot(), { mode: 0o600 }); renameSync(temporary, storage); }
+      catch (error) { storageError(error); try { unlinkSync(temporary); } catch {} }
+    });
+  } catch (error) { storageError(error); }
+}
 
 function validTurnId(value) { return typeof value === 'string' && TURN_ID.test(value); }
 function number(value) { return Number.isFinite(value) ? Math.max(0, Math.round(value)) : null; }
 function cleanup(now = Date.now()) {
+  const size = turns.size;
   for (const [id, turn] of turns) {
     if (now - turn.startedAt > RETAIN_MS) turns.delete(id);
   }
   while (turns.size > MAX_TURNS) turns.delete(turns.keys().next().value);
+  if (turns.size !== size) changed();
 }
 function getTurn(turnId, now = Date.now()) {
   if (!validTurnId(turnId)) return null;
@@ -71,7 +160,7 @@ export function createVoiceTurnId() {
 /** Store the start of a gateway turn in the dedicated bounded telemetry ring. */
 export function recordVoiceTurnStart(trace, startedAt = Date.now()) {
   const turn = getTurn(trace?.turnId, startedAt);
-  if (turn) turn.startedAt = Math.min(turn.startedAt, startedAt);
+  if (turn) { turn.startedAt = Math.min(turn.startedAt, startedAt); changed(); }
 }
 
 function duration(startedAt, endedAt = Date.now()) {
@@ -95,9 +184,14 @@ export function logVoiceTurnSpan(log, trace, stage, startedAt, outcome = 'ok') {
     // the admin waterfall place concurrent work honestly, without retaining
     // speech, request, identity, or diagnostic content.
     const safeStartedAt = number(startedAt);
-    if (turn && safeStartedAt !== null) turn.stages.push({ stage, startedAt: safeStartedAt, endedAt: number(endedAt), durationMs, outcome });
+    if (turn && safeStartedAt !== null && turn.stages.length < 128) {
+      turn.stages.push({ stage, startedAt: safeStartedAt, endedAt: number(endedAt), durationMs, outcome });
+      changed();
+    }
   }
-  log?.info?.('voice_turn_span', {
+  // Native installations keep these in the one-day timing store, rather than
+  // copying them into the longer-lived service log stream as well.
+  if (!configuredFile()) log?.info?.('voice_turn_span', {
     event: 'voice_turn_span',
     turnId: trace.turnId,
     stage,
@@ -115,9 +209,10 @@ export function logVoiceTurnComplete(log, trace, startedAt, outcome) {
       turn.totalMs = duration(startedAt);
       turn.completedAt = Date.now();
       turn.outcome = outcome;
+      changed();
     }
   }
-  log?.info?.('voice_turn_complete', {
+  if (!configuredFile()) log?.info?.('voice_turn_complete', {
     event: 'voice_turn_complete',
     turnId: trace.turnId,
     totalMs: duration(startedAt),
@@ -134,6 +229,7 @@ export function recordVoiceTurnAsrBreakdown(trace, fields) {
   const recognizeMs = number(fields.recognizeMs);
   if (audioMs === null && silenceWaitMs === null && recognizeMs === null) return;
   turn.asr = { audioMs, silenceWaitMs, recognizeMs };
+  changed();
 }
 
 /**

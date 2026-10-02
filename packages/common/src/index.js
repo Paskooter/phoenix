@@ -22,6 +22,8 @@ export {
   recordVoiceTurnStart,
   recordVoiceTurnAsrBreakdown,
   recentVoiceTurns,
+  initializeVoiceTurnStorage,
+  flushVoiceTurns,
   parseVoiceTurnQuery,
   voiceTurnTelemetryProof,
   verifyVoiceTurnTelemetryProof,

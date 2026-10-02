@@ -5401,17 +5401,15 @@ async function renderAdminVoiceTurns() {
  * server-sent-event endpoint would mean changing that boundary for one screen;
  * a one-second cursor poll is a few hundred bytes and reads as live.
  *
- * What it can show is bounded by the deployment: in the colocated stack every
- * service shares one process, so this is a whole-server view, while under the
- * native launcher or docker compose each service has its own process and only
- * the account service's lines appear here.
+ * Native deployments read retained logs from all services. Installations
+ * without a shared log directory use the account process's live buffer.
  *
  * The level selector filters what was recorded. It cannot reveal lines the
  * service suppressed at its own LOG_LEVEL — set Log detail to Everything in
  * Settings to see debug lines.
  */
 async function renderAdminLogs() {
-  const container = adminPage('#/admin/logs', 'Logs', 'What the console’s service is writing, as it happens.');
+  const container = adminPage('#/admin/logs', 'Logs', 'Recent service activity and errors, updated as they happen.');
   show(container);
   if (!(await adminGate(container))) return;
 
@@ -5419,6 +5417,7 @@ async function renderAdminLogs() {
 
   const list = h('div', { class: 'log-list', role: 'log', 'aria-live': 'polite' });
   const status = h('span', { class: 'adm-toolbar-status', text: 'Connecting…' });
+  const coverage = h('p', { class: 'adm-footnote' });
   const levels = [['', 'All'], ['error', 'Errors'], ['warn', 'Warnings'], ['info', 'Info'], ['debug', 'Debug']];
   const levelSeg = h('div', { class: 'seg', role: 'radiogroup', 'aria-label': 'Lowest level shown' },
     ...levels.map(([value, label]) => h('button', {
@@ -5442,7 +5441,7 @@ async function renderAdminLogs() {
 
   function appendLine(line) {
     const time = new Date(line.t);
-    const stamp = Number.isNaN(time.getTime()) ? '' : time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const stamp = Number.isNaN(time.getTime()) ? '' : time.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
     const { extras, all } = lineText(line);
     const el = h('div', { class: `log-line log-${line.level}`, 'data-text': all },
       h('span', { class: 'log-time', text: stamp }),
@@ -5477,6 +5476,12 @@ async function renderAdminLogs() {
     // A filter changed while this was in flight; its lines belong to the old view.
     if (generation !== state.generation) { tick(); return; }
     if (!res.ok) { status.textContent = res.data?.error || 'Could not read the log'; return; }
+    if (res.data.reset) { list.replaceChildren(); state.shown = 0; state.dropped = 0; }
+    coverage.textContent = (res.data.scope === 'server-files'
+      ? 'All native services · last 7 days · history survives restarts. '
+      : 'This service’s live log buffer. ')
+      + 'The latest matching lines are shown. Debug lines require Log detail set to Everything.'
+      + (res.data.truncated || res.data.unreadableFiles ? ' Some retained files exceed the read limit or could not be read; inspect the server logs for the complete history.' : '');
     const stick = atBottom();
     state.cursor = res.data.cursor;
     const events = res.data.events || [];
@@ -5519,9 +5524,7 @@ async function renderAdminLogs() {
     h('div', { class: 'adm-toolbar' }, levelSeg, nsInput, findInput),
     list);
   logCard.classList.add('adm-log-card');
-  container.append(logCard, h('p', { class: 'adm-footnote' },
-    icon('alert', 12), 'Only lines this service wrote appear here; each service keeps its own log file on the server. '
-      + 'Debug lines appear only when Log detail is set to Everything (Settings → Logs and data).'));
+  container.append(logCard, coverage);
 
   await tick();
   stopPoll();

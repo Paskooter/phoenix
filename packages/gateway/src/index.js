@@ -17,6 +17,7 @@ import {
   parseServiceArgs,
   parseVoiceTurnQuery,
   recentVoiceTurns,
+  initializeVoiceTurnStorage,
   sendJson,
   serviceCliPort,
   serviceHelp,
@@ -116,6 +117,7 @@ export async function verifyAgainstAccount(auth, accountUrl, log, { timeoutMs } 
 /** Create (but do not start) the gateway. Returns { service, wss, components }. */
 export async function createGateway(config = loadConfig()) {
   config = await config;
+  initializeVoiceTurnStorage();
   const log = logger('gateway');
   const components = buildComponents(config);
   const settingsSkills = config.skills.filter(skill => !!skill.settings);

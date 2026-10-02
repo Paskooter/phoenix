@@ -177,6 +177,10 @@ fi
 export PHOENIX_BIND_HOST="$BIND_HOST"
 LOG_DIR="${PHOENIX_LOG_DIR:-/tmp}"
 mkdir -p "$LOG_DIR"
+export PHOENIX_LOG_DIR="$LOG_DIR"
+# Voice diagnostics are timing metadata; native installations do not archive
+# microphone audio through the legacy Log.PutAsrBinary upload surface.
+export ETCO_log_storeAsrAudio="${ETCO_log_storeAsrAudio:-false}"
 
 # A release checkout must be disposable: changing it atomically must not move
 # account records, photos, robot media, OTA packages, or calendar state with it.
@@ -473,7 +477,7 @@ write_state() {
 }
 
 for name in "${SERVICE_ORDER[@]}"; do
-  ( "svc_${name//-/_}" ) > "$LOG_DIR/phx-compose-${SVC_LOG[$name]}.log" 2>&1 &
+  ( "svc_${name//-/_}" ) >> "$LOG_DIR/phx-compose-${SVC_LOG[$name]}.log" 2>&1 &
   JOB_PIDS[$name]=$!
   SVC_STARTED[$name]="$(now_ms)"
   SVC_REV[$name]="$CONSOLE_REVISION"

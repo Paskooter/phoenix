@@ -62,6 +62,10 @@ test('the launcher applies console settings, restarts one service on request, su
     const logs = join(dir, 'logs');
     mkdirSync(join(data, 'ota'), { recursive: true });
     mkdirSync(join(data, 'account'), { recursive: true });
+    mkdirSync(logs, { recursive: true });
+    writeFileSync(join(logs, 'phx-compose-hub.log'), JSON.stringify({
+      t: new Date().toISOString(), level: 'warn', ns: 'fixture.previous-run', msg: 'retained before startup',
+    }) + '\n');
     copyFileSync(join(repo, 'packages/ota/manifest.json'), join(data, 'ota/manifest.json'));
 
     // An administrator to sign in as. Invented for this test.
@@ -117,6 +121,9 @@ test('the launcher applies console settings, restarts one service on request, su
         return running === 13 && (await fetch(`${base}/healthcheck`)).ok;
       });
       assert.equal((await api('POST', '/api/login', { email: 'operator@example.test', password: 'launcher-test-1' })).status, 200);
+      const retained = await api('GET', '/api/admin/logs?ns=fixture.previous-run');
+      assert.equal(retained.body.scope, 'server-files');
+      assert.ok(retained.body.events.some(e => e.msg === 'retained before startup'), 'startup preserves earlier logs and Account reads Hub history');
 
       const settings = await api('GET', '/api/admin/settings');
       assert.equal(settings.body.control.available, true, JSON.stringify(settings.body.control));

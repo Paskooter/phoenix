@@ -57,10 +57,20 @@ export function createService({
 
   // The trace logger is available to body-parser errors and the final 404 in the
   // same request scope as it is to a handler.
-  app.use((req, _res, next) => {
+  app.use((req, res, next) => {
     const trace = readTrace(req);
     req._phoenixTrace = trace;
     req._phoenixLog = logger(name, trace);
+    res.once('finish', () => {
+      if (res.statusCode < 500 || req._phoenixErrorLogged) return;
+      const target = req.headers['x-amz-target'];
+      req._phoenixLog.error('request failed', {
+        status: res.statusCode, method: req.method,
+        route: typeof req.route?.path === 'string' ? req.route.path : '(unmatched)',
+        ...(typeof target === 'string' && /^[A-Za-z][A-Za-z0-9_]{0,63}\.[A-Za-z][A-Za-z0-9_]{0,63}$/.test(target)
+          ? { operation: target } : {}),
+      });
+    });
     next();
   });
 
@@ -145,8 +155,6 @@ export function createService({
   // Keep the source's explicit 404/error envelope instead of Express's HTML
   // finalhandler. body-parser errors arrive here before this 404 middleware.
   app.use((req, _res, next) => {
-    const reqLog = req._phoenixLog || logger(name, readTrace(req));
-    reqLog.warn('no route', { method: req.method, path: req.path });
     const error = new Error(`URL not found: ${req.path}`);
     error.statusCode = 404;
     next(error);
@@ -154,7 +162,12 @@ export function createService({
 
   app.use((error, req, res, next) => {
     const reqLog = req._phoenixLog || logger(name, readTrace(req));
-    reqLog.error('handler threw', { error: error?.safeLogMessage || error?.message });
+    const status = Number.isInteger(error?.statusCode)
+      ? error.statusCode
+      : Number.isInteger(error?.status) ? error.status : 500;
+    reqLog[status >= 500 ? 'error' : 'warn'](status >= 500 ? 'handler threw' : 'request rejected',
+      { status, error: error?.safeLogMessage || error?.message });
+    req._phoenixErrorLogged = status >= 500;
     if (res.headersSent) return next(error);
     // A source adapter may need to preserve a framework-native parser error
     // envelope for one endpoint. Keep this opt-in and route-scoped so the
@@ -165,9 +178,6 @@ export function createService({
       const handled = parserRoute.parserError({ req, res, error });
       if (res.headersSent || handled !== undefined) return handled;
     }
-    const status = Number.isInteger(error?.statusCode)
-      ? error.statusCode
-      : Number.isInteger(error?.status) ? error.status : 500;
     return sendJson(res, status, serviceError(errorMessage(error, req)));
   });
 
