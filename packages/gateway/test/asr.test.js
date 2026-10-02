@@ -144,6 +144,99 @@ test('VAD: stop() before SOS resolves start() with undefined', async () => {
   assert.equal(await withTimeout(startPr), undefined);
 });
 
+test('VAD: a 600ms mid-sentence pause preserves the rest of the utterance', async () => {
+  const srv = await mockParakeet('both halves of the request');
+  const session = new ParakeetASRSession(`http://localhost:${srv.address().port}`, { lang: 'en-US' }, console);
+  const startPr = session.start();
+  const speech = Buffer.concat([pcmChunk(8000, 600), pcmChunk(0, 600), pcmChunk(6000, 1000)]);
+  try {
+    // One network read can contain the pause AND the resumed speech. The
+    // endpointer must not discard the latter halfway through that read.
+    session.provideAudio(speech);
+    assert.equal(session.state, 'SPEAKING', 'a natural pause has not finalized the prefix');
+    session.provideAudio(pcmChunk(0, ASR_SILENCE_TO_EOS_MS));
+    await withTimeout(startPr);
+    assert.deepEqual(wavPayload(srv._lastBody), Buffer.concat([speech, pcmChunk(0, ASR_SILENCE_TO_EOS_MS)]));
+  } finally {
+    await cleanupSession(session, startPr, srv);
+  }
+});
+
+test('VAD: quieter ongoing speech is not absorbed into the room noise floor', async () => {
+  const srv = await mockParakeet('loud beginning and quiet continuation');
+  const session = new ParakeetASRSession(`http://localhost:${srv.address().port}`, { lang: 'en-US' }, console);
+  const startPr = session.start();
+  const speech = Buffer.concat([pcmChunk(300, 200), pcmChunk(1200, 600), pcmChunk(500, 1800)]);
+  try {
+    session.provideAudio(speech);
+    assert.equal(session.state, 'SPEAKING', 'soft speech above the room floor keeps listening');
+    assert.ok(session.noiseFloor <= 300, 'speech must not raise the estimated room floor');
+    session.provideAudio(pcmChunk(300, ASR_SILENCE_TO_EOS_MS));
+    await withTimeout(startPr);
+    assert.deepEqual(wavPayload(srv._lastBody), Buffer.concat([speech, pcmChunk(300, ASR_SILENCE_TO_EOS_MS)]));
+  } finally {
+    await cleanupSession(session, startPr, srv);
+  }
+});
+
+test('VAD: room noise and isolated spikes still allow a prompt endpoint', async () => {
+  const srv = await mockParakeet('finished request');
+  const session = new ParakeetASRSession(`http://localhost:${srv.address().port}`, { lang: 'en-US' }, console);
+  const startPr = session.start();
+  try {
+    session.provideAudio(pcmChunk(350, 200));
+    session.provideAudio(pcmChunk(1200, 600));
+    session.provideAudio(pcmChunk(350, 100));
+    for (let ms = 100; ms < ASR_SILENCE_TO_EOS_MS; ms += 100) {
+      session.provideAudio(pcmChunk(900, 10));
+      session.provideAudio(pcmChunk(350, 90));
+    }
+    assert.equal((await withTimeout(startPr)).text, 'finished request');
+    assert.equal(session.finalizeReason, 'silence');
+    assert.equal(session.totalBytes, 32 * (800 + ASR_SILENCE_TO_EOS_MS));
+  } finally {
+    await cleanupSession(session, startPr, srv);
+  }
+});
+
+test('OGG/FLAC: a pause and quieter continuation survive real incremental decoding', { skip: !FFMPEG_AVAILABLE && 'ffmpeg is required for encoded audio' }, async () => {
+  // An audible 200 Hz waveform survives the codecs, unlike the alternating
+  // samples used by the direct-PCM tests. Its RMS is amplitude / sqrt(2).
+  const tone = (amplitude, ms) => {
+    const pcm = Buffer.alloc(ms * 32);
+    for (let i = 0; i < pcm.length / 2; i += 1) {
+      pcm.writeInt16LE(Math.round(amplitude * Math.sin(2 * Math.PI * 200 * i / 16000)), i * 2);
+    }
+    return pcm;
+  };
+  const source = Buffer.concat([
+    tone(425, 200), tone(1700, 600), tone(0, 600), tone(707, 1800), tone(425, 1300),
+  ]);
+  for (const [encoding, codec, format] of [['OGG_OPUS', 'libopus', 'ogg'], ['FLAC', 'flac', 'flac']]) {
+    const encoded = spawnSync(process.env.PHOENIX_FFMPEG || 'ffmpeg', [
+      '-hide_banner', '-loglevel', 'error', '-f', 's16le', '-ar', '16000', '-ac', '1',
+      '-i', 'pipe:0', '-c:a', codec, '-f', format, 'pipe:1',
+    ], { input: source, timeout: 5000 });
+    assert.equal(encoded.status, 0, encoded.stderr?.toString());
+    const srv = await mockParakeet('complete encoded request');
+    const session = new ParakeetASRSession(`http://localhost:${srv.address().port}`, { lang: 'en-US', encoding }, console);
+    const startPr = session.start();
+    try {
+      for (let offset = 0; offset < encoded.stdout.length; offset += 137) {
+        session.provideAudio(encoded.stdout.subarray(offset, offset + 137));
+      }
+      await withTimeout(startPr);
+      const pcm = wavPayload(srv._lastBody);
+      assert.ok(pcm.length >= 32 * 4000, `${encoding} retained the continuation through its real endpoint`);
+      assert.ok(rms(pcm.subarray(32 * 2000, 32 * 3000)) > 400, `${encoding} preserved the softer speech`);
+      assert.equal(session.finalizeReason, 'silence');
+      assert.equal(session.decoder, null, 'the decoder is cleaned up after the confirmed endpoint');
+    } finally {
+      await cleanupSession(session, startPr, srv);
+    }
+  }
+});
+
 test('WAV header: 44-byte RIFF, 16kHz mono 16-bit', () => {
   const wav = ParakeetASRSession.makeWav(Buffer.alloc(3200));
   assert.equal(wav.length, 44 + 3200);

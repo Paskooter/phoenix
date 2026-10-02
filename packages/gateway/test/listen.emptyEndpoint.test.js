@@ -23,7 +23,7 @@ import { once } from 'node:events';
 import { WebSocket } from 'ws';
 import { jwt } from '@phoenix/common';
 import { createGateway } from '../src/index.js';
-import { ParakeetASRSession } from '../src/asr/parakeetSession.js';
+import { ParakeetASRSession, ASR_SILENCE_TO_EOS_MS } from '../src/asr/parakeetSession.js';
 
 const SECRET = 'gateway-empty-endpoint-secret';
 const token = () => jwt.sign({ id: 'acct-eos', friendlyId: 'robot-eos', accessKeyId: 'k' }, SECRET);
@@ -37,8 +37,9 @@ function pcmChunk(amplitude) {
 }
 const SPEECH = () => pcmChunk(8000); // RMS 8000 >> the 400 threshold
 const SILENCE = () => pcmChunk(0);
-// Two speech frames trip SOS (>=150 ms cumulative); seven silence frames trip EOS (>=700 ms).
-const wsUtteranceFrames = () => [SPEECH(), SPEECH(), SILENCE(), SILENCE(), SILENCE(), SILENCE(), SILENCE(), SILENCE(), SILENCE()];
+const silenceFrames = () => Array.from({ length: Math.ceil(ASR_SILENCE_TO_EOS_MS / 100) }, SILENCE);
+// Two speech frames trip SOS; the configured trailing silence trips EOS.
+const wsUtteranceFrames = () => [SPEECH(), SPEECH(), ...silenceFrames()];
 
 /** Mock recognizer that answers each POST with the next scripted transcript. */
 async function startMockParakeet(transcripts) {
@@ -197,14 +198,14 @@ test('a hotphrase turn ignores the wake-phrase tail as an endpoint and answers w
     // be an utterance, and exactly what the robot streams first.
     session.provideAudio(SPEECH());
     session.provideAudio(SPEECH());
-    for (let i = 0; i < 7; i += 1) session.provideAudio(SILENCE());
+    for (const frame of silenceFrames()) session.provideAudio(frame);
     assert.equal(sos, 1, 'SOS still fires on the first energy run');
     assert.equal(eos, 0, 'a 200 ms burst does not end the turn');
     assert.equal(parakeet.requests.length, 0, 'the wake-phrase tail is never recognized on its own');
 
     // The real request, spoken after the pause.
     for (let i = 0; i < 6; i += 1) session.provideAudio(SPEECH());
-    for (let i = 0; i < 7; i += 1) session.provideAudio(SILENCE());
+    for (const frame of silenceFrames()) session.provideAudio(frame);
 
     const result = await startPr;
     assert.equal(result.text, 'what time is it', 'the turn returns the request, not the wake phrase');

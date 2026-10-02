@@ -26,7 +26,7 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import { once } from 'node:events';
 import { WebSocketServer } from 'ws';
-import { ParakeetASRSession } from '../src/asr/parakeetSession.js';
+import { ParakeetASRSession, ASR_SILENCE_TO_EOS_MS } from '../src/asr/parakeetSession.js';
 
 const SILENT_LOG = { debug() {}, info() {}, warn() {}, error() {} };
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -40,6 +40,7 @@ function pcmChunk(amplitude, ms = 100) {
 }
 const SPEECH = () => pcmChunk(8000); // RMS 8000 >> the 400 VAD threshold
 const SILENCE = () => pcmChunk(0);
+const silenceFrames = () => Array.from({ length: Math.ceil(ASR_SILENCE_TO_EOS_MS / 100) }, SILENCE);
 
 async function waitFor(predicate, timeout = 3000) {
   const deadline = Date.now() + timeout;
@@ -218,6 +219,30 @@ test('streaming: an earlyEOS trigger in an INTERIM finalizes early with the trun
   }
 });
 
+test('streaming: a natural pause and quieter speech reach the recognizer before EOS', async () => {
+  const server = await startStubServer({ final: { text: 'the whole request', confidence: 0.9 } });
+  const session = new ParakeetASRSession(server.url, { lang: 'en-US', hotphrase: true }, SILENT_LOG);
+  const startPr = session.start();
+  const source = Buffer.concat([
+    pcmChunk(300, 200), pcmChunk(1200, 600), pcmChunk(300, 600), pcmChunk(500, 1800),
+  ]);
+  try {
+    await waitFor(() => session.streamingReady);
+    session.provideAudio(source);
+    assert.equal(session.state, 'SPEAKING', 'the partial utterance is still open');
+    await waitFor(() => server.connections[0].bytes === source.length);
+    assert.equal(server.connections[0].controls.some((msg) => msg.type === 'eos'), false);
+    session.provideAudio(pcmChunk(300, ASR_SILENCE_TO_EOS_MS));
+    assert.equal((await withTimeout(startPr)).text, 'the whole request');
+    assert.deepEqual(Buffer.concat(server.connections[0].binary), Buffer.concat([
+      source, pcmChunk(300, ASR_SILENCE_TO_EOS_MS),
+    ]), 'both halves of the utterance arrived at the streaming recognizer');
+  } finally {
+    session.abort();
+    await server.close();
+  }
+});
+
 test('streaming: a 0.1.0 server with no /stream falls back to batch and still produces a result', async () => {
   const server = await startStubServer({
     streaming: false,
@@ -229,7 +254,7 @@ test('streaming: a 0.1.0 server with no /stream falls back to batch and still pr
   try {
     await waitFor(() => server.healthz > 0, 2000);
     for (let i = 0; i < 3; i += 1) session.provideAudio(SPEECH());
-    for (let i = 0; i < 7; i += 1) session.provideAudio(SILENCE());
+    for (const frame of silenceFrames()) session.provideAudio(frame);
 
     const result = await withTimeout(startPr);
     assert.equal(result.text, 'what time is it');
@@ -264,14 +289,14 @@ test('streaming: an empty silence endpoint keeps listening on a reopened stream'
     await waitFor(() => session.streamingReady);
     // False endpoint: speech that recognizes nothing, then trailing silence.
     for (let i = 0; i < 3; i += 1) session.provideAudio(SPEECH());
-    for (let i = 0; i < 7; i += 1) session.provideAudio(SILENCE());
+    for (const frame of silenceFrames()) session.provideAudio(frame);
     await waitFor(() => session.relistenCount === 1, 3000);
     assert.equal(wireEos, 0, 'a false endpoint must not tell the robot to stop streaming');
     await waitFor(() => session.streamingReady, 3000);
 
     // The real request, spoken after the pause.
     for (let i = 0; i < 3; i += 1) session.provideAudio(SPEECH());
-    for (let i = 0; i < 7; i += 1) session.provideAudio(SILENCE());
+    for (const frame of silenceFrames()) session.provideAudio(frame);
 
     const result = await withTimeout(startPr);
     assert.equal(result.text, 'what time is it', 'the turn resolves with the utterance that had words');
@@ -304,7 +329,7 @@ test('streaming: a socket that fails mid-session falls back to batch rather than
 
     // Finish the utterance; the buffered PCM must still be recognizable.
     session.provideAudio(SPEECH());
-    for (let i = 0; i < 7; i += 1) session.provideAudio(SILENCE());
+    for (const frame of silenceFrames()) session.provideAudio(frame);
 
     const result = await withTimeout(startPr);
     assert.equal(result.text, 'recovered utterance');

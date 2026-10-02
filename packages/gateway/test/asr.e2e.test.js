@@ -26,6 +26,7 @@ import { jwt } from '@phoenix/common';
 import { createGateway } from '../src/index.js';
 import { createGoogleRequest } from '../src/asr/googleProvider.js';
 import { cleanHintsEOS } from '../src/asr/factory.js';
+import { ASR_SILENCE_TO_EOS_MS } from '../src/asr/parakeetSession.js';
 
 const SECRET = 'h07-asr-secret';
 const token = () => jwt.sign({ id: 'acct-h07', friendlyId: 'robot-h07', accessKeyId: 'k' }, SECRET);
@@ -416,7 +417,8 @@ test('Parakeet provider over a real socket: real PCM VAD + post-hoc FAST_EOS ann
     // the wake phrase's own tail (150-300 ms observed on the robot), which the
     // gateway now refuses to treat as an endpoint (see listen.emptyEndpoint.test.js),
     // so the fixture utterance has to be longer than that tail.
-    frames: [SPEECH(), SPEECH(), SPEECH(), SPEECH(), SPEECH(), SILENCE(), SILENCE(), SILENCE(), SILENCE(), SILENCE(), SILENCE(), SILENCE()],
+    frames: [SPEECH(), SPEECH(), SPEECH(), SPEECH(), SPEECH(),
+      ...Array.from({ length: Math.ceil(ASR_SILENCE_TO_EOS_MS / 100) }, SILENCE)],
   });
 
   assert.deepEqual(state.types(), ['SOS', 'EOS', 'LISTEN'], `frames: ${JSON.stringify(state.types())}`);

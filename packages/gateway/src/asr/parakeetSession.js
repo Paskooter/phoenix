@@ -4,9 +4,8 @@
 // stream in (provideAudio), encoded formats are decoded to 16 kHz 16-bit mono PCM,
 // an energy VAD detects start/end of speech, and on EOS the whole PCM buffer is
 // wrapped in a WAV header and POSTed multipart to `${parakeetUrl}/transcribe`.
-// Reference constants and state machine preserved exactly:
-//   RMS > 400 counts as speech; SOS after ≥150 ms cumulative speech; EOS after
-//   700 ms continuous trailing silence (or 30 s total buffer); states
+// Local endpointing: adaptive RMS gates, SOS after ≥150 ms cumulative speech,
+// EOS after 900 ms continuous trailing silence (or 30 s total buffer); states
 //   WAITING → SPEAKING → TRAILING_SILENCE → FINALIZING → DONE.
 // stop() before SOS resolves start() with undefined; after SOS it fires EOS (if
 // needed) and finalizes. Response JSON `{transcript}` may be a plain string or a
@@ -15,7 +14,7 @@
 // Phoenix fix (robot-observed): a silence endpoint that recognizes NO words must
 // not end the turn. The robot streams audio into the turn from the moment its
 // wake-phrase spotter fires, so the first energy run is the tail of the wake
-// phrase and the speaker's natural pause after it satisfies the 700 ms
+// phrase and the speaker's natural pause after it satisfies the configured
 // trailing-silence endpoint. Finalizing there posts ~1 s of wake-phrase tail
 // (transcript '' or a fragment), the hub routes a no-match LISTEN result, the
 // turn ends, and the user's actual request — arriving after the pause — is
@@ -63,7 +62,9 @@ const SPEECH_MIN_MS = 150;
 // Phoenix choice, and it is the dominant cost in the pause a person feels after
 // they stop talking. An encoded robot pays it twice: OGG_OPUS arrives in ~500 ms
 // pages, so the silence is not even visible until the page that carries it lands.
-const SILENCE_TO_EOS_MS = Number(process.env.PHOENIX_ASR_SILENCE_EOS_MS || 400);
+// 400 ms clipped ordinary mid-sentence pauses on Moth. Leave room for a breath
+// without returning to the multi-second waits that motivated the shorter gate.
+const SILENCE_TO_EOS_MS = Number(process.env.PHOENIX_ASR_SILENCE_EOS_MS || 900);
 
 // Exported so tests derive the window instead of restating it: a test that
 // asserts a literal keeps passing when the constant changes, and then pins the
@@ -76,7 +77,7 @@ export const ASR_SILENCE_TO_EOS_MS = SILENCE_TO_EOS_MS;
 // END_OF_SINGLE_UTTERANCE itself (GoogleASRSession.ts:106).  Parakeet is a batch
 // recognizer, so this session has to decide end-of-speech on its own, and a bare
 // `rms > 400` gate is wrong in any room whose noise floor approaches 400 -- a
-// single 10 ms window above the line resets the whole silence run, so the 700 ms
+// single 10 ms window above the line resets the whole silence run, so the
 // EOS is never reached and the robot streams until its own max-speech cap.
 // Measured on a real robot: floor p25 260-280, median 310-340, and turns of 12,
 // 16 and 19.45 s for a two-second question.
@@ -87,6 +88,10 @@ export const ASR_SILENCE_TO_EOS_MS = SILENCE_TO_EOS_MS;
 //   * require a sustained burst to re-open speech, so one noisy window no longer
 //     discards an otherwise-quiet run.
 const NOISE_FLOOR_MARGIN = Number(process.env.PHOENIX_ASR_NOISE_MARGIN || 1.8);
+// Hysteresis: starting a turn requires a clear burst, but continuing an already
+// established utterance must allow the speaker's quieter syllables. Keep the
+// lower gate above room noise, and keep the same debounce for isolated spikes.
+const CONTINUING_SPEECH_MARGIN = Math.min(NOISE_FLOOR_MARGIN, 1.3);
 const NOISE_FLOOR_ATTACK = 0.05;   // EMA weight while the floor is rising
 const NOISE_FLOOR_DECAY = 0.25;    // faster when it drops, so a quiet room recovers
 const SPEECH_DEBOUNCE_MS = 30;     // consecutive ms over the gate before speech resumes
@@ -302,11 +307,17 @@ export class ParakeetASRSession {
    */
   _speechGate() {
     if (this.noiseFloor === null) return SPEECH_RMS_THRESHOLD;
-    return Math.max(SPEECH_RMS_THRESHOLD, this.noiseFloor * NOISE_FLOOR_MARGIN);
+    const margin = this.sosFired ? CONTINUING_SPEECH_MARGIN : NOISE_FLOOR_MARGIN;
+    return Math.max(SPEECH_RMS_THRESHOLD, this.noiseFloor * margin);
   }
 
   _trackNoiseFloor(rms) {
     if (this.noiseFloor === null) { this.noiseFloor = rms; return; }
+    // Once speech starts, a below-gate window may be a quiet vowel or consonant.
+    // Learning a higher floor from it raises the gate again and can swallow the
+    // rest of a continuously spoken sentence. Retain the measured room floor;
+    // only let it fall when the room gets quieter during this turn.
+    if (this.sosFired && rms > this.noiseFloor) return;
     const alpha = rms > this.noiseFloor ? NOISE_FLOOR_ATTACK : NOISE_FLOOR_DECAY;
     this.noiseFloor += alpha * (rms - this.noiseFloor);
   }
@@ -315,8 +326,8 @@ export class ParakeetASRSession {
     const rms = ParakeetASRSession.computeRMS(window);
     const gate = this._speechGate();
     if (rms <= gate) {
-      // Only windows the gate calls silence feed the floor estimate, so speech
-      // can never drag the gate up after itself.
+      // A below-gate window is only a floor candidate: _trackNoiseFloor prevents
+      // quieter speech from raising the floor once an utterance is established.
       this._trackNoiseFloor(rms);
       this.speechRunMs = 0;
     } else {
@@ -698,6 +709,9 @@ export class ParakeetASRSession {
         recognizeMs: Date.now() - this.eosAt,
         relistens: this.relistenCount,
         chars: text.length,
+        noiseFloorRms: this.noiseFloor === null ? null : Math.round(this.noiseFloor),
+        speechGateRms: Math.round(this._speechGate()),
+        speechMs: Math.round(bytesToMs(this.speechBytes)),
       });
     }
     if (this.resultHandler) this.resultHandler(result);
