@@ -2,7 +2,7 @@
   "$comment": "Every piece of visible text and identity on the public site lives here. Change this file (or point PHOENIX_BRANDING_FILE at your own copy) and the whole site follows \u2014 no rebuild, no code edit. Keys map to data-brand=\"...\" attributes in the HTML; anything you omit falls back to the text baked into the page.",
   "name": "Phoenix",
   "wordmark": "Phoenix",
-  "tagline": "The cloud Jibo can talk to again.",
+  "tagline": "Hello, again.",
   "description": "A ground-up reimplementation of the cloud service that gave Jibo its voice \u2014 self-hosted, open, and running on hardware you own.",
   "logo": null,
   "accent": null,

@@ -21,8 +21,8 @@ ACCENT_LIFT = (255, 208, 138)
 ACCENT_HOT = (255, 84, 112)
 
 out_path = sys.argv[1] if len(sys.argv) > 1 else "og.png"
-title = sys.argv[2] if len(sys.argv) > 2 else "Phoenix"
-subtitle = sys.argv[3] if len(sys.argv) > 3 else "The cloud your robot can talk to again"
+title = sys.argv[2] if len(sys.argv) > 2 else "Hello, again."
+subtitle = sys.argv[3] if len(sys.argv) > 3 else "A clean-room reimplementation of the service that gave Jibo its voice."
 kicker = sys.argv[4] if len(sys.argv) > 4 else "OPEN SOURCE  ·  SELF-HOSTED  ·  JIBO"
 
 

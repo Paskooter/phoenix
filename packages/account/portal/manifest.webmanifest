@@ -2,7 +2,7 @@
   "id": "/app",
   "name": "Phoenix",
   "short_name": "Phoenix",
-  "description": "The cloud your robot can talk to again.",
+  "description": "Hello, again.",
   "start_url": "/app",
   "scope": "/",
   "display": "standalone",

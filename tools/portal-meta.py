@@ -26,7 +26,7 @@ END = "<!-- social:end -->"
 
 PAGES = {
     "index.html": {
-        "title": "Phoenix — the cloud your robot can talk to again",
+        "title": "Phoenix — Hello, again.",
         "desc": "A clean-room reimplementation of the cloud service that gave Jibo its "
                 "voice. Open source, self-hosted, and running on hardware you own.",
         "path": "/",
@@ -63,7 +63,8 @@ PAGES = {
 
 def social_block(meta):
     """The managed metadata block. %SITE_URL% is substituted by the static server."""
-    img = "%SITE_URL%/assets/og.png"
+    # A new URL lets social scrapers fetch the regenerated card on their next crawl.
+    img = "%SITE_URL%/assets/og.png?v=hello-again"
     url = "%SITE_URL%" + meta["path"]
     robots = "noindex, nofollow" if meta.get("noindex") else "index, follow"
     return f"""{BEGIN}
@@ -80,14 +81,14 @@ def social_block(meta):
 <meta property="og:image:type" content="image/png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="Phoenix — the cloud your robot can talk to again" />
+<meta property="og:image:alt" content="Phoenix — Hello, again." />
 <meta property="og:locale" content="en_US" />
 
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="{meta['title']}" />
 <meta name="twitter:description" content="{meta['desc']}" />
 <meta name="twitter:image" content="{img}" />
-<meta name="twitter:image:alt" content="Phoenix — the cloud your robot can talk to again" />
+<meta name="twitter:image:alt" content="Phoenix — Hello, again." />
 
 <meta name="theme-color" content="#08090d" media="(prefers-color-scheme: dark)" />
 <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)" />

@@ -61,7 +61,7 @@ Every visible string on the public site, the logo and the accent colour live in
 ```jsonc
 {
   "name": "Phoenix",
-  "tagline": "The cloud Jibo can talk to again.",
+  "tagline": "Hello, again.",
   "logo": "/assets/my-logo.svg",   // optional; replaces the built-in mark
   "accent": "#3b82f6",             // optional; one hex re-skins the product
   "hero": { "title": "…", "body": "…" },
