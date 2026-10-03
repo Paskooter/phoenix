@@ -379,6 +379,7 @@ svc_hub() {
     ETCO_hub_skillsConfig="$SKILLS_CONFIG" \
     ETCO_hub_disableAuth="$DISABLE_AUTH" \
     ETCO_hub_accountUrl="${ETCO_hub_accountUrl:-$ACCOUNT_URL}" \
+    ETCO_account_internalPeerToken="$ACCOUNT_INTERNAL_PEER_TOKEN" \
     ETCO_server_hubTokenSecret="$HUB_TOKEN_SECRET" \
     ETCO_server_parakeetUrl="$PARAKEET_URL" \
     NET_parser="localhost:$(p 9005)" \

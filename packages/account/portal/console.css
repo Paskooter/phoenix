@@ -3129,3 +3129,5 @@ pre.json {
   .voice-waterfall-track { min-height: 1.7rem; }
   .voice-asr-timings { grid-template-columns: 1fr; }
 }
+/* One-time linking code; never stored in browser local storage. */
+.ha-connection-code { display: inline-block; font-size: 1.15rem; letter-spacing: .08em; padding: .65rem; user-select: all; overflow-wrap: anywhere; }

@@ -7,11 +7,12 @@ import { readFileSync, writeFileSync, renameSync, existsSync, mkdirSync, openSyn
 import { randomUUID } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { reconcileHomeAssistantBindings } from './integrations/homeAssistant/bindings.js';
 
 const DEFAULT_FILE = join(dirname(fileURLToPath(import.meta.url)), '../data/store.json');
 // `settings` holds per-account report-skill PersonalReportSettingsData (keyed by _id = accountId).
 // `oauthClients` holds the admin OAuth-client registry (OauthClients_20171108), keyed by _id.
-const COLLECTIONS = ['accounts', 'loops', 'tokens', 'sessions', 'settings', 'notificationOutbox', 'emailResets', 'emailVerifications', 'phoneVerifications', 'oauthClients', 'webPushSubscriptions'];
+const COLLECTIONS = ['accounts', 'loops', 'tokens', 'sessions', 'settings', 'notificationOutbox', 'emailResets', 'emailVerifications', 'phoneVerifications', 'oauthClients', 'webPushSubscriptions', 'homeAssistantInstallations', 'homeAssistantCodes'];
 
 export class Store {
   /** @param {string} [file] JSON file path (ETCO_account_dataFile overrides the default) */
@@ -35,6 +36,7 @@ export class Store {
 
   /** Replace the snapshot atomically, keeping credential bytes private. */
   flush() {
+    reconcileHomeAssistantBindings(this);
     const out = {};
     for (const c of COLLECTIONS) out[c] = [...this[c].values()];
     const serialized = JSON.stringify(out, null, 2);

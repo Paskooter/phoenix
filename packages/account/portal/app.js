@@ -5063,12 +5063,99 @@ function paintNav(hash) {
    Router
    ========================================================================== */
 
+const HA_ERRORS = {
+  select_robots: 'Choose at least one Jibo you own.',
+  robot_not_owned: 'Only the household owner can enable a Jibo.',
+  robot_already_linked: 'A selected Jibo is already linked. Disconnect its old installation first.',
+  installation_limit: 'Disconnect an installation before adding another.',
+  invalid_name: 'Use an installation name of 1 to 80 characters.',
+};
+
+async function renderHomeAssistant() {
+  const container = page('Home Assistant', 'Let your Jibo control devices you expose to Assist. Beta · English.');
+  const robots = await api('GET', '/api/robots');
+  if (!robots.ok) { container.append(errorBox('Could not load your robots.', robots.data?.error)); return show(container); }
+  const statusHost = h('div', { 'aria-live': 'polite' });
+  const codeHost = h('div', { 'aria-live': 'polite' });
+  const linkedRobots = new Set();
+  let codeExpiresAt = 0;
+  let loadingStatus = false;
+  const updateStatus = async () => {
+    if (loadingStatus) return;
+    loadingStatus = true;
+    const result = await api('GET', '/api/home-assistant');
+    loadingStatus = false;
+    if (!result.ok) { statusHost.replaceChildren(errorBox('Could not check the connection.', result.data?.error)); return; }
+    linkedRobots.clear();
+    const installations = result.data.installations || [];
+    for (const installation of installations) for (const robot of installation.robots) linkedRobots.add(robot);
+    statusHost.replaceChildren(...installations.map((installation) => card(installation.name, {},
+      h('div', { class: 'card-body' },
+        h('p', {}, h('span', { class: installation.connected ? 'pill' : 'pill pill-warn' },
+          installation.connected ? 'Connected' : 'Offline'),
+        installation.haVersion ? ` · Home Assistant ${installation.haVersion}` : ''),
+        h('p', {}, installation.robots.join(', ')),
+        installation.connected ? null : h('p', { class: 'muted' }, 'Check Home Assistant is running and can reach this Phoenix server.'),
+        h('button', { class: 'btn btn-sm', type: 'button', on: { click: async (event) => {
+          event.currentTarget.disabled = true;
+          const removed = await api('DELETE', '/api/home-assistant', { installationId: installation.id });
+          if (!removed.ok) { event.currentTarget.disabled = false; statusHost.append(errorBox('Could not disconnect.', removed.data?.error)); return; }
+          await updateStatus();
+        } } }, 'Disconnect')))));
+    if (!installations.length) statusHost.append(h('p', { class: 'muted' }, 'No Home Assistant installation linked yet.'));
+    if (codeExpiresAt && Date.now() >= codeExpiresAt) {
+      codeHost.replaceChildren(h('p', {}, 'Your connection code expired. Generate a new code.'));
+      codeExpiresAt = 0;
+    }
+  };
+  const owned = robots.data.filter((robot) => robot.canManage);
+  const name = h('input', { name: 'name', value: 'Home Assistant', maxlength: '80', required: true });
+  const checks = owned.map((robot) => ({ robot, input: h('input', { type: 'checkbox', name: 'robot', value: robot.friendlyId }) }));
+  const form = h('form', {}, h('label', {}, 'Installation name', name),
+    h('fieldset', {}, h('legend', {}, 'Choose the Jibos you own'), ...checks.map(({ robot, input }) =>
+      h('label', { class: 'setting-line' }, input, ` ${robot.loopName || robot.friendlyId}`))),
+    h('button', { class: 'btn btn-primary', type: 'submit', disabled: !owned.length }, 'Generate connection code'));
+  onSubmit(form, async () => {
+    const selected = checks.filter(({ input }) => input.checked).map(({ robot }) => robot.friendlyId);
+    if (selected.some((robot) => linkedRobots.has(robot))) {
+      codeHost.replaceChildren(errorBox('Already linked', HA_ERRORS.robot_already_linked)); return;
+    }
+    const result = await api('POST', '/api/home-assistant/codes', { robotIds: selected, name: name.value });
+    if (!result.ok) { codeHost.replaceChildren(errorBox('Could not create a connection code.', HA_ERRORS[result.data?.error] || result.data?.error)); return; }
+    codeExpiresAt = result.data.expiresAt;
+    codeHost.replaceChildren(h('p', {}, 'Paste this code in Home Assistant → Settings → Devices & services → Add integration → Phoenix.'),
+      h('p', {}, h('code', { class: 'ha-connection-code' }, result.data.code)),
+      h('p', { class: 'muted' }, 'Valid for 10 minutes and one use. Keep it private. Generating another replaces this code.'),
+      h('button', { class: 'btn btn-sm', type: 'button', on: { click: async () => {
+        await api('DELETE', '/api/home-assistant/codes'); codeExpiresAt = 0; codeHost.replaceChildren();
+      } } }, 'Cancel code'));
+  });
+  container.append(card('Install and link', {}, h('div', { class: 'card-body' },
+    h('ol', {},
+      h('li', {}, 'In HACS, add ', h('a', { href: 'https://github.com/Paskooter/phoenix-home-assistant', target: '_blank', rel: 'noopener noreferrer' }, 'Paskooter/phoenix-home-assistant'), ' as a custom Integration repository, download the beta, and restart Home Assistant.'),
+      h('li', {}, 'Choose your Jibos and generate a code below. Add Phoenix in Home Assistant and enter this server’s HTTPS address: ', h('code', {}, location.origin)),
+      h('li', {}, 'Choose devices in Home Assistant → Settings → Voice assistants → Expose. Give them clear names or aliases.')),
+    form, codeHost,
+    !owned.length ? h('p', {}, 'Sign in as the household owner to link a Jibo.') : null)),
+    card('Connection', {}, h('div', { class: 'card-body' }, statusHost)),
+    card('Try a command', {}, h('div', { class: 'card-body' },
+      h('p', {}, '“Hey Jibo, turn on the kitchen lights.”'),
+      h('p', {}, '“Hey Jibo, set the bedroom light brightness to fifty percent.”'),
+      h('p', {}, '“Hey Jibo, activate the dinner scene.”'),
+      h('p', {}, 'Use your actual Assist names. For custom phrases, say “Hey Jibo, ask Home Assistant to…”'),
+      h('p', { class: 'muted' }, 'Jibo speaks Home Assistant’s result. If he cannot confirm a command, check the device before trying again.'))));
+  show(container);
+  await updateStatus();
+  pollTimer = setInterval(updateStatus, 5000);
+}
+
 const ROUTES = {
   '#/': renderHome,
   '#/loop': renderLoop,
   '#/settings': renderSettings,
   '#/profile': renderProfile,
   '#/robot': renderRobot,
+  '#/home-assistant': renderHomeAssistant,
   '#/tips': renderTips,
   '#/claim': renderClaim,
   '#/gallery': renderGallery,

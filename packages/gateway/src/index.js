@@ -35,6 +35,7 @@ import { ListenTransaction } from './listenTransaction.js';
 import { HistoryClient } from './historyClient.js';
 import { SettingsClient } from './settingsClient.js';
 import { ProactiveTransaction } from './proactive/proactiveTransaction.js';
+import { HomeAssistantClient } from './homeAssistantClient.js';
 
 const LISTEN_PATHS = new Set(['/listen', '/v1/listen']);
 const PROACTIVE_PATHS = new Set(['/proactive', '/v1/proactive']);
@@ -74,6 +75,7 @@ export function buildComponents(config) {
     skillClient: new SkillClient(skillConfigManager),
     historyClient: new HistoryClient(config.historyURL),
     settingsClient: new SettingsClient(config.settingsURL),
+    homeAssistant: config.homeAssistant ? new HomeAssistantClient(config.homeAssistant) : null,
     asr: null, // M8: Parakeet provider
   };
 }

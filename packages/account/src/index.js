@@ -39,6 +39,8 @@ import { listAssociatedLoopsRoute } from './loopResolution.js';
 import { protectPortalRoutes } from './portalCsrf.js';
 import { userFromSession } from './portal/session.js';
 import { WebPushService, webPushConfigFromEnv } from './webPush.js';
+import { HomeAssistantBroker } from './integrations/homeAssistant/broker.js';
+import { homeAssistantRoutes } from './integrations/homeAssistant/routes.js';
 
 export { Store, getStore, resetStore } from './store.js';
 export * as model from './model.js';
@@ -420,6 +422,7 @@ export function createAccountService({
     fetchOptions: calendarFetchOptions,
     ...calendarRefreshOptions,
   });
+  const homeAssistant = new HomeAssistantBroker(store);
   const routes = {
     // The direct Account photo ingress is intentionally session-bound. Public
     // photo URLs should point at Classic's signed proxy; an accidental
@@ -446,6 +449,7 @@ export function createAccountService({
       }
     },
     ...staticRoutes(),         // the portal UI (GET /, /admin, assets)
+    ...homeAssistantRoutes(store, homeAssistant),
     ...portalRoutes(store, {
       loopUpdatedOutbox,
       invitationProviders: effectiveInvitationProviders,
@@ -493,6 +497,7 @@ export function createAccountService({
   };
   const service = createService({
     name: 'account',
+    onUpgrade: (request, socket, head) => homeAssistant.upgrade(request, socket, head),
     // Hapi/Joi validates JSON primitives at the CreateHubToken handler.
     // Hapi also parses Settings and Loop payloads as JSON values before Joi rejects
     // top-level primitives with the source "value must be an object" error.
@@ -507,6 +512,7 @@ export function createAccountService({
   service.calendarRefresh = calendarRefresh;
   service.invitationProviders = effectiveInvitationProviders;
   service.identityProviders = effectiveIdentityProviders;
+  service.homeAssistant = homeAssistant;
   // Account-deletion backups age out even when nobody deletes an account for a
   // while. Where every service shares PHOENIX_DATA_DIR, this covers theirs too.
   const pruneBackups = () => {
@@ -515,12 +521,14 @@ export function createAccountService({
   };
   let pruneTimer = null;
   service.server.on('listening', () => {
+    homeAssistant.start();
     void calendarRefresh.start().catch(() => logger('account.calendar').error('iCal startup refresh failed'));
     pruneBackups();
     pruneTimer = setInterval(pruneBackups, 6 * 60 * 60 * 1000);
     pruneTimer.unref?.();
   });
   service.server.on('close', () => {
+    homeAssistant.close();
     calendarRefresh.stop();
     clearInterval(pruneTimer);
   });

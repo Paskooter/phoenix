@@ -163,6 +163,9 @@ function applyPlan(store, plan, loopUpdatedOutbox) {
   for (const name of OWN_RECORDS) {
     if (store[name]) removeWhere(store[name], (record) => people.has(String(record?.accountId)));
   }
+  for (const name of ['homeAssistantInstallations', 'homeAssistantCodes']) {
+    if (store[name]) removeWhere(store[name], (record) => people.has(String(record?.ownerId)));
+  }
   for (const personId of people) {
     store.settings.delete(personId);
     store.settings.delete(`lasso:${personId}`);

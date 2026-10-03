@@ -1,0 +1,31 @@
+name: Home Assistant connector
+on:
+  push:
+    paths:
+      - "packages/account/**"
+      - "packages/gateway/**"
+      - "packages/skills/src/homeAssistantSkill.js"
+      - "scripts/home-assistant/**"
+      - ".github/workflows/home-assistant.yml"
+  pull_request:
+    paths:
+      - "packages/account/**"
+      - "packages/gateway/**"
+      - "packages/skills/src/homeAssistantSkill.js"
+      - "scripts/home-assistant/**"
+      - ".github/workflows/home-assistant.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  connector:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci --ignore-scripts
+      - run: node --test packages/account/test/homeAssistant.test.js packages/gateway/test/homeAssistant.test.js
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/home-assistant/portal-smoke.mjs

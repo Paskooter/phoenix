@@ -29,7 +29,7 @@ import { classicBaseUrl } from '../portal/classicClient.js';
 // are handled explicitly; `settings` only by the robot's own entry, so an owner's
 // report settings are never caught by a stray mention.
 export const SIDE_COLLECTIONS = ['tokens', 'sessions', 'notificationOutbox', 'webPushSubscriptions',
-  'emailResets', 'phoneVerifications', 'oauthClients'];
+  'emailResets', 'phoneVerifications', 'oauthClients', 'homeAssistantInstallations', 'homeAssistantCodes'];
 
 /** The other services that keep a robot's, a loop's or a person's records. Classic must answer. */
 export const defaultPeers = () => [

@@ -65,6 +65,7 @@ services:
       # Per-robot auth (G.5): when DISABLE_AUTH=false, validate each token's accessKeyId
       # against the account service. Harmless when auth is disabled.
       - ETCO_hub_accountUrl=http://account:8080
+      - ETCO_account_internalPeerToken=${ETCO_account_internalPeerToken:?Set ETCO_account_internalPeerToken in .env before starting Phoenix}
       - NET_parser=parser:8080
       - NET_history=history:8080
       - NET_data=lasso:8080

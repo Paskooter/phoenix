@@ -6,6 +6,7 @@
 
 import { readEnvVars } from '@phoenix/common';
 import { loadRegistry } from './registry.js';
+import { HOME_ASSISTANT_SKILL_ID } from '../../skills/src/homeAssistantSkill.js';
 
 // HubConfigProvider.getConfig() reads exactly these names, in this order
 // (packages/hub/src/config/HubConfigProvider.ts:24-33). ETCO_hub_speechConfig is read
@@ -58,14 +59,20 @@ export async function loadConfig(env = process.env, registryOptions = {}) {
     ? peer(env.NET_skills || env.ETCO_hub_skillsUrl)
     : '';
   const indexFile = env.ETCO_hub_skillsConfig || (skillsBase ? 'skills-phoenix.json' : envVars.ETCO_hub_skillsConfig);
-  const skills = await loadRegistry({ ...registryOptions, skillsBase, env, indexFile });
+  const skills = [...await loadRegistry({ ...registryOptions, skillsBase, env, indexFile })];
+  const accountUrl = (env.ETCO_hub_accountUrl || '').replace(/\/$/, '');
+  const homeAssistant = accountUrl && env.ETCO_account_internalPeerToken && envVars.ETCO_hub_disableAuth !== 'true'
+    ? { url: accountUrl, token: env.ETCO_account_internalPeerToken } : null;
+  if (homeAssistant) skills.push({ id: HOME_ASSISTANT_SKILL_ID, intents: [], onRobot: false,
+    URL: `${accountUrl}/internal/home-assistant/command` });
   return {
     hubTokenSecret: env.ETCO_server_hubTokenSecret || '',
     disableAuth: envVars.ETCO_hub_disableAuth === 'true',
     // Optional per-robot validation: after the JWT signature checks out, confirm the token's
     // accessKeyId claim still maps to a live account (account service GET /api/verify). Unset
     // (the default) = shared-secret-only, i.e. any validly-signed token is accepted.
-    accountUrl: (env.ETCO_hub_accountUrl || '').replace(/\/$/, ''),
+    accountUrl,
+    homeAssistant,
     accountVerifyTimeoutMs,
     asrProvider: env.ETCO_server_asrProvider || 'none',
     parserURL: sourcePeer('NET_parser', 'ETCO_hub_parserUrl'),

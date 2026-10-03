@@ -21,6 +21,8 @@ import { isRedirect } from './skillClient.js';
 import { startSession as startASRSession, cleanHintsEOS } from './asr/factory.js';
 import { normalizeString } from './stringNormalizer.js';
 import { mediateDecision } from './decisionMediator.js';
+import { homeCommandCandidate } from './homeAssistantRoute.js';
+import { HOME_ASSISTANT_SKILL_ID, buildHomeAssistantReply } from '../../skills/src/homeAssistantSkill.js';
 
 // The rules a global turn parses against.
 //
@@ -528,6 +530,14 @@ export class ListenTransaction {
   async _performNLU() {
     const context = await this._awaitContext();
     const t0 = now();
+    if (await this._selectHomeCommand(context)) {
+      this.nluData = { intent: 'phoenixHomeCommand', entities: {}, rules: ['launch'] };
+      this.timings.nlu = now() - t0;
+      this._span('nlu', t0, 'home_command');
+      this._updateSpeech({ nlu: this.nluData });
+      this._gotoState(State.ROUTE);
+      return;
+    }
     let outcome = 'ok';
     const parserPr = this.components.parser.handleNLU(
       {
@@ -562,6 +572,13 @@ export class ListenTransaction {
   async _performRouting() {
     const context = await this._awaitContext();
     const t0 = now();
+    // CLIENT_NLU and recognized Hue commands also pass the same opt-in gate.
+    if (this.homeCommand || await this._selectHomeCommand(context, this.nluData)) {
+      this._span('route', t0, 'home_command');
+      await this._onHomeAssistantMatch(context);
+      this._gotoState(State.DONE);
+      return;
+    }
     const decision = this.components.intentRouter.getSkillIDFromNLU(this.nluData);
     const finalDecision = decision
       ? (mediateDecision(decision, this.asrData, this.nluData, context.data.general.release) || decision)
@@ -575,6 +592,32 @@ export class ListenTransaction {
       this._emitListenResult(null, true);
     }
     this._gotoState(State.DONE);
+  }
+
+  async _selectHomeCommand(context, nlu = null) {
+    if (!this.components.homeAssistant || this.abandoned || this.state === State.STOP) return false;
+    const candidate = homeCommandCandidate(this.asrData?.text, {
+      hotphrase: this.listenMessage?.data?.hotphrase,
+      activeSkill: context.data?.skill?.id, nlu,
+    });
+    if (!candidate || !candidate.text) return false;
+    const enabled = await this.components.homeAssistant.selection(this.auth);
+    if (this.abandoned || this.state === State.STOP) return false;
+    // Explicit invocation gives useful setup/offline speech even before linking.
+    if (!enabled && !candidate.explicit) return false;
+    if (!this.auth?.id || !this.auth.accessKeyId || !this.auth.friendlyId) return false;
+    this.homeCommand = candidate.text;
+    return true;
+  }
+
+  async _onHomeAssistantMatch(context) {
+    this._emitListenResult({ skillID: HOME_ASSISTANT_SKILL_ID, launch: true, onRobot: false }, false);
+    const t0 = now();
+    const result = await this.components.homeAssistant.command(this.auth, this.homeCommand);
+    this.timings.skill = now() - t0;
+    this._span('skill', t0, result.outcome === 'uncertain' ? 'timeout' : 'ok');
+    const response = buildHomeAssistantReply(result);
+    if (!this.abandoned && this.state !== State.STOP) this._emitSkillResult({ skillID: HOME_ASSISTANT_SKILL_ID, response }, true);
   }
 
   async _onSkillMatch(skillID, context, memo = null, isUpdate = false) {
