@@ -1,0 +1,645 @@
+{
+  "captured_at": "2026-10-03T03:59:58.508872+00:00",
+  "origin": "https://pvindex.org",
+  "listings": {
+    "https://pvindex.org/repository/platformos/builds/chris-testing/": {
+      "sha256": "61975c5a940a122b3b521c884cd036989764e103502a913024ea22afaeac3015",
+      "links": [
+        "jibo-pvt-flash-build-9.12.0-develop.tar.bz2"
+      ]
+    },
+    "https://pvindex.org/repository/platformos/builds/custom/": {
+      "sha256": "0715ad3fcd1b23adfc3146f3426cfe732cc35d30d2e0aa7ba44e9d9f41721ede",
+      "links": [
+        "jibo-custom-flash-build-UnsharpMask.tar.bz2",
+        "jibo-pvt-flash-build-8.10.0-partner-2017-0921.tar.bz2",
+        "jibo-pvt-flash-build-8.10.1-partner-20170927.tar.bz2",
+        "jibo-pvt-flash-build-partner-0914.tar.bz2",
+        "jibo-video-player-platform.tar.bz2",
+        "jibo-wpa-test-9.8.6.tar.bz2",
+        "jibo-wpa-test.tar.bz2",
+        "sha256.txt"
+      ]
+    },
+    "https://pvindex.org/repository/platformos/builds/electron/": {
+      "sha256": "a34736c68894f5596afeb9cbd6d963bb9885e0141da92638b4591169e83bc1f4",
+      "links": [
+        "electron-v0.29.2-linux-arm-build0.zip",
+        "electron-v1.0.1-linux-arm.zip"
+      ]
+    },
+    "https://pvindex.org/repository/platformos/builds/jetstream-testing/": {
+      "sha256": "8d4728ccade0a97f822c3a8437b64cecbe422d892a2d5df0f32e9d105abb2aea",
+      "links": [
+        "install_instructions.txt",
+        "jibo-jetstream-package-shadi-1.tgz",
+        "jibo-jetstream-package-spkr-id-utt-logging-1.tgz"
+      ]
+    },
+    "https://pvindex.org/repository/platformos/builds/nightly/": {
+      "sha256": "89787ca4f0a79e2e4d3011c5b56ea664e12aeebf71441ea256c1f27d257f353f",
+      "links": [
+        "jibo-pvt-flash-build-dev-512.tar.bz2",
+        "jibo-pvt-flash-build-dev-512.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-512.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-515.tar.bz2",
+        "jibo-pvt-flash-build-dev-515.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-515.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-516.tar.bz2",
+        "jibo-pvt-flash-build-dev-516.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-516.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-518.tar.bz2",
+        "jibo-pvt-flash-build-dev-518.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-518.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-519.tar.bz2",
+        "jibo-pvt-flash-build-dev-519.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-519.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-520.tar.bz2",
+        "jibo-pvt-flash-build-dev-520.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-520.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-521.tar.bz2",
+        "jibo-pvt-flash-build-dev-521.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-521.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-522.tar.bz2",
+        "jibo-pvt-flash-build-dev-522.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-522.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-523.tar.bz2",
+        "jibo-pvt-flash-build-dev-523.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-523.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-524.tar.bz2",
+        "jibo-pvt-flash-build-dev-524.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-524.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-525.tar.bz2",
+        "jibo-pvt-flash-build-dev-525.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-525.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-526.tar.bz2",
+        "jibo-pvt-flash-build-dev-526.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-526.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-527.tar.bz2",
+        "jibo-pvt-flash-build-dev-527.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-527.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-528.tar.bz2",
+        "jibo-pvt-flash-build-dev-528.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-528.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-531.tar.bz2",
+        "jibo-pvt-flash-build-dev-531.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-531.tar.bz2.sha256"
+      ]
+    },
+    "https://pvindex.org/repository/platformos/builds/ota-dev-release/": {
+      "sha256": "52aea5ff508090a50536184c93d6eb6eb605a40e5c35346b9d80522a71524fa6",
+      "links": [
+        "jibo-pvt-flash-build-8.2.0-BETA-3.1.tar.bz2"
+      ]
+    },
+    "https://pvindex.org/repository/platformos/builds/ota-production-release/": {
+      "sha256": "5616e8cd1425c8ac81ec31e706b43ad795703915501a0098919f27a0c944b802",
+      "links": [
+        "jibo-pvt-flash-8.1.0-20170531-BETA-3.tar.bz2",
+        "jibo-pvt-flash-8.1.1-20170531-BETA-3.tar.bz2",
+        "jibo-pvt-flash-8.1.2-20170601-BETA-3.tar.bz2",
+        "jibo-pvt-flash-8.1.3-20170601-BETA-3.tar.bz2",
+        "jibo-pvt-flash-8.2.0-20170620-BETA-3.1.tar.bz2",
+        "jibo-pvt-flash-build-5.0.1-production.tar.bz2",
+        "jibo-pvt-flash-build-5.4.0-production.tar.bz2",
+        "jibo-pvt-flash-build-5.4.2-production.tar.bz2",
+        "sha256.txt"
+      ],
+      "checksums_sha256": "d8625842519a5036715d2a1bda15ed1c3136cef58ffa4f53e14b51343b01f051"
+    },
+    "https://pvindex.org/repository/platformos/builds/pegasus-nightly/": {
+      "sha256": "8dd2daf5d801fd49018fd49bdd3d507f8d8fb58b21298c1c5cf4f5163f6dff99",
+      "links": [
+        "README.txt",
+        "jetstream-2018-03-28.tar.bz2",
+        "jibo-pvt-flash-build-dev-2018-03-28.tar.bz2",
+        "jibo-pvt-flash-build-dev-2018-03-28.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-2018-03-28.tar.bz2.sha256"
+      ]
+    },
+    "https://pvindex.org/repository/platformos/builds/pegasus/": {
+      "sha256": "91c95b460543bec64578e4e4e1899535f00efdace43e5cc6d7e0e2226fc53a14",
+      "links": [
+        "jetstream/",
+        "release/"
+      ]
+    },
+    "https://pvindex.org/repository/platformos/builds/platform-experimental/": {
+      "sha256": "d0baabee25c881d443daf2e5a12aec18948f90a37ab05c81e95d2b0475541699",
+      "links": [
+        "jibo-pvt-flash-build-FCS-BIST-nvd-init.tar.bz2",
+        "jibo-pvt-flash-build-FCS-nvd-init.tar.bz2",
+        "jibo-pvt-flash-build-dev-tc-1.tar.bz2",
+        "jibo-pvt-flash-build-dev-tc-1.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-tc-1.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-tc-2.tar.bz2",
+        "jibo-pvt-flash-build-dev-tc-2.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-tc-2.tar.bz2.sha256",
+        "sha256.txt"
+      ]
+    },
+    "https://pvindex.org/repository/platformos/builds/platform-testing/": {
+      "sha256": "a37c8b6529812a43c972dce0a73b260b3cfc4c21eb7324400531035deb8f101f",
+      "links": [
+        "jibo-pvt-flash-build-NVD-v17.tar.bz2",
+        "jibo-pvt-flash-build-PMIC-ADC.tar.bz2",
+        "jibo-pvt-flash-build-SCS-SERVICE.tar.bz2",
+        "jibo-pvt-flash-build-dev-vision-1.tar.bz2",
+        "jibo-pvt-flash-build-dev-vision-1.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-vision-1.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-vision-3.tar.bz2",
+        "jibo-pvt-flash-build-dev-vision-3.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-vision-3.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-vision-4.tar.bz2",
+        "jibo-pvt-flash-build-dev-vision-4.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-vision-4.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-vision-5.tar.bz2",
+        "jibo-pvt-flash-build-dev-vision-5.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-vision-5.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-vision-7.tar.bz2",
+        "jibo-pvt-flash-build-dev-vision-7.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-vision-7.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-vision-8.tar.bz2",
+        "jibo-pvt-flash-build-dev-vision-8.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-vision-8.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-vision-9.tar.bz2",
+        "jibo-pvt-flash-build-dev-vision-9.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-vision-9.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-vision-10.tar.bz2",
+        "jibo-pvt-flash-build-dev-vision-10.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-vision-10.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-vision-11.tar.bz2",
+        "jibo-pvt-flash-build-dev-vision-11.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-vision-11.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-vision-12.tar.bz2",
+        "jibo-pvt-flash-build-dev-vision-12.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-vision-12.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-vision-15.tar.bz2",
+        "jibo-pvt-flash-build-dev-vision-15.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-vision-15.tar.bz2.sha256",
+        "sha256.txt"
+      ]
+    },
+    "https://pvindex.org/repository/platformos/builds/release-dev/": {
+      "sha256": "79a51b9b3440a0a8b248192d650041636055d66e14db6fac915903c6a9e91f48",
+      "links": [
+        "jibo-pvt-flash-8.1.3-BETA-3.tar.bz2",
+        "jibo-pvt-flash-10.0.0.tar.bz2",
+        "jibo-pvt-flash-build-3.3.3-rtm3-dev.tar.bz2",
+        "jibo-pvt-flash-build-8.16.0.tar.bz2",
+        "jibo-pvt-flash-build-8.19.0.tar.bz2",
+        "jibo-pvt-flash-rtm2-dev-3.0.10.tar.bz2",
+        "sha256.txt"
+      ]
+    },
+    "https://pvindex.org/repository/platformos/builds/release-production/": {
+      "sha256": "706523815e07042438e6cff7c68df0cf83b2fb7df4af7f12f03ac8bb092b38d8",
+      "links": [
+        "jibo-pvt-flash-build-8.13.0-20170913.tar.bz2",
+        "jibo-pvt-flash-build-8.16.0-20171004.tar.bz2",
+        "jibo-pvt-flash-build-8.19.0-20171018.tar.bz2",
+        "jibo-pvt-flash-build-RTM2-3.0.8-20170220.tar.bz2",
+        "jibo-pvt-flash-build-RTM2-3.0.9-20170303.tar.bz2",
+        "jibo-pvt-flash-build-RTM3-3.3.4-20170623.tar.bz2",
+        "sha256.txt"
+      ],
+      "checksums_sha256": "21b7b6a385e0746a6e9055cd8a50d681d76498deb998b4f958bc95f4ff4d0d88"
+    },
+    "https://pvindex.org/repository/platformos/builds/sqa-testing/": {
+      "sha256": "d6a776b08a61323c51774141a00f7cc8784c4318193c59e9c764ad83e154600a",
+      "links": [
+        "12-7-0-bkp.tar.bz2",
+        "jibo-hue-10.5.7-develop.tar.bz2",
+        "jibo-pvt-flash-build-9.5.0-20171024-production.tar.bz2",
+        "jibo-pvt-flash-build-9.5.0-develop.tar.bz2",
+        "jibo-pvt-flash-build-9.8.0-20171127-production.tar.bz2",
+        "jibo-pvt-flash-build-9.8.0-develop.tar.bz2",
+        "jibo-pvt-flash-build-9.8.4-20171129-production.tar.bz2",
+        "jibo-pvt-flash-build-9.8.4-develop.tar.bz2",
+        "jibo-pvt-flash-build-9.8.6-20171212-production.tar.bz2",
+        "jibo-pvt-flash-build-9.8.6-develop.tar.bz2",
+        "jibo-pvt-flash-build-9.8.8-20171217-production.tar.bz2",
+        "jibo-pvt-flash-build-9.8.8-develop.tar.bz2",
+        "jibo-pvt-flash-build-9.11.0-develop.tar.bz2",
+        "jibo-pvt-flash-build-9.12.0-20180103-production.tar.bz2",
+        "jibo-pvt-flash-build-9.12.0-develop.tar.bz2",
+        "jibo-pvt-flash-build-10.1.0-20171228-production.tar.bz2",
+        "jibo-pvt-flash-build-10.1.0-develop.tar.bz2",
+        "jibo-pvt-flash-build-10.2.0-201801010-production.tar.bz2",
+        "jibo-pvt-flash-build-10.2.0-develop.tar.bz2",
+        "jibo-pvt-flash-build-10.3.0-20180116-production.tar.bz2",
+        "jibo-pvt-flash-build-10.3.0-develop.tar.bz2",
+        "jibo-pvt-flash-build-10.4.0-20180122-production.tar.bz2",
+        "jibo-pvt-flash-build-10.4.0-develop.tar.bz2",
+        "jibo-pvt-flash-build-10.5.0-develop.tar.bz2",
+        "jibo-pvt-flash-build-10.5.5-develop.tar.bz2",
+        "jibo-pvt-flash-build-10.5.7-20180208-production.tar.bz2",
+        "jibo-pvt-flash-build-10.5.7-develop.tar.bz2",
+        "jibo-pvt-flash-build-10.5.8-20180216-production.tar.bz2",
+        "jibo-pvt-flash-build-10.5.9-20180218-production.tar.bz2",
+        "jibo-pvt-flash-build-11.0.0-develop.tar.bz2",
+        "jibo-pvt-flash-build-11.1.0-20180222-production.tar.bz2",
+        "jibo-pvt-flash-build-11.1.1-20180227-production.tar.bz2",
+        "jibo-pvt-flash-build-11.6.0-develop.tar.bz2",
+        "jibo-pvt-flash-build-11.7.0-20180312-production.tar.bz2",
+        "jibo-pvt-flash-build-11.7.0-develop.tar.bz2",
+        "jibo-pvt-flash-build-11.7.0-develop.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-11.7.0-develop.tar.bz2.sha256",
+        "jibo-pvt-flash-build-11.7.1-20180314-production.tar.bz2",
+        "jibo-pvt-flash-build-12.0.0-develop.tar.bz2",
+        "jibo-pvt-flash-build-12.0.0-develop.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-12.0.0-develop.tar.bz2.sha256",
+        "jibo-pvt-flash-build-12.0.1-develop.tar.bz2",
+        "jibo-pvt-flash-build-12.0.1-develop.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-12.0.1-develop.tar.bz2.sha256",
+        "jibo-pvt-flash-build-12.0.2-develop.tar.bz2",
+        "jibo-pvt-flash-build-12.0.2-develop.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-12.0.2-develop.tar.bz2.sha256",
+        "jibo-pvt-flash-build-12.0.3-develop.tar.bz2",
+        "jibo-pvt-flash-build-12.0.3-develop.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-12.0.3-develop.tar.bz2.sha256",
+        "jibo-pvt-flash-build-12.0.4-develop.tar.bz2",
+        "jibo-pvt-flash-build-12.0.4-develop.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-12.0.4-develop.tar.bz2.sha256",
+        "jibo-pvt-flash-build-12.0.5-develop.tar.bz2",
+        "jibo-pvt-flash-build-12.0.5-develop.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-12.0.5-develop.tar.bz2.sha256",
+        "jibo-pvt-flash-build-12.0.6-20180330-production.tar.bz2",
+        "jibo-pvt-flash-build-12.0.7-develop.tar.bz2",
+        "jibo-pvt-flash-build-12.0.8-20180403-production.tar.bz2",
+        "jibo-pvt-flash-build-12.0.8-develop.tar.bz2",
+        "jibo-pvt-flash-build-12.0.8-develop.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-12.0.8-develop.tar.bz2.sha256",
+        "jibo-pvt-flash-build-12.1.0-develop.tar.bz2",
+        "jibo-pvt-flash-build-12.1.0-develop.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-12.1.0-develop.tar.bz2.sha256",
+        "jibo-pvt-flash-build-12.2.0-develop.tar.bz2",
+        "jibo-pvt-flash-build-12.2.0-develop.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-12.2.0-develop.tar.bz2.sha256",
+        "jibo-pvt-flash-build-12.3.0-develop.tar.bz2",
+        "jibo-pvt-flash-build-12.3.0-develop.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-12.3.0-develop.tar.bz2.sha256",
+        "jibo-pvt-flash-build-12.4.0-develop.tar.bz2",
+        "jibo-pvt-flash-build-12.4.0-develop.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-12.4.0-develop.tar.bz2.sha256",
+        "jibo-pvt-flash-build-12.5.0-develop.tar.bz2",
+        "jibo-pvt-flash-build-12.5.0-develop.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-12.5.0-develop.tar.bz2.sha256",
+        "jibo-pvt-flash-build-12.6.0-develop.tar.bz2",
+        "jibo-pvt-flash-build-12.6.0-develop.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-12.6.0-develop.tar.bz2.sha256",
+        "jibo-pvt-flash-build-12.7.0-20180517-production.tar.bz2",
+        "jibo-pvt-flash-build-12.9.0-develop.tar.bz2",
+        "jibo-pvt-flash-build-12.9.0-develop.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-12.9.0-develop.tar.bz2.sha256",
+        "jibo-pvt-flash-build-12.10.0-20180823-production.tar.bz2",
+        "jibo-pvt-flash-build-12.10.0-develop.tar.bz2",
+        "jibo-pvt-flash-build-12.11.0-lastdance-rc1-develop.tar.bz2",
+        "jibo-pvt-flash-build-12.11.0-lastdance-rc1-develop.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-12.11.0-lastdance-rc1-develop.tar.bz2.sha256",
+        "jibo-pvt-flash-build-13.0.0-lastdance-rc2-20190222-dev.tar.bz2",
+        "jibo-pvt-flash-build-13.0.0-lastdance-rc2-20190225-prod.tar.bz2",
+        "jibo-pvt-flash-build-dev-3.tar.bz2",
+        "jibo-pvt-flash-build-dev-3.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-3.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-4.tar.bz2",
+        "jibo-pvt-flash-build-dev-4.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-4.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-5.tar.bz2",
+        "jibo-pvt-flash-build-dev-5.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-5.tar.bz2.sha256",
+        "jibo-pvt-flash-build-dev-6.tar.bz2",
+        "jibo-pvt-flash-build-dev-6.tar.bz2.release-notes.txt",
+        "jibo-pvt-flash-build-dev-6.tar.bz2.sha256",
+        "jibo-pvt-flash-build-last-dance-rc1-develop.tar.bz2",
+        "sha256.txt"
+      ],
+      "checksums_sha256": "85bb1521d5d3e78456c4628615fbcf80f58f5acf538a405a4dd9ff5129816c60"
+    },
+    "https://pvindex.org/repository/platformos/builds/stable-builds/": {
+      "sha256": "39b710b895d9e54595b7da2e0cc95fc15c0c8d1f130ded37f637cd8bcec76ffa",
+      "links": [
+        "README",
+        "jibo-pvt-flash-3.0.8-RTM-2.tar.bz2",
+        "jibo-pvt-flash-build-5.3.0-EFT.tar.bz2",
+        "jibo-pvt-flash-build-5.4.0-EFT.tar.bz2",
+        "jibo-pvt-flash-build-5.5.0.tar.bz2",
+        "sha256.txt"
+      ]
+    }
+  },
+  "archives": [
+    {
+      "label": "RTM2-3.0.8-20170220",
+      "version": "3.0.8",
+      "url": "https://pvindex.org/repository/platformos/builds/release-production/jibo-pvt-flash-build-RTM2-3.0.8-20170220.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "abaffcc98bb644eb716280895ea61e1fd1d28609a0916939535f5ccb768fb542",
+      "checksum_filename": "jibo-pvt-flash-build-RTM2-3.0.8-20170220.tar.bz2"
+    },
+    {
+      "label": "RTM2-3.0.9-20170303",
+      "version": "3.0.9",
+      "url": "https://pvindex.org/repository/platformos/builds/release-production/jibo-pvt-flash-build-RTM2-3.0.9-20170303.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "0cfe3f366d0c0c1aee84536623773755ea0c2ef7eef0e7ecdb0d4617092523a9",
+      "checksum_filename": "jibo-pvt-flash-build-RTM2-3.0.9-20170303.tar.bz2"
+    },
+    {
+      "label": "rtm2-dev-3.0.10",
+      "version": "3.0.10",
+      "scope": "supplemental-development-variant",
+      "url": "https://pvindex.org/repository/platformos/builds/release-dev/jibo-pvt-flash-rtm2-dev-3.0.10.tar.bz2",
+      "expected_sha256": "e017a3c318bda420b8ff21b3d3972f00ded8b1ff193c007a9dc1dde941828ff2",
+      "checksum_filename": "jibo-pvt-flash-rtm2-dev-3.0.10.tar.bz2"
+    },
+    {
+      "label": "3.3.3-rtm3-dev",
+      "version": "3.3.3",
+      "scope": "supplemental-development-variant",
+      "url": "https://pvindex.org/repository/platformos/builds/release-dev/jibo-pvt-flash-build-3.3.3-rtm3-dev.tar.bz2",
+      "expected_sha256": "2d66e1a35d8c84d4d800e961f653cb1dea49253a21886e3104e96ea4b5aab80c",
+      "checksum_filename": "jibo-pvt-flash-build-3.3.3-rtm3-dev.tar.bz2"
+    },
+    {
+      "label": "RTM3-3.3.4-20170623",
+      "version": "3.3.4",
+      "url": "https://pvindex.org/repository/platformos/builds/release-production/jibo-pvt-flash-build-RTM3-3.3.4-20170623.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "225bc6721808d907a3acbc5c17b3d9ad6a8e5b5ed444a85ccee5cb7a50d228d8",
+      "checksum_filename": "jibo-pvt-flash-build-RTM3-3.3.4-20170623.tar.bz2"
+    },
+    {
+      "label": "5.0.1-production",
+      "version": "5.0.1",
+      "url": "https://pvindex.org/repository/platformos/builds/ota-production-release/jibo-pvt-flash-build-5.0.1-production.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "709fc4971af7e5f957c2e77328b73d3577b3a27f7c75018536af2c89d1698ed4",
+      "checksum_filename": "jibo-pvt-flash-build-5.0.1-production.tar.bz2"
+    },
+    {
+      "label": "5.4.0-EFT",
+      "version": "5.4.0",
+      "scope": "supplemental-owner-baseline",
+      "url": "https://pvindex.org/repository/platformos/builds/stable-builds/jibo-pvt-flash-build-5.4.0-EFT.tar.bz2",
+      "expected_sha256": "d40989ec57721071ca819aad9a77b7b9102b48101d6d448d6ce4a869ef974864",
+      "checksum_filename": "jibo-pvt-flash-build-5.4.0-EFT.tar.bz2"
+    },
+    {
+      "label": "5.4.0-production",
+      "version": "5.4.0",
+      "url": "https://pvindex.org/repository/platformos/builds/ota-production-release/jibo-pvt-flash-build-5.4.0-production.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "374d3cb58641d5026ceeaf702008718a895abf0e8f8d8c4d5b0963bed8f252ea",
+      "checksum_filename": "jibo-pvt-flash-build-EFT-production.tar.bz2"
+    },
+    {
+      "label": "5.4.2-production",
+      "version": "5.4.2",
+      "url": "https://pvindex.org/repository/platformos/builds/ota-production-release/jibo-pvt-flash-build-5.4.2-production.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "e81a87272749f13b894d96c3120215089e149f454eda0aa14bf780f98ba3f2ca",
+      "checksum_filename": "jibo-pvt-flash-build-5.4.2-production.tar.bz2"
+    },
+    {
+      "label": "8.1.0-20170531-BETA-3",
+      "version": "8.1.0",
+      "url": "https://pvindex.org/repository/platformos/builds/ota-production-release/jibo-pvt-flash-8.1.0-20170531-BETA-3.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "97f332657bd9bb8b6fbbb686e54166dc4723f74b77c7650ab7d473d84f1f7e4e",
+      "checksum_filename": "jibo-pvt-flash-8.1.0-20170531-BETA-3.tar.bz2"
+    },
+    {
+      "label": "8.1.1-20170531-BETA-3",
+      "version": "8.1.1",
+      "url": "https://pvindex.org/repository/platformos/builds/ota-production-release/jibo-pvt-flash-8.1.1-20170531-BETA-3.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "22d11c043cf91e60155e5c77fd729fdf169fbd6c5b4902449afc5035b1a81cec",
+      "checksum_filename": "jibo-pvt-flash-8.1.1-20170531-BETA-3.tar.bz2"
+    },
+    {
+      "label": "8.1.2-20170601-BETA-3",
+      "version": "8.1.2",
+      "url": "https://pvindex.org/repository/platformos/builds/ota-production-release/jibo-pvt-flash-8.1.2-20170601-BETA-3.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "50ede7368aa8014ad97541f1f7bac8d06d31de3b5f167edc6fe7087b392a1fbf",
+      "checksum_filename": "jibo-pvt-flash-8.1.2-20170601-BETA-3.tar.bz2"
+    },
+    {
+      "label": "8.1.3-20170601-BETA-3",
+      "version": "8.1.3",
+      "url": "https://pvindex.org/repository/platformos/builds/ota-production-release/jibo-pvt-flash-8.1.3-20170601-BETA-3.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "a109521fc81be35ffd49a985ca0ab069ee6af1796b0b9b54885b20dd745643ec",
+      "checksum_filename": "jibo-pvt-flash-8.1.3-20170601-BETA-3.tar.bz2"
+    },
+    {
+      "label": "8.2.0-20170620-BETA-3.1",
+      "version": "8.2.0",
+      "url": "https://pvindex.org/repository/platformos/builds/ota-production-release/jibo-pvt-flash-8.2.0-20170620-BETA-3.1.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "7238f50a38403cd37234b910dc73df482039cbb0e6ea5d6097ecbc973755989f",
+      "checksum_filename": "jibo-pvt-flash-8.2.0-20170620-BETA-3.1.tar.bz2"
+    },
+    {
+      "label": "8.13.0-20170913",
+      "version": "8.13.0",
+      "url": "https://pvindex.org/repository/platformos/builds/release-production/jibo-pvt-flash-build-8.13.0-20170913.tar.bz2",
+      "scope": "production",
+      "expected_sha256": null,
+      "checksum_filename": null
+    },
+    {
+      "label": "8.16.0-20171004",
+      "version": "8.16.0",
+      "url": "https://pvindex.org/repository/platformos/builds/release-production/jibo-pvt-flash-build-8.16.0-20171004.tar.bz2",
+      "scope": "production",
+      "expected_sha256": null,
+      "checksum_filename": null
+    },
+    {
+      "label": "8.19.0-20171018",
+      "version": "8.19.0",
+      "url": "https://pvindex.org/repository/platformos/builds/release-production/jibo-pvt-flash-build-8.19.0-20171018.tar.bz2",
+      "scope": "production",
+      "expected_sha256": null,
+      "checksum_filename": null
+    },
+    {
+      "label": "9.5.0-20171024-production",
+      "version": "9.5.0",
+      "url": "https://pvindex.org/repository/platformos/builds/sqa-testing/jibo-pvt-flash-build-9.5.0-20171024-production.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "7d908644535a3cb014a28c538b14fd461c327f85156bb8a20f4a3871b659cded",
+      "checksum_filename": "jibo-pvt-flash-build-9.5.0-20171024-production.tar.bz2"
+    },
+    {
+      "label": "9.8.0-20171127-production",
+      "version": "9.8.0",
+      "url": "https://pvindex.org/repository/platformos/builds/sqa-testing/jibo-pvt-flash-build-9.8.0-20171127-production.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "6a208b54b9ab2e66102930e75ac466ca615f18d006c2997a86d9f46d35ade4bc",
+      "checksum_filename": "jibo-pvt-flash-build-9.8.0-20171127-production.tar.bz2"
+    },
+    {
+      "label": "9.8.4-20171129-production",
+      "version": "9.8.4",
+      "url": "https://pvindex.org/repository/platformos/builds/sqa-testing/jibo-pvt-flash-build-9.8.4-20171129-production.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "de2b1afa6ea727c498195d05d59083390bd9dcbcefd02f950f94066a8a645e79",
+      "checksum_filename": "jibo-pvt-flash-build-9.8.4-20171129-production.tar.bz2"
+    },
+    {
+      "label": "9.8.6-20171212-production",
+      "version": "9.8.6",
+      "url": "https://pvindex.org/repository/platformos/builds/sqa-testing/jibo-pvt-flash-build-9.8.6-20171212-production.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "d5ff483fc1a1d33724d1a02123b25e0c3a4292db0915f76e2f94c32ee032eaf3",
+      "checksum_filename": "jibo-pvt-flash-build-9.8.6-20171212-production.tar.bz2"
+    },
+    {
+      "label": "9.8.8-20171217-production",
+      "version": "9.8.8",
+      "url": "https://pvindex.org/repository/platformos/builds/sqa-testing/jibo-pvt-flash-build-9.8.8-20171217-production.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "1f2d8c787e4a5f27413c296fdc6dc83853a9766c1d471f6c3078c18ab5a26950",
+      "checksum_filename": "jibo-pvt-flash-build-9.8.8-20171217-production.tar.bz2"
+    },
+    {
+      "label": "9.12.0-20180103-production",
+      "version": "9.12.0",
+      "url": "https://pvindex.org/repository/platformos/builds/sqa-testing/jibo-pvt-flash-build-9.12.0-20180103-production.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "7bafc638e0a3e4310f02400d2333589c3fb66c256954fae44bc76bb1257194e9",
+      "checksum_filename": "jibo-pvt-flash-build-9.12.0-20180103-production.tar.bz2"
+    },
+    {
+      "label": "10.1.0-20171228-production",
+      "version": "10.1.0",
+      "url": "https://pvindex.org/repository/platformos/builds/sqa-testing/jibo-pvt-flash-build-10.1.0-20171228-production.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "0015cb004174d05859847514383f7c19e1ef702214f3e7c1440702bd09268bc5",
+      "checksum_filename": "jibo-pvt-flash-build-10.1.0-20171228-production.tar.bz2"
+    },
+    {
+      "label": "10.2.0-201801010-production",
+      "version": "10.2.0",
+      "url": "https://pvindex.org/repository/platformos/builds/sqa-testing/jibo-pvt-flash-build-10.2.0-201801010-production.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "07c9a862697d19085e1839dbd82ba795c0a8cff87b792735cd116c2deb461a7f",
+      "checksum_filename": "jibo-pvt-flash-build-10.2.0-201801010-production.tar.bz2"
+    },
+    {
+      "label": "10.3.0-20180116-production",
+      "version": "10.3.0",
+      "url": "https://pvindex.org/repository/platformos/builds/sqa-testing/jibo-pvt-flash-build-10.3.0-20180116-production.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "74355492e90265425aa49c1fb19cf3a961ca0f529ede9202a144aea667299ef5",
+      "checksum_filename": "jibo-pvt-flash-build-10.3.0-20180116-production.tar.bz2"
+    },
+    {
+      "label": "10.4.0-20180122-production",
+      "version": "10.4.0",
+      "url": "https://pvindex.org/repository/platformos/builds/sqa-testing/jibo-pvt-flash-build-10.4.0-20180122-production.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "3589c571bc84a251d641ce4b0ca309eedcff0c83616dd04e9fcee6d6108d213b",
+      "checksum_filename": "jibo-pvt-flash-build-10.4.0-20180122-production.tar.bz2"
+    },
+    {
+      "label": "10.5.7-20180208-production",
+      "version": "10.5.7",
+      "url": "https://pvindex.org/repository/platformos/builds/sqa-testing/jibo-pvt-flash-build-10.5.7-20180208-production.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "4d2ef7e052da80abd55cafcfd3f9ca145d8a5dd847ebe0f89eaaf9be28d674b5",
+      "checksum_filename": "jibo-pvt-flash-build-10.5.7-20180208-production.tar.bz2"
+    },
+    {
+      "label": "10.5.8-20180216-production",
+      "version": "10.5.8",
+      "url": "https://pvindex.org/repository/platformos/builds/sqa-testing/jibo-pvt-flash-build-10.5.8-20180216-production.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "e61d21137960c7fb666b783fbcfc3766b99bc002e8ebb2beacaf5beea360d7da",
+      "checksum_filename": "jibo-pvt-flash-build-10.5.8-20180216-production.tar.bz2"
+    },
+    {
+      "label": "10.5.9-20180218-production",
+      "version": "10.5.9",
+      "url": "https://pvindex.org/repository/platformos/builds/sqa-testing/jibo-pvt-flash-build-10.5.9-20180218-production.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "204104d50945a3453bb0250d16a93213c4885af50ce8487e027d2e3abf3e7a31",
+      "checksum_filename": "jibo-pvt-flash-build-10.5.9-20180218-production.tar.bz2"
+    },
+    {
+      "label": "11.1.0-20180222-production",
+      "version": "11.1.0",
+      "url": "https://pvindex.org/repository/platformos/builds/sqa-testing/jibo-pvt-flash-build-11.1.0-20180222-production.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "0b728d1bcc191f95a08e7738b2140627b3aae6b969cb53d26caf9ee8a21b629b",
+      "checksum_filename": "jibo-pvt-flash-build-11.1.0-20180222-production.tar.bz2"
+    },
+    {
+      "label": "11.1.1-20180227-production",
+      "version": "11.1.1",
+      "url": "https://pvindex.org/repository/platformos/builds/sqa-testing/jibo-pvt-flash-build-11.1.1-20180227-production.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "12d8c2b3b4c7b605b04059131e177735b1b876e313ae429150d4ea11e2fa45e1",
+      "checksum_filename": "jibo-pvt-flash-build-11.1.1-20180227-production.tar.bz2"
+    },
+    {
+      "label": "11.7.0-20180312-production",
+      "version": "11.7.0",
+      "url": "https://pvindex.org/repository/platformos/builds/sqa-testing/jibo-pvt-flash-build-11.7.0-20180312-production.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "7685805378e30c66e759e4f841b4e15e4d73a569abfcaaa33541e63cc3724d1c",
+      "checksum_filename": "jibo-pvt-flash-build-11.7.0-20180312-production.tar.bz2"
+    },
+    {
+      "label": "11.7.1-20180314-production",
+      "version": "11.7.1",
+      "url": "https://pvindex.org/repository/platformos/builds/sqa-testing/jibo-pvt-flash-build-11.7.1-20180314-production.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "c6341fdd5c0286a7c0f310b7b4ffd59633e32a9fbc76c98c4629cd359e36e10b",
+      "checksum_filename": "jibo-pvt-flash-build-11.7.1-20180314-production.tar.bz2"
+    },
+    {
+      "label": "12.0.6-20180330-production",
+      "version": "12.0.6",
+      "url": "https://pvindex.org/repository/platformos/builds/sqa-testing/jibo-pvt-flash-build-12.0.6-20180330-production.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "74b2bbeb3e7e518bc25dbf17a335b12412853e5d14cf493248a94420ae1be3a6",
+      "checksum_filename": "jibo-pvt-flash-build-12.0.6-20180330-production.tar.bz2"
+    },
+    {
+      "label": "12.0.8-20180403-production",
+      "version": "12.0.8",
+      "url": "https://pvindex.org/repository/platformos/builds/sqa-testing/jibo-pvt-flash-build-12.0.8-20180403-production.tar.bz2",
+      "scope": "production",
+      "expected_sha256": "37b684ac383ba88657ac97924a19534cf8f8a1c35e146c22df833c60d0258b2b",
+      "checksum_filename": "jibo-pvt-flash-build-12.0.8-20180403-production.tar.bz2"
+    },
+    {
+      "label": "12.7.0-20180517-production",
+      "version": "12.7.0",
+      "url": "https://pvindex.org/repository/platformos/builds/sqa-testing/jibo-pvt-flash-build-12.7.0-20180517-production.tar.bz2",
+      "scope": "production",
+      "expected_sha256": null,
+      "checksum_filename": null
+    },
+    {
+      "label": "12.10.0-20180823-production",
+      "version": "12.10.0",
+      "url": "https://pvindex.org/repository/platformos/builds/sqa-testing/jibo-pvt-flash-build-12.10.0-20180823-production.tar.bz2",
+      "scope": "production",
+      "expected_sha256": null,
+      "checksum_filename": null
+    },
+    {
+      "label": "13.0.0-lastdance-rc2-20190225-prod",
+      "version": "13.0.0",
+      "url": "https://pvindex.org/repository/platformos/builds/sqa-testing/jibo-pvt-flash-build-13.0.0-lastdance-rc2-20190225-prod.tar.bz2",
+      "scope": "production",
+      "expected_sha256": null,
+      "checksum_filename": null
+    }
+  ]
+}

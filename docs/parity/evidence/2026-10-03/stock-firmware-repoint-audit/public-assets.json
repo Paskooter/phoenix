@@ -1,0 +1,72 @@
+{
+  "robot-ota-repoint.sh": {
+    "url": "https://jibo.io/robot-ota-repoint.sh",
+    "sha256": "aa452bf984f79239f277e692abda19cb00482cb86624a66138471a5583009da5",
+    "expected": "aa452bf984f79239f277e692abda19cb00482cb86624a66138471a5583009da5",
+    "matches_pin": true,
+    "error": ""
+  },
+  "node.js": {
+    "url": "https://jibo.io/robot-client/node.js",
+    "sha256": "29686ca0aec6b93b8b716b94fca443ce25e6e7e55e01e798be56bce920c66bac",
+    "expected": "29686ca0aec6b93b8b716b94fca443ce25e6e7e55e01e798be56bce920c66bac",
+    "matches_pin": true,
+    "error": ""
+  },
+  "node-v2.js": {
+    "url": "https://jibo.io/robot-client/node-v2.js",
+    "sha256": "22bb36bcc0c7ecedf64cca3c66b11c5d7959b3eba85990c739e77238c7b9c503",
+    "expected": "22bb36bcc0c7ecedf64cca3c66b11c5d7959b3eba85990c739e77238c7b9c503",
+    "matches_pin": true,
+    "error": ""
+  },
+  "isrg-root-x1.pem": {
+    "url": "https://jibo.io/robot-client/isrg-root-x1.pem",
+    "sha256": "22b557a27055b33606b6559f37703928d3e4ad79f110b407d04986e1843543d1",
+    "expected": "22b557a27055b33606b6559f37703928d3e4ad79f110b407d04986e1843543d1",
+    "matches_pin": true,
+    "error": ""
+  },
+  "patch-system-backup-tls.cjs": {
+    "url": "https://jibo.io/robot-client/patch-system-backup-tls.cjs",
+    "sha256": "0fee710b1dec524b8d4629deb19e8be9dc1013e161abed4180be3d2f2c28e2d8",
+    "expected": "0fee710b1dec524b8d4629deb19e8be9dc1013e161abed4180be3d2f2c28e2d8",
+    "matches_pin": true,
+    "error": ""
+  },
+  "patch-ota-downloader-tls.cjs": {
+    "url": "https://jibo.io/robot-client/patch-ota-downloader-tls.cjs",
+    "sha256": "51b71ff2e02569f203998b7d82c6e3f2743030a48bbc3abc149a66c6563061f1",
+    "expected": "51b71ff2e02569f203998b7d82c6e3f2743030a48bbc3abc149a66c6563061f1",
+    "matches_pin": true,
+    "error": ""
+  },
+  "patch-ssm-wifi-check.cjs": {
+    "url": "https://jibo.io/robot-client/patch-ssm-wifi-check.cjs",
+    "sha256": "29dce60e9bf9d5cec56688b576c36c0c4662ccb3a17bc2fb83df6a5d654421f6",
+    "expected": "29dce60e9bf9d5cec56688b576c36c0c4662ccb3a17bc2fb83df6a5d654421f6",
+    "matches_pin": true,
+    "error": ""
+  },
+  "patch-oobe-setup-text.cjs": {
+    "url": "https://jibo.io/robot-client/patch-oobe-setup-text.cjs",
+    "sha256": "edcc2971b932a41da80f9af286a74ce41cc213ccc90af429bfdf7e2a2c8989a1",
+    "expected": "edcc2971b932a41da80f9af286a74ce41cc213ccc90af429bfdf7e2a2c8989a1",
+    "matches_pin": true,
+    "error": ""
+  },
+  "repoint-cloud-config.cjs": {
+    "url": "https://jibo.io/robot-client/repoint-cloud-config.cjs",
+    "sha256": "103e333e630892d3b98bb27b75502e970d21ac796ffeafa1032cbbb864dbba04",
+    "expected": "103e333e630892d3b98bb27b75502e970d21ac796ffeafa1032cbbb864dbba04",
+    "matches_pin": true,
+    "error": ""
+  },
+  "trigger-ota.cjs": {
+    "url": "https://jibo.io/robot-client/trigger-ota.cjs",
+    "sha256": "de8275df41413af28c9b2a70ce052057c7f690a0f13ca0b8efe5740a25e414b9",
+    "expected": "de8275df41413af28c9b2a70ce052057c7f690a0f13ca0b8efe5740a25e414b9",
+    "matches_pin": true,
+    "error": ""
+  }
+}

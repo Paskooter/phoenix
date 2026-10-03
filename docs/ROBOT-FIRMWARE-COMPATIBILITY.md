@@ -16,6 +16,12 @@ Wi-Fi patcher. The [2026-10-04 exact-file check](parity/evidence/2026-10-04/12-1
 verifies the reported 12.10.0 variant and adds a regression for its literal
 OpenJibo hostname assignments; the owner's follow-up signs off the named rerun cases.
 The source survey below does not enumerate the owner's ten hardware trials.
+The [2026-10-03 archive audit](parity/evidence/2026-10-03/stock-firmware-repoint-audit/README.md)
+downloads and individually checks all 36 available production-designated flash
+archives, plus three explicitly supplemental builds. It records full archive and
+partition hashes, real legacy-runtime patch/client checks, complete shell dry-runs
+and isolated unpaired apply/repeat checks. The existing repoint script passes
+these checks without a production-code change.
 
 ## Which firmware robots actually run
 
@@ -33,8 +39,10 @@ credentials. That is the path the helper's `--auto` mode takes when it finds no
 
 ## What differs, by version
 
-Probed from the ext4 images of each archived flash build with
-`tools/firmware-compat/fetch-probe.sh`.
+The table below is the initial selected-build survey, made with
+`tools/firmware-compat/fetch-probe.sh`. The complete per-archive matrix and
+machine-readable results are in the
+[2026-10-03 audit](parity/evidence/2026-10-03/stock-firmware-repoint-audit/README.md).
 
 | Platform | Node | Server client (copies found) | OTA downloader | Backup/restore helpers | Jetstream hub config | Socket suffix in server service | Setup skill region |
 |---|---|---|---|---|---|---|---|
@@ -47,7 +55,7 @@ Probed from the ext4 images of each archived flash build with
 | 10.5.7 | 6.9.2 | 3.x (14) | A | A | — | yes | stg-entrypoint |
 | 11.7.0 | 6.9.2 | 3.x (14) | A | A | — | yes | stg-entrypoint |
 | 12.9.0 | 6.9.2 | 3.x (5) | A | A | yes | yes | stg-entrypoint |
-| 12.10.0 (20180823 production archive) | 6.9.2 | 3.x (global client inspected) | A | A | not re-probed | not re-probed | not re-probed |
+| 12.10.0 (20180823 production archive) | 6.9.2 | 3.x (5) | A | A | yes | yes | stg-entrypoint |
 | 13.0.0 (Last Dance) | 6.9.2 | 3.x (5) | A | A | yes | yes | stg-entrypoint |
 
 - **OTA downloader** (`@jibo/jibo-ota-updater/src/download-update.js`): **A** is the
@@ -176,6 +184,16 @@ request ever reached the server. On the robot:
 - [ ] Interrupted/corrupt-update recovery and A/B boot fallback — the owner
   explicitly has not tested these. They are R-10 scope.
 
+- [ ] Production images absent from the archive. Every production-designated
+  flash archive found on 2026-10-03 was downloaded and checked individually
+  ([audit](parity/evidence/2026-10-03/stock-firmware-repoint-audit/README.md)),
+  including 3.0.8 and all available point releases. Production 3.0.10 and 3.3.3
+  images were not listed (only development variants, kept as supplemental
+  evidence), no 6.x/7.x production flash archives were listed, and OTA-only
+  releases may also be missing; those and other custom variants remain
+  unverified (the reported 12.10.0 SSM variant is verified by the 2026-10-04
+  exact-file check). The offline audit does not certify hardware setup or OTA
+  installation on every version.
 New or individually unidentified builds, including 6.x/7.x and further point
 releases, keep the reviewed executable/schema/Wi-Fi syntax preflight. An unknown
 target stops before changes. Add a structural fixture or reviewed executable
