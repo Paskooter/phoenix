@@ -101,14 +101,16 @@ in `deploy/nginx/phoenix.conf`).
 
 ### Community invitations
 
-The public site and console invite visitors to the project's Discord community by default.
+The public site and console invite visitors to the Phoenix Discord server by default,
+with copy identifying it as separate from the Jibo Revival Group server.
 Set `links.discord` in `branding.json` (or your `PHOENIX_BRANDING_FILE`) to use your own server;
 that one value updates the setup prompt, FAQ action, community section, footers, and console
-help links. The copy lives under `community`, and the navigation label is `nav.community`.
+help links. Update the Phoenix-specific copy under `community` and in `faq.items` when
+using a different server. The navigation label is `nav.community`.
 The HTML also carries the default invite for visitors without JavaScript or a branding response.
 
 A FAQ item can include a `cta` with `label` and `hrefFrom`, for example
-`"cta": { "label": "Get help on Discord", "hrefFrom": "links.discord" }`. The shared list
+`"cta": { "label": "Join Phoenix Discord", "hrefFrom": "links.discord" }`. The shared list
 renderer resolves the link from branding, escapes the label, and accepts only the same safe
 URLs as other branded links. Existing FAQ items with just `q` and `a` continue to work.
 

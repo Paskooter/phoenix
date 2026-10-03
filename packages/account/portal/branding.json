@@ -176,9 +176,9 @@
       },
       {
         "q": "Where can I get help or meet other Jibo owners?",
-        "a": "Join our Discord community to ask about setup, pairing, and getting your Jibo talking again. It's also a place to share your robot's latest adventures and follow Phoenix updates. Everyone from first-time owners to experienced tinkerers is welcome.",
+        "a": "Join the Phoenix Discord server, separate from the Jibo Revival Group server, to ask about setup, pairing, and getting your Jibo talking again. It's also a place to share your robot's latest adventures and follow Phoenix updates. Everyone from first-time owners to experienced tinkerers is welcome.",
         "cta": {
-          "label": "Get help on Discord",
+          "label": "Join Phoenix Discord",
           "hrefFrom": "links.discord"
         }
       }
@@ -191,24 +191,24 @@
     "secondary": "Read the documentation"
   },
   "community": {
-    "eyebrow": "Community",
+    "eyebrow": "Phoenix Discord",
     "title": "A little robot.",
     "titleAccent": "A whole community.",
-    "body": "You don't have to figure it all out alone. Meet other Jibo owners and Phoenix tinkerers, trade ideas, and help keep these little robots talking.",
+    "body": "You don't have to figure it all out alone. Meet other Jibo owners and Phoenix tinkerers in the Phoenix Discord server, separate from the Jibo Revival Group server. Trade ideas and help keep these little robots talking.",
     "help": "Get help with setup",
     "share": "Share your Jibo moments",
     "updates": "Follow Phoenix updates",
-    "cta": "Join us on Discord",
+    "cta": "Join Phoenix Discord",
     "note": "For Jibo owners, builders, and curious humans. Come say hello.",
     "helpTitle": "Need a hand?",
-    "helpBody": "Ask the community about setup, pairing, or getting your Jibo talking again.",
-    "helpCta": "Get help on Discord",
-    "consoleBody": "Setup help, shared ideas, and other Jibo owners.",
+    "helpBody": "Ask about setup, pairing, or getting your Jibo talking again in the Phoenix Discord server, separate from the Jibo Revival Group server.",
+    "helpCta": "Join Phoenix Discord",
+    "consoleBody": "Phoenix's own Discord server, separate from the Jibo Revival Group. Setup help and shared ideas.",
     "footerTitle": "Find your people.",
-    "footerBody": "Jibo stories, setup help, and Phoenix updates. Come say hello.",
-    "footerCta": "Join Discord",
+    "footerBody": "Jibo stories, setup help, and updates in the Phoenix Discord server, separate from the Jibo Revival Group server.",
+    "footerCta": "Join Phoenix Discord",
     "errorBody": "Still need a hand finding your way?",
-    "errorCta": "Ask on Discord"
+    "errorCta": "Ask on Phoenix Discord"
   },
   "footer": {
     "blurb": "A clean-room reimplementation of the cloud service that gave a discontinued social robot its voice. Independent, non-commercial, and self-hosted.",
