@@ -192,15 +192,44 @@ API without reinstalling the GPU stack. Build to a separate tag so the old image
 remains available for rollback:
 
 ```bash
+# Run on the GPU host, from the newly copied source directory. This discovers
+# the original Compose files and service name from the existing container.
+python3 tools/update-compose.py --container parakeet-asr-gpu --apply
+```
+
+The helper reads the existing container's **image ID**, so no guessed image tag
+or registry login is required. It builds and verifies API 0.3.0, then uses a
+small Compose override to select that image. GPU access, ports, environment,
+model-cache volumes and other services are preserved. Mounts hiding `/srv/app`
+are redirected to the newly copied application code. The service runs one
+uvicorn worker so all requests use the same model and batching scheduler.
+
+Without `--apply`, it only prepares the image and prints the command to recreate
+the ASR service. It writes `compose.parakeet-0.3.0.yaml` and
+`parakeet-compose-0.3.0.sh` alongside the original Compose files. Use that shell
+wrapper for future Compose commands: with no arguments it starts only the ASR
+service, or pass `logs -f`, `config`, or other Compose arguments. The original
+files stay available for rollback. The override requires Compose 2.24.4 or newer.
+After a source change, rerun the helper to rebuild and verify it before starting.
+
+`docker compose up -d --build` only builds services with a `build:` definition.
+If an existing Compose file contains only `image:`, copying new Python files
+and recreating the container still starts the old image. The helper supplies
+the missing build configuration and selects the verified new image.
+
+For a manual image build, first alias the actual running image:
+
+```bash
+ASR_IMAGE=$(docker inspect -f '{{.Image}}' parakeet-asr-gpu)
+docker tag "$ASR_IMAGE" parakeet-asr:working-base
 docker build -f Dockerfile.update \
-  --build-arg PARAKEET_BASE_IMAGE=parakeet-asr:latest \
+  --build-arg PARAKEET_BASE_IMAGE=parakeet-asr:working-base \
   -t parakeet-asr:0.3.0 .
 docker run --rm --entrypoint python parakeet-asr:0.3.0 -m pytest tests/ -q
 ```
 
-Use the existing image tag for `PARAKEET_BASE_IMAGE`. Recreate the ASR
-container from `parakeet-asr:0.3.0` with its existing GPU, port, model-cache
-volume and environment settings during an idle window. `/healthz` must show
+Recreate the ASR container from `parakeet-asr:0.3.0` with its existing GPU, port,
+model-cache volume and environment settings during an idle window. `/healthz` must show
 0.3.0 before benchmarking. No Phoenix Hub update is needed. Production server
 release changes still go through `scripts/deploy-native-release.sh` and its
 Hub/OTA activity guard; updating this separate PC image does not require a Hub
