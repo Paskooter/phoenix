@@ -3,13 +3,12 @@
 
 Run on the GPU host. By default this only prepares the image and a Compose
 wrapper; --apply also recreates the ASR service. Other services are untouched.
-Only the Python standard library and Docker Compose are required.
+Only Python 3.7+ (standard library) and Docker Compose are required.
 """
 from __future__ import annotations
 
 import argparse
 import json
-import os
 from pathlib import Path, PurePosixPath
 import shlex
 import subprocess
@@ -24,6 +23,11 @@ class UpdateError(Exception):
     pass
 
 
+def shell_join(command: list[str]) -> str:
+    # shlex.join was added in Python 3.8; some WSL distributions are older.
+    return " ".join(shlex.quote(argument) for argument in command)
+
+
 def run(command: list[str], *, cwd: Path, capture: bool = False) -> str:
     result = subprocess.run(command, cwd=cwd, text=True,
                             stdout=subprocess.PIPE if capture else None,
@@ -32,7 +36,7 @@ def run(command: list[str], *, cwd: Path, capture: bool = False) -> str:
         # Never print captured config/inspect output: it can contain secrets.
         if capture and result.stderr:
             print(result.stderr.strip(), file=sys.stderr)
-        raise UpdateError(f"Command failed: {shlex.join(command)}")
+        raise UpdateError(f"Command failed: {shell_join(command)}")
     return result.stdout or ""
 
 
@@ -118,7 +122,8 @@ def main() -> None:
 
     # Preserve the exact resident GPU stack, regardless of its original tag.
     image_id = inspect["Image"]
-    base = f"parakeet-asr:working-base-{image_id.removeprefix('sha256:')[:12]}"
+    image_hash = image_id.split(":", 1)[-1]
+    base = f"parakeet-asr:working-base-{image_hash[:12]}"
     build = {"context": str(source), "dockerfile": "Dockerfile.update",
              "args": {"PARAKEET_BASE_IMAGE": base}}
     command = ["uvicorn", "app.server:app", "--host", "0.0.0.0",
@@ -172,8 +177,8 @@ def main() -> None:
 
     up = ["up", "-d", "--no-deps", "--pull", "never", service_name]
     script = (f"#!/bin/sh\n{MARKER}\nset -eu\ncd {shlex.quote(str(workdir))}\n"
-              f"if [ \"$#\" -eq 0 ]; then\n  set -- {shlex.join(up)}\nfi\n"
-              f"exec {shlex.join(updated_compose)} \"$@\"\n")
+              f"if [ \"$#\" -eq 0 ]; then\n  set -- {shell_join(up)}\nfi\n"
+              f"exec {shell_join(updated_compose)} \"$@\"\n")
     wrapper.write_text(script)
     wrapper.chmod(0o755)
     print(f"Verified image API {VERSION}.", flush=True)
