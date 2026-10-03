@@ -29,15 +29,14 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-import tempfile
-from concurrent.futures import ThreadPoolExecutor
 from typing import Optional
 
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile, WebSocket, WebSocketDisconnect
 
-from .recognizer import Recognizer, Transcript, rms
+from .recognizer import AudioInput, Recognizer, Transcript, rms
+from .inference import InferenceScheduler, ServiceBusy
 from .normalize import normalize_text, to_asr_text
 
 SAMPLE_RATE = int(os.environ.get("PARAKEET_SAMPLE_RATE", "16000"))
@@ -52,22 +51,24 @@ SILENCE_RMS = float(os.environ.get("PARAKEET_SILENCE_RMS", "200"))
 # Hub clients on the mature POST /transcribe fallback, avoiding the repeated
 # partial-buffer inference that streaming requires from a GPU-sized backend.
 BACKEND = os.environ.get("PARAKEET_BACKEND", "nemo").strip().lower()
-API_VERSION = "0.1.0" if BACKEND == "faster-whisper" else "0.2.1"
+API_VERSION = "0.1.0" if BACKEND == "faster-whisper" else "0.3.0"
+MAX_STREAMS = int(os.environ.get("PARAKEET_MAX_STREAMS", "32"))
+BATCH_SIZE = int(os.environ.get("PARAKEET_BATCH_SIZE", "4"))
+BATCH_WAIT_MS = int(os.environ.get("PARAKEET_BATCH_WAIT_MS", "10"))
+MAX_PENDING = int(os.environ.get("PARAKEET_MAX_PENDING", "64"))
+MAX_AUDIO_SECONDS = int(os.environ.get("PARAKEET_MAX_AUDIO_SECONDS", "30"))
+MAX_UPLOAD_BYTES = int(os.environ.get("PARAKEET_MAX_UPLOAD_BYTES", str(8 * 1024 * 1024)))
 
 _recognizer: Optional[Recognizer] = None
-# NeMo's model is shared across connections. Keep inference serial (as it was
-# on the old event-loop path), but run it off-loop so sockets can keep receiving
-# audio while an interim is in flight. A bounded worker also avoids concurrent
-# GPU calls and the associated VRAM spikes.
-_inference_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="parakeet-infer")
+
+def get_scheduler() -> InferenceScheduler:
+    scheduler = getattr(app.state, "inference", None)
+    if scheduler is None:
+        raise ServiceBusy("ASR is not ready")
+    return scheduler
 
 
-async def _infer(method, *args) -> Transcript:
-    loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(_inference_executor, lambda: method(*args))
-
-
-def set_recognizer(recognizer: Recognizer) -> None:
+def set_recognizer(recognizer: Optional[Recognizer]) -> None:
     """Inject a recognizer. Tests use this; production leaves it unset."""
     global _recognizer
     _recognizer = recognizer
@@ -103,7 +104,18 @@ async def lifespan(_app: FastAPI):
         print(f"Loading {getattr(recognizer, 'model_name', 'model')} into VRAM...")
         loader()
         print("Model loaded successfully and ready for requests!")
-    yield
+    if min(MAX_AUDIO_SECONDS, MAX_UPLOAD_BYTES) < 1:
+        raise ValueError("ASR audio limits must be positive")
+    scheduler = InferenceScheduler(recognizer, batch_size=BATCH_SIZE,
+                                   batch_wait_ms=BATCH_WAIT_MS, max_pending=MAX_PENDING,
+                                   max_streams=MAX_STREAMS)
+    _app.state.inference = scheduler
+    scheduler.start()
+    try:
+        yield
+    finally:
+        await scheduler.close()
+        del _app.state.inference
 
 
 app = FastAPI(title="Parakeet ASR REST API", version=API_VERSION, lifespan=lifespan)
@@ -133,9 +145,11 @@ def _payload(filename: str, transcript: Transcript, normalize: bool) -> dict:
 
 
 @app.get("/healthz")
-def healthz() -> dict:
+async def healthz() -> dict:
     """Readiness without loading the model, so an orchestrator can poll cheaply."""
-    return {"ok": True, "api_version": API_VERSION, "sample_rate": SAMPLE_RATE}
+    scheduler = getattr(app.state, "inference", None)
+    return {"ok": True, "api_version": API_VERSION, "sample_rate": SAMPLE_RATE,
+            "concurrency": scheduler.stats() if scheduler else None}
 
 
 @app.post("/transcribe")
@@ -156,24 +170,14 @@ async def transcribe_audio(
     if not (file.filename or "").endswith(".wav"):
         raise HTTPException(status_code=400, detail="Only .wav files are supported.")
 
-    data = await file.read()
-
-    # Keep temp-file ownership inside the worker. If the HTTP client disconnects
-    # and cancels this coroutine, a queued/running inference must not lose its
-    # input file before the recognizer has finished opening it.
-    def transcribe_upload() -> Transcript:
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
-            tmp.write(data)
-            path = tmp.name
-        try:
-            return get_recognizer().transcribe_wav(path)
-        finally:
-            if os.path.exists(path):
-                os.remove(path)
-
+    data = await file.read(MAX_UPLOAD_BYTES + 1)
+    if len(data) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="ASR WAV upload is too large")
     try:
-        transcript = await _infer(transcribe_upload)
-    except RuntimeError as error:                      # ffmpeg / decode failure
+        transcript = await get_scheduler().submit(AudioInput(data))
+    except ServiceBusy as error:
+        raise HTTPException(status_code=503, detail=str(error), headers={"Retry-After": "1"})
+    except Exception as error:                         # ffmpeg / decode failure
         raise HTTPException(status_code=500, detail=str(error))
     return _payload(file.filename or "audio.wav", transcript, normalize)
 
@@ -195,6 +199,12 @@ async def stream(ws: WebSocket) -> None:
     interim work into the latest buffer, and prioritize the final at EOS.
     """
     await ws.accept()
+    try:
+        scheduler = get_scheduler()
+        scheduler.acquire_stream()
+    except ServiceBusy:
+        await ws.close(code=1013)
+        return
     normalize = False
     sample_rate = SAMPLE_RATE
     buffer = bytearray()
@@ -218,13 +228,17 @@ async def stream(ws: WebSocket) -> None:
     async def emit_interim(snapshot: bytes, snapshot_rate: int, snapshot_generation: int) -> None:
         nonlocal interim_task, last_text, ending
         try:
-            transcript = await _infer(get_recognizer().transcribe_pcm, snapshot, snapshot_rate)
+            transcript = await scheduler.submit(AudioInput(snapshot, snapshot_rate), final=False)
             if not ending and snapshot_generation == generation and transcript.text and transcript.text != last_text:
                 last_text = transcript.text
                 await ws.send_text(json.dumps({
                     "type": "interim",
                     **_payload("stream", transcript, normalize),
                 }))
+        except ServiceBusy:
+            # Under pressure, skip a partial hypothesis and preserve capacity
+            # for final transcripts. The next voiced window can try again.
+            pass
         except Exception:
             # The gateway retains PCM and falls back to POST /transcribe when
             # this socket fails; a broken inference must not leave it waiting.
@@ -237,6 +251,11 @@ async def stream(ws: WebSocket) -> None:
             # inference: its newest packets (possibly EOS) have not necessarily
             # been consumed yet. The next audio packet can start a fresh interim.
 
+    async def cancel_interim() -> None:
+        if interim_task is not None:
+            interim_task.cancel()
+            await asyncio.gather(interim_task, return_exceptions=True)
+
     try:
         while True:
             message = await ws.receive()
@@ -245,6 +264,9 @@ async def stream(ws: WebSocket) -> None:
 
             if message.get("bytes") is not None:
                 chunk = message["bytes"]
+                if len(buffer) + len(chunk) > sample_rate * 2 * MAX_AUDIO_SECONDS:
+                    await ws.close(code=1009)
+                    return
                 buffer.extend(chunk)
                 pending += len(chunk)
                 # Like the original gate, a silence packet cannot start a new
@@ -260,10 +282,19 @@ async def stream(ws: WebSocket) -> None:
             except ValueError:
                 continue
 
+            if not isinstance(control, dict):
+                continue
             kind = control.get("type")
             if kind == "start":
+                await cancel_interim()
                 generation += 1
-                sample_rate = int(control.get("sampleRate") or SAMPLE_RATE)
+                try:
+                    sample_rate = int(control.get("sampleRate") or SAMPLE_RATE)
+                    if not 1 <= sample_rate <= 48000:
+                        raise ValueError("Invalid sample rate")
+                except (ValueError, TypeError):
+                    await ws.close(code=1008)
+                    return
                 normalize = bool(control.get("normalize", False))
                 interim_bytes = int(sample_rate * 2 * INTERIM_MS / 1000)
                 buffer = bytearray()
@@ -271,19 +302,28 @@ async def stream(ws: WebSocket) -> None:
                 last_text = None
             elif kind == "eos":
                 ending = True
-                # Let an in-flight interim finish, but skip any queued partial
-                # buffers. Only the final full-buffer decode is useful now.
-                if interim_task is not None:
-                    await interim_task
-                transcript = (await _infer(get_recognizer().transcribe_pcm, bytes(buffer), sample_rate)
+                # Remove stale queued work immediately. A running GPU batch
+                # finishes safely, then the final outranks all queued interims.
+                await cancel_interim()
+                transcript = (await scheduler.submit(AudioInput(bytes(buffer), sample_rate))
                               if buffer else Transcript(text=""))
                 await ws.send_text(json.dumps({
                     "type": "final",
                     **_payload("stream", transcript, normalize),
                 }))
+                await ws.close()
                 return
     except WebSocketDisconnect:
-        ending = True
-        if interim_task is not None:
-            interim_task.cancel()
         return
+    except ServiceBusy:
+        await ws.close(code=1013)
+    except Exception:
+        await ws.close(code=1011)
+    finally:
+        ending = True
+        try:
+            await cancel_interim()
+        finally:
+            # ASGI shutdown/test clients may cancel the handler during the
+            # await above. Admission accounting must still release its slot.
+            scheduler.release_stream()

@@ -34,6 +34,7 @@ RUN pip install --no-cache-dir -r requirements.txt pytest httpx
 
 COPY app ./app
 COPY tests ./tests
+COPY tools ./tools
 
 EXPOSE 6972
 CMD ["uvicorn", "app.server:app", "--host", "0.0.0.0", "--port", "6972"]
@@ -51,4 +52,7 @@ EXPOSE 6972
 # PARAKEET_REQUIRE_CUDA true                      fail readiness without CUDA
 # PARAKEET_INTERIM_MS   300                         streaming interim decode window
 # PARAKEET_SILENCE_RMS  200                         below this a chunk is silence
+# PARAKEET_BATCH_SIZE   4                          independent recordings per GPU batch
+# PARAKEET_MAX_STREAMS  32                         admitted streaming sockets
+# PARAKEET_MAX_PENDING  64                         queued + running recognition jobs
 CMD ["uvicorn", "app.server:app", "--host", "0.0.0.0", "--port", "6972"]
