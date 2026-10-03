@@ -172,6 +172,8 @@ const ICONS = {
   userPlus: 'M14.5 20v-1.5A3.5 3.5 0 0 0 11 15H6a3.5 3.5 0 0 0-3.5 3.5V20M8.5 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM18.5 8v6M15.5 11h6',
   sun: 'M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM12 2.5v2M12 19.5v2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M2.5 12h2M19.5 12h2M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4',
   news: 'M5.5 4.5h10a1 1 0 0 1 1 1V18a2 2 0 0 0 2 2h-12a2 2 0 0 1-2-2V5.5a1 1 0 0 1 1-1ZM16.5 9h2a1 1 0 0 1 1 1v8a2 2 0 0 1-2 2M8 8.5h5M8 12h5M8 15.5h3',
+  smartHome: 'M3.5 10.5 12 3.5l8.5 7M5.5 9.5V20h13V9.5M12 17.2h.01M10.3 15.5a2.4 2.4 0 0 1 3.4 0M8.75 13.95a4.6 4.6 0 0 1 6.5 0',
+  external: 'M7 17 17 7M7 7h10v10',
 };
 
 const icon = (name, size = 16, className) => {
@@ -5060,94 +5062,650 @@ function paintNav(hash) {
 }
 
 /* ==========================================================================
-   Router
+   Home Assistant
    ========================================================================== */
 
+// The owner's side of the Home Assistant beta. Home Assistant connects out to
+// this server through the Phoenix integration, so this page never asks for its
+// address or a login: it issues a one-time code for the Jibos the owner picks,
+// shows whether each link is connected, and says what to try. The My Home
+// Assistant links are ordinary links that open the owner's own instance at the
+// right page; nothing is fetched from another host.
+const HA_REPO = 'https://github.com/Paskooter/phoenix-home-assistant';
+const HA_MY = 'https://my.home-assistant.io/redirect';
+const HA_LINKS = Object.freeze({
+  hacs: `${HA_MY}/hacs_repository/?owner=Paskooter&repository=phoenix-home-assistant&category=integration`,
+  add: `${HA_MY}/config_flow_start/?domain=phoenix`,
+  integration: `${HA_MY}/integration/?domain=phoenix`,
+  expose: `${HA_MY}/voice_assistants/`,
+  install: `${HA_REPO}#install-through-hacs`,
+  help: `${HA_REPO}#troubleshooting`,
+});
+// The address the integration's setup form suggests; other servers replace it.
+const HA_DEFAULT_SERVER = 'https://jibo.io';
+const HA_CODE_LIFETIME_MS = 10 * 60 * 1000;
+const HA_INSTALLATION_LIMIT = 4;
+
 const HA_ERRORS = {
-  select_robots: 'Choose at least one Jibo you own.',
-  robot_not_owned: 'Only the household owner can enable a Jibo.',
-  robot_already_linked: 'A selected Jibo is already linked. Disconnect its old installation first.',
-  installation_limit: 'Disconnect an installation before adding another.',
-  invalid_name: 'Use an installation name of 1 to 80 characters.',
+  select_robots: 'Choose at least one Jibo.',
+  robot_not_owned: 'Only the owner of an active loop can link its Jibo.',
+  robot_already_linked: 'That Jibo is already linked. Disconnect it first to link it again.',
+  installation_limit: 'You’ve linked four Home Assistants, the most for one account. Disconnect one to add another.',
+  invalid_name: 'Use a name of 1 to 80 characters.',
+  forbidden: 'Only a Jibo’s owner can link him to Home Assistant.',
+};
+const haError = (result, fallback) => HA_ERRORS[result.data?.error] || result.data?.error || fallback;
+
+// Only phrases Phoenix hands to Home Assistant, each one exercised against its
+// built-in Assist agent. Anything else goes through “ask Home Assistant to…”.
+const HA_PHRASES = [
+  ['Lights', ['Turn on the kitchen lights', 'Set the bedroom light brightness to fifty percent', 'Set bedroom light to blue']],
+  ['Switches', ['Turn off garden switch']],
+  ['Scenes and scripts', ['Activate the dinner scene', 'Run relax script']],
+  ['Anything else Assist understands', ['Ask Home Assistant to …']],
+];
+
+// A code is shown once and never written to browser storage. It is kept in
+// this page's memory, for the account that asked for it, so stepping to
+// another part of the console and back does not lose it; a reload does.
+let haCodeMemory = null;
+
+const haOut = (href, label, className = 'btn btn-sm') => h('a', {
+  class: className, href, target: '_blank', rel: 'noopener noreferrer',
+}, label, icon('external', 13));
+
+/** Home Assistant's end of a link: a house with a signal, in the cool tone. */
+const haTile = (size = 'md') => h('span', { class: `ha-tile ha-tile-${size}`, 'aria-hidden': 'true' }, icon('smartHome', 24));
+
+/**
+ * Jibo, the link and Home Assistant. The state is idle (not linked yet),
+ * waiting, live or down; only a live link moves.
+ */
+function haBridge(robots, state, size = 'md') {
+  const shown = robots.length ? robots.slice(0, 3) : [{}];
+  return h('span', { class: `ha-bridge ha-bridge-${size} is-${state}`, 'aria-hidden': 'true' },
+    h('span', { class: 'ha-bridge-robots' }, shown.map((robot) => robotAvatar(robot.avatarColor, size))),
+    h('span', { class: 'ha-bridge-line' }),
+    haTile(size));
+}
+
+const haRobotChip = (robot) => h('span', { class: 'ha-robot', title: robot.friendlyId },
+  robotAvatar(robot.avatarColor, 'xs'), h('span', { text: robotName(robot) }));
+
+/** "9:05" — minutes and seconds left. */
+const fmtCountdown = (ms) => {
+  const seconds = Math.max(0, Math.ceil(ms / 1000));
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 };
 
-async function renderHomeAssistant() {
-  const container = page('Home Assistant', 'Let your Jibo control devices you expose to Assist. Beta · English.');
-  const robots = await api('GET', '/api/robots');
-  if (!robots.ok) { container.append(errorBox('Could not load your robots.', robots.data?.error)); return show(container); }
-  const statusHost = h('div', { 'aria-live': 'polite' });
-  const codeHost = h('div', { 'aria-live': 'polite' });
-  const linkedRobots = new Set();
-  let codeExpiresAt = 0;
-  let loadingStatus = false;
-  const updateStatus = async () => {
-    if (loadingStatus) return;
-    loadingStatus = true;
-    const result = await api('GET', '/api/home-assistant');
-    loadingStatus = false;
-    if (!result.ok) { statusHost.replaceChildren(errorBox('Could not check the connection.', result.data?.error)); return; }
-    linkedRobots.clear();
-    const installations = result.data.installations || [];
-    for (const installation of installations) for (const robot of installation.robots) linkedRobots.add(robot);
-    statusHost.replaceChildren(...installations.map((installation) => card(installation.name, {},
-      h('div', { class: 'card-body' },
-        h('p', {}, h('span', { class: installation.connected ? 'pill' : 'pill pill-warn' },
-          installation.connected ? 'Connected' : 'Offline'),
-        installation.haVersion ? ` · Home Assistant ${installation.haVersion}` : ''),
-        h('p', {}, installation.robots.join(', ')),
-        installation.connected ? null : h('p', { class: 'muted' }, 'Check Home Assistant is running and can reach this Phoenix server.'),
-        h('button', { class: 'btn btn-sm', type: 'button', on: { click: async (event) => {
-          event.currentTarget.disabled = true;
-          const removed = await api('DELETE', '/api/home-assistant', { installationId: installation.id });
-          if (!removed.ok) { event.currentTarget.disabled = false; statusHost.append(errorBox('Could not disconnect.', removed.data?.error)); return; }
-          await updateStatus();
-        } } }, 'Disconnect')))));
-    if (!installations.length) statusHost.append(h('p', { class: 'muted' }, 'No Home Assistant installation linked yet.'));
-    if (codeExpiresAt && Date.now() >= codeExpiresAt) {
-      codeHost.replaceChildren(h('p', {}, 'Your connection code expired. Generate a new code.'));
-      codeExpiresAt = 0;
-    }
-  };
-  const owned = robots.data.filter((robot) => robot.canManage);
-  const name = h('input', { name: 'name', value: 'Home Assistant', maxlength: '80', required: true });
-  const checks = owned.map((robot) => ({ robot, input: h('input', { type: 'checkbox', name: 'robot', value: robot.friendlyId }) }));
-  const form = h('form', {}, h('label', {}, 'Installation name', name),
-    h('fieldset', {}, h('legend', {}, 'Choose the Jibos you own'), ...checks.map(({ robot, input }) =>
-      h('label', { class: 'setting-line' }, input, ` ${robot.loopName || robot.friendlyId}`))),
-    h('button', { class: 'btn btn-primary', type: 'submit', disabled: !owned.length }, 'Generate connection code'));
-  onSubmit(form, async () => {
-    const selected = checks.filter(({ input }) => input.checked).map(({ robot }) => robot.friendlyId);
-    if (selected.some((robot) => linkedRobots.has(robot))) {
-      codeHost.replaceChildren(errorBox('Already linked', HA_ERRORS.robot_already_linked)); return;
-    }
-    const result = await api('POST', '/api/home-assistant/codes', { robotIds: selected, name: name.value });
-    if (!result.ok) { codeHost.replaceChildren(errorBox('Could not create a connection code.', HA_ERRORS[result.data?.error] || result.data?.error)); return; }
-    codeExpiresAt = result.data.expiresAt;
-    codeHost.replaceChildren(h('p', {}, 'Paste this code in Home Assistant → Settings → Devices & services → Add integration → Phoenix.'),
-      h('p', {}, h('code', { class: 'ha-connection-code' }, result.data.code)),
-      h('p', { class: 'muted' }, 'Valid for 10 minutes and one use. Keep it private. Generating another replaces this code.'),
-      h('button', { class: 'btn btn-sm', type: 'button', on: { click: async () => {
-        await api('DELETE', '/api/home-assistant/codes'); codeExpiresAt = 0; codeHost.replaceChildren();
-      } } }, 'Cancel code'));
-  });
-  container.append(card('Install and link', {}, h('div', { class: 'card-body' },
-    h('ol', {},
-      h('li', {}, 'In HACS, add ', h('a', { href: 'https://github.com/Paskooter/phoenix-home-assistant', target: '_blank', rel: 'noopener noreferrer' }, 'Paskooter/phoenix-home-assistant'), ' as a custom Integration repository, download the beta, and restart Home Assistant.'),
-      h('li', {}, 'Choose your Jibos and generate a code below. Add Phoenix in Home Assistant and enter this server’s HTTPS address: ', h('code', {}, location.origin)),
-      h('li', {}, 'Choose devices in Home Assistant → Settings → Voice assistants → Expose. Give them clear names or aliases.')),
-    form, codeHost,
-    !owned.length ? h('p', {}, 'Sign in as the household owner to link a Jibo.') : null)),
-    card('Connection', {}, h('div', { class: 'card-body' }, statusHost)),
-    card('Try a command', {}, h('div', { class: 'card-body' },
-      h('p', {}, '“Hey Jibo, turn on the kitchen lights.”'),
-      h('p', {}, '“Hey Jibo, set the bedroom light brightness to fifty percent.”'),
-      h('p', {}, '“Hey Jibo, activate the dinner scene.”'),
-      h('p', {}, 'Use your actual Assist names. For custom phrases, say “Hey Jibo, ask Home Assistant to…”'),
-      h('p', { class: 'muted' }, 'Jibo speaks Home Assistant’s result. If he cannot confirm a command, check the device before trying again.'))));
-  show(container);
-  await updateStatus();
-  pollTimer = setInterval(updateStatus, 5000);
+/**
+ * When a code runs out, on this browser's clock. The browser and the server can
+ * disagree about the time; a code always lasts ten minutes, so an impossible
+ * remainder falls back to that.
+ */
+function haDeadline(expiresAt) {
+  const remaining = Number(expiresAt) - Date.now();
+  return Date.now() + (remaining > 0 && remaining <= HA_CODE_LIFETIME_MS + 5000 ? remaining : HA_CODE_LIFETIME_MS);
 }
+
+/** The countdown under a code: a draining bar and the time left. */
+function haTimer(deadline) {
+  const fill = h('span', { class: 'ha-timer-fill' });
+  const left = h('b');
+  const el = h('div', { class: 'ha-timer' },
+    h('div', { class: 'ha-timer-track', 'aria-hidden': 'true' }, fill),
+    h('div', { class: 'ha-timer-text' },
+      h('span', { role: 'timer' }, 'Expires in ', left),
+      h('span', {}, 'Works once')));
+  const update = () => {
+    const remaining = deadline - Date.now();
+    left.textContent = fmtCountdown(remaining);
+    fill.style.transform = `scaleX(${Math.min(1, Math.max(0, remaining / HA_CODE_LIFETIME_MS))})`;
+    el.classList.toggle('is-low', remaining <= 60000);
+  };
+  update();
+  return { el, update };
+}
+
+/** The connection code, its groups set apart so it is easy to read aloud or type. */
+const haCodeText = (code) => h('code', { class: 'ha-connection-code' },
+  code.split('-').flatMap((group, i) => (i ? [h('span', { class: 'ha-code-sep' }, '-'), h('wbr'), group] : [group])));
+
+function haInstallationFacts(installation) {
+  const connected = installation.connected === true;
+  const seen = Number(installation.lastConnectedAt) || 0;
+  const created = Number(installation.createdAt) || 0;
+  // Home Assistant needs a moment to connect after it is linked. That is not
+  // yet a problem worth a warning.
+  const connecting = !connected && !seen && created > 0 && Date.now() - created < 60000;
+  const meta = [
+    connected ? (installation.haVersion ? `Home Assistant ${installation.haVersion}` : 'Home Assistant')
+      : connecting ? '' : seen ? `Last connected ${fmtSince(seen)}` : 'Hasn’t connected yet',
+    connecting ? 'Linked just now' : created ? `Linked ${fmtAgo(created)}` : '',
+  ].filter(Boolean);
+  return { connected, connecting, seen, meta, state: connected ? 'live' : connecting ? 'waiting' : 'down' };
+}
+
+/** One linked Home Assistant: whether it is connected, which Jibos use it, and its actions. */
+function haInstallationCard(installation, robotFor, onDisconnect) {
+  const facts = haInstallationFacts(installation);
+  const robots = (installation.robots || []).map(robotFor);
+  const name = meaningfulText(installation.name) || 'Home Assistant';
+  const status = facts.connected
+    ? h('span', { class: 'pill pill-ok' }, h('span', { class: 'dot dot-live' }), 'Connected')
+    : facts.connecting
+      ? h('span', { class: 'pill' }, h('span', { class: 'spinner' }), 'Connecting')
+      : h('span', { class: 'pill pill-warn' }, 'Not connected');
+  return h('section', { class: `card ha-install is-${facts.state}` },
+    h('div', { class: 'ha-install-head' },
+      haBridge(robots, facts.state),
+      h('div', { class: 'ha-install-title' },
+        h('h3', { text: name }),
+        h('span', { class: 'ha-install-meta' }, facts.meta.map((fact) => h('span', { text: fact })))),
+      h('div', { class: 'ha-install-status' }, status)),
+    h('div', { class: 'card-body ha-install-body' },
+      h('div', {},
+        h('span', { class: 'ha-label' }, robots.length === 1 ? 'Linked Jibo' : 'Linked Jibos'),
+        h('div', { class: 'ha-robots' }, robots.map(haRobotChip))),
+      facts.state === 'down'
+        ? h('div', { class: 'notice notice-warn' }, icon('alert', 16), h('div', {}, facts.seen
+          ? 'Jibo can’t reach this Home Assistant right now. Check that it’s running and online. It reconnects by itself, usually within a minute.'
+          : 'Home Assistant hasn’t connected yet. Check that it can reach this server, then reload Phoenix in Home Assistant.'))
+        : null),
+    h('div', { class: 'card-foot ha-install-foot' },
+      facts.connected ? haOut(HA_LINKS.expose, 'Choose devices') : haOut(HA_LINKS.integration, 'Open in Home Assistant'),
+      h('button', { class: 'btn btn-sm btn-quiet ha-disconnect', type: 'button', on: { click: () => onDisconnect(installation) } },
+        'Disconnect')));
+}
+
+/** A redraw only when something a person can see has changed. */
+function haInstallationKey(installation, robotFor) {
+  const facts = haInstallationFacts(installation);
+  return JSON.stringify([installation.name, facts.meta, facts.state,
+    (installation.robots || []).map((id) => { const robot = robotFor(id); return [robotName(robot), robot.avatarColor]; })]);
+}
+
+/** One numbered step. The number is drawn, so the step is also named for screen readers. */
+const haStep = (n, state, title, ...body) => h('li', { class: `ha-step is-${state}`, 'aria-current': state === 'active' ? 'step' : null },
+  h('span', { class: 'ha-step-mark', 'aria-hidden': 'true' }, state === 'done' ? icon('check', 14) : String(n)),
+  h('div', { class: 'ha-step-title' },
+    h('span', { class: 'sr-only' }, state === 'done' ? `Step ${n}, done: ` : `Step ${n}: `), title),
+  h('div', { class: 'ha-step-body' }, ...body));
+
+function haSayCard() {
+  return h('section', { class: 'card say-card ha-say' },
+    h('div', { class: 'card-body' },
+      h('h3', {}, 'Say “Hey Jibo”, then…'),
+      ...HA_PHRASES.map(([label, phrases]) => h('div', { class: 'ha-say-group' },
+        h('h4', { text: label }),
+        h('ul', { class: 'ha-say-list' }, phrases.map((phrase) => h('li', { text: phrase }))))),
+      h('p', { class: 'field-hint' }, 'Use the names, aliases and areas your devices have in Home Assistant.')));
+}
+
+function haNotesCard() {
+  const note = (iconName, title, text) => h('li', { class: 'ha-note' },
+    h('span', { class: 'ha-note-ic' }, icon(iconName, 15)),
+    h('div', {}, h('b', { text: title }), text));
+  return card('Good to know', {},
+    h('ul', { class: 'ha-notes' },
+      note('lock', 'Nothing to open on your network', 'Home Assistant connects out to this server. It never shares its address or a Home Assistant login.'),
+      note('eye', 'You choose what Jibo can reach', 'He can use only what you expose to Assist. Expose scripts with care.'),
+      note('message', 'English, one request at a time', 'Requests joined with “and” or “then” aren’t supported yet.'),
+      note('alert', 'If Jibo can’t confirm a result', 'It may have worked anyway. Check the device before asking again.')),
+    haOut(HA_LINKS.help, 'Setup guide and troubleshooting', 'ov-link'));
+}
+
+function haNoRobots(robots) {
+  const shared = robots.length > 0;
+  return h('section', { class: 'card' }, h('div', { class: 'card-body' }, h('div', { class: 'empty ha-empty' },
+    haBridge(robots, 'idle'),
+    h('h4', {}, shared ? 'Only a Jibo’s owner can link him' : 'Bring your Jibo online first'),
+    h('p', {}, shared
+      ? `Each Jibo’s owner links him to Home Assistant. Ask the owner of ${listText(robots.map(robotName))} to do it from their console.`
+      : 'Once your Jibo is connected to this server, you can link him to Home Assistant here.'),
+    shared ? null : h('a', { class: 'btn btn-primary', href: '#/add' }, icon('plus', 15), 'Add a Jibo'))));
+}
+
+async function renderHomeAssistant() {
+  const frame = () => {
+    const container = page('Home Assistant', 'Let Jibo control the lights, switches, scenes and scripts you choose in Home Assistant.');
+    const head = container.querySelector('.page-head');
+    head.classList.add('ha-head');
+    head.querySelector('h2').append(h('span', { class: 'pill pill-accent' }, 'Beta'));
+    return container;
+  };
+  const placeholder = frame();
+  placeholder.append(loading(4));
+  show(placeholder);
+
+  const [robots, initial] = await Promise.all([api('GET', '/api/robots'), api('GET', '/api/home-assistant')]);
+  const container = frame();
+  if (!robots.ok || !initial.ok) {
+    container.append(
+      errorBox(robots.ok ? 'Could not check Home Assistant.' : 'Could not load your robots.', (robots.ok ? initial : robots).data?.error),
+      h('div', {}, h('button', { class: 'btn btn-sm', type: 'button', on: { click: () => renderHomeAssistant() } },
+        icon('refresh', 14), 'Try again')));
+    return show(container);
+  }
+
+  const robotList = Array.isArray(robots.data) ? robots.data : [];
+  setBadge('badge-robots', robotList.length);
+  const owned = robotList.filter((robot) => robot.canManage);
+  const byId = new Map(robotList.map((robot) => [robot.friendlyId, robot]));
+  const robotFor = (id) => byId.get(id) || { friendlyId: id, avatarColor: 'slate' };
+
+  const main = h('div', { class: 'ha-main' });
+  const layout = h('div', { class: 'ha-layout' }, main, h('div', { class: 'ha-aside' }, haSayCard(), haNotesCard()));
+  container.append(layout);
+  if (!owned.length) {
+    main.append(haNoRobots(robotList));
+    return show(container);
+  }
+
+  let status = initial.data;
+  const accountId = me?.id;
+  const server = location.origin;
+  const insecure = location.protocol !== 'https:';
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // The code flow: pick Jibos, show a code, then linked (or expired). The mode
+  // is fixed when a code is made, so the card does not change shape the moment
+  // its own link appears.
+  const fresh = () => ({ phase: 'pick', mode: null, expanded: false, selected: new Set(), touched: false, name: 'Home Assistant',
+    code: '', deadline: 0, robots: [], known: new Set(), installationId: null, announced: false, note: '' });
+  const kept = haCodeMemory?.accountId === accountId && haCodeMemory.deadline > Date.now() ? haCodeMemory : null;
+  const flow = kept ? { ...fresh(), ...kept.flow, selected: new Set(kept.flow.robots), touched: true } : fresh();
+  const remember = () => {
+    haCodeMemory = flow.phase === 'code' ? { accountId, deadline: flow.deadline, flow: {
+      phase: 'code', mode: flow.mode, code: flow.code, deadline: flow.deadline, robots: flow.robots, name: flow.name, known: flow.known,
+    } } : null;
+  };
+
+  const notice = h('div', { class: 'ha-slot', 'aria-live': 'polite' });
+  const installs = h('div', { class: 'ha-installs ha-slot' });
+  const setupSlot = h('div', { class: 'ha-slot' });
+  main.append(notice, installs, setupSlot);
+
+  /* -- linked Home Assistants -------------------------------------------- */
+
+  const drawn = new Map();
+  function paintInstalls() {
+    const list = [...(status.installations || [])].sort((a, b) => Number(a.createdAt || 0) - Number(b.createdAt || 0));
+    const next = list.map((installation) => {
+      const key = haInstallationKey(installation, robotFor);
+      const current = drawn.get(installation.id);
+      if (current?.key === key) return current;
+      const element = haInstallationCard(installation, robotFor, disconnect);
+      return { key, element };
+    });
+    drawn.clear();
+    list.forEach((installation, i) => drawn.set(installation.id, next[i]));
+    // Unchanged cards stay where they are, so their live dots keep moving.
+    const elements = next.map((item) => item.element);
+    if (elements.length !== installs.children.length || elements.some((element, i) => installs.children[i] !== element)) {
+      installs.replaceChildren(...elements);
+    }
+  }
+
+  async function disconnect(installation) {
+    const name = meaningfulText(installation.name) || 'Home Assistant';
+    const confirmed = await confirmDialog({
+      title: `Disconnect ${name}?`,
+      body: 'Jibo stops using it right away. Linking it again takes a new code. If you’re done with it, remove Phoenix from Home Assistant too.',
+      confirmLabel: 'Disconnect',
+    });
+    if (!confirmed) return;
+    const result = await api('DELETE', '/api/home-assistant', { installationId: installation.id });
+    if (!result.ok && result.status !== 404) { notify(haError(result, 'Could not disconnect it.'), 'error'); return; }
+    notify(`${name} is disconnected`);
+    await refresh(true);
+  }
+
+  /* -- linking a Jibo ------------------------------------------------------ */
+
+  let setupKey = '';
+  let timer = null;
+
+  async function requestCode(robotIds, name) {
+    const result = await api('POST', '/api/home-assistant/codes', { robotIds, name });
+    if (!result.ok) return result;
+    Object.assign(flow, {
+      phase: 'code', mode: (status.installations || []).length ? 'more' : 'first', code: result.data.code,
+      deadline: haDeadline(result.data.expiresAt), robots: robotIds, name, note: '', announced: false,
+      known: new Set((status.installations || []).map((installation) => installation.id)), installationId: null,
+    });
+    remember();
+    status = { ...status, pending: [{ expiresAt: result.data.expiresAt }] };
+    paint();
+    // The code is what the person needs next: bring it into view and give it
+    // focus, so it is also the next thing read out and reached by keyboard.
+    const panel = setupSlot.querySelector('.ha-code');
+    panel?.focus({ preventScroll: true });
+    panel?.scrollIntoView({ block: 'nearest', behavior: reducedMotion ? 'auto' : 'smooth' });
+    return result;
+  }
+
+  async function cancelCode(event) {
+    const button = event.currentTarget;
+    button.disabled = true;
+    const result = await api('DELETE', '/api/home-assistant/codes');
+    button.disabled = false;
+    if (!result.ok) { notify(haError(result, 'Could not cancel the code.'), 'error'); return; }
+    Object.assign(flow, { phase: 'pick', code: '', note: '' });
+    remember();
+    status = { ...status, pending: [] };
+    paint();
+    notify('Code cancelled');
+  }
+
+  function finish() {
+    Object.assign(flow, fresh());
+    remember();
+    paint();
+  }
+
+  function setupCard(mode, available, made) {
+    const first = mode === 'first';
+    const phase = flow.phase;
+    const waitingRobots = available.length === 1
+      ? `${robotName(available[0])} isn’t linked yet` : `${available.length} Jibos aren’t linked yet`;
+    // Once a home is linked, linking another Jibo is a quiet offer that opens
+    // when asked for, rather than a whole form under the link that matters.
+    if (!first && phase === 'pick' && !flow.expanded) {
+      return h('button', { class: 'ha-add', type: 'button', 'aria-expanded': 'false', on: { click: () => {
+        flow.expanded = true;
+        paintSetup();
+        setupSlot.querySelector('.ha-check')?.focus();
+      } } },
+      h('span', { class: 'jibo-add-ic' }, icon('plus', 18)),
+      h('span', { class: 'ha-add-text' }, h('b', {}, 'Link another Jibo'), h('span', { text: waitingRobots })));
+    }
+    const showing = phase === 'code';
+    const done = phase === 'linked';
+    const connected = done && made?.connected === true;
+    const pickedRobots = (phase === 'pick' ? available.filter((robot) => flow.selected.has(robot.friendlyId)) : flow.robots.map(robotFor));
+
+    /* The bridge in the heading follows the Jibos being picked. */
+    const heroRobots = h('span', { class: 'ha-bridge-robots' });
+    const paintHero = (list) => heroRobots.replaceChildren(...(list.length ? list : available.slice(0, 1)).slice(0, 3)
+      .map((robot) => robotAvatar(robot.avatarColor, 'lg')));
+    paintHero(pickedRobots);
+    const heroState = connected ? 'live' : (showing || done) ? 'waiting' : 'idle';
+
+    /* Step: choose Jibos. */
+    let chooseBody;
+    if (phase === 'pick') {
+      const error = h('p', { class: 'error', role: 'alert', hidden: true });
+      const picker = h('fieldset', { class: 'ha-pick' },
+        h('legend', { class: 'sr-only' }, 'Jibos to link'),
+        available.map((robot) => h('label', { class: 'ha-option' },
+          robotAvatar(robot.avatarColor, 'sm'),
+          h('span', { class: 'ha-option-text' },
+            h('b', { text: robotName(robot) }),
+            h('span', { text: robot.friendlyId, title: robot.friendlyId })),
+          h('input', { class: 'ha-check', type: 'checkbox', name: 'robot', value: robot.friendlyId,
+            checked: flow.selected.has(robot.friendlyId) }))));
+      picker.addEventListener('change', (event) => {
+        flow.touched = true;
+        if (event.target.checked) flow.selected.add(event.target.value);
+        else flow.selected.delete(event.target.value);
+        error.hidden = true;
+        paintHero(available.filter((robot) => flow.selected.has(robot.friendlyId)));
+      });
+      const name = h('input', { name: 'name', value: flow.name, maxlength: '80', autocomplete: 'off',
+        on: { input: (event) => { flow.name = event.target.value; } } });
+      const form = h('form', { class: 'ha-get' },
+        picker,
+        available.length > 1 ? h('p', { class: 'field-hint' }, 'Only the Jibos you choose can control this home.') : null,
+        h('div', { class: 'ha-get-row' },
+          field('Connection name', name),
+          h('button', { class: 'btn btn-primary', type: 'submit' }, icon('link', 15), 'Get connection code')),
+        error);
+      onSubmit(form, async () => {
+        const selected = available.filter((robot) => flow.selected.has(robot.friendlyId)).map((robot) => robot.friendlyId);
+        const say = (message) => { error.textContent = message; error.hidden = false; };
+        if (!selected.length) { say(HA_ERRORS.select_robots); picker.querySelector('input')?.focus(); return; }
+        const result = await requestCode(selected, flow.name.trim() || 'Home Assistant');
+        if (!result.ok) say(haError(result, 'Could not create a connection code.'));
+      });
+      chooseBody = [form];
+    } else {
+      chooseBody = [h('div', { class: 'ha-robots' }, flow.robots.map((id) => haRobotChip(robotFor(id))))];
+    }
+
+    /* Step: enter the code in Home Assistant. */
+    const httpsNote = insecure
+      ? h('div', { class: 'notice notice-warn' }, icon('alert', 16),
+        h('div', {}, 'Home Assistant links only to a trusted HTTPS address, and this page is open over HTTP. Give Home Assistant this server’s HTTPS address instead.'))
+      : null;
+    let codeBody;
+    if (phase === 'pick') {
+      const waiting = (status.pending || []).length;
+      codeBody = [
+        h('p', {}, first
+          ? 'Your one-time code appears here. It lasts ten minutes, so install Phoenix first.'
+          : 'Your one-time code appears here. It lasts ten minutes.'),
+        flow.note ? h('div', { class: 'notice' }, icon('clock', 16), h('div', { text: flow.note })) : null,
+        waiting ? h('div', { class: 'notice' }, icon('clock', 16), h('div', {},
+          'A code you made earlier is still waiting. Codes are shown only once, so get a new one if you need it. ',
+          h('button', { class: 'link', type: 'button', on: { click: cancelCode } }, 'Cancel the old code'))) : null,
+        httpsNote,
+      ];
+    } else if (showing) {
+      timer = haTimer(flow.deadline);
+      codeBody = [
+        h('div', { class: 'ha-code', role: 'group', tabindex: '-1', 'aria-label': 'One-time connection code' },
+          h('span', { class: 'ha-code-label' }, 'One-time connection code'),
+          h('div', { class: 'ha-code-row' }, haCodeText(flow.code), copyButton(() => flow.code)),
+          timer.el),
+        h('p', {}, first
+          ? 'In Home Assistant, add the Phoenix integration and enter this code.'
+          : 'In Home Assistant, add Phoenix again and enter this code. Each link appears there as its own Phoenix entry.'),
+        h('div', { class: 'ha-actions' }, haOut(HA_LINKS.add, 'Add Phoenix in Home Assistant', 'btn btn-primary btn-sm')),
+        h('div', { class: 'ha-server' },
+          h('span', { class: 'ha-label' }, 'Phoenix server URL'),
+          h('div', { class: 'restart-cmd run-cmd' }, h('code', { text: server }), copyButton(() => server)),
+          h('p', { class: 'field-hint' }, server === HA_DEFAULT_SERVER
+            ? 'Home Assistant fills this in for you.'
+            : `Home Assistant suggests ${HA_DEFAULT_SERVER}. Replace it with this address.`)),
+        httpsNote,
+        h('div', { class: 'ha-wait' },
+          h('span', { class: 'spinner', 'aria-hidden': 'true' }),
+          h('span', { role: 'status' }, 'Waiting for Home Assistant…'),
+          h('button', { class: 'btn btn-sm btn-quiet', type: 'button', on: { click: cancelCode } }, 'Cancel code')),
+        h('p', { class: 'field-hint' }, 'Relinking? Enter the code where Home Assistant asks you to relink Phoenix.'),
+      ];
+    } else if (phase === 'expired') {
+      const again = h('button', { class: 'btn btn-primary btn-sm', type: 'button' }, 'Get a new code');
+      again.addEventListener('click', async () => {
+        again.disabled = true;
+        const result = await requestCode(flow.robots, flow.name);
+        again.disabled = false;
+        if (!result.ok) notify(haError(result, 'Could not create a connection code.'), 'error');
+      });
+      codeBody = [
+        h('div', { class: 'notice notice-warn' }, icon('clock', 16), h('div', {}, 'This code expired before Home Assistant used it.')),
+        h('div', { class: 'ha-actions' }, again,
+          h('button', { class: 'btn btn-sm btn-quiet', type: 'button', on: { click: finish } }, 'Choose again')),
+      ];
+    } else {
+      const slow = !connected && made && Date.now() - Number(made.createdAt || 0) > 60000;
+      const names = listText(flow.robots.map((id) => robotName(robotFor(id))));
+      codeBody = [h('div', { class: `ha-done${connected ? '' : ' is-waiting'}`, role: 'status' },
+        connected ? h('span', { class: 'ha-done-ic' }, icon('check', 18)) : h('span', { class: 'spinner', 'aria-hidden': 'true' }),
+        h('div', {},
+          h('b', {}, connected
+            ? `Connected to Home Assistant${made.haVersion ? ` ${made.haVersion}` : ''}`
+            : 'Linked. Waiting for Home Assistant to connect…'),
+          h('span', {}, connected
+            ? `${names} can use it now.`
+            : slow ? 'This is taking a while. Check that Home Assistant can reach this server.' : 'This usually takes a few seconds.')))];
+    }
+
+    const exposeStep = (n, state) => haStep(n, state, 'Choose what Jibo can control',
+      h('p', {}, 'In Home Assistant, expose the lights, switches, scenes and scripts he may use to Assist. Start with one light that has a clear name.'),
+      h('div', { class: 'ha-actions' }, haOut(HA_LINKS.expose, 'Open Assist settings', done ? 'btn btn-primary btn-sm' : 'btn btn-sm')));
+    const chooseTitle = (phase === 'pick' ? available.length : flow.robots.length) === 1 ? 'Choose your Jibo' : 'Choose your Jibos';
+    const codeState = showing || phase === 'expired' ? 'active' : done ? 'done' : 'todo';
+    const steps = first
+      ? [
+        // Only Home Assistant using a code proves Phoenix is installed there.
+        haStep(1, done ? 'done' : 'ready', 'Install Phoenix in Home Assistant', ...(done ? [] : [
+          h('p', {}, 'Add the Phoenix integration from HACS, then restart Home Assistant. It’s a beta, so allow beta versions when HACS asks which version to download.'),
+          h('div', { class: 'ha-actions' },
+            haOut(HA_LINKS.hacs, 'Open in HACS'),
+            haOut(HA_LINKS.install, 'Installation guide', 'btn btn-sm btn-quiet'))])),
+        haStep(2, phase === 'pick' ? 'ready' : 'done', chooseTitle, ...chooseBody),
+        haStep(3, codeState, 'Enter the code in Home Assistant', ...codeBody),
+        exposeStep(4, done ? 'active' : 'ready'),
+      ]
+      : [
+        haStep(1, phase === 'pick' ? 'ready' : 'done', chooseTitle, ...chooseBody),
+        haStep(2, codeState, 'Enter the code in Home Assistant', ...codeBody),
+      ];
+
+    const head = first
+      ? h('div', { class: 'ha-setup-hero' },
+        h('span', { class: `ha-bridge ha-bridge-lg is-${heroState}`, 'aria-hidden': 'true' },
+          heroRobots, h('span', { class: 'ha-bridge-line' }), haTile('lg')),
+        h('div', { class: 'ha-setup-hero-text' },
+          h('h3', {}, 'Connect Jibo to Home Assistant'),
+          h('p', {}, 'Four steps, and he can switch lights, set scenes and run scripts for you.')))
+      : h('div', { class: 'card-head' },
+        h('h3', {}, 'Link another Jibo'),
+        phase === 'pick' ? h('span', { class: 'sub', text: waitingRobots }) : null,
+        phase === 'pick' ? h('span', { class: 'spacer' }) : null,
+        phase === 'pick' ? h('button', { class: 'btn btn-sm btn-quiet', type: 'button', on: { click: () => {
+          flow.expanded = false;
+          paintSetup();
+        } } }, 'Not now') : null);
+    return h('section', { class: `card ha-setup${first ? ' is-first' : ''}` },
+      head,
+      h('ol', { class: 'ha-steps' }, steps),
+      done ? h('div', { class: 'card-foot ha-setup-foot' },
+        h('span', { class: 'field-hint' }, 'Then say “Hey Jibo” and try one of the phrases on this page.'),
+        h('button', { class: 'btn btn-sm', type: 'button', on: { click: finish } }, 'Done')) : null);
+  }
+
+  function paintSetup() {
+    const installations = status.installations || [];
+    const linked = new Set(installations.flatMap((installation) => installation.robots || []));
+    const available = owned.filter((robot) => !linked.has(robot.friendlyId));
+    for (const id of [...flow.selected]) if (!available.some((robot) => robot.friendlyId === id)) flow.selected.delete(id);
+    // One Jibo to link is chosen for you; with several, the choice is yours.
+    if (flow.phase === 'pick' && !flow.touched && available.length === 1) flow.selected.add(available[0].friendlyId);
+
+    const mode = flow.phase === 'pick' ? (installations.length ? 'more' : 'first') : flow.mode;
+    const made = installations.find((installation) => installation.id === flow.installationId);
+    const limited = flow.phase === 'pick' && installations.length >= HA_INSTALLATION_LIMIT;
+    const slow = !!made && !made.connected && Date.now() - Number(made.createdAt || 0) > 60000;
+    const key = JSON.stringify([flow.phase, mode, flow.expanded, available.map((robot) => robot.friendlyId),
+      flow.phase === 'pick' ? (status.pending || []).length : 0, made?.connected, made?.haVersion, flow.note, limited, slow]);
+    if (key !== setupKey) {
+      setupKey = key;
+      timer = null;
+      let view = null;
+      if (flow.phase !== 'pick' || available.length) {
+        view = limited ? card('Link another Jibo', {}, h('p', { class: 'field-hint' }, HA_ERRORS.installation_limit))
+          : setupCard(mode, available, made);
+      }
+      setupSlot.replaceChildren(...(view ? [view] : []));
+    }
+    // While a code is out, the linking card leads, so a new link appearing
+    // below it does not push it down the page.
+    const lead = flow.phase === 'pick' ? installs : setupSlot;
+    if (notice.nextElementSibling !== lead) main.append(lead, lead === installs ? setupSlot : installs);
+  }
+
+  function paint() {
+    paintInstalls();
+    paintSetup();
+    // Linked homes take the full width, with what to say and what to expect
+    // side by side beneath. A first link keeps the setup layout until Done.
+    const installed = (status.installations || []).length > 0;
+    layout.classList.toggle('is-steady', installed && !(flow.phase !== 'pick' && flow.mode === 'first'));
+  }
+
+  /* -- staying current ------------------------------------------------------ */
+
+  function detect() {
+    const installations = status.installations || [];
+    // A code redeemed in its last second still links, so an expired code is
+    // watched for as well.
+    if (flow.phase === 'code' || flow.phase === 'expired') {
+      const made = installations.find((installation) => !flow.known.has(installation.id)
+        && flow.robots.every((id) => (installation.robots || []).includes(id)));
+      if (made) {
+        Object.assign(flow, { phase: 'linked', installationId: made.id, code: '', announced: made.connected === true });
+        remember();
+        notify(made.connected ? 'Home Assistant is connected' : 'Home Assistant is linked');
+      } else if (flow.phase === 'code' && !(status.pending || []).length) {
+        const expired = Date.now() >= flow.deadline - 2000;
+        Object.assign(flow, { phase: expired ? 'expired' : 'pick', code: '',
+          note: expired ? '' : 'Your code was cancelled or replaced. Get a new one when you’re ready.' });
+        remember();
+      }
+    }
+    if (flow.phase === 'linked') {
+      const made = installations.find((installation) => installation.id === flow.installationId);
+      if (!made) Object.assign(flow, fresh()); // disconnected meanwhile, perhaps from another tab
+      else if (made.connected && !flow.announced) {
+        flow.announced = true;
+        notify('Home Assistant is connected');
+      }
+    }
+  }
+
+  let issued = 0;
+  let applied = 0;
+  let inFlight = 0;
+  async function refresh(force = false) {
+    if (inFlight && !force) return;
+    const seq = ++issued;
+    inFlight += 1;
+    const result = await api('GET', '/api/home-assistant');
+    inFlight -= 1;
+    if (seq < applied) return; // a newer answer has already been drawn
+    applied = seq;
+    if (!result.ok) {
+      notice.replaceChildren(errorBox('Could not check Home Assistant just now.', result.data?.error));
+      return;
+    }
+    notice.replaceChildren();
+    status = result.data;
+    detect();
+    paint();
+  }
+
+  detect();
+  paint();
+  show(container);
+
+  // One clock for the page: the code's countdown every second, and the link's
+  // state every five seconds, or every two while waiting on Home Assistant.
+  // A hidden tab asks nothing, and catches up the moment it is shown again.
+  let ticks = 0;
+  let wasHidden = false;
+  stopPoll();
+  pollTimer = setInterval(() => {
+    ticks += 1;
+    if (flow.phase === 'code' && Date.now() >= flow.deadline) {
+      Object.assign(flow, { phase: 'expired', code: '' });
+      remember();
+      paint();
+    }
+    timer?.update();
+    if (document.hidden) { wasHidden = true; return; }
+    const waiting = flow.phase === 'code'
+      || (flow.phase === 'linked' && !(status.installations || []).find((item) => item.id === flow.installationId)?.connected);
+    if (wasHidden || ticks % (waiting ? 2 : 5) === 0) void refresh();
+    wasHidden = false;
+  }, 1000);
+}
+
+/* ==========================================================================
+   Router
+   ========================================================================== */
 
 const ROUTES = {
   '#/': renderHome,

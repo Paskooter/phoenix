@@ -1969,6 +1969,492 @@ pre.json {
 }
 
 /* ==========================================================================
+   Home Assistant
+   ========================================================================== */
+
+.ha-head h2 { display: flex; align-items: center; flex-wrap: wrap; gap: .35rem .75rem; }
+.ha-head h2 .pill { font-size: var(--t-xs); font-weight: 620; letter-spacing: .02em; }
+
+.ha-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+@media (max-width: 1100px) { .ha-layout { grid-template-columns: minmax(0, 1fr); } }
+.ha-layout.is-steady { grid-template-columns: minmax(0, 1fr); }
+.ha-layout.is-steady .ha-aside { grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); align-items: start; }
+.ha-main, .ha-aside, .ha-installs { display: grid; gap: 1rem; min-width: 0; align-content: start; }
+.ha-layout .card + .card { margin-top: 0; }
+.ha-slot:empty { display: none; }
+.ha-label {
+  font-size: var(--t-xs);
+  font-weight: 620;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.ha-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.pill .spinner { width: 10px; height: 10px; border-width: 1.5px; }
+
+/* Jibo at one end, Home Assistant at the other. Home Assistant takes the cool
+   counterweight, so the two ends read as two different things. */
+.ha-tile {
+  --size: 44px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--size);
+  height: var(--size);
+  border-radius: calc(var(--size) * .3);
+  color: var(--cool);
+  background:
+    radial-gradient(circle at 30% 24%, color-mix(in srgb, var(--cool) 22%, transparent), transparent 64%),
+    var(--cool-soft);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--cool) 34%, transparent),
+    0 4px 14px -6px color-mix(in srgb, var(--cool) 60%, transparent);
+}
+.ha-tile svg { width: 54%; height: 54%; }
+.ha-tile-lg { --size: 64px; }
+
+.ha-bridge { display: inline-flex; align-items: center; gap: .45rem; flex: none; }
+.ha-bridge-robots { display: flex; flex: none; }
+.ha-bridge-robots > .robot-avatar + .robot-avatar {
+  margin-inline-start: calc(var(--size) * -.4);
+  box-shadow: 0 0 0 3px var(--panel), inset 0 -2px 6px rgba(0, 0, 0, .18);
+}
+/* The link itself: a row of dots that runs from Jibo to Home Assistant while
+   it is connected, and stands still or breaks when it is not. Every width is
+   a whole number of 9px dots, so no dot is cut at an end and the run loops
+   seamlessly. */
+.ha-bridge-line {
+  position: relative;
+  width: 54px;
+  height: 6px;
+  color: var(--faint);
+  background: radial-gradient(circle, currentColor 0 1.35px, transparent 1.85px) 0 50% / 9px 6px repeat-x;
+}
+.ha-bridge-lg .ha-bridge-line { width: 81px; }
+.ha-bridge.is-live .ha-bridge-line {
+  color: var(--ok);
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--ok) 55%, transparent));
+  animation: ha-flow .9s linear infinite;
+}
+.ha-bridge.is-waiting .ha-bridge-line { color: var(--accent); animation: ha-flow 1.8s linear infinite; }
+.ha-bridge.is-down .ha-bridge-line { color: color-mix(in srgb, var(--warn) 60%, transparent); }
+/* A dropped link: one slash through the middle, cut cleanly out of the dots. */
+.ha-bridge.is-down .ha-bridge-line::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--warn);
+  box-shadow: 0 0 0 3px var(--panel);
+  transform: translate(-50%, -50%) rotate(35deg);
+}
+.ha-bridge.is-down .ha-tile { opacity: .7; filter: saturate(.5); }
+@keyframes ha-flow { to { background-position: 9px 50%; } }
+
+/* A linked Home Assistant ------------------------------------------------- */
+
+.ha-install-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .9rem 1.2rem;
+  padding: 1.1rem 1.3rem;
+  border-bottom: 1px solid var(--border-soft);
+}
+.ha-install.is-live .ha-install-head {
+  background: radial-gradient(90% 220% at 0% 0%, color-mix(in srgb, var(--ok) 9%, transparent), transparent 62%);
+}
+.ha-install-title { flex: 1 1 12rem; min-width: 0; display: grid; gap: .15rem; }
+.ha-install-title h3 { font-size: var(--t-md); font-weight: 620; letter-spacing: -.016em; overflow-wrap: anywhere; }
+.ha-install-meta { display: flex; flex-wrap: wrap; gap: 0 .45rem; font-size: var(--t-sm); color: var(--muted); }
+.ha-install-meta > span { white-space: nowrap; }
+.ha-install-meta > span + span::before { content: "·"; margin-inline-end: .45rem; color: var(--faint); }
+.ha-install-status { flex: none; }
+.ha-install-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+.ha-install-body > * + * { margin-top: 0; }
+.ha-robots { display: flex; flex-wrap: wrap; gap: .45rem; }
+.ha-label + .ha-robots { margin-top: .5rem; }
+.ha-robot {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  max-width: 100%;
+  padding: .28rem .8rem .28rem .3rem;
+  border-radius: var(--radius-pill);
+  background: var(--panel-2);
+  border: 1px solid var(--border-soft);
+  font-size: var(--t-sm);
+  font-weight: 560;
+  color: var(--fg);
+}
+.ha-robot > span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ha-robot .robot-avatar { --size: 22px; box-shadow: none; }
+.ha-install-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .6rem;
+  padding-block: .65rem;
+}
+.btn-quiet.ha-disconnect:hover { color: var(--error); background: var(--error-soft); }
+
+/* The offer to link one more Jibo, drawn like the console's other "add" tiles. */
+.ha-add {
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+  width: 100%;
+  padding: .8rem 1.1rem;
+  border-radius: var(--radius);
+  border: 1px dashed var(--border);
+  color: inherit;
+  text-align: left;
+  transition: border-color var(--fast) var(--ease), background var(--fast) var(--ease), transform var(--fast) var(--ease);
+}
+.ha-add:hover { border-color: var(--accent-line); background: var(--panel); transform: translateY(-1px); }
+.ha-add:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ha-add-text { min-width: 0; display: grid; gap: .1rem; }
+.ha-add-text b { font-weight: 620; letter-spacing: -.014em; color: var(--fg); }
+.ha-add-text span { font-size: var(--t-sm); color: var(--muted); }
+@media (hover: none) { .ha-add:hover { transform: none; } }
+
+/* Linking a Jibo ------------------------------------------------------------ */
+
+.ha-setup.is-first { border-color: var(--accent-line); }
+.ha-setup-hero {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem 1.4rem;
+  padding: 1.4rem 1.3rem;
+  border-bottom: 1px solid var(--border-soft);
+  background: radial-gradient(110% 160% at 100% 0%, var(--accent-soft), transparent 60%), var(--panel);
+}
+.ha-setup-hero-text { flex: 1 1 15rem; min-width: 0; }
+.ha-setup-hero h3 { margin-bottom: .3rem; font-size: var(--t-lg); letter-spacing: -.02em; }
+.ha-setup-hero p { max-width: 46ch; font-size: var(--t-sm); line-height: 1.55; color: var(--muted); }
+
+/* Numbered steps on a thread. Each step's number turns into a check once it
+   is done, and the step being worked on carries the brand gradient. */
+.ha-steps { display: grid; margin: 0; padding: .3rem 1.3rem 1.35rem; list-style: none; }
+.ha-step {
+  --mark: 1.9rem;
+  --gap: .95rem;
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--mark) minmax(0, 1fr);
+  column-gap: var(--gap);
+  padding-top: 1.15rem;
+}
+.ha-step:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: calc(var(--mark) / 2 - 1px);
+  top: calc(1.15rem + var(--mark) + .3rem);
+  bottom: calc(-1.15rem + .3rem);
+  width: 2px;
+  border-radius: 2px;
+  background: var(--border-soft);
+}
+.ha-step.is-done:not(:last-child)::before { background: color-mix(in srgb, var(--ok) 45%, var(--border-soft)); }
+.ha-step-mark {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: var(--mark);
+  height: var(--mark);
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  transition: background var(--step) var(--ease), color var(--step) var(--ease), box-shadow var(--step) var(--ease);
+}
+.ha-step.is-todo .ha-step-mark { background: var(--panel-2); color: var(--faint); box-shadow: inset 0 0 0 1px var(--border); }
+.ha-step.is-active .ha-step-mark {
+  background: var(--grad-brand);
+  color: var(--accent-ink);
+  box-shadow: 0 0 0 4px var(--accent-soft), var(--shadow-glow);
+}
+.ha-step.is-done .ha-step-mark { background: var(--ok-soft); color: var(--ok); }
+.ha-step-title {
+  display: flex;
+  align-items: center;
+  min-height: var(--mark);
+  font-weight: 600;
+  letter-spacing: -.012em;
+  color: var(--fg);
+}
+.ha-step.is-todo .ha-step-title { color: var(--fg-dim); }
+.ha-step-body {
+  display: grid;
+  gap: .8rem;
+  min-width: 0;
+  padding: .3rem 0 .2rem;
+  font-size: var(--t-sm);
+  line-height: 1.55;
+  color: var(--muted);
+}
+.ha-step-body > * { margin: 0; }
+.ha-step-body > p { max-width: 72ch; }
+.ha-step-body .notice { color: var(--fg-dim); }
+.ha-step-body .notice-warn { color: var(--warn); }
+.ha-step-body .notice .link { font-size: inherit; }
+
+/* Picking Jibos: each one a tile around a real, named checkbox. */
+.ha-get { display: grid; gap: .9rem; }
+.ha-pick {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  gap: .55rem;
+  min-width: 0;
+}
+.ha-option {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  min-width: 0;
+  padding: .65rem .75rem .65rem .65rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--fg-dim);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color var(--fast) var(--ease), background var(--fast) var(--ease),
+              box-shadow var(--fast) var(--ease), transform var(--fast) var(--ease);
+}
+.ha-option:hover { border-color: var(--accent-line); }
+.ha-option:active { transform: translateY(1px); }
+.ha-option:has(input:checked) { border-color: var(--accent-line); background: var(--accent-soft); }
+.ha-option:has(input:focus-visible) { border-color: var(--accent); box-shadow: var(--ring); }
+.ha-option-text { flex: 1; min-width: 0; display: grid; gap: .05rem; line-height: 1.35; }
+.ha-option-text b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  letter-spacing: -.012em;
+  color: var(--fg);
+}
+.ha-option-text span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  color: var(--muted);
+}
+.ha-check {
+  -webkit-appearance: none;
+  appearance: none;
+  position: relative;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  border-radius: 7px;
+  border: 1.5px solid var(--border);
+  background: var(--bg-soft);
+  cursor: pointer;
+  transition: background var(--fast) var(--ease), border-color var(--fast) var(--ease);
+}
+.ha-check::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--accent-ink);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='10' viewBox='0 0 12 10' fill='none'%3E%3Cpath d='M1.5 5.2 4.6 8.3 10.5 1.7' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 12px 10px no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='10' viewBox='0 0 12 10' fill='none'%3E%3Cpath d='M1.5 5.2 4.6 8.3 10.5 1.7' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 12px 10px no-repeat;
+  opacity: 0;
+  transform: scale(.5);
+  transition: opacity var(--fast) var(--ease), transform var(--step) var(--ease-spring);
+}
+.ha-check:checked { border-color: transparent; background: var(--grad-brand); }
+.ha-check:checked::after { opacity: 1; transform: none; }
+.ha-check:focus-visible { outline: none; }
+.ha-get-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .75rem; }
+.ha-get-row .field { flex: 1 1 13rem; }
+.ha-get-row .btn { flex: none; }
+
+/* The code, sized to be read across a room and typed without a slip. */
+.ha-code {
+  display: grid;
+  gap: .85rem;
+  padding: 1rem 1.1rem 1.05rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--accent-line);
+  background: radial-gradient(130% 170% at 0% 0%, var(--accent-soft), transparent 60%), var(--bg-soft);
+  animation: fade-up .32s var(--ease-out);
+}
+.ha-code:focus { outline: none; }
+.ha-code:focus-visible { box-shadow: var(--ring); }
+.ha-code-label {
+  font-size: var(--t-xs);
+  font-weight: 620;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.ha-code-row { display: flex; align-items: center; flex-wrap: wrap; gap: .6rem 1rem; }
+.ha-connection-code {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: clamp(1rem, .84rem + .67vw, 1.45rem);
+  font-weight: 650;
+  letter-spacing: .05em;
+  line-height: 1.3;
+  color: var(--fg);
+  user-select: all;
+  -webkit-user-select: all;
+}
+.ha-code-sep { color: var(--faint); font-weight: 500; }
+.ha-timer { display: grid; gap: .45rem; }
+.ha-timer-track { height: 4px; overflow: hidden; border-radius: var(--radius-pill); background: var(--panel-3); }
+.ha-timer-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--grad-brand);
+  transform-origin: left center;
+  transition: transform 1s linear;
+}
+.ha-timer-text {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: var(--t-xs);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.ha-timer-text b { font-weight: 620; color: var(--fg-dim); }
+.ha-timer.is-low .ha-timer-fill { background: var(--warn); }
+.ha-timer.is-low .ha-timer-text b { color: var(--warn); }
+.ha-server { display: grid; gap: .45rem; }
+.ha-server .restart-cmd code { font-size: var(--t-sm); color: var(--fg); }
+.ha-wait {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .5rem .7rem;
+  padding: .55rem .6rem .55rem .85rem;
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+  border: 1px solid var(--border-soft);
+  color: var(--fg-dim);
+}
+.ha-wait .spinner { width: 14px; height: 14px; }
+.ha-wait .btn { margin-inline-start: auto; }
+
+.ha-done {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  padding: .9rem 1rem;
+  border-radius: var(--radius-sm);
+  background: var(--ok-soft);
+}
+.ha-done.is-waiting { background: var(--panel-2); border: 1px solid var(--border-soft); }
+.ha-done b { display: block; font-weight: 640; letter-spacing: -.012em; color: var(--ok); }
+.ha-done.is-waiting b { color: var(--fg); }
+.ha-done span:not(.ha-done-ic):not(.spinner) { font-size: var(--t-sm); color: var(--fg-dim); }
+.ha-done-ic {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--ok);
+  color: var(--bg);
+  animation: ha-pop .55s var(--ease-spring) both;
+}
+@keyframes ha-pop {
+  from { opacity: 0; transform: scale(.3); }
+  to { opacity: 1; transform: none; }
+}
+.ha-setup-foot { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .6rem 1rem; }
+.ha-setup-foot .field-hint { font-size: var(--t-sm); }
+
+/* What to say, and what to expect ------------------------------------------ */
+
+.ha-say h3 { font-size: var(--t-base); letter-spacing: -.012em; }
+.ha-say-group h4 {
+  margin-bottom: .5rem;
+  font-size: var(--t-xs);
+  font-weight: 620;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.ha-say-list { display: grid; justify-items: start; gap: .4rem; margin: 0; padding: 0; list-style: none; }
+.ha-say-list li {
+  max-width: 100%;
+  padding: .42rem .8rem;
+  border-radius: 14px 14px 14px 5px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--t-sm);
+  font-weight: 540;
+  line-height: 1.45;
+  color: var(--fg);
+}
+.ha-say-list li::before { content: "“"; color: var(--accent); }
+.ha-say-list li::after { content: "”"; color: var(--accent); }
+
+.ha-notes { display: grid; gap: 1rem; margin: 0; padding: 0; list-style: none; }
+.ha-note {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: .75rem;
+  font-size: var(--t-sm);
+  line-height: 1.5;
+  color: var(--muted);
+}
+.ha-note b { display: block; margin-bottom: .1rem; font-weight: 600; letter-spacing: -.01em; color: var(--fg); }
+.ha-note-ic {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--panel-2);
+  border: 1px solid var(--border-soft);
+  color: var(--fg-dim);
+}
+.ha-empty .ha-bridge { margin-bottom: .6rem; }
+
+@media (max-width: 560px) {
+  .ha-install-head { padding: 1rem; }
+  .ha-install-head .robot-avatar, .ha-install-head .ha-tile { --size: 38px; }
+  .ha-install-head .ha-bridge-line { width: 36px; }
+  .ha-install-status { order: 1; margin-inline-start: auto; }
+  .ha-install-title { order: 2; flex-basis: 100%; }
+  .ha-setup-hero { padding: 1.15rem 1rem; }
+  .ha-setup-hero .robot-avatar-lg, .ha-setup-hero .ha-tile-lg { --size: 52px; }
+  .ha-setup-hero .ha-bridge-line { width: 63px; }
+  .ha-steps { padding: .15rem 1rem 1.1rem; }
+  .ha-step { --mark: 1.65rem; --gap: .7rem; }
+  .ha-code { padding: .9rem .85rem; }
+  .ha-get-row .btn { width: 100%; }
+  .ha-actions .btn:not(.btn-quiet) { flex: 1 1 auto; }
+  .ha-code-row .btn { flex: 1 1 auto; }
+}
+
+/* ==========================================================================
    Modal
    ========================================================================== */
 
@@ -3129,5 +3615,3 @@ pre.json {
   .voice-waterfall-track { min-height: 1.7rem; }
   .voice-asr-timings { grid-template-columns: 1fr; }
 }
-/* One-time linking code; never stored in browser local storage. */
-.ha-connection-code { display: inline-block; font-size: 1.15rem; letter-spacing: .08em; padding: .65rem; user-select: all; overflow-wrap: anywhere; }

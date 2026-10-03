@@ -33,29 +33,52 @@ try {
   const page = await context.newPage();
   const errors = []; page.on('pageerror', (error) => errors.push(error.message));
   await page.goto(base + '/app#/home-assistant');
-  await page.getByRole('button', { name: 'Generate connection code' }).waitFor();
-  await page.locator('input[name=robot]').check();
-  await page.getByRole('button', { name: 'Generate connection code' }).click();
+  const getCode = page.getByRole('button', { name: 'Get connection code' });
+  await getCode.waitFor();
+  // An owner's only Jibo is already chosen; choosing it again changes nothing.
+  const choice = page.getByRole('checkbox', { name: /Synthetic-Pilot-Jibo/ });
+  assert.ok(await choice.isChecked());
+  await choice.check();
+  await getCode.click();
   const code = await page.locator('.ha-connection-code').innerText();
+  assert.match(code, /^[0-9A-F]{4}(?:-[0-9A-F]{4}){4}$/);
+  await page.getByText('Waiting for Home Assistant…').waitFor();
   const exchanged = service.homeAssistant.exchangeCode(code);
   connector = new WebSocket(base.replace('http:', 'ws:') + '/api/home-assistant/connect',
     { headers: { authorization: `Bearer ${exchanged.credential}` } });
   const welcomePromise = once(connector, 'message'); await once(connector, 'open');
   const welcome = JSON.parse((await welcomePromise)[0]);
   connector.send(JSON.stringify({ v: 1, type: 'ready', session_id: welcome.session_id, agent: 'home_assistant', ha_version: '2026.8.1' }));
-  await page.getByText('Connected', { exact: true }).waitFor({ timeout: 10000 });
+  // The page notices on its own: the setup card confirms, and the link reads Connected.
+  await page.getByText('Connected to Home Assistant 2026.8.1').waitFor({ timeout: 10000 });
+  await page.locator('.ha-install').getByText('Connected', { exact: true }).waitFor({ timeout: 10000 });
   for (const width of [390, 768, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${width}px overflow`);
   }
+  await page.getByRole('button', { name: 'Done', exact: true }).click();
+  // Disconnecting asks first; declining keeps the link.
+  const disconnect = page.locator('.ha-install').getByRole('button', { name: 'Disconnect' });
+  await disconnect.click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Cancel' }).click();
+  assert.ok(service.homeAssistant.authenticate(`Bearer ${exchanged.credential}`));
   const closed = once(connector, 'close');
-  await page.getByRole('button', { name: 'Disconnect', exact: true }).click();
+  await disconnect.click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Disconnect' }).click();
   assert.equal((await closed)[0], 4001);
-  await page.getByText('No Home Assistant installation linked yet.').waitFor();
+  await page.getByRole('heading', { name: 'Connect Jibo to Home Assistant' }).waitFor();
+  // A new code can be withdrawn before Home Assistant uses it.
+  await page.getByRole('button', { name: 'Get connection code' }).click();
+  const unused = await page.locator('.ha-connection-code').innerText();
+  await page.getByRole('button', { name: 'Cancel code' }).click();
+  await page.getByRole('button', { name: 'Get connection code' }).waitFor();
+  assert.equal(store.homeAssistantCodes.size, 0);
+  assert.throws(() => service.homeAssistant.exchangeCode(unused), /invalid_code/);
   assert.deepEqual(errors, []);
   assert.equal(service.homeAssistant.authenticate(`Bearer ${exchanged.credential}`), null);
-  assert.ok(!await page.evaluate(() => JSON.stringify(localStorage)).then((text) => text.includes(exchanged.credential)));
-  console.log('PASS owner code, live connection, revocation and 390/768/1440px setup page');
+  const storage = await page.evaluate(() => JSON.stringify([localStorage, sessionStorage]));
+  assert.ok(!storage.includes(exchanged.credential) && !storage.includes(code) && !storage.includes(unused));
+  console.log('PASS owner code, live connection, confirmed revocation, cancelled code and 390/768/1440px setup page');
 } finally {
   connector?.terminate(); await browser?.close(); service.homeAssistant.close();
   service.server.closeAllConnections();
