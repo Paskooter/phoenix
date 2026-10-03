@@ -1,5 +1,11 @@
 # Phoenix worklog
 
+This is a dated implementation log. Counts, missing features and pending tests
+describe each entry's checkpoint. Current acceptance is recorded in
+[TASKS.md](../parity/TASKS.md), including the owner's
+[October 3 OTA certification](../parity/evidence/2026-10-03/ota-owner-certification/README.md).
+See [VERIFICATION-GAPS.md](../parity/VERIFICATION-GAPS.md) for remaining checks.
+
 ## 2026-09-06: automatic README checklist completion
 
 The user's requested README progress bar is generated from verified task

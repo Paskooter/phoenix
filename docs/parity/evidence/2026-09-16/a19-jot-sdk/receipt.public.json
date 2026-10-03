@@ -1,0 +1,109 @@
+{
+  "schema": "phoenix.a19.jot-sdk-conformance.public.v1",
+  "task": "A-19",
+  "client": {
+    "package": "@jibo/jibo-server-client",
+    "version": "3.0.42",
+    "runtime": "node:8.9.4-slim"
+  },
+  "model": {
+    "file": "apis/jot-2016-05-12.min.json",
+    "targetPrefix": "Jot_20160126",
+    "signatureVersion": "v4"
+  },
+  "transport": {
+    "tls": true,
+    "endpoint": "https://a19-classic:8080"
+  },
+  "steps": [
+    {
+      "name": "list-empty",
+      "ok": true,
+      "errCode": null,
+      "status": 200
+    },
+    {
+      "name": "create",
+      "ok": true,
+      "errCode": null,
+      "status": 200
+    },
+    {
+      "name": "list-after-create",
+      "ok": true,
+      "errCode": null,
+      "status": 200
+    },
+    {
+      "name": "unread-own-loop",
+      "ok": true,
+      "errCode": null,
+      "status": 200
+    },
+    {
+      "name": "mark-read-by-id",
+      "ok": true,
+      "errCode": null,
+      "status": 200
+    },
+    {
+      "name": "mark-loop-read",
+      "ok": true,
+      "errCode": null,
+      "status": 200
+    },
+    {
+      "name": "unread-after-mark",
+      "ok": true,
+      "errCode": null,
+      "status": 200
+    },
+    {
+      "name": "outsider-list-refused",
+      "ok": false,
+      "errCode": "JOT_MUST_BE_LOOP_MEMBER",
+      "status": 403
+    },
+    {
+      "name": "outsider-create-refused",
+      "ok": false,
+      "errCode": "JOT_MUST_BE_LOOP_MEMBER",
+      "status": 403
+    },
+    {
+      "name": "non-robot-impersonation-refused",
+      "ok": false,
+      "errCode": "JOT_ROBOT_CAN_IMPERSONATE",
+      "status": 403
+    },
+    {
+      "name": "robot-impersonation-allowed",
+      "ok": true,
+      "errCode": null,
+      "status": 200
+    },
+    {
+      "name": "cross-loop-isolation",
+      "ok": true,
+      "errCode": null,
+      "status": 200
+    }
+  ],
+  "pushFanOutCount": 2,
+  "durability": {
+    "messages": 22,
+    "events": 22
+  },
+  "result": "pass",
+  "errors": [],
+  "provenance": {
+    "originalReceiptSha256": "c96e9447a1e1829cb071b2f731c1820480888544d4e23891e69976e3c2d4f5a8",
+    "originalReceiptPath": ".parity/runs/a19-jot-sdk/receipt.json",
+    "acceptedDate": "2026-09-16",
+    "sanitizedDate": "2026-10-03",
+    "omitted": [
+      "pushFanOut destination tokens and payloads"
+    ],
+    "note": "Historical accepted receipt preserved for fresh-checkout validation; no new SDK/hardware run was performed."
+  }
+}

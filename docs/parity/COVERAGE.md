@@ -1,5 +1,11 @@
 # Source coverage and corpus denominators
 
+The tables and gate-link counts below preserve the **2026-09-06 inventory
+snapshot**. Later task-specific comparisons and acceptance are recorded in
+[TASKS.md](TASKS.md); [VERIFICATION-GAPS.md](VERIFICATION-GAPS.md) collects current
+qualifications. A missing link in this initial inventory is not a current
+unverified-feature claim.
+
 The frozen target is Pegasus `5c0a7390539663ba749d360de348a428c088505c`. This inventory makes the remaining work enumerable. It does **not** certify Phoenix parity, and its overlapping counts must not be added into a feature percentage. Root has reviewed and integrated the complete corpus-to-gate mapping. V-03 infrastructure is verified after the [hosted CI review](evidence/2026-09-06/ci/accepted-run/review.json) confirmed passing unit/checklist checks and strict rejection of the retained mismatch. The strict grader exports all 20,534 cases; complete original controls agree but retain eight unhosted external-action cases. See [the current evidence](PRODUCTION.md).
 
 The machine-readable [source inventory](evidence/2026-09-06/coverage/source-inventory.json) assigns owning task IDs to every source file, test case, public operation, contract, grammar and asset set. [Syntax facts](evidence/2026-09-06/coverage/syntax-facts.json) retain source locations and declarations. [Corpus counts](evidence/2026-09-06/coverage/corpora.json) retain every duplicate occurrence and overlap.
@@ -17,7 +23,12 @@ The machine-readable [source inventory](evidence/2026-09-06/coverage/source-inve
 | Ad hoc parser requests | 7 | Inputs in an originally malformed script, with no assertions or execution credit |
 | Asset sets | 45 | Every non-JS/TS source asset grouped by package and role; individual paths retained |
 
-Nine public operations have **partial** gate links: six to the 28-case [foundation comparison](COMPARISON.md), plus parser, chitchat and report HTTP operations to the [production comparison](PRODUCTION.md). Eight shared HTTP boundaries have partial foundation links. The recorded Phoenix baselines have differences. No operation has a complete gate yet. `missing` means **no reviewed strict parity gate has been mapped**, not that the application feature or a unit test is necessarily absent. Existing unit tests must be reviewed and mapped as their product tasks are handled.
+At that inventory checkpoint, nine public operations had **partial** gate links:
+six to the 28-case [foundation comparison](COMPARISON.md), plus parser, chitchat
+and report HTTP operations to the [production comparison](PRODUCTION.md).
+Eight shared HTTP boundaries had partial foundation links. `missing` in this
+snapshot means no reviewed strict gate had been mapped then. Later accepted
+task records supersede the checkpoint's blanket no-complete-gate statement.
 
 ## Original test cases
 

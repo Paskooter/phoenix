@@ -19,17 +19,19 @@ behave like the original in some specific case, look here first.
 | A4 | Default per-service ports 7010–7014 instead of all-8080-in-container | Allows local side-by-side runs without docker | none (harness collapses port in URLs) |
 | A5 | Skill `session` blob compared **round-trip only**, not by contents | node-ID assignment is an internal concern; reference assigns global sequential IDs by registration order | must preserve round-trip opacity |
 
-## Differences awaiting a decision (with the current leaning)
+## Reconciled bootstrap questions
 
-These are flagged, not yet decided — surfaced by the atlas open-questions/risk register.
+These questions came from the atlas risk register. Their current decisions are
+recorded below; accepted evidence and remaining qualifications are in
+[VERIFICATION-GAPS.md](parity/VERIFICATION-GAPS.md).
 
 | # | Question | Milestone | Default leaning |
 |---|---|---|---|
-| B1 | Weather day-index off-by-one (Open-Meteo `past_days=1` makes `data[0]`=yesterday while report-skill reads `data[0]`=today) — replicate bug-for-bug or fix? | M4 | replicate, then fix behind a flag |
-| B2 | NLU intent catalog — match the reference's grammar coverage (198 Dialogflow intents) or the phoenix LLM subset (~14)? | M5 | start from the LLM subset, expand against the corpus |
-| B3 | `Credentials.deleteOtherCredentials` uses `if (skillId = 'report-skill')` (assignment bug) — preserve or fix? | M4 | fix (and note the behavior change) |
-| B4 | Speech history has no TTL in the reference — add retention or match (none)? | M3 | match (none) for parity; retention is ops-side |
-| B5 | MIM prompt-variant randomization seedability for deterministic tests | M7 | add an optional seed (test-only), default unseeded |
+| B1 | Weather/date semantics | D-05 | Source-shaped behavior is accepted; historical provider window and apparent-temperature qualifications remain recorded. |
+| B2 | NLU grammar coverage | N-01/N-02/N-08 | Default AST and approved compiled profiles are explicit; the compiled HTTP corpus is exact and the default has the accepted 49-row residual set. |
+| B3 | Credential assignment bug | D-02 | Corrected deliberately with `===`, documented and regression-pinned as D-02a. |
+| B4 | History retention | I-03 | Durable retention is accepted; synchronous pruning differs from Mongo TTL eventual consistency. |
+| B5 | MIM variant selection | S-04 | Weighted source selection is verified at pinned points/boundaries; physical timing remains R-04 scope. |
 
 ## Decided behavioral divergences
 
@@ -61,12 +63,12 @@ Add a row the moment a deviation is chosen; nothing in the code diverges silentl
 
 | # | Decision | Why | Impact |
 |---|---|---|---|
-| H-frontdoor | One `packages/classic` entrypoint (:9012) dispatches every classic service by X-Amz-Target prefix — in-process for stateless (log/robot/notification/key/push/stubs), proxy for stateful (OOBE/account/settings -> account, Update -> ota) | The robot resolves all server-client services to one host; a single front door matches that without merging every store into one process | The robot's region points at one port. The notification **wss socket** (entrypoint-socket) lives here too, but a robot's `wsendpoint`/`<region>-socket` host is left untouched by point-robot-at-phoenix.sh — pointing a real robot's socket needs that repoint too (follow-up). |
-| H-inmemory | notification/key/push and the tier-3 stubs keep in-memory state (not persisted) | Household scale; UGC encryption, push delivery and Commander aren't needed for basic robot revival | State is lost on restart; fine for the conversational+pairing revival. Settings persists (account store); only these auxiliaries are ephemeral. |
-| H-stubs | rom/media/person/ifttt/nlp/collision are built to the wire contract (correct output shapes) but their real function needs the dead mobile app / robot hardware | Can't exercise Commander, media upload, push, IFTTT, etc. without the app — but a robot/app calling them must get a valid shape, not a hang | Wire-tested for dispatch + shape; **unverified end-to-end**. person keeps a real in-memory property round-trip. |
+| H-frontdoor | One Classic entrypoint dispatches by X-Amz-Target and exposes the notification socket; separate Account and OTA services receive authenticated proxy calls. | Matches the robot's global REST/socket resolution without combining every store. | The supported helper rewrites region clients, notification socket suffix and hub routing. Production SigV4 identity is verified; native notification delivery is corroborated. |
+| H-inmemory | **Superseded:** Classic notification/key/push and functional auxiliary stores now have durable local state. | Accepted restart and failure controls replaced the initial in-memory implementation. | JSON files/local outboxes replace the original databases/brokers; external SNS/Kafka and provider limitations retain separate entries. |
+| H-stubs | **Superseded:** ROM, Media, Person, IFTTT, NLP and Collision have functional accepted handlers; Jot and VoiceTraining are implemented too. | Source, runtime and available-client evidence closes the original dispatch/shape stubs. | Physical mobile/Commander/voice-enrollment, live provider and original phonetic/NLP engine behavior retain explicit qualifications. |
 | H-backup | `backup` (Backup_20170222) is a **working** service, not a stub: `Backup.New` hands back an upload URL that points back at the entrypoint (no S3 — same self-hosting as OTA packages), a `PUT /backup/blob` stores the blob and answers with an `ETag`, `Backup.List` returns it (default max=1, newest-first) and `GET /backup/blob` serves it back for restore. Phoenix enforces the source `loop.robot === accountId` ownership check at the verified Classic boundary; an explicit loopback-only compatibility opt-in is available for private fixtures, never for the public listener. Supplied `max` values follow the source `Joi.number().integer().min(1).max(1000)` contract and invalid values return 422. This is the **"Backing up robot…" step of the UI wipe/factory-reset flow** — with the old empty-`uploadUrl` stub the robot's `jibo-system-backup.js` upload failed, `systemManager.backup()` returned non-zero, and the gated wipe aborted with "we couldn't wipe your robot." Verified end-to-end against the real client sequence (Loop.List → Backup.New → PUT → Backup.List → GET). | A robot can actually back up before wiping (and restore after), while a public caller cannot list or create backups for another robot's loop. | The blob/index files under `ETCO_classic_backupDir` are the source of truth and are re-indexed after a process restart; leave the directory on durable private storage rather than the `/tmp` default. Phoenix replaces S3 presigned URLs with method/loop/key-bound HMAC URLs, preserving possession-based restore authorization. UGC encryption is the robot's own (`key.loadOrCreateSymmetricKey` is client-side, from `/var/jibo/keys`); the blob is stored opaque. |
-| H-loop | `@phoenix/account` (robot face) implements `Loop` ops reachable via the entrypoint's `/^loop/i` proxy. **`List`/`ListLoops`** → the loop(s) for the signing account (robot → its loop; owner → owned loops), `_id`→`id`. **`SuspendLoop {loopId}` / `SuspendRobotLoop {friendlyId}`** → `{result:"Command accepted"}`, marking the loop suspended if found but **never rejecting** (the robot sends its *own* local-KB loopId, which won't match the Phoenix-adopted one). The robot sends the wire `name`, so `Loop.list()`→`ListLoops`. Other Loop ops are not built (clean `UnknownOperationException`). | The wipe/factory-reset has TWO cloud gates: `jibo-system-backup.js` calls `Loop.ListLoops` then `Backup.*`; and **`WipeUtil.run` calls `kb.loop.suspend` → `Loop.SuspendLoop` and aborts the whole wipe ("wipeFail") on any error that isn't `LOOP_NOT_FOUND`**. The shipped `be/settings` swallows *backup* errors but NOT suspend — so `SuspendLoop` is the real wipe gate. Both verified end-to-end against a real robot (Jibo Mark-I, firmware 3.3.0). | v1: one owner / one robot per loop. `SuspendLoop` returns success unconditionally so a robot whose KB loopId predates Phoenix can still complete a wipe. Member-management ops deferred. |
-| H-notbuilt | `voicetraining` and `jot` are NOT built | No client API contract (`*.normal.json`) exists in the archive's `apis/` for them | On-robot voice enrollment works without the cloud sync; jot video-message storage is a feature, skippable. |
+| H-loop | All 23 Loop operations now have accepted runtime/client/lifecycle evidence. SuspendLoop remains the native wipe gate. | Later A-04 acceptance supersedes the initial v1 List/Suspend-only implementation. | Membership, invitations, adoption and durable lifecycle are implemented; the initial member-management-deferred claim is historical. |
+| H-notbuilt | **Superseded:** VoiceTraining and loop-era Jot are built and verified. | Archived versioned models and source were recovered and assigned A-19/A-20. | Available SDK/upload/list/durability behavior is accepted; physical voice enrollment and removed party-era operations retain their documented scope. |
 
 ## Robot deployment client
 
@@ -87,7 +89,7 @@ supports guarded restoration.
 
 | # | Decision | Why | Impact |
 |---|---|---|---|
-| R2 | The repoint configuration ships **inside the OTA image**, and the published package carries **no `preinstall`/`postinstall` hooks at all**. The server URL is a **build-time input**, taken from this server's configured public URL; the build refuses to run without one unless an explicit leave-as-is opt-out is passed, and the manifest records which case it is. | The archived updater (`PlatformTeam/jibo-ota-updater`) applies a package as `preinstall` → write the filesystem to the device → `postinstall`, and **both hooks run while the robot is still on its old root** — the incoming filesystem is mounted at `/tmp/other` and unmounted before the root switch. A hook therefore cannot edit the image it is installing. Separately, **an error in either hook is fatal**: `apply_common.fail()` writes work state `retry` and reboots, so a hook with a bug becomes a redownload-and-retry loop rather than a failed update. The repoint spans four partitions while an os/services update replaces three: hosts and the CA-trust patch (R1) in `rootfs`, the jetstream hub/entrypoint `override` in `services`, BE 11.0.1 under `/opt` in `skills` — and the region in `/var/jibo/credentials.json`, which is **preserved on purpose** and so cannot carry the URL for a robot that was never repointed. | **The repoint now works for a robot that has never been touched over SSH**, which is the whole point: previously the firmware upgraded and the robot still could not find the server. Costs accepted deliberately: a payload is **deployment-specific**, so changing the public URL means building and publishing a new payload with a new hash rather than editing a robot; and a payload built with no configured URL is a different, documented artefact rather than a silent default. The reference has no equivalent step — a reference robot was provisioned by the factory and cloud, not repointed by its own update — so this is a Phoenix extension, recorded here rather than presented as parity. No hooks means the fatal-retry path cannot be entered from our payload. |
+| R2 | Phoenix configuration is baked into native OS/services payloads; OS/services packages carry no preinstall/postinstall hooks. Public endpoint/trust is a build input and skills update independently. | Hooks run on the old root and a hook error triggers retry/reboot. Baking avoids that dependency; /var remains preserved. | Owner-certified working OTA, 2026-10-03. The supported helper supplies the first connection from the retired cloud; after OTA no additional manual repoint is needed. Different endpoints require different payloads/hashes. A/B fallback, corrupt/interrupted recovery and wrong-endpoint controls remain R-10; no hooks avoids hook failures rather than every possible retry. |
 
 
 
@@ -167,7 +169,7 @@ open questions; root read the source and classifies them here.
 
 | # | Decision | Why | Impact |
 |---|---|---|---|
-| C02a | **`HubErrorCode` does not match the pinned interface.** Verified 2026-09-10 by diffing `packages/contracts/src/constants.js` against `interfaces/src/hub/HubErrorCode.ts@5c0a739`. Reference-only, missing from Phoenix: `SKILL_NOT_FOUND`, `TIMEOUT_TRANSACTION`, `PARSER`, `GENERAL`. Phoenix-only, absent from reference: `TOO_MANY_REDIRECTS`, `NOT_IMPLEMENTED`, `NOT_FOUND`, `INTERNAL`, `AUTH`. | Phoenix's set was invented before the interface was pinned. | **Open, not resolved.** These codes travel **on the wire to the robot** on `ERROR` responses, so a robot matching on `SKILL_NOT_FOUND` sees `NOT_FOUND` instead. The gateway already consumes the Phoenix values, so this needs a coordinated change across gateway and contracts rather than an edit to the enum alone. Flagged by C-02; **not** fixed in that task's scope. |
+| C02a | **Repaired:** all nine pinned HubErrorCode values are present in `packages/contracts/src/constants.js`, including SKILL_NOT_FOUND, TIMEOUT_TRANSACTION, PARSER and GENERAL. | The prior missing-code finding predates the H-02 repair; PARSER error frames now match accepted source/runtime evidence. | Additional Phoenix-only codes are explicitly labeled for extra subsystem paths. The original blanket missing-enum claim is superseded; retain those extensions as a scoped difference. |
 | C02b | `ResponseType` omits `ASR` and `COMMAND`, both present in the reference `hub/MessageType.ts`. | Same origin as C02a. | Open. Any reference emitter using those types would not round-trip. |
 | C02c | Manifest-rule schemas (`ContextRule`, `IHRule`, `IHQuery`, `queryRules`) do not set `additionalProperties: false`, though the reference `SkillConfigValidator.checkUnexpectedProperties` rejects unknown keys. | Deliberate leniency so valid optional fields are never rejected. | Phoenix is **more permissive** than source here. Accepts everything source accepts, plus some source would reject. |
 | A12a | Log `uploadUrl` / blob URLs point at the Phoenix entrypoint's local sink instead of S3 presigned URLs. | S3 and its credentials are dead; same self-hosted pattern already used by Backup. | Clients follow the returned URL, so the handshake shape is preserved. |
@@ -386,23 +388,20 @@ robot after the crash, a missing store still loads as empty, and any abandoned t
 **private** (`0600`) so a torn write can never be read as truth. The credential and atomicity
 assertions — the ones the criterion rests on — passed in every one of the 51 runs.
 
-## N03a — conditional semantic actions are silently skipped (open)
-`parser.js parseActionBlock` accepts only `key = value` statements and `continue`s on anything else,
-so `{% if (this._intent == 'yes') {this._intent = 'delete'} %}` in clock/alarm_timer_change.rule and
-clock/alarm_timer_other_set.rule is DROPPED. Observed: 'yes' yields intent 'yes' where the pinned
-source maps yes->delete. 10 such conditional statements exist across 5 rules-src files.
+## N03a — conditional semantic actions (FIXED; see N05b)
+The initial action-skipping defect was repaired by the conditional action evaluator.
+N-03/N-05 final acceptance supersedes the open candidate finding.
 
-## N03b — caller rules leak into `$factory:yes_no` (open)
-`requestParser.js:218` merges `Object.assign({}, state.factoryRules, entry.ast.rules)` into ONE flat
-namespace, so a caller's local YES/NO override the factory's. Observable: 'replace it', 'delete it',
-'trash it' and even 'guess' all yield `yes_no._nl='yes'`, although the pinned yes_no.grm cannot match
-any of them. A `$factory:` reference should compile to its own namespace.
+## N03b — factory namespace leak (FIXED; see N05a)
+Each factory now binds its own rule namespace. N-03/N-05 final acceptance
+supersedes the initial caller YES/NO override defect.
 
-## N03c — the factory dependency gate is coarser than the native graph (open)
-`requestParser.js:204-209` refuses clock/alarm_timer_ampm wholesale because ONE arm declares
-`$factory:time`, even though its `$AM_PM` arm needs no factory. Native FST would still expose that
-path. This is why N-03 remains UNVERIFIED: bare 'am'/'pm' is unreachable even though nothing about
-it requires the missing time factory.
+## N03c — clock time dependency gate (CLOSED by N-03 time acceptance)
+The recovered source time grammar and action evaluator now cover the supported
+clock time/AM-PM paths. All 20 public clock/settings/menu rules have accepted
+fixtures; the old bare-AM/PM refusal is superseded. Other unsupported factory
+dependencies remain explicit in the current rule inventory.
+
 ## H08a — failure-path speech record is saved twice (matches reference, kept)
 A rejected LISTEN turn writes the speech-history row TWICE: `reject()` saves after
 `onTransactionError`, then `stop()->done()->resolve()->onTransactionSuccess` saves the same
@@ -416,20 +415,17 @@ The reference's inner 10 s SkillRequestMaker budget can win on a hung skill and 
 `{skill:{error:{code:'TIMEOUT',...}}}` that Phoenix's record never gains (outer budget only).
 H-04 timeout-layering surfacing through H-08. Excluded from the strict differential.
 
-## N06a — inline loop-member escaping removed (intentional behaviour change)
-The previous inline detector escaped text-name regexes and guarded missing names; the pinned
-`LoopMemberDetector.ts:73,84` does neither, so N-06 removed both and updated the one assertion
-that encoded the old behaviour ('who is undefined undefined' now resolves the malformed member).
-N-06 itself stays UNVERIFIED: 'speaker/referent interactions' in the acceptance text has no
-speaker concept in the pinned source, and the extra expectations are code-derived, not
-oracle-matched. The 12 pinned fixtures replay 12/12.
+## N06a — inline loop-member escaping removed (intentional behavior change)
+N-06 follows the pinned detector's unescaped/missing-name behavior. Its final
+acceptance additionally verifies separate speaker/referent handling through the
+gateway; the old whole-task-unverified statement is superseded by N06b.
 
-## S01a — cross-shape session reuse is fail-open (open, deployment hazard)
-A session minted on one skill shape and offered to another returns HTTP 200 SKILL_ACTION and is
-silently reinterpreted instead of rejected. Source-faithful (the original never validates a
-session against the host shape), but cutover must drop/re-launch sessions; the cloud cannot
-enforce it. S-01 stays UNVERIFIED for its deployment-half acceptance (fleet behaviour on a
-shape change is not observable from a worktree).
+## S01a — cross-shape session reuse (source-faithful; cutover policy accepted)
+Source and Phoenix do not validate a session against the host shape. S-01 is
+verified with the tested deploy-time cutover gate described in S01b: resume or
+drop/relaunch based on shape. Physical robot cutover remains a specific follow-up
+in VERIFICATION-GAPS.md HW-07, rather than a whole-task blocker.
+
 ## H06a — proactive selection collection order (open, kept)
 The source collects skill configs with Promise.all so `results` order is completion order
 (ProactiveTransactionHandler.ts:202-239); the port iterates sequentially in config order.
@@ -449,28 +445,22 @@ The parser now emits `cond` tags (parser.js:243-252) evaluated in `applyTags`
 alarm_timer_other_set yes->replace, greetings proactive questions yes->good/no->bad. This also
 resolves N-03/D1 (N03a). Conditional coverage: 10 statements across 5 rules-src files.
 
-## N07a — N-07 accepted as candidate (open items)
-Restored 15-tool LLM catalog + fallback arbitration + external-agent provider seam are merged
-and falsified, but three acceptance sub-items stay open: compiled-FST profile unprovisioned,
-archived intent/entity catalog only a hashed denominator (the restored catalog names differ,
-N-07-D1), and the real external-agent success path has no archived responses (Dialogflow dead).
-Also noted: the 715e0dd0 handler DELETES the external-agent attachment that 5c0a739 performs;
-Phoenix keeps the 5c0a739 boundary — the union needs ratification (N-07-D2).
+## N07a — fallback candidate limitations (superseded by N07b)
+The final N-07 acceptance provisions both parser profiles, re-derives the
+archived catalog and explicitly ratifies attach/omit behavior. Its initial
+three candidate hold items are closed; retired vendor and profile limitations
+retain their own documented boundaries.
 
-## D04a — calendar envelope mirror + unported clients (open items)
-The calendar relay envelope mirrors `events` at top level only because certified
-credential.test.js:98-103 and oauth.test.js:211-331 assert body.events; the pinned reference
-emits exactly two keys. Removing the mirror needs those two certified files edited (root
-decision, deferred). Upstream pagination/ordering (Google singleEvents/orderBy/timeMin/timeMax,
-Graph orderby/endDateTime) lives in unported API clients. D-04 stays a candidate.
-## N03d — the time gate stays coarse deliberately (retained refusal)
-Narrowing the whole-rule `$factory:time` refusal so the `$AM_PM` arm executes is arm-for-arm
-reproducible for bare am/pm — but it converts the loud refusal into silent no-matches (`noon`,
-`morning`, `seven thirty am`) and surfaces `alarm_set_value` `$*`-wrapped arms that are not
-provably the reference's. Sound narrowing requires the time factory, whose only source does not
-parse (`time.grm:22,40` `?(?:` lexes COLON). The gate is retained and pinned by tests; N-03
-stays UNVERIFIED with 18/20 rules replayed 122/122 on three layers (parseRequest, live /v1/parse,
-local-turn WS).
+## D04a — initial calendar candidate gaps (superseded by the closed record below)
+The extra top-level events mirror was removed and upstream query/pagination
+behavior ported. D-04 has final accepted evidence; live credentials remain a
+separate provider qualification.
+
+## N03d — historical coarse time refusal (superseded)
+The refusal protected the pre-time-factory candidate. The recovered time
+grammar/action evaluator and exhaustive native time controls now close N-03;
+its current acceptance covers 20/20 public rules. Retain preflight refusals for
+other factory dependencies still identified as unsupported in the inventory.
 
 ## N03e — worktree @phoenix/* symlink hazard (test-integrity note, second sighting)
 Worktree `node_modules` symlinks to the main checkout, so `@phoenix/*` package-name imports
@@ -479,14 +469,12 @@ left the gateway test green until it switched to relative imports. First sightin
 @phoenix/gateway draft. LESSON: worktree tests must import relatively; a passing suite that
 imports by package name proves the wrong tree.
 
-## A19e/A19f/A19g — Jot error-envelope mismatches (open, deliberately not changed)
-A19e: Joi payload failures are 422 raw Boom in source (`server/server src/validate.js:22-25`)
-but 400 ValidationException in Phoenix. A19f: JOT_* business errors are raw Boom with a `code`
-field and no `x-amzn-errortype` (`@jibo/server dst/boom.js`) but Phoenix uses the shared
-`sendAmzError` envelope. A19g: a dotless Jot target throws (500) in source but Phoenix answers
-400 UnknownOperationException. All three change the raw bytes of every Jot error and the
-package-wide convention, so they were flagged, not unilaterally fixed. A-19 stays a CANDIDATE
-on these plus the dead-original-client substitution for criterion 4.
+## A19e/A19f/A19g — Jot error-envelope differences (accepted scope)
+Joi/business-error envelopes and dotless-target handling retain the recorded
+raw-byte differences. The final A-19 acceptance explicitly permits these
+qualified differences and exercises the real era SDK over TLS. A-19 is verified;
+its former candidate/original-client blocker is superseded.
+
 ## D04a — calendar envelope mirror + unported clients (CLOSED w14/d04)
 Top-level `events` mirror REMOVED: the envelope is now exactly
 `{relayData, lassoDataFromRedis}` (+ `lassoInsertedIntoRedisAt` on a hit), matching

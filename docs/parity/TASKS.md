@@ -13,7 +13,7 @@ Parallel candidates have their own implementation checkbox. A checked candidate 
 | pegasus | 46 | 46 | 0 | 0 |
 | classic | 20 | 20 | 0 | 0 |
 | restoration | 1 | 1 | 0 | 0 |
-| release | 3 | 9 | 0 | 0 |
+| release | 5 | 10 | 0 | 0 |
 
 Current task: none.
 
@@ -87,7 +87,7 @@ Evidence: [docs/parity/evidence/2026-09-05/compatibility-review.json](../../docs
 
 Owner: Codex. Dependencies: PM-03.
 
-Verified executable reference infrastructure: 38 original transactions and 19 fixture checks under Node 8.9.4, 376 source inputs/15 manifests checked against original Git, exact NLU 2.8.3 CLI. TypeScript module emission and fixture providers are explicit; original Gulp build, complete services/providers/persistence/clients remain unverified under their own tasks.
+Verified executable reference infrastructure: 38 original transactions and 19 fixture checks under Node 8.9.4, with source and manifest pins. The original Gulp build and broader native rebuild are separate provenance qualifications; service/provider acceptance is recorded by the completed functional tasks.
 
 Done when:
 
@@ -155,7 +155,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-06/coverage-review/review
 
 Owner: Codex. Dependencies: PM-03, V-02.
 
-Lead verified the bounded Moth test infrastructure, preserved rollback configuration, correlated native/Hub actions, and completed source-pinned BE release and timer-local failure iterations. V-04 certifies this verification loop only; authentication, encoded audio, physical wake-word/ring confirmation and full skill/release acceptance remain open.
+The Moth verification loop, configuration rollback and correlated native/Hub observations are accepted. Later H-10 and release evidence supersede the initial authentication and deployment blockers. Physical wake-word/ring and the complete user journey matrix remain R-04 scope; OTA is owner-certified under R-06/R-07.
 
 Done when:
 
@@ -172,11 +172,11 @@ Evidence: [docs/parity/evidence/2026-09-05/hardware/review.json](../../docs/pari
 
 ### A-01 — Map every Classic operation to controllers, consumers and tests
 
-- [x] **verified** · P0 · classic · implementation: partial
+- [x] **verified** · P0 · classic · implementation: complete
 
 Owner: Codex. Dependencies: PM-03.
 
-The audit recovered 26 API files and 134 unique wire targets; controller semantics and per-operation implementation coverage still need mapping. Original hub/report consumers additionally require legacy Settings_20160801.GetSettings; the inventoried SDK lists Settings_20171219. BE 12 release inspection found root Jibo Server Client 3.0.79 plus three nested 3.0.117 instances. Their 102 API model instances have 32 distinct byte sequences; merge version-specific expectations without counting duplicated models as new functionality (CONSUMERS.md). Root-reviewed historical discovery adds 24 Jot pairs, 10 VoiceTraining pairs and the legacy Settings pair: 169 literal pairs, or 173 with four directly observed alternate Jot pairs. Denominator closure and controller/runtime parity remain open. Functional ownership is now explicit in A-19/A-20. The integrated provisional operation map assigns all 169 canonical pairs plus four observed aliases to registered tasks. Root independently verified all 51 Account/Admin and Loop handler/controller dispatch symbols; every runtime scenario remains not-run, and wider contract assertions still require operation-level review.
+Every one of 169 canonical Classic wire operations has independently reviewed auth/ownership/schema/error/persistence/side-effect attributes and an assigned runtime scenario. Execution belongs to the functional tasks; later A-19/A-20 evidence resolves the original Jot/VoiceTraining naming questions. Non-SDK discovery remains separately listed.
 
 Done when:
 
@@ -203,11 +203,11 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-06/classic-operation-map/
 
 ### C-01 — Match the shared HTTP response and error contract
 
-- [x] **verified** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: V-02.
 
-Shared HTTP boundary candidate now matches the expanded malformed JSON and serialization/routing fixtures, including the root317-case mutation review. Accepted for integration; authentication and broader service boundaries remain unverified. Root verified 2026-09-09: the accepted candidate review covered JSON body parsing only (317 cases, one synthetic route). Root added 47 executable cases for handler errors, unknown routes, trailing slashes, HTTP methods, content types and response headers against the pinned Node 8.9.4 runtime - 0 differences. One harness error was found and corrected in root's favour of Phoenix (healthcheck body is lowercase "ok" per BaseService.getHealthcheckResponse).
+The shared HTTP boundary is verified: the accepted 317-case JSON review plus 47 original/Phoenix Node 8.9.4 cases cover parsing, errors, routing, methods, content types and headers. Per-service contracts are covered by their own accepted tasks.
 
 Done when:
 
@@ -230,11 +230,11 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-05/comparison/http-review
 
 ### C-02 — Complete the wire schemas and message builders
 
-- [x] **verified** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: C-01, V-03.
 
-P11 rejects the original empty NLU response. Proactive, manifest, JCP/SLIM and MIM coverage is incomplete.
+Wire schemas and message builders are accepted, including ListenResult precedence, 58 acceptance and 17 rejection assertions and MIM memo boundaries. The current source contains all nine pinned HubErrorCode values, superseding the old C02a missing-code finding; H-02 verifies repaired PARSER frames. Extra Phoenix subsystem codes remain explicitly identified as extensions.
 
 Done when:
 
@@ -258,11 +258,11 @@ Lead review: Hermes root (pasketti); [docs/parity/evidence/2026-09-10/c02-wire-s
 
 ### C-03 — Restore configuration, registry and service-discovery compatibility
 
-- [x] **verified** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: V-02.
 
-Registry/configuration, CLI, SettingsClient and Report Lasso transport slices are integrated after root review. Latest51 original Lasso controls and512 unit tests pass; configured strict43 now has zero differences/invariants/gaps. Runtime/setup logging, remaining service CLI boundaries and deployed provider/DNS/TLS compatibility remain open.
+Registry/configuration compatibility is verified: three indexes and 21 manifests match pinned originals, 102 validation and 28 registry rows match the retained Node 8 capture, and invalid configuration rejects at the executable boundary. Port defaults and index-relative manifest paths remain documented divergences.
 
 Done when:
 
@@ -278,7 +278,7 @@ Evidence: [docs/parity/evidence/2026-09-10/c03-config-rejection/run.json](../../
 
 - [x] Candidate implementation — **accepted**; Codex root with Luna Max candidate.
 
-Candidate scope: Bounded Report Lasso transport. Root51 source controls match without error-message qualifications;512 units pass. Configured strict43 resolves all218 remaining differences, with zero new differences/invariants/gaps. Detached prefetch rejection remains an explicit divergence; full C-03 remains open.
+Candidate scope: Historical candidate scope; subsequent full task acceptance is recorded in the task finding and verification entries. Bounded Report Lasso transport. Root51 source controls match without error-message qualifications;512 units pass. Configured strict43 resolves all218 remaining differences, with zero new differences/invariants/gaps. Detached prefetch rejection remains an explicit divergence; full C-03 remains open.
 
 Candidate report: [docs/parity/candidates/S-08-lasso-snapshot-followup.md](../../docs/parity/candidates/S-08-lasso-snapshot-followup.md).
 
@@ -286,11 +286,11 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-06/service-integration/re
 
 ### H-01 — Restore the robot-specific skill-list endpoints
 
-- [x] **verified** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: C-01, C-03.
 
-P03 and the V-02 original/Phoenix comparison reproduce 404s on all four original robot/settings skill-list URLs. Original execution returns full configurations; current Phoenix routes and registry omit paths and metadata. Raw baseline retains 44 differences including shared HTTP headers.
+All robot/settings skill-list endpoints are verified against the pinned hub through the differential harness, including the settings filter and metadata. The audit-era 404/missing-route finding is superseded by the accepted runtime and falsification evidence.
 
 Done when:
 
@@ -305,11 +305,11 @@ Evidence: [scripts/parity-h01/differential.mjs](../../scripts/parity-h01/differe
 
 ### H-02 — Verify listen transaction ordering, cancellation and failure behavior
 
-- [x] **verified** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: C-02.
 
-V-02 captures launch/relaunch/update/no-match/provider/malformed paths, but full race/error/timeout conformance remains unproved. At 2.1 seconds after final, original stays open and Phoenix closes near 2 seconds: original ResponseWrapper.closed starts true, making its guarded close ineffective. Parser failures also lose the PARSER code and change message text. Full cancellation/audio/long-timeout matrix remains open. Consumer inspection also identifies _beginGlobalTurn as a simulator-specific bare CLIENT_ASR/NLU shortcut absent from frozen Pegasus and normal native Jetstream framing; differential reproduction and scope review remain required (CONSUMERS.md).
+WebSocket transaction ordering, cancellation and failure behavior are verified. CLIENT_ASR cancellation, terminal transcript, PARSER codes and socket lifetime differences were repaired. R-03 later covers timeout/reliability behavior; physical acoustic/concurrent-robot acceptance remains R-04 scope and the simulator shortcut is a documented extension.
 
 Done when:
 
@@ -352,11 +352,11 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-07/intent-router/review.j
 
 ### H-04 — Match skill launches, updates, redirects and session handoff
 
-- [x] **verified** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: H-02, H-03.
 
-Root accepted bounded release mediation/history, trace defaults, launch/continuation, and listen disconnect/timeout layering. Three fresh source comparisons match full functional responses, requests, settlement and history with140 guards; old runtime fails all three new regressions. Original full transport/authentication, proactive/other reset paths and deployed BE/native-ASR acceptance remain open.
+Ten pinned-original/Phoenix launch, continuation, redirect, timeout and failure cases match with zero differences. Redirect-leg timings and error text were repaired. The unobservable internal code difference and the original nondeterministic redirect timeout remain explicit evidence qualifications.
 
 Done when:
 
@@ -372,7 +372,7 @@ Evidence: [docs/parity/evidence/2026-09-10/h04-skill-handoff/README.md](../../do
 
 - [x] Candidate implementation — **accepted**; Luna Max / http_contract_repair; Codex root.
 
-Candidate scope: Bounded listen disconnect and outer/internal transaction timeout layering. Three original-handler/actual-Phoenix-WebSocket comparisons, complete responses/HTTP requests/history,140 guards; three new regressions fail on old code;591 units and strict43 pass. Prior mediation/history/trace/continuation acceptance retained. Full H-04 remains open.
+Candidate scope: Historical candidate scope; subsequent full task acceptance is recorded in the task finding and verification entries. Bounded listen disconnect and outer/internal transaction timeout layering. Three original-handler/actual-Phoenix-WebSocket comparisons, complete responses/HTTP requests/history,140 guards; three new regressions fail on old code;591 units and strict43 pass. Prior mediation/history/trace/continuation acceptance retained. Full H-04 remains open.
 
 Candidate report: [docs/parity/candidates/H-04-disconnect-root-20260907.md](../../docs/parity/candidates/H-04-disconnect-root-20260907.md).
 
@@ -380,11 +380,11 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-07/listen-disconnect/revi
 
 ### H-05 — Enforce proactive user settings
 
-- [x] **verified** · P0 · pegasus · implementation: missing
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: H-02, C-03.
 
-Settings rules are unconditionally accepted despite a Phoenix settings service now existing.
+Proactive settings are enforced and verified through live gateway/Settings services: opt-out suppresses launch, opt-in restores it, missing/unreachable settings fail closed, and preferences survive process restart. Source-derived branches and transport-header differences retain their documented basis.
 
 Done when:
 
@@ -399,11 +399,11 @@ Evidence: [docs/parity/evidence/2026-09-10/h05-proactive-settings/review.md](../
 
 ### H-09 — Match each skill process at the reference /v1/main URL
 
-- [x] **verified** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: C-01, C-03.
 
-P13 shows the shared service entrypoint selects answer-skill at /v1/main even when used as the report-skill process.
+Each independent skill process serves its selected skill at /v1/main, verified against the pinned original. The earlier answer-skill fallback defect is repaired; deployment/client journeys retain R-02/R-04 ownership.
 
 Done when:
 
@@ -418,11 +418,11 @@ Evidence: [docs/parity/evidence/2026-09-10/h09-skill-main-url/](../../docs/parit
 
 ### H-10 — Match hub authentication and context identity checks
 
-- [x] **verified** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: C-02, A-02.
 
-Root accepted bounded original JWT/CONTEXT controls, native cached-token rotation and temporary authenticated Moth trials. The latest 135cd7d trial uses the integrated authenticated launcher and real TLS 1.2 signed CreateHubToken, the same issued token on listen/proactive upgrades, clock rendering and synthetic proactive exchange. Root independently verified rollback of credentials/configuration/trust, temporary mounts/files and child processes; 3150063 remains the diagnostic backend. Persistent authenticated rollout, full expiry/retry/account extension, microphone, wake and physical-ring acceptance remain open. Root accepted a bounded timeout for the optional account extension: stalled headers/body reject, both Hub paths recover, and six actual Account service cases pass. The integrated suite passes 718 units and strict43. This does not complete native expiry/refetch, broader identity or persistent rollout. Root accepted private Account snapshot replacement and imported-launcher restart recovery after a real Account mutation: old JWT works on both Hub paths after restart. Final720 units and strict43 pass; CLI already sets a private umask. The Linux user-service template passes real owned process-failure/restart controls, retaining the Hub token and pending notification; persistent Moth switch and reboot acceptance remain open.
+Native CreateHubToken-to-Bearer upgrades on both Hub paths and cached-token rejection/refetch are hardware-verified in both secret-rotation directions. Account-backed restart evidence is accepted. Three-hour native expiry and physical wake/microphone/ring remain specifically scoped follow-ups; the original blanket authentication blocker is closed.
 
 Done when:
 
@@ -439,7 +439,7 @@ Evidence: [docs/parity/evidence/2026-09-11/h10-native-bearer-upgrade/review.md](
 
 - [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair.
 
-Candidate scope: Bounded HMAC JWT and upgrade rejection behavior: 1,965 exact outcomes on Node 22 and Node 20 against original Node 8, with main integration replay. Native lifecycle and account extension remain open.
+Candidate scope: Historical candidate scope; subsequent full task acceptance is recorded in the task finding and verification entries. Bounded HMAC JWT and upgrade rejection behavior: 1,965 exact outcomes on Node 22 and Node 20 against original Node 8, with main integration replay. Native lifecycle and account extension remain open.
 
 Candidate report: [docs/parity/candidates/H-10.md](../../docs/parity/candidates/H-10.md).
 
@@ -451,7 +451,7 @@ Lead review: Codex root; [docs/parity/reviews/h10-root/review.json](../../docs/p
 
 Owner: Codex. Dependencies: C-02, V-03.
 
-The accepted compiled profile loads and verifies all 98 public graphs and 16 factory files, honors requested rules and matches 42 original multi-rule HTTP/routing cases. The 20,528-row compiled HTTP replay is exact; default AST still has 295 accepted-baseline differences and unsupported dependency boundaries. Moth clock/timer local turns are verified through client text injection. Complete cross-profile rule/dependency acceptance remains open.
+Parser requests, named-rule loading and selection are verified: 98 graph names are loaded/hash-checked and 42 original multi-rule cases match. Later N-03 acceptance supplies the recovered clock time factory and all 20 local rules, superseding the old two-time-rule refusal. The current inventory still explicitly bounds unsupported factories in launch components and distinguishes the approved compiled profile.
 
 Done when:
 
@@ -475,11 +475,11 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-05/production/integration
 
 ### I-01 — Match all history HTTP routes and payloads
 
-- [x] **verified** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: C-01.
 
-P04-P07 reproduce empty-result, GET-route, input-validation and saved-record response differences.
+History HTTP routes, validation ordering and payloads are verified against pinned source. Eager payload failure behavior is repaired. Additive bare-path aliases remain documented, and R-03 later repairs disconnected-store health reporting.
 
 Done when:
 
@@ -494,11 +494,11 @@ Evidence: [docs/parity/evidence/2026-09-10/i01-history-routes/w7-review.md](../.
 
 ### D-01 — Match the common relay and cache contract
 
-- [x] **verified** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: C-01.
 
-Weather/news/maps share a useful relay implementation; cache/error/prefetch equivalence is not fully verified. Original execution confirms cache-hit JSON bytes use text/html, skipCache=false still skips cache, and empty calendars retain the relayData envelope.
+Relay/cache response bytes, headers, ordering and failure behavior are verified against replayed original transactions. Express-compatible skipCache truthiness is repaired; cache lookup precedes provider calls and failed/empty replies are not cached.
 
 Done when:
 
@@ -519,7 +519,7 @@ Evidence: [packages/data/test/relay-runtime.test.js](../../packages/data/test/re
 
 Owner: Codex. Dependencies: H-05, I-02.
 
-Context/IH implementations and random selection exist; the complete filter pipeline and history side effects need differential verification.
+Proactive context/history selection is accepted after fourteen substantive repairs, live proactive socket cases and independent boundary/error falsifications. Completion-order selection, silent message edges and context-timeout wording remain recorded qualifications in VERIFICATION-GAPS.md QUAL-01.
 
 Done when:
 
@@ -538,7 +538,7 @@ Evidence: [docs/parity/evidence/2026-09-11/h06-proactive-selection/review.md](..
 
 Owner: Codex. Dependencies: H-02.
 
-Reviewed streaming OGG/FLAC and chunk-independent VAD remain integrated. Native quiet OGG/FLAC/LINEAR16 have no false SOS. The built Node 20 runtime image passes 34 audio checks on repeat; the retained first run had a 3-second OGG/VAD test timeout, with exact startup cause unresolved. Full acoustic speech, provider behavior, latency and physical wake/ring acceptance remain open.
+Original ASR behavior is verified behind the replaceable provider seam, including encoded fixtures, FAST_EOS/GARBAGE rules and error ordering. Quiet native OGG/FLAC/LINEAR16 checks exist. Complete acoustic wake/microphone/ring acceptance remains R-04; batch recognizer confidence/endpointing differences and timing qualifications are documented.
 
 Done when:
 
@@ -554,7 +554,7 @@ Evidence: [packages/gateway/test/asr.google.test.js](../../packages/gateway/test
 
 - [x] Candidate implementation — **accepted**; Luna Max / audio_encoding_repair.
 
-Candidate scope: Bounded streaming OGG/FLAC decoding and chunk-independent PCM VAD; unit and native quiet-microphone review. Complete H-07 remains open.
+Candidate scope: Historical candidate scope; subsequent full task acceptance is recorded in the task finding and verification entries. Bounded streaming OGG/FLAC decoding and chunk-independent PCM VAD; unit and native quiet-microphone review. Complete H-07 remains open.
 
 Candidate report: [docs/parity/candidates/H-07.md](../../docs/parity/candidates/H-07.md).
 
@@ -566,7 +566,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-05/hardware/native-audio-
 
 Owner: Codex. Dependencies: H-04, I-01, I-03.
 
-Only launch writes exist; speech-history recording/configuration and optional speech logging are absent. V-02 also proves the unknown-speaker launch record differs: original TransactionHelper writes personIDs:["UNKNOWN"], Phoenix filters it to []. Outbound history HTTP headers differ as well; both remain required repairs.
+Speech and launch-history side effects are implemented and verified: thirteen original/Phoenix cases match, including all update sites, unknown speaker and the source failure-path double save. Late inner-timeout, auth-disabled recording and log wording remain the specific qualifications listed in VERIFICATION-GAPS.md QUAL-01.
 
 Done when:
 
@@ -585,7 +585,7 @@ Evidence: [docs/parity/evidence/2026-09-11/h08-speech-history/README.md](../../d
 
 Owner: Codex. Dependencies: N-01, V-01.
 
-Original C++ compiler/parser/service source and archived distribution artifacts are recovered and pinned. Root verified all 60 active reference build files match the requested 2.8.3 distribution, separately from the bundled 2.8.2 ZIP and v2.7.5 service config. Exact historical source rebuild remains unverified; a disposable modern build fails on missing legacy V8 headers and OpenFST API incompatibility. The accepted explicit compiled98 profile now avoids the historical mixed-score cancellation failure; default AST gaps, grammar compilation and broader factory semantics remain open.
+Grammar/factory/scoring behavior is accepted at its documented scope, with 89 oracle intents and zero entity value/type mismatches. Later N-03 acceptance closes the old clock colon/time-factory blocker. Unsupported digit/year/city factories, finite word-list semantics and the historical native rebuild retain explicit inventory/provenance qualifications.
 
 Done when:
 
@@ -628,11 +628,11 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-13/n03-time-factory/launc
 
 ### N-04 — Verify identity, introduction and greeting follow-up rules
 
-- [x] **verified** · P0 · pegasus · implementation: missing
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: N-02, N-06.
 
-Identity, introduction and greeting graphs are available in the 98-graph compiled profile. That implementation removes the audit-era missing-file blocker; complete known/unknown-member, ambiguous-name, no-input and multi-turn source comparisons remain unverified for this task.
+Identity, introduction and greeting behavior is verified: 159 parser/HTTP fixtures, ten native-anchored launch rows and seven multi-turn transcripts cover known/unknown members. The audit-era missing graphs and unresolved referent matrix are superseded.
 
 Done when:
 
@@ -651,7 +651,7 @@ Evidence: [docs/parity/evidence/2026-09-11/n04-identity-intro-greetings/review.m
 
 Owner: Codex. Dependencies: N-02.
 
-The 98-graph compiled profile now includes the inventoried device/content and global-command graphs, with 42 original multi-rule HTTP/routing controls accepted. Full positive/negative fixtures for every named rule and global interruption/local precedence journeys remain open.
+Device/content/global rules and interruption guards are verified through 219 parser/HTTP fixtures. Factory namespace and conditional-action bugs were repaired; later N-03 acceptance closes supported clock time behavior. Other bounded/unsupported factories and the accepted AST/compiled residual differences remain documented.
 
 Done when:
 
@@ -666,11 +666,11 @@ Evidence: [docs/parity/evidence/2026-09-10/n05-device-content-globals/review.md]
 
 ### N-06 — Implement LoopMemberDetector and contextual entity resolution
 
-- [x] **verified** · P0 · pegasus · implementation: missing
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: N-01.
 
-The request parser now accepts loop context and performs ordered member enrichment, emitting loopMemberReferent, given-name and last-name fields. Source-backed loop-name cases are part of earlier bounded NLU reviews. The complete aliases, punctuation, duplicates, missing members, ambiguity and speaker/referent matrix remains unverified.
+LoopMemberDetector and speaker/referent resolution are implemented and verified against pinned source and a real gateway CLIENT_ASR turn. Referent enrichment and separate speaker history are demonstrated; deprecated SPEAKER_ID behavior is source-faithful.
 
 Done when:
 
@@ -685,11 +685,11 @@ Evidence: [docs/parity/evidence/2026-09-11/n06-loop-member/review.md](../../docs
 
 ### N-07 — Match fallback arbitration and external-agent behavior
 
-- [x] **verified** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: N-01, V-01.
 
-The fallback has eight generic tools, ignores external agents/enabled flags, and defaults to a 12-second timeout while the gateway parser budget is 10 seconds.
+Fallback arbitration and external-agent behavior are verified: eighteen cases match under both parser profiles, the archived catalog is re-derived, and attach/omit is an explicitly ratified profile decision. The old eight-tool/ignored-agent/timeout finding is superseded.
 
 Done when:
 
@@ -733,11 +733,11 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-13/n08-routing-closure/re
 
 ### I-02 — Match history validation and query semantics
 
-- [x] **verified** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: I-01.
 
-Only partial validation exists; array equality, allowed operator/field combinations and conflicting query conditions need parity.
+History validation and query semantics are verified against the reference oracle, including exact array length/equality and the NOT/CONTAINS operator matrix. The initial partial-validation finding is superseded.
 
 Done when:
 
@@ -752,11 +752,11 @@ Evidence: [packages/history/test/history.validation.test.js](../../packages/hist
 
 ### I-03 — Preserve history across restart and verify retention
 
-- [x] **verified** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: I-01.
 
-All history is process-local. P12 demonstrates expired out-of-order insertions survive the current pruning path.
+History retention and restart durability are verified, including eviction of out-of-order expired rows and no resurrection after SIGKILL/reopen. Synchronous read pruning differs deliberately from Mongo TTL eventual consistency; history is no longer process-local.
 
 Done when:
 
@@ -771,11 +771,11 @@ Evidence: [packages/history/test/history.durability.test.js](../../packages/hist
 
 ### D-02 — Complete credential CRUD, uniqueness and durable state
 
-- [x] **verified** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: C-01.
 
-Credentials are in memory; scope parsing and mutation/duplicate semantics differ, and the legacy assignment-bug fix is an explicit unresolved compatibility decision.
+Credential CRUD, scope uniqueness and durable restart behavior are verified. Indexed/bracketed scope query forms and overlap handling are repaired. The source assignment bug is deliberately corrected and regression-pinned as D-02a; the initial in-memory/undecided finding is superseded.
 
 Done when:
 
@@ -795,7 +795,7 @@ Evidence: [docs/parity/evidence/2026-09-10/d02-credentials/certification-w7.md](
 
 Owner: Codex. Dependencies: D-02.
 
-Non-test Google/Outlook auth codes return 501; testAuthCode coverage does not exercise OAuth.
+OAuth exchange, expired-token refresh and invalidation are implemented and verified through the running service and provider seam. Live Google/Outlook credentials remain an external qualification. The former calendar-envelope issue is closed by D-04.
 
 Done when:
 
@@ -815,7 +815,7 @@ Evidence: [docs/parity/evidence/2026-09-10/d03-oauth/evidence.md](../../docs/par
 
 Owner: Codex. Dependencies: D-01, D-03.
 
-P08-P09 reproduce a missing relay envelope and HEAD handler. Default providers return 501.
+Google/Outlook calendar relay envelopes, upstream query options, pagination and ordering are verified against the pinned contract. The top-level events mirror was removed and negative controls pass. Live account/provider journeys remain a distinct external qualification.
 
 Done when:
 
@@ -835,7 +835,7 @@ Evidence: [docs/parity/evidence/2026-09-10/d04-calendar-relay/evidence.md](../..
 
 Owner: Codex. Dependencies: D-01.
 
-Open-Meteo substitution exists; historical dates, today/yesterday indexing and complete DarkSky-shaped fields require checks for both baselines.
+Weather/date adapter semantics and coordinate rejection are accepted against pinned source, including string timestamp zero and prevention of invalid-coordinate caching. Historical dates beyond the provider window and apparent-temperature behavior remain documented differences.
 
 Done when:
 
@@ -854,7 +854,7 @@ Evidence: [docs/parity/evidence/2026-09-10/d05-weather/evidence.md](../../docs/p
 
 Owner: Codex. Dependencies: D-01.
 
-Bounded RSS→AP image adapter integrated: provider URLs/dimensions reach original NewsParse/NewsViews and real Moth news screens. NPR image gaps, original AP attribution, full AP metadata and poll/cache lifecycle remain open.
+News payload/category and prefetch lifecycle contracts are verified: all eleven categories warm at startup, cached GETs avoid provider calls, and polling stops on close. RSS image/category/rights and AP metadata limitations remain provider qualifications, rather than an unimplemented poller.
 
 Done when:
 
@@ -870,7 +870,7 @@ Evidence: [docs/parity/evidence/2026-09-10/d06-news-prefetch/runtime.json](../..
 
 - [x] Candidate implementation — **accepted**; Luna Max / capture_writer_repair.
 
-Candidate scope: Preserve provider image metadata in the existing RSS replacement and emit source-compatible AP preview XML. CompleteD-06 remains open.
+Candidate scope: Historical candidate scope; subsequent full task acceptance is recorded in the task finding and verification entries. Preserve provider image metadata in the existing RSS replacement and emit source-compatible AP preview XML. CompleteD-06 remains open.
 
 Candidate report: [docs/parity/candidates/D-06.md](../../docs/parity/candidates/D-06.md).
 
@@ -882,7 +882,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-05/hardware/s13-news-revi
 
 Owner: Codex. Dependencies: D-01.
 
-ORS produces Google-shaped responses but does not establish original route-mode/traffic/transit behavior.
+Maps/commute contracts and coordinate rejection are verified. TomTom replaces ORS and supplies real traffic breakdown with computeTravelTimeFor=all; D07b records the live free-flow/traffic result, superseding the old no-traffic claim. Transit still uses bus mode rather than real transit routing, and optional route geometry/steps/arrival/fare fields remain provider gaps.
 
 Done when:
 
@@ -897,11 +897,11 @@ Evidence: [docs/parity/evidence/2026-09-10/d07-maps/evidence.md](../../docs/pari
 
 ### A-02 — Match Classic dispatch, authentication and error handling
 
-- [x] **verified** · P0 · classic · implementation: partial
+- [x] **verified** · P0 · classic · implementation: complete
 
 Owner: Codex. Dependencies: A-01, C-01.
 
-Bounded signed Account_20151111.CreateHubToken is integrated after root source/native review: authenticated claims, SigV4 native/JS variants, Joi validation and Node 8 HTTP framing. Real Moth completed TLS issuance, authenticated listen/proactive and clock display, then byte-verified rollback. Other Classic operations, permission/LAN-trust paths and token expiry/refetch remain open. Root accepted shared public Loop signature verification before handler execution. Original Node8 client made 36 signed calls plus 8 anonymous-policy controls; 68 root outcome/state checks, 839 combined unit tests and strict 43 pass. Non-Loop auth, unimplemented handlers and live robot acceptance remain open.
+Classic dispatch, gateway allow-lists, SigV4 verification, expiry/skew/replay policy, forwarding and client-observable errors are verified. Native CreateHubToken over TLS corroborates the boundary. Production has no LAN authentication bypass; per-service permissions retain their own records and unknown-method status is a documented difference.
 
 Done when:
 
@@ -918,7 +918,7 @@ Evidence: [docs/parity/evidence/2026-09-10/a02-auth-boundary/review.md](../../do
 
 - [x] Candidate implementation — **accepted**; Root review of Luna Max candidate.
 
-Candidate scope: Bounded signed CreateHubToken validation, claims and Node 8 framing integrated into main after root review; unrelated OTA edits excluded. Native TLS issuance/listen/proactive/clock verified at 5e626b8. Complete A-02 remains open.
+Candidate scope: Historical candidate scope; subsequent full task acceptance is recorded in the task finding and verification entries. Bounded signed CreateHubToken validation, claims and Node 8 framing integrated into main after root review; unrelated OTA edits excluded. Native TLS issuance/listen/proactive/clock verified at 5e626b8. Complete A-02 remains open.
 
 Candidate report: [docs/parity/evidence/2026-09-06/hardware/a02-native-auth-reviewed.json](../../docs/parity/evidence/2026-09-06/hardware/a02-native-auth-reviewed.json).
 
@@ -930,7 +930,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-06/hardware/a02-native-au
 
 Owner: Codex. Dependencies: A-02, H-01.
 
-Root has accepted bounded Settings getter/view/internal dispatch and mutation behavior (78 getter TCP, 52 mutation cases), local state and disk reopen (29 controls), Lasso transport (48 controls), and Person transport (26 service-boundary, 37 wire and seven original robot error-extractor controls). Account-to-Hub transport is now also accepted: 40 payload/wire, 11 redirect/deadline and eight complete service-response cases agree with the original captures. Every failed-request case allows a following valid response. A further root-reviewed 22-case control preserves provider codes on reads/updates/deletes and omits internal diagnostic codes; an initial candidate regression was repaired before integration. The integrated tree passes 636 units and strict 43-case smoke. Full deployment authentication, OAuth, real Mongo/live providers, migration and whole A-06 remain open.
+All four Settings operations, views, ownership refusal and restart durability are verified against pinned source through running services. The accepted robot-face mutation membership difference remains specifically recorded; the old whole-task-open wording is superseded.
 
 Done when:
 
@@ -946,7 +946,7 @@ Evidence: [docs/parity/evidence/2026-09-10/a06-compat/certification.md](../../do
 
 - [x] Candidate implementation — **accepted**; Luna Max / http_contract_repair; Codex root.
 
-Candidate scope: Bounded Settings error-code projection for read/update/delete operations. Root repaired an ordinary-error code regression and remaining mutation code loss; 22 complete response/Hub request controls and following valid requests agree. All 636 units and strict43 pass. Source Node8 host reproduces 17 preserved container response controls. Full A-06 remains open.
+Candidate scope: Historical candidate scope; subsequent full task acceptance is recorded in the task finding and verification entries. Bounded Settings error-code projection for read/update/delete operations. Root repaired an ordinary-error code regression and remaining mutation code loss; 22 complete response/Hub request controls and following valid requests agree. All 636 units and strict43 pass. Source Node8 host reproduces 17 preserved container response controls. Full A-06 remains open.
 
 Candidate report: [docs/parity/candidates/A-06-hub-projection-root-20260907.md](../../docs/parity/candidates/A-06-hub-projection-root-20260907.md).
 
@@ -956,11 +956,11 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-07/settings-hub-projectio
 
 ### S-01 — Verify GraphSkill sessions and graph execution
 
-- [x] **verified** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: H-04, V-02.
 
-Root accepted prior request/session preconditions and now source graph allocation across explicit/env standalone and cohosted deployments. All 45 node identities and bounded follow-up traces match; 492 unit tests pass on confirmation after one retained ASR fixture timeout. Strict smoke has 218 differences, 157 removed and none added. Full lifecycle, interruption and session migration acceptance remain open.
+GraphSkill lifecycle/session behavior is accepted with a tested deploy-time cutover gate and source-backed host-shape policy. Real-robot cutover after a shape change remains a specifically recorded hardware follow-up; the cloud does not own a session registry.
 
 Done when:
 
@@ -976,7 +976,7 @@ Evidence: [docs/parity/evidence/2026-09-11/s01-graph-sessions/cutover-runbook.md
 
 - [x] Candidate implementation — **accepted**; Codex root with Luna Max candidates.
 
-Candidate scope: Bounded graph allocation per standalone/cohosted host, deterministic exported registry and source node name. 45 source node identities and follow-up trace controls match; 492 unit confirmation passes; strict 218 differences with 157 removed and none added. Full S-01 remains open.
+Candidate scope: Historical candidate scope; subsequent full task acceptance is recorded in the task finding and verification entries. Bounded graph allocation per standalone/cohosted host, deterministic exported registry and source node name. 45 source node identities and follow-up trace controls match; 492 unit confirmation passes; strict 218 differences with 157 removed and none added. Full S-01 remains open.
 
 Candidate report: [docs/parity/candidates/S-01-graph-nodeid-public-skills.md](../../docs/parity/candidates/S-01-graph-nodeid-public-skills.md).
 
@@ -984,11 +984,11 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-06/service-integration/gr
 
 ### S-02 — Verify global results, speaker overrides and supplemental behaviors
 
-- [x] **verified** · P1 · pegasus · implementation: partial
+- [x] **verified** · P1 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: S-01, C-02.
 
-Framework result precedence, analytics and supplemental JCP behavior coverage have not been fully mapped.
+Global results, speaker overrides and supplemental behavior are verified through a 39-probe pinned-original differential with zero differences, including five SetLooperID branches and the repaired referent access.
 
 Done when:
 
@@ -1003,11 +1003,11 @@ Evidence: [docs/parity/evidence/2026-09-11/s02-global-supplemental/review.md](..
 
 ### S-03 — Verify MIM factories, no-input/no-match escalation and opt-in
 
-- [x] **verified** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: S-01, N-06.
 
-QN/AN/MAN/MIM and opt-in implementations exist. Root accepted fallback RNG consumption repair: Dice/Coin are only constructed after valid MIM resolution, matching the original Jedi fallback prompt/ESML/metadata. Full compiled20534 now has zero differences, with external coverage gaps retained. Complete factory and session branch coverage remains open.
+All five factories, eight MIM nodes and opt-in behavior are verified against pinned source, with 34 tests and 39 replay cases. Opt-in event naming and no-match escalation are repaired and independently falsified.
 
 Done when:
 
@@ -1022,7 +1022,7 @@ Evidence: [docs/parity/evidence/2026-09-11/s03-mim-factories/review.md](../../do
 
 - [x] Candidate implementation — **accepted**; Codex root and Luna Max / http_contract_repair.
 
-Candidate scope: Bounded original Any empty-value routing and chitchat fallback RNG consumption. All 11 previous full compiled differences are removed: 20,534 fixtures, zero differences/invariants, same16 gap instances across8 unhosted answer cases. Integrated532 units/default43 pass on confirmation after retained ASR fixture timeouts. Parent task remains open.
+Candidate scope: Historical candidate scope; subsequent full task acceptance is recorded in the task finding and verification entries. Bounded original Any empty-value routing and chitchat fallback RNG consumption. All 11 previous full compiled differences are removed: 20,534 fixtures, zero differences/invariants, same16 gap instances across8 unhosted answer cases. Integrated532 units/default43 pass on confirmation after retained ASR fixture timeouts. Parent task remains open.
 
 Candidate report: [docs/parity/candidates/H-03-S-03-residual-repair-20260906.md](../../docs/parity/candidates/H-03-S-03-residual-repair-20260906.md).
 
@@ -1030,11 +1030,11 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-06/production/residual-re
 
 ### S-04 — Match MIM rendering, conditions, selection and JCP output
 
-- [x] **verified** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: C-02, S-01.
 
-Bounded command serialization and analytics integrated. Strict smoke has21/26 exact complete actions; source SDK timer cancel and actual smile eye animation work on Moth. Complete MIM/selection/timing parity remains open.
+MIM selection/rendering and JCP/display/listen output are verified against the pinned requester, including 1,313 weighted selection points and boundaries. Complete physical gesture timing and skill-family observations remain R-04 scope.
 
 Done when:
 
@@ -1058,7 +1058,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-05/production/integration
 
 ### S-05 — Match runtime prompt data and date/time behavior
 
-- [x] **verified** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: S-04.
 
@@ -1085,11 +1085,11 @@ Lead review: Codex root; [docs/parity/reviews/s05-root/review.json](../../docs/p
 
 ### S-06 — Verify all MIM, manifest and grammar asset provenance
 
-- [x] **verified** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: V-03.
 
-The initial inventory hashes vendored assets; imported files alone do not prove reachability or rendering parity.
+Asset provenance and runtime reachability are verified: 4,800 pinned files, 4,524 parseable MIMs, served skill/view/manifest assets and loaded launch grammars. The source-less banned-word MIM, answer-manifest superset and adapted launch rules remain explicit accepted qualifications.
 
 Done when:
 
@@ -1105,7 +1105,7 @@ Evidence: [docs/parity/evidence/2026-09-10/s06-asset-provenance/review.md](../..
 
 ### S-07 — Verify the complete chitchat behavior
 
-- [x] **verified** · P0 · pegasus · implementation: partial
+- [x] **verified** · P0 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: S-03, S-04, S-05, S-06, N-08.
 
@@ -1217,7 +1217,7 @@ Lead review: Codex root and independent Luna Max acceptance/falsification review
 
 Owner: Codex. Dependencies: S-08, D-07.
 
-Pinned Pegasus Commute and Phoenix match all 33 archived cases, five supplemental mode probes, 33 real Report HTTP cases, 43 Settings cases, and 20 Data/Maps cases with exact calculations, timing boundaries, MIMs, speech, views, errors, requests, cache behavior, and fail-closed evidence. D-07 separately retains its live provider gaps: transit uses the ORS driving profile and ORS supplies no traffic model, so real poor/terrible traffic is unreachable.
+Pinned Commute behavior is verified across 33 archived cases, five mode probes, 33 Report HTTP cases, 43 Settings cases and 20 Data/Maps cases with exact calculations, timing, MIMs, speech, views and fail-closed receipts. Later TomTom integration closes the ORS no-traffic limitation. Genuine transit and optional route fields remain D-07 qualifications; physical commute/calendar displays have separate accepted S-13 evidence.
 
 Done when:
 
@@ -1287,7 +1287,7 @@ Lead review: Claude root; [docs/parity/evidence/2026-09-14/s13-robot-views/accep
 
 ### S-14 — Verify example/template skills and skill-host compatibility
 
-- [x] **verified** · P1 · pegasus · implementation: partial
+- [x] **verified** · P1 · pegasus · implementation: complete
 
 Owner: Codex. Dependencies: S-01, S-02.
 
@@ -1361,11 +1361,11 @@ Source: [server/jot-ws@9a725d3ed8d991aa840131f5ef98c630df2fdf4e:src/handlers/mes
 
 Phoenix: [packages/classic/src/router.js](../../packages/classic/src/router.js); [packages/classic](../../packages/classic).
 
-Evidence: [.parity/runs/a19-jot-sdk/receipt.json](../../.parity/runs/a19-jot-sdk/receipt.json) (2026-09-16; original-client conformance over TLS); [docs/parity/evidence/2026-09-16/a19-party-era/README.md](../../docs/parity/evidence/2026-09-16/a19-party-era/README.md) (2026-09-16; falsification of the conformance harness); [docs/parity/evidence/2026-09-16/a19-party-era/README.md](../../docs/parity/evidence/2026-09-16/a19-party-era/README.md) (2026-09-16; archive search for party-era handlers); [packages/classic/test/jot.test.js](../../packages/classic/test/jot.test.js) (2026-09-16; unit coverage).
+Evidence: [docs/parity/evidence/2026-09-16/a19-jot-sdk/receipt.public.json](../../docs/parity/evidence/2026-09-16/a19-jot-sdk/receipt.public.json) (2026-09-16; original-client conformance over TLS); [docs/parity/evidence/2026-09-16/a19-party-era/README.md](../../docs/parity/evidence/2026-09-16/a19-party-era/README.md) (2026-09-16; falsification of the conformance harness); [docs/parity/evidence/2026-09-16/a19-party-era/README.md](../../docs/parity/evidence/2026-09-16/a19-party-era/README.md) (2026-09-16; archive search for party-era handlers); [packages/classic/test/jot.test.js](../../packages/classic/test/jot.test.js) (2026-09-16; unit coverage).
 
 - [x] Candidate implementation — **accepted**; Luna Max / w18_a05_review; Codex root.
 
-Candidate scope: Bounded A-19 loop-era implementation and error-envelope review. Root independently read the pinned Jot clients and @jibo/server wrapper through Jibo MCP, required correction of Account/Media failure classification, reran all 32 focused tests, and falsified the isBoom branch. Whole A-19 remains open for unrecovered party-era handlers and unavailable original-client/gateway/Kafka evidence.
+Candidate scope: Historical candidate scope; subsequent full task acceptance is recorded in the task finding and verification entries. Bounded A-19 loop-era implementation and error-envelope review. Root independently read the pinned Jot clients and @jibo/server wrapper through Jibo MCP, required correction of Account/Media failure classification, reran all 32 focused tests, and falsified the isBoom branch. Whole A-19 remains open for unrecovered party-era handlers and unavailable original-client/gateway/Kafka evidence.
 
 Candidate report: [docs/parity/candidates/A-19-jot-error-envelopes-20260913.md](../../docs/parity/candidates/A-19-jot-error-envelopes-20260913.md).
 
@@ -1377,7 +1377,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-13/a19-jot-error-envelope
 
 Owner: Codex. Dependencies: A-01, A-02, A-03, A-09.
 
-Functional child registered from A-18 discovery. Three historical model versions define 10 versioned pairs. Current source exports UploadVoiceTraining and ListVoiceTrainings; older UploadFile/RemoveFile/ListFiles/GetFile aliases and their version-specific controllers remain unresolved. Phoenix has no VoiceTraining service registration.
+VoiceTraining upload/list and durable binary state are implemented and verified, including SIGKILL restart. The eight historical file-operation pairs correctly return the pinned source 404. Original-app physical voice enrollment and the inferred payload-cap text remain qualifications.
 
 Done when:
 
@@ -1394,13 +1394,11 @@ Evidence: [packages/classic/test/voiceTraining.test.js](../../packages/classic/t
 
 ### X-01 — Verify restored-branch answer and NLU extensions separately
 
-- [x] **verified** · P1 · restoration · implementation: partial
+- [x] **verified** · P1 · restoration · implementation: complete
 
 Owner: Codex. Dependencies: Q-01, N-07, PM-03.
 
-The two halves of X-01 are in different states, and the previous finding described only one of them. NLU half: the restored branch's LLM fallback is implemented and pinned in-source to 715e0dd0 (packages/nlu/src/llmFallback.js, including its 15-entry INTENT_TOOLS catalog, tool_choice auto and 8000 ms timeout), with fallbackArbitration.js pinned to the same revision and the external-agent block selectable between 5c0a739 ATTACH and 715e0dd0 OMIT. It is env-gated and off by default. Answer half: X-01's reference is pegasus-restored packages/answer-skill/server.js at the restored branch head d682547a, and no Phoenix source pins or reimplements it. packages/skills/src/answerSkill.js is explicitly a port of the ORIGINAL Pegasus answer-skill (LLM or honest placeholder, 600-char limit, 12 s timeout) and has no Wikipedia path, so the old finding is accurate about that file but says nothing about the separate Wikipedia-first GQA lane that now exists under Q-01. Separation: the machinery criterion 2 asks for exists and is tested - the default answer handler is the original port, the GQA profiles are selected only by PHOENIX_GQA_PROFILE/PHOENIX_GQA_DEFAULT_PROFILE, applyGqaContinuity runs only on an explicit opt-in defaulting to false, and q01GqaProfile.test.js asserts the default registry does not select the Wikipedia profile implicitly. But what is kept separate is the Q-01/GQA lane, not a retained restored-branch answer profile. Gap: there is no X-01 verification lane at all - packages/skills/test holds 17 q01 files and zero X-01 files - so none of criterion 1's six named properties (Wikipedia-first ordering, LLM tool catalog, fallback text, response normalization, timing, output limits) has a differential against the restored branch, and criterion 2 has no separate count to publish. See docs/parity/evidence/2026-09-14/x01-restored-profile/gap.md.
-
-RESOLVED 2026-09-16. Both halves now have a verification lane. Answer half: packages/skills/test/x01AnswerBehaviour.test.js (11 tests) measures the six named properties behaviourally against the recovered GQA pipeline, and the default answer profile is now the recovered multi-provider plan rather than the ordinary port. NLU half: 21 tests across llmFallback/fallbackArbitration/externalAgentLlm pin the 715e0dd0 catalog and keep it off by default. Criterion 2's previous assertion (q01GqaProfile.test.js:411) could not fail and was replaced by two handler-identity tests. Answer-text identity remains deliberately unclaimed per the owner's narrowing.
+Both retained restoration halves have accepted verification lanes: eleven answer tests cover the six named behavior properties and twenty-one NLU/fallback tests pin the restored catalog/profile boundary. The default answer plan and handler separation are verified; answer-text identity is deliberately unclaimed under the owner-approved scope.
 
 Done when:
 
@@ -1415,11 +1413,11 @@ Evidence: [docs/parity/evidence/2026-09-16/x01-answer-behaviour/README.md](../..
 
 ### A-03 — Complete Account operations and account lifecycle
 
-- [x] **verified** · P0 · classic · implementation: partial
+- [x] **verified** · P0 · classic · implementation: complete
 
 Owner: Codex. Dependencies: A-02.
 
-Original d69f586 candidate remains withheld. Follow-ups repair event validation and source target/payload behavior; independent review found and repaired leakage into portal/Settings requests. Latest isolated 8ec760 reports 37/37 and 25/25 TCP matrices plus 98/98 AccountUpdated events. Root acceptance, public/internal boundary coverage and full operation/SNS/Mongo/bootstrap lifecycle remain open.
+Account lifecycle and the implementable Account/Admin contracts are verified through live operation probes, a fifteen-step durable lifecycle, portal flows and household migration. Retired Facebook operations are explicitly excluded; source-faithful lifecycle/error quirks and the lack of an original Mongoose replay remain documented.
 
 Done when:
 
@@ -1443,11 +1441,11 @@ Lead review: Hermes root (pasketti); [docs/parity/evidence/2026-09-10/a03-accoun
 
 ### A-04 — Complete Loop operations and membership lifecycle
 
-- [x] **verified** · P0 · classic · implementation: partial
+- [x] **verified** · P0 · classic · implementation: complete
 
 Owner: Codex. Dependencies: A-03.
 
-Root accepted bounded implementations for Loop records and robot association; membership, invitations and lifecycle events; lists/lookups and shared public signature verification; profiles/enrollment/photos; suspension; and guardian/agreement behavior. The combined invitation integration passed 896 unit tests with seven skips, the strict 43-case gate, and 20 original Node8 client lifecycle calls; root reproduced the verifier and checked 52 artifact/source hashes. Exact source timing controls establish deferred LoopUpdated publication without a universal order relative to LoopCreated. Moth runs reviewed revision9672467: all six services healthy, eight installed Node6 client read-only checks passed before and after deployment, and the complete household store and environment are preserved. Earlier profile/KB and photo ingress checks remain separately scoped historical evidence. Live invitation mail is unconfigured. A-04 remains in progress: source-backed duplicate/reinvite sequences, the conditional adoption/revival criterion, and specific uncovered state/failure/persistence cases are under review. No microphone, screen, ring, destructive household mutation or whole-task acceptance is claimed by this deployment. Review history below preserves the individual acceptance boundaries and receipts; diagnostic wording alone is not a parity gap. Root-reviewed operation evidence and the active follow-up list are in docs/parity/candidates/A-04-acceptance-index-20260908.md. Root accepted existing robot Account reactivation and save boundary after three exact source controller controls, eight originalNode8client checks across Account/Classic and restart, independent review,901unit passes/seven skips andstrict43. Existing identity/keys persist; failed Account save restores committed map state; a successful Account save survives later Loop save failure. Deployment and complete A-04 remain open. Root deployede77a2c0 with six healthy services, eight installedNode6read-only checks before/after, whole household store and environment preserved. Seven synthetic Account-to-Classic recovery checks passed: signed mutation, failed Classic storage, retained Account event, service restarts, realWebSocket payload and durable acknowledgement. No live inactive-account mutation or arbitrary process-kill/exactly-once claim.
+All 23 Loop operations are runtime-verified, with twelve source/client lifecycle sequences and byte-exact forwarding across 34 pairs. Membership, invitations, adoption, reactivation and durability evidence is accepted. Earlier pending candidate findings are superseded; physical household journeys retain R-04 scope.
 
 Done when:
 
@@ -1471,13 +1469,11 @@ Lead review: Hermes root (pasketti); [docs/parity/evidence/2026-09-10/a04-loop-o
 
 ### A-05 — Complete OOBE reconnect, service tokens and administrative behavior
 
-- [x] **verified** · P0 · classic · implementation: partial
+- [x] **verified** · P0 · classic · implementation: complete
 
 Owner: Codex. Dependencies: A-03, A-04.
 
-The accepted Account implementation covers setup/reconnect, suspended replacement, unbound relocation, token persistence/expiry, OOBE authentication, administrator service-token issuance and UTF-8 QR framing. The public parser matches the pinned Hapi media/entity boundary and preserves source-simple reconnect behavior. The installed original @jibo/jibo-server-client 3.0.110 under Node 8.9.4 now drives all five normal/admin OOBE operations across both Account and Classic faces: 38 initial and 46 post-restart checks pass, issued ordinary/replacement/service credentials survive a real service-process restart, and all nine Store collections match disk. A-03 and A-04 are now verified, so only hardware evidence remains open: a robot restart, fresh robot/firmware/date evidence, native pairing, TLS ingress, and household preservation. docs/parity/evidence/2026-09-14/a05-hardware-gap/README.md separates the read-only and reboot-only items from the ones that need explicit user consent because they would re-pair the robot or change live household state.
-
-UPDATE 2026-09-16. The matrix was accepted against @jibo/jibo-server-client 3.0.110, which is installed nowhere on Moth: the native oobe-config pairing skill runs 3.0.41 and jibo-ssm 16.0.0 runs 3.0.117. Both were copied read-only off the robot and each passes the full 38+46 matrix against Phoenix, and clients/oobe.js, oobeadmin.js, account.js, loop.js and apis/oobe-2016-10-26.min.json are byte-identical across all three versions. Fresh robot/firmware/date evidence is captured, the robot-restart credential witness is re-read, and TLS ingress is read from the robot's own patched client with rejectUnauthorized:true intact. REMAINING, and a decision for the owner rather than a gap in the work: running native out-of-box pairing through the robot's UI, which issues new credentials and can detach Moth from the household, plus camera/microphone/screen/notification behaviour on the hardware. OWNER DECISION 2026-09-16: OOBE pairing on MOTH deferred. RESOLVED 2026-09-17 on a different robot: the owner released Aero-Root-Okra-Knit, freshly reflashed and fully backed up, with full authority. Aero performed OOBE.SetupRobot itself, over its own repointed TLS connection with verification on, and Phoenix issued credentials, created the robot account and loop, and consumed the one-time token; a replay is refused. Moth was not used and never lost its connection. NOT covered and not claimed: the camera QR scan and the on-screen OOBE UI — Aero has no BE installed and no skill host running, so the visual flow needs both a deployed OOBE-capable skill and a person holding the code to the camera. The OOBE protocol is verified end to end; the OOBE UI is not.
+OOBE setup/reconnect/admin/service-token, installed Node 4/6 client contracts, restart persistence and native Aero SetupRobot/TLS/token replay are verified. Owner follow-up on 2026-10-03 additionally certifies factory RTM QR/Wi-Fi setup and native OTA. Earlier camera/setup-screen gaps are closed at that scope; the broader physical user journey remains R-04.
 
 Done when:
 
@@ -1489,11 +1485,11 @@ Source: [jiborobot/srv-jibo-server-client/apis/oobe-2016-10-26.normal.json](http
 
 Phoenix: [packages/account/src/robotFace.js](../../packages/account/src/robotFace.js); [packages/account/src/qrPayload.js](../../packages/account/src/qrPayload.js); [packages/account/portal/qr.js](../../packages/account/portal/qr.js).
 
-Evidence: [docs/parity/evidence/2026-09-13/a05-installed-sdk-restart-6e817e3/README.md](../../docs/parity/evidence/2026-09-13/a05-installed-sdk-restart-6e817e3/README.md) (2026-09-16; installed original SDK OOBE matrix re-run at current HEAD); [docs/parity/evidence/2026-09-16/a05-hardware/README.md](../../docs/parity/evidence/2026-09-16/a05-hardware/README.md) (2026-09-16; the robot's OWN client versions, lifted off Moth and run against Phoenix); [docs/parity/evidence/2026-09-16/a05-hardware/README.md](../../docs/parity/evidence/2026-09-16/a05-hardware/README.md) (2026-09-16; falsification of the OOBE matrix under the robot's native pairing client); [docs/parity/evidence/2026-09-16/a05-hardware/README.md](../../docs/parity/evidence/2026-09-16/a05-hardware/README.md) (2026-09-16; fresh hardware evidence by robot, firmware and date); [docs/parity/evidence/2026-09-15/a05-restart/README.md](../../docs/parity/evidence/2026-09-15/a05-restart/README.md) (2026-09-16; robot-restart credential survival, independently re-read); [docs/parity/evidence/2026-09-16/a05-hardware/README.md](../../docs/parity/evidence/2026-09-16/a05-hardware/README.md) (2026-09-16; TLS ingress read from the robot's own client); [docs/parity/evidence/2026-09-17/a05-oobe-aero/README.md](../../docs/parity/evidence/2026-09-17/a05-oobe-aero/README.md) (2026-09-17; a real robot performs OOBE.SetupRobot against Phoenix over verified TLS); [docs/parity/evidence/2026-09-17/a05-oobe-aero/README.md](../../docs/parity/evidence/2026-09-17/a05-oobe-aero/README.md) (2026-09-17; the setup token is one-time, falsified from the robot); [docs/parity/evidence/2026-09-17/a05-oobe-aero/README.md](../../docs/parity/evidence/2026-09-17/a05-oobe-aero/README.md) (2026-09-17; one CA and one leaf for the server and both robots).
+Evidence: [docs/parity/evidence/2026-09-13/a05-installed-sdk-restart-6e817e3/README.md](../../docs/parity/evidence/2026-09-13/a05-installed-sdk-restart-6e817e3/README.md) (2026-09-16; installed original SDK OOBE matrix re-run at current HEAD); [docs/parity/evidence/2026-09-16/a05-hardware/README.md](../../docs/parity/evidence/2026-09-16/a05-hardware/README.md) (2026-09-16; the robot's OWN client versions, lifted off Moth and run against Phoenix); [docs/parity/evidence/2026-09-16/a05-hardware/README.md](../../docs/parity/evidence/2026-09-16/a05-hardware/README.md) (2026-09-16; falsification of the OOBE matrix under the robot's native pairing client); [docs/parity/evidence/2026-09-16/a05-hardware/README.md](../../docs/parity/evidence/2026-09-16/a05-hardware/README.md) (2026-09-16; fresh hardware evidence by robot, firmware and date); [docs/parity/evidence/2026-09-15/a05-restart/README.md](../../docs/parity/evidence/2026-09-15/a05-restart/README.md) (2026-09-16; robot-restart credential survival, independently re-read); [docs/parity/evidence/2026-09-16/a05-hardware/README.md](../../docs/parity/evidence/2026-09-16/a05-hardware/README.md) (2026-09-16; TLS ingress read from the robot's own client); [docs/parity/evidence/2026-09-17/a05-oobe-aero/README.md](../../docs/parity/evidence/2026-09-17/a05-oobe-aero/README.md) (2026-09-17; a real robot performs OOBE.SetupRobot against Phoenix over verified TLS); [docs/parity/evidence/2026-09-17/a05-oobe-aero/README.md](../../docs/parity/evidence/2026-09-17/a05-oobe-aero/README.md) (2026-09-17; the setup token is one-time, falsified from the robot); [docs/parity/evidence/2026-09-17/a05-oobe-aero/README.md](../../docs/parity/evidence/2026-09-17/a05-oobe-aero/README.md) (2026-09-17; one CA and one leaf for the server and both robots); [docs/parity/evidence/2026-10-03/ota-owner-certification/README.md](../../docs/parity/evidence/2026-10-03/ota-owner-certification/README.md) (2026-10-03; Owner certifies factory RTM QR/Wi-Fi setup and native OTA, superseding the prior camera/setup-screen qualification.).
 
 - [x] Candidate implementation — **accepted**; Luna Max / w18_a05_review; Codex root.
 
-Candidate scope: Bounded installed-original-client and service-restart closure. Root independently reran 84 Node 8 SDK checks across Account/Classic, inspected exact sanitized wire rows and durable Store snapshots, and accepted the harness after the 1,970-pass suite and strict43. Whole A-05 remains open for A-03/A-04 dependencies, robot restart, native pairing/TLS and fresh hardware evidence.
+Candidate scope: Historical candidate scope; subsequent full task acceptance is recorded in the task finding and verification entries. Bounded installed-original-client and service-restart closure. Root independently reran 84 Node 8 SDK checks across Account/Classic, inspected exact sanitized wire rows and durable Store snapshots, and accepted the harness after the 1,970-pass suite and strict43. Whole A-05 remains open for A-03/A-04 dependencies, robot restart, native pairing/TLS and fresh hardware evidence.
 
 Candidate report: [docs/parity/evidence/2026-09-13/a05-installed-sdk-restart-6e817e3/README.md](../../docs/parity/evidence/2026-09-13/a05-installed-sdk-restart-6e817e3/README.md).
 
@@ -1505,7 +1501,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-13/a05-installed-sdk-rest
 
 Owner: Codex. Dependencies: A-02, A-04.
 
-Robot operations mostly return defaults/empty data; original persistence and admin/provisioning semantics are unverified.
+All nine Robot operations, manufacturing permission fixtures, identifier conversion, calibration/history and durable restart are verified. Empty anonymous missing-record boot fallback and owner resolution through injected fixtures remain documented qualifications.
 
 Done when:
 
@@ -1520,11 +1516,11 @@ Evidence: [docs/parity/evidence/2026-09-10/a07-robot-records/review.md](../../do
 
 ### A-08 — Complete Update selection, reporting and package delivery
 
-- [x] **verified** · P0 · classic · implementation: partial
+- [x] **verified** · P0 · classic · implementation: complete
 
 Owner: Codex. Dependencies: A-02.
 
-OTA package catalog/download paths work under tests, but the API inventory has five normal and three admin operations.
+All eight Update operations and hash-matching package delivery are runtime-verified. Descending version ordering and explicit filter output were repaired. Owner certification on 2026-10-03 closes the former no-hardware-upgrade qualification under R-06/R-07; controlled failure/rollback remains R-10. Wildcard fromVersion is a documented Phoenix extension.
 
 Done when:
 
@@ -1540,11 +1536,11 @@ Evidence: [docs/parity/evidence/2026-09-10/a08-update-delivery/review.md](../../
 
 ### A-09 — Make backups durable and match ownership/restore semantics
 
-- [x] **verified** · P0 · classic · implementation: partial
+- [x] **verified** · P0 · classic · implementation: complete
 
 Owner: Codex. Dependencies: A-02, A-04.
 
-The uncommitted backup implementation stores blobs on disk but its index is in memory and ownership enforcement is dropped.
+Both backup operations enforce robot/loop ownership and durable recovery, proven through real Account resolution and SIGKILL/respawn with matching etag and bytes. The old in-memory/no-ownership finding is superseded; robot backup/restore TLS repairs are part of the current repoint procedure.
 
 Done when:
 
@@ -1560,11 +1556,11 @@ Evidence: [docs/parity/evidence/2026-09-10/a09-backups/review.md](../../docs/par
 
 ### A-10 — Verify notification token and socket delivery lifecycle
 
-- [x] **verified** · P0 · classic · implementation: partial
+- [x] **verified** · P0 · classic · implementation: complete
 
 Owner: Codex. Dependencies: A-02, A-03.
 
-Root accepted durable local notification lifecycle, verified Account document identity, source validation and the authenticated launcher suspension bridge/startup recovery. Original23 Hapi controls, root23 signed HTTP comparisons, verifiedTLS isolation/restart and751 units/strict43 pass. Other Loop-save producers, distributed persistence/transport and real-robot notification delivery remain open. Root verified the LoopUpdated path on the real robot: saved profile request, native notification frame, original dispatcher event, original LoopManager save callback and canonical KB readback. These are background sync messages without a visible popup. Full notification failure/durability and A-10 remain open.
+Notification queue/token/socket isolation, offline delivery, acknowledgement and restart contracts are verified. Native robot frames and acknowledgements corroborate delivery; exact native rejection/retry/keepalive behavior remains a firmware qualification. Earlier blanket robot-delivery and durability gaps are superseded.
 
 Done when:
 
@@ -1580,7 +1576,7 @@ Evidence: [docs/parity/evidence/2026-09-10/a10-notification-lifecycle/production
 
 - [x] Candidate implementation — **accepted**; Luna Max / http_contract_repair; Codex root.
 
-Candidate scope: Bounded verified Notification account identity, source body validation, default colocated suspension publisher and startup recovery. Original23 Hapi cases, root23 signed HTTP cases, verifiedTLS bridge,751 units and strict43 pass. Full A-10 remains open.
+Candidate scope: Historical candidate scope; subsequent full task acceptance is recorded in the task finding and verification entries. Bounded verified Notification account identity, source body validation, default colocated suspension publisher and startup recovery. Original23 Hapi cases, root23 signed HTTP cases, verifiedTLS bridge,751 units and strict43 pass. Full A-10 remains open.
 
 Candidate report: [docs/parity/candidates/A-10-authenticated-bridge-root-20260907.md](../../docs/parity/candidates/A-10-authenticated-bridge-root-20260907.md).
 
@@ -1592,7 +1588,7 @@ Lead review: Codex root; [docs/parity/evidence/2026-09-07/notification-authentic
 
 Owner: Codex. Dependencies: A-02, A-04.
 
-The nine operation names are present but state is ephemeral; binary and ownership semantics need controller comparison.
+All nine Key operations, binary routes, ownership/error catalog and RSA-OAEP/AES round trip are verified, with byte-identical recovery after SIGKILL. State is durable. Self-hosted binary URLs and omitted SNS key events remain documented differences.
 
 Done when:
 
@@ -1607,11 +1603,11 @@ Evidence: [docs/parity/evidence/2026-09-10/a11-key-exchange/review.md](../../doc
 
 ### A-12 — Implement log ingestion and binary-upload behavior
 
-- [x] **verified** · P1 · classic · implementation: partial
+- [x] **verified** · P1 · classic · implementation: complete
 
 Owner: Codex. Dependencies: A-02.
 
-Events are a no-op sink; binary uploads return empty destinations.
+Log ingestion, binary upload and SetLevel validation are implemented and verified through focused runtime/source controls. Empty namespace is accepted while empty level is rejected. The old no-op/empty-destination finding is superseded; error-envelope differences are scoped to Log.
 
 Done when:
 
@@ -1631,7 +1627,7 @@ Evidence: [packages/classic/test/logClassic.test.js](../../packages/classic/test
 
 Owner: Codex. Dependencies: A-02, A-03.
 
-Device registration exists; delivery is a no-op and registrations are in memory.
+Push device CRUD, ownership, durability and provider delivery/failure/invalidation seams are verified, including a real pinned aws-sdk SigV4 client. Physical APNs/FCM delivery remains unavailable without a live provider/mobile client; the service is not merely a registration no-op.
 
 Done when:
 
@@ -1658,7 +1654,7 @@ Lead review: Hermes root (pasketti); [docs/parity/evidence/2026-09-10/a13-push-r
 
 Owner: Codex. Dependencies: A-02, A-11.
 
-Media create returns empty URLs and list/get return empty arrays.
+Media/MediaAdmin storage, deletion, ownership and admin gating are functional and verified through 29 focused tests and a fresh entrypoint restart. Blob URLs are self-hosted; persisted Create-time origin/port is a documented migration limitation. The empty-URL/empty-list stub finding is superseded.
 
 Done when:
 
@@ -1677,7 +1673,7 @@ Evidence: [packages/classic/test/media.test.js](../../packages/classic/test/medi
 
 Owner: Codex. Dependencies: A-02, A-04.
 
-Person properties have limited in-memory round trips; holidays/answers are placeholders and Collision always reports no collision.
+All ten Person operations and Collision.Match are functional, authenticated and durable across SIGKILL, with source error/threshold behavior verified. Collision uses a documented grapheme approximation because original Phonetisaurus phonemes are unavailable; the old tier-3 stub finding is superseded.
 
 Done when:
 
@@ -1696,7 +1692,7 @@ Evidence: [docs/parity/evidence/2026-09-10/a15-person-collision/review.md](../..
 
 Owner: Codex. Dependencies: A-02, A-04.
 
-ROM returns empty certificate/key material.
+ROM Create/SetupServer/SetupClient and genuine certificate/PKCS#12 material are verified through the original aws-sdk client. Physical Commander LAN control and SNS delivery remain unreproduced external journeys; certificate material is no longer empty.
 
 Done when:
 
@@ -1715,7 +1711,7 @@ Evidence: [docs/parity/evidence/2026-09-10/a16-rom-certificates/review.md](../..
 
 Owner: Codex. Dependencies: A-02, A-04.
 
-IFTTT lists/actions and NLP responses are placeholders.
+All seven IFTTT and two Classic NLP operations are served and restart-durable, with verified source-shaped handlers. The phonetic index approximation, optional legacy NLP POS/NER engine and retired IFTTT delivery remain explicit qualifications; the dispatch stubs are removed.
 
 Done when:
 
@@ -1734,7 +1730,7 @@ Evidence: [docs/parity/evidence/2026-09-10/a17-ifttt-nlp-w6/review.md](../../doc
 
 Owner: Codex. Dependencies: A-01, A-02, A-03.
 
-The API inventory includes services/admin operations beyond the current prefix router; full controller coverage is unassessed. Newly recovered Jot and VoiceTraining functional contracts are assigned to explicit child tasks A-19 and A-20; this registration does not verify their behavior.
+Four OAuthClients admin operations and LPS.NewCredentials are verified at runtime with source-derived auth/default/error behavior and falsified admin refusal. Jot and VoiceTraining are separately verified under A-19/A-20. Recovered non-SDK app-toolkit-manager/logparser surfaces still need discovery/child-task scope.
 
 Done when:
 
@@ -1792,7 +1788,7 @@ Evidence: [docs/parity/evidence/2026-09-17/r02-install/README.md](../../docs/par
 
 - [x] Candidate implementation — **accepted**; Codex root.
 
-Candidate scope: Bounded authenticated development process launcher and shared Classic HTTPS/notification server. 30 local checks, 678 units, strict43, real native TLS/clock/proactive trial and independent rollback pass. Full R-02 and persistent deployment remain open.
+Candidate scope: Historical candidate scope; subsequent full task acceptance is recorded in the task finding and verification entries. Bounded authenticated development process launcher and shared Classic HTTPS/notification server. 30 local checks, 678 units, strict43, real native TLS/clock/proactive trial and independent rollback pass. Full R-02 and persistent deployment remain open.
 
 Candidate report: [scripts/parity-robot/AUTHENTICATED.md](../../scripts/parity-robot/AUTHENTICATED.md).
 
@@ -1820,11 +1816,11 @@ Evidence: [docs/parity/evidence/2026-09-18/r03/README.md](../../docs/parity/evid
 
 ### R-04 — Verify supported robot/firmware and original-client journeys
 
-- [ ] **todo** · P0 · release · implementation: unverified
+- [ ] **todo** · P0 · release · implementation: partial
 
 Owner: Codex. Dependencies: R-02, R-03, A-05, A-08, A-10, S-13, V-04.
 
-Consumer provenance is recorded in CONSUMERS.md. The user released Moth for SSH testing on 2026-09-05; V-04 now establishes the actual robot loop against this checkout. The simulator remains excluded as an oracle, and the other robot is not touched. Full firmware/client journeys, real microphone behavior, persistence and every skill-family acceptance remain open. OWNER AUTHORISATION, 2026-09-18: both Moth and Aero are available for R-04's hardware sessions, and a factory reset is authorised for the OOBE-replay part.
+The real-robot loop and source/client contracts are accepted. Owner certification on 2026-10-03 closes normal OTA across ten firmware combinations, including factory RTM QR/Wi-Fi setup and migration reruns, with recalled coverage of all RTM releases, 13.0.0 and prior 5x1 routing. The wider physical microphone/wake/ring, natural proactive/follow-up, every-skill display/gesture, restart persistence and complete supported-client matrix remain this task; see VERIFICATION-GAPS.md HW-03 through HW-07.
 
 Done when:
 
@@ -1839,75 +1835,63 @@ Phoenix: [HW-OOBE-TEST.md](../../HW-OOBE-TEST.md); [packages/harness](../../pack
 
 Evidence: pending.
 
-### R-06 — Verify an over-the-air upgrade from a stock 5.4.0 robot to the published 13.0.0 packages
+### R-06 — Verify the supported robot repoint and native OTA journey
 
-- [ ] **todo** · P0 · release · implementation: unverified
+- [x] **verified** · P0 · release · implementation: complete
 
 Owner: Codex. Dependencies: R-02, R-03, A-05, R-07.
 
-The Update service is implemented and unit-tested, the real 13.0.0 packages are on disk, and the firmware workbench has already built and flashed bootable images -- but no robot has ever walked an upgrade, and the standing ECONNREFUSED 127.0.0.1:7015 is the development launcher starting only account, classic and gateway and never OTA, so the path a robot would take has not even been reachable. The written workbench record also lags the owner's report of flashed bootable images (it still describes the composed candidate as unflashed as of 2026-09-05), so the first act of this task is to read the robot's real state rather than trust either record. Rollback is U-Boot's bootcount/bootlimit via fw_setenv activeroot, which is real and must be exercised, not assumed.
+OWNER CERTIFIED, 2026-10-03: the normal repoint/native OTA flow works on physical robots, including stock robots, and the helper has been verified on ten firmware combinations. The follow-up closes factory RTM QR/Wi-Fi setup and reported firmware/migration reruns, explicitly recalling all RTM releases, 13.0.0 and prior 5x1 routing. The old no-robot-upgrade and unreachable-launcher claims are superseded. R-06 now records successful supported delivery; its former deliberately corrupt/unbootable failure trials remain open under R-10. Exact per-run versions/revisions and detailed state witnesses can be added without withdrawing this certification.
 
 Done when:
 
-- Read the robot's actual current state first -- installed version off the robot, boot state, GPT and partition sizes -- and reconcile it against the workbench record before changing anything. Record serial, firmware and configuration.
-- Flash the baseline to stock 5.4.0 using firmware/production/flash-jibo-preserve-var.sh, which deliberately leaves /var intact; it requires the robot's measured skills capacity in bytes and an explicit GPT-acknowledgement flag, and those refusals are the safety mechanism, not bureaucracy.
-- Bring the OTA service up in the deployed stack where the robot can actually reach it, and confirm Update_20160301.GetUpdateFrom / ListUpdatesFrom offer the published package to that robot's fromVersion.
-- Complete the upgrade on the robot: download through the offered url, verify the package against its advertised length and SHA-1, apply into the INACTIVE rootfsA/rootfsB slot, flip activeroot, reboot, and come back up on the published version.
-- Prove /var survived: identity, Wi-Fi settings, calibration and the registry are unchanged, and no re-flash was needed.
-- With no manual repoint step, the upgraded robot must reach this server, return to its loop, and complete one real spoken turn end to end.
-- Record robot, firmware, configuration, package ids, timings and robot-side logs, and state plainly what was NOT exercised.
-- Falsification, both halves: a package whose bytes do not match the advertised SHA-1 must be refused by the updater and the robot must still boot; and a deliberately unbootable OS slot must fall back through bootcount/bootlimit rather than leaving the robot dead. Exercising the rollback is the point -- an upgrade path whose fallback has never fired is not a verified upgrade path.
+- Accept and retain the project owner's hardware certification that the supported repoint/native OTA flow completes successfully on robots, including stock firmware.
+- Record the owner's ten-firmware-combination coverage and the factory RTM QR/Wi-Fi and firmware/migration follow-up, distinguishing recalled cases from the separate archive survey.
+- Reconcile the README, runbook, firmware compatibility page and release ledger so they agree that the supported OTA flow is signed off.
+- Retain individual missing provenance/state witnesses and deliberate failure-recovery experiments under VERIFICATION-GAPS.md and R-10; new releases keep their packaging, metadata, integrity and physical acceptance gates.
 
 Source: PlatformTeam/jibo-ota-updater/README.md; PlatformTeam/jibo-ota-updater/src/apply_os.js; jiborobot/srv-update-ws; jiborobot/srv-jibo-server-client/apis.
 
-Phoenix: [packages/ota](../../packages/ota); [scripts/parity-robot/authenticated-stack.mjs](../../scripts/parity-robot/authenticated-stack.mjs); [scripts/point-robot-at-phoenix.sh](../../scripts/point-robot-at-phoenix.sh); [docs/parity/OTA-UPGRADE.md](../../docs/parity/OTA-UPGRADE.md); [docs/parity/HARDWARE.md](../../docs/parity/HARDWARE.md).
+Phoenix: [packages/ota](../../packages/ota); [scripts/robot-ota-repoint.sh](../../scripts/robot-ota-repoint.sh); [scripts/robot-client/trigger-ota.cjs](../../scripts/robot-client/trigger-ota.cjs); [docs/RUNBOOK.md](../../docs/RUNBOOK.md); [docs/ROBOT-FIRMWARE-COMPATIBILITY.md](../../docs/ROBOT-FIRMWARE-COMPATIBILITY.md); [docs/parity/OTA-UPGRADE.md](../../docs/parity/OTA-UPGRADE.md); [docs/parity/VERIFICATION-GAPS.md](../../docs/parity/VERIFICATION-GAPS.md).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-10-03/ota-owner-certification/README.md](../../docs/parity/evidence/2026-10-03/ota-owner-certification/README.md) (2026-10-03; Project owner hardware certification of the supported OTA flow and ten firmware combinations, plus factory RTM QR/Wi-Fi and firmware/migration reruns.).
 
-### R-07 — Package the Phoenix repoint configuration into the OTA payload
+### R-07 — Deliver the Phoenix configuration through the supported OTA payloads
 
-- [ ] **todo** · P0 · release · implementation: unverified
+- [x] **verified** · P0 · release · implementation: complete
 
 Owner: Codex. Dependencies: R-02, A-05.
 
-The workbench at /home/shell/work/hermes-be/firmware already builds, composes, validates and packages images (Buildroot production profile -> compose-legacy-modern.js -> validate-modern-images.js -> package-ota.js), and OTA packages cut from the modern production build already exist on the resource host (root@192.168.1.23:/srv/jibo-release/ota-production). What no image carries is the repoint: the published packages are the stock 13.0.0 build, and everything that lets a robot reach Phoenix is applied after the fact over SSH. The design is settled by the updater's own contract plus the owner's decision: postinstall runs on the OLD root after the incoming filesystem has been written and unmounted, so the repoint is BAKED INTO THE IMAGE and the package carries no hooks at all. The repoint lands in the three partitions an os/services update replaces -- hosts and CA trust in rootfs, the jetstream hub/entrypoint override in services, BE 11.0.1 in skills -- while the region in /var is preserved and is NOT the mechanism, which is precisely why the server URL has to be baked in for a robot that was never repointed. Baking makes the URL a build-time input: changing the public URL means building and publishing a new payload with a new hash, and the build refuses to run without a configured URL rather than shipping an update that cannot repoint anyone.
+OWNER CERTIFIED, 2026-10-03: the working native OTA installs the Phoenix configuration and returns robots to the supported server. The native image baker and package tooling now exist, superseding the old claim that every payload is unmodified stock firmware. Public jibo.io routing/trust is baked into OS/services and the two skills are independent per-skill updates; /var is preserved. The documented release is OS/services 13.0.7, OOBE 9.0.2 and complete-source custom BE 13.0.2, discovered from compatible server offers. OS/services retain the no-hook design. Complete BE integrity, accurate reporters/dependencies, new IDs for changed offers and physical acceptance remain gates for each changed release; wrong-endpoint/artifact negative controls are R-10.
 
 Done when:
 
-- Build the payload in the workbench rather than from scratch: image -> compose-legacy-modern.js -> validate-modern-images.js -> package-ota.js, keeping the tooling's plan-first and secret-free discipline.
-- Bake the repoint configuration into the image. The owner's decision, and the updater's contract agrees with it: postinstall runs on the OLD root after the incoming filesystem has already been written and unmounted, so a hook could not do this even if we wanted one.
-- Carry NO hooks. The package must contain ./filesystem.tar.bz2 and nothing else -- no ./preinstall, no ./postinstall. A hook error is a fatal error that triggers a redownload-and-retry loop, so the absence of hooks is an asserted property of the built tar, not a convention.
-- Bake the repoint into the three replaced partitions: the hosts entry and the patched @jibo/jibo-server-client CA handling (DIVERGENCES R1) in rootfs; the /usr/local/etc/jibo-jetstream-service.json hub/entrypoint override in services, which is where the server URL actually lives; and BE 11.0.1 (phoenix-parity-11-0-1) under /opt/jibo/Jibo/Skills in skills. 12.0.0-era @be/be is not acceptable: it loses the cyan listening eye, the proactive runtime and the Nimbus follow-ups.
-- Bake the server URL at payload-build time from this server's configured public URL, so a robot that has never been repointed finds us. The URL is a BUILD-TIME input: a payload built with a different public URL is a different payload with a different hash, which is the cost of choosing a baked default over a runtime lookup, and it is accepted deliberately.
-- Refuse to build a payload when no public URL is configured. Shipping one silently would produce an update that cannot repoint the robots that need it most; an explicit opt-out flag may produce the documented leave-as-is payload instead, in which case the manifest must record that it carries no URL, and nothing may present that as the repoint payload.
-- Publish with the real length and SHA-1 computed from the artefact, keep the never-offered-again loop guard for a robot already at the target version, and keep a second pass harmless.
-- Validate the package offline with validate-ota.js before it is ever served, and record the image hashes, geometry and the baked URL alongside it.
-- Falsification: inspect the BUILT tar to show the repoint is genuinely inside the image and no hook member exists, and show a robot with no manual repoint reaches the server while one whose image was built with a deliberately wrong URL does not.
+- Accept and retain the owner's hardware certification of successful Phoenix configuration delivery through the supported native OTA flow.
+- Document the implemented native image/package path, baked public endpoints/trust, independent OOBE/BE skill updates and preserved /var; distinguish the stock repository manifest from the production release catalog.
+- Keep OS/services no-hook packaging, version/metadata compatibility, independent complete-source BE integrity and physical boot/voice checks as continuing release gates.
+- Retain the former wrong-endpoint and artifact negative controls in R-10 instead of describing the signed-off normal delivery flow as unverified.
 
 Source: PlatformTeam/jibo-ota-updater/README.md; PlatformTeam/jibo-ota-updater/src/apply_common.js; PlatformTeam/jibo-ota-updater/src/apply_os.js; jiborobot/srv-jibo-server-client/apis.
 
-Phoenix: [scripts/build-ota-packages.sh](../../scripts/build-ota-packages.sh); [packages/ota/manifest.json](../../packages/ota/manifest.json); [scripts/point-robot-at-phoenix.sh](../../scripts/point-robot-at-phoenix.sh); [docs/parity/OTA-UPGRADE.md](../../docs/parity/OTA-UPGRADE.md); [DIVERGENCES.md](../../DIVERGENCES.md).
+Phoenix: [deploy/robot-patches/bake_jibo_io_native_image.py](../../deploy/robot-patches/bake_jibo_io_native_image.py); [scripts/build-ota-packages.sh](../../scripts/build-ota-packages.sh); [scripts/build-jibo-io-ota-13-0-6.py](../../scripts/build-jibo-io-ota-13-0-6.py); [scripts/be_ota_integrity.py](../../scripts/be_ota_integrity.py); [scripts/robot-ota-repoint.sh](../../scripts/robot-ota-repoint.sh); [docs/RUNBOOK.md](../../docs/RUNBOOK.md); [docs/parity/BE-RELEASES.md](../../docs/parity/BE-RELEASES.md); [docs/parity/OTA-UPGRADE.md](../../docs/parity/OTA-UPGRADE.md); [docs/parity/VERIFICATION-GAPS.md](../../docs/parity/VERIFICATION-GAPS.md).
 
-Evidence: pending.
+Evidence: [docs/parity/evidence/2026-10-03/ota-owner-certification/README.md](../../docs/parity/evidence/2026-10-03/ota-owner-certification/README.md) (2026-10-03; Owner-certified working OTA configuration delivery, reconciled with the existing native image baker, package tooling and runbook.).
 
 ### R-08 — Build and flash a pre-baked robot image that already points at this server
 
-- [ ] **todo** · P0 · release · implementation: unverified
+- [ ] **todo** · P0 · release · implementation: partial
 
 Owner: Codex. Dependencies: R-02, R-07, A-05.
 
-The firmware workbench at /home/shell/work/hermes-be/firmware has a working full-flash pipeline and has produced production-signed candidates (2026-09-02, 2026-09-03) and composed candidates (2026-09-05), offline-validated and stored on the resource host (root@192.168.1.23:/srv/jibo-release, 861MB-1.1GB each), plus firmware/production/flash-jibo-preserve-var.sh, which flashes the boot chain, rootfsA/B, services and skills while deliberately leaving /var intact. What no image carries is the repoint: grepping every built overlay for region_config, HubClient.override, phoenix-ca and jibo-server-client returns nothing, and the workbench does not reference the repoint script at all -- so a flashed robot still needs the SSH repoint afterwards, which is the same gap R-07 closes for OTA. OWNER DECISIONS, 2026-09-18: the image carries EXACTLY the configuration proven working on Aero today -- stock Release-13.0.0-20190225 plus the repoint plus BE 11.0.1 -- and NOT the modern Node 22 / Electron 43 userland; bake the proven thing first. Certificates: bake the Phoenix CA only; the robot's own public bundle (180 certificates, 58 already past notAfter) is R-09, a separate task. Flash target is Aero, which is already repointed and was restored to a working state on 2026-09-18, accepting that a full flash rewrites the boot chain and can rewrite the GPT. Measured on Aero 2026-09-18: /etc/hosts maps api.jibo.com and stg-entrypoint.jibo.com (plus the socket names) to 192.168.1.182, the jetstream HubClient.override points at 192.168.1.182:29000, /etc/ssl/certs/phoenix-ca.crt and the client-side phoenix-ca.pem copies are present, and @be/phoenix-parity-11-0-1 v11.0.1 is installed -- but region_config.json is still stock (https://{region}.jibo.com) and only works because /etc/hosts intercepts the name, and no node-modern or electron-modern exists.
+The firmware workbench and Phoenix native image baker exist, and OTA delivery of baked Phoenix configuration is owner-certified under R-06/R-07. The old statement that no image carries a repoint is superseded. A separate full USB/RCM flash trial still needs confirmation: boot chain/GPT handling, measured /var preservation, no later repoint, return to a working server/loop/voice path and physical rollback. The 2026-09-18 stock-runtime/private-CA recipe is historical; record the actual image/public endpoint/BE version used for current flash acceptance. See VERIFICATION-GAPS.md HW-01.
 
 Done when:
 
-- Build the image in the workbench rather than from scratch, keeping its plan-first and secret-free discipline, and bake the repoint into the image exactly as R-07 defines it so that NO SSH repoint step is needed after flashing.
-- Carry EXACTLY the configuration proven working on Aero, per the owner's decision: stock Release-13.0.0-20190225 plus the repoint plus BE 11.0.1 (phoenix-parity-11-0-1, not 12.0.0-era @be/be). No modern Node 22 / Electron 43 userland in this image -- that candidate is offline-validated but not hardware-validated, and it is not what makes a robot reach this server.
-- Bake the Phoenix CA only: /etc/ssl/certs/phoenix-ca.crt and the patched @jibo/jibo-server-client CA handling from DIVERGENCES R1, both already proven on Aero. The robot's own public trust bundle is explicitly OUT of scope here and is tracked as R-09.
-- Bake the server URL and the hosts entry from this server's configured public URL, as R-07 decided, and refuse to build without one unless the documented leave-as-is opt-out is passed and recorded. Also settle the region_config question: on Aero the repoint's region_config rewrite did not happen and the hosts entry alone carries it, so either bake the region_config endpoints too or record why the hosts intercept is sufficient.
-- Flash Aero with firmware/production/flash-jibo-preserve-var.sh, supplying the robot's measured skills capacity and the explicit GPT-range acknowledgement the helper demands, and prove /var survived: identity, Wi-Fi settings, calibration and registry unchanged. Back /var up first, and record the risk accepted: a full flash rewrites the boot chain and can rewrite the GPT.
-- With NO repoint step of any kind, the flashed robot must boot on its own, reach this server, return to its loop, and complete one real spoken turn end to end.
-- Reconcile the robot's actual state against the workbench record before and after -- the record still describes the composed candidate as unflashed while the owner reports flashed bootable images -- and record image hashes, robot, firmware, configuration and what was NOT exercised.
-- Falsification, both halves: an image built with a deliberately wrong public URL must fail to reach the server, proving the bake is what makes it work rather than the hosts intercept or a leftover SSH repoint; and a deliberately unbootable rootfs slot must fall back through bootcount/bootlimit rather than leaving the robot dead.
+- Build a pre-baked native image using the firmware workbench and Phoenix image baker, with the supported public endpoint/trust and complete-source BE payload; retain plan-first and secret-free build records.
+- Record exact source/image/package hashes, version reporters, endpoint/trust configuration and geometry. Modern Node/Electron candidates require their own hardware acceptance rather than inheriting native-runtime results.
+- Back up /var and boot configuration, then flash through the documented preserve-var helper with measured capacity and GPT acknowledgement. Record identity, keys, Wi-Fi, calibration and registry before/after.
+- Confirm the flashed robot boots, reaches Phoenix, resumes its loop and completes a real spoken turn with no later repoint.
+- Retain wrong-endpoint and unbootable-slot controls under R-10, and record the USB recovery procedure for a failed trial.
 
 Source: jiborobot/srv-jibo-server-client/apis; [Original Pegasus packages/hub-client](https://pvindex.org/gitea/jiboV2/pegasus/src/commit/5c0a7390539663ba749d360de348a428c088505c/packages/hub-client).
 
@@ -1917,11 +1901,11 @@ Evidence: pending.
 
 ### R-09 — Refresh the robot's public certificate trust bundle
 
-- [ ] **todo** · P0 · release · implementation: unverified
+- [ ] **todo** · P0 · release · implementation: partial
 
-Owner: Codex. Dependencies: R-08.
+Owner: Codex. Dependencies: R-02, R-07.
 
-Separated out of R-08 by the owner on 2026-09-18, because it is a different risk from the Phoenix CA and must not hold the working image hostage. Measured on Aero: /etc/ssl/certs/ca-certificates.crt holds 180 parseable certificates in 286,339 bytes (sha256 fc06fb23...) of which 58 have already passed their notAfter date and none are not-yet-valid; /etc/ssl/cert.pem is absent; and Node reports 146 bundled roots of its own, which is NOT proof that every application uses the OS bundle or those roots. The workbench's own gate is explicit that expired roots alone do not prove a given HTTPS endpoint fails, that actual chain construction and trust-anchor handling must be tested, and that deleting every expired root or copying robot identity into a public bundle is the wrong move.
+Public jibo.io trust is already installed by the supported helper/image path, including explicit Node 4/6 CA handling and ISRG-root support. Those working TLS paths supersede the initial absent-cert.pem/no-public-root blocker. Comprehensive maintained public-bundle refresh remains separate: pin the CA source, inventory actual OS/Node/Electron consumers, preserve reversible/private trust, and demonstrate both accepted chains and rejected hostname/expired chains. The old 180-certificate/58-expired count is a dated baseline, not a fresh inventory. See VERIFICATION-GAPS.md HW-02.
 
 Done when:
 
@@ -1939,15 +1923,38 @@ Phoenix: [docs/parity/HARDWARE.md](../../docs/parity/HARDWARE.md); [DIVERGENCES.
 
 Evidence: pending.
 
+### R-10 — Verify OTA failure recovery and remaining negative controls
+
+- [ ] **todo** · P0 · release · implementation: unverified
+
+Owner: Codex. Dependencies: R-06, R-07.
+
+The normal OTA journey is owner-certified under R-06/R-07. The owner explicitly confirmed on 2026-10-03 that interrupted/corrupt-update recovery and A/B rollback have not been tested. This task preserves the former R-06/R-07 deliberate failure criteria, plus remaining artifact/metadata/endpoint controls, without undoing successful-flow acceptance. Do not run destructive or deliberately unbootable hardware trials as part of documentation reconciliation.
+
+Done when:
+
+- On authorized test hardware, prove corrupt/truncated bytes or incorrect advertised length/SHA-1 are refused by the actual updater and the robot still boots.
+- Record interrupted-download, temporary query-override lease recovery and interrupted-install recovery separately, with native logs and usable-state outcomes.
+- On authorized test hardware, exercise U-Boot bootcount/bootlimit fallback from a deliberately unbootable inactive OS slot and demonstrate recovery.
+- Retain built-package negative controls for baked endpoint/trust, no OS/services hooks, filesystem metadata and version reporters; prove an incorrect endpoint is not masked by leftover robot configuration.
+- Exercise changed-ID/cache/dependency/filter failure cases and safe retry/no-repeat behavior, distinguishing already certified normal filter installation from deliberately invalid metadata.
+- Record exact robot/component versions, payload IDs/hashes, before/after per-robot state, timings, logs and recovery procedure; close only the controls actually performed.
+
+Source: PlatformTeam/jibo-ota-updater/src/apply_common.js; PlatformTeam/jibo-ota-updater/src/apply_os.js; jiborobot/srv-update-ws.
+
+Phoenix: [packages/ota](../../packages/ota); [scripts/robot-client/trigger-ota.cjs](../../scripts/robot-client/trigger-ota.cjs); [scripts/robot-ota-repoint.sh](../../scripts/robot-ota-repoint.sh); [docs/parity/OTA-UPGRADE.md](../../docs/parity/OTA-UPGRADE.md); [docs/parity/VERIFICATION-GAPS.md](../../docs/parity/VERIFICATION-GAPS.md).
+
+Evidence: pending.
+
 ## 6. Close the release checklist
 
 ### R-05 — Close the source checklist and publish a release parity report
 
 - [ ] **todo** · P0 · release · implementation: unverified
 
-Owner: Codex. Dependencies: R-01, R-02, R-03, R-04, A-01, A-02, A-03, A-04, A-05, A-06, A-07, A-08, A-09, A-10, A-11, A-12, A-13, A-14, A-15, A-16, A-17, A-18, R-06, R-07, R-08, R-09.
+Owner: Codex. Dependencies: R-01, R-02, R-03, R-04, A-01, A-02, A-03, A-04, A-05, A-06, A-07, A-08, A-09, A-10, A-11, A-12, A-13, A-14, A-15, A-16, A-17, A-18, R-06, R-07, R-08, R-09, R-10.
 
-Completion must cover the scoped product and every required behavior, not just the previous M1-M9 milestone labels.
+The completed source/service tasks, owner-certified OTA flow and retained qualifications are reconciled in VERIFICATION-GAPS.md. Release closure still requires the wider hardware journey (R-04), full-flash acceptance (R-08), comprehensive trust refresh (R-09), OTA failure recovery (R-10) and the final reproducible report. R-06/R-07 are signed off; old successful-OTA blockers must not be repeated.
 
 Done when:
 

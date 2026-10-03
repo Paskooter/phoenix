@@ -2,7 +2,9 @@
 
 **Historical implementation checklist.** Current source-backed progress and acceptance criteria
 live in the [parity plan](../parity/PLAN.md) and [task checklist](../parity/TASKS.md).
-The [2026-09-05 audit](../parity/AUDIT.md) supersedes completion claims below; old checkmarks
+The [2026-10-03 verification review](../parity/VERIFICATION-GAPS.md) reconciles
+owner-certified OTA and the remaining specific checks.
+The [2026-09-05 audit](../parity/AUDIT.md) and subsequent task acceptance supersede claims below; old checkmarks
 describe the previous rebuild scope, not verified 1:1 compatibility.
 
 Derived from the Pegasus atlas (`pegasus/docs/atlas/`). Every feature the reference implements,

@@ -255,16 +255,17 @@ curl -s :9012/ -H 'x-amz-target: OOBE_20161026.SetupRobot' -d '…'           # 
 | update (OTA) | `Update_*` | ✅ end-to-end | firmware revival; `packages/ota` |
 | account / loop / oobe | `OOBE_*` `Account_*` | ✅ end-to-end | pairing + portal; `packages/account` |
 | settings | `Settings_*` | ✅ end-to-end | the personal report's per-user prefs |
-| log | `Log_*` | ✅ wire | robot telemetry upload (no-op sink) |
+| log | `Log_*` | ✅ contract | event ingestion, binary upload and log-level controls |
 | robot | `Robot_*` | ✅ wire | boot-time read records (calibration stays local) |
-| notification + socket | `Notification_*` | ◑ partial | durable local queue/socket, verified account identity and launcher suspension-event publishing; other events and robot delivery remain open |
+| notification + socket | `Notification_*` | ✅ contract + native delivery | durable queue/socket, account isolation, native delivered/acknowledged frames; exact native rejection/retry/keepalive remains qualified |
 | key | `Key_*` | ✅ wire | UGC encryption-key exchange |
-| push | `Push_*` | ◑ stub | device register; delivery no-op (no APNs/FCM/app) |
-| rom · media · person · backup · ifttt · nlp · collision | various | ◑ build-to-spec | wire-tested shapes; need the app/hardware to exercise |
+| push | `Push_*` | ◑ provider scope | durable devices and tested delivery/failure provider seam; physical handset delivery needs a live provider/client |
+| rom · media · person · backup · ifttt · nlp · collision · voicetraining · jot | various | ✅ accepted contracts | functional handlers and source/client/state evidence; physical mobile/provider limits remain explicit |
 
-"end-to-end" = verified working through the real consumer; "wire" = the robot protocol is
-verified (the live robot seam is pending hardware); "build-to-spec / stub" = implemented to the
-contract but unverified without the mobile app — see [DIVERGENCES.md](./DIVERGENCES.md).
+"end-to-end" identifies an exercised consumer journey; "contract" identifies
+accepted source/client/runtime evidence. The owner certifies normal repoint/OTA
+and factory RTM QR/Wi-Fi setup as of 2026-10-03. Specific remaining physical and
+live-provider checks are in the [verification review](parity/VERIFICATION-GAPS.md).
 
 ## Web portal + robot adoption
 

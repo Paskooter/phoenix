@@ -2,6 +2,14 @@
 
 Frozen on **2026-09-05** for the parity work in [PLAN.md](PLAN.md). This fixes what we compare; it does not certify any Phoenix feature. The user's target is original Pegasus. The original Hashbrown source is therefore the default reference; a newer restoration is a separate profile. Later discoveries or user steering can revise this manifest with an explicit impact review and reopened evidence.
 
+**Hardware acceptance update, 2026-10-03:** the owner certifies the supported
+repoint/native OTA flow on ten firmware combinations, including factory RTM
+QR/Wi-Fi setup and migration reruns. Recalled coverage includes all RTM releases,
+13.0.0 and prior `5x1` routing. The historical source matrix below supplies
+contract pins, rather than the ten trial tuples. See the
+[acceptance record](evidence/2026-10-03/ota-owner-certification/README.md) and
+[remaining verification review](VERIFICATION-GAPS.md).
+
 ## Sources and consumers
 
 | Layer | Frozen target | Verification boundary |

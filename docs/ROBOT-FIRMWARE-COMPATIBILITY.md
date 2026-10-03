@@ -2,11 +2,19 @@
 
 The repoint helper has to work on whatever firmware a robot arrives with, including a
 robot that is new in its box. This page records what differs between firmware versions
-in the places the helper touches, how the helper handles each difference, and what is
-still unverified. The initial survey was compiled on 2026-09-28 from archived flash builds, the
+in the places the helper touches, how the helper handles each difference, and the
+remaining individual checks. **The owner certified the repoint/native OTA flow
+on hardware on 2026-10-03, with ten tested firmware combinations**, including
+factory RTM QR/Wi-Fi setup and firmware/migration reruns. Explicitly recalled
+coverage includes all RTM releases, 13.0.0 and prior `5x1` routing. See the
+[acceptance record](parity/evidence/2026-10-03/ota-owner-certification/README.md).
+
+The initial survey was compiled on 2026-09-28 from archived flash builds, the
 archived npm registry, and a dry run against the physical test robot (13.0.7).
 The 2026-10-02 update adds real Node 4.1.2/6.9.2 apply tests and a syntax-based
-Wi-Fi patcher; the user-reported 12.10.0 variant still awaits its exact source.
+Wi-Fi patcher. Exact source for the reported 12.10.0 variant remains useful as
+a regression fixture; the owner's follow-up signs off the named rerun cases.
+The source survey below does not enumerate the owner's ten hardware trials.
 
 ## Which firmware robots actually run
 
@@ -117,7 +125,8 @@ robot with this error should rerun the full helper with `--start-ota --yes`,
 without reusing its spent claim code.
 Regression coverage exercises paired and QR setup plans, unchanged keys, and
 idempotent config repair. The stock Node 6 Jibo Update client resolves
-`api.jibo.io` after this repair; the affected robot's OTA rerun is still pending.
+`api.jibo.io` after this repair. The owner's 2026-10-03 follow-up certifies the
+named firmware/migration reruns, superseding the earlier pending-rerun note.
 
 ## Found on the first factory robot (Aero, RTM3 3.3.4, 2026-09-29)
 
@@ -153,22 +162,25 @@ request ever reached the server. On the robot:
   repoint helper applies it when the skill is the reviewed version and otherwise leaves the
   screens alone; the jibo.io `oobe-config` 9.0.2 OTA carries the same change.
 
-## Still unverified
+## Hardware certification and remaining checks
 
-1. **A complete setup on factory firmware.** Aero (RTM3) has been repointed and the two faults
-   above fixed by hand on it; a clean run of the updated helper on a freshly flashed robot, through
-   QR setup and its OTA, is the next test.
-2. **The OTA from a 3.x base.** After QR setup the old setup skill asks for updates. The
-   jibo.io catalog must offer packages to `fromVersion` 3.0.x/3.3.x, and updater 1.3.0 must
-   accept them. The original cloud did ship direct RTM3 → 8.x and RTM3 → Hashbrown OTAs,
-   which suggests the path exists, but it has not been exercised against Phoenix.
-3. **The 3.x setup skill against Phoenix's setup API.** `oobe-config` 4.2.2 (RTM2) predates
-   the version Phoenix was built against.
-4. **Builds not probed individually** (3.0.8, 3.0.10, 6.x, 7.x and point releases). They are
-   checked against reviewed executable variants, JSON schemas and Wi-Fi syntax;
-   an unsupported target stops at preflight with nothing changed. This is not a
-   claim of hardware-tested support for every release. Probe such a build when
-   it turns up; add a structural fixture or reviewed executable pins as needed.
+- [x] Clean factory RTM Wi-Fi/QR/setup and native OTA — owner-certified
+  2026-10-03, with all RTM releases explicitly recalled. This closes the old
+  factory setup, 3.x OTA and old setup-skill/API checklist items.
+- [x] Firmware/migration reruns — owner-certified 2026-10-03. The recalled
+  coverage also includes 13.0.0 and a robot previously repointed to `5x1`.
+- [ ] Itemize the ten starting component-version combinations and retain exact
+  source fixtures as available. The source survey contains archived builds,
+  rather than a one-row-per-trial hardware record.
+- [ ] Interrupted/corrupt-update recovery and A/B boot fallback — the owner
+  explicitly has not tested these. They are R-10 scope.
+
+New or individually unidentified builds, including 6.x/7.x and further point
+releases, keep the reviewed executable/schema/Wi-Fi syntax preflight. An unknown
+target stops before changes. Add a structural fixture or reviewed executable
+pin when a new variant appears. The normal stock flow is certified; the
+[verification review](parity/VERIFICATION-GAPS.md) lists the remaining specific
+cases and provenance details.
 
 ## Re-running the survey
 
@@ -225,7 +237,9 @@ The inspected 12.10.0 production SSM file has SHA-256
 It patches successfully with the structural helper under Node 4.1.2 and 6.9.2.
 The reported robot hash
 `b0809e59adb0e9b857f46de3eab6726501038cf02d6eff1731a832335e5ae32d`
-is different; do not label that exact variant verified until its source arrives.
+is different. The owner's follow-up certifies the reported rerun; obtaining its
+exact source is still a regression/provenance follow-up, rather than an open
+normal-OTA acceptance gate.
 If a preflight still fails, request only the affected source file (never
 credentials or keys), release, Node version, diagnostic SHA and complete error.
 Add a structural fixture or a reviewed executable variant as appropriate.

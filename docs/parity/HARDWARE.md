@@ -1,6 +1,16 @@
 # Moth hardware validation
 
-Current connection update, 2026-09-07: Moth now uses supervised authenticated
+**Current acceptance update, 2026-10-03:** the owner certifies normal repoint/OTA
+across ten firmware combinations, including factory RTM QR/Wi-Fi setup and
+migration reruns. The earlier OOBE screen/camera and OTA blockers are superseded
+by the [owner acceptance](evidence/2026-10-03/ota-owner-certification/README.md).
+Interrupted/corrupt updates and A/B fallback are explicitly untested. The
+[verification review](VERIFICATION-GAPS.md) tracks the remaining wider physical
+observations and evidence details. Connection addresses, process IDs and backend
+revisions below are historical receipts; read the current private handoff before
+operating a robot.
+
+Historical connection update, 2026-09-07: Moth then used supervised authenticated
 Phoenix29ffac3 on Hub29000/TLS29443. Native signed TLS issuance, both Hub paths
 and a clock turn after normal-service restart passed. Reboot, microphone/ring
 and full Notification acceptance remain open. The local Account Store currently
@@ -26,7 +36,8 @@ observed native playback calls; their `STOPPED` outcomes remain recorded.
 
 Root independently verified rollback, configuration/credential/trust hashes,
 removed temporary resources, five healthy services and idle. Moth currently uses
-diagnostic backend `3150063`; persistent authenticated deployment remains open.
+diagnostic backend `3150063` at that checkpoint; its persistent authenticated
+deployment acceptance was still open then.
 The microphone session returned an empty `SOS_TIMEOUT`, which does not verify
 speech recognition, hotphrase activation or physical blue-ring illumination.
 A previous unexplained BE exit remains a stability follow-up. Read the private
@@ -72,7 +83,7 @@ and full original controls are reviewed, with external-action coverage gaps
 retained. Finding a working conversation does not close the source, authentication, persistence, provider,
 or release gates.
 
-## Starting configuration
+## Historical starting configuration — 2026-09-05
 
 - Robot: `moth-radius-breazeal-felt.jibo`, currently `192.168.1.217`.
 - SSH: key-based `root` access; Node 6.9.2, Buildroot 2015.11.
@@ -115,7 +126,7 @@ Raw credentials and bearer tokens stay out of tracked evidence. Diagnostic
 captures that can contain household data remain in ignored `.parity/robots/`;
 publish only reviewed, sanitized results under `docs/parity/evidence/`.
 
-## Status
+## Historical status — September test sessions
 
 The isolated Phoenix stack is running from the root-owned lead integration worktree on ports 19000 (hub),
 19003 (skills), 19005 (parser), 19006 (history), and 19007 (data). The native

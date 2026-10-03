@@ -406,8 +406,13 @@ to the original backup/restore helpers, so re-run the current public helper
 new services package contains the fix. After installation, check that both
 `jibo-version` and `jibo-service-version` report 13.0.7, that BE reports
 13.0.2, that `/etc/hosts` contains no Phoenix LAN redirects, and that a fresh
-voice turn reaches jibo.io. The clean stock-to-OTA end-to-end trial remains a
-separate acceptance test; packaging checks alone do not certify it.
+voice turn reaches jibo.io. **The owner certified this repoint/native OTA flow
+on hardware on 2026-10-03**, with ten tested firmware combinations, factory RTM
+QR/Wi-Fi setup and migration reruns. Recalled coverage includes all RTM
+releases, 13.0.0 and a robot previously repointed to `5x1`. Interrupted/corrupt
+updates and A/B rollback remain untested; the
+[verification review](parity/VERIFICATION-GAPS.md) tracks those and the wider
+remaining checks. New packages still need their own release checks.
 
 **BE packaging release gate.** The old `be-11.0.2-jibo-io.tar` was incomplete:
 354 files from official BE 11.0.1 were omitted, including Nimbus and four
@@ -435,8 +440,9 @@ The packer must report 21,603 tracked files, and the independent gate must
 report 21,590 official files, 21,603 candidate files, and zero unresolved
 package mains. Do not publish if any
 gate fails. Publish the new package with a **new** catalog ID in all three
-filters (`""`, `fcs`, `eau`), remove the broken 11.0.2 offers, restart OTA,
-and verify discovery plus a physical robot boot and voice turn. Merely seeing
+filters (`""`, `fcs`, `eau`), remove the broken 11.0.2 offers, deploy through
+`scripts/deploy-native-release.sh <commit>`, and verify discovery plus a
+physical robot boot and voice turn. Merely seeing
 an Electron process or SSM `running` is not an acceptance test.
 
 For a self-hosted deployment with a private CA, the portal instead produces the

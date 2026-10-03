@@ -1,9 +1,16 @@
 # Plan: public Phoenix + one-shot RCM flash + self-repointing OTA
 
-Status: **PLAN ONLY — nothing here is built yet.** Written 2026-09-11.
-Nothing in this document has been implemented. Where a fact is grounded in the Jibo
-archive or in the live Moth robot it is marked **[VERIFIED]**; guesses are marked
-**[ASSUMPTION]** and must be checked before anyone writes code.
+Status: **Historical proposal, written 2026-09-11.** Its public repoint/native
+OTA path is now built and owner-certified on hardware (2026-10-03), including
+factory RTM QR/Wi-Fi setup and migration reruns. Current behavior and remaining
+USB/failure-recovery checks are in [OTA-UPGRADE.md](../../parity/OTA-UPGRADE.md)
+and [VERIFICATION-GAPS.md](../../parity/VERIFICATION-GAPS.md).
+
+The source facts and assumptions below retain the proposal's date. In
+particular, its postinstall-repoint idea was superseded by baking configuration
+into hook-free OS/services payloads; its no-rollback warning does not describe
+the OS A/B U-Boot fallback. That fallback's deliberate hardware trial remains
+untested under R-10.
 
 ## The goal, in the user's words
 

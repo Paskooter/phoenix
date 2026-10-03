@@ -1,5 +1,12 @@
 # Phoenix parity execution plan
 
+**Current acceptance, 2026-10-03:** the owner has certified normal repoint/OTA,
+factory RTM QR/Wi-Fi setup and migration reruns. R-06/R-07 are verified; R-10
+retains untested failure recovery and rollback. The generated
+[task checklist](TASKS.md) owns counts/readiness; the
+[verification review](VERIFICATION-GAPS.md) owns the current residual inventory.
+Older integration checkpoints below describe their capture date.
+
 The target is a feature-complete server that preserves original Pegasus's observable behavior: HTTP/WS contracts, parser decisions, multi-turn sessions, speech and display actions, persisted data, failure behavior and interoperability with the original clients. Modern language, libraries and hosting are implementation choices; they do not justify omitted features.
 
 This plan follows the [2026-09-05 audit](AUDIT.md). Its authoritative task ledger is [tasks.json](tasks.json); the readable [checklist](TASKS.md) is generated from it. Codex owns planning, implementation coordination, evidence review, regression prevention and release closure.
@@ -22,7 +29,11 @@ Replacement providers are acceptable implementation mechanisms. Verify their ada
 
 ## Execution order
 
-The ledger has **79 tasks**: 3 management, 4 verification, 46 Pegasus, 20 companion-cloud, 1 restoration and 5 release tasks. **PM-01–PM-03 are complete.** Jot (A-19) and VoiceTraining (A-20) split newly recovered functional scope from A-18. The verified numerator is now **8**, including H-03 intent routing. These counts describe checklist granularity, not percent-complete software. Dependencies in the ledger control readiness; phase labels group the work for readability.
+The generated [TASKS.md](TASKS.md) and README progress show the current task
+counts. Dependencies in the ledger control readiness; phase labels group the
+work. Jot (A-19) and VoiceTraining (A-20) split recovered functional scope from
+A-18; R-10 separates deliberate OTA failure controls from the certified normal
+flow. Counts describe checklist granularity, not a percentage of functionality.
 
 | Stage | Main tasks | Exit condition |
 |---|---|---|
@@ -31,25 +42,16 @@ The ledger has **79 tasks**: 3 management, 4 verification, 46 Pegasus, 20 compan
 | 2. Complete parsing, data and state | N-02–N-08, I-02–I-03, D-02–D-07, H-06–H-08, A-02/A-06 | Named rules and local turns work; calendar/OAuth/persistence/history/provider contracts are verified |
 | 3. Verify complete skill behavior | S-01–S-14, Q-01 | Full sessions, branch conditions, ESML/JCP/analytics and robot views match source fixtures |
 | 4. Finish companion-cloud behavior | A-03–A-05, A-07–A-20; X-01 if retained | Every required API operation has real behavior and evidence; no placeholder is credited |
-| 5. Verify the deployed product | R-01–R-04 | Unmodified clients, individual service swaps, clean install/migration, reliability and real-client journeys pass |
+| 5. Verify the deployed product | R-01–R-04, R-06–R-10 | Unmodified clients, service swaps, installation/reliability, certified OTA, hardware/flash/trust and failure recovery |
 | 6. Release closure | R-05 | Source inventory reconciled, zero unexplained required gaps, reproducible parity report and operational/rollback instructions |
 
-**V-01–V-04 are verified as infrastructure.** Current lead work is
-**N-08**, source-backed NLU compatibility, with independent A-06 adapter
-candidates under review. A-01 operation mapping remains in the backlog. V-03's complete
-original/Phoenix production baseline is retained.
-[PRODUCTION.md](PRODUCTION.md) records the failing 20,534-case comparison and
-reviewed integration checkpoints. [COVERAGE.md](COVERAGE.md) records 960 source
-cases, 89 public operation instances and all three preserved corpora; final
-corpus-to-gate links are reviewed and integrated. The
-[hosted CI review](evidence/2026-09-06/ci/accepted-run/review.json) confirms
-passing unit/checklist checks and strict rejection of the actual mismatch.
-Bounded implementation acceptance
-does not close the parent product task.
-
-The first concrete defects to resolve once the comparison gate is available are null/error serialization (C-01), missing skill-list paths/config metadata (C-03/H-01), incorrect default skill endpoints (H-09), ignored NLU rule selection (N-01), history routes/payloads (I-01), and proactive settings (H-05). Calendar envelopes/providers and durable state follow their explicitly listed dependencies.
-
-Consumer inspection identifies explicit gates that hardware trials must measure and repair: original CreateHubToken/SigV4 behavior (A-02/H-10), declared audio encoding support (H-07), and the full transaction/session handoff into Nimbus (H-02/H-04). These remain in their existing tasks. The full trace writer is repaired and independently controlled. Hosted CI acceptance is verified; failed historical captures remain retained.
+V-01–V-04, A-01, N-08 and the functional service tasks have accepted evidence.
+The initial HTTP/skill-list/rule-selection/history/proactive-settings blockers
+are repaired. [PRODUCTION.md](PRODUCTION.md) retains dated comparison profiles
+and [COVERAGE.md](COVERAGE.md) retains the source/corpus mapping. Native auth
+and the supported OTA path are signed off; complete physical journeys, flash,
+trust refresh, failure recovery and final release reporting remain the ready
+release work identified by the tracker.
 
 ## Parallel implementation and lead verification
 
@@ -74,6 +76,12 @@ A task must have all of the following:
 - For stateful tasks: persistence/restart/retention and ownership, including error cases.
 - For timing/randomness: bounded timing assertions and seeded or distribution-based checks. Normalization must not erase the property being tested.
 - A reviewed evidence entry with source revision, Phoenix revision/working-tree fingerprint, command, fixture/configuration, date, result and retained artifact.
+
+For an explicitly owner-certified hardware journey, retain the owner's dated
+statement, the scope exercised and any unspecified revisions/logs. R-06/R-07
+accept that evidence for normal OTA; R-10 retains their former deliberate
+failure criteria. An attestation is labeled as such and must not be presented
+as a newly reproduced automated or destructive hardware run.
 
 The user's 2026-09-07 clarification prioritizes substantive compatibility.
 Harmless error wording and internal diagnostic metadata are nonblocking when

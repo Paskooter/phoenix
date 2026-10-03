@@ -31,9 +31,10 @@ system runs on Node with nothing to download.
   Both are driven from the bundled **web portal**.
 - **Per-robot authentication.** The robot signs an AWS-style token request with its own stored
   keys; the hub verifies a JWT issued from it. Exercised against real hardware.
-- **Firmware updates over the air.** The `Update` service serves OS and services packages built
-  from a stock firmware buildroot, updating the inactive rootfs slot so per-robot calibration in
-  `/var` survives.
+- **Firmware updates over the air.** The owner has certified the repoint/native OTA flow on
+  hardware and verified the helper on ten firmware combinations, including factory RTM setup
+  and migration reruns. OS/services and independent OOBE/BE packages install the Phoenix
+  configuration while preserving `/var`.
 - **The robot's cloud API.** One front door (`:9012`) answers the AWS-JSON RPC calls that
   `jibo-server-client` makes, dispatching by `X-Amz-Target` prefix. Working: account, loop, OOBE,
   settings, update, log, robot, notification (plus its push WebSocket), key, media and backup.
@@ -94,11 +95,9 @@ which is loaded automatically by every service and launcher.
 
 Three things worth knowing before pointing hardware at it:
 
-- **A real robot's hostnames are baked in.** The native client resolves `<region>.jibo.com` and
-  `<region>-socket.jibo.com` and hardcodes port 443. Serving a robot means redirecting those
-  names to your host and installing a CA it trusts. Phoenix generates its own CA and serving
-  certificate on first start; the [runbook](docs/RUNBOOK.md) covers the redirect, the trust
-  install, and how to verify it from the robot's own logs.
+- **A stock robot's hostnames are baked in.** The supported public helper rewrites its REST,
+  socket and hub routing to jibo.io with verified TLS. Self-hosted deployments can use the
+  private-CA redirect procedure. The [runbook](docs/RUNBOOK.md) covers both paths.
 - **Robot Classic requests are signature-verified at the public entrypoint.** The production
   Classic and OTA launchers resolve the signing key from the Account store, validate the exact
   request body and reject signature replay. Keep the loopback `:9012` backend private anyway;
@@ -180,9 +179,9 @@ included — not a share of server functionality.
 
 <!-- parity-progress:start -->
 
-![92.8% checklist completion — 77 of 83 tasks verified](docs/parity/progress.svg)
+![94.0% checklist completion — 79 of 84 tasks verified](docs/parity/progress.svg)
 
-**92.8% checklist completion · 77/83 tasks verified.**
+**94.0% checklist completion · 79/84 tasks verified.**
 
 Counts only tasks whose full acceptance criteria and evidence have been reviewed. Candidate implementations do not count. This includes planning and verification tooling; it is not a percentage of server functionality.
 
@@ -193,19 +192,19 @@ Counts only tasks whose full acceptance criteria and evidence have been reviewed
 | Pegasus | 46 | 46 |
 | Companion cloud | 20 | 20 |
 | Restoration | 1 | 1 |
-| Release | 3 | 9 |
+| Release | 5 | 10 |
 
 [Verified checklist](docs/parity/TASKS.md) · [Execution plan](docs/parity/PLAN.md) · [Behavioral comparisons](docs/parity/PRODUCTION.md)
 
 <!-- parity-progress:end -->
 
-Open work, stated plainly: the over-the-air upgrade path is implemented and its packages build,
-but a complete unattended upgrade on a robot has not been signed off; the app-dependent services
-(media upload, Commander, push delivery) are implemented to their wire contracts and exercised
-against the clients that exist, not against the dead mobile app; and microphone/wake-word and
-physical-ring behaviour are unverified on hardware. `docs/parity/` holds the engineering
-evidence trail — per-task evidence, acceptance records and comparison reviews — for anyone who
-wants to check the work rather than take the summary's word for it.
+The normal repoint/OTA flow is [owner-certified on hardware](docs/parity/evidence/2026-10-03/ota-owner-certification/README.md),
+including factory RTM QR/Wi-Fi setup and migration reruns. Interrupted/corrupt-update recovery
+and A/B rollback remain untested. Wider flash, trust-store, physical wake/microphone/ring and
+complete hardware journeys retain their own acceptance checks; live mobile/provider features
+retain the specific limits in their accepted records. The itemized
+[verification review](docs/parity/VERIFICATION-GAPS.md) collects those checks and the details
+the owner may already be able to sign off. `docs/parity/` holds the evidence behind the claims.
 
 ## Documentation index
 

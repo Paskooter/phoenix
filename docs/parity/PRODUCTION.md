@@ -1,5 +1,11 @@
 # Production parser, routing and skill comparison
 
+Current accepted task/profile status is in [TASKS.md](TASKS.md); remaining
+qualifications are in [VERIFICATION-GAPS.md](VERIFICATION-GAPS.md). The comparison
+counts and open notes below belong to their dated captures. Later N-08, R-01
+and owner-certified R-06/R-07 acceptance supersede the earlier blanket parser,
+authentication, deployment and OTA blockers.
+
 The [portable graph review](evidence/2026-09-07/nlu-portable-snapshot/review.json)
 records a complete frozen `e127104` replay: 20,534 cases, zero field differences,
 zero invariants and 16 gap instances across eight unhosted external-answer cases.

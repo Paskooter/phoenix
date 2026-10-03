@@ -20,12 +20,14 @@ the index of everything under `docs/`.
 |---|---|
 | [CLASSIC-SERVICES.md](CLASSIC-SERVICES.md) | The robot's cloud API surface — every service, what it does, and what Phoenix implements |
 | [DIVERGENCES.md](DIVERGENCES.md) | Where Phoenix deliberately behaves differently from the original cloud, with the reason for each |
+| [ROBOT-FIRMWARE-COMPATIBILITY.md](ROBOT-FIRMWARE-COMPATIBILITY.md) | Owner-certified firmware flow, archived patch variants and legacy runtime gates |
 
 ## Engineering evidence
 
 | Location | What it holds |
 |---|---|
 | [parity/](parity/) | The task ledger, per-task evidence and acceptance records, comparison reviews, hardware captures. This is the record behind every verified claim in the README. |
+| [parity/VERIFICATION-GAPS.md](parity/VERIFICATION-GAPS.md) | Current owner sign-offs, remaining hardware/recovery checks and accepted-scope qualifications |
 | [internal/](internal/) | Historical process records — work logs, plans, handoff notes and test runbooks from the build. Not user documentation; kept because it explains how the project got here. |
 
 Package-level documentation lives next to the code: `packages/gateway`, `packages/nlu`,

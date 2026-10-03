@@ -1,5 +1,10 @@
 # Executable reference status
 
+This is the **2026-09-05 V-01 capture scope**. Its outstanding-surface column
+describes that runner, rather than the current status of later functional
+tasks. [TASKS.md](TASKS.md) records their accepted evidence and
+[VERIFICATION-GAPS.md](VERIFICATION-GAPS.md) collects current qualifications.
+
 V-01 is verified as **reference infrastructure**, using original Hashbrown source `5c0a7390539663ba749d360de348a428c088505c`. It does not certify Phoenix parity. The [runner and instructions](../../scripts/parity-reference/README.md) reproduce the captures; [run.json](evidence/2026-09-05/reference/run.json) records exact commands, image, hashes and scope.
 
 The reviewed run captured **38 transactions** and passed **19 fixture checks**. It ran under original Node **8.9.4**, using original TypeScript **2.5.3** and lock-pinned production dependencies. All **376 compiled source inputs** and **15 service package manifests** were checked against the immutable original Git objects. The NLU **2.8.3** CLI executed the original launch FST with two positive utterances and one no-match case. The [review](evidence/2026-09-05/reference/review.json) also records 232 passing Phoenix tests and confirms that all 4,838 inventoried baseline package/script files remain unchanged.

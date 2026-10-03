@@ -62,7 +62,13 @@ An earlier launch-only candidate failed on Moth because it compared native score
 
 Source recovery and these bounded checks do not close N-02 or N-08. After the accepted SettingsClient, Report analytics, graph allocation and Report Lasso transport fixes, the configured 43-case server smoke comparison has zero differences, invariants and coverage gaps. Grammar compilation, broader factory behavior, native build reproduction and full-server acceptance remain tracked in the [checklist](TASKS.md).
 
-The [default AST ranking repair](evidence/2026-09-06/nlu-ast-ranking/root-review.json) is accepted after independent root replay of all 20,528 requests: 20,379 match and 149 differ. It repairs 146 previous failures without making a previously passing case fail. Another 24 outputs changed but still fail and remain recorded separately. Native controls support a bounded wildcard byte-ranking improvement; explicit weights, equal-cost graph order, factory behavior and bare-Unicode grammar handling remain open. The AST rank is not the native numeric score. A proposed global last-equal-score rule was rejected after native counterexamples.
+The [2026-09-06 AST ranking repair](evidence/2026-09-06/nlu-ast-ranking/root-review.json)
+is a historical checkpoint (20,379/20,528 matches, 149 differences). Later N-08
+acceptance records **20,479/20,528**, with the approved 49-row AST residual set,
+and **20,528/20,528** in the compiled profile. N-03's recovered time factory
+closes the earlier supported-clock blocker. Current factory/profile and native
+rebuild qualifications are in [VERIFICATION-GAPS.md](VERIFICATION-GAPS.md);
+the earlier 149-difference count is superseded.
 
 The same review found that Phoenix's shared-host answer manifest omitted 11 original registrations. It now preserves all 23 source answer registrations, including named-person questions. Six native CLI/original-router controls establish the expected routes; the source ParserService HTTP attempts failed setup and receive no credit. The final combined parser/routing tree passes 516 active unit tests, nine configured gateway checks and all 43 strict compiled smoke cases. This checkpoint has not been deployed to Moth.
 

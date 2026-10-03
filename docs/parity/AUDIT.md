@@ -1,8 +1,18 @@
 # Phoenix parity audit — 2026-09-05
 
-Phoenix is a substantial working reimplementation, but it is **not yet a 1:1 compatible Pegasus server**. The existing completion claims overstate what the tests establish. This audit preserves the implemented work, reproduces the existing scores, and records the remaining work in [the execution plan](PLAN.md) and [task checklist](TASKS.md).
+This is the **historical September 5 audit**, rather than a current list of
+open defects. Its measurements and initial findings are preserved below.
+Later accepted work is recorded in [the task checklist](TASKS.md), and the
+current remaining cases are collected in [VERIFICATION-GAPS.md](VERIFICATION-GAPS.md).
+The owner-certified OTA flow and factory setup/migration reruns are recorded in
+the [October 3 acceptance](evidence/2026-10-03/ota-owner-certification/README.md).
 
-This is the initial audit snapshot. Follow-up work has frozen [the compatibility target](COMPATIBILITY.md), established [a partial executable original reference](REFERENCE.md), and replaced the placeholder harness with [strict HTTP/hub comparisons](../../packages/harness/README.md). Statements below about unavailable runtime evidence and broad normalization describe the audit baseline. The original corpus-grading gaps remain open under V-03.
+Follow-up work froze [the compatibility target](COMPATIBILITY.md), established
+[an executable original reference](REFERENCE.md), and replaced the placeholder
+harness with [strict HTTP/hub comparisons](../../packages/harness/README.md).
+V-03 and the functional tasks are now verified at their recorded scopes.
+Statements below about unavailable runtime evidence, broad normalization and
+missing features describe the audit baseline; they do not reopen accepted work.
 
 ## What was compared
 
@@ -64,7 +74,9 @@ The static grader is also discovered by `node --test`: the log reports **74/89 a
 | **F13 — Classic success shapes conceal missing functionality** | [Stubs](../../packages/classic/src/stubs.js) return empty media URLs, empty ROM certificates, empty NLP/IFTTT results and “no collision.” [Loop dispatch](../../packages/account/src/robotFace.js) implements three wire operations out of 23 and bypasses some original failure conditions. Custom portal APIs do not implement the 26 Account SDK operations. | A-01, A-03–A-18 |
 | **F14 — Authentication/ownership is not equivalent** | [Classic routing](../../packages/classic/src/router.js) and [account robot face](../../packages/account/src/robotFace.js) do not verify SigV4. Broad prefix matching/selected proxy headers and dropped backup/loop ownership checks change the original API. Existing issued keys mean lost historical keys are not a blanket reason to omit verification for new accounts. Hub JWT compatibility also needs its own oracle matrix. | A-02, H-10 |
 
-All findings above are open product work. The audit did not alter production handlers to repair them.
+All findings above were open product work on September 5. The audit did not
+alter production handlers to repair them; subsequent acceptance is tracked in
+[tasks.json](tasks.json).
 
 ## Implementation progress by area
 

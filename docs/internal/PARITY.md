@@ -1,8 +1,10 @@
 # Phoenix ↔ Pegasus 1:1 Parity Status & Plan
 
-**Current status (2026-09-05): 1:1 parity is incomplete.** The source-backed
-[audit](../parity/AUDIT.md), [execution plan](../parity/PLAN.md) and
-[task checklist](../parity/TASKS.md) supersede the status matrix below.
+**Historical status record.** The source-backed [task checklist](../parity/TASKS.md)
+and [2026-10-03 verification review](../parity/VERIFICATION-GAPS.md) own current
+acceptance, including owner-certified OTA and the remaining specific checks.
+The [audit](../parity/AUDIT.md) and [execution plan](../parity/PLAN.md) retain the
+earlier verification context and supersede the rebuild-era matrix below.
 [tasks.json](../parity/tasks.json) owns task status, dependencies and verification evidence.
 Run `npm run parity:status`; validate updates with `npm run parity:check`.
 

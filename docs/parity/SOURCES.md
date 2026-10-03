@@ -56,6 +56,11 @@ The MCP returned the Classic definitions at master; the resolved commit is retai
 
 No internal messages were sent and no archive data was modified. Sources containing configuration or credentials were not copied into these planning documents. Evidence logs are local fixture/test runs.
 
-The subsequent [V-01 reference run](REFERENCE.md) executes original modules and the recovered NLU 2.8.3 binary. It supersedes the initial audit's lack of executable evidence for those specific surfaces; the original Gulp release build, remaining providers and real clients remain unverified.
+The subsequent [V-01 reference run](REFERENCE.md) executes original modules and
+the recovered NLU 2.8.3 binary. Later functional and release tasks add accepted
+provider seams, original clients and hardware evidence; the old blanket
+real-client blocker is superseded. Original build/database infrastructure and
+specific remaining live-provider/hardware cases are retained in
+[VERIFICATION-GAPS.md](VERIFICATION-GAPS.md).
 
 V-03 re-read the Hashbrown QA and cloud-skill testing plans and searched the repository/artifact indexes for TestRail exports. No case export was returned by that targeted search. The historical 743 regression and 120 smoke figures have unresolved overlap and exclusions, and are kept separate from the 960 concrete source cases in [COVERAGE.md](COVERAGE.md). The cloud-skill guide's `SkillConversation` examples explicitly check session node IDs and traces; full session comparison remains required.
