@@ -32,7 +32,7 @@ A lost result can mean the action already executed. Jibo says he could not confi
 
 ## Native announcements
 
-Announcements use a separate authenticated outbound robot WebSocket at Hub's `/v1/robot-actions`, requiring the receiver in BE 13.1.0. Existing Hub WebSocket proxying can carry that path. Block public `/internal/` URLs in both Hub and Classic virtual hosts; those routes still require the private peer token. The new connector capabilities are negotiated, so older HA clients receive no unsupported frames. Robot connection status uses live verified sockets, not persistent Classic reconnect markers.
+Announcements use a separate authenticated outbound robot WebSocket at Hub's `/v1/robot-actions`, requiring the receiver in BE 13.1.1 or later. The receiver is still a hardware candidate; enabling the console permission alone does not add it to older firmware. Existing Hub WebSocket proxying can carry that path. Block public `/internal/` URLs in both Hub and Classic virtual hosts; those routes still require the private peer token. The new connector capabilities are negotiated, so older HA clients receive no unsupported frames. Robot connection status uses live verified sockets, not persistent Classic reconnect markers.
 
 The installation's owner must separately enable announcements in the console. Default permission is off. Account rechecks that permission, live household ownership, the exact active connector, payload digest and deadline after Gateway identity verification, immediately before native admission. Revocation or transfer during that verification prevents dispatch.
 

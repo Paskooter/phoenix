@@ -10,6 +10,13 @@ project, not in the Phoenix repository or on GitHub. The release gate is in the
 official BE 13 series. Official 11.0.1 is the only archived base measured to
 retain the behaviour Phoenix depends on.
 
+BE 13.1.1 is a hardware candidate for the opt-in Home Assistant announcement
+receiver. It uses the complete committed `jibo-be` tree and the same official
+archive integrity gate. Candidate boot and receiver checks do not establish a
+general OTA release; the current approved package remains 13.0.2 until physical
+acceptance and an explicit catalog publication. Forward Home Assistant commands
+use the existing cloud-skill path and do not require this candidate.
+
 Root compared 12.0.0, 11.0.3, 11.0.2 and 11.0.1 in descending order against the
 same Phoenix process. **Only 11.0.1**:
 
