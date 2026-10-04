@@ -4887,6 +4887,9 @@ function renderAuth() {
   document.title = 'Sign in — Phoenix';
 
   const frag = document.getElementById('tpl-auth').content.cloneNode(true);
+  // Auth mode chooses these strings from branding below. A later generic
+  // brand binding must not overwrite signup, recovery or invitation copy.
+  for (const element of frag.querySelectorAll('#auth-title, #auth-sub')) element.removeAttribute('data-brand');
   authRoot.replaceChildren(frag);
   initBrand(authRoot);
 

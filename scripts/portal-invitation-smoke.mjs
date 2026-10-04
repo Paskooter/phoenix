@@ -68,6 +68,8 @@ try {
   await page.goto(inviteLink('new@fixture.test'));
   await page.locator('#auth-form input[name=firstName]').waitFor({ state: 'visible' });
   assert.equal(await page.locator('#auth-form input[name=email]').inputValue(), 'new@fixture.test');
+  assert.match(await page.locator('#auth-title').innerText(), /Create/);
+  assert.match(await page.locator('#auth-sub').innerText(), /Create your console account/);
   assert.equal(new URL(page.url()).pathname, '/app');
   assert.equal(new URL(page.url()).search, '');
   await page.locator('#auth-form input[name=firstName]').fill('New');
@@ -94,6 +96,7 @@ try {
   const { page: knownPage } = await newPage(1280);
   await knownPage.goto(inviteLink(existing.email));
   assert.equal(await knownPage.locator('#auth-form input[name=email]').inputValue(), existing.email);
+  assert.match(await knownPage.locator('#auth-sub').innerText(), /console.*invitation/);
   await login(knownPage, existing.email);
   await knownPage.getByRole('button', { name: 'Accept invitation', exact: true }).waitFor();
   assert.equal(member(existing.email).status, 'invited');
