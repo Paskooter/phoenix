@@ -101,8 +101,8 @@ in `deploy/nginx/phoenix.conf`).
 
 ### Community invitations
 
-The public site and console invite visitors to the Phoenix Discord server by default,
-with copy identifying it as separate from the Jibo Revival Group server.
+The public site and console invite visitors to Phoenix's own Discord community by default.
+Every invite names Phoenix, and the copy gives the community its own project identity.
 Set `links.discord` in `branding.json` (or your `PHOENIX_BRANDING_FILE`) to use your own server;
 that one value updates the setup prompt, FAQ action, community section, footers, and console
 help links. Update the Phoenix-specific copy under `community` and in `faq.items` when
