@@ -1,22 +1,36 @@
 # `@be/be` release index
 
-## Complete base: official BE 11.0.1; current custom jibo.io BE: 13.0.2
+## Complete base: official BE 11.0.1; custom jibo.io BE releases
 
-**Phoenix bases its custom BE on complete official BE 11.0.1.** The current
-jibo.io custom package is `@be/be` 13.0.2, measured to work on Aero. The
-complete source tree and packer live in the separate, local `../jibo-be`
+**Phoenix bases its custom BE on complete official BE 11.0.1.** The BE 13.1.2
+release has passed physical acceptance for the Home Assistant announcement
+receiver. General catalog activation is a separate guarded publication step.
+The earlier approved `@be/be` 13.0.2 package remains measured to work on Aero.
+The complete source tree and packer live in the separate, local `../jibo-be`
 project, not in the Phoenix repository or on GitHub. The release gate is in the
 [`RUNBOOK`](../RUNBOOK.md). Do not confuse the custom version with the archived
 official BE 13 series. Official 11.0.1 is the only archived base measured to
 retain the behaviour Phoenix depends on.
 
-BE 13.1.2 is a hardware candidate for the opt-in Home Assistant announcement
-receiver. The superseded 13.1.0 and 13.1.1 candidates failed receiver startup.
-The corrected candidate uses the complete committed `jibo-be` tree and the same official
-archive integrity gate. Candidate boot and receiver checks do not establish a
-general OTA release; the current approved package remains 13.0.2 until physical
-acceptance and an explicit catalog publication. Forward Home Assistant commands
-use the existing cloud-skill path and do not require this candidate.
+BE 13.1.2 provides the corrected receiver for opt-in Home Assistant announcements.
+One physical Jibo completed a selected BE-only native update, native announcement
+completion, an idle reconnect without replay, supplied-ASR preemption after
+owned native stop acknowledgement, and an automatic normal-mode boot. Two
+supplied-ASR home turns confirmed one approved light on and off with native
+spoken completion; the initial state and master volume were preserved. Fresh
+human wake, microphone and physical touch checks remain deferred. The held 13.1.0 candidate failed speech-adapter
+initialization; 13.1.1 corrected that adapter but failed receiver startup because
+of a browser timer binding. Neither held candidate is an approved replacement.
+Forward Home Assistant commands use the existing cloud-skill path and do not
+require the announcement receiver.
+
+The 13.1.2 package was built from the complete committed `jibo-be` tree. The
+independent gate found **21,590 official files**, **21,604 candidate files**,
+**14 reviewed additions**, and **zero unresolved package entry points**. The
+173,404,160-byte tar has SHA-256
+`7d5a2727e5786a44926282b0b4a3ec37f27771f2bab958b36fc04c31a7dfc78d`.
+See [the sanitized release evidence](evidence/2026-10-04/home-assistant-next/README.md)
+for physical acceptance, archive provenance, and the limits of the tested scope.
 
 Root compared 12.0.0, 11.0.3, 11.0.2 and 11.0.1 in descending order against the
 same Phoenix process. **Only 11.0.1**:
@@ -59,9 +73,9 @@ ps aux | grep '[e]lectron' | grep -oE '/opt/jibo/Jibo/Skills/[^ ]*'
 ```
 
 `8686` is the SkillsService of `jibo-ssm` (`skills-service-manager` v16.0.0).
-Note that the SSM's own `jibo-ssm-normal.json` declares `startSkill: "@be/be"`,
-which is **not** the supported version — starting the robot's default gives
-12.0.0-era behaviour, not 11.0.1.
+The SSM's `jibo-ssm-normal.json` declares `startSkill: "@be/be"`. During the
+archived comparison, that name selected the then-installed 12.0.0-era tree.
+Custom jibo.io BE packages use the complete 11.0.1 source described above.
 
 | directory | package name |
 | --- | --- |

@@ -374,8 +374,12 @@ manually reset the robot or delete its credentials to recover from a partial
 repoint. Check that both `/` and `/usr/local` returned to their original
 read-only mount state after the failure.
 
-The current jibo.io catalog offers four subsystems: `os` 13.0.7,
-`services` 13.0.7, `oobe-config` 9.0.2, and `@be/be` 13.0.2. The OTA helper
+The jibo.io release described here uses four subsystems: `os` 13.0.7,
+`services` 13.0.7, `oobe-config` 9.0.2, and `@be/be` 13.1.2. BE 13.1.2 has
+passed physical acceptance; normal catalog activation is a separate guarded
+publication step. Check the served catalog in all three filters before
+installing. [The release evidence](parity/evidence/2026-10-04/home-assistant-next/README.md)
+records the hardware scope and publication checkpoint. The OTA helper
 uses the latest compatible versions offered by the server catalog; it does not
 pin these numbers. For a credentialed SSH repoint or `--ota-only`, it requires
 all four offers, including for a robot already carrying higher version numbers.
@@ -413,10 +417,11 @@ robot credentials. A robot on the published 13.0.5 package may have reverted
 to the original backup/restore helpers, so re-run the current public helper
 *before* its next OTA; otherwise its pre-update backup can fail even though the
 new services package contains the fix. After installation, check that both
-`jibo-version` and `jibo-service-version` report 13.0.7, that BE reports
-13.0.2, that `/etc/hosts` contains no Phoenix LAN redirects, and that a fresh
-voice turn reaches jibo.io. **The owner certified this repoint/native OTA flow
-on hardware on 2026-10-03**, with ten tested firmware combinations, factory RTM
+`jibo-version` and `jibo-service-version` report 13.0.7, that BE reports the
+version selected from the served catalog (13.1.2 for this release), that
+`/etc/hosts` contains no Phoenix LAN redirects, and that a fresh voice turn
+reaches jibo.io. **The owner certified the repoint/native OTA flow on hardware
+on 2026-10-03 using BE 13.0.2**, with ten tested firmware combinations, factory RTM
 QR/Wi-Fi setup and migration reruns. Recalled coverage includes all RTM
 releases, 13.0.0 and a robot previously repointed to `5x1`. Interrupted/corrupt
 updates and A/B rollback remain untested; the
@@ -429,7 +434,9 @@ other packages' declared entry points. Moth and Aero could show a green
 checkmark or black screen while SSM still reported `running`. Never build from
 that OTA, from an extracted parity skill, or from a robot's installed tree as
 the base. The tested Aero 13.0.2 tree has all 21,590 official files plus 13
-reviewed additions. Keep the entire BE source and built package in the
+reviewed additions. The BE 13.1.2 announcement-receiver release has the same
+21,590 official files plus 14 reviewed additions; its [release evidence](parity/evidence/2026-10-04/home-assistant-next/README.md)
+records the package and physical acceptance scope. Keep the entire BE source and built package in the
 separate local `../jibo-be` project; neither belongs in the Phoenix repository
 or on GitHub. Its `be/` tree is the complete release source, not an overlay.
 
@@ -442,17 +449,20 @@ python3 tools/pack.py be --out out/
 cd ../phoenix
 python3 scripts/be_ota_integrity.py \
   --official-base /path/to/jibo-be-11.0.1.tar.gz \
-  --candidate ../jibo-be/out/be-13.0.2-jibo-io.tar --version 13.0.2
+  --candidate ../jibo-be/out/be-13.1.2-jibo-io.tar --version 13.1.2
 ```
 
-The packer must report 21,603 tracked files, and the independent gate must
-report 21,590 official files, 21,603 candidate files, and zero unresolved
-package mains. Do not publish if any
-gate fails. Publish the new package with a **new** catalog ID in all three
-filters (`""`, `fcs`, `eau`), remove the broken 11.0.2 offers, deploy through
-`scripts/deploy-native-release.sh <commit>`, and verify discovery plus a
-physical robot boot and voice turn. Merely seeing
-an Electron process or SSM `running` is not an acceptance test.
+For BE 13.1.2, the packer must report 21,604 tracked files, and the independent
+gate must report 21,590 official files, 21,604 candidate files, 14 additions, and
+zero unresolved package mains. The historical BE 13.0.2 package has 21,603
+files and 13 additions. Do not publish if any gate fails. Publish the new
+package with a **new** catalog ID in all three filters (`""`, `fcs`, `eau`)
+and exact OS/services dependencies aligned to 13.0.7. Confirm the replacement
+in all three filters before withdrawing the prior approved offer. Deploy
+through `scripts/deploy-native-release.sh <commit>`, and verify discovery plus
+a physical robot boot and voice turn. An announcement-receiver release also
+requires confirmed native spoken delivery and voice-preemption checks. Merely
+seeing an Electron process or SSM `running` is not an acceptance test.
 
 For a self-hosted deployment with a private CA, the portal instead produces the
 equivalent `parity-robot/repoint-robot.sh` command including the configured
