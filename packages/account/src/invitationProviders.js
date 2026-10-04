@@ -120,13 +120,14 @@ export function dispatchInvitationSideEffects(store, {
   // The source chooses the existing-user template with `if (!accountId)`;
   // retain that truthiness boundary before converting an ObjectId-like value.
   const knownAccount = Boolean(accountId);
-  const query = knownAccount ? { email } : { email, code };
-  const path = knownAccount ? '/home' : '/create';
+  // The console links invitations after mailbox verification. A legacy
+  // invitation code is not needed in the URL (or in proxy/email-preview logs).
+  const query = { email, loopId: String(loopId), ...(knownAccount ? {} : { signup: '1' }) };
   const mailOptions = {
     email,
-    name: owner.fullName || owner.email,
+    name: owner.fullName || [owner.firstName, owner.lastName].filter(Boolean).join(' ') || owner.email,
     photoUrl: owner.photoUrl,
-    url: `${providers.portalUrl}${path}?${querystring.stringify(query)}`,
+    url: `${providers.portalUrl.replace(/\/$/, '')}/invite?${querystring.stringify(query)}`,
   };
   const mailProvider = knownAccount ? providers.invitationExistingUser : providers.invitation;
   // Source sendInvitationMail invokes MailController.send after its owner

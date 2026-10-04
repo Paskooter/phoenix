@@ -1037,7 +1037,9 @@ function sendResetEmail(providers, { email, originalEmail, code, campaign }) {
 // of the link delivered to the new address has completed the change.
 function sendEmailResetComplete(providers, { email, originalEmail }) {
   observeMailRejection(
-    sendMethod(providers.emailResetComplete, [originalEmail, { newEmailAddress: email, originalEmail }]),
+    sendMethod(providers.emailResetComplete, [originalEmail, {
+      newEmailAddress: email, originalEmail, portalUrl: providers.portalUrl || '',
+    }]),
     providers,
     'email-reset-complete',
   );

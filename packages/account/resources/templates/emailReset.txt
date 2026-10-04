@@ -1,5 +1,16 @@
-We recently received a request to change your Jibo account's email address. To finish changing your email, please click the button below.
-Previous email: {originalEmail}
-New email: {email}
+Confirm your new email.
+
+We received a request to change the email address on your Phoenix account.
+
+Previous: {originalEmail}
+New: {email}
+
+Confirm the new address to finish the change. You’ll then sign in to the console with your new email. This link expires in 24 hours and can be used once.
+
+Confirm new email:
 {url}
-If you have questions, contact Jibo Customer Care at support@jibo.com
+
+If you didn’t request this change, you can ignore this email. The account email won’t change unless this link is confirmed.
+
+Phoenix · A new home for your Jibo.
+This is an automated email. For help, contact the operator of your Phoenix server.

@@ -13,14 +13,14 @@ import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 
 export const MAIL_SUBJECTS = Object.freeze({
-  activation: 'Account Activation',
-  emailVerification: 'Verify your email',
-  emailReset: 'Your new email',
-  emailResetComplete: 'Your email has changed',
-  invitation: 'Invitation',
-  invitationExistingUser: 'Invitation',
-  passwordChanged: 'Your password was changed',
-  passwordReset: 'Password Reset',
+  activation: 'Welcome to Phoenix - confirm your email',
+  emailVerification: 'Verify your Phoenix email',
+  emailReset: 'Confirm your new Phoenix email',
+  emailResetComplete: 'Your Phoenix email has changed',
+  invitation: "You're invited to a Jibo loop",
+  invitationExistingUser: "You're invited to a Jibo loop",
+  passwordChanged: 'Your Phoenix password has changed',
+  passwordReset: 'Reset your Phoenix password',
   robotNotFound: 'Your robot is not found',
 });
 
@@ -61,20 +61,7 @@ function escapeRegex(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function renderHtml(template, options) {
-  let html = template;
-  // This intentionally follows MailController's `for ... in` plus
-  // `options.hasOwnProperty` replacement boundary. In particular, text.txt is
-  // sent unchanged by the source while only HTML receives option expansion.
-  for (const option in options) {
-    if (own(options, option)) {
-      html = html.replace(new RegExp(`{${escapeRegex(option)}}`, 'g'), options[option]);
-    }
-  }
-  return html;
-}
-
-function renderVerificationTemplate(template, options, html = false) {
+export function renderMailTemplate(template, options, html = false) {
   const escape = (value) => String(value).replace(/[&<>"']/g,
     (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
   return template.replace(/\{([a-zA-Z]+)\}/g, (placeholder, name) => own(options, name)
@@ -605,12 +592,11 @@ function multipartMessage({ from, to, subject, text, html }) {
 
 /** A source-shaped MailController backed by a configured local SMTP relay. */
 export class SmtpMailProvider {
-  constructor({ template, smtp, fromAddress = DEFAULT_FROM, templateDir = DEFAULT_TEMPLATE_DIR, interpolateText = false } = {}) {
+  constructor({ template, smtp, fromAddress = DEFAULT_FROM, templateDir = DEFAULT_TEMPLATE_DIR } = {}) {
     this.template = template;
     this.smtp = normalizeSmtpConfig(smtp);
     this.fromAddress = fromAddress || DEFAULT_FROM;
     this.templateDir = templateDir;
-    this.interpolateText = interpolateText;
     // Match source startup behavior: templates are read when the controller is
     // constructed, so a bad deployment path fails explicitly before requests.
     this.templateHtmlContent = readTemplate(templateDir, template, 'html');
@@ -623,14 +609,12 @@ export class SmtpMailProvider {
       throw new Error('Subject not specified for the template');
     }
     const recipient = envelopeAddress(to, 'to');
-    const html = this.interpolateText
-      ? renderVerificationTemplate(this.templateHtmlContent, options, true)
-      : renderHtml(this.templateHtmlContent, options);
+    const html = renderMailTemplate(this.templateHtmlContent, options, true);
     const data = multipartMessage({
       from: this.fromAddress,
       to: recipient,
       subject: MAIL_SUBJECTS[this.template],
-      text: this.interpolateText ? renderVerificationTemplate(this.templateTextContent, options) : this.templateTextContent,
+      text: renderMailTemplate(this.templateTextContent, options),
       html,
     });
     return smtpSend(this.smtp, {
@@ -658,6 +642,6 @@ export function createSmtpAccountMailProviders({ smtp, fromAddress, templateDir 
     ...createSmtpMailProviders({ smtp: config, fromAddress, templateDir }),
     emailReset: new SmtpMailProvider({ template: 'emailReset', smtp: config, fromAddress, templateDir }),
     emailResetComplete: new SmtpMailProvider({ template: 'emailResetComplete', smtp: config, fromAddress, templateDir }),
-    emailVerification: new SmtpMailProvider({ template: 'emailVerification', smtp: config, fromAddress, templateDir, interpolateText: true }),
+    emailVerification: new SmtpMailProvider({ template: 'emailVerification', smtp: config, fromAddress, templateDir }),
   };
 }

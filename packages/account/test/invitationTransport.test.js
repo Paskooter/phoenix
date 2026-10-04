@@ -245,7 +245,7 @@ test('signup SMTP wiring delivers usable verification links in escaped HTML and 
     assert.equal((await signup.json()).emailSent, true, 'signup waits for real SMTP acceptance');
     assert.equal(relay.messages.length, 1);
     const message = relay.messages[0].toString('ascii');
-    assert.match(message, /Subject: Verify your email/);
+    assert.match(message, /Subject: Verify your Phoenix email/);
     const boundary = /boundary="([^"]+)"/.exec(message)[1];
     const parts = {};
     for (const part of message.split(`--${boundary}`)) {
@@ -360,7 +360,7 @@ test('SMTP encodes Unicode parts for a relay without 8BITMIME', async () => {
     const raw = relay.messages[0];
     assert.equal(raw.some((byte) => byte > 0x7f), false);
     const decoded = decodeQuotedPrintable(raw.toString('ascii'));
-    assert.match(decoded, /Plain café 😀 — literal \{name\}/);
+    assert.match(decoded, /Plain café 😀 — literal Äda/);
     assert.match(decoded, /<p>Owner café 😀 — Äda<\/p>/);
     assert.equal((raw.toString('ascii').match(/Content-Transfer-Encoding: quoted-printable/g) || []).length, 2);
     assert.deepEqual(relay.commands, [

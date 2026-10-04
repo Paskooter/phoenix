@@ -112,9 +112,9 @@ test('Invite/UpdateLoopMember dispatch source-shaped mail and InvitedToJoinLoop 
     assert.equal(unknownMail.template, 'invitation');
     assert.equal(unknownMail.to, 'new.person@fixture.test');
     assert.equal(unknownMail.options.email, 'new.person@fixture.test');
-    assert.equal(unknownMail.options.name, owner.email, 'source falls back from fullName to owner.email');
+    assert.equal(unknownMail.options.name, 'Synthetic Owner', 'use the inviter name when available');
     assert.equal(unknownMail.options.url,
-      `https://portal.fixture.test/create?email=new.person%40fixture.test&code=${encodeURIComponent(unknownMember.invitationCode)}`);
+      `https://portal.fixture.test/invite?email=new.person%40fixture.test&loopId=${loop._id}&signup=1`);
     assert.ok(Object.prototype.hasOwnProperty.call(unknownMail.options, 'photoUrl'));
     assert.equal(unknownMail.outboxSize, 1, 'Invite sends mail after the loop save');
     const unknownEvent = calls[1].event;
@@ -137,7 +137,7 @@ test('Invite/UpdateLoopMember dispatch source-shaped mail and InvitedToJoinLoop 
     assert.deepEqual(existingCalls.map((call) => call.kind), ['mail', 'event']);
     assert.equal(existingCalls[0].template, 'invitationExistingUser');
     assert.equal(existingCalls[0].options.url,
-      'https://portal.fixture.test/home?email=known-member%40fixture.test');
+      `https://portal.fixture.test/invite?email=known-member%40fixture.test&loopId=${loop._id}`);
     assert.equal(existingCalls[1].event.payload.accountId, known._id);
     assert.equal(new URL(existingCalls[0].options.url).searchParams.has('code'), false);
 

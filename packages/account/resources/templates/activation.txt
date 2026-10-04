@@ -1,3 +1,13 @@
-Please click below to verify your account using the email {email}:
+Hello, again.
 
+Hi {firstName},
+
+Your Phoenix account is almost ready. Confirm {email} using the link below, then sign in to the Phoenix console to manage your Jibo, your loop and your personal settings.
+
+Confirm email:
 {url}
+
+If you didn’t create this account, you can ignore this email.
+
+Phoenix · A new home for your Jibo.
+This is an automated email. For help, contact the operator of your Phoenix server.

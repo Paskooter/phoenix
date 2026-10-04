@@ -1,60 +1,45 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Your email has changed</title>
+  <meta name="color-scheme" content="light">
+  <title>Your email has changed.</title>
+  <style>
+    @media screen and (max-width: 600px) {
+      .email-gutter { padding:24px 12px !important; }
+      .email-content { padding:28px 24px !important; }
+      .email-heading { font-size:30px !important; }
+    }
+  </style>
 </head>
-<body style="font-family: Helvetica, Arial, sans-serif; margin:0;">
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-collapse: collapse; border-spacing: 0;">
-    <tr>
-        <td align="center" style="background-color:#00d4f0;width: 100%;height: 101px;">
-          <img alt="jibo" src="https://s3.amazonaws.com/com.jibo.assets/email_templates_assets/jibo_logo.png"/>
-        </td>
-    </tr>
-    <tr>
-      <td align="center" style="padding-top:1.2em;">
-        <h2 style="color:  #000000;font-size: 34.99px;font-weight: 700;line-height: 18px;text-align: center;">
-          Your email has changed
-        </h2>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" style="padding-bottom:1.2em;">
-        <h4 style="width:526px;color:#5c5b6b;font-size: 18px;font-weight: 300;line-height: 27px;text-align: center;">
-          <span>We recently received a request to change <br/> your Jibo account's email address.</span>
-        </h4>
-        <h4 style="width:526px;color:#5c5b6b;font-size: 18px;font-weight: 300;line-height: 27px;text-align: center;">
-          <span>Previous email: <b>{originalEmail}</b></span>
-          <br/>
-          <span>New email: <b>{newEmailAddress}</b></span>
-        </h4>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" style="padding-bottom:1.2em;">
-        <div style="width:270px;height:34px;color:  #5c5b6b;font-size: 13px;font-weight: 300;line-height: 20px;text-align: center;">
-          If you didn't request this change, contact Jibo Customer care at <a href="mailto:support@jibo.com" style="color: #00d4f0;font-size: 13px;font-weight: 700;line-height: 20px;text-align: center;">support@jibo.com.</a>
-        </div>
-      </td>
-    </tr>
-    <tr>
-      <td align="center">
-        <img width="237" height="152" style="display: block; margin-top:3em;" alt="jibo" src="https://s3.amazonaws.com/com.jibo.assets/email_templates_assets/account_confirm.png" />
-      </td>
-    </tr>
-    <tr>
-      <td align="center">
-        <div style="margin:0 auto; padding-bottom:1.2em; background-color:  #f7f7f7;width: 100%;height: 62px;position:relative">
-          <p style="margin: 0; padding-top: 2em; color:  #00d4f0;font-size: 13px;font-weight: 700;line-height: 20px;text-align: center;">
-            Jibo, Inc.
-          </p>
-          <div style="margin:0; color:  #5c5b6b;font-size: 13px;font-weight: 300;line-height: 20px;text-align: center;">
-            <p style="margin:0;">&copy; 2017 Jibo, Inc. All rights reserved.</p>
-          </div>
-        </div>
-      </td>
-    </tr>
+<body style="margin:0;padding:0;background:#f4f1eb;color:#282b32;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;">
+  <div style="display:none;font-size:1px;line-height:1px;color:#f4f1eb;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">Your Phoenix email address was changed. Here is your confirmation.</div>
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f4f1eb">
+    <tr><td class="email-gutter" align="center" style="padding:48px 20px;">
+      <!--[if mso]><table role="presentation" width="560" cellspacing="0" cellpadding="0"><tr><td><![endif]-->
+      <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width:560px;border:1px solid #e3ded4;border-radius:18px;background:#ffffff;">
+        <tr><td class="email-content" bgcolor="#151820" style="padding:28px 36px;border-radius:17px 17px 0 0;border-bottom:3px solid #ffb347;">
+          <p style="margin:0;color:#ffffff;font-size:24px;line-height:1.2;font-weight:700;letter-spacing:-0.7px;">Phoenix<span style="color:#ffb347;">.</span></p>
+          <p style="margin:8px 0 0;color:#c1c6d2;font-size:12px;line-height:1.5;letter-spacing:1px;">Hello, again.</p>
+        </td></tr>
+        <tr><td class="email-content" style="padding:36px;line-height:1.7;font-size:16px;">
+          <p style="margin:0 0 14px;color:#b95420;font-size:11px;line-height:1.4;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;">Account security</p>
+          <h1 class="email-heading" style="margin:0 0 24px;color:#20232b;font-size:36px;line-height:1.15;font-weight:700;letter-spacing:-1px;">Your email has changed.</h1>
+          <p style="margin:0 0 18px;">The email address on your Phoenix account was changed successfully.</p><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:24px 0;border-collapse:separate;"><tr><td style="padding:20px;background:#f6f3ed;border:1px solid #e8e2d7;border-radius:12px;"><p style="margin:0 0 8px;color:#282b32;font-size:14px;font-weight:700;">Confirmed change</p><p style="margin:0;font-size:14px;line-height:1.6;color:#585c66;">Previous: <strong>{originalEmail}</strong><br>New: <strong>{newEmailAddress}</strong></p></td></tr></table><p style="margin:0 0 18px;">Use your new email address the next time you sign in to the Phoenix console.</p><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:24px 0;border-collapse:separate;"><tr><td style="padding:20px;background:#f6f3ed;border:1px solid #e8e2d7;border-radius:12px;"><p style="margin:0 0 8px;color:#282b32;font-size:14px;font-weight:700;">Don’t recognize this change?</p><p style="margin:0;font-size:14px;line-height:1.6;color:#585c66;">Contact the operator of this server for help securing your account. If you still have access, change your password in the console.</p></td></tr></table>
+          <table role="presentation" border="0" cellspacing="0" cellpadding="0" style="margin:28px 0;">
+            <tr><td align="center" bgcolor="#ffb347" style="border:1px solid #ed9a30;border-radius:9px;mso-padding-alt:14px 24px;">
+              <a href="{portalUrl}/app" style="display:inline-block;padding:14px 24px;color:#231908;font-size:15px;line-height:1.5;font-weight:700;text-decoration:none;border-radius:9px;">Open the console</a>
+            </td></tr>
+          </table>
+          <p style="margin:0 0 8px;color:#6b6f79;font-size:12px;line-height:1.6;">Button not working? Copy and paste this link into your browser:</p>
+          <p style="margin:0 0 28px;font-size:12px;line-height:1.6;word-break:break-all;overflow-wrap:anywhere;"><a href="{portalUrl}/app" style="color:#9c4619;text-decoration:underline;">{portalUrl}/app</a></p>
+          <p style="margin:0;padding-top:24px;border-top:1px solid #ece8e1;color:#6b6f79;font-size:13px;line-height:1.6;">This notice was sent to your previous email address so you have a record of the change.</p>
+        </td></tr>
+      </table>
+      <!--[if mso]></td></tr></table><![endif]-->
+      <p style="max-width:480px;margin:24px 0 0;color:#767982;font-size:12px;line-height:1.7;">Phoenix &middot; A new home for your Jibo.<br>This is an automated email. For help, contact the operator of your Phoenix server.</p>
+    </td></tr>
   </table>
 </body>
 </html>

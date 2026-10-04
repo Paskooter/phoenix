@@ -7,7 +7,7 @@
 //
 // Every call below goes to the same-origin REST face the portal has always
 // used, authenticated by the phx_session cookie. The request shapes are
-// unchanged; this file owns presentation only.
+// unchanged apart from the console's verified-mailbox invitation claim route.
 
 import { qrSvg } from '/qr.js';
 import { createLocationPicker } from '/map.js';
@@ -447,6 +447,9 @@ function rememberActiveLoop(id) {
   }
 }
 
+const membershipState = (loop) => String((loop.members || [])
+  .find((member) => String(member.accountId) === String(me?.id))?.status || '').toLowerCase();
+
 async function householdContext() {
   const r = await api('GET', '/api/loop');
   const loops = r.ok && Array.isArray(r.data.loops) ? r.data.loops : [];
@@ -557,8 +560,6 @@ async function renderHome() {
   // `GET /api/loop` answers { loops: [...] }, not a bare array.
   const loopList = loops.ok && Array.isArray(loops.data.loops) ? loops.data.loops : [];
   const robotList = robots.ok && Array.isArray(robots.data) ? robots.data : [];
-  const membershipState = (loop) => String((loop.members || [])
-    .find((member) => String(member.accountId) === String(me?.id))?.status || '').toLowerCase();
   const usableLoops = loopList.filter((loop) => loop.canManage === true || membershipState(loop) === 'accepted');
   const invitations = loopList.filter((loop) => loop.canManage !== true && membershipState(loop) === 'invited');
   setBadge('badge-members', loopPeopleTotal(loopList));
@@ -854,6 +855,21 @@ async function renderLoop({ keep = false } = {}) {
   const description = 'The people around each Jibo, and what he knows about them.';
   if (!keep) show(page(title, description, loading(5)));
 
+  if (pendingInvitation) {
+    if (pendingInvitation.email && pendingInvitation.email.toLowerCase() !== me.email?.toLowerCase()) {
+      show(page('Your invitation', '', card('Sign in with the invited email', {},
+        h('p', {}, `This invitation was sent to ${pendingInvitation.email}. You are signed in as ${me.email}.`),
+        h('button', { type: 'button', class: 'btn btn-primary', on: { click: () => document.getElementById('logout').click() } },
+          'Switch account'))));
+      return;
+    }
+    const claimed = await api('POST', '/api/loop/invitations/claim', {});
+    if (!claimed.ok) {
+      show(page('Your invitation', '', errorBox('Could not load your invitation.', claimed.data.error)));
+      return;
+    }
+  }
+
   const context = await householdContext();
   const container = page(title, description);
   const finish = () => {
@@ -868,6 +884,24 @@ async function renderLoop({ keep = false } = {}) {
   };
 
   if (!context.ok) { container.append(errorBox('Could not load your loops.', context.error)); return finish(); }
+  if (pendingInvitation) {
+    const target = pendingInvitation.loopId
+      ? context.loops.find((loop) => String(loop.id) === pendingInvitation.loopId)
+      : context.loops.find((loop) => membershipState(loop) === 'invited');
+    if (target) {
+      rememberActiveLoop(target.id);
+      context.active = target;
+      if (membershipState(target) !== 'invited') clearPendingInvitation();
+    } else {
+      container.append(card('Invitation unavailable', {},
+        h('p', {}, me.emailVerified
+          ? 'This invitation may have been cancelled or the loop may be suspended. Ask the loop owner to send another invitation.'
+          : 'Verify your email address before this invitation can be linked to your account.'),
+        !me.emailVerified ? h('a', { class: 'btn btn-primary', href: '#/profile' }, 'Verify your email') : null,
+        h('button', { type: 'button', class: 'btn', on: { click: () => { clearPendingInvitation(); renderLoop(); } } }, 'Back to your loops')));
+      return finish();
+    }
+  }
   setBadge('badge-members', loopPeopleTotal(context.loops));
   const active = context.active;
   if (!active) {
@@ -1414,7 +1448,7 @@ function invitationCard(loop, people, owner, color) {
   accept.addEventListener('click', async () => {
     accept.disabled = true;
     const res = await api('POST', '/api/loop/accept', { loopId: loop.id });
-    if (res.ok) { notify(`Welcome to ${loop.name}`); renderLoop(); }
+    if (res.ok) { clearPendingInvitation(); notify(`Welcome to ${loop.name}`); renderLoop(); }
     else { accept.disabled = false; notify(res.data.error || 'Could not accept the invitation', 'error'); }
   });
   decline.addEventListener('click', async () => {
@@ -1427,6 +1461,7 @@ function invitationCard(loop, people, owner, color) {
     decline.disabled = true;
     const res = await api('POST', '/api/loop/decline', { loopId: loop.id });
     if (!res.ok) { decline.disabled = false; notify(res.data.error || 'Could not decline the invitation', 'error'); return; }
+    clearPendingInvitation();
     rememberActiveLoop('');
     location.hash = '#/';
   });
@@ -4781,6 +4816,22 @@ let authNotice = '';
 let pendingActivationEmail = '';
 let authResendUntil = 0;
 let publicMailAction = null;
+const INVITATION_STORAGE_KEY = 'phoenix.pendingInvitation';
+let pendingInvitation = (() => {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(INVITATION_STORAGE_KEY));
+    return saved && typeof saved.email === 'string' && typeof saved.loopId === 'string' ? saved : null;
+  } catch { return null; }
+})();
+
+function savePendingInvitation() {
+  try { sessionStorage.setItem(INVITATION_STORAGE_KEY, JSON.stringify(pendingInvitation)); } catch { /* optional browser storage */ }
+}
+
+function clearPendingInvitation() {
+  pendingInvitation = null;
+  try { sessionStorage.removeItem(INVITATION_STORAGE_KEY); } catch { /* optional browser storage */ }
+}
 
 function clearPublicMailUrl() {
   // Keep a user-selected hash route, but remove the bearer code from history
@@ -4793,6 +4844,18 @@ function clearPublicMailUrl() {
 async function consumePublicMailAction() {
   const params = new URLSearchParams(location.search);
   const code = params.get('code') || '';
+  if (['/invite', '/create', '/home'].includes(location.pathname)) {
+    pendingInvitation = {
+      email: params.get('email') || '',
+      loopId: params.get('loopId') || '',
+      signup: location.pathname === '/create' || params.get('signup') === '1',
+    };
+    savePendingInvitation();
+    // Old invitations may contain a code. Never retain it in storage/history.
+    history.replaceState(null, '', '/app#/loop');
+    authNotice = `You have been invited to a Jibo loop. Sign in or create an account${pendingInvitation.email ? ` with ${pendingInvitation.email}` : ''} to review the invitation.`;
+    return;
+  }
   if (location.pathname === '/activate') {
     clearPublicMailUrl();
     if (!code) { authNotice = 'This confirmation link is incomplete.'; return; }
@@ -4841,7 +4904,8 @@ function renderAuth() {
   const forgot = authRoot.querySelector('#auth-forgot');
   const resend = authRoot.querySelector('#auth-resend');
 
-  let mode = publicMailAction?.type === 'reset' ? 'reset' : 'login';
+  let mode = publicMailAction?.type === 'reset' ? 'reset' : (pendingInvitation?.signup ? 'signup' : 'login');
+  if (pendingInvitation?.email) email.value = pendingInvitation.email;
   // The sign-in and sign-up headings are the instance's to word (branding.json
   // `console.*`); these strings are only the fallback when it says nothing.
   const branded = (path, fallback) => {
@@ -4851,12 +4915,14 @@ function renderAuth() {
   const COPY = {
     login: {
       title: branded('console.signInTitle', 'Welcome back'),
-      sub: branded('console.signInBody', 'Use the same account you sign into the robot app with.'),
+      sub: pendingInvitation ? 'Sign in to the Phoenix console to review and accept your invitation.'
+        : branded('console.signInBody', 'Sign in to your Phoenix console account.'),
       cta: 'Sign in',
     },
     signup: {
       title: branded('console.signUpTitle', 'Create an account'),
-      sub: branded('console.signUpBody', 'This account lives on this server only.'),
+      sub: pendingInvitation ? 'Create your console account with the invited email, then verify it to join the loop.'
+        : branded('console.signUpBody', 'This account lives on this server only.'),
       cta: 'Create account',
     },
     recovery: { title: 'Reset your password', sub: 'Enter your email and we will send a reset link if an account exists.', cta: 'Send reset link' },
@@ -4871,6 +4937,7 @@ function renderAuth() {
 
   const setMode = (next) => {
     mode = next;
+    if (pendingInvitation) { pendingInvitation.signup = next === 'signup'; savePendingInvitation(); }
     segment.hidden = next === 'recovery' || next === 'reset';
     segment.dataset.active = next === 'signup' ? 'signup' : 'login';
     for (const t of segment.querySelectorAll('.tab')) {

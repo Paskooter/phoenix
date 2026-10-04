@@ -216,8 +216,8 @@ syntax check or reload.
 
 ### Canonical account-service static route inventory
 
-`staticRoutes()` registers 27 explicit `GET` routes: seven page/branding entrypoints plus the
-20-file list below. The two console entrypoints are intentionally the same shell:
+`staticRoutes()` registers explicit `GET` routes for page/branding entrypoints and
+an allow-list of assets. The two main console entrypoints use the same shell:
 `GET /app` and `GET /admin` both serve `app.html`; the browser's hash route selects the UI, and
 `/admin` maps the bare path to `#/admin` in `app.js`.
 
@@ -226,6 +226,10 @@ syntax check or reload.
 | `/` | `index.html` | `text/html; charset=utf-8` |
 | `/app` | `app.html` (console shell) | `text/html; charset=utf-8` |
 | `/admin` | `app.html` (same console shell; admin hash route) | `text/html; charset=utf-8` |
+| `/invite` | `app.html` (console invitation sign-in/signup and review) | `text/html; charset=utf-8` |
+| `/create`, `/home` | `app.html` (previously delivered invitation links) | `text/html; charset=utf-8` |
+| `/activate`, `/reset`, `/confirmemailreset` | `app.html` (account mail actions) | `text/html; charset=utf-8` |
+| `/verify-email` | `verify-email.html` (explicit mailbox confirmation) | `text/html; charset=utf-8` |
 | `/terms` | `terms.html` | `text/html; charset=utf-8` |
 | `/privacy` | `privacy.html` | `text/html; charset=utf-8` |
 | `/security` | `security.html` | `text/html; charset=utf-8` |
@@ -274,7 +278,7 @@ explicit file list. The template's final
 `try_files $uri $uri/ $uri.html =404` is deliberately simple, but it is broader than the Node
 allow-list: nginx can serve any additional non-dot, non-`.map` file physically placed under `root`.
 Keep that directory limited to portal files and never put `.env`, keys, account stores, deployment
-backups, or other secrets below it. If strict parity with the 27 Node routes is required, replace
+backups, or other secrets below it. If strict parity with the Node route allow-list is required, replace
 the final catch-all with an explicit nginx allow-list rather than adding extra files to the root.
 
 The portal vhost must not proxy robot Classic `POST /`. A request for `/` on this vhost is the

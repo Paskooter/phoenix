@@ -71,6 +71,15 @@ expire after one hour, and verification/email-change links after 24 hours.
 Existing unverified accounts see a console warning and can resend from Account.
 See [Email verification](EMAIL-VERIFICATION.md) for resend limits and recovery.
 
+Household invitations open `/invite` in the Phoenix console. A new recipient
+creates an account with the invited email, verifies it, then signs in to review
+and explicitly accept the invitation under Loops. Pending invitations are
+linked only after proof of that mailbox. The old `/create` and `/home` links
+remain supported, so an already-delivered invitation does not need resending.
+The public reverse proxy must serve these three paths from the console shell;
+the supplied nginx template includes them. Proxy-only installations let Account
+serve them directly.
+
 Verify the relay's sender identity/domain first, then make one disposable test
 account and complete the activation link. Check spam/junk as well as the inbox.
 An SMTP authentication test is not a delivery test: an unverified `From` address

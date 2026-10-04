@@ -49,7 +49,7 @@ import { createSession, destroySession, getSession, sessionCookie, clearCookie }
 import { buildQrCodes } from './qrPayload.js';
 import { userFromSession as sessionUser, portalAccount } from './portal/session.js';
 import { classicBaseUrl, classicCall } from './portal/classicClient.js';
-import { portalLoopRoutes, visibleLoops } from './portal/loops.js';
+import { portalLoopRoutes, visibleLoops, linkVerifiedInvitations } from './portal/loops.js';
 import { portalProfileRoutes } from './portal/profile.js';
 import { requestEmailVerification, confirmEmailVerification } from './emailVerification.js';
 import { emailVerificationContext, emailVerificationRoutes, allowVerificationRequest, resendPublicVerification } from './portal/emailVerification.js';
@@ -367,6 +367,7 @@ export function portalRoutes(store, options = {}) {
         return sendJson(res, 401, { error: 'invalid email or password' });
       }
       clearPortalAuthRate(rate.key);
+      linkVerifiedInvitations(store, account, portal.loopUpdatedOutbox);
       const session = createSession(store, { kind: 'user', accountId: account._id });
       return withCookie(res, sessionCookie(session), 200, { account: portalAccount(account) });
     },

@@ -1,3 +1,13 @@
-{name} sent you an invite to their Jibo. Click the link below to join. If you don’t already have an account, you will need to create your account using this e-mail: {email}
+You’re invited.
 
+{name} invited you to their Jibo’s loop: the people around one Jibo. Join to see his gallery and inbox, and let him get to know you.
+
+Sign in to the Phoenix console with {email}. Review the invitation and choose Accept invitation to join. If you need an account, create one there with this email.
+
+View invitation:
 {url}
+
+An unexpected invitation? You can ignore this email or decline it in the console.
+
+Phoenix · A new home for your Jibo.
+This is an automated email. For help, contact the operator of your Phoenix server.

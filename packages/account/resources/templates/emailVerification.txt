@@ -1,10 +1,15 @@
+Confirm your email.
+
 Hi {firstName},
 
-Verify {email} for your account by opening this link:
+Confirm that {email} belongs to you. After verification, you can sign in to the Phoenix console and review any loop invitations.
 
+Verify email address:
 {url}
 
-This link expires in 24 hours and can be used once. If you request another
-verification email, use the newest link.
+This link expires in 24 hours and can be used once. If you request another verification email, use the newest link.
 
-If you did not request this email, you can ignore it.
+If you didn’t request this email, you can ignore it.
+
+Phoenix · A new home for your Jibo.
+This is an automated email. For help, contact the operator of your Phoenix server.

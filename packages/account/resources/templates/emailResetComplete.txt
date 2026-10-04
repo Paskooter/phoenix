@@ -1,2 +1,16 @@
-We recently received a request to change your Jibo account's email address. Previous email: {originalEmail} New email: {newEmailAddress}
-If you didn’t request this change, contact Jibo Customer care at support@jibo.com.
+Your email has changed.
+
+The email address on your Phoenix account was changed successfully.
+
+Previous: {originalEmail}
+New: {newEmailAddress}
+
+Use your new email address the next time you sign in to the Phoenix console:
+{portalUrl}/app
+
+If you don’t recognize this change, contact the operator of this server for help securing your account. If you still have access, change your password in the console.
+
+This notice was sent to your previous email address so you have a record of the change.
+
+Phoenix · A new home for your Jibo.
+This is an automated email. For help, contact the operator of your Phoenix server.

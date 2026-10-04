@@ -1,4 +1,4 @@
-// A-04 local deployment controls: source invitation templates over SMTP and
+// A-04 local deployment controls: console invitation templates over SMTP and
 // durable EventSender-compatible delivery over an explicit HTTP consumer.
 // All identities, addresses, and event bodies below are synthetic fixtures.
 
@@ -21,6 +21,7 @@ import {
   Store,
 } from '../src/index.js';
 import { createLoop, createOwnerAccount } from '../src/model.js';
+import { createSmtpAccountMailProviders, MAIL_SUBJECTS, renderMailTemplate } from '../src/smtpMail.js';
 
 function listen(server) {
   return new Promise((resolve) => server.listen(0, '127.0.0.1', () => resolve(server.address().port)));
@@ -97,6 +98,51 @@ function decodeQuotedPrintable(value) {
   return Buffer.from(bytes).toString('utf8');
 }
 
+test('every account email delivers usable plain text and escapes user text in HTML', async () => {
+  const relay = smtpFixture();
+  const port = await listen(relay.server);
+  const options = {
+    name: 'Morgan <img src=x onerror=alert(1)> & $&',
+    firstName: 'Morgan <img src=x onerror=alert(1)> & $&',
+    email: 'member@fixture.test', originalEmail: 'before@fixture.test', newEmailAddress: 'after@fixture.test',
+    url: 'https://portal.fixture.test/invite?email=member%40fixture.test&loopId=fixture',
+    portalUrl: 'https://portal.fixture.test',
+  };
+  try {
+    const providers = createSmtpAccountMailProviders({ smtp: { host: '127.0.0.1', port, ignoreTLS: true } });
+    for (const [name, provider] of Object.entries(providers)) {
+      await provider.send('member@fixture.test', options);
+      const raw = relay.messages.at(-1);
+      assert.ok(raw.includes(`Subject: ${MAIL_SUBJECTS[name]}\r\n`));
+      const boundary = /boundary="([^"]+)"/.exec(raw)[1];
+      const parts = {};
+      for (const part of raw.split(`--${boundary}`)) {
+        const type = /Content-Type: text\/(plain|html)/.exec(part)?.[1];
+        if (!type) continue;
+        const split = part.indexOf('\r\n\r\n');
+        parts[type] = /Content-Transfer-Encoding: quoted-printable/.test(part.slice(0, split))
+          ? decodeQuotedPrintable(part.slice(split + 4)) : part.slice(split + 4);
+      }
+      for (const body of Object.values(parts)) {
+        assert.doesNotMatch(body, /\{[a-zA-Z]+\}|Jibo app|support@jibo\.com|s3\.amazonaws\.com/);
+        assert.match(body, /Phoenix/);
+        assert.match(body, /https:\/\/portal\.fixture\.test\//);
+      }
+      assert.doesNotMatch(parts.html, /<img src=x/);
+      if (parts.plain.includes('Morgan')) {
+        assert.match(parts.plain, /Morgan <img src=x onerror=alert\(1\)> & \$&/);
+        assert.match(parts.html, /Morgan &lt;img src=x onerror=alert\(1\)&gt; &amp; \$&amp;/);
+      }
+    }
+    assert.equal(relay.messages.length, 8);
+  } finally { await close(relay.server); }
+});
+
+test('mail interpolation uses own values without recursively expanding user text', () => {
+  const options = Object.assign(Object.create({ email: 'inherited@fixture.test' }), { name: '{url} $& <b>', url: 'https://portal.fixture.test/' });
+  assert.equal(renderMailTemplate('{name} {url} {email}', options, true), '{url} $&amp; &lt;b&gt; https://portal.fixture.test/ {email}');
+});
+
 function eventFixture({ status = 202 } = {}) {
   const events = [];
   const server = http.createServer((req, res) => {
@@ -143,7 +189,7 @@ function sourceEvent(email = 'event@fixture.test') {
   });
 }
 
-test('configured Account launch sends source templates to a local SMTP relay and event consumer', async () => {
+test('configured Account launch sends console invitations to a local SMTP relay and event consumer', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'phx-a04-invitation-deployment-'));
   const keys = [
     'ETCO_account_mailSmtpUrl', 'ETCO_account_mailFrom', 'ETCO_account_portalUrl',
@@ -192,13 +238,12 @@ test('configured Account launch sends source templates to a local SMTP relay and
     const decodedMessage = decodeQuotedPrintable(message);
     assert.match(message, /^From: local-sender@fixture\.test\r?\n/m);
     assert.match(message, /^To: new\.person@fixture\.test\r?\n/m);
-    assert.match(message, /^Subject: Invitation\r?\n/m);
-    assert.match(decodedMessage, /deployment-owner@fixture\.test added you to their Loop/);
-    assert.match(decodedMessage, /https:\/\/portal\.fixture\.test\/create\?email=new\.person%40fixture\.test&code=/);
-    // MailController substitutes only HTML; source text content remains the
-    // literal template text, which is useful for checking the body split.
-    assert.match(decodedMessage, /\{name\} sent you an invite/);
-    assert.match(decodedMessage, /Don't have an account\?[^\r\n]*new\.person@fixture\.test/);
+    assert.match(message, /^Subject: You're invited to a Jibo loop\r?\n/m);
+    assert.match(decodedMessage, /Deployment Owner.*invited you to their Jibo/);
+    assert.match(decodedMessage, /https:\/\/portal\.fixture\.test\/invite\?email=new\.person%40fixture\.test&loopId=/);
+    assert.match(decodedMessage, /Phoenix console/);
+    assert.doesNotMatch(decodedMessage, /\{(?:name|url|email)\}|Jibo app|code=/);
+    assert.match(decodedMessage, /new\.person@fixture\.test/);
 
     const existingResponse = await invite(store, base, owner, {
       loopId: loop._id,
@@ -210,9 +255,9 @@ test('configured Account launch sends source templates to a local SMTP relay and
     const existingMessage = smtp.messages[1];
     const decodedExistingMessage = decodeQuotedPrintable(existingMessage);
     assert.match(existingMessage, /^To: known-member@fixture\.test\r?\n/m);
-    assert.match(decodedExistingMessage, /deployment-owner@fixture\.test added you to their Loop/);
-    assert.match(decodedExistingMessage, /https:\/\/portal\.fixture\.test\/home\?email=known-member%40fixture\.test/);
-    assert.doesNotMatch(decodedExistingMessage, /\/home\?email=known-member%40fixture\.test&code=/);
+    assert.match(decodedExistingMessage, /Deployment Owner.*invited you to their Jibo/);
+    assert.match(decodedExistingMessage, /https:\/\/portal\.fixture\.test\/invite\?email=known-member%40fixture\.test&loopId=/);
+    assert.doesNotMatch(decodedExistingMessage, /signup=1|code=/);
 
     assert.equal(event.events[0].method, 'POST');
     assert.equal(event.events[0].path, '/events');

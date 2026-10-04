@@ -23,6 +23,7 @@ import {
   updatePhoneticName,
 } from '../loopMembership.js';
 import { requireUser } from './session.js';
+import { isEmailVerified } from '../emailVerification.js';
 
 const own = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
 const AVATAR_COLORS = new Set(['blue', 'teal', 'violet', 'coral', 'gold', 'slate']);
@@ -39,6 +40,29 @@ function activeLoop(store, loopId) {
 
 function idsEqual(a, b) {
   return a != null && b != null && String(a) === String(b);
+}
+
+/** Link pending email invitations only after the account proves its mailbox.
+ * Linking leaves the member invited; joining still requires explicit acceptance.
+ */
+export function linkVerifiedInvitations(store, account, loopUpdatedOutbox) {
+  if (!account?.isActive || account.isDeleted || account.friendlyId || !isEmailVerified(account)) return 0;
+  const email = account.email.trim().toLowerCase();
+  let linked = 0;
+  for (const previous of store.loops.values()) {
+    if (previous.isDeleted || previous.isSuspended) continue;
+    const loop = structuredClone(previous);
+    let changed = false;
+    for (const member of loop.members || []) {
+      if (member.accountId || String(member.status).toLowerCase() !== 'invited'
+        || String(member.memberProperties?.email || '').trim().toLowerCase() !== email) continue;
+      member.accountId = account._id;
+      changed = true;
+      linked += 1;
+    }
+    if (changed) saveLoop(store, loop, loopUpdatedOutbox, previous);
+  }
+  return linked;
 }
 
 /** Loops the account can see: owned, or an accepted/invited member of. */
@@ -144,6 +168,11 @@ export function portalLoopRoutes(store, options = {}) {
   const invitationProviders = options.invitationProviders;
 
   return {
+    'POST /api/loop/invitations/claim': ({ req, res }) => {
+      const account = requireUser(store, req, res);
+      if (!account) return;
+      return { linked: linkVerifiedInvitations(store, account, loopUpdatedOutbox) };
+    },
     // -- loop record ----------------------------------------------------------
 
     'GET /api/loop': ({ req, res }) => {

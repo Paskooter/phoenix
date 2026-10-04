@@ -108,6 +108,27 @@ qualified as such.
 | L1 | A Loop save whose `robot` relation is absent produces **no** `LoopUpdated` outbox row. Source `Loop` post-save emits the event regardless; `notification-ws` `LoopUpdatedHandler` then skips it because `accountId = evt.payload.robot` has no target. | Phoenix's durable outbox is the routing step and the delivery step at once (`loopUpdatedOutbox.record` returns `null` for an unroutable loop). Persisting a row that can never be addressed would leave a permanently undrainable entry. | **Robot-visible behavior is identical**: no notification is delivered either way. The difference is bus-visible — a *different* consumer of `LoopUpdated` would see the event from source and not from Phoenix. The prior root's A-04 pending review already noted "Other services may consume those events." Revisit if any non-notification consumer is implemented. |
 | L2 | Phoenix Loop mutation JSON omits `isDeleted`; source `toJSON` includes `isDeleted: true` on a soft-deleted loop. | Phoenix serializes the wire model rather than the Mongoose document. | The generated `loop-2016-03-24` API model has **no** `isDeleted` member, so a generated reference client drops the field during response parsing and cannot observe it. Following `ListLoops` / `GetRobot` reads agree with source schema `pre("find")` middleware (deleted loops absent, `404 LOOP_NOT_FOUND`). **Measured 2026-09-11** (root gate 1 replay, `.parity/reviews/root-gate1-replay-20260911/comparison-root.json`): the source `ClearRobot` and `RemoveLoop` **response bodies** carry `isDeleted: true`, and the Phoenix bodies do not, on both the Account and Classic faces — 4 wire-level occurrences. This upgrades L2 from "inferred from the API model" to a directly observed body difference. It remains non-substantive **only** because the generated client drops the unmodeled field; any consumer parsing raw JSON would see it. |
 
+## Console account email and invitations (2026-10-04)
+
+At the owner's request, all eight account email templates now describe Phoenix's
+browser console. The archived app/store copy, retired hosted images and
+`support@jibo.com` references are replaced with current console instructions.
+Subjects identify the action; HTML escapes substituted values, and plain text
+substitutes names, email addresses and links instead of sending raw placeholders.
+This deliberately supersedes the source-template and literal-text expectations
+in the dated A-04 invitation evidence without changing SMTP framing or the
+mail-before-event dispatch order.
+
+New invitations use `/invite?email=...&loopId=...` (with `signup=1` for a new
+recipient) instead of the archived `/create` and `/home` destinations. Both old
+paths remain supported. The console fills the invited email, preserves the
+review destination through signup/verification, and requires explicit acceptance.
+Legacy invitation codes do not authorize joining or activate a console account.
+Unlinked live invitations are attached only to an active human account whose
+current mailbox is verified. Removed, declined, deleted, suspended and
+already-linked memberships are left alone. This fixes the portal signup gap;
+the robot Account wire creation flow remains separate.
+
 ## Account identity and recovery behavior (A-03)
 Both rows are **source-faithful Phoenix behavior**, verified by root against
 pinned source `jiborobot/srv-account-ws@6cea434`

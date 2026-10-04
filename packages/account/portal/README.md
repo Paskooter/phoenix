@@ -194,6 +194,27 @@ offers resend for people who have not confirmed their signup yet.
 See [Email verification](../../../docs/EMAIL-VERIFICATION.md) for configuration,
 link handling, legacy accounts, limits, and local tests.
 
+### Loop invitations
+
+Invitation emails open `/invite` in the console. The invited address is filled
+in, new recipients start at signup, and existing recipients start at sign-in.
+After verification, pending invitations for that mailbox are linked on sign-in
+and shown under Loops. The recipient must still choose **Accept invitation**;
+opening an email does not join a loop. Invitations already linked to an account
+keep their existing behavior.
+
+Previously delivered `/create` and `/home` links use the same console flow.
+Legacy codes are removed from browser history and are never used as a substitute
+for mailbox verification. A wrong signed-in account can switch accounts, and a
+cancelled or unavailable invitation explains how to request another one.
+
+All eight account email types have HTML and plain-text templates under
+`resources/templates`. Both formats interpolate actual links and names; HTML
+escapes values. The templates use inline styles, responsive tables, text
+branding and copyable links without external image dependencies. Run
+`node scripts/portal-invitation-smoke.mjs` for invitation and template checks;
+`PORTAL_SMOKE_OUT` saves optional previews using synthetic data.
+
 ## The admin surface
 
 Reached at `/app#/admin` (or `/admin`) by an account whose `isAdmin` flag is set. It appears in

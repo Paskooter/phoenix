@@ -303,6 +303,10 @@ export function staticRoutes() {
     'GET /verify-email': page('verify-email.html'),
     'GET /reset': page('app.html'),
     'GET /confirmemailreset': page('app.html'),
+    'GET /invite': page('app.html'),
+    // Keep invitations already delivered with the retired portal paths usable.
+    'GET /create': page('app.html'),
+    'GET /home': page('app.html'),
 
     // Operator-configurable branding.
     'GET /branding.json': serveBranding(branding),
