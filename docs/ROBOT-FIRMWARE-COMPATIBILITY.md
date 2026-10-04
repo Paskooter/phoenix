@@ -12,8 +12,9 @@ coverage includes all RTM releases, 13.0.0 and prior `5x1` routing. See the
 The initial survey was compiled on 2026-09-28 from archived flash builds, the
 archived npm registry, and a dry run against the physical test robot (13.0.7).
 The 2026-10-02 update adds real Node 4.1.2/6.9.2 apply tests and a syntax-based
-Wi-Fi patcher. Exact source for the reported 12.10.0 variant remains useful as
-a regression fixture; the owner's follow-up signs off the named rerun cases.
+Wi-Fi patcher. The [2026-10-04 exact-file check](parity/evidence/2026-10-04/12-10-0-ssm-b080/README.md)
+verifies the reported 12.10.0 variant and adds a regression for its literal
+OpenJibo hostname assignments; the owner's follow-up signs off the named rerun cases.
 The source survey below does not enumerate the owner's ten hardware trials.
 
 ## Which firmware robots actually run
@@ -237,9 +238,16 @@ The inspected 12.10.0 production SSM file has SHA-256
 It patches successfully with the structural helper under Node 4.1.2 and 6.9.2.
 The reported robot hash
 `b0809e59adb0e9b857f46de3eab6726501038cf02d6eff1731a832335e5ae32d`
-is different. The owner's follow-up certifies the reported rerun; obtaining its
-exact source is still a regression/provenance follow-up, rather than an open
-normal-OTA acceptance gate.
+is different. Its exact source was supplied and checked on 2026-10-04: it is
+the archived production bundle with three hostname changes to `api.openjibo.com`.
+Both Wi-Fi credential branches use literal hosts, which the old exact-anchor
+patcher rejects with `server url anchor 1 was not found exactly once`.
+The current structural patcher, including the live public download, passes
+preflight/apply/repeat on this full bundle under real Node 4.1.2 and 6.9.2 for
+both `api` and `stg-entrypoint`. The supplied original remains unchanged.
+See the [exact-file evidence](parity/evidence/2026-10-04/12-10-0-ssm-b080/README.md).
+Download a fresh `robot-ota-repoint.sh` if that older anchor error recurs; no
+production helper change or new deployment is required for this source layout.
 If a preflight still fails, request only the affected source file (never
 credentials or keys), release, Node version, diagnostic SHA and complete error.
 Add a structural fixture or a reviewed executable variant as appropriate.

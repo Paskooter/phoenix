@@ -1,0 +1,328 @@
+{
+  "checked_at": "2026-10-04T23:16:39.355246+00:00",
+  "base_commit": "bd376971d15c3c415b62bb1522382a74f7b1f9de",
+  "reported_release": "Release-12.10.0-20180823",
+  "reported_node": "v6.9.2",
+  "input_sha256": "b0809e59adb0e9b857f46de3eab6726501038cf02d6eff1731a832335e5ae32d",
+  "input_bytes": 740855,
+  "original_file_unchanged": true,
+  "reference": {
+    "url": "https://pvindex.org/repository/platformos/builds/sqa-testing/jibo-pvt-flash-build-12.10.0-20180823-production.tar.bz2",
+    "archive_sha256": "c5b483c8956caa5d8706bdb01d0f8e7c390ee6e9714a0281a168c958b07967f6",
+    "ssm_sha256": "da785e908a79e1953547b79c7943f94d033a3b68bf988be1ae3841e6cdbdcd53",
+    "ssm_bytes": 740886,
+    "only_differences": [
+      {
+        "before": "this._jiboServerUrl = data.region + \".jibo.com\";",
+        "after": "this._jiboServerUrl = \"api.openjibo.com\";"
+      },
+      {
+        "before": "this._jiboServerUrl = this._wifiService.options.region + \".jibo.com\";",
+        "after": "this._jiboServerUrl = \"api.openjibo.com\";"
+      },
+      {
+        "before": "API: 'api.jibo.com',",
+        "after": "API: 'api.openjibo.com',"
+      }
+    ]
+  },
+  "legacy_patcher": {
+    "commit": "c1027be",
+    "exit_code": 2,
+    "stderr": "patch-ssm-wifi-check: server url anchor 1 was not found exactly once"
+  },
+  "public_assets": {
+    "repoint_script": {
+      "url": "https://jibo.io/robot-ota-repoint.sh",
+      "sha256": "aa452bf984f79239f277e692abda19cb00482cb86624a66138471a5583009da5",
+      "matches_checkout": true
+    },
+    "wifi_patcher": {
+      "url": "https://jibo.io/robot-client/patch-ssm-wifi-check.cjs",
+      "sha256": "29dce60e9bf9d5cec56688b576c36c0c4662ccb3a17bc2fb83df6a5d654421f6",
+      "matches_checkout": true
+    }
+  },
+  "direct_cases": [
+    {
+      "helper": "checkout",
+      "runtime": "v4.1.2",
+      "region": "api",
+      "dry_run": "patched",
+      "apply": "patched",
+      "repeat": "already-patched",
+      "output_sha256": "cb1dfe6d49594474a22a2fb44fd1b969bd1a2ece36cf9917704f52b8af2527af",
+      "preflight_read_only": true,
+      "backup_matches": true,
+      "mode_owner_preserved": true,
+      "full_bundle_syntax": "v6.9.2",
+      "diagnostic_ping_target_preserved": true
+    },
+    {
+      "helper": "checkout",
+      "runtime": "v4.1.2",
+      "region": "stg-entrypoint",
+      "dry_run": "patched",
+      "apply": "patched",
+      "repeat": "already-patched",
+      "output_sha256": "9a436421f01bbe8ed03630ca75e0cc81ed234d68aaad271a40a4ec3c3d8b24be",
+      "preflight_read_only": true,
+      "backup_matches": true,
+      "mode_owner_preserved": true,
+      "full_bundle_syntax": "v6.9.2",
+      "diagnostic_ping_target_preserved": true
+    },
+    {
+      "helper": "checkout",
+      "runtime": "v6.9.2",
+      "region": "api",
+      "dry_run": "patched",
+      "apply": "patched",
+      "repeat": "already-patched",
+      "output_sha256": "cb1dfe6d49594474a22a2fb44fd1b969bd1a2ece36cf9917704f52b8af2527af",
+      "preflight_read_only": true,
+      "backup_matches": true,
+      "mode_owner_preserved": true,
+      "full_bundle_syntax": "v6.9.2",
+      "diagnostic_ping_target_preserved": true
+    },
+    {
+      "helper": "checkout",
+      "runtime": "v6.9.2",
+      "region": "stg-entrypoint",
+      "dry_run": "patched",
+      "apply": "patched",
+      "repeat": "already-patched",
+      "output_sha256": "9a436421f01bbe8ed03630ca75e0cc81ed234d68aaad271a40a4ec3c3d8b24be",
+      "preflight_read_only": true,
+      "backup_matches": true,
+      "mode_owner_preserved": true,
+      "full_bundle_syntax": "v6.9.2",
+      "diagnostic_ping_target_preserved": true
+    },
+    {
+      "helper": "public download",
+      "runtime": "v4.1.2",
+      "region": "api",
+      "dry_run": "patched",
+      "apply": "patched",
+      "repeat": "already-patched",
+      "output_sha256": "cb1dfe6d49594474a22a2fb44fd1b969bd1a2ece36cf9917704f52b8af2527af",
+      "preflight_read_only": true,
+      "backup_matches": true,
+      "mode_owner_preserved": true,
+      "full_bundle_syntax": "v6.9.2",
+      "diagnostic_ping_target_preserved": true
+    },
+    {
+      "helper": "public download",
+      "runtime": "v4.1.2",
+      "region": "stg-entrypoint",
+      "dry_run": "patched",
+      "apply": "patched",
+      "repeat": "already-patched",
+      "output_sha256": "9a436421f01bbe8ed03630ca75e0cc81ed234d68aaad271a40a4ec3c3d8b24be",
+      "preflight_read_only": true,
+      "backup_matches": true,
+      "mode_owner_preserved": true,
+      "full_bundle_syntax": "v6.9.2",
+      "diagnostic_ping_target_preserved": true
+    },
+    {
+      "helper": "public download",
+      "runtime": "v6.9.2",
+      "region": "api",
+      "dry_run": "patched",
+      "apply": "patched",
+      "repeat": "already-patched",
+      "output_sha256": "cb1dfe6d49594474a22a2fb44fd1b969bd1a2ece36cf9917704f52b8af2527af",
+      "preflight_read_only": true,
+      "backup_matches": true,
+      "mode_owner_preserved": true,
+      "full_bundle_syntax": "v6.9.2",
+      "diagnostic_ping_target_preserved": true
+    },
+    {
+      "helper": "public download",
+      "runtime": "v6.9.2",
+      "region": "stg-entrypoint",
+      "dry_run": "patched",
+      "apply": "patched",
+      "repeat": "already-patched",
+      "output_sha256": "9a436421f01bbe8ed03630ca75e0cc81ed234d68aaad271a40a4ec3c3d8b24be",
+      "preflight_read_only": true,
+      "backup_matches": true,
+      "mode_owner_preserved": true,
+      "full_bundle_syntax": "v6.9.2",
+      "diagnostic_ping_target_preserved": true
+    }
+  ],
+  "offline_overlay": {
+    "description": "supplied SSM over otherwise archived production 12.10.0 inputs",
+    "fixture_release": "Release-12.10.0-20180823",
+    "file_checks": {
+      "runtime": "v6.9.2",
+      "checks": [
+        {
+          "check": "region config /usr/local/bin/jibo-ssm/node_modules/@jibo/jibo-server-client/lib/region_config.json",
+          "result": {
+            "dry_run": "patched",
+            "apply": "patched",
+            "repeat": "already-patched"
+          }
+        },
+        {
+          "check": "region config /opt/jibo/Jibo/Skills/oobe-config/node_modules/@jibo/jibo-server-client/lib/region_config.json",
+          "result": {
+            "dry_run": "patched",
+            "apply": "patched",
+            "repeat": "already-patched"
+          }
+        },
+        {
+          "check": "region config /usr/lib/node_modules/@jibo/jibo-log-client/node_modules/@jibo/jibo-server-client/lib/region_config.json",
+          "result": {
+            "dry_run": "patched",
+            "apply": "patched",
+            "repeat": "already-patched"
+          }
+        },
+        {
+          "check": "region config /usr/lib/node_modules/@jibo/jibo-ota-updater/node_modules/@jibo/jibo-server-client/lib/region_config.json",
+          "result": {
+            "dry_run": "patched",
+            "apply": "patched",
+            "repeat": "already-patched"
+          }
+        },
+        {
+          "check": "region config /usr/lib/node_modules/@jibo/jibo-server-client/lib/region_config.json",
+          "result": {
+            "dry_run": "patched",
+            "apply": "patched",
+            "repeat": "already-patched"
+          }
+        },
+        {
+          "check": "setup config",
+          "result": {
+            "dry_run": "patched",
+            "apply": "patched",
+            "repeat": "already-patched"
+          }
+        },
+        {
+          "check": "notification config",
+          "result": {
+            "dry_run": "patched",
+            "apply": "patched",
+            "repeat": "already-patched"
+          }
+        },
+        {
+          "check": "OTA downloader",
+          "result": {
+            "dry_run": "patched",
+            "apply": "patched",
+            "repeat": "already-patched"
+          }
+        },
+        {
+          "check": "Wi-Fi check",
+          "result": {
+            "dry_run": "patched",
+            "apply": "patched",
+            "repeat": "already-patched",
+            "bundle_syntax_runtime": "v6.9.2"
+          }
+        },
+        {
+          "check": "backup and restore",
+          "result": {
+            "dry_run": "jibo-system-backup: original\njibo-system-restore: original",
+            "apply": "jibo-system-backup: original\njibo-system-restore: original",
+            "repeat": "jibo-system-backup: patched\njibo-system-restore: patched"
+          }
+        },
+        {
+          "check": "setup screen text (optional)",
+          "result": {
+            "dry_run": "patched",
+            "apply": "patched",
+            "repeat": "already-patched"
+          }
+        },
+        {
+          "check": "native manager OTA route",
+          "result": "passed"
+        },
+        {
+          "check": "runtime matches the archived binary",
+          "result": "passed"
+        },
+        {
+          "check": "required shell tools",
+          "result": "passed"
+        }
+      ],
+      "failures": [],
+      "installed_skills": []
+    },
+    "shell_checks": {
+      "oobe": {
+        "exit_code": 0,
+        "files_unchanged": true,
+        "runtime": "6.9.2",
+        "fixtures": {
+          "ssh": "local authenticated adapter",
+          "mode": "int-developer",
+          "opt_free_kib": 4000000
+        },
+        "passed": true
+      },
+      "oobe_apply": {
+        "fixtures": {
+          "mounts": "simulated remounts; no host filesystem mounted",
+          "reboot": "disabled",
+          "mode": "isolated JSON file"
+        },
+        "passed": true,
+        "runs": [
+          {
+            "exit_code": 0,
+            "mounts_restored": true,
+            "keys_preserved": true,
+            "trust_matches": true,
+            "passed": true
+          },
+          {
+            "exit_code": 0,
+            "mounts_restored": true,
+            "keys_preserved": true,
+            "trust_matches": true,
+            "passed": true
+          }
+        ]
+      },
+      "paired": {
+        "exit_code": 0,
+        "files_unchanged": true,
+        "runtime": "6.9.2",
+        "fixtures": {
+          "ssh": "local authenticated adapter",
+          "mode": "int-developer",
+          "opt_free_kib": 4000000
+        },
+        "passed": true
+      }
+    },
+    "paired_apply": false,
+    "hardware": false
+  },
+  "regression": {
+    "tests": 52,
+    "pass": 52,
+    "fail": 0,
+    "skipped": 0
+  }
+}

@@ -51,6 +51,20 @@ assert.ok(patcher.patchSource(stock('\n', 14), 'jibo.io', '/etc/x').indexOf('ca:
 assert.throws(function() { patcher.patchSource(stock('\n', 12), 'bad suffix', '/etc/x'); }, /invalid server suffix/);
 var partial = stock('\n', 14).replace('data.region + ".jibo.com"', "data.region + '.openjibo.com'");
 assert.ok(patcher.patchSource(partial, 'example.net', '/etc/x', 'stg-entrypoint').indexOf('"stg-entrypoint.example.net"') >= 0);
+// The owner's 12.10.0 bundle (b0809e59...) has literal OpenJibo hosts in both
+// credential branches, plus a separate diagnostic ping target outside Wi-Fi.
+// Keep this synthetic regression free of the complete vendor bundle.
+var migrated = 'const DOMAIN_LIST = { API: "api.openjibo.com" };\n' + stock('\n', 16)
+  .replace('data.region + ".jibo.com"', '"api.openjibo.com"')
+  .replace('this._wifiService.options.region + ".jibo.com"', '"api.openjibo.com"');
+['api', 'stg-entrypoint'].forEach(function(region) {
+  var output = patcher.patchSource(migrated, 'jibo.io', '/etc/ssl/certs/ca-certificates.crt', region);
+  assert.strictEqual(output.split('this._jiboServerUrl = "' + region + '.jibo.io";').length - 1, 2);
+  assert.strictEqual(output.indexOf('this._jiboServerUrl = "api.openjibo.com";'), -1);
+  assert.ok(output.indexOf('const DOMAIN_LIST = { API: "api.openjibo.com" };') === 0);
+  assert.ok(output.indexOf('.match(/-----BEGIN CERTIFICATE-----') >= 0);
+  assert.strictEqual(patcher.patchSource(output, 'jibo.io', '/etc/ssl/certs/ca-certificates.crt', region), output);
+});
 assert.strictEqual(patcher.inspect(stock('\n', 12).replace('data.region + ".jibo.com"', "'joap.5x1.com'"), 'jibo.io', '/etc/x').state, 'patched');
 var google = 'class Wifi { constructor() { this._jiboServerUrl = "google.com"; } _checkJiboServers() {} }';
 assert.strictEqual(patcher.inspect(google, 'jibo.io', '/etc/x').state, 'not-needed (checks google.com)');
@@ -69,4 +83,4 @@ var once = patcher.patchSource(stock('\n', 12), 'example.net', '/etc/x');
 var twice = patcher.patchSource(once, 'jibo.io', '/etc/x', 'api');
 assert.strictEqual(twice.indexOf('api.example.net'), -1);
 assert.strictEqual(patcher.patchSource(twice, 'jibo.io', '/etc/x'), twice);
-process.stdout.write(JSON.stringify({ ok: true, checks: ['structural hostname/request checks', 'split CA bundle', 'arbitrary indentation and quotes', 'partial/third-party repoints', 'CRLF preserved', 'TLS and ambiguity refusal', 'idempotent'] }) + '\n');
+process.stdout.write(JSON.stringify({ ok: true, checks: ['structural hostname/request checks', 'split CA bundle', 'arbitrary indentation and quotes', 'partial/third-party repoints', '12.10.0 literal OpenJibo branches', 'CRLF preserved', 'TLS and ambiguity refusal', 'idempotent'] }) + '\n');
