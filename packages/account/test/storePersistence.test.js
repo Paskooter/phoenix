@@ -5,6 +5,32 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { Store } from '../src/store.js';
 
+test('compatibility executable retains Home Assistant action tombstones during ordinary saves', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'phoenix-account-action-compat-'));
+  try {
+    const file = join(dir, 'account.json');
+    const action = {
+      _id: 'synthetic-action', installationId: 'synthetic-installation',
+      requestId: '00000000-0000-4000-8000-000000000001',
+      payloadHash: 'synthetic-payload-hash', state: 'finished',
+      result: { status: 'uncertain', code: 'confirmation_lost' },
+    };
+    writeFileSync(file, JSON.stringify({
+      accounts: [{ _id: 'synthetic-owner', nickname: 'Original' }],
+      homeAssistantActions: [action],
+    }), { mode: 0o600 });
+    const store = new Store(file);
+    assert.deepEqual(store.homeAssistantActions.get(action._id), action);
+    store.accounts.get('synthetic-owner').nickname = 'Updated';
+    store.flush();
+    assert.deepEqual(JSON.parse(readFileSync(file, 'utf8')).homeAssistantActions, [action]);
+    assert.deepEqual(new Store(file).homeAssistantActions.get(action._id), action);
+    assert.equal(statSync(file).mode & 0o777, 0o600);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('Account saves retain private credentials across replacement and reload', () => {
   const dir = mkdtempSync(join(tmpdir(), 'phoenix-account-permissions-'));
   const previousMask = process.umask(0);
