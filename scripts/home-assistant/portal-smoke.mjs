@@ -52,11 +52,34 @@ try {
   // The page notices on its own: the setup card confirms, and the link reads Connected.
   await page.getByText('Connected to Home Assistant 2026.8.1').waitFor({ timeout: 10000 });
   await page.locator('.ha-install').getByText('Connected', { exact: true }).waitFor({ timeout: 10000 });
+  // The linked installation has no reverse permission until its owner opts in.
+  const announcements = page.getByRole('checkbox', { name: /Allow Home Assistant announcements/ });
+  const permissionLabel = page.locator('.ha-install label.switch').filter({ hasText: 'Allow Home Assistant announcements' });
+  assert.equal(await announcements.isChecked(), false);
+  assert.equal(store.homeAssistantInstallations.get(exchanged.installation_id).announcementsEnabled, false);
+  await permissionLabel.click();
+  await page.getByText('Home Assistant announcements allowed', { exact: true }).waitFor();
+  assert.equal(new Store(store.file).homeAssistantInstallations.get(exchanged.installation_id).announcementsEnabled, true);
   for (const width of [390, 768, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${width}px overflow`);
   }
   await page.getByRole('button', { name: 'Done', exact: true }).click();
+  await page.reload();
+  await permissionLabel.waitFor();
+  assert.equal(await announcements.isChecked(), true);
+  // A failed save restores the previous choice instead of implying permission.
+  await page.route('**/api/home-assistant/installation', (route) => route.fulfill({
+    status: 403, contentType: 'application/json', body: JSON.stringify({ error: 'forbidden' }),
+  }));
+  await permissionLabel.click();
+  await page.getByText('Could not save announcement permission.', { exact: true }).waitFor();
+  assert.equal(await announcements.isChecked(), true);
+  assert.equal(store.homeAssistantInstallations.get(exchanged.installation_id).announcementsEnabled, true);
+  await page.unroute('**/api/home-assistant/installation');
+  await permissionLabel.click();
+  await page.getByText('Home Assistant announcements turned off', { exact: true }).waitFor();
+  assert.equal(new Store(store.file).homeAssistantInstallations.get(exchanged.installation_id).announcementsEnabled, false);
   // Disconnecting asks first; declining keeps the link.
   const disconnect = page.locator('.ha-install').getByRole('button', { name: 'Disconnect' });
   await disconnect.click();
@@ -78,7 +101,7 @@ try {
   assert.equal(service.homeAssistant.authenticate(`Bearer ${exchanged.credential}`), null);
   const storage = await page.evaluate(() => JSON.stringify([localStorage, sessionStorage]));
   assert.ok(!storage.includes(exchanged.credential) && !storage.includes(code) && !storage.includes(unused));
-  console.log('PASS owner code, live connection, confirmed revocation, cancelled code and 390/768/1440px setup page');
+  console.log('PASS owner code, live connection, explicit announcement permission persistence/save failure, confirmed revocation, cancelled code and 390/768/1440px setup page');
 } finally {
   connector?.terminate(); await browser?.close(); service.homeAssistant.close();
   service.server.closeAllConnections();

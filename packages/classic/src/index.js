@@ -40,6 +40,7 @@ import {
 import { stubRegistrations } from './stubs.js';
 import { proxyMemberPhoto } from './photoProxy.js';
 import { PublicOriginError, configuredPublicOrigin } from './publicOrigin.js';
+import { homeAssistantPresenceRoutes } from './homeAssistantPresenceRoutes.js';
 import {
   forgetIfttt, forgetJot, forgetKeys, forgetMedia, forgetNotifications, forgetPerson, forgetPushDevices, forgetVoiceTraining,
 } from './accountForget.js';
@@ -413,7 +414,7 @@ export function makeKeyNeededNotifier(hub, membership) {
  * socket (the wss push door) is attached to the same HTTP server — the robot reaches the REST
  * face and the socket on one host (path /socket/<token>).
  */
-export function createClassicEntrypoint({ extra = [], tls, publicUrl, publicOrigin, requirePublicUrl, callerBoundary, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership, backup, log, media, key, keyStore, keyMembership, keyBinaryDir, rom, robotStore, ifttt, nlp, person, collision, gqa, jot, voiceTraining } = {}) {
+export function createClassicEntrypoint({ extra = [], tls, publicUrl, publicOrigin, requirePublicUrl, callerBoundary, homeAssistantPresencePeerToken, notificationFile, notificationStore, notificationClock, notificationTtlMs, notificationPollIntervalMs, notificationAccountResolver, backupOwnership, backup, log, media, key, keyStore, keyMembership, keyBinaryDir, rom, robotStore, ifttt, nlp, person, collision, gqa, jot, voiceTraining } = {}) {
   const configuredOrigin = configuredPublicOrigin({ publicUrl, publicOrigin });
   if ((requirePublicUrl === true || (requirePublicUrl === undefined && !!callerBoundary)) && !configuredOrigin) {
     throw new PublicOriginError('publicUrl is required for an authenticated Classic entrypoint');
@@ -474,6 +475,7 @@ export function createClassicEntrypoint({ extra = [], tls, publicUrl, publicOrig
     // intact to reject them before token mutation. Other routes stay strict.
     jsonStrict: (req) => !isCreateHubTokenTarget(req) && !isNotificationTarget(req) && !isLoopTarget(req) && !isAccountTarget(req),
     routes: {
+      ...homeAssistantPresenceRoutes(hub, { callerBoundary, peerToken: homeAssistantPresencePeerToken }),
       ...classicRoutes(hub, [...extra, { match: /^backup/i, handler: makeBackupHandler(backups, baseFor, { ownership: effectiveBackupOwnership, callerBoundary }) }], {
         notificationAccountResolver,
         callerBoundary,

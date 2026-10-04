@@ -449,7 +449,8 @@ robot vhost.
 ### Cloudflare settings that matter for Phoenix
 
 - **WebSockets:** enable Cloudflare WebSockets for the zone. The hub paths are
-  `/listen`, `/v1/listen`, `/proactive`, and `/v1/proactive`; keep nginx's
+  `/listen`, `/v1/listen`, `/proactive`, `/v1/proactive`, and the capability-gated
+  robot announcement socket `/v1/robot-actions`; keep nginx's
   `proxy_http_version 1.1`, `Upgrade`, `Connection`, buffering, and long read
   timeout settings. A successful Cloudflare TCP/HTTPS connection alone does
   not prove a WebSocket upgrade or a valid Phoenix Bearer token.
@@ -1053,6 +1054,8 @@ server {
     listen [::]:443 ssl;
     server_name classic.example.com;
 
+    location ^~ /internal/ { return 404; }
+
     if ($host != $server_name) { return 444; }
 
     ssl_certificate     /etc/letsencrypt/live/phoenix-public/fullchain.pem;
@@ -1131,6 +1134,8 @@ server {
     listen 443 ssl;
     listen [::]:443 ssl;
     server_name api.jibo.com api-socket.jibo.com;
+
+    location ^~ /internal/ { return 404; }
 
     if ($host !~ ^(?:api\.jibo\.com|api-socket\.jibo\.com)$) { return 444; }
 
@@ -1246,17 +1251,30 @@ server {
     proxy_send_timeout 5m;
     send_timeout 5m;
 
+    # Account-to-Hub peer actions are private, even with peer authentication.
+    location ^~ /internal/ { return 404; }
+
     location / {
         proxy_pass http://phoenix_hub;
     }
 }
 ```
 
-The hub's own WebSocket paths are `/listen`, `/v1/listen`, `/proactive`, and
-`/v1/proactive`; it verifies `Authorization: Bearer <JWT>` during the upgrade
+The hub's own WebSocket paths are `/listen`, `/v1/listen`, `/proactive`,
+`/v1/proactive`, and `/v1/robot-actions`; it verifies `Authorization: Bearer <JWT>` during the upgrade
 when auth is enabled (`packages/gateway/src/index.js:3-10`, `25-26`,
 `43-54`, `102-124`). The catch-all hub location intentionally also forwards
 `/healthcheck` and `/v1/skills`.
+
+The announcement socket additionally verifies the robot's live Account identity.
+Only a compatible robot receiver can connect; it does not replace the normal
+voice sockets. Keep `/internal/` blocked at the public edge. Account reaches the
+Hub and Classic presence peers through their private service URLs and the
+existing internal peer token. Connector and robot sockets, heartbeats, roster
+refreshes, and presence reads do not count as deployment activity. Actual
+announcements participate in Hub admission and remain active until native
+completion or an observed idle state; an expired confirmation deadline alone
+does not prove the robot stopped speaking.
 
 The long timeouts are deliberate. The protocol constants allow a 180-second
 WebSocket maximum (`packages/contracts/src/constants.js:80-89`), and OTA files
@@ -1322,6 +1340,12 @@ traffic uses container port `8080` on `pegasus-nw` (`docker-compose.yml:30-260`)
 
 For isolated localhost contract testing, add `docker-compose.dev.yml`; it binds
 the reference ports to `127.0.0.1` only. It is not a public edge configuration.
+
+Hub and OTA share the private `phoenix-runtime` named volume at
+`/home/node/phoenix-runtime`, with `PHOENIX_RUNTIME_DIR` set on both services.
+The image initializes that directory for the unprivileged `node` user. Preserve
+this volume when replacing containers: it holds deployment telemetry and the
+durable native-announcement execution ledger, without announcement text.
 
 The ASR service at 6972 is intentionally absent from this table because it is
 external to Compose. The native runner uses the same service names/ports and
@@ -1422,6 +1446,16 @@ through startup checks and rollback, is removed on completion, and expires after
 counters contain only counts, timestamps and process identity under
 `PHOENIX_RUNTIME_DIR/deployment/`. Set `PHOENIX_DEPLOY_RUNTIME_DIR` for the deploy
 command if the launcher's runtime directory differs from `/var/lib/phoenix/run`.
+
+Native announcements reserve real Hub execution activity. Gateway durably records
+their UUID and verified robot binding in
+`PHOENIX_RUNTIME_DIR/robot-actions/outstanding.json` before dispatch. On startup,
+unfinished reservations restore activity before the first fresh heartbeat, even
+if the robot remains offline. A verified native completion or stop proof clears
+the record; a lost result never queues a replay. Unreadable storage or failed
+durable clearance retains quarantine for investigation. Preserve this private
+runtime directory across releases and restarts. Idle connector sockets,
+heartbeats and status polls do not reserve execution activity.
 
 The first rollout from an older release bootstraps by observing its persisted
 voice-turn records and established Hub/OTA connections for the same full minute,
@@ -1984,6 +2018,14 @@ robot trust path, remains an operator acceptance test.
 
 ### Rollback
 
+- For Home Assistant announcement releases, the previous executable must preserve
+  `homeAssistantInstallations`, `homeAssistantCodes`, and `homeAssistantActions`
+  during every Account load/save. Deploy the collection-preserving compatibility
+  release before enabling the feature release; automatic health rollback uses
+  that previous executable too. Earlier connector code preserves links but drops
+  action tombstones on its next write. Restoring or relinking a connection cannot
+  recover command history. Keep the durable `robot-actions` runtime directory
+  through every code rollback.
 - Restore the previous reviewed checkout/image and run the same `config --quiet`,
   health, and nginx syntax gates.
 - For an immutable native release, deploy the previous release SHA with the same

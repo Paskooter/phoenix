@@ -66,6 +66,7 @@ services:
       # against the account service. Harmless when auth is disabled.
       - ETCO_hub_accountUrl=http://account:8080
       - ETCO_account_internalPeerToken=${ETCO_account_internalPeerToken:?Set ETCO_account_internalPeerToken in .env before starting Phoenix}
+      - PHOENIX_RUNTIME_DIR=/home/node/phoenix-runtime
       - NET_parser=parser:8080
       - NET_history=history:8080
       - NET_data=lasso:8080
@@ -76,6 +77,8 @@ services:
       - NET_settings=account:8080
       - ETCO_server_parakeetUrl=${PARAKEET_URL:-}
       - PHOENIX_FFMPEG=/usr/bin/ffmpeg
+    volumes:
+      - phoenix-runtime:/home/node/phoenix-runtime:rw
     ports:
       - 127.0.0.1:${HUB_PORT:-9000}:8080
 
@@ -204,6 +207,7 @@ services:
     command: node packages/ota/src/index.js
     environment:
       - PORT=8080
+      - PHOENIX_RUNTIME_DIR=/home/node/phoenix-runtime
       # Pin package URLs to an operator-owned HTTPS origin. An empty value would
       # make the application derive URLs from an attacker-controlled Host header.
       - ETCO_ota_publicUrl=${OTA_PUBLIC_URL:?Set OTA_PUBLIC_URL to an HTTPS package origin}
@@ -217,6 +221,7 @@ services:
     volumes:
       # OTA serves reviewed artifacts; the update directory is never writable
       # from the service container.
+      - phoenix-runtime:/home/node/phoenix-runtime:rw
       - ./packages/ota/data:/phoenix/packages/ota/data:ro
       - ./packages/account/data:/phoenix/packages/account/data:ro
     ports:
@@ -247,6 +252,8 @@ services:
       # Display-only public IP used by the portal's physical-robot claim command.
       - ETCO_account_repointHost=${ETCO_account_repointHost:-}
       - NET_ota=ota:8080         # so the robot's single endpoint reaches Update_* via /
+      - NET_classic=classic:8080
+      - ETCO_account_internalPeerToken=${ETCO_account_internalPeerToken:?Set ETCO_account_internalPeerToken in .env before starting Phoenix}
       # Admin-only voice-turn telemetry is fetched from the private hub with a
       # server-held HMAC proof; this is never a browser-visible hub address.
       - NET_hub=hub:8080
@@ -313,3 +320,6 @@ services:
 
 networks:
   pegasus-nw:
+
+volumes:
+  phoenix-runtime:

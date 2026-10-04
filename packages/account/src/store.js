@@ -3,7 +3,7 @@
 // file with atomic writes (tmp + rename) is plenty at household scale and keeps Phoenix
 // zero-dependency. Collections are Maps keyed by _id; every mutation schedules a flush.
 
-import { readFileSync, writeFileSync, renameSync, existsSync, mkdirSync, openSync, closeSync, unlinkSync } from 'node:fs';
+import { readFileSync, writeFileSync, renameSync, existsSync, mkdirSync, openSync, closeSync, unlinkSync, fsyncSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,7 +12,7 @@ import { reconcileHomeAssistantBindings } from './integrations/homeAssistant/bin
 const DEFAULT_FILE = join(dirname(fileURLToPath(import.meta.url)), '../data/store.json');
 // `settings` holds per-account report-skill PersonalReportSettingsData (keyed by _id = accountId).
 // `oauthClients` holds the admin OAuth-client registry (OauthClients_20171108), keyed by _id.
-const COLLECTIONS = ['accounts', 'loops', 'tokens', 'sessions', 'settings', 'notificationOutbox', 'emailResets', 'emailVerifications', 'phoneVerifications', 'oauthClients', 'webPushSubscriptions', 'homeAssistantInstallations', 'homeAssistantCodes'];
+const COLLECTIONS = ['accounts', 'loops', 'tokens', 'sessions', 'settings', 'notificationOutbox', 'emailResets', 'emailVerifications', 'phoneVerifications', 'oauthClients', 'webPushSubscriptions', 'homeAssistantInstallations', 'homeAssistantCodes', 'homeAssistantActions'];
 
 export class Store {
   /** @param {string} [file] JSON file path (ETCO_account_dataFile overrides the default) */
@@ -35,7 +35,7 @@ export class Store {
   }
 
   /** Replace the snapshot atomically, keeping credential bytes private. */
-  flush() {
+  flush({ durable = false } = {}) {
     reconcileHomeAssistantBindings(this);
     const out = {};
     for (const c of COLLECTIONS) out[c] = [...this[c].values()];
@@ -48,10 +48,15 @@ export class Store {
     try {
       try {
         writeFileSync(fd, serialized);
+        if (durable) fsyncSync(fd);
       } finally {
         closeSync(fd);
       }
       renameSync(tmp, this.file);
+      if (durable) {
+        const parent = openSync(dirname(this.file), 'r');
+        try { fsyncSync(parent); } finally { closeSync(parent); }
+      }
     } finally {
       // Only remove the temporary file this invocation created. Preserve the
       // original write/rename error if cleanup is also unavailable.

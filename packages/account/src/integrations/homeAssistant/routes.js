@@ -38,6 +38,8 @@ export function homeAssistantRoutes(store, broker, { peerToken = process.env.ETC
       if (!row || row.ownerId !== account._id) return sendJson(res, 404, { error: 'not_found' });
       broker.revoke(row); return {};
     }),
+    'PUT /api/home-assistant/installation': owner(({ body }, account) =>
+      broker.setAnnouncements(account, body.installationId, body.announcementsEnabled)),
     'POST /api/home-assistant/exchange': wrap(({ req, res, body }) => {
       if (!broker.allowExchange(req.socket.remoteAddress)) return sendJson(res, 429, { error: 'rate_limited' });
       return broker.exchangeCode(body.code);
@@ -47,7 +49,8 @@ export function homeAssistantRoutes(store, broker, { peerToken = process.env.ETC
       if (!row) return sendJson(res, 401, { error: 'invalid_auth' });
       broker.revoke(row, 'integration_removed'); return {};
     }),
-    'POST /internal/home-assistant/selection': peer(({ body }) => ({ enabled: !!broker.selection(body.identity) })),
-    'POST /internal/home-assistant/command': peer(({ body }) => broker.command(body.identity, body.text, body.language)),
+    'POST /internal/home-assistant/selection': peer(({ body }) => broker.selectionDetails(body.identity)),
+    'POST /internal/home-assistant/command': peer(({ body }) => broker.command(body.identity, body.text, body.language, body.route)),
+    'POST /internal/home-assistant/robot-action/authorize': peer(({ body }) => broker.authorizeAction(body)),
   };
 }

@@ -28,6 +28,9 @@ RUN npm ci --ignore-scripts --omit=dev --no-audit --no-fund \
 # Keep the application root itself non-writable even when this image is run
 # outside the hardened Compose read-only rootfs.
 USER root
-RUN chown root:root /phoenix && chmod 0555 /phoenix
+RUN chown root:root /phoenix && chmod 0555 /phoenix \
+  && mkdir -p /home/node/phoenix-runtime \
+  && chown node:node /home/node/phoenix-runtime \
+  && chmod 0700 /home/node/phoenix-runtime
 USER node
 CMD ["node", "packages/gateway/src/index.js"]

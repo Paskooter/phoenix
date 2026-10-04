@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createDeploymentActivity } from '../src/deploymentActivity.js';
@@ -44,5 +44,44 @@ test('activity spans completion, acknowledges a drain and resumes after lease ex
 test('unconfigured standalone services retain ordinary admission behavior', () => {
   const activity = createDeploymentActivity('hub', { runtimeDir: '' });
   activity.begin('voice')();
+  activity.trackExisting('robot-action')();
   activity.stop();
+});
+
+test('observed existing execution remains counted during drain without admitting new work', t => {
+  const runtimeDir = mkdtempSync(join(tmpdir(), 'deployment-recovered-'));
+  t.after(() => rmSync(runtimeDir, { recursive: true, force: true }));
+  let now = 10000;
+  const activity = createDeploymentActivity('hub', { runtimeDir, now: () => now });
+  t.after(() => activity.stop());
+  const state = () => JSON.parse(readFileSync(join(runtimeDir, 'deployment', 'hub.json')));
+  writeFileSync(join(runtimeDir, 'deployment', 'drain.json'), JSON.stringify({ version: 1, id: 'recovered', expiresAt: now + 15000 }));
+  assert.equal(activity.begin('voice'), null);
+  const end = activity.trackExisting('robot-action');
+  assert.equal(typeof end, 'function');
+  assert.equal(state().active['robot-action'], 1);
+  assert.equal(state().drainId, 'recovered');
+  assert.equal(activity.begin('voice'), null, 'observing existing work does not weaken admission');
+  now += 100;
+  end(); end();
+  assert.equal(state().active['robot-action'], 0);
+  assert.equal(state().lastActivityAt, now);
+  activity.stop();
+  assert.equal(activity.trackExisting('robot-action'), null);
+});
+
+test('startup recovery counts existing work before this process publishes its first heartbeat', t => {
+  const runtimeDir = mkdtempSync(join(tmpdir(), 'deployment-startup-'));
+  t.after(() => rmSync(runtimeDir, { recursive: true, force: true }));
+  const file = join(runtimeDir, 'deployment', 'hub.json');
+  let end;
+  const activity = createDeploymentActivity('hub', { runtimeDir, onStartup: recovering => {
+    assert.equal(existsSync(file), false);
+    end = recovering.trackExisting('robot-action');
+    assert.equal(existsSync(file), false, 'recovery cannot expose an intermediate fresh zero');
+  } });
+  t.after(() => activity.stop());
+  assert.equal(JSON.parse(readFileSync(file)).active['robot-action'], 1);
+  end();
+  assert.equal(JSON.parse(readFileSync(file)).active['robot-action'], 0);
 });

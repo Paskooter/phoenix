@@ -3,6 +3,7 @@
 // Robot-facing contract (docs/atlas/packages/hub.md, message-protocol.md; ported from
 // hub/HubService.ts, BaseService.ts, listen/*):
 //   WS  /listen, /v1/listen      one socket == one listen transaction
+//   WS  /v1/robot-actions       authenticated native BE announcement receiver
 //   GET /healthcheck, /v1/skills
 // Auth rides the WS upgrade: Authorization: Bearer <HS256 JWT> verified vs
 // ETCO_server_hubTokenSecret; ETCO_hub_disableAuth=true skips it (anonymous identity).
@@ -36,6 +37,9 @@ import { HistoryClient } from './historyClient.js';
 import { SettingsClient } from './settingsClient.js';
 import { ProactiveTransaction } from './proactive/proactiveTransaction.js';
 import { HomeAssistantClient } from './homeAssistantClient.js';
+import { RobotActionBridge } from './robotActionBridge.js';
+import { robotActionRoutes } from './robotActionRoutes.js';
+import { ROBOT_ACTION_PATH, robotIdentity } from './robotActionProtocol.js';
 
 const LISTEN_PATHS = new Set(['/listen', '/v1/listen']);
 const PROACTIVE_PATHS = new Set(['/proactive', '/v1/proactive']);
@@ -100,7 +104,7 @@ export function checkAuthentication(headers, secret) {
  * through — accountUrl only constrains tokens that present one.
  * @returns {Promise<{ok:true}|{error:string}>}
  */
-export async function verifyAgainstAccount(auth, accountUrl, log, { timeoutMs } = {}) {
+export async function verifyAgainstAccount(auth, accountUrl, log, { timeoutMs, onVerified } = {}) {
   if (!auth || !auth.accessKeyId) return { ok: true };
   try {
     const res = await fetch(`${accountUrl}/api/verify?accessKeyId=${encodeURIComponent(auth.accessKeyId)}`, {
@@ -110,6 +114,12 @@ export async function verifyAgainstAccount(auth, accountUrl, log, { timeoutMs } 
     const v = await res.json();
     if (!v.valid) return { error: 'account not found or inactive' };
     if (auth.friendlyId && v.friendlyId && auth.friendlyId !== v.friendlyId) return { error: 'friendlyId mismatch' };
+    // Keep legacy accept/reject semantics, but expose a strict server identity
+    // separately for native action coordination and current presence telemetry.
+    if (auth.id === v.id && auth.friendlyId === v.friendlyId) {
+      const identity = robotIdentity({ id: v.id, accessKeyId: auth.accessKeyId, friendlyId: v.friendlyId });
+      if (identity) onVerified?.(identity);
+    }
     return { ok: true };
   } catch (e) {
     log?.warn?.('account verify unreachable (fail-closed)', { error: e.message, accountUrl });
@@ -122,8 +132,13 @@ export async function createGateway(config = loadConfig()) {
   config = await config;
   initializeVoiceTurnStorage();
   const log = logger('gateway');
-  const deploymentActivity = createDeploymentActivity('hub', { log });
   const components = buildComponents(config);
+  const robotActionPeerToken = config.robotActions?.peerToken || config.homeAssistant?.token || process.env.ETCO_account_internalPeerToken;
+  let robotActions;
+  const deploymentActivity = createDeploymentActivity('hub', { log, onStartup: activity => {
+    robotActions = new RobotActionBridge({ ...(config.robotActions || {}), config,
+      authenticate: checkAuthentication, activity, log, peerToken: robotActionPeerToken });
+  } });
   const settingsSkills = config.skills.filter(skill => !!skill.settings);
   const listSkills = () => ({ skills: config.skills });
   const listSettingsSkills = () => ({ skills: settingsSkills });
@@ -132,6 +147,7 @@ export async function createGateway(config = loadConfig()) {
   const service = createService({
     name: 'gateway',
     routes: {
+      ...robotActionRoutes(robotActions, { peerToken: robotActionPeerToken }),
       'GET /skills/:robotId': listSkills,
       'GET /skills/settings/:robotId': listSettingsSkills,
       'GET /v1/skills/:robotId': listSkills,
@@ -156,18 +172,31 @@ export async function createGateway(config = loadConfig()) {
     },
   });
 
-  service.server.once('close', () => deploymentActivity.stop());
-  const admit = (info, cb) => {
+  service.server.once('close', () => { robotActions.close(); deploymentActivity.stop(); });
+  const admit = async (info, cb) => {
     const end = deploymentActivity.begin('voice');
     if (!end) return cb(false, 503, 'Server restarting; retry shortly', { 'Retry-After': '5' });
-    info.req._endDeploymentActivity = end;
+    const releaseVoice = robotActions.reserveVoice(info.req._auth, { verifiedIdentity: info.req._verifiedRobotIdentity });
+    const release = () => { releaseVoice(); end(); };
+    info.req._endDeploymentActivity = release;
     // Failed upgrades never get a transaction. Accepted connections release
     // their count when tx.done settles, including cancellation and failures.
-    info.req.socket.once('close', () => { if (!info.req._deploymentConnected) end(); });
+    info.req.socket.once('close', () => { if (!info.req._deploymentConnected) release(); });
+    // Ordinary voice has priority over a reverse announcement, but it must wait
+    // for the native speech stop acknowledgement before starting its transaction.
+    // Proactive work cannot interrupt an owner-requested announcement.
+    const ready = await robotActions.prepareVoice(info.req._auth, {
+      interrupt: LISTEN_PATHS.has(info.req.url), verifiedIdentity: info.req._verifiedRobotIdentity,
+    });
+    if (info.req.socket.destroyed) { release(); return; }
+    if (!ready) {
+      release();
+      return cb(false, 503, 'Robot announcement stopping; retry shortly', { 'Retry-After': '5' });
+    }
     cb(true, 200, '');
   };
   const wss = new WebSocketServer({
-    server: service.server,
+    noServer: true,
     verifyClient: (info, cb) => {
       // BaseService registers exact socket URLs. Query strings therefore remain
       // part of the lookup key and are rejected with the source 404 contract.
@@ -183,11 +212,20 @@ export async function createGateway(config = loadConfig()) {
       if (!pathOk) return cb(false, 404, `WebSocket url '${info.req.url}' has no handler`);
       if (!config.accountUrl) return admit(info, cb); // shared-secret-only mode
       // Per-robot account validation (async — ws supports a deferred cb).
-      verifyAgainstAccount(auth, config.accountUrl, log, { timeoutMs: config.accountVerifyTimeoutMs }).then((r) => {
+      verifyAgainstAccount(auth, config.accountUrl, log, { timeoutMs: config.accountVerifyTimeoutMs,
+        onVerified: (identity) => { info.req._verifiedRobotIdentity = identity; },
+      }).then((r) => {
         if (r.error) { log.warn('ws account check failed', { error: r.error }); return cb(false, 401, r.error); }
         admit(info, cb);
       });
     },
+  });
+
+  // Keep the legacy authentication-before-path ordering in its own unchanged
+  // verifier, while bounding frames on the new persistent control channel.
+  service.server.on('upgrade', (req, socket, head) => {
+    const server = req.url === ROBOT_ACTION_PATH ? robotActions.wss : wss;
+    server.handleUpgrade(req, socket, head, (ws) => server.emit('connection', ws, req));
   });
 
   wss.on('connection', (ws, req) => {
@@ -242,7 +280,7 @@ export async function createGateway(config = loadConfig()) {
     tx.done.then(req._endDeploymentActivity, req._endDeploymentActivity);
   });
 
-  return { service, wss, components };
+  return { service, wss, components, robotActions };
 }
 
 export async function start(port = Number(process.env.PORT) || DefaultPort.gateway, config = loadConfig()) {

@@ -23,7 +23,7 @@ test('Account saves retain private credentials across replacement and reload', (
     for (const mask of [0o000, 0o002, 0o022, 0o077]) {
       process.umask(mask);
       store.accounts.get('robot').nickname = `mask-${mask}`;
-      store.flush();
+      store.flush({ durable: true });
       assert.equal(statSync(file).mode & 0o777, 0o600);
       assert.deepEqual(new Store(file).accounts.get('robot'), store.accounts.get('robot'));
     }
@@ -44,7 +44,7 @@ test('rejected Account snapshots preserve committed bytes and clean their own te
     store.flush();
     const committed = readFileSync(file);
     store.accounts.get('robot').invalid = 1n;
-    assert.throws(() => store.flush(), TypeError);
+    assert.throws(() => store.flush({ durable: true }), TypeError);
     assert.deepEqual(readFileSync(file), committed);
     assert.deepEqual(readdirSync(dir), ['account.json']);
     delete store.accounts.get('robot').invalid;
@@ -54,7 +54,7 @@ test('rejected Account snapshots preserve committed bytes and clean their own te
     const blocked = join(dir, 'blocked.json');
     mkdirSync(blocked);
     store.file = blocked;
-    assert.throws(() => store.flush(), error => ['EISDIR', 'ENOTEMPTY', 'EEXIST'].includes(error.code));
+    assert.throws(() => store.flush({ durable: true }), error => ['EISDIR', 'ENOTEMPTY', 'EEXIST'].includes(error.code));
     assert.deepEqual(readFileSync(file), committed);
     assert.deepEqual(readdirSync(dir).sort(), ['account.json', 'blocked.json']);
     store.file = file;

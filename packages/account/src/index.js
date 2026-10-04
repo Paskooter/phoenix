@@ -41,6 +41,7 @@ import { userFromSession } from './portal/session.js';
 import { WebPushService, webPushConfigFromEnv } from './webPush.js';
 import { HomeAssistantBroker } from './integrations/homeAssistant/broker.js';
 import { homeAssistantRoutes } from './integrations/homeAssistant/routes.js';
+import { createRobotAnnouncementAdapter } from './integrations/homeAssistant/robotAdapter.js';
 
 export { Store, getStore, resetStore } from './store.js';
 export * as model from './model.js';
@@ -323,6 +324,7 @@ function verifiedClassicPhotoCaller(store, req) {
 }
 
 export function createAccountService({
+  homeAssistantOptions = {},
   store = getStore(),
   settingsProviders,
   notificationPublisher,
@@ -422,7 +424,9 @@ export function createAccountService({
     fetchOptions: calendarFetchOptions,
     ...calendarRefreshOptions,
   });
-  const homeAssistant = new HomeAssistantBroker(store);
+  const homeAssistant = new HomeAssistantBroker(store, {
+    robotAdapter: createRobotAnnouncementAdapter(), ...homeAssistantOptions,
+  });
   const routes = {
     // The direct Account photo ingress is intentionally session-bound. Public
     // photo URLs should point at Classic's signed proxy; an accidental

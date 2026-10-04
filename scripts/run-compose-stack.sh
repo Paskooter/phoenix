@@ -368,6 +368,7 @@ svc_account() {
     ETCO_account_secureCookies="${ETCO_account_secureCookies:-true}" \
     ETCO_account_photoBaseUrl="$PHOTO_PUBLIC_URL" \
     ETCO_account_photoDirectory="$PHOTO_DIRECTORY" \
+    ETCO_account_internalPeerToken="$ACCOUNT_INTERNAL_PEER_TOKEN" \
     NET_classic="localhost:$(p 9012)" \
     NET_ota="localhost:$(p 9010)" \
     NET_hub="localhost:$(p 9000)" \
@@ -396,6 +397,7 @@ svc_classic() {
   exec env PORT="$(p 9012)" \
     NET_account="localhost:$(p 9011)" \
     NET_ota="localhost:$(p 9010)" \
+    ETCO_account_internalPeerToken="$ACCOUNT_INTERNAL_PEER_TOKEN" \
     ETCO_ota_internalPeerToken="$OTA_INTERNAL_PEER_TOKEN" \
     ETCO_gqa_attributionFile="$GQA_ATTRIBUTION_FILE" \
     ETCO_classic_accountDataFile="$ACCOUNT_DATA_FILE" \

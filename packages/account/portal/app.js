@@ -5187,7 +5187,7 @@ function haInstallationFacts(installation) {
 }
 
 /** One linked Home Assistant: whether it is connected, which Jibos use it, and its actions. */
-function haInstallationCard(installation, robotFor, onDisconnect) {
+function haInstallationCard(installation, robotFor, onDisconnect, onAnnouncements) {
   const facts = haInstallationFacts(installation);
   const robots = (installation.robots || []).map(robotFor);
   const name = meaningfulText(installation.name) || 'Home Assistant';
@@ -5196,6 +5196,17 @@ function haInstallationCard(installation, robotFor, onDisconnect) {
     : facts.connecting
       ? h('span', { class: 'pill' }, h('span', { class: 'spinner' }), 'Connecting')
       : h('span', { class: 'pill pill-warn' }, 'Not connected');
+  const announcements = toggle('announcements', installation.announcementsEnabled === true,
+    'Allow Home Assistant announcements',
+    'Home Assistant can speak through these Jibos while they’re idle, using Jibo’s current volume. Set quiet hours in Home Assistant. Off until you choose to allow it.');
+  announcements.querySelector('input').addEventListener('change', async (event) => {
+    const input = event.target;
+    const enabled = input.checked;
+    input.disabled = true;
+    const saved = await onAnnouncements(installation, enabled);
+    if (!saved) input.checked = installation.announcementsEnabled === true;
+    input.disabled = false;
+  });
   return h('section', { class: `card ha-install is-${facts.state}` },
     h('div', { class: 'ha-install-head' },
       haBridge(robots, facts.state),
@@ -5207,6 +5218,7 @@ function haInstallationCard(installation, robotFor, onDisconnect) {
       h('div', {},
         h('span', { class: 'ha-label' }, robots.length === 1 ? 'Linked Jibo' : 'Linked Jibos'),
         h('div', { class: 'ha-robots' }, robots.map(haRobotChip))),
+      announcements,
       facts.state === 'down'
         ? h('div', { class: 'notice notice-warn' }, icon('alert', 16), h('div', {}, facts.seen
           ? 'Jibo can’t reach this Home Assistant right now. Check that it’s running and online. It reconnects by itself, usually within a minute.'
@@ -5221,7 +5233,7 @@ function haInstallationCard(installation, robotFor, onDisconnect) {
 /** A redraw only when something a person can see has changed. */
 function haInstallationKey(installation, robotFor) {
   const facts = haInstallationFacts(installation);
-  return JSON.stringify([installation.name, facts.meta, facts.state,
+  return JSON.stringify([installation.name, facts.meta, facts.state, installation.announcementsEnabled === true,
     (installation.robots || []).map((id) => { const robot = robotFor(id); return [robotName(robot), robot.avatarColor]; })]);
 }
 
@@ -5335,7 +5347,7 @@ async function renderHomeAssistant() {
       const key = haInstallationKey(installation, robotFor);
       const current = drawn.get(installation.id);
       if (current?.key === key) return current;
-      const element = haInstallationCard(installation, robotFor, disconnect);
+      const element = haInstallationCard(installation, robotFor, disconnect, setAnnouncements);
       return { key, element };
     });
     drawn.clear();
@@ -5359,6 +5371,18 @@ async function renderHomeAssistant() {
     if (!result.ok && result.status !== 404) { notify(haError(result, 'Could not disconnect it.'), 'error'); return; }
     notify(`${name} is disconnected`);
     await refresh(true);
+  }
+
+  async function setAnnouncements(installation, enabled) {
+    const result = await api('PUT', '/api/home-assistant/installation', {
+      installationId: installation.id, announcementsEnabled: enabled,
+    });
+    if (!result.ok) { notify(result.data?.error === 'not_found'
+      ? 'This Home Assistant is no longer linked.' : 'Could not save announcement permission.', 'error'); return false; }
+    installation.announcementsEnabled = enabled;
+    notify(enabled ? 'Home Assistant announcements allowed' : 'Home Assistant announcements turned off');
+    await refresh(true);
+    return true;
   }
 
   /* -- linking a Jibo ------------------------------------------------------ */

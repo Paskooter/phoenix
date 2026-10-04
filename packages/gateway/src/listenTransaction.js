@@ -21,7 +21,7 @@ import { isRedirect } from './skillClient.js';
 import { startSession as startASRSession, cleanHintsEOS } from './asr/factory.js';
 import { normalizeString } from './stringNormalizer.js';
 import { mediateDecision } from './decisionMediator.js';
-import { homeCommandCandidate } from './homeAssistantRoute.js';
+import { homeCommandCandidate, homeCommandEligible } from './homeAssistantRoute.js';
 import { HOME_ASSISTANT_SKILL_ID, buildHomeAssistantReply } from '../../skills/src/homeAssistantSkill.js';
 
 // The rules a global turn parses against.
@@ -572,14 +572,14 @@ export class ListenTransaction {
   async _performRouting() {
     const context = await this._awaitContext();
     const t0 = now();
+    const decision = this.homeCommand ? null : this.components.intentRouter.getSkillIDFromNLU(this.nluData) || null;
     // CLIENT_NLU and recognized Hue commands also pass the same opt-in gate.
-    if (this.homeCommand || await this._selectHomeCommand(context, this.nluData)) {
+    if (this.homeCommand || await this._selectHomeCommand(context, this.nluData, true, decision)) {
       this._span('route', t0, 'home_command');
       await this._onHomeAssistantMatch(context);
       this._gotoState(State.DONE);
       return;
     }
-    const decision = this.components.intentRouter.getSkillIDFromNLU(this.nluData);
     const finalDecision = decision
       ? (mediateDecision(decision, this.asrData, this.nluData, context.data.general.release) || decision)
       : null;
@@ -594,29 +594,40 @@ export class ListenTransaction {
     this._gotoState(State.DONE);
   }
 
-  async _selectHomeCommand(context, nlu = null) {
+  async _selectHomeCommand(context, nlu = null, parsed = false, nativeDecision = undefined) {
     if (!this.components.homeAssistant || this.abandoned || this.state === State.STOP) return false;
-    const candidate = homeCommandCandidate(this.asrData?.text, {
-      hotphrase: this.listenMessage?.data?.hotphrase,
-      activeSkill: context.data?.skill?.id, nlu,
-    });
-    if (!candidate || !candidate.text) return false;
-    const enabled = await this.components.homeAssistant.selection(this.auth);
-    if (this.abandoned || this.state === State.STOP) return false;
-    // Explicit invocation gives useful setup/offline speech even before linking.
-    if (!enabled && !candidate.explicit) return false;
     if (!this.auth?.id || !this.auth.accessKeyId || !this.auth.friendlyId) return false;
-    this.homeCommand = candidate.text;
+    const options = {
+      hotphrase: this.listenMessage?.data?.hotphrase,
+      activeSkill: context.data?.skill?.id, nlu, nativeDecision,
+    };
+    if (!homeCommandEligible(this.asrData?.text, options)) return false;
+    // Existing direct commands retain their fast path. New state questions,
+    // follow-ups and exact routines wait for native NLU so ordinary Jibo
+    // intents retain priority even when an owner picked a conflicting phrase.
+    if (!parsed && !homeCommandCandidate(this.asrData?.text, options)) return false;
+    const selection = await this.components.homeAssistant.selection(this.auth);
+    if (this.abandoned || this.state === State.STOP) return false;
+    const candidate = homeCommandCandidate(this.asrData?.text, { ...options, selection });
+    if (!candidate?.text || (!parsed && candidate.route.kind !== 'command')) return false;
+    // Explicit invocation gives useful setup/offline speech even before linking.
+    const enabled = selection === true || selection?.enabled === true;
+    if (!enabled && !candidate.explicit) return false;
+    this.homeCommand = candidate;
     return true;
   }
 
   async _onHomeAssistantMatch(context) {
+    // A route selected in NLU is reused here. Recheck at dispatch as well:
+    // peer cancellation between those phases must not start a home action.
+    if (this.abandoned || this.state === State.STOP) return;
     this._emitListenResult({ skillID: HOME_ASSISTANT_SKILL_ID, launch: true, onRobot: false }, false);
+    if (this.abandoned || this.state === State.STOP) return;
     const t0 = now();
-    const result = await this.components.homeAssistant.command(this.auth, this.homeCommand);
+    const result = await this.components.homeAssistant.command(this.auth, this.homeCommand.text, this.homeCommand.route);
     this.timings.skill = now() - t0;
     this._span('skill', t0, result.outcome === 'uncertain' ? 'timeout' : 'ok');
-    const response = buildHomeAssistantReply(result);
+    const response = buildHomeAssistantReply(result, this.homeCommand.route);
     if (!this.abandoned && this.state !== State.STOP) this._emitSkillResult({ skillID: HOME_ASSISTANT_SKILL_ID, response }, true);
   }
 
