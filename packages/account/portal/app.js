@@ -5135,12 +5135,9 @@ function paintNav(hash) {
    Home Assistant
    ========================================================================== */
 
-// The owner's side of the Home Assistant beta. Home Assistant connects out to
-// this server through the Phoenix integration, so this page never asks for its
-// address or a login: it issues a one-time code for the Jibos the owner picks,
-// shows whether each link is connected, and says what to try. The My Home
-// Assistant links are ordinary links that open the owner's own instance at the
-// right page; nothing is fetched from another host.
+// Local pairing happens on Jibo and in Home Assistant. This console provides
+// installation guidance and removal of legacy cloud connections; it never
+// receives a local pairing key, certificate pin or Home Assistant address.
 const HA_REPO = 'https://github.com/Paskooter/phoenix-home-assistant';
 const HA_MY = 'https://my.home-assistant.io/redirect';
 const HA_LINKS = Object.freeze({
@@ -5324,13 +5321,15 @@ function haSayCard() {
       h('p', { class: 'field-hint' }, 'Use the names, aliases and areas your devices have in Home Assistant.')));
 }
 
-function haNotesCard() {
+function haNotesCard(legacy = false) {
   const note = (iconName, title, text) => h('li', { class: 'ha-note' },
     h('span', { class: 'ha-note-ic' }, icon(iconName, 15)),
     h('div', {}, h('b', { text: title }), text));
   return card('Good to know', {},
     h('ul', { class: 'ha-notes' },
-      note('lock', 'Nothing to open on your network', 'Home Assistant connects out to this server. It never shares its address or a Home Assistant login.'),
+      legacy
+        ? note('lock', 'The older server relay', 'This older connection sends Home Assistant commands through Phoenix. Update to direct pairing to use the local connection.')
+        : note('lock', 'A local, paired connection', 'Home Assistant connects directly to Jibo on your network. Pairing requires approval on Jibo. No port forwarding is needed.'),
       note('eye', 'You choose what Jibo can reach', 'He can use only what you expose to Assist. Expose scripts with care.'),
       note('message', 'English, one request at a time', 'Requests joined with “and” or “then” aren’t supported yet.'),
       note('alert', 'If Jibo can’t confirm a result', 'It may have worked anyway. Check the device before asking again.')),
@@ -5349,8 +5348,37 @@ function haNoRobots(robots) {
 }
 
 async function renderHomeAssistant() {
+  const container = page('Home Assistant', 'Pair Home Assistant directly with Jibo on your home network.');
+  container.querySelector('.page-head h2').append(h('span', { class: 'pill pill-accent' }, 'Beta'));
+  const setup = h('div', { class: 'ha-main' });
+  container.append(h('div', { class: 'ha-layout' }, setup,
+    h('div', { class: 'ha-aside' }, haSayCard(), haNotesCard())));
+  setup.append(card('Connect at home', {},
+    h('p', {}, 'Use Phoenix 0.3.0b1 or later in Home Assistant. Jibo needs the direct-connection robot update: BE 13.2.0 and services 13.0.8, with OS 13.0.7.'),
+    h('ol', {},
+      h('li', {}, 'Install or update Phoenix through HACS, then restart Home Assistant.'),
+      h('li', {}, 'On Jibo, open Settings → Home Assistant → Start pairing. Keep Home Assistant and Jibo on the same reachable network.'),
+      h('li', {}, 'Add Phoenix in Home Assistant and enter Jibo’s local hostname or address.'),
+      h('li', {}, 'Compare the eight digits shown in Home Assistant with Jibo’s screen. Approve only if they match, then finish in Home Assistant.'),
+      h('li', {}, 'Choose devices in Assist. Repeat pairing separately for each Jibo.')),
+    h('div', { class: 'form-actions' }, haOut(HA_LINKS.hacs, 'Install through HACS', 'btn btn-primary'),
+      haOut(HA_LINKS.add, 'Add Phoenix'), haOut(`${HA_REPO}/blob/main/docs/installation.md`, 'Installation guide'))));
+  setup.append(card('Manage the connection in Home Assistant', {},
+    h('p', {}, 'Connection health, room assignment, the Assist agent, routines, quiet hours and announcement permission live in Home Assistant. Announcements are off until you enable them there.'),
+    h('p', {}, 'To disconnect, remove this robot’s Phoenix entry in Home Assistant. If it is offline, also use Forget in Jibo’s local Home Assistant controls.'),
+    h('div', { class: 'form-actions' }, haOut(HA_LINKS.integration, 'Open Phoenix'), haOut(HA_LINKS.expose, 'Choose devices'))));
+  setup.append(card('Voice recognition still uses Phoenix', {},
+    h('p', {}, 'Device commands and replies travel between Jibo and Home Assistant over their paired, encrypted local connection. Phoenix still recognizes what you say during a voice turn, so voice control needs the server.'),
+    h('p', {}, 'Your pairing keys and Home Assistant device results are kept off this console. Local announcements and connection health do not require Phoenix to stay online.')));
+  setup.append(card('Moving from the cloud beta?', {},
+    h('p', {}, 'The direct update guides you through local pairing and preserves your Home Assistant options. It does not silently fall back to a cloud connection. Finish pairing before removing an older link.'),
+    h('a', { class: 'btn btn-sm', href: '#/home-assistant-legacy' }, 'Manage older cloud links')));
+  show(container);
+}
+
+async function renderLegacyHomeAssistant() {
   const frame = () => {
-    const container = page('Home Assistant', 'Let Jibo control the lights, switches, scenes and scripts you choose in Home Assistant.');
+    const container = page('Older Home Assistant links', 'Manage connections created with Phoenix 0.2. These use the server relay.');
     const head = container.querySelector('.page-head');
     head.classList.add('ha-head');
     head.querySelector('h2').append(h('span', { class: 'pill pill-accent' }, 'Beta'));
@@ -5365,7 +5393,7 @@ async function renderHomeAssistant() {
   if (!robots.ok || !initial.ok) {
     container.append(
       errorBox(robots.ok ? 'Could not check Home Assistant.' : 'Could not load your robots.', (robots.ok ? initial : robots).data?.error),
-      h('div', {}, h('button', { class: 'btn btn-sm', type: 'button', on: { click: () => renderHomeAssistant() } },
+      h('div', {}, h('button', { class: 'btn btn-sm', type: 'button', on: { click: () => renderLegacyHomeAssistant() } },
         icon('refresh', 14), 'Try again')));
     return show(container);
   }
@@ -5377,7 +5405,7 @@ async function renderHomeAssistant() {
   const robotFor = (id) => byId.get(id) || { friendlyId: id, avatarColor: 'slate' };
 
   const main = h('div', { class: 'ha-main' });
-  const layout = h('div', { class: 'ha-layout' }, main, h('div', { class: 'ha-aside' }, haSayCard(), haNotesCard()));
+  const layout = h('div', { class: 'ha-layout' }, main, h('div', { class: 'ha-aside' }, haSayCard(), haNotesCard(true)));
   container.append(layout);
   if (!owned.length) {
     main.append(haNoRobots(robotList));
@@ -5808,6 +5836,7 @@ const ROUTES = {
   '#/profile': renderProfile,
   '#/robot': renderRobot,
   '#/home-assistant': renderHomeAssistant,
+  '#/home-assistant-legacy': renderLegacyHomeAssistant,
   '#/tips': renderTips,
   '#/claim': renderClaim,
   '#/gallery': renderGallery,

@@ -123,11 +123,24 @@ try {
   store.flush();
   const loop = [...store.loops.values()].find((item) => item.owner === owner._id);
   assert.ok(loop);
-  for (const hash of ['#/', '#/loop', '#/settings', '#/profile', '#/robot', `#/robot/${loop._id}`, '#/gallery', '#/inbox', '#/system', '#/admin', '#/admin/settings', '#/admin/robots', '#/admin/people']) {
+  for (const hash of ['#/', '#/loop', '#/settings', '#/profile', '#/robot', `#/robot/${loop._id}`, '#/home-assistant', '#/home-assistant-legacy', '#/gallery', '#/inbox', '#/system', '#/admin', '#/admin/settings', '#/admin/robots', '#/admin/people']) {
     await visit(hash);
     await fits(`${hash} on mobile`);
     if (['#/', '#/loop', '#/profile', '#/admin'].includes(hash)) await screenshot(`mobile-${hash.slice(2) || 'overview'}`);
   }
+  const homeRequests = [];
+  const recordHomeRequest = (request) => {
+    if (request.url().startsWith(`${base}/api/home-assistant`)) homeRequests.push(request.method());
+  };
+  page.on('request', recordHomeRequest);
+  await visit('#/home-assistant');
+  assert.match(await page.locator('#app').innerText(), /eight digits/);
+  assert.match(await page.locator('#app').innerText(), /directly with Jibo/);
+  assert.equal(await page.locator('#app input').count(), 0, 'local setup never asks for credentials in the portal');
+  assert.equal(await page.getByRole('link', { name: 'Manage older cloud links' }).getAttribute('href'), '#/home-assistant-legacy');
+  assert.deepEqual(homeRequests, [], 'direct guidance does not request a cloud code or connection');
+  page.off('request', recordHomeRequest);
+  console.log('PASS direct Home Assistant guidance and separate legacy management');
   await visit('#/settings');
   await page.locator('.settings-form label.switch').filter({ has: page.locator('input[name=news]') }).click();
   const saved = page.waitForResponse((response) => response.url() === `${base}/api/settings` && response.request().method() === 'PUT');
@@ -156,7 +169,7 @@ try {
   for (const width of [768, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     await page.emulateMedia({ colorScheme: width === 1440 ? 'dark' : 'light' });
-    for (const hash of ['#/', '#/loop', '#/profile', '#/admin', '#/admin/settings']) {
+    for (const hash of ['#/', '#/loop', '#/profile', '#/home-assistant', '#/admin', '#/admin/settings']) {
       await visit(hash);
       await fits(`${hash} at ${width}px`);
       await screenshot(`${width}-${hash.slice(2).replaceAll('/', '-') || 'overview'}`);
