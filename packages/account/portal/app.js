@@ -5354,7 +5354,7 @@ async function renderHomeAssistant() {
   container.append(h('div', { class: 'ha-layout' }, setup,
     h('div', { class: 'ha-aside' }, haSayCard(), haNotesCard())));
   setup.append(card('Connect at home', {},
-    h('p', {}, 'The direct beta requires Phoenix 0.3.0b2 or later in Home Assistant. Jibo needs the direct-connection robot update: BE 13.2.1 and services 13.0.8, with OS 13.0.7.'),
+    h('p', {}, 'The direct beta requires Phoenix 0.3.0b3 or later in Home Assistant. Jibo needs the direct-connection robot update: BE 13.2.2 and services 13.0.8, with OS 13.0.7.'),
     h('ol', {},
       h('li', {}, 'Install the compatible direct beta through HACS when it is available, then restart Home Assistant.'),
       h('li', {}, 'On Jibo, open Settings → Home Assistant → Start pairing. Keep Home Assistant and Jibo on the same reachable network.'),
