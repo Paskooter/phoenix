@@ -231,6 +231,10 @@ export async function createGateway(config = loadConfig()) {
   wss.on('connection', (ws, req) => {
     req._deploymentConnected = true;
     ws._auth = req._auth || null;
+    // Separate from legacy claims: set only after signature + live Account
+    // mapping equality. Native local routing cannot use context or headers
+    // to manufacture this verified identity.
+    ws._verifiedRobotIdentity = req._verifiedRobotIdentity || null;
     ws._jiboHeaders = req.headers;
     ws._remoteAddress = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').toString();
     const path = (req.url || '').split('?')[0];

@@ -22,6 +22,8 @@ import { startSession as startASRSession, cleanHintsEOS } from './asr/factory.js
 import { normalizeString } from './stringNormalizer.js';
 import { mediateDecision } from './decisionMediator.js';
 import { homeCommandCandidate, homeCommandEligible } from './homeAssistantRoute.js';
+import { LOCAL_HOME_SKILL_ID, localHomeDeclared, localHomeNlu, localHomeSelection } from './homeAssistantLocal.js';
+import { robotIdentity, sameRobotIdentity } from './robotActionProtocol.js';
 import { HOME_ASSISTANT_SKILL_ID, buildHomeAssistantReply } from '../../skills/src/homeAssistantSkill.js';
 
 // The rules a global turn parses against.
@@ -114,6 +116,12 @@ export class ListenTransaction {
       turnId: createVoiceTurnId(),
     };
     this.auth = socket._auth || null;
+    const verifiedIdentity = robotIdentity(socket._verifiedRobotIdentity);
+    this.verifiedRobotIdentity = sameRobotIdentity(verifiedIdentity, robotIdentity(this.auth)) ? verifiedIdentity : null;
+    this.localHomeRequested = false;
+    this.localHomeUnsupported = false;
+    this.localHomeContextCaptured = false;
+    this.localHomeSelection = null;
 
     // Speech-history log sink (ListenTransactionHandler.ts:73-82). Created once per
     // transaction when the hub config enables it; every later update mutates this record and
@@ -234,6 +242,11 @@ export class ListenTransaction {
   }
 
   async _handleListen(message) {
+    if (localHomeDeclared(message.data)) {
+      this.localHomeRequested = true;
+      this.localHomeUnsupported = true; // LISTEN has no supported native setter.
+      this.localHomeSelection = null;
+    }
     this.listenMessage = message;
     const mode = message.data.mode;
     if (!mode) {
@@ -300,6 +313,19 @@ export class ListenTransaction {
   }
 
   _handleContext(message) {
+    if (localHomeDeclared(message.data)) this.localHomeRequested = true;
+    if (message.data?.general && Object.hasOwn(message.data.general, 'phoenix_local_home')) {
+      this.localHomeUnsupported = true;
+      this.localHomeSelection = null;
+    }
+    // One immutable preference snapshot per transaction. A duplicate context
+    // may opt out of cloud execution, but cannot replace/extend this snapshot.
+    if (!this.localHomeContextCaptured) {
+      this.localHomeContextCaptured = true;
+      if (this.verifiedRobotIdentity && !this.localHomeUnsupported) {
+        this.localHomeSelection = localHomeSelection(message.data);
+      }
+    }
     this.contextPr.resolve(validateContextMessage(message));
   }
 
@@ -595,25 +621,35 @@ export class ListenTransaction {
   }
 
   async _selectHomeCommand(context, nlu = null, parsed = false, nativeDecision = undefined) {
-    if (!this.components.homeAssistant || this.abandoned || this.state === State.STOP) return false;
+    if (this.abandoned || this.state === State.STOP) return false;
     if (!this.auth?.id || !this.auth.accessKeyId || !this.auth.friendlyId) return false;
     const options = {
       hotphrase: this.listenMessage?.data?.hotphrase,
       activeSkill: context.data?.skill?.id, nlu, nativeDecision,
     };
     if (!homeCommandEligible(this.asrData?.text, options)) return false;
+    if (this.localHomeRequested) {
+      if (!this.localHomeSelection) return false;
+      const candidate = homeCommandCandidate(this.asrData?.text, { ...options, selection: this.localHomeSelection });
+      if (!candidate?.text || (!parsed && candidate.route.kind !== 'command')) return false;
+      this.homeCommand = candidate;
+      this.homeCommandMode = 'local';
+      return true;
+    }
+    if (!this.components.homeAssistant) return false;
     // Existing direct commands retain their fast path. New state questions,
     // follow-ups and exact routines wait for native NLU so ordinary Jibo
     // intents retain priority even when an owner picked a conflicting phrase.
     if (!parsed && !homeCommandCandidate(this.asrData?.text, options)) return false;
     const selection = await this.components.homeAssistant.selection(this.auth);
-    if (this.abandoned || this.state === State.STOP) return false;
+    if (this.abandoned || this.state === State.STOP || this.localHomeRequested) return false;
     const candidate = homeCommandCandidate(this.asrData?.text, { ...options, selection });
     if (!candidate?.text || (!parsed && candidate.route.kind !== 'command')) return false;
     // Explicit invocation gives useful setup/offline speech even before linking.
     const enabled = selection === true || selection?.enabled === true;
     if (!enabled && !candidate.explicit) return false;
     this.homeCommand = candidate;
+    this.homeCommandMode = 'cloud';
     return true;
   }
 
@@ -621,8 +657,20 @@ export class ListenTransaction {
     // A route selected in NLU is reused here. Recheck at dispatch as well:
     // peer cancellation between those phases must not start a home action.
     if (this.abandoned || this.state === State.STOP) return;
+    if (this.homeCommandMode === 'local') {
+      if (!this.localHomeSelection) return this._emitListenResult(null, true);
+      this.nluData = localHomeNlu(this.nluData, this.asrData.text, this.homeCommand.route);
+      this._updateSpeech({ nlu: this.nluData });
+      this._emitListenResult({ skillID: LOCAL_HOME_SKILL_ID, launch: true, onRobot: true }, true);
+      this._record(LOCAL_HOME_SKILL_ID, context);
+      return;
+    }
+    // A late unsupported declaration also prevents a previously selected
+    // cloud route from dispatching. Complete the transaction without an action.
+    if (this.localHomeRequested) return this._emitListenResult(null, true);
     this._emitListenResult({ skillID: HOME_ASSISTANT_SKILL_ID, launch: true, onRobot: false }, false);
     if (this.abandoned || this.state === State.STOP) return;
+    if (this.localHomeRequested) return this._emitListenResult(null, true);
     const t0 = now();
     const result = await this.components.homeAssistant.command(this.auth, this.homeCommand.text, this.homeCommand.route);
     this.timings.skill = now() - t0;
