@@ -5329,7 +5329,7 @@ function haNotesCard(legacy = false) {
     h('ul', { class: 'ha-notes' },
       legacy
         ? note('lock', 'The older server relay', 'This older connection sends Home Assistant commands through Phoenix. Update to direct pairing to use the local connection.')
-        : note('lock', 'A local, paired connection', 'Home Assistant connects directly to Jibo on your network. Pairing requires approval on Jibo. No port forwarding is needed.'),
+        : note('lock', 'A local, paired connection', 'Home Assistant connects directly to Jibo on your network. Start pairing on Jibo and enter his displayed code in Home Assistant. No port forwarding is needed.'),
       note('eye', 'You choose what Jibo can reach', 'He can use only what you expose to Assist. Expose scripts with care.'),
       note('message', 'English, one request at a time', 'Requests joined with “and” or “then” aren’t supported yet.'),
       note('alert', 'If Jibo can’t confirm a result', 'It may have worked anyway. Check the device before asking again.')),
@@ -5354,18 +5354,19 @@ async function renderHomeAssistant() {
   container.append(h('div', { class: 'ha-layout' }, setup,
     h('div', { class: 'ha-aside' }, haSayCard(), haNotesCard())));
   setup.append(card('Connect at home', {},
-    h('p', {}, 'The direct beta requires Phoenix 0.3.0b3 or later in Home Assistant. Jibo needs the direct-connection robot update: BE 13.2.2 and services 13.0.8, with OS 13.0.7.'),
+    h('p', {}, 'Single-code pairing and local robot controls require Phoenix 0.4.0b1 in Home Assistant and BE 13.3.0 on Jibo. Services 13.0.8 and OS 13.0.7 remain the baseline. Existing local connections do not need pairing again to upgrade.'),
     h('ol', {},
-      h('li', {}, 'Install the compatible direct beta through HACS when it is available, then restart Home Assistant.'),
+      h('li', {}, 'In HACS, enable prereleases and install Phoenix 0.4.0b1, then restart Home Assistant.'),
       h('li', {}, 'On Jibo, open Settings → Home Assistant → Start pairing. Keep Home Assistant and Jibo on the same reachable network.'),
-      h('li', {}, 'Add Phoenix in Home Assistant and enter Jibo’s local hostname or address.'),
-      h('li', {}, 'Compare the eight digits shown in Home Assistant with Jibo’s screen. Approve only if they match, then finish in Home Assistant.'),
+      h('li', {}, 'Add Phoenix in Home Assistant. Enter Jibo’s local hostname or address and the eight-digit code shown on his screen.'),
+      h('li', {}, 'Both devices finish automatically. Choose Done on Jibo to return to his face.'),
       h('li', {}, 'Choose devices in Assist. Repeat pairing separately for each Jibo.')),
     h('div', { class: 'form-actions' }, haOut(HA_LINKS.hacs, 'Install through HACS', 'btn btn-primary'),
       haOut(HA_LINKS.add, 'Add Phoenix'), haOut(`${HA_REPO}/blob/main/docs/installation.md`, 'Installation guide'))));
   setup.append(card('Manage the connection in Home Assistant', {},
-    h('p', {}, 'Connection health, room assignment, the Assist agent, routines, quiet hours and announcement permission live in Home Assistant. Announcements are off until you enable them there.'),
-    h('p', {}, 'To disconnect, remove this robot’s Phoenix entry in Home Assistant. If it is offline, also use Forget in Jibo’s local Home Assistant controls.'),
+    h('p', {}, 'Connection health, room assignment, the Assist agent, routines and quiet hours live in Home Assistant. Announcements and screen, ring, audio, sleep, skill and camera permissions start off; enable the ones you want in Phoenix → Configure.'),
+    h('p', {}, 'Home Assistant uses Jibo’s local nickname or four-word native name. A name you set in Home Assistant takes precedence.'),
+    h('p', {}, 'To disconnect, remove this robot’s Phoenix entry in Home Assistant. If it is offline, use Settings → Home Assistant → Manage → Disconnect on Jibo and confirm. Done exits without changing the connection.'),
     h('div', { class: 'form-actions' }, haOut(HA_LINKS.integration, 'Open Phoenix'), haOut(HA_LINKS.expose, 'Choose devices'))));
   setup.append(card('Voice recognition still uses Phoenix', {},
     h('p', {}, 'Device commands and replies travel between Jibo and Home Assistant over their paired, encrypted local connection. Phoenix still recognizes what you say during a voice turn, so voice control needs the server.'),
