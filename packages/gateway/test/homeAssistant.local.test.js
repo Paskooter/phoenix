@@ -205,6 +205,114 @@ test('absence of a local declaration preserves cloud beta, and unlinked robots k
   assert.equal(listen(cloud).data.match.skillID, 'phoenix-home-assistant');
   assert.equal(cloud.frames.at(-1).type, 'SKILL_ACTION');
   const hue = await turn('turn on the lights', { preference: ABSENT, cloudSelection: () => ({ enabled: false }) });
-  assert.deepEqual(hue.cloud.map((call) => call.type), ['selection', 'selection']);
+  // One selection per turn: the pre-parse check, the parser hint and routing share it.
+  assert.deepEqual(hue.cloud.map((call) => call.type), ['selection']);
+  assert.equal(hue.parsed[0].home, undefined);
   assert.equal(listen(hue).data.match.skillID, '@be/hue-control');
+});
+
+test('a smart-home decision from the parser reaches Home Assistant with the spoken words, only when it is linked', async () => {
+  // The parser stands in for the decision layer: it answers HOME_COMMAND_INTENT
+  // only when the gateway marked the turn as one Home Assistant could take.
+  const decided = (input) => (input.home === true
+    ? { intent: 'phoenixHomeCommand', entities: {}, rules: ['launch'] }
+    : parseRequest(input));
+  for (const [text, kind] of [['start the vacuum', 'command'], ['lock the front door', 'command'],
+    ['is the garage door open', 'query'], ['set the living room to 68 degrees', 'command']]) {
+    const local = await turn(text, { parser: decided });
+    assert.equal(local.parsed[0].home, true, text);
+    assert.equal(listen(local).data.match.skillID, LOCAL_HOME_SKILL_ID, text);
+    assert.deepEqual(hint(local), { v: 1, text, route: { kind } }, text);
+    assert.deepEqual(local.cloud, [], text);
+
+    const cloud = await turn(text, { preference: ABSENT, parser: decided });
+    assert.equal(cloud.parsed[0].home, true, text);
+    assert.deepEqual(cloud.cloud.map((call) => call.type), ['selection', 'command'], text);
+    assert.deepEqual(cloud.cloud[1].route, { kind }, text);
+    assert.equal(cloud.cloud[1].text, text, text);
+
+    const unlinked = await turn(text, { preference: ABSENT, parser: decided, cloudSelection: () => ({ enabled: false }) });
+    assert.equal(unlinked.parsed[0].home, undefined, text);
+    assert.deepEqual(unlinked.cloud.map((call) => call.type), ['selection'], text);
+    assert.notEqual(listen(unlinked).data.match?.skillID, 'phoenix-home-assistant', text);
+
+    const none = await turn(text, { preference: ABSENT, parser: decided, cloudEnabled: false });
+    assert.equal(none.parsed[0].home, undefined, text);
+  }
+});
+
+test('the home hint is withheld from turns Home Assistant may never take', async () => {
+  const marked = (input) => ({ ...parseRequest(input), marked: input.home });
+  for (const text of ['what time is it', 'turn up the volume', 'go to sleep', 'tell me a joke', 'stop']) {
+    const out = await turn(text, { parser: marked });
+    assert.equal(out.parsed[0].home, undefined, text);
+  }
+  const active = await turn('lock the front door', { parser: marked, skill: { id: 'fixture-active-skill', session: { id: 'fixture-session' } } });
+  assert.equal(active.parsed[0].home, undefined);
+  assert.equal(active.native[0].skillID, 'fixture-active-skill');
+  const unpaired = await turn('lock the front door', { parser: marked, preference: null, cloudEnabled: false });
+  assert.equal(unpaired.parsed[0].home, undefined);
+});
+
+test('common household devices and the grammar thermostat rule reach Home Assistant without a decision', async () => {
+  for (const text of ['turn off the basement AC', 'turn the bedroom fan off', 'switch on the A/C', 'turn off the TV',
+    'turn the space heater on', 'turn on the outlet']) {
+    const out = await turn(text, { preference: ABSENT });
+    assert.deepEqual(out.parsed, [], text); // the direct-command fast path skips the parser
+    assert.deepEqual(out.cloud.map((call) => call.type), ['selection', 'command'], text);
+  }
+  for (const text of ['set the thermostat to 72', 'turn up the heat', 'turn down the AC']) {
+    const out = await turn(text, { preference: ABSENT });
+    assert.deepEqual(out.cloud.map((call) => call.type), ['selection', 'command'], text);
+    assert.equal(out.cloud[1].text, text, text);
+  }
+  for (const text of ['switch on dance mode', 'turn yourself off', 'turn off your fan']) {
+    const out = await turn(text, { preference: ABSENT });
+    assert.ok(!out.cloud.some((call) => call.type === 'command'), text);
+  }
+  // Without a linked connector the thermostat rule keeps its native answer.
+  const unlinked = await turn('set the thermostat to 72', { preference: ABSENT, cloudSelection: () => ({ enabled: false }) });
+  assert.equal(listen(unlinked).data.match.skillID, router.getSkillIDFromNLU(parseRequest({ text: 'set the thermostat to 72', rules: [...GLOBAL_TURN_RULES] })).skillID);
+});
+
+test('Hue never takes a turn from a linked Home Assistant; unlinked robots keep it', async () => {
+  const hueOf = (text) => router.getSkillIDFromNLU(parseRequest({ text, rules: [...GLOBAL_TURN_RULES] }))?.skillID;
+  // Several devices in one sentence reach Home Assistant whole.
+  const both = 'turn on the kitchen and living room lights';
+  assert.equal(hueOf(both), '@be/hue-control');
+  const local = await turn(both);
+  assert.equal(listen(local).data.match.skillID, LOCAL_HOME_SKILL_ID);
+  assert.deepEqual(hint(local), { v: 1, text: both, route: { kind: 'command' } });
+  const cloud = await turn(both, { preference: ABSENT });
+  assert.deepEqual(cloud.cloud.map((call) => call.type), ['selection', 'command']);
+  assert.equal(cloud.cloud[1].text, both);
+  // Setup phrases, delays, sequences and an unassigned room are neither sent nor given to Hue.
+  const noRooms = () => ({ enabled: true, capabilities: [], shortcuts: [] });
+  for (const [text, preference, cloudSelection] of [
+    ['help me set up my lights', declaration(), undefined], ['forget my lights', declaration(), undefined],
+    ['turn off the lights in 10 minutes', declaration(), undefined], ['turn off the lights in five minutes', ABSENT, undefined],
+    ['turn on the lights and then dim them', ABSENT, undefined], ['turn on the lights in here', ABSENT, noRooms],
+    ['help me set up my lights', ABSENT, undefined]]) {
+    assert.equal(hueOf(text), '@be/hue-control', text);
+    const out = await turn(text, { preference, cloudSelection });
+    assert.equal(listen(out).data.match, null, text);
+    assert.ok(!out.cloud.some((call) => call.type === 'command'), text);
+  }
+  for (const text of ['help me set up my lights', 'turn off the lights in 10 minutes', both]) {
+    const unlinked = await turn(text, { preference: ABSENT, cloudSelection: () => ({ enabled: false }) });
+    assert.equal(listen(unlinked).data.match.skillID, '@be/hue-control', text);
+    const none = await turn(text, { preference: ABSENT, cloudEnabled: false });
+    assert.equal(listen(none).data.match.skillID, '@be/hue-control', text);
+  }
+});
+
+test('a connector without state queries is not sent implicit questions from the decision layer', async () => {
+  const decided = (input) => (input.home === true
+    ? { intent: 'phoenixHomeCommand', entities: {}, rules: ['launch'] } : parseRequest(input));
+  const legacy = () => ({ enabled: true, capabilities: [], shortcuts: [] });
+  const question = await turn('is the garage door open', { preference: ABSENT, parser: decided, cloudSelection: legacy });
+  assert.deepEqual(question.cloud.map((call) => call.type), ['selection']);
+  const command = await turn('close the garage door', { preference: ABSENT, parser: decided, cloudSelection: legacy });
+  assert.deepEqual(command.cloud.map((call) => call.type), ['selection', 'command']);
+  assert.deepEqual(command.cloud[1].route, { kind: 'command' });
 });

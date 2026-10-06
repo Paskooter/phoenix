@@ -24,6 +24,13 @@
 //                   only a command at overrideProbability or above replaces it.
 //   never           a turn that is not a global one (a skill waiting for its
 //                   own answers), or a parse that already names a command.
+//
+// Smart home: when the gateway marks a turn as one Home Assistant could take
+// (`home: true` on the parse request: the robot is paired locally or its owner
+// linked the cloud connector, and the turn is not reserved for Jibo), a
+// "smart_home" choice at the same thresholds answers with HOME_COMMAND_INTENT,
+// which the gateway hands to Home Assistant with the person's own words. Without
+// that mark the choice keeps the grammar's parse, exactly like "none".
 // Chitchat, "none", a low probability, a timeout or any error keeps the
 // grammar's parse, so the worst case is today's behaviour.
 //
@@ -63,9 +70,10 @@ export const DECISION_COMMANDS = Object.freeze({
   fun_fact: { phrase: 'tell me a fun fact', intent: 'requestTellJiboContent', description: 'Wants a fun fact or to learn something interesting.' },
   volume_up: { phrase: 'turn up the volume', intent: 'volumeUp', description: 'Wants Jibo to speak louder or turn the volume up.' },
   volume_down: { phrase: 'turn down the volume', intent: 'volumeDown', description: 'Wants Jibo to speak more quietly or turn the volume down.' },
+  smart_home: { description: 'Wants to control or check a device or appliance in their home right now: lights, switches, plugs, fans, air conditioning, heat or the thermostat, the TV, locks, doors, the garage, blinds, or a scene or routine.' },
   knowledge: { description: 'A general knowledge or factual question about the world: people, places, history, science, math, words or measurements.' },
   chitchat: { description: "Small talk with Jibo: about Jibo himself, feelings, greetings, thanks, compliments, or the person's own mood." },
-  none: { description: 'Something Jibo cannot do (shopping, calls, messages, smart-home control, navigation, money) or that is unclear.' },
+  none: { description: 'Something Jibo cannot do (shopping or buying things, calls, messages, navigation, money) or that is unclear.' },
 });
 
 export const DECISION_INSTRUCTIONS = 'A person just said this to Jibo, a social home robot. Which of these do they want?';
@@ -84,6 +92,21 @@ export const CATCH_ALL_INTENTS = Object.freeze(new Set([
 const KNOWLEDGE_INTENTS = new Set([...CATCH_ALL_INTENTS, 'whoIsPerson']);
 // What the knowledge search is reached with when the grammar found no question rule.
 const KNOWLEDGE_NLU = Object.freeze({ intent: 'generalQuestions', entities: {}, rules: ['launch'] });
+// The gateway's Home Assistant hand-off (packages/gateway/src/homeAssistantRoute.js
+// HOME_COMMAND_INTENT). It carries no entities: Home Assistant gets the words.
+export const HOME_COMMAND_INTENT = 'phoenixHomeCommand';
+const HOME_NLU = Object.freeze({ intent: HOME_COMMAND_INTENT, entities: {}, rules: ['launch'] });
+// Light commands the gateway already hands to Home Assistant on a home turn, so
+// asking about them would only add latency.
+export const HOME_PARSE_INTENTS = Object.freeze(new Set([
+  'lightsOn', 'lightsGroupOn', 'lightsOff', 'lightsGroupOff', 'lightsUp', 'lightsGroupUp',
+  'lightsDown', 'lightsGroupDown', 'lightsUpCompletely', 'lightsGroupUpCompletely',
+  'lightsWarm', 'lightsGroupWarm', 'lightsCool', 'lightsGroupCool', 'lightsColor', 'lightsColorGroup',
+]));
+// The grammar's thermostat rule takes nearly any sentence with "thermostat" in
+// it ("how does a thermostat work"). The gateway hands it to Home Assistant, so
+// on a home turn it is reviewed like a catch-all.
+const THERMOSTAT_INTENT = 'requestManageThermostat';
 
 const DEFAULT_URL = 'https://openrouter.ai/api/alpha/decisions';
 const DEFAULT_MODEL = 'typesafe/jev-1.13';
@@ -199,12 +222,15 @@ export function isGlobalTurn(rules) {
  * Whether a parse gets reviewed, a second opinion, or neither.
  * @param {{nlu?: object, priority?: string}|null} parsed
  * @param {string[]} rules the request's rules
+ * @param {{home?: boolean}} [options] whether Home Assistant could take this turn
  * @returns {'review'|'second-opinion'|null}
  */
-export function decisionKind(parsed, rules) {
+export function decisionKind(parsed, rules, { home = false } = {}) {
   if (!isGlobalTurn(rules)) return null;
   const nlu = parsed?.nlu;
   if (!nlu?.intent) return 'review';
+  if (home && HOME_PARSE_INTENTS.has(nlu.intent)) return null;
+  if (home && nlu.intent === THERMOSTAT_INTENT) return 'review';
   // The report grammars spell it `high`; the source compares case-sensitively.
   if (String(parsed.priority || '').toUpperCase() !== 'HIGH') return 'review';
   if (CATCH_ALL_INTENTS.has(nlu.intent)) return 'review';
@@ -242,7 +268,10 @@ async function canonicalNlu(key, rules) {
  */
 export async function decideCommand(request, parsed, { client = getDecisionClient() } = {}) {
   const rules = Array.isArray(request?.rules) ? request.rules : [];
-  const kind = decisionKind(parsed, rules);
+  // Only the gateway's literal `true` counts: it is set after the gateway's own
+  // checks, and a missing or malformed field must keep today's behaviour.
+  const home = request?.home === true;
+  const kind = decisionKind(parsed, rules, { home });
   if (!kind || !client?.enabled || typeof request?.text !== 'string' || !request.text.trim()) return null;
   const started = Date.now();
   const answer = await client.choose(request.text);
@@ -252,15 +281,17 @@ export async function decideCommand(request, parsed, { client = getDecisionClien
   const { choice, probability } = answer;
   const command = DECISION_COMMANDS[choice];
   let result = null;
+  const needed = kind === 'review' ? client.config.minProbability : client.config.overrideProbability;
   if (command.intent) {
-    const needed = kind === 'review' ? client.config.minProbability : client.config.overrideProbability;
     if (probability >= needed && command.intent !== from) result = await canonicalNlu(choice, rules);
+  } else if (choice === 'smart_home') {
+    if (home && probability >= needed) result = structuredClone(HOME_NLU);
   } else if (choice === 'knowledge' && kind === 'review' && probability >= client.config.minProbability
     && !KNOWLEDGE_INTENTS.has(from)) {
     result = structuredClone(KNOWLEDGE_NLU);
   }
   // Intents and probabilities only: the utterance itself is never logged.
-  const fields = { kind, from, choice, probability: Number(probability.toFixed(3)), ms: elapsedMs };
+  const fields = { kind, home, from, choice, probability: Number(probability.toFixed(3)), ms: elapsedMs };
   if (result) log.info('decision changed the parse', { ...fields, to: result.intent });
   else log.debug('decision kept the parse', fields);
   return result;

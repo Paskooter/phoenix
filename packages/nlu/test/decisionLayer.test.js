@@ -6,6 +6,8 @@ import { parseRequestDetailedAsync } from '../src/requestParser.js';
 import {
   CATCH_ALL_INTENTS,
   DECISION_COMMANDS,
+  HOME_COMMAND_INTENT,
+  HOME_PARSE_INTENTS,
   createDecisionClient,
   decideCommand,
   decisionConfig,
@@ -139,6 +141,47 @@ test('a parse that already names a command, a non-global turn or a disabled laye
     { client: disabled }), null);
   assert.deepEqual(client.asked, []);
   assert.deepEqual(disabled.asked, []);
+});
+
+test('a smart-home choice reaches Home Assistant only on a turn the gateway marked as a home turn', async () => {
+  const home = { intent: HOME_COMMAND_INTENT, entities: {}, rules: ['launch'] };
+  const ask = (text, extra, client) => parse(text).then((parsed) => decideCommand({ text, rules: GLOBAL_RULES, ...extra }, parsed, { client }));
+  // A miss and a catch-all question are reviewed at minProbability.
+  assert.deepEqual(await ask('lock the front door', { home: true }, fakeClient('smart_home', 0.6)), home);
+  assert.deepEqual(await ask('is the front door locked', { home: true }, fakeClient('smart_home', 0.6)), home);
+  assert.equal(await ask('lock the front door', { home: true }, fakeClient('smart_home', 0.4)), null);
+  // "turn off the TV" parses HIGH as how to turn Jibo off: only a very sure engine changes it.
+  assert.equal((await parse('turn off the tv')).nlu.intent, 'howCanUserAction');
+  assert.deepEqual(await ask('turn off the tv', { home: true }, fakeClient('smart_home', 0.95)), home);
+  assert.equal(await ask('turn off the tv', { home: true }, fakeClient('smart_home', 0.8)), null);
+  // Without the gateway's literal mark the choice keeps the grammar's parse, like "none".
+  for (const extra of [{}, { home: false }, { home: 'true' }, { home: 1 }]) {
+    assert.equal(await ask('lock the front door', extra, fakeClient('smart_home', 1)), null, JSON.stringify(extra));
+  }
+  // The other answers behave as before on a home turn.
+  assert.equal((await ask('what day is it today', { home: true }, fakeClient('date'))).intent, 'askForDate');
+  assert.equal(await ask('blorp fizzle wump', { home: true }, fakeClient('none')), null);
+});
+
+test('on a home turn, a light command is not asked about and the thermostat rule is reviewed', async () => {
+  for (const text of ['turn on the kitchen lights', 'dim the living room lights', 'turn off the lights']) {
+    const parsed = await parse(text);
+    assert.ok(HOME_PARSE_INTENTS.has(parsed.nlu.intent), text);
+    assert.equal(decisionKind(parsed, GLOBAL_RULES, { home: true }), null, text);
+    assert.equal(decisionKind(parsed, GLOBAL_RULES), 'second-opinion', text);
+  }
+  // "how does a thermostat work" is the grammar's thermostat rule too; a knowledge answer may replace it.
+  const thermostat = await parse('how does a thermostat work');
+  assert.equal(thermostat.nlu.intent, 'requestManageThermostat');
+  assert.equal(decisionKind(thermostat, GLOBAL_RULES, { home: true }), 'review');
+  assert.equal(decisionKind(thermostat, GLOBAL_RULES), 'second-opinion');
+  assert.equal((await decideCommand({ text: 'how does a thermostat work', rules: GLOBAL_RULES, home: true }, thermostat,
+    { client: fakeClient('knowledge', 0.7) })).intent, 'generalQuestions');
+  const client = fakeClient('smart_home');
+  assert.equal(await decideCommand({ text: 'turn on the kitchen lights', rules: GLOBAL_RULES, home: true },
+    await parse('turn on the kitchen lights'), { client }), null);
+  assert.deepEqual(client.asked, []);
+  assert.ok(!/smart-home|smart home/i.test(DECISION_COMMANDS.none.description));
 });
 
 test('the Jev client asks one typed choice question and accepts only a well-formed answer', async () => {

@@ -190,7 +190,7 @@ chitchat | what do you think about humans
 chitchat | do you get lonely
 none | order me a pizza
 none | call my mom
-none | turn on the kitchen lights
+smart_home | turn on the kitchen lights
 none | send an email to my boss
 none | book a flight to paris
 none | blorp fizzle wump
@@ -198,8 +198,75 @@ none | um
 none | never mind
 none | buy more paper towels
 none | add milk to my shopping list
-none | lock the front door
+smart_home | lock the front door
 none | text john i'm running late
 none | start the car
 none | what's my bank balance
 none | navigate to the nearest gas station
+# Smart home (scored with --home: the hub must hand these to Home Assistant; without
+# --home they only need not to become a command). Device names are invented.
+smart_home | turn off the basement ac
+smart_home | turn on the basement AC
+smart_home | turn the bedroom fan off
+smart_home | switch on the porch light
+smart_home | is the garage door open
+smart_home | close the garage door
+smart_home | set the thermostat to 72
+smart_home | make it warmer in here
+smart_home | turn up the heat
+smart_home | turn down the air conditioning
+smart_home | set the living room to 68 degrees
+smart_home | dim the dining room lights
+smart_home | turn on movie mode
+smart_home | run the goodnight scene
+smart_home | start the vacuum
+smart_home | open the blinds
+smart_home | close the bedroom shades
+smart_home | turn off the tv
+smart_home | turn on the christmas tree
+smart_home | is the dryer done
+smart_home | what's the temperature in the nursery
+smart_home | is the back door unlocked
+smart_home | are the lights on downstairs
+smart_home | turn off all the lights
+smart_home | make the hallway light blue
+smart_home | set the office lights to fifty percent
+smart_home | unlock the side door
+smart_home | turn on the coffee maker
+smart_home | is the oven on
+smart_home | turn on the sprinklers
+smart_home | turn off the space heater
+smart_home | lights on
+smart_home | kill the lights in the den
+smart_home | shut the garage
+smart_home | turn the kitchen and dining room lights on
+smart_home | did i leave the stove on
+smart_home | is anyone at the front door
+smart_home | start the dishwasher
+smart_home | turn on the hot tub
+smart_home | make the bedroom cooler
+smart_home | start the bedtime routine
+smart_home | turn on the patio string lights
+# Traps: they mention a device or the home, but are not a request to control one.
+knowledge | how does a thermostat work
+knowledge | who invented the light bulb
+knowledge | how many watts does a ceiling fan use
+knowledge | what temperature should a fridge be
+knowledge | what is a smart plug
+knowledge | why do lights flicker
+chitchat | do you like fans
+chitchat | are you cold
+chitchat | do you have lights inside you
+chitchat | i love my new lamp
+chitchat | i just got a new tv
+chitchat | do you like my house
+weather_today | what's the temperature outside
+weather_today | is it hot outside right now
+none | turn yourself off
+none | order a new light bulb
+none | buy a smart plug
+none | call the electrician
+none | play the tv show friends
+none | turn off your eye
+volume_down | turn yourself down
+volume_up | turn yourself up
