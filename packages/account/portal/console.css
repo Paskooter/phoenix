@@ -2454,6 +2454,336 @@ pre.json {
   .ha-code-row .btn { flex: 1 1 auto; }
 }
 
+/* Direct pairing ------------------------------------------------------------ */
+
+/* The paired link: Home Assistant's cool tone, still, with a lock at its
+   middle. It does not move, because this page cannot see a live connection. */
+.ha-bridge.is-local .ha-bridge-line { color: color-mix(in srgb, var(--cool) 72%, transparent); }
+.ha-bridge-lock {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--panel);
+  color: var(--cool);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cool) 42%, transparent), 0 0 0 4px var(--panel);
+}
+
+/* The guide's heading shares its row with the drawing; what it needs runs
+   full width beneath. On a phone the drawing leads. */
+.ha-guide-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "title art" "intro intro";
+  align-items: center;
+  gap: .35rem 1.25rem;
+  padding: 1.4rem 1.3rem 1.25rem;
+  border-bottom: 1px solid var(--border-soft);
+  background: radial-gradient(110% 160% at 100% 0%, var(--accent-soft), transparent 60%), var(--panel);
+}
+.ha-guide-hero > .ha-bridge { grid-area: art; }
+.ha-guide-hero h3 { grid-area: title; font-size: var(--t-lg); letter-spacing: -.02em; }
+.ha-guide-intro { grid-area: intro; min-width: 0; }
+.ha-guide-intro p { max-width: 62ch; font-size: var(--t-sm); line-height: 1.55; color: var(--muted); }
+
+/* What setup needs, under the heading. */
+.ha-needs { display: flex; flex-wrap: wrap; gap: .4rem; margin: .9rem 0 0; padding: 0; list-style: none; }
+.ha-needs li {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  max-width: 100%;
+  padding: .26rem .7rem .26rem .55rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--panel) 70%, transparent);
+  font-size: var(--t-xs);
+  font-weight: 560;
+  color: var(--fg-dim);
+}
+.ha-needs svg { color: var(--muted); }
+
+/* How far through the guide this browser's owner has ticked. */
+.ha-guide-bar { padding: .8rem 1.3rem; border-bottom: 1px solid var(--border-soft); background: var(--panel); }
+.ha-progress { display: flex; align-items: center; gap: .85rem; }
+.ha-progress-track { flex: 1; height: 6px; overflow: hidden; border-radius: var(--radius-pill); background: var(--panel-3); }
+.ha-progress-fill {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--grad-brand);
+  transition: width var(--slow) var(--ease-out), background var(--step) var(--ease);
+}
+.ha-guide.is-complete .ha-progress-fill { background: var(--ok); }
+.ha-progress-count {
+  flex: none;
+  font-size: var(--t-xs);
+  font-weight: 620;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Each step can be ticked off. A ticked step folds to its title, so the next
+   one is what the eye lands on. */
+.ha-guide .ha-steps { padding-top: .15rem; }
+.ha-guide .ha-step-body { color: var(--fg-dim); }
+.ha-guide .ha-step-body b { color: var(--fg); font-weight: 620; }
+/* The tick stays at the top right however the title wraps. */
+.ha-guide .ha-step-title { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: .6rem; }
+.ha-step-head { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .55rem; min-width: 0; min-height: var(--mark); }
+.ha-step-name { min-width: 0; }
+.ha-guide .ha-step.is-done .ha-step-name { color: var(--muted); font-weight: 560; }
+.ha-guide .ha-step.is-active .ha-step-name { font-size: var(--t-md); }
+.ha-step-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .12rem .5rem;
+  border-radius: var(--radius-pill);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  letter-spacing: -.005em;
+  white-space: nowrap;
+}
+.ha-step-tag.is-time { background: var(--accent-soft); color: var(--accent); }
+.ha-step-tag.is-safe { background: var(--ok-soft); color: var(--ok); }
+.ha-step-done {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  margin-top: calc((var(--mark) - 1.75rem) / 2);
+  min-height: 1.75rem;
+  padding: .2rem .6rem .2rem .3rem;
+  border-radius: var(--radius-pill);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--fast) var(--ease), color var(--fast) var(--ease);
+}
+.ha-step-done:hover { background: var(--panel-2); color: var(--fg); }
+.ha-step-done:has(input:focus-visible) { box-shadow: var(--ring); }
+.ha-step-done .ha-check { width: 20px; height: 20px; border-radius: 6px; }
+.ha-step-done .ha-check:checked { background: var(--ok); }
+.ha-step-done:has(input:checked) { color: var(--ok); }
+.ha-step.is-active .ha-step-done { color: var(--fg-dim); }
+
+/* Buttons that open the owner's own Home Assistant carry its house. */
+.ha-open svg:first-child { color: var(--cool); }
+.ha-open.btn-primary svg:first-child { color: inherit; }
+
+/* A menu path as it reads on screen: Settings › Home Assistant › Start pairing. */
+.ha-path b {
+  display: inline-block;
+  padding: 0 .38rem;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border-soft);
+  background: var(--panel-2);
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--fg);
+  white-space: nowrap;
+}
+.ha-path-sep { margin: 0 .22rem; color: var(--faint); }
+
+/* Two blank eight-digit codes, side by side, that have to match. */
+.ha-digits {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .7rem .9rem;
+  padding: .85rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-soft);
+  background: var(--bg-soft);
+}
+.ha-digits-side { display: grid; gap: .4rem; }
+.ha-digits-label {
+  font-size: .6875rem;
+  font-weight: 650;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.ha-digits-boxes { display: flex; gap: 3px; }
+.ha-digit {
+  position: relative;
+  width: 16px;
+  height: 22px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+}
+.ha-digit::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  translate: -50% -50%;
+  background: var(--faint);
+}
+.ha-digits-eq {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-top: 1.1rem;
+  border-radius: 50%;
+  background: var(--ok-soft);
+  color: var(--ok);
+  font-weight: 700;
+}
+
+.ha-guide-foot { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .6rem 1rem; }
+.ha-guide-foot .field-hint { font-size: var(--t-sm); }
+.ha-ready { display: flex; align-items: center; gap: .85rem; min-width: 0; }
+.ha-ready b { display: block; font-weight: 640; letter-spacing: -.012em; color: var(--ok); }
+.ha-ready span:not(.ha-done-ic) { font-size: var(--t-sm); color: var(--fg-dim); }
+
+/* What to say: the phrases flow as speech bubbles, a little hint beside a
+   group that needs something first. */
+.ha-say-hint {
+  margin-inline-start: .5rem;
+  font-weight: 560;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--faint);
+}
+.ha-say-list.is-flow { display: flex; flex-wrap: wrap; gap: .4rem; }
+
+/* Phoenix, Jibo and Home Assistant, and the two connections between them. */
+.ha-flow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
+  justify-items: center;
+  align-items: start;
+  row-gap: .3rem;
+  margin: 0 0 .35rem;
+  text-align: center;
+}
+.ha-flow-node { display: contents; }
+.ha-flow-node > :first-child { grid-row: 1; }
+.ha-flow-node b { grid-row: 2; margin-top: .2rem; font-size: var(--t-sm); font-weight: 620; letter-spacing: -.01em; line-height: 1.3; color: var(--fg); }
+.ha-flow-node > span:last-child { grid-row: 3; font-size: var(--t-xs); line-height: 1.35; color: var(--muted); }
+.ha-flow-node:nth-of-type(1) > * { grid-column: 1; }
+.ha-flow-node:nth-of-type(2) > * { grid-column: 3; }
+.ha-flow-node:nth-of-type(3) > * { grid-column: 5; }
+.ha-flow-link { grid-row: 1; }
+.ha-flow-link:nth-of-type(1) { grid-column: 2; }
+.ha-flow-link:nth-of-type(2) { grid-column: 4; }
+.ha-flow-ic, .ha-flow .ha-tile, .ha-flow .robot-avatar { --size: 42px; }
+.ha-flow-ic {
+  display: grid;
+  place-items: center;
+  width: var(--size);
+  height: var(--size);
+  border-radius: calc(var(--size) * .3);
+  color: var(--accent);
+  background:
+    radial-gradient(circle at 30% 24%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 64%),
+    var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent-line);
+}
+.ha-flow-link {
+  position: relative;
+  width: 36px;
+  height: 6px;
+  margin-top: 18px;
+  background: radial-gradient(circle, currentColor 0 1.35px, transparent 1.85px) 0 50% / 9px 6px repeat-x;
+}
+.ha-flow-link.is-voice { color: color-mix(in srgb, var(--accent) 75%, transparent); }
+.ha-flow-link.is-local { color: color-mix(in srgb, var(--cool) 72%, transparent); }
+.ha-flow-lock {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--panel);
+  color: var(--cool);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cool) 42%, transparent), 0 0 0 3px var(--panel);
+}
+.ha-how .ha-notes { padding-top: 1.1rem; border-top: 1px solid var(--hairline); }
+
+/* After pairing: the places in Home Assistant, one tile each. */
+.ha-manage-section { margin-top: 2rem; }
+.ha-manage-section .ov-head { margin-bottom: .9rem; }
+.ha-manage-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 16.5rem), 1fr)); }
+.ha-manage .tip-ic { background: var(--cool-soft); color: var(--cool); }
+.ha-manage .tip-text { flex: 1; }
+.ha-manage-go {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  margin-top: .3rem;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  color: var(--fg-dim);
+  transition: color var(--fast) var(--ease);
+}
+.ha-manage:hover .ha-manage-go { color: var(--accent); }
+.ha-manage:hover { text-decoration: none; }
+.ha-manage:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Older cloud links that remain, and the way to them. */
+.ha-notices { display: grid; gap: .75rem; }
+.ha-norobot { align-items: center; flex-wrap: wrap; color: var(--fg-dim); }
+.ha-norobot > svg { color: var(--accent); }
+.ha-norobot > div { flex: 1 1 18rem; }
+.ha-norobot b { color: var(--fg); font-weight: 620; }
+.ha-older {
+  border-color: color-mix(in srgb, var(--warn) 32%, var(--border-soft));
+  background: radial-gradient(120% 200% at 0% 0%, var(--warn-soft), transparent 58%), var(--panel);
+}
+.ha-older-body { display: flex; align-items: center; flex-wrap: wrap; gap: .9rem 1.2rem; padding: 1rem 1.3rem; }
+.ha-older-ic {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+.ha-older-text { flex: 1 1 20rem; min-width: 0; display: grid; gap: .3rem; }
+.ha-older-text b { font-weight: 640; letter-spacing: -.012em; color: var(--fg); }
+.ha-older-text p { max-width: 72ch; font-size: var(--t-sm); line-height: 1.55; color: var(--fg-dim); }
+.ha-older-text .ha-robots { margin-top: .3rem; }
+.ha-older-quiet { margin-top: 1.5rem; font-size: var(--t-sm); color: var(--muted); }
+
+@media (max-width: 560px) {
+  .ha-progress { flex-wrap: wrap; gap: .5rem; }
+  .ha-progress-track { flex-basis: 100%; order: 1; }
+  .ha-guide-hero { grid-template-columns: minmax(0, 1fr); grid-template-areas: "art" "title" "intro"; padding: 1.15rem 1rem; gap: .6rem; }
+  .ha-guide-hero .robot-avatar-lg, .ha-guide-hero .ha-tile-lg { --size: 52px; }
+  .ha-guide-hero .ha-bridge-line { width: 63px; }
+  .ha-guide-bar { padding: .75rem 1rem; }
+  .ha-digits { flex-direction: column; gap: .55rem; padding: .85rem .8rem; }
+  .ha-digits-side { justify-items: center; }
+  .ha-digits-eq { margin-top: 0; }
+  .ha-flow-link { width: 26px; }
+  .ha-manage .tip-ic { grid-row: span 3; }
+  .ha-older-body { padding: 1rem; }
+  .ha-older-body > .btn { width: 100%; }
+}
+
 /* ==========================================================================
    Modal
    ========================================================================== */

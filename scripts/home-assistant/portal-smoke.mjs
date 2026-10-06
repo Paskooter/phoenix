@@ -32,7 +32,8 @@ try {
   await context.addCookies([{ name: 'phx_session', value: session._id, url: base }]);
   const page = await context.newPage();
   const errors = []; page.on('pageerror', (error) => errors.push(error.message));
-  await page.goto(base + '/app#/home-assistant');
+  // Cloud links made with Phoenix 0.2 are managed on their own page.
+  await page.goto(base + '/app#/home-assistant-legacy');
   const getCode = page.getByRole('button', { name: 'Get connection code' });
   await getCode.waitFor();
   // An owner's only Jibo is already chosen; choosing it again changes nothing.
@@ -80,6 +81,14 @@ try {
   await permissionLabel.click();
   await page.getByText('Home Assistant announcements turned off', { exact: true }).waitFor();
   assert.equal(new Store(store.file).homeAssistantInstallations.get(exchanged.installation_id).announcementsEnabled, false);
+  // The direct page says an older cloud link remains, names its Jibo, and leads to it.
+  await page.goto(base + '/app#/home-assistant');
+  const olderLink = page.locator('.ha-older');
+  await olderLink.getByText('You still have an older cloud link').waitFor();
+  assert.match(await olderLink.innerText(), /Fixture household/);
+  await olderLink.getByRole('link', { name: 'Manage older cloud links' }).click();
+  await page.waitForURL('**/app#/home-assistant-legacy');
+  await permissionLabel.waitFor();
   // Disconnecting asks first; declining keeps the link.
   const disconnect = page.locator('.ha-install').getByRole('button', { name: 'Disconnect' });
   await disconnect.click();
@@ -97,11 +106,15 @@ try {
   await page.getByRole('button', { name: 'Get connection code' }).waitFor();
   assert.equal(store.homeAssistantCodes.size, 0);
   assert.throws(() => service.homeAssistant.exchangeCode(unused), /invalid_code/);
+  // With nothing left to manage, the direct page keeps only a quiet way back.
+  await page.goto(base + '/app#/home-assistant');
+  await page.getByRole('link', { name: 'Manage older cloud links' }).waitFor();
+  assert.equal(await page.locator('.ha-older').count(), 0);
   assert.deepEqual(errors, []);
   assert.equal(service.homeAssistant.authenticate(`Bearer ${exchanged.credential}`), null);
   const storage = await page.evaluate(() => JSON.stringify([localStorage, sessionStorage]));
   assert.ok(!storage.includes(exchanged.credential) && !storage.includes(code) && !storage.includes(unused));
-  console.log('PASS owner code, live connection, explicit announcement permission persistence/save failure, confirmed revocation, cancelled code and 390/768/1440px setup page');
+  console.log('PASS owner code, live connection, explicit announcement permission persistence/save failure, older-link notice on the direct page, confirmed revocation, cancelled code and 390/768/1440px setup page');
 } finally {
   connector?.terminate(); await browser?.close(); service.homeAssistant.close();
   service.server.closeAllConnections();

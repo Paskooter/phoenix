@@ -5115,7 +5115,8 @@ function paintNav(hash) {
     // Every #/admin/* sub-route keeps the one Administration item highlighted;
     // the sub-navigation inside the page says which of them you are on.
     const active = route === hash
-      || (route === '#/admin' && hash.startsWith('#/admin'));
+      || (route === '#/admin' && hash.startsWith('#/admin'))
+      || (route === '#/home-assistant' && hash === '#/home-assistant-legacy');
     a.classList.toggle('active', active);
     if (active) a.setAttribute('aria-current', 'page');
     else a.removeAttribute('aria-current');
@@ -5135,18 +5136,24 @@ function paintNav(hash) {
    Home Assistant
    ========================================================================== */
 
-// Local pairing happens on Jibo and in Home Assistant. This console provides
-// installation guidance and removal of legacy cloud connections; it never
-// receives a local pairing key, certificate pin or Home Assistant address.
+// Home Assistant pairs directly with each Jibo on the owner's network: pairing
+// starts on Jibo and finishes in Home Assistant. This page guides that and
+// opens the right pages in the owner's own Home Assistant. It never receives a
+// pairing key, certificate pin or Home Assistant address, so it cannot see
+// whether a Jibo is paired and does not pretend to. Older cloud links, made
+// with Phoenix 0.2, keep their own page.
 const HA_REPO = 'https://github.com/Paskooter/phoenix-home-assistant';
+const HA_DOCS = `${HA_REPO}/blob/main/docs`;
 const HA_MY = 'https://my.home-assistant.io/redirect';
 const HA_LINKS = Object.freeze({
   hacs: `${HA_MY}/hacs_repository/?owner=Paskooter&repository=phoenix-home-assistant&category=integration`,
   add: `${HA_MY}/config_flow_start/?domain=phoenix`,
   integration: `${HA_MY}/integration/?domain=phoenix`,
   expose: `${HA_MY}/voice_assistants/`,
-  install: `${HA_REPO}#install-through-hacs`,
-  help: `${HA_REPO}#troubleshooting`,
+  areas: `${HA_MY}/areas/`,
+  install: `${HA_DOCS}/installation.md#hacs-or-manual-installation`,
+  remove: `${HA_DOCS}/installation.md#disable-or-remove`,
+  help: `${HA_DOCS}/troubleshooting.md`,
 });
 // The address the integration's setup form suggests; other servers replace it.
 const HA_DEFAULT_SERVER = 'https://jibo.io';
@@ -5321,18 +5328,17 @@ function haSayCard() {
       h('p', { class: 'field-hint' }, 'Use the names, aliases and areas your devices have in Home Assistant.')));
 }
 
-function haNotesCard(legacy = false) {
-  const note = (iconName, title, text) => h('li', { class: 'ha-note' },
-    h('span', { class: 'ha-note-ic' }, icon(iconName, 15)),
-    h('div', {}, h('b', { text: title }), text));
+const haNote = (iconName, title, text) => h('li', { class: 'ha-note' },
+  h('span', { class: 'ha-note-ic' }, icon(iconName, 15)),
+  h('div', {}, h('b', { text: title }), text));
+
+function haNotesCard() {
   return card('Good to know', {},
     h('ul', { class: 'ha-notes' },
-      legacy
-        ? note('lock', 'The older server relay', 'This older connection sends Home Assistant commands through Phoenix. Update to direct pairing to use the local connection.')
-        : note('lock', 'A local, paired connection', 'Home Assistant connects directly to Jibo on your network. Pairing requires approval on Jibo. No port forwarding is needed.'),
-      note('eye', 'You choose what Jibo can reach', 'He can use only what you expose to Assist. Expose scripts with care.'),
-      note('message', 'English, one request at a time', 'Requests joined with “and” or “then” aren’t supported yet.'),
-      note('alert', 'If Jibo can’t confirm a result', 'It may have worked anyway. Check the device before asking again.')),
+      haNote('lock', 'The older server relay', 'This older connection sends Home Assistant commands through Phoenix. Update to direct pairing to use the local connection.'),
+      haNote('eye', 'You choose what Jibo can reach', 'He can use only what you expose to Assist. Expose scripts with care.'),
+      haNote('message', 'English, one request at a time', 'Requests joined with “and” or “then” aren’t supported yet.'),
+      haNote('alert', 'If Jibo can’t confirm a result', 'It may have worked anyway. Check the device before asking again.')),
     haOut(HA_LINKS.help, 'Setup guide and troubleshooting', 'ov-link'));
 }
 
@@ -5347,33 +5353,325 @@ function haNoRobots(robots) {
     shared ? null : h('a', { class: 'btn btn-primary', href: '#/add' }, icon('plus', 15), 'Add a Jibo'))));
 }
 
+/* -- Direct pairing ----------------------------------------------------------- */
+
+// The versions the direct beta was released and checked with.
+const HA_DIRECT = Object.freeze({
+  integration: '0.3.0b3', homeAssistant: '2026.8.1', be: '13.2.2', services: '13.0.8', os: '13.0.7',
+});
+
+// What to say once a Jibo is paired: [group, hint, phrases]. Every phrase fits
+// a pattern Phoenix hands to the paired Home Assistant and follows the
+// integration's own examples; anything else goes through “ask Home Assistant
+// to…”.
+const HA_DIRECT_PHRASES = [
+  ['Lights and switches', '', ['Turn on the kitchen lights', 'Set the bedroom light brightness to fifty percent',
+    'Set the bedroom light to blue', 'Turn on the garden switch']],
+  ['Scenes and scripts', '', ['Activate the dinner scene', 'Run the relax script']],
+  ['In Jibo’s room', 'Once he has an Area', ['Turn on the lights here', 'Are the lights here on?']],
+  ['Questions', '', ['What is the kitchen temperature?', 'Are the kitchen lights on?']],
+  ['Follow-ups', 'Within 30 seconds', ['Turn them off', 'Make them dimmer']],
+  ['Anything else Assist understands', '', ['Ask Home Assistant to …']],
+];
+
+/** Labels as they read on screen, joined like a menu path: Settings › Home Assistant. */
+const haPath = (...labels) => h('span', { class: 'ha-path' },
+  labels.flatMap((label, i) => [i ? h('span', { class: 'ha-path-sep', 'aria-hidden': 'true' }, '›') : null, h('b', { text: label })]));
+
+/** A button that opens the owner's own Home Assistant at the right page. */
+const haOpen = (href, label, primary = false) => h('a', {
+  class: `btn btn-sm ha-open${primary ? ' btn-primary' : ''}`, href, target: '_blank', rel: 'noopener noreferrer',
+}, icon('smartHome', 15), label, icon('external', 13));
+
+/**
+ * Jibo and Home Assistant each show eight digits, and matching them is what
+ * proves the two are pairing with each other. Drawn blank, so the picture is
+ * never mistaken for a real code.
+ */
+function haDigits() {
+  const side = (label) => h('div', { class: 'ha-digits-side' },
+    h('span', { class: 'ha-digits-label', text: label }),
+    h('span', { class: 'ha-digits-boxes' }, Array.from({ length: 8 }, () => h('span', { class: 'ha-digit' }))));
+  return h('div', { class: 'ha-digits', 'aria-hidden': 'true' },
+    side('On Jibo'), h('span', { class: 'ha-digits-eq' }, '='), side('In Home Assistant'));
+}
+
+// The steps, in the order the two-minute pairing window needs: Home
+// Assistant's form is open before Jibo starts it. `again` steps are repeated
+// for every Jibo; the integration is installed once. A step's body is told
+// whether it is the step to do next, so only that step's action leads.
+const HA_DIRECT_STEPS = [
+  {
+    id: 'update', again: true, title: 'Update Jibo',
+    body: () => [
+      h('p', {}, 'Jibo needs ', h('b', {}, `BE ${HA_DIRECT.be}`), ' and ', h('b', {}, `Services ${HA_DIRECT.services}`),
+        `, on OS ${HA_DIRECT.os}. He installs updates from this server by himself. To check now, say `,
+        h('b', {}, '“Hey Jibo, check for updates.”')),
+      h('a', { class: 'ov-link', href: '#/system' }, 'Jibo software on this server', icon('arrow', 14)),
+    ],
+  },
+  {
+    id: 'install', title: 'Install Phoenix in Home Assistant',
+    body: (next) => [
+      h('p', {}, 'Open Phoenix in HACS, turn on beta versions and download ', h('b', {}, HA_DIRECT.integration),
+        `. Then restart Home Assistant. It needs Home Assistant ${HA_DIRECT.homeAssistant} or newer.`),
+      h('div', { class: 'ha-actions' }, haOpen(HA_LINKS.hacs, 'Open in HACS', next),
+        haOut(HA_LINKS.install, 'Install by hand', 'btn btn-sm btn-quiet')),
+    ],
+  },
+  {
+    id: 'form', again: true, title: 'Open the Phoenix setup', tag: ['clock', 'Before pairing', 'time'],
+    body: (next) => [
+      h('p', {}, 'In Home Assistant, go to ', haPath('Settings', 'Devices & services', 'Add integration', 'Phoenix'),
+        ' and leave the form open. Jibo’s pairing window only lasts two minutes, so have this ready first.'),
+      h('div', { class: 'ha-actions' }, haOpen(HA_LINKS.add, 'Add Phoenix', next)),
+    ],
+  },
+  {
+    id: 'pair', again: true, title: 'Start pairing on Jibo', tag: ['clock', 'Two minutes', 'time'],
+    body: () => [
+      h('p', {}, 'On Jibo’s screen, open ', haPath('Settings', 'Home Assistant', 'Start pairing'), '.'),
+      h('p', {}, 'Type the host and port he shows, usually ', h('b', {}, '9443'),
+        ', into the Home Assistant form. Home Assistant has to be able to reach Jibo on your network.'),
+    ],
+  },
+  {
+    id: 'compare', again: true, title: 'Check that the eight digits match', tag: ['lock', 'Keeps it safe', 'safe'],
+    body: () => [
+      haDigits(),
+      h('p', {}, 'If every digit matches, tap ', h('b', {}, 'Approve'), ' on Jibo, then confirm in Home Assistant.'),
+      h('div', { class: 'notice notice-warn' }, icon('alert', 16),
+        h('div', {}, 'If any digit is different, or you didn’t start this pairing, cancel on both.')),
+    ],
+  },
+  {
+    id: 'finish', again: true, title: 'Choose what Jibo can control',
+    body: (next) => [
+      h('p', {}, 'Tap ', h('b', {}, 'Done'), ' and leave Settings so Jibo shows his face. In Home Assistant, give Jibo an ',
+        h('b', {}, 'Area'), ' and expose the devices he may use. Start with one light.'),
+      h('div', { class: 'ha-actions' }, haOpen(HA_LINKS.expose, 'Expose devices', next), haOpen(HA_LINKS.areas, 'Areas')),
+    ],
+  },
+];
+
+// Ticked steps are a convenience for whoever is following the guide in this
+// browser, kept for the signed-in account. They are the owner's own marks,
+// never a pairing status.
+const HA_GUIDE_KEY = 'phoenix.homeAssistantGuide';
+function haGuideProgress(accountId) {
+  const known = new Set(HA_DIRECT_STEPS.map((step) => step.id));
+  let done = new Set();
+  try {
+    const saved = JSON.parse(localStorage.getItem(HA_GUIDE_KEY) || 'null');
+    if (saved?.accountId === accountId && Array.isArray(saved.done)) done = new Set(saved.done.filter((id) => known.has(id)));
+  } catch { /* browser storage is optional */ }
+  const save = () => {
+    try {
+      if (done.size) localStorage.setItem(HA_GUIDE_KEY, JSON.stringify({ accountId, done: [...done] }));
+      else localStorage.removeItem(HA_GUIDE_KEY);
+    } catch { /* browser storage is optional */ }
+  };
+  return { done, save };
+}
+
+/** One step of the guide. A finished step folds down to its title. */
+function haGuideStep(step, n, state, onToggle) {
+  const finished = state === 'done';
+  const check = h('input', { class: 'ha-check', type: 'checkbox', checked: finished, 'data-step': step.id });
+  check.addEventListener('change', () => onToggle(step.id));
+  const [tagIcon, tagText, tagTone] = step.tag || [];
+  return h('li', { class: `ha-step is-${state}`, 'aria-current': state === 'active' ? 'step' : null },
+    h('span', { class: 'ha-step-mark', 'aria-hidden': 'true' }, finished ? icon('check', 14) : String(n)),
+    h('div', { class: 'ha-step-title' },
+      h('span', { class: 'ha-step-head' },
+        h('span', { class: 'ha-step-name' }, h('span', { class: 'sr-only' }, `Step ${n}: `), step.title),
+        step.tag && !finished ? h('span', { class: `ha-step-tag is-${tagTone}` }, icon(tagIcon, 12), tagText) : null),
+      h('label', { class: 'ha-step-done' }, check, h('span', {}, 'Done'), h('span', { class: 'sr-only' }, `: ${step.title}`))),
+    finished ? null : h('div', { class: 'ha-step-body' }, ...step.body(state === 'active')));
+}
+
+/** The pairing guide: who is being paired with what, what is needed, and the steps. */
+function haGuideCard(accountId) {
+  const { done, save } = haGuideProgress(accountId);
+  const total = HA_DIRECT_STEPS.length;
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const heroRobots = h('span', { class: 'ha-bridge-robots' }, robotAvatar('blue', 'lg'));
+  const fill = h('span', { class: 'ha-progress-fill' });
+  const count = h('span', { class: 'ha-progress-count' });
+  const meter = h('div', { class: 'ha-progress', role: 'progressbar', 'aria-label': 'Pairing guide',
+    'aria-valuemin': '0', 'aria-valuemax': String(total) }, h('span', { class: 'ha-progress-track' }, fill), count);
+  const steps = h('ol', { class: 'ha-steps' });
+  const foot = h('div', { class: 'card-foot ha-guide-foot' });
+  const el = h('section', { class: 'card ha-setup is-first ha-guide' },
+    h('div', { class: 'ha-guide-hero' },
+      h('span', { class: 'ha-bridge ha-bridge-lg is-local', 'aria-hidden': 'true' },
+        heroRobots, h('span', { class: 'ha-bridge-line' }, h('span', { class: 'ha-bridge-lock' }, icon('lock', 12))), haTile('lg')),
+      h('h3', {}, 'Pair Jibo with Home Assistant'),
+      h('div', { class: 'ha-guide-intro' },
+        h('p', {}, 'Home Assistant talks to Jibo directly over your home network. Pairing happens on Jibo’s screen and in Home Assistant, so there’s nothing to type in here.'),
+        h('ul', { class: 'ha-needs', 'aria-label': 'You’ll need' },
+          h('li', {}, icon('smartHome', 14), `Home Assistant ${HA_DIRECT.homeAssistant} or newer`),
+          h('li', {}, icon('download', 14), `Phoenix integration ${HA_DIRECT.integration}`),
+          h('li', {}, icon('robot', 14), `Jibo BE ${HA_DIRECT.be} · Services ${HA_DIRECT.services}`)))),
+    h('div', { class: 'ha-guide-bar' }, meter),
+    steps,
+    foot);
+
+  const reset = (keepInstalled) => {
+    for (const step of HA_DIRECT_STEPS) if (!keepInstalled || step.again) done.delete(step.id);
+    save();
+    paint();
+    steps.querySelector('.is-active .ha-check')?.focus({ preventScroll: true });
+    steps.querySelector('.is-active')?.scrollIntoView({ block: 'nearest', behavior: reducedMotion ? 'auto' : 'smooth' });
+  };
+
+  function paint() {
+    const next = HA_DIRECT_STEPS.find((step) => !done.has(step.id));
+    steps.replaceChildren(...HA_DIRECT_STEPS.map((step, i) =>
+      haGuideStep(step, i + 1, done.has(step.id) ? 'done' : step === next ? 'active' : 'ready', toggle)));
+    el.classList.toggle('is-complete', !next);
+    fill.style.width = `${(done.size / total) * 100}%`;
+    count.textContent = done.size ? `${done.size} of ${total} done` : `${total} steps · tick each one off as you go`;
+    meter.setAttribute('aria-valuenow', String(done.size));
+    meter.setAttribute('aria-valuetext', `${done.size} of ${total} steps done`);
+    // replaceChildren() would draw a null as the text "null".
+    foot.replaceChildren(...(next
+      ? [h('span', { class: 'field-hint' }, 'Pair each Jibo on his own. Each one gets his own Phoenix entry in Home Assistant.'),
+        done.size ? h('button', { class: 'btn btn-sm btn-quiet', type: 'button', on: { click: () => reset(false) } }, 'Start over') : null]
+      : [h('div', { class: 'ha-ready', role: 'status' },
+        h('span', { class: 'ha-done-ic' }, icon('check', 18)),
+        h('div', {}, h('b', {}, 'That’s everything'),
+          h('span', {}, 'Now say “Hey Jibo, turn on the …” with the name of a light you exposed.'))),
+      h('button', { class: 'btn btn-sm', type: 'button', on: { click: () => reset(true) } }, icon('plus', 14), 'Pair another Jibo')]
+    ).filter(Boolean));
+  }
+
+  function toggle(id) {
+    if (done.has(id)) done.delete(id); else done.add(id);
+    save();
+    paint();
+    // Keep the keyboard where it was, and bring the next step into view.
+    steps.querySelector(`[data-step="${id}"]`)?.focus({ preventScroll: true });
+    steps.querySelector('.is-active')?.scrollIntoView({ block: 'nearest', behavior: reducedMotion ? 'auto' : 'smooth' });
+  }
+
+  paint();
+  return {
+    el,
+    setRobots(robots) {
+      if (robots.length) heroRobots.replaceChildren(...robots.slice(0, 3).map((robot) => robotAvatar(robot.avatarColor, 'lg')));
+    },
+  };
+}
+
+function haDirectSayCard() {
+  return h('section', { class: 'card say-card ha-say' },
+    h('div', { class: 'card-body' },
+      h('h3', {}, 'Say “Hey Jibo”, then…'),
+      ...HA_DIRECT_PHRASES.map(([label, hint, phrases]) => h('div', { class: 'ha-say-group' },
+        h('h4', {}, label, hint ? h('span', { class: 'ha-say-hint', text: hint }) : null),
+        h('ul', { class: 'ha-say-list is-flow' }, phrases.map((phrase) => h('li', { text: phrase }))))),
+      h('p', { class: 'field-hint' }, 'Use the names, aliases and areas your devices have in Home Assistant.')));
+}
+
+/** Who does what, and what stays where. */
+function haHowCard() {
+  const jibo = h('span', { class: 'ha-flow-jibo' }, robotAvatar('blue'));
+  const node = (visual, name, role) => h('div', { class: 'ha-flow-node' }, visual, h('b', { text: name }), h('span', { text: role }));
+  const el = card('How it works', {},
+    h('figure', { class: 'ha-flow' },
+      node(h('span', { class: 'ha-flow-ic' }, icon('mic', 18)), 'Phoenix', 'Turns speech into text'),
+      h('span', { class: 'ha-flow-link is-voice', 'aria-hidden': 'true' }),
+      node(jibo, 'Jibo', 'Sends your request'),
+      h('span', { class: 'ha-flow-link is-local', 'aria-hidden': 'true' }, h('span', { class: 'ha-flow-lock' }, icon('lock', 11))),
+      node(haTile(), 'Home Assistant', 'Runs it and replies'),
+      h('figcaption', { class: 'sr-only' }, 'Phoenix turns what you say into text. Jibo sends the request to Home Assistant over a paired, encrypted connection on your network, and Home Assistant runs it.')),
+    h('ul', { class: 'ha-notes' },
+      haNote('lock', 'Private to your network', 'The connection is encrypted and needs no port forwarding. Never open Jibo’s port 9443 to the Internet.'),
+      haNote('mic', 'Phoenix still hears you', 'It turns your voice into text, so voice control needs this server. Pairing keys, your Home Assistant address and device results stay off it.'),
+      haNote('message', 'One request at a time, in English', 'Requests joined with “and” or “then” aren’t supported yet.'),
+      haNote('alert', 'If Jibo can’t confirm a result', 'It may have worked anyway. Check the device before asking again.')),
+    haOut(HA_LINKS.help, 'Troubleshooting', 'ov-link'));
+  el.classList.add('ha-how');
+  return { el, setRobot(robot) { if (robot) jibo.replaceChildren(robotAvatar(robot.avatarColor)); } };
+}
+
+/** Everything after pairing is managed in Home Assistant itself. */
+function haManageSection() {
+  const tile = (iconName, title, text, href, go) => h('a', { class: 'tip ha-manage', href, target: '_blank', rel: 'noopener noreferrer' },
+    h('span', { class: 'tip-ic' }, icon(iconName, 18)),
+    h('span', { class: 'tip-title' }, title),
+    h('span', { class: 'tip-text' }, text),
+    h('span', { class: 'ha-manage-go' }, go, icon('external', 13)));
+  return h('section', { class: 'ha-manage-section', 'aria-labelledby': 'ha-manage-title' },
+    h('div', { class: 'ov-head' },
+      h('h3', { id: 'ha-manage-title' }, 'After pairing, everything lives in Home Assistant')),
+    h('div', { class: 'tip-grid ha-manage-grid' },
+      tile('wifi', 'Connection and sensors', 'See that Jibo is connected, plus his battery, head touch and 13 more sensors.', HA_LINKS.integration, 'Open Phoenix'),
+      tile('eye', 'What Jibo can control', 'Expose the lights, switches, scenes and scripts he may use. Expose scripts with care.', HA_LINKS.expose, 'Expose devices'),
+      tile('pin', 'Jibo’s room', 'Give Jibo an Area, so “turn on the lights here” means the room he’s in.', HA_LINKS.areas, 'Areas'),
+      tile('sliders', 'Routines and voice', 'Add your own phrases for scenes and scripts, or pick another conversation agent, in Phoenix › Configure.', HA_LINKS.integration, 'Open Phoenix'),
+      tile('bell', 'Announcements', 'Let automations speak through Jibo, with quiet hours. Off until you allow it in Phoenix › Configure.', HA_LINKS.integration, 'Open Phoenix'),
+      tile('trash', 'Disconnect', 'Delete Jibo’s Phoenix entry in Home Assistant. If Jibo is offline, also choose Forget on his Home Assistant screen.', HA_LINKS.remove, 'How to remove')));
+}
+
+/** Older cloud links still exist: say what happens to them, and where they are managed. */
+function haOlderLinksNotice(installations, robotFor) {
+  const robots = [...new Set(installations.flatMap((installation) => installation.robots || []))].map(robotFor);
+  return h('section', { class: 'card ha-older' },
+    h('div', { class: 'ha-older-body' },
+      h('span', { class: 'ha-older-ic' }, icon('link', 18)),
+      h('div', { class: 'ha-older-text' },
+        h('b', {}, installations.length === 1 ? 'You still have an older cloud link'
+          : `You still have ${installations.length} older cloud links`),
+        h('p', {}, 'Links made with Phoenix 0.2 send commands through this server. Pair Jibo directly and Home Assistant removes the old link by itself. If it couldn’t reach this server, disconnect the old link here.'),
+        robots.length ? h('div', { class: 'ha-robots' }, robots.map(haRobotChip)) : null),
+      h('a', { class: 'btn btn-sm', href: '#/home-assistant-legacy' }, 'Manage older cloud links', icon('arrow', 14, 'arrow'))));
+}
+
 async function renderHomeAssistant() {
-  const container = page('Home Assistant', 'Pair Home Assistant directly with Jibo on your home network.');
-  container.querySelector('.page-head h2').append(h('span', { class: 'pill pill-accent' }, 'Beta'));
-  const setup = h('div', { class: 'ha-main' });
-  container.append(h('div', { class: 'ha-layout' }, setup,
-    h('div', { class: 'ha-aside' }, haSayCard(), haNotesCard())));
-  setup.append(card('Connect at home', {},
-    h('p', {}, 'The direct beta requires Phoenix 0.3.0b3 or later in Home Assistant. Jibo needs the direct-connection robot update: BE 13.2.2 and services 13.0.8, with OS 13.0.7.'),
-    h('ol', {},
-      h('li', {}, 'Install the compatible direct beta through HACS when it is available, then restart Home Assistant.'),
-      h('li', {}, 'On Jibo, open Settings → Home Assistant → Start pairing. Keep Home Assistant and Jibo on the same reachable network.'),
-      h('li', {}, 'Add Phoenix in Home Assistant and enter Jibo’s local hostname or address.'),
-      h('li', {}, 'Compare the eight digits shown in Home Assistant with Jibo’s screen. Approve only if they match, then finish in Home Assistant.'),
-      h('li', {}, 'Choose devices in Assist. Repeat pairing separately for each Jibo.')),
-    h('div', { class: 'form-actions' }, haOut(HA_LINKS.hacs, 'Install through HACS', 'btn btn-primary'),
-      haOut(HA_LINKS.add, 'Add Phoenix'), haOut(`${HA_REPO}/blob/main/docs/installation.md`, 'Installation guide'))));
-  setup.append(card('Manage the connection in Home Assistant', {},
-    h('p', {}, 'Connection health, room assignment, the Assist agent, routines, quiet hours and announcement permission live in Home Assistant. Announcements are off until you enable them there.'),
-    h('p', {}, 'To disconnect, remove this robot’s Phoenix entry in Home Assistant. If it is offline, also use Forget in Jibo’s local Home Assistant controls.'),
-    h('div', { class: 'form-actions' }, haOut(HA_LINKS.integration, 'Open Phoenix'), haOut(HA_LINKS.expose, 'Choose devices'))));
-  setup.append(card('Voice recognition still uses Phoenix', {},
-    h('p', {}, 'Device commands and replies travel between Jibo and Home Assistant over their paired, encrypted local connection. Phoenix still recognizes what you say during a voice turn, so voice control needs the server.'),
-    h('p', {}, 'Your pairing keys and Home Assistant device results are kept off this console. Local announcements and connection health do not require Phoenix to stay online.')));
-  setup.append(card('Moving from the cloud beta?', {},
-    h('p', {}, 'The direct update guides you through local pairing and preserves your Home Assistant options. It does not silently fall back to a cloud connection. Finish pairing before removing an older link.'),
-    h('a', { class: 'btn btn-sm', href: '#/home-assistant-legacy' }, 'Manage older cloud links')));
+  const container = page('Home Assistant', 'Pair Home Assistant directly with Jibo on your home network, then ask him to run your lights, scenes and more.');
+  const head = container.querySelector('.page-head');
+  head.classList.add('ha-head');
+  head.querySelector('h2').append(h('span', { class: 'pill pill-accent' }, 'Beta'));
+
+  const guide = haGuideCard(me?.id || '');
+  const how = haHowCard();
+  const notice = h('div', { class: 'ha-slot ha-notices', 'aria-live': 'polite' });
+  const older = h('div', { class: 'ha-slot' });
+  container.append(notice,
+    h('div', { class: 'ha-layout' },
+      h('div', { class: 'ha-main' }, guide.el),
+      h('div', { class: 'ha-aside' }, haDirectSayCard(), how.el)),
+    haManageSection(),
+    older);
   show(container);
+
+  // Nothing above waits for the server. The robots give the drawings their
+  // colors, and older cloud links are only read, to say whether any remain.
+  const [robots, links] = await Promise.all([api('GET', '/api/robots'), api('GET', '/api/home-assistant')]);
+  const robotList = robots.ok && Array.isArray(robots.data) ? robots.data : [];
+  if (robots.ok) {
+    setBadge('badge-robots', robotList.length);
+    const shown = [...robotList.filter((robot) => robot.canManage), ...robotList.filter((robot) => !robot.canManage)];
+    guide.setRobots(shown);
+    how.setRobot(shown[0]);
+    if (!robotList.length) {
+      notice.append(h('div', { class: 'notice notice-accent ha-norobot' }, icon('robot', 16),
+        h('div', {}, h('b', {}, 'Add your Jibo to this server first. '),
+          'Phoenix still turns what you say into text, so voice control needs Jibo connected here.'),
+        h('a', { class: 'btn btn-sm', href: '#/add' }, icon('plus', 14), 'Add a Jibo')));
+    }
+  }
+  const byId = new Map(robotList.map((robot) => [robot.friendlyId, robot]));
+  const installations = links.ok && Array.isArray(links.data?.installations) ? links.data.installations : [];
+  if (installations.length) {
+    notice.append(haOlderLinksNotice(installations, (id) => byId.get(id) || { friendlyId: id, avatarColor: 'slate' }));
+  } else {
+    older.append(h('p', { class: 'ha-older-quiet' }, 'Set up Home Assistant with the older cloud beta? ',
+      h('a', { class: 'link', href: '#/home-assistant-legacy' }, 'Manage older cloud links')));
+  }
 }
 
 async function renderLegacyHomeAssistant() {
@@ -5381,6 +5679,7 @@ async function renderLegacyHomeAssistant() {
     const container = page('Older Home Assistant links', 'Manage connections created with Phoenix 0.2. These use the server relay.');
     const head = container.querySelector('.page-head');
     head.classList.add('ha-head');
+    head.prepend(h('a', { class: 'link back-link', href: '#/home-assistant' }, icon('back', 14), 'Home Assistant'));
     head.querySelector('h2').append(h('span', { class: 'pill pill-accent' }, 'Beta'));
     return container;
   };
@@ -5405,7 +5704,7 @@ async function renderLegacyHomeAssistant() {
   const robotFor = (id) => byId.get(id) || { friendlyId: id, avatarColor: 'slate' };
 
   const main = h('div', { class: 'ha-main' });
-  const layout = h('div', { class: 'ha-layout' }, main, h('div', { class: 'ha-aside' }, haSayCard(), haNotesCard(true)));
+  const layout = h('div', { class: 'ha-layout' }, main, h('div', { class: 'ha-aside' }, haSayCard(), haNotesCard()));
   container.append(layout);
   if (!owned.length) {
     main.append(haNoRobots(robotList));
