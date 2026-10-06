@@ -1,4 +1,4 @@
-// Owner setup browser check. Invented records and isolated ephemeral listeners.
+// Older cloud link management browser check. Invented records and isolated ephemeral listeners.
 import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -21,38 +21,41 @@ const robot = { _id: 'synthetic-portal-robot', friendlyId: 'Synthetic-Pilot-Jibo
 store.accounts.set(robot._id, robot);
 store.loops.set('synthetic-loop', { _id: 'synthetic-loop', owner: owner._id, robot: robot._id,
   name: 'Fixture household', members: [{ account: owner._id, status: 'accepted' }] });
+// A second, unlinked Jibo: the server only issues codes for robots without a link.
+const spare = { _id: 'synthetic-spare-robot', friendlyId: 'Synthetic-Spare-Jibo', isActive: true, accessKeyId: 'synthetic-spare-key' };
+store.accounts.set(spare._id, spare);
+store.loops.set('synthetic-spare-loop', { _id: 'synthetic-spare-loop', owner: owner._id, robot: spare._id,
+  name: 'Fixture spare', members: [{ account: owner._id, status: 'accepted' }] });
 const session = createSession(store, { kind: 'user', accountId: owner._id }); store.flush();
 const service = createAccountService({ store, smtp: null });
 let browser, connector;
 try {
   await service.listen(0, '127.0.0.1');
   const base = `http://127.0.0.1:${service.server.address().port}`;
-  browser = await chromium.launch({ headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage', '--no-proxy-server'] });
-  const context = await browser.newContext();
-  await context.addCookies([{ name: 'phx_session', value: session._id, url: base }]);
-  const page = await context.newPage();
-  const errors = []; page.on('pageerror', (error) => errors.push(error.message));
-  // Cloud links made with Phoenix 0.2 are managed on their own page.
-  await page.goto(base + '/app#/home-assistant-legacy');
-  const getCode = page.getByRole('button', { name: 'Get connection code' });
-  await getCode.waitFor();
-  // An owner's only Jibo is already chosen; choosing it again changes nothing.
-  const choice = page.getByRole('checkbox', { name: /Synthetic-Pilot-Jibo/ });
-  assert.ok(await choice.isChecked());
-  await choice.check();
-  await getCode.click();
-  const code = await page.locator('.ha-connection-code').innerText();
-  assert.match(code, /^[0-9A-F]{4}(?:-[0-9A-F]{4}){4}$/);
-  await page.getByText('Waiting for Home Assistant…').waitFor();
-  const exchanged = service.homeAssistant.exchangeCode(code);
+  // A link made with Phoenix 0.2, exactly as its Home Assistant made one: a
+  // code from this owner, exchanged for a credential, then a ready connector.
+  const issued = service.homeAssistant.issueCode(owner, [robot.friendlyId], 'Home Assistant');
+  const exchanged = service.homeAssistant.exchangeCode(issued.code);
   connector = new WebSocket(base.replace('http:', 'ws:') + '/api/home-assistant/connect',
     { headers: { authorization: `Bearer ${exchanged.credential}` } });
   const welcomePromise = once(connector, 'message'); await once(connector, 'open');
   const welcome = JSON.parse((await welcomePromise)[0]);
   connector.send(JSON.stringify({ v: 1, type: 'ready', session_id: welcome.session_id, agent: 'home_assistant', ha_version: '2026.8.1' }));
-  // The page notices on its own: the setup card confirms, and the link reads Connected.
-  await page.getByText('Connected to Home Assistant 2026.8.1').waitFor({ timeout: 10000 });
+
+  browser = await chromium.launch({ headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage', '--no-proxy-server'] });
+  const context = await browser.newContext();
+  await context.addCookies([{ name: 'phx_session', value: session._id, url: base }]);
+  const page = await context.newPage();
+  const errors = []; page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(base + '/app#/home-assistant-legacy');
   await page.locator('.ha-install').getByText('Connected', { exact: true }).waitFor({ timeout: 10000 });
+  assert.match(await page.locator('.ha-install').innerText(), /Home Assistant 2026\.8\.1/);
+  // Older links are only managed here. Phoenix 0.3 and later can't use a code,
+  // so the page offers none, and points new connections to direct pairing.
+  assert.equal(await page.getByRole('button', { name: /connection code|Link another Jibo/ }).count(), 0);
+  assert.equal(await page.getByRole('link', { name: 'Pair directly' }).getAttribute('href'), '#/home-assistant');
+  assert.equal(await page.locator('#nav .nav-item.active').getAttribute('href'), '#/home-assistant');
+
   // The linked installation has no reverse permission until its owner opts in.
   const announcements = page.getByRole('checkbox', { name: /Allow Home Assistant announcements/ });
   const permissionLabel = page.locator('.ha-install label.switch').filter({ hasText: 'Allow Home Assistant announcements' });
@@ -65,7 +68,6 @@ try {
     await page.setViewportSize({ width, height: 1000 });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${width}px overflow`);
   }
-  await page.getByRole('button', { name: 'Done', exact: true }).click();
   await page.reload();
   await permissionLabel.waitFor();
   assert.equal(await announcements.isChecked(), true);
@@ -81,6 +83,7 @@ try {
   await permissionLabel.click();
   await page.getByText('Home Assistant announcements turned off', { exact: true }).waitFor();
   assert.equal(new Store(store.file).homeAssistantInstallations.get(exchanged.installation_id).announcementsEnabled, false);
+
   // The direct page says an older cloud link remains, names its Jibo, and leads to it.
   await page.goto(base + '/app#/home-assistant');
   const olderLink = page.locator('.ha-older');
@@ -89,6 +92,16 @@ try {
   await olderLink.getByRole('link', { name: 'Manage older cloud links' }).click();
   await page.waitForURL('**/app#/home-assistant-legacy');
   await permissionLabel.waitFor();
+
+  // A code made before codes were retired can still be withdrawn.
+  const leftover = service.homeAssistant.issueCode(owner, [spare.friendlyId], 'Home Assistant');
+  await page.reload();
+  await page.getByText('A connection code you made earlier hasn’t been used.').waitFor();
+  await page.getByRole('button', { name: 'Cancel the code' }).click();
+  await page.getByText('Code cancelled', { exact: true }).waitFor();
+  assert.equal(store.homeAssistantCodes.size, 0);
+  assert.throws(() => service.homeAssistant.exchangeCode(leftover.code), /invalid_code/);
+
   // Disconnecting asks first; declining keeps the link.
   const disconnect = page.locator('.ha-install').getByRole('button', { name: 'Disconnect' });
   await disconnect.click();
@@ -98,14 +111,11 @@ try {
   await disconnect.click();
   await page.getByRole('dialog').getByRole('button', { name: 'Disconnect' }).click();
   assert.equal((await closed)[0], 4001);
-  await page.getByRole('heading', { name: 'Connect Jibo to Home Assistant' }).waitFor();
-  // A new code can be withdrawn before Home Assistant uses it.
-  await page.getByRole('button', { name: 'Get connection code' }).click();
-  const unused = await page.locator('.ha-connection-code').innerText();
-  await page.getByRole('button', { name: 'Cancel code' }).click();
-  await page.getByRole('button', { name: 'Get connection code' }).waitFor();
-  assert.equal(store.homeAssistantCodes.size, 0);
-  assert.throws(() => service.homeAssistant.exchangeCode(unused), /invalid_code/);
+  // Nothing left: the page says so and leads to direct pairing instead.
+  await page.getByRole('heading', { name: 'No older cloud links' }).waitFor();
+  assert.equal(await page.getByRole('link', { name: 'Pair Home Assistant directly' }).getAttribute('href'), '#/home-assistant');
+  assert.equal(await page.locator('.ha-install').count(), 0);
+
   // With nothing left to manage, the direct page keeps only a quiet way back.
   await page.goto(base + '/app#/home-assistant');
   await page.getByRole('link', { name: 'Manage older cloud links' }).waitFor();
@@ -113,8 +123,8 @@ try {
   assert.deepEqual(errors, []);
   assert.equal(service.homeAssistant.authenticate(`Bearer ${exchanged.credential}`), null);
   const storage = await page.evaluate(() => JSON.stringify([localStorage, sessionStorage]));
-  assert.ok(!storage.includes(exchanged.credential) && !storage.includes(code) && !storage.includes(unused));
-  console.log('PASS owner code, live connection, explicit announcement permission persistence/save failure, older-link notice on the direct page, confirmed revocation, cancelled code and 390/768/1440px setup page');
+  assert.ok(!storage.includes(exchanged.credential) && !storage.includes(issued.code) && !storage.includes(leftover.code));
+  console.log('PASS older link status, no new codes, explicit announcement permission persistence/save failure, older-link notice on the direct page, leftover code cancel, confirmed revocation, empty state and 390/768/1440px layout');
 } finally {
   connector?.terminate(); await browser?.close(); service.homeAssistant.close();
   service.server.closeAllConnections();

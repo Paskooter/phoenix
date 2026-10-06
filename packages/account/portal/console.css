@@ -2107,41 +2107,9 @@ pre.json {
 }
 .btn-quiet.ha-disconnect:hover { color: var(--error); background: var(--error-soft); }
 
-/* The offer to link one more Jibo, drawn like the console's other "add" tiles. */
-.ha-add {
-  display: flex;
-  align-items: center;
-  gap: .9rem;
-  width: 100%;
-  padding: .8rem 1.1rem;
-  border-radius: var(--radius);
-  border: 1px dashed var(--border);
-  color: inherit;
-  text-align: left;
-  transition: border-color var(--fast) var(--ease), background var(--fast) var(--ease), transform var(--fast) var(--ease);
-}
-.ha-add:hover { border-color: var(--accent-line); background: var(--panel); transform: translateY(-1px); }
-.ha-add:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.ha-add-text { min-width: 0; display: grid; gap: .1rem; }
-.ha-add-text b { font-weight: 620; letter-spacing: -.014em; color: var(--fg); }
-.ha-add-text span { font-size: var(--t-sm); color: var(--muted); }
-@media (hover: none) { .ha-add:hover { transform: none; } }
-
-/* Linking a Jibo ------------------------------------------------------------ */
+/* Pairing ------------------------------------------------------------------- */
 
 .ha-setup.is-first { border-color: var(--accent-line); }
-.ha-setup-hero {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem 1.4rem;
-  padding: 1.4rem 1.3rem;
-  border-bottom: 1px solid var(--border-soft);
-  background: radial-gradient(110% 160% at 100% 0%, var(--accent-soft), transparent 60%), var(--panel);
-}
-.ha-setup-hero-text { flex: 1 1 15rem; min-width: 0; }
-.ha-setup-hero h3 { margin-bottom: .3rem; font-size: var(--t-lg); letter-spacing: -.02em; }
-.ha-setup-hero p { max-width: 46ch; font-size: var(--t-sm); line-height: 1.55; color: var(--muted); }
 
 /* Numbered steps on a thread. Each step's number turns into a check once it
    is done, and the step being worked on carries the brand gradient. */
@@ -2180,7 +2148,6 @@ pre.json {
   font-variant-numeric: tabular-nums;
   transition: background var(--step) var(--ease), color var(--step) var(--ease), box-shadow var(--step) var(--ease);
 }
-.ha-step.is-todo .ha-step-mark { background: var(--panel-2); color: var(--faint); box-shadow: inset 0 0 0 1px var(--border); }
 .ha-step.is-active .ha-step-mark {
   background: var(--grad-brand);
   color: var(--accent-ink);
@@ -2195,7 +2162,6 @@ pre.json {
   letter-spacing: -.012em;
   color: var(--fg);
 }
-.ha-step.is-todo .ha-step-title { color: var(--fg-dim); }
 .ha-step-body {
   display: grid;
   gap: .8rem;
@@ -2209,53 +2175,8 @@ pre.json {
 .ha-step-body > p { max-width: 72ch; }
 .ha-step-body .notice { color: var(--fg-dim); }
 .ha-step-body .notice-warn { color: var(--warn); }
-.ha-step-body .notice .link { font-size: inherit; }
 
-/* Picking Jibos: each one a tile around a real, named checkbox. */
-.ha-get { display: grid; gap: .9rem; }
-.ha-pick {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
-  gap: .55rem;
-  min-width: 0;
-}
-.ha-option {
-  display: flex;
-  align-items: center;
-  gap: .7rem;
-  min-width: 0;
-  padding: .65rem .75rem .65rem .65rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--panel-2);
-  color: var(--fg-dim);
-  cursor: pointer;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  transition: border-color var(--fast) var(--ease), background var(--fast) var(--ease),
-              box-shadow var(--fast) var(--ease), transform var(--fast) var(--ease);
-}
-.ha-option:hover { border-color: var(--accent-line); }
-.ha-option:active { transform: translateY(1px); }
-.ha-option:has(input:checked) { border-color: var(--accent-line); background: var(--accent-soft); }
-.ha-option:has(input:focus-visible) { border-color: var(--accent); box-shadow: var(--ring); }
-.ha-option-text { flex: 1; min-width: 0; display: grid; gap: .05rem; line-height: 1.35; }
-.ha-option-text b {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 600;
-  letter-spacing: -.012em;
-  color: var(--fg);
-}
-.ha-option-text span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-family: var(--font-mono);
-  font-size: var(--t-xs);
-  color: var(--muted);
-}
+/* A step's tick box: a real, named checkbox drawn in the brand's style. */
 .ha-check {
   -webkit-appearance: none;
   appearance: none;
@@ -2284,91 +2205,8 @@ pre.json {
 .ha-check:checked { border-color: transparent; background: var(--grad-brand); }
 .ha-check:checked::after { opacity: 1; transform: none; }
 .ha-check:focus-visible { outline: none; }
-.ha-get-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .75rem; }
-.ha-get-row .field { flex: 1 1 13rem; }
-.ha-get-row .btn { flex: none; }
 
-/* The code, sized to be read across a room and typed without a slip. */
-.ha-code {
-  display: grid;
-  gap: .85rem;
-  padding: 1rem 1.1rem 1.05rem;
-  border-radius: var(--radius);
-  border: 1px solid var(--accent-line);
-  background: radial-gradient(130% 170% at 0% 0%, var(--accent-soft), transparent 60%), var(--bg-soft);
-  animation: fade-up .32s var(--ease-out);
-}
-.ha-code:focus { outline: none; }
-.ha-code:focus-visible { box-shadow: var(--ring); }
-.ha-code-label {
-  font-size: var(--t-xs);
-  font-weight: 620;
-  letter-spacing: .07em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-.ha-code-row { display: flex; align-items: center; flex-wrap: wrap; gap: .6rem 1rem; }
-.ha-connection-code {
-  flex: 1 1 auto;
-  min-width: 0;
-  font-size: clamp(1rem, .84rem + .67vw, 1.45rem);
-  font-weight: 650;
-  letter-spacing: .05em;
-  line-height: 1.3;
-  color: var(--fg);
-  user-select: all;
-  -webkit-user-select: all;
-}
-.ha-code-sep { color: var(--faint); font-weight: 500; }
-.ha-timer { display: grid; gap: .45rem; }
-.ha-timer-track { height: 4px; overflow: hidden; border-radius: var(--radius-pill); background: var(--panel-3); }
-.ha-timer-fill {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--grad-brand);
-  transform-origin: left center;
-  transition: transform 1s linear;
-}
-.ha-timer-text {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  font-size: var(--t-xs);
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-.ha-timer-text b { font-weight: 620; color: var(--fg-dim); }
-.ha-timer.is-low .ha-timer-fill { background: var(--warn); }
-.ha-timer.is-low .ha-timer-text b { color: var(--warn); }
-.ha-server { display: grid; gap: .45rem; }
-.ha-server .restart-cmd code { font-size: var(--t-sm); color: var(--fg); }
-.ha-wait {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: .5rem .7rem;
-  padding: .55rem .6rem .55rem .85rem;
-  border-radius: var(--radius-sm);
-  background: var(--panel-2);
-  border: 1px solid var(--border-soft);
-  color: var(--fg-dim);
-}
-.ha-wait .spinner { width: 14px; height: 14px; }
-.ha-wait .btn { margin-inline-start: auto; }
-
-.ha-done {
-  display: flex;
-  align-items: center;
-  gap: .85rem;
-  padding: .9rem 1rem;
-  border-radius: var(--radius-sm);
-  background: var(--ok-soft);
-}
-.ha-done.is-waiting { background: var(--panel-2); border: 1px solid var(--border-soft); }
-.ha-done b { display: block; font-weight: 640; letter-spacing: -.012em; color: var(--ok); }
-.ha-done.is-waiting b { color: var(--fg); }
-.ha-done span:not(.ha-done-ic):not(.spinner) { font-size: var(--t-sm); color: var(--fg-dim); }
+/* A finished guide's check pops in. */
 .ha-done-ic {
   flex: none;
   display: grid;
@@ -2384,8 +2222,6 @@ pre.json {
   from { opacity: 0; transform: scale(.3); }
   to { opacity: 1; transform: none; }
 }
-.ha-setup-foot { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .6rem 1rem; }
-.ha-setup-foot .field-hint { font-size: var(--t-sm); }
 
 /* What to say, and what to expect ------------------------------------------ */
 
@@ -2443,15 +2279,9 @@ pre.json {
   .ha-install-head .ha-bridge-line { width: 36px; }
   .ha-install-status { order: 1; margin-inline-start: auto; }
   .ha-install-title { order: 2; flex-basis: 100%; }
-  .ha-setup-hero { padding: 1.15rem 1rem; }
-  .ha-setup-hero .robot-avatar-lg, .ha-setup-hero .ha-tile-lg { --size: 52px; }
-  .ha-setup-hero .ha-bridge-line { width: 63px; }
   .ha-steps { padding: .15rem 1rem 1.1rem; }
   .ha-step { --mark: 1.65rem; --gap: .7rem; }
-  .ha-code { padding: .9rem .85rem; }
-  .ha-get-row .btn { width: 100%; }
   .ha-actions .btn:not(.btn-quiet) { flex: 1 1 auto; }
-  .ha-code-row .btn { flex: 1 1 auto; }
 }
 
 /* Direct pairing ------------------------------------------------------------ */
@@ -2767,6 +2597,9 @@ pre.json {
 .ha-older-text p { max-width: 72ch; font-size: var(--t-sm); line-height: 1.55; color: var(--fg-dim); }
 .ha-older-text .ha-robots { margin-top: .3rem; }
 .ha-older-quiet { margin-top: 1.5rem; font-size: var(--t-sm); color: var(--muted); }
+.ha-move h3 { font-size: var(--t-base); letter-spacing: -.012em; }
+.ha-move .card-body > p { max-width: 72ch; font-size: var(--t-sm); line-height: 1.55; color: var(--fg-dim); }
+.ha-empty .btn { max-width: 100%; margin-top: .4rem; white-space: normal; }
 
 @media (max-width: 560px) {
   .ha-progress { flex-wrap: wrap; gap: .5rem; }
@@ -2782,6 +2615,7 @@ pre.json {
   .ha-manage .tip-ic { grid-row: span 3; }
   .ha-older-body { padding: 1rem; }
   .ha-older-body > .btn { width: 100%; }
+  .ha-empty { padding-inline: .25rem; }
 }
 
 /* ==========================================================================

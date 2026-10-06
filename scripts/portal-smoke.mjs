@@ -134,6 +134,8 @@ try {
   };
   page.on('request', recordHomeRequest);
   await visit('#/home-assistant');
+  // A hash change keeps the previous page's heading until the new page draws.
+  await page.locator('.ha-guide').waitFor();
   assert.match(await page.locator('#app').innerText(), /eight digits/);
   assert.match(await page.locator('#app').innerText(), /directly with Jibo/);
   assert.equal(await page.locator('#app input:not([type=checkbox])').count(), 0, 'local setup never asks for credentials in the portal');
@@ -155,6 +157,11 @@ try {
   assert.equal(await guideCount(), '0');
   assert.equal(await page.evaluate(() => localStorage.getItem('phoenix.homeAssistantGuide')), null);
   assert.deepEqual([...new Set(homeRequests)], ['GET'], 'direct guidance only reads whether older cloud links remain');
+  // Without older links, their page offers no codes and leads to direct pairing.
+  await page.getByRole('link', { name: 'Manage older cloud links' }).click();
+  await page.getByRole('heading', { name: 'No older cloud links' }).waitFor();
+  assert.equal(await page.getByRole('button', { name: /connection code/ }).count(), 0);
+  assert.equal(await page.getByRole('link', { name: 'Pair Home Assistant directly' }).getAttribute('href'), '#/home-assistant');
   page.off('request', recordHomeRequest);
   console.log('PASS direct Home Assistant guide, its own progress, and separate legacy management');
   await visit('#/settings');
