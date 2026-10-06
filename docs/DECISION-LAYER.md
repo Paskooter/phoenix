@@ -70,9 +70,19 @@ Without the mark, `smart_home` keeps the grammar's parse, exactly like "none",
 so robots without Home Assistant behave as before. The gateway also sends common
 devices ("turn off the basement AC", "turn the bedroom fan off") straight to
 Home Assistant before any parse, so they work with the layer off. A delay, a
-clock time or a sequence ("in ten minutes", "at 7 pm", "then") is never sent,
-because Home Assistant would act at once. See
+clock time or a sequence ("in eleven minutes", "at seven pm", "tomorrow", "then")
+is never sent, including through explicit invocation, because Home Assistant
+would act at once. Jibo's own light and fan remain native requests; TV-show and
+movie playback requests do not qualify as home-device control. Explicit state
+questions also require the connector's read-only query capability. See
 [Home Assistant routing](HOME-ASSISTANT.md#routing-and-voice-behavior).
+
+Directly paired robots apply their native wake gate and sentence rules before
+dispatch. Their firmware must include the expanded device vocabulary and
+Phoenix-classification fallback. The fallback accepts only a Home Assistant
+match for the exact transcript of an already admitted native turn, and repeats
+the native command, delay and capability checks. A cloud route hint cannot
+create or extend a wake.
 
 The engine is [Jev](https://openrouter.ai/blog/insights/what-is-jev/), TypeSafe's
 typed decision model, called through OpenRouter's decisions endpoint
@@ -97,15 +107,18 @@ reach Home Assistant through the gateway's own route.
 |---|---|---|---|---|---|
 | Dev (181) | 76.2% | 97.2% | 38 | 0 | 176 / 274 / 402 ms |
 | Held out (84) | 77.4% | 100% | 19 | 0 | 204 / 308 / 770 ms |
-| Dev, with Home Assistant | 67.4% | 98.3% | 56 | 0 | 188 / 286 / 436 ms |
-| Held out, with Home Assistant | 69.0% | 98.8% | 26 | 1 | 191 / 301 / 439 ms |
+| Dev, with Home Assistant | 67.4% | 98.3% | 56 | 0 | 185 / 298 / 514 ms |
+| Held out, with Home Assistant | 69.0% | 100% | 26 | 0 | 193 / 358 / 483 ms |
 
 With Home Assistant, all 44 smart-home requests reached it (21 without the
 layer, through the gateway's direct device phrases and the thermostat rule);
 before this change 11 did, with or without the layer, and 86.0% of all cases
-routed correctly. The held-out break is "play the tv show friends", sent to
-Home Assistant instead of left unmatched. The remaining dev misses are
-knowledge questions the grammar places elsewhere ("what time zone is Tokyo in").
+routed correctly. The 2026-10-06 continuation excludes TV-show playback from
+home routing and corrects explicit-query and delayed-request checks. Its live
+home evaluation routed 262/265 cases correctly (98.9%), including 44/44 home
+requests, with no newly wrong commands. The remaining dev misses are knowledge
+questions the grammar places elsewhere ("what time zone is Tokyo in"). The
+non-home rows above retain the earlier evaluation results.
 
 DeepSeek v4.1 Flash, asked the same question as a chat model with reasoning off,
 made the same choices but answered in p90 533–854 ms with spikes past 4 s, and

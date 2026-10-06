@@ -31,9 +31,10 @@ export const HUE_SKILL_ID = '@be/hue-control';
 // A delay or a sequence: Home Assistant would run it at once. A classified home
 // command may still name several devices ("the kitchen and living room
 // lights"); nothing else may combine requests (COMPOUND).
-const NUMBER_WORD = '(?:\\d+|a|an|a few|a couple of|one|two|three|four|five|six|seven|eight|nine|ten|fifteen|twenty|thirty|forty|forty-five|sixty|ninety|half an?)';
-const CLOCK_TIME = "at (?:\\d{1,2}(?::\\d{2})? ?(?:am|pm|a\\.m\\.|p\\.m\\.|o'clock)|\\d{1,2}:\\d{2}|noon|midnight)";
-const SEQUENCED = new RegExp(`\\b(?:and then|then|after|before|until|${CLOCK_TIME}|(?:in|for) ${NUMBER_WORD} ?(?:seconds?|secs?|minutes?|mins?|hours?|hrs?))\\b`, 'i');
+const NUMBER = '(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|and)';
+const NUMBER_WORD = `(?:\\d+(?:\\.\\d+)?|a|an|a few|a couple of|half an?|${NUMBER}(?:[- ]${NUMBER}){0,4})`;
+const CLOCK_TIME = "at (?:(?:\\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)(?::\\d{2})? ?(?:am|pm|a\\.m\\.|p\\.m\\.|o'clock)|\\d{1,2}:\\d{2}|noon|midnight)";
+const SEQUENCED = new RegExp(`\\b(?:and then|then|after|before|until|later|tomorrow|tonight|${CLOCK_TIME}|(?:in|for) ${NUMBER_WORD} ?(?:seconds?|secs?|minutes?|mins?|hours?|hrs?))\\b`, 'i');
 const NAME = "[\\p{L}\\p{N}][\\p{L}\\p{N}' -]{0,70}";
 const STATES = '(?:on|off|open|closed|locked|unlocked)';
 const STATE_QUESTION = new RegExp(`^(?:is|are) (?:the )?${NAME} (?:still )?${STATES}$`, 'iu');
@@ -61,6 +62,8 @@ const RESERVED_TEXT = [
   new RegExp(`^(?:good ?night|goodbye|bye|yes|no|ok(?:ay)?|thanks?|thank you|black|${COLORS})$`, 'i'),
   /^(?:cancel|stop|never\s?mind|forget it|help|go to sleep|sleep|wake up|be quiet|quiet|shut up|mute|unmute|listen|look at me|come here)(?:\b|$)/i,
   /\b(?:your (?:voice|camera)|hue (?:setup|bridge|pairing)|pair (?:with )?hue)\b/i,
+  /\b(?:your(?: own)?|jibo's) (?:lights?|lamps?|fans?|voice|camera)\b|\b(?:yourself|you off|you down)\b/i,
+  /^(?:play|watch|stream|put on) .*\b(?:tv shows?|television shows?|movies?|films?|episodes?|videos?)\b/i,
   /^(?:what(?:'s| is) (?:the )?(?:time|date)|tell (?:me )?(?:a )?joke|(?:take|snap) (?:a )?(?:photo|picture)|(?:show|tell) (?:me )?(?:the )?weather|how(?:'s| is) (?:the )?weather|(?:set|cancel|stop|delete) (?:a |an |the |my )?(?:alarm|timer)|(?:play|pause|resume|skip) (?:music|a song|the song)|(?:connect|disconnect|set up|reset|pair) (?:to )?(?:hue|wifi|wi-fi|bluetooth))\b/i,
 ];
 
@@ -74,6 +77,7 @@ export function homeCommandEligible(text, { hotphrase = false, activeSkill = nul
   if (activeSkill && !hotphrase) return false;
   if (typeof text !== 'string' || !text.trim() || text.length > 500 || /[\u0000-\u001f\u007f]/.test(text)) return false;
   const normalized = normalizeHomePhrase(text);
+  if (SEQUENCED.test(normalized)) return false;
   // Preserve deliberate, explicit invocation, including before linking.
   if (/^(?:please )?(?:ask|tell) home assistant to .+$/i.test(normalized)) return true;
   if (RESERVED_INTENT.test(nlu?.intent || '') || RESERVED_DOMAIN.has(nlu?.entities?.domain)) return false;
@@ -118,8 +122,11 @@ export function homeCommandCandidate(text, options = {}) {
   const normalized = text.trim().replace(/[.!?]+$/, '').replace(/\s+/g, ' ');
   const explicit = /^(?:please )?(?:ask|tell) home assistant to (.+)$/i.exec(normalized);
   const candidate = (value, kind = 'command', extra = {}) => ({ text: value, explicit: false, route: { kind }, ...extra });
-  if (explicit) return candidate(explicit[1], supports(selection, 'state_queries') && queryText(normalizeHomePhrase(explicit[1]))
-    ? 'query' : 'command', { explicit: true });
+  if (explicit) {
+    const question = QUESTION.test(normalizeHomePhrase(explicit[1]));
+    if (question && !supports(selection, 'state_queries')) return null;
+    return candidate(explicit[1], question ? 'query' : 'command', { explicit: true });
+  }
   const plain = normalizeHomePhrase(text);
   const relative = FOLLOW_UP_RELATIVE.test(plain);
   if (relative && classifiedNativeRoute(options)) return null;

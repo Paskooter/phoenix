@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { homeCommandCandidate } from '../src/homeAssistantRoute.js';
+import { homeCommandCandidate, homeCommandEligible } from '../src/homeAssistantRoute.js';
 import { buildHomeAssistantReply, homeAssistantSpeech } from '../../skills/src/homeAssistantSkill.js';
 import { parseRequest } from '../../nlu/src/requestParser.js';
 import { GLOBAL_TURN_RULES } from '../src/listenTransaction.js';
@@ -46,6 +46,22 @@ test('classified home commands: polite requests stay commands, questions are rea
   }
   for (const text of ['turn off your fan', 'turn yourself off', 'turn off the lights in five minutes']) {
     assert.equal(homeCommandCandidate(text, { selection }), null, text);
+  }
+});
+
+test('fallback classification and explicit invocation retain self, media and delay limits', () => {
+  const selection = { enabled: true, capabilities: ['state_queries'] };
+  const nlu = { intent: 'phoenixHomeCommand', entities: {}, rules: ['launch'] };
+  for (const text of ['turn off your fan', 'turn your light off', 'turn yourself off', 'set your light to red',
+    'play the tv show friends', 'turn off the AC in eleven minutes', 'turn on the AC in twenty-five minutes',
+    'turn off the AC at seven pm', 'turn off the AC tomorrow',
+    'ask home assistant to turn off the AC in five minutes', 'tell home assistant to turn on the fan tomorrow']) {
+    assert.equal(homeCommandEligible(text), false, text);
+    assert.equal(homeCommandCandidate(text, { selection, nlu }), null, text);
+  }
+  for (const text of ['ask home assistant to is the invented dryer done', 'tell home assistant to what is the bedroom temperature']) {
+    assert.equal(homeCommandCandidate(text, { selection, nlu }).route.kind, 'query', text);
+    assert.equal(homeCommandCandidate(text, { selection: { enabled: true, capabilities: [] }, nlu }), null, text);
   }
 });
 

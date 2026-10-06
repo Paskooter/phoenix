@@ -70,7 +70,7 @@ export const DECISION_COMMANDS = Object.freeze({
   fun_fact: { phrase: 'tell me a fun fact', intent: 'requestTellJiboContent', description: 'Wants a fun fact or to learn something interesting.' },
   volume_up: { phrase: 'turn up the volume', intent: 'volumeUp', description: 'Wants Jibo to speak louder or turn the volume up.' },
   volume_down: { phrase: 'turn down the volume', intent: 'volumeDown', description: 'Wants Jibo to speak more quietly or turn the volume down.' },
-  smart_home: { description: 'Wants to control or check a device or appliance in their home right now: lights, switches, plugs, fans, air conditioning, heat or the thermostat, the TV, locks, doors, the garage, blinds, or a scene or routine.' },
+  smart_home: { description: 'Wants to control or check a home device right now: lights, switches, plugs, fans, air conditioning, heat or the thermostat, TV power, locks, doors, the garage, blinds, appliances, or a scene or routine. Requests to play a TV show, movie or video are not home-device control.' },
   knowledge: { description: 'A general knowledge or factual question about the world: people, places, history, science, math, words or measurements.' },
   chitchat: { description: "Small talk with Jibo: about Jibo himself, feelings, greetings, thanks, compliments, or the person's own mood." },
   none: { description: 'Something Jibo cannot do (shopping or buying things, calls, messages, navigation, money) or that is unclear.' },
