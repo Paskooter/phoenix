@@ -26,7 +26,7 @@ The complete [installation and migration guide](https://github.com/Paskooter/pho
 
 ## Voice routing
 
-Named and room lights, switches, brightness, supported colors, named scenes and scripts retain the focused command set. Local state questions, HA areas, bounded follow-ups and exact exposed routine shortcuts are also supported. “Ask Home Assistant to…” explicitly selects custom Assist sentences before execution. The executing conversation API is never used to probe arbitrary utterances.
+Named and room lights, switches, brightness, supported colors, named scenes and scripts retain the focused command set. Native routing also recognizes common household device names; when those rules miss, JEV’s smart-home decision may route the exact recognized transcript during an already admitted native wake. Delayed requests and command sequences are refused before execution. Local state questions, HA areas, bounded follow-ups and exact exposed routine shortcuts are also supported. “Ask Home Assistant to…” explicitly selects custom Assist sentences before execution. The executing conversation API is never used to probe arbitrary utterances.
 
 Gateway validates the bounded `context.data.phoenix_local_home` preference only for its verified robot socket identity and returns recognized text using the existing native skill envelope. Routing preferences, household IDs, context and tracing fields cannot authorize a household. A local-mode declaration suppresses the old cloud connector, including when malformed; there is no silent cloud fallback.
 
@@ -40,7 +40,7 @@ All 15 requested sensor roles are present: battery, battery temperature, camera 
 
 The new controls provide bounded plain screen text and local PNG/JPEG display, RGB ring light, master volume, local PCM16 WAV playback with pause/resume/stop, native sleep/wake, a closed catalog of installed Clock/Radio/Yoga/Word of the day skills, and Stop for integration-owned activity. The [robot controls guide](https://github.com/Paskooter/phoenix-home-assistant/blob/main/docs/robot-controls.md) gives actions, limits and automation examples.
 
-Camera preview requires its independent permission, a fresh closed-hatch reading, an idle robot and explicit activation. Jibo shows a camera notice. Sessions last at most 60 seconds and deliver bounded JPEG/MJPEG snapshots at at most one native frame per second, without gallery storage. Touch, hatch opening, new robot activity, disconnect or permission removal stops owned capture. Full-rate video, microphone streaming, arbitrary Nimbus execution and an HA weather-launch action are not provided.
+Camera preview requires its independent permission, a fresh closed-hatch reading, an idle robot and explicit activation. Jibo shows a camera notice. Sessions last at most 60 seconds. Native continuous VP8/WebM video travels through the paired TLS endpoint; Home Assistant decodes it into the camera entity’s live MJPEG feed. JPEG snapshots remain available without gallery storage. Touch, hatch opening, new robot activity, disconnect or permission removal stops owned capture. Microphone streaming, arbitrary Nimbus execution and an HA weather-launch action are not provided.
 
 ## Pairing, privacy and reliability
 
@@ -52,7 +52,7 @@ Protocol 2 binds frames to the pairing generation and fresh session UUID. Every 
 
 ## Server and release operations
 
-Keep Gateway authentication and Account mappings enabled. The direct connection needs no cloud HA proxy, public WebSocket connector, household credential or signing secret. Legacy collections and routes stay intact for older installations and safe rollback; see [legacy storage](HOME-ASSISTANT-CLOUD.md#authentication-and-storage).
+Keep Gateway authentication and Account mappings enabled. The direct connection needs no cloud HA proxy, public WebSocket connector, household credential or signing secret. The console no longer creates cloud connection codes. Existing legacy collections and routes stay intact for older installations and safe rollback; see [legacy storage](HOME-ASSISTANT-CLOUD.md#authentication-and-storage).
 
 Actual voice work participates in the existing transaction lifecycle. Local sockets and heartbeats do not create persistent server transactions or prevent the deployment quiet minute. Deploy only through `scripts/deploy-native-release.sh <commit>` with fresh Hub/OTA state, the correct runtime directory and a full 60 continuous quiet seconds.
 

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { homeCommandCandidate } from '../src/homeAssistantRoute.js';
+import { homeCommandCandidate, homeCommandEligible } from '../src/homeAssistantRoute.js';
 import { buildHomeAssistantReply, homeAssistantSpeech } from '../../skills/src/homeAssistantSkill.js';
 import { parseRequest } from '../../nlu/src/requestParser.js';
 import { GLOBAL_TURN_RULES } from '../src/listenTransaction.js';
@@ -22,6 +22,47 @@ test('ordinary Jibo commands, active skill answers and compound requests never p
   }
   assert.equal(homeCommandCandidate('turn on kitchen lights', { activeSkill: 'active-skill' }), null);
   assert.ok(homeCommandCandidate('turn on kitchen lights', { activeSkill: 'active-skill', hotphrase: true }));
+});
+
+test('classified home commands: polite requests stay commands, questions are read-only, delays are never sent', () => {
+  const selection = { enabled: true, capabilities: ['room_context', 'state_queries', 'follow_up', 'routine_shortcuts'], shortcuts: [] };
+  const home = { intent: 'phoenixHomeCommand', entities: {}, rules: ['launch'] };
+  const lights = (intent) => ({ intent, entities: { domain: 'hue-control', skill: '@be/hue-control' }, rules: ['launch'] });
+  for (const [text, nlu, kind] of [
+    ['do you mind turning off the lights', lights('lightsOff'), 'command'], ['do you mind turning on the fan', home, 'command'],
+    ['how about some light in the den', home, 'command'], ['set the office lights at 50 percent', lights('lightsUp'), 'command'],
+    ['turn on the kitchen and dining room lights', lights('lightsGroupOn'), 'command'], ['close the garage door', home, 'command'],
+    ['set the thermostat to 72', { intent: 'requestManageThermostat', entities: {}, rules: ['launch'] }, 'command'],
+    ['is the dryer done', home, 'query'], ['how warm is it in the nursery', home, 'query'], ['did i leave the stove on', home, 'query'],
+  ]) assert.deepEqual(homeCommandCandidate(text, { selection, nlu })?.route, { kind }, text);
+  for (const [text, nlu] of [['turn the porch light on at 7 pm', home], ['turn off the lights at 10:30', lights('lightsOff')],
+    ['turn the fan on for 20 minutes', home], ['turn off the lights in five minutes', lights('lightsOff')],
+    ['turn on the lights and then dim them', lights('lightsOn')], ['what time is it', home], ['turn up the volume', home]]) {
+    assert.equal(homeCommandCandidate(text, { selection, nlu }), null, text);
+  }
+  // Common devices take the direct path before any parse; Jibo's own parts never do.
+  for (const text of ['turn off the basement AC', 'turn on the A/C', 'switch the bedroom fan off', 'turn off the TV']) {
+    assert.deepEqual(homeCommandCandidate(text, { selection })?.route, { kind: 'command' }, text);
+  }
+  for (const text of ['turn off your fan', 'turn yourself off', 'turn off the lights in five minutes']) {
+    assert.equal(homeCommandCandidate(text, { selection }), null, text);
+  }
+});
+
+test('fallback classification and explicit invocation retain self, media and delay limits', () => {
+  const selection = { enabled: true, capabilities: ['state_queries'] };
+  const nlu = { intent: 'phoenixHomeCommand', entities: {}, rules: ['launch'] };
+  for (const text of ['turn off your fan', 'turn your light off', 'turn yourself off', 'set your light to red',
+    'play the tv show friends', 'turn off the AC in eleven minutes', 'turn on the AC in twenty-five minutes',
+    'turn off the AC at seven pm', 'turn off the AC tomorrow',
+    'ask home assistant to turn off the AC in five minutes', 'tell home assistant to turn on the fan tomorrow']) {
+    assert.equal(homeCommandEligible(text), false, text);
+    assert.equal(homeCommandCandidate(text, { selection, nlu }), null, text);
+  }
+  for (const text of ['ask home assistant to is the invented dryer done', 'tell home assistant to what is the bedroom temperature']) {
+    assert.equal(homeCommandCandidate(text, { selection, nlu }).route.kind, 'query', text);
+    assert.equal(homeCommandCandidate(text, { selection: { enabled: true, capabilities: [] }, nlu }), null, text);
+  }
 });
 
 test('existing Hue routing remains intact and setup/delete intents cannot be redirected', async () => {

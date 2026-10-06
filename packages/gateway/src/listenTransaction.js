@@ -21,7 +21,7 @@ import { isRedirect } from './skillClient.js';
 import { startSession as startASRSession, cleanHintsEOS } from './asr/factory.js';
 import { normalizeString } from './stringNormalizer.js';
 import { mediateDecision } from './decisionMediator.js';
-import { homeCommandCandidate, homeCommandEligible } from './homeAssistantRoute.js';
+import { HUE_SKILL_ID, homeCommandCandidate, homeCommandEligible } from './homeAssistantRoute.js';
 import { LOCAL_HOME_SKILL_ID, localHomeDeclared, localHomeNlu, localHomeSelection } from './homeAssistantLocal.js';
 import { robotIdentity, sameRobotIdentity } from './robotActionProtocol.js';
 import { HOME_ASSISTANT_SKILL_ID, buildHomeAssistantReply } from '../../skills/src/homeAssistantSkill.js';
@@ -122,6 +122,7 @@ export class ListenTransaction {
     this.localHomeUnsupported = false;
     this.localHomeContextCaptured = false;
     this.localHomeSelection = null;
+    this.homeSelectionPr = null;
 
     // Speech-history log sink (ListenTransactionHandler.ts:73-82). Created once per
     // transaction when the hub config enables it; every later update mutates this record and
@@ -565,12 +566,16 @@ export class ListenTransaction {
       return;
     }
     let outcome = 'ok';
+    // Tells the parser's decision layer that a smart-home request has somewhere
+    // to go; without it the parser never chooses Home Assistant.
+    const home = await this._homeAvailable(context);
     const parserPr = this.components.parser.handleNLU(
       {
         text: this.asrData.text,
         rules: this.listenMessage.data.rules,
         external: this.listenMessage.data.agents,
         loop: { users: loopUsers(context) },
+        ...(home ? { home: true } : {}),
       },
       this.trace,
     );
@@ -598,7 +603,7 @@ export class ListenTransaction {
   async _performRouting() {
     const context = await this._awaitContext();
     const t0 = now();
-    const decision = this.homeCommand ? null : this.components.intentRouter.getSkillIDFromNLU(this.nluData) || null;
+    let decision = this.homeCommand ? null : this.components.intentRouter.getSkillIDFromNLU(this.nluData) || null;
     // CLIENT_NLU and recognized Hue commands also pass the same opt-in gate.
     if (this.homeCommand || await this._selectHomeCommand(context, this.nluData, true, decision)) {
       this._span('route', t0, 'home_command');
@@ -606,6 +611,10 @@ export class ListenTransaction {
       this._gotoState(State.DONE);
       return;
     }
+    // Home Assistant owns the lights once it is linked. A light request it could
+    // not take (a delay, an unassigned room) or a Hue setup phrase is left
+    // unmatched rather than starting Hue.
+    if (decision?.skillID === HUE_SKILL_ID && await this._homeLinked()) decision = null;
     const finalDecision = decision
       ? (mediateDecision(decision, this.asrData, this.nluData, context.data.general.release) || decision)
       : null;
@@ -641,7 +650,7 @@ export class ListenTransaction {
     // follow-ups and exact routines wait for native NLU so ordinary Jibo
     // intents retain priority even when an owner picked a conflicting phrase.
     if (!parsed && !homeCommandCandidate(this.asrData?.text, options)) return false;
-    const selection = await this.components.homeAssistant.selection(this.auth);
+    const selection = await this._homeSelection();
     if (this.abandoned || this.state === State.STOP || this.localHomeRequested) return false;
     const candidate = homeCommandCandidate(this.asrData?.text, { ...options, selection });
     if (!candidate?.text || (!parsed && candidate.route.kind !== 'command')) return false;
@@ -651,6 +660,34 @@ export class ListenTransaction {
     this.homeCommand = candidate;
     this.homeCommandMode = 'cloud';
     return true;
+  }
+
+  // One read-only selection request per turn, shared by the parser hint and
+  // both routing checks.
+  _homeSelection() {
+    if (!this.homeSelectionPr) this.homeSelectionPr = this.components.homeAssistant.selection(this.auth);
+    return this.homeSelectionPr;
+  }
+
+  /**
+   * Whether Home Assistant could take this turn at all: the same identity,
+   * eligibility and local/cloud checks as _selectHomeCommand, before any parse.
+   */
+  async _homeAvailable(context) {
+    if (this.abandoned || this.state === State.STOP) return false;
+    const options = { hotphrase: this.listenMessage?.data?.hotphrase, activeSkill: context.data?.skill?.id };
+    if (!homeCommandEligible(this.asrData?.text, options)) return false;
+    return this._homeLinked();
+  }
+
+  /** Whether this robot's owner has Home Assistant: paired locally or linked through Account. */
+  async _homeLinked() {
+    if (!this.auth?.id || !this.auth.accessKeyId || !this.auth.friendlyId) return false;
+    if (this.localHomeRequested) return Boolean(this.localHomeSelection);
+    if (!this.components.homeAssistant) return false;
+    const selection = await this._homeSelection();
+    if (this.abandoned || this.state === State.STOP || this.localHomeRequested) return false;
+    return selection === true || selection?.enabled === true;
   }
 
   async _onHomeAssistantMatch(context) {

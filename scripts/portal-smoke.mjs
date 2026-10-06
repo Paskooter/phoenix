@@ -134,13 +134,36 @@ try {
   };
   page.on('request', recordHomeRequest);
   await visit('#/home-assistant');
+  // A hash change keeps the previous page's heading until the new page draws.
+  await page.locator('.ha-guide').waitFor();
   assert.match(await page.locator('#app').innerText(), /eight digits/);
   assert.match(await page.locator('#app').innerText(), /directly with Jibo/);
-  assert.equal(await page.locator('#app input').count(), 0, 'local setup never asks for credentials in the portal');
+  assert.equal(await page.locator('#app input:not([type=checkbox])').count(), 0, 'local setup never asks for credentials in the portal');
   assert.equal(await page.getByRole('link', { name: 'Manage older cloud links' }).getAttribute('href'), '#/home-assistant-legacy');
-  assert.deepEqual(homeRequests, [], 'direct guidance does not request a cloud code or connection');
+  // Ticking a step folds it and moves the guide on; the ticks are this
+  // browser's own notes, kept across a reload until the owner starts over.
+  const guideCount = () => page.locator('.ha-guide .ha-progress').getAttribute('aria-valuenow');
+  assert.equal(await page.locator('.ha-guide .ha-step').count(), 6);
+  assert.equal(await guideCount(), '0');
+  await page.getByRole('checkbox', { name: /Update Jibo/ }).check();
+  await page.locator('.ha-guide .ha-step.is-active .ha-step-name', { hasText: 'Install Phoenix in Home Assistant' }).waitFor();
+  assert.equal(await page.locator('.ha-guide .ha-step.is-done .ha-step-body').count(), 0, 'a finished step folds to its title');
+  assert.equal(await guideCount(), '1');
+  await page.reload();
+  await page.locator('.ha-guide').waitFor();
+  assert.ok(await page.getByRole('checkbox', { name: /Update Jibo/ }).isChecked());
+  await fits('#/home-assistant with a ticked step on mobile');
+  await page.getByRole('button', { name: 'Start over' }).click();
+  assert.equal(await guideCount(), '0');
+  assert.equal(await page.evaluate(() => localStorage.getItem('phoenix.homeAssistantGuide')), null);
+  assert.deepEqual([...new Set(homeRequests)], ['GET'], 'direct guidance only reads whether older cloud links remain');
+  // Without older links, their page offers no codes and leads to direct pairing.
+  await page.getByRole('link', { name: 'Manage older cloud links' }).click();
+  await page.getByRole('heading', { name: 'No older cloud links' }).waitFor();
+  assert.equal(await page.getByRole('button', { name: /connection code/ }).count(), 0);
+  assert.equal(await page.getByRole('link', { name: 'Pair Home Assistant directly' }).getAttribute('href'), '#/home-assistant');
   page.off('request', recordHomeRequest);
-  console.log('PASS direct Home Assistant guidance and separate legacy management');
+  console.log('PASS direct Home Assistant guide, its own progress, and separate legacy management');
   await visit('#/settings');
   await page.locator('.settings-form label.switch').filter({ has: page.locator('input[name=news]') }).click();
   const saved = page.waitForResponse((response) => response.url() === `${base}/api/settings` && response.request().method() === 'PUT');
