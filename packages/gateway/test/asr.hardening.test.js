@@ -232,7 +232,7 @@ test('decoder failure aborts a held Parakeet candidate request', async () => {
     await withTimeout(peer.waitForRequest(0));
     const closed = withTimeout(peer.responseClosed(0));
     session._handleAudioError(new AudioDecodeError('synthetic decoder failure'));
-    assert.equal((await observed).code, 'ERR_AUDIO_DECODE');
+    assert.equal((await withTimeout(observed)).code, 'ERR_AUDIO_DECODE');
     await closed;
   } finally {
     session.abort();
@@ -407,7 +407,7 @@ test('abort destroys an in-flight Parakeet HTTP request', async () => {
     const responseClosed = withTimeout(parakeet.responseClosed(0));
     session.abort();
     assert.equal(await withTimeout(startPr), undefined);
-    await withTimeout(responseClosed);
+    await responseClosed;
   } finally {
     parakeet.release(0);
     parakeet.closeAllConnections?.();
@@ -421,4 +421,3 @@ test('decoder error before session start rejects the later start promise', async
   const startPr = session.start();
   await assert.rejects(withTimeout(startPr), (err) => err.code === 'ERR_AUDIO_DECODE' && /input queue exceeded/.test(err.message));
 });
-

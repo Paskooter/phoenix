@@ -311,15 +311,16 @@ test('client cancellation aborts a Parakeet request already in FINALIZING', asyn
   const start = session.start();
   const burst = Buffer.concat([SPEECH(), SPEECH(), ...Array.from({ length: Math.ceil(ASR_SILENCE_TO_EOS_MS / 100) }, SILENCE)]);
   session.provideAudio(burst);
-  await requestSeen.promise;
+  await withTimeout(requestSeen.promise);
   assert.equal(session.state, 'FINALIZING');
 
   const { tx } = makeTransaction();
   tx.state = 'ASR';
   tx.asrSession = session;
+  t.after(() => clearTimeout(tx._txTimer));
+  t.after(() => session.abort());
   tx._cancelASR();
   await withTimeout(responseClosed.promise);
   assert.equal(await start, undefined);
   assert.equal(tx.asrSession, null);
-  t.after(() => clearTimeout(tx._txTimer));
 });
