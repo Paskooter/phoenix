@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import math
 import os
+import sys
+import tempfile
 import wave
 from dataclasses import dataclass, field
 from typing import List, Optional, Protocol
@@ -35,6 +37,14 @@ class Transcript:
             "confidence": self.confidence,
             "word_confidence": list(self.word_confidence),
         }
+
+
+@dataclass(frozen=True)
+class AudioInput:
+    """Owned bytes for one request; a missing sample rate denotes a WAV upload."""
+
+    data: bytes
+    sample_rate: Optional[int] = None
 
 
 class Recognizer(Protocol):
@@ -112,6 +122,8 @@ class NemoRecognizer:
         self.model_name = model_name or os.environ.get("PARAKEET_MODEL", self.DEFAULT_MODEL)
         self.device = device or os.environ.get("PARAKEET_DEVICE", "")
         self._model = None
+        # Lowered if a real CUDA OOM requires smaller model microbatches.
+        self.batch_limit = None
 
     def load(self):
         """Load the model. Called at startup so the first request is not slow."""
@@ -203,31 +215,96 @@ class NemoRecognizer:
         )
 
     def transcribe_wav(self, path: str) -> Transcript:
+        result = self._transcribe_wavs([path])[0]
+        if isinstance(result, Exception):
+            raise result
+        return result
+
+    def _decode_paths(self, paths: List[str]) -> List[Transcript]:
         model = self.load()
-        resampled = None
+        batch_size = min(len(paths), self.batch_limit or len(paths))
+        while True:
+            try:
+                hyps = model.transcribe(paths, batch_size=batch_size, num_workers=0,
+                                        return_hypotheses=True, verbose=False)
+                break
+            except Exception as error:
+                # One resident model may share the GPU with other applications.
+                # Retry a smaller microbatch on CUDA OOM; never invent results
+                # or retry an unrelated model/decoder error.
+                torch = sys.modules.get("torch")
+                oom_type = getattr(getattr(torch, "cuda", None), "OutOfMemoryError", ())
+                if batch_size == 1 or not isinstance(error, oom_type):
+                    raise
+                batch_size = max(1, batch_size // 2)
+                self.batch_limit = batch_size
+            # Leave the exception scope before freeing cached allocations so
+            # its traceback does not retain failed batch tensors.
+            torch.cuda.empty_cache()
+        if isinstance(hyps, tuple):  # some versions return (best, all)
+            hyps = hyps[0]
+        if not hyps:
+            return [Transcript(text="") for _ in paths]
+        if len(hyps) != len(paths):
+            raise RuntimeError("NeMo returned the wrong number of batch hypotheses")
+        return [self._to_transcript(hyp) for hyp in hyps]
+
+    def _transcribe_wavs(self, paths: List[str]) -> List[Transcript | Exception]:
+        results: List[Transcript | Exception] = [Transcript(text="") for _ in paths]
+        ready = []
+        converted = []
         try:
             # Streaming PCM is already 16 kHz mono s16. The old unconditional
             # ffmpeg pass started a subprocess and rewrote every interim WAV.
             # Unknown/non-canonical WAVs still take the original conversion.
-            try:
-                with wave.open(path, "rb") as audio:
-                    canonical = (audio.getnchannels() == 1
-                                 and audio.getsampwidth() == 2
-                                 and audio.getframerate() == 16000
-                                 and audio.getcomptype() == "NONE")
-            except (OSError, wave.Error, EOFError):
-                canonical = False
-            if not canonical:
-                resampled = self.resample(path)
-            hyps = model.transcribe([resampled or path], return_hypotheses=True)
-            if isinstance(hyps, tuple):  # some versions return (best, all)
-                hyps = hyps[0]
-            if not hyps:
-                return Transcript(text="")
-            return self._to_transcript(hyps[0])
+            for index, path in enumerate(paths):
+                try:
+                    try:
+                        with wave.open(path, "rb") as audio:
+                            canonical = (audio.getnchannels() == 1
+                                         and audio.getsampwidth() == 2
+                                         and audio.getframerate() == 16000
+                                         and audio.getcomptype() == "NONE")
+                    except (OSError, wave.Error, EOFError):
+                        canonical = False
+                    if not canonical:
+                        path = self.resample(path)
+                        converted.append(path)
+                    ready.append((index, path))
+                except Exception as error:
+                    # A bad upload must not fail the other robots in its batch.
+                    results[index] = error
+            if ready:
+                try:
+                    transcripts = self._decode_paths([path for _, path in ready])
+                    for (index, _), transcript in zip(ready, transcripts):
+                        results[index] = transcript
+                except Exception as error:
+                    for index, _ in ready:
+                        results[index] = error
+            return results
         finally:
-            if resampled and os.path.exists(resampled):
-                os.remove(resampled)
+            for path in converted:
+                if os.path.exists(path):
+                    os.remove(path)
+
+    def transcribe_batch(self, audio: List[AudioInput]) -> List[Transcript | Exception]:
+        """Decode independent HTTP and streaming inputs together, in order."""
+        with tempfile.TemporaryDirectory(prefix="parakeet-batch-") as directory:
+            paths = []
+            for index, item in enumerate(audio):
+                path = os.path.join(directory, f"{index}.wav")
+                if item.sample_rate is None:
+                    with open(path, "wb") as output:
+                        output.write(item.data)
+                else:
+                    with wave.open(path, "wb") as output:
+                        output.setnchannels(1)
+                        output.setsampwidth(2)
+                        output.setframerate(item.sample_rate)
+                        output.writeframes(item.data)
+                paths.append(path)
+            return self._transcribe_wavs(paths)
 
     def transcribe_pcm(self, pcm: bytes, sample_rate: int) -> Transcript:
         import tempfile

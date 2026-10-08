@@ -1,0 +1,10 @@
+# Reuse a working Blackwell/Torch/NeMo image for an API-only update.
+# Build to a NEW tag; PARAKEET_BASE_IMAGE is the existing image's tag.
+ARG PARAKEET_BASE_IMAGE=parakeet-asr:latest
+FROM ${PARAKEET_BASE_IMAGE}
+WORKDIR /srv
+COPY app ./app
+COPY tests ./tests
+COPY tools ./tools
+EXPOSE 6972
+CMD ["uvicorn", "app.server:app", "--host", "0.0.0.0", "--port", "6972"]

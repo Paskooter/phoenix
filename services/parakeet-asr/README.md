@@ -2,7 +2,8 @@
 
 A drop-in superset of the Parakeet server deployed at `192.168.1.252:6972`
 (`Parakeet ASR REST API` 0.1.0). It keeps that server's only endpoint
-byte-compatible and adds the two things Jibo's ASR contract needs.
+byte-compatible, adds streaming and confidence, and batches simultaneous robots'
+recognition jobs on one resident model.
 
 ## Why
 
@@ -22,13 +23,14 @@ Two robot-visible behaviours were missing, both recorded in Phoenix's
 
 ## What it adds
 
-| | 0.1.0 (deployed) | 0.2.0 (this) |
+| | 0.1.0 (original) | 0.3.0 (this) |
 | --- | --- | --- |
 | `POST /transcribe` | yes | yes, unchanged shape |
 | confidence | always `null` | real, or `null` — never invented |
 | interim results | none | `WS /stream` |
 | health check | none | `GET /healthz`, no model load |
 | number rewriting | none | opt-in `?normalize=true` |
+| simultaneous recognition | one recording per call | bounded dynamic batches across streams and uploads |
 
 ## Compatibility
 
@@ -96,6 +98,76 @@ ffmpeg. Repeated identical hypotheses are suppressed, and silence alone does
 not trigger an interim. The remaining full-buffer re-decodes are a model/API
 limitation; a stateful streaming model would be the next larger improvement.
 
+## Simultaneous robots
+
+API 0.2.1 already accepted multiple sockets, but queued **every decode one at a
+time** behind a single inference worker. API 0.3.0 keeps one worker owning the
+shared NeMo model and combines independent recordings into GPU batches, using
+[NeMo's supported `transcribe(..., batch_size=...)` interface](https://docs.nvidia.com/nemo/speech/nightly/asr/inference.html).
+Running concurrent `transcribe()` calls on the same mutable model or adding
+uvicorn workers would instead risk shared decoder state or duplicate model
+weights in VRAM.
+
+Defaults admit **32 open streams**, decode up to **4 recordings per batch**, and
+allow at most **64 queued plus running jobs**. A 10 ms collection window groups
+simultaneous arrivals. Every socket keeps its own PCM, transcript and confidence;
+HTTP WAV uploads use the same scheduler. Only one interim per socket can be
+pending. EOS and disconnect cancel stale queued interims; finals take priority
+over other sockets' queued interims. A GPU call already running completes safely.
+
+These are configurable service limits, **not a measured promise that a 16 GB GPU
+can transcribe 32 continuously talking robots at acceptable latency**. Start
+with batches of 4; benchmark 8 and 16 simultaneous talkers before increasing the
+production target. If CUDA runs out of memory, the recognizer retries smaller
+microbatches and remembers the reduced limit. An individual failure still
+returns an error; it never creates a transcript or restarts the service.
+
+`GET /healthz` now includes `concurrency`: configured limits, active streams,
+queued finals/interims, running jobs, completed/failed jobs, number and largest
+size of batches, overload count, and a reduced `model_batch_limit` after an OOM.
+An exhausted queue returns HTTP **503** with `Retry-After: 1`; extra sockets close
+with **1013**. PCM buffers are limited to 30 seconds per stream (Phoenix's own
+utterance cap), and WAV uploads to 8 MiB. Oversized audio gets 1009 or HTTP 413.
+The CPU fallback remains serial and advertises its actual batch size of 1.
+
+### Measure capacity on the GPU host
+
+Use a short speech WAV in 16 kHz mono PCM16 format, ideally several distinct
+utterances tested in separate runs. The included benchmark sends every stream in
+real time, waits for finals, samples health, and samples `nvidia-smi` when it is
+available **on the machine running the benchmark**. It reports GPU memory used
+by all applications, so concurrent desktop/LLM use counts against the budget.
+
+```bash
+# Run inside the new container, with a speech WAV copied to /tmp/speech.wav.
+docker cp /path/to/speech.wav phoenix-parakeet:/tmp/speech.wav
+docker exec phoenix-parakeet python tools/benchmark.py \
+  --wav /tmp/speech.wav --streams 1 4 8 16 32 --rounds 3
+```
+
+The benchmark reports final transcript latency measured from EOS, first interim
+latency, errors and peak queue/GPU usage. It stops increasing load after errors,
+failed health probes, or p95 final latency above 2 seconds. `--expected-text`
+also checks the exact normalized transcript. Choose a count with no errors,
+responsive interims and room in GPU memory; repeat with longer utterances and
+other GPU applications running. Open idle connections cost almost no inference;
+capacity depends on how many robots speak simultaneously and for how long.
+
+A single baseline sweep against `192.168.1.252:6972` on **2026-10-03**, while it
+still served API **0.2.1**, used the same synthesized 2.74-second sentence on all
+streams (100 ms frames). It completed all streams, with these final latencies:
+
+| simultaneous talkers | p95 final latency after EOS | errors |
+| --- | --- | --- |
+| 1 | 88 ms | 0 |
+| 4 | 389 ms | 0 |
+| 8 | 1,933 ms | 0 |
+
+This establishes that the existing service handles overlapping connections and
+shows latency rising under its serial inference queue. It does not measure
+maximum capacity or the new batching implementation on that GPU; no GPU memory
+probe was available from the remote benchmark host.
+
 ## Running
 
 ```bash
@@ -111,9 +183,57 @@ docker run --rm parakeet-asr:contract python -m pytest tests/ -q
 
 The production image requires CUDA and explicitly moves NeMo to `cuda`. If
 Torch cannot see the GPU, startup fails instead of quietly transcribing on CPU.
-After rebuilding, `/healthz` reports API `0.2.1`; `0.2.0` means an older image
-is still serving. Do not assume the container was rebuilt just because Docker
-reports it as running.
+After rebuilding, `/healthz` reports API `0.3.0` and `concurrency.batching: true`;
+`0.2.1` or older means the serial image is still serving. Do not assume the
+container was rebuilt just because Docker reports it as running.
+
+For a PC that already has a working Blackwell CUDA/Torch/NeMo image, update its
+API without reinstalling the GPU stack. Build to a separate tag so the old image
+remains available for rollback:
+
+```bash
+# Run on the GPU host, from the newly copied source directory. This discovers
+# the original Compose files and service name from the existing container.
+python3 tools/update-compose.py --container parakeet-asr-gpu --apply
+```
+
+The helper reads the existing container's **image ID**, so no guessed image tag
+or registry login is required. It builds and verifies API 0.3.0, then uses a
+small Compose override to select that image. GPU access, ports, environment,
+model-cache volumes and other services are preserved. Mounts hiding `/srv/app`
+are redirected to the newly copied application code. The service runs one
+uvicorn worker so all requests use the same model and batching scheduler.
+
+Without `--apply`, it only prepares the image and prints the command to recreate
+the ASR service. It writes `compose.parakeet-0.3.0.yaml` and
+`parakeet-compose-0.3.0.sh` alongside the original Compose files. Use that shell
+wrapper for future Compose commands: with no arguments it starts only the ASR
+service, or pass `logs -f`, `config`, or other Compose arguments. The original
+files stay available for rollback. The override requires Compose 2.24.4 or newer.
+After a source change, rerun the helper to rebuild and verify it before starting.
+
+`docker compose up -d --build` only builds services with a `build:` definition.
+If an existing Compose file contains only `image:`, copying new Python files
+and recreating the container still starts the old image. The helper supplies
+the missing build configuration and selects the verified new image.
+
+For a manual image build, first alias the actual running image:
+
+```bash
+ASR_IMAGE=$(docker inspect -f '{{.Image}}' parakeet-asr-gpu)
+docker tag "$ASR_IMAGE" parakeet-asr:working-base
+docker build -f Dockerfile.update \
+  --build-arg PARAKEET_BASE_IMAGE=parakeet-asr:working-base \
+  -t parakeet-asr:0.3.0 .
+docker run --rm --entrypoint python parakeet-asr:0.3.0 -m pytest tests/ -q
+```
+
+Recreate the ASR container from `parakeet-asr:0.3.0` with its existing GPU, port,
+model-cache volume and environment settings during an idle window. `/healthz` must show
+0.3.0 before benchmarking. No Phoenix Hub update is needed. Production server
+release changes still go through `scripts/deploy-native-release.sh` and its
+Hub/OTA activity guard; updating this separate PC image does not require a Hub
+restart.
 
 ### GPU checks on Windows/WSL2
 
@@ -136,7 +256,7 @@ GPU device request and Torch build. For an RTX 50-series GPU the
 Torch build must support its Blackwell architecture (`sm_120`); inspect the
 printed architecture list rather than assuming a CUDA wheel is sufficient.
 If all checks pass, recreate the existing Parakeet container with `--gpus all`
-(or Compose `gpus: all`), verify `/healthz` says `0.2.1`, and repeat the Torch
+(or Compose `gpus: all`), verify `/healthz` says `0.3.0`, and repeat the Torch
 check **inside that running container**. Docker's GPU flag is set when the
 container is created; restarting one created without it does not add a GPU.
 
@@ -175,6 +295,12 @@ works.
 | `PARAKEET_DEVICE` | *(unset)* | e.g. `cuda`; unset lets NeMo decide |
 | `PARAKEET_INTERIM_MS` | `300` | interim decode window |
 | `PARAKEET_SILENCE_RMS` | `200` | below this a chunk is silence |
+| `PARAKEET_BATCH_SIZE` | `4` | maximum independent recordings submitted in one model batch |
+| `PARAKEET_BATCH_WAIT_MS` | `10` | collection window when the inference queue becomes nonempty |
+| `PARAKEET_MAX_STREAMS` | `32` | maximum admitted WebSocket streams |
+| `PARAKEET_MAX_PENDING` | `64` | maximum queued plus running inference jobs across both endpoints |
+| `PARAKEET_MAX_AUDIO_SECONDS` | `30` | maximum buffered PCM per stream, matching Phoenix's utterance cap |
+| `PARAKEET_MAX_UPLOAD_BYTES` | `8388608` | maximum WAV upload admitted for inference |
 
 ## Tests, and what they do not cover
 
@@ -184,9 +310,12 @@ python3 -m pytest tests/ -q     # contract tests; no GPU/model required
 
 They run without a model or a GPU, because the recognizer is injected. That
 means the **wire contract is verified and the model integration is not**:
-`NemoRecognizer` — including `_enable_confidence`, which is the part that makes
-H07c closable — has never executed here. It needs one run on a machine with the
-model before anything about real confidence values is claimed.
+`NemoRecognizer` is exercised with a fake NeMo model, including multi-input
+calls, result/confidence isolation, invalid-upload isolation and OOM backoff.
+The tests also open 16 overlapping sockets and prove that their finals enter
+bounded model batches. Real NeMo/CUDA batching and its memory/latency still need
+a run of the new image on the GPU host. The old live service's confidence value
+is not proof of the new image's model integration.
 
 Falsification: reverting the confidence field to a constant `1.0` fails three
 named tests, including `test_absent_confidence_is_null_not_invented`.

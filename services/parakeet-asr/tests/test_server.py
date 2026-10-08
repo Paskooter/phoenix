@@ -12,8 +12,10 @@ import threading
 import time
 from types import SimpleNamespace
 import wave
+from contextlib import ExitStack
 from pathlib import Path
 
+import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from fastapi.testclient import TestClient  # noqa: E402
@@ -35,9 +37,19 @@ def make_wav(seconds=0.5, sample_rate=16000, amplitude=8000):
     return buf.getvalue()
 
 
+@pytest.fixture(autouse=True)
+def api_lifecycle():
+    global _clients
+    # Each test runs the same startup/shutdown lifecycle as uvicorn. Inference
+    # queues and workers belong to this event loop, not the module or a client.
+    with ExitStack() as _clients:
+        yield
+    server.set_recognizer(None)
+
+
 def client(stub):
     server.set_recognizer(stub)
-    return TestClient(server.app)
+    return _clients.enter_context(TestClient(server.app))
 
 
 # --- backward compatibility ------------------------------------------------
@@ -246,7 +258,7 @@ def test_nemo_skips_ffmpeg_for_canonical_gateway_wav(tmp_path):
     class FakeModel:
         paths = None
 
-        def transcribe(self, paths, return_hypotheses):
+        def transcribe(self, paths, **kwargs):
             self.paths = paths
             return [type("Hypothesis", (), {"text": "hello", "word_confidence": [0.9]})()]
 
@@ -269,7 +281,7 @@ def test_nemo_still_resamples_noncanonical_wav(tmp_path):
     class FakeModel:
         paths = None
 
-        def transcribe(self, paths, return_hypotheses):
+        def transcribe(self, paths, **kwargs):
             self.paths = paths
             return [type("Hypothesis", (), {"text": "hello"})()]
 
