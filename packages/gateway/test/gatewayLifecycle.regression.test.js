@@ -6,7 +6,7 @@ import http from 'node:http';
 
 import { ListenTransaction } from '../src/listenTransaction.js';
 import { GoogleASRSession } from '../src/asr/googleSession.js';
-import { ParakeetASRSession } from '../src/asr/parakeetSession.js';
+import { ParakeetASRSession, ASR_SILENCE_TO_EOS_MS } from '../src/asr/parakeetSession.js';
 
 const log = { debug() {}, info() {}, warn() {}, error() {} };
 const tick = () => new Promise((resolve) => setImmediate(resolve));
@@ -284,5 +284,37 @@ test('empty-buffer max-speech finalization cannot settle ASR as undefined', asyn
   assert.equal(frames.at(-1).type, 'LISTEN');
   assert.equal(frames.at(-1).data.asr.text, '');
   assert.equal(frames.at(-1).data.asr.annotation, 'MAX_SPEECH_TIMEOUT');
+  t.after(() => clearTimeout(tx._txTimer));
+});
+test('client cancellation aborts a Parakeet request already in FINALIZING', async (t) => {
+  const requestSeen = deferred();
+  const responseClosed = deferred();
+  const server = http.createServer((req, res) => {
+    if (req.url === '/healthz') { res.writeHead(404); res.end(); return; }
+    req.on('data', () => {});
+    req.on('end', () => {
+      requestSeen.resolve();
+      res.once('close', () => responseClosed.resolve());
+      // Hold the response until the client aborts it.
+    });
+    req.resume();
+  });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => withServerClose(server));
+
+  const session = new ParakeetASRSession(`http://127.0.0.1:${server.address().port}`, { lang: 'en-US' }, log);
+  const start = session.start();
+  const burst = Buffer.concat([SPEECH(), SPEECH(), ...Array.from({ length: Math.ceil(ASR_SILENCE_TO_EOS_MS / 100) }, SILENCE)]);
+  session.provideAudio(burst);
+  await requestSeen.promise;
+  assert.equal(session.state, 'FINALIZING');
+
+  const { tx } = makeTransaction();
+  tx.state = 'ASR';
+  tx.asrSession = session;
+  tx._cancelASR();
+  await responseClosed.promise;
+  assert.equal(await start, undefined);
+  assert.equal(tx.asrSession, null);
   t.after(() => clearTimeout(tx._txTimer));
 });

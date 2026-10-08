@@ -13,6 +13,9 @@ import {
   setRecognizerFactory,
 } from '../src/asr/googleProvider.js';
 import { GoogleASRSession } from '../src/asr/googleSession.js';
+import { ParakeetASRSession } from '../src/asr/parakeetSession.js';
+import * as parakeetTransport from '../src/asr/parakeetTransport.js';
+const truncateUtf8ByBytes = (...args) => parakeetTransport.truncateUtf8ByBytes(...args);
 import { ProactiveTransaction } from '../src/proactive/proactiveTransaction.js';
 
 const log = { debug() {}, info() {}, warn() {}, error() {} };
@@ -444,4 +447,70 @@ test('proactive withTimeout clears its timer when context rejects', async (t) =>
   await expectReject(operation, (error) => /context rejected/.test(error.message));
   assert.ok(timeoutTimer, 'proactive context timeout timer was installed');
   assert.equal(timeoutCleared, true, 'proactive rejection clears its timeout');
+});
+// --- Parakeet response bounds ------------------------------------------------
+
+test('Parakeet caps oversized error responses and destroys the request', async (t) => {
+  const body = Buffer.alloc(PARakeet_OVERSIZED_RESPONSE_BYTES, 0x45);
+  const { server, responseClosed } = await responseServer(502, body, { contentLength: false });
+  t.after(() => closeNetServer(server));
+  const session = new ParakeetASRSession(`http://127.0.0.1:${server.address().port}`, { lang: 'en-US' }, log);
+
+  const error = await expectReject(
+    waitFor(session._postToParakeet(Buffer.from('audio')), 3000),
+    (value) => value && value.code === 'ERR_PARAKEET_RESPONSE_TOO_LARGE',
+  );
+  assert.ok(error.message.length < 2048, 'diagnostic must not copy the response body into Error.message');
+  await waitFor(responseClosed.promise);
+});
+
+test('Parakeet caps oversized success responses before parsing the transcript', async (t) => {
+  const body = Buffer.from(JSON.stringify({ transcript: 'x'.repeat(PARakeet_OVERSIZED_RESPONSE_BYTES) }));
+  const { server, responseClosed } = await responseServer(200, body, { contentLength: false });
+  t.after(() => closeNetServer(server));
+  const session = new ParakeetASRSession(`http://127.0.0.1:${server.address().port}`, { lang: 'en-US' }, log);
+
+  await expectReject(
+    waitFor(session._postToParakeet(Buffer.from('audio')), 3000),
+    (value) => value && value.code === 'ERR_PARAKEET_RESPONSE_TOO_LARGE',
+  );
+  await waitFor(responseClosed.promise);
+});
+
+test('Parakeet diagnostic truncation counts UTF-8 bytes without splitting a code point', () => {
+  const input = '🙂'.repeat(600);
+  const diagnostic = truncateUtf8ByBytes(input, 1024);
+
+  assert.equal(Buffer.byteLength(diagnostic, 'utf8'), 1024);
+  assert.equal(diagnostic, '🙂'.repeat(256));
+});
+
+test('Parakeet diagnostic truncation stays bounded for malformed UTF-8 input', () => {
+  const input = Buffer.concat([
+    Buffer.from('prefix ', 'utf8'),
+    Buffer.from([0xe2, 0x82]),
+    Buffer.from(' suffix', 'utf8'),
+  ]);
+  const diagnostic = truncateUtf8ByBytes(input, 10);
+
+  assert.equal(diagnostic, 'prefix �');
+  assert.ok(Buffer.byteLength(diagnostic, 'utf8') <= 10);
+});
+
+test('Parakeet error diagnostics keep their UTF-8 byte cap and useful suffix', async (t) => {
+  const body = Buffer.from('🙂'.repeat(600), 'utf8');
+  const { server, responseClosed } = await responseServer(502, body, { contentLength: false });
+  t.after(() => closeNetServer(server));
+  const session = new ParakeetASRSession(`http://127.0.0.1:${server.address().port}`, { lang: 'en-US' }, log);
+
+  const error = await expectReject(
+    waitFor(session._postToParakeet(Buffer.from('audio')), 3000),
+    (value) => value && value.message.startsWith('Parakeet returned 502: '),
+  );
+  const diagnostic = error.message.slice('Parakeet returned 502: '.length);
+
+  assert.equal(Buffer.byteLength(diagnostic, 'utf8'), 1023);
+  assert.equal(diagnostic.endsWith('…'), true);
+  assert.equal(diagnostic.slice(0, -1), '🙂'.repeat(255));
+  await waitFor(responseClosed.promise);
 });
