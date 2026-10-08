@@ -4066,6 +4066,22 @@ async function renderAdminOverview() {
     }
     const activityCard = card('Voice activity', { actions: [h('a', { class: 'ov-link', href: '#/admin/voice-turns' }, 'Details', icon('arrow', 13))] }, activity);
 
+    const asr = d.asr;
+    const usage = asr?.google?.usage;
+    const minutes = (seconds) => Number.isFinite(seconds) ? (seconds / 60).toFixed(1) : 'unknown';
+    const recognizerLabel = { parakeet: 'Parakeet', auto: 'Parakeet with Google fallback', google: 'Google' };
+    const speechCard = card('Speech recognition', {
+      actions: [h('a', { class: 'ov-link', href: '#/admin/settings?group=speech' }, 'Settings', icon('arrow', 13))],
+    }, h('p', { text: asr ? recognizerLabel[asr.mode] : 'Status is unavailable from the voice gateway.' }),
+    asr?.parakeet ? h('p', { class: 'field-hint', text: `Parakeet: ${asr.parakeet.state || 'unknown'}` }) : null,
+    usage ? h('dl', { class: 'adm-facts' },
+      h('div', {}, h('dt', { text: 'Google this month' }), h('dd', { text: `${minutes(usage.usedSeconds)} / ${minutes(usage.limitSeconds)} min` })),
+      h('div', {}, h('dt', { text: 'Google today' }), h('dd', { text: `${minutes(usage.dayUsedSeconds)} min` })),
+      h('div', {}, h('dt', { text: 'Reserved audio' }), h('dd', { text: `${minutes(usage.reservedSeconds)} min` }))) : null,
+    asr?.mode !== 'parakeet' && asr?.google ? h('p', { class: 'field-hint',
+      text: asr.google.unavailable || usage?.problem ? 'Google is unavailable. Review speech settings and the server log.'
+        : usage?.exhausted ? 'Google has reached its usage limit.' : 'Google audio is counted conservatively in Pacific calendar periods.' }) : null);
+
     /* people, robots, loops */
     const countRow = (href, iconName, label, value, note) => h('a', { class: 'adm-count', href },
       h('span', { class: 'adm-count-ic' }, icon(iconName, 16)),
@@ -4095,7 +4111,7 @@ async function renderAdminOverview() {
 
     parts.push(h('div', { class: 'adm-columns' },
       h('div', { class: 'adm-col-main' }, servicesCard),
-      h('div', { class: 'adm-col-side' }, activityCard, countsCard, storageCard)));
+      h('div', { class: 'adm-col-side' }, activityCard, speechCard, countsCard, storageCard)));
     return parts;
   }
 

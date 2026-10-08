@@ -1,4 +1,5 @@
-FROM node:20-slim
+ARG PHOENIX_NODE_IMAGE=node:20-slim
+FROM ${PHOENIX_NODE_IMAGE}
 
 # OGG_OPUS is decoded through ffmpeg. FLAC is decoded by the declared WASM
 # package, so it needs no second system decoder in the runtime image.

@@ -1,0 +1,24 @@
+# Explicit opt-in companion to docker-compose.yml. Host files stay outside Git.
+# Initialize the ledger once and make its directory writable by the container's
+# node uid. The reviewed Node 22+ image includes the pinned optional SDK.
+services:
+  hub:
+    image: phoenix-google-runtime:local
+    build:
+      args:
+        PHOENIX_NODE_IMAGE: node:22-slim
+    environment:
+      PHOENIX_GOOGLE_STT_CREDENTIALS_FILE: /etc/phoenix/secrets/google-speech.json
+      PHOENIX_GOOGLE_STT_USAGE_FILE: /var/lib/phoenix/asr/google-stt-usage.json
+    volumes:
+      - type: bind
+        source: ${PHOENIX_GOOGLE_STT_HOST_CREDENTIALS_FILE:?Set the private host credentials path}
+        target: /etc/phoenix/secrets/google-speech.json
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${PHOENIX_GOOGLE_STT_STATE_DIR:?Set the durable host ASR state directory}
+        target: /var/lib/phoenix/asr
+        bind:
+          create_host_path: false

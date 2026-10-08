@@ -40,6 +40,7 @@ import { HomeAssistantClient } from './homeAssistantClient.js';
 import { RobotActionBridge } from './robotActionBridge.js';
 import { robotActionRoutes } from './robotActionRoutes.js';
 import { ROBOT_ACTION_PATH, robotIdentity } from './robotActionProtocol.js';
+import { asrStatus, setAsrRouter } from './asr/asrRouter.js';
 
 const LISTEN_PATHS = new Set(['/listen', '/v1/listen']);
 const PROACTIVE_PATHS = new Set(['/proactive', '/v1/proactive']);
@@ -169,10 +170,16 @@ export async function createGateway(config = loadConfig()) {
           return sendJson(res, 400, { error: error.message });
         }
       },
+      'GET /v1/admin/asr': ({ req, res, url }) => {
+        if (!verifyVoiceTurnTelemetryRequest(req, url, config.hubTokenSecret, usedVoiceTurnProofNonces)) {
+          return sendJson(res, 403, { error: 'forbidden' });
+        }
+        return asrStatus();
+      },
     },
   });
 
-  service.server.once('close', () => { robotActions.close(); deploymentActivity.stop(); });
+  service.server.once('close', () => { robotActions.close(); deploymentActivity.stop(); setAsrRouter(null); });
   const admit = async (info, cb) => {
     const end = deploymentActivity.begin('voice');
     if (!end) return cb(false, 503, 'Server restarting; retry shortly', { 'Retry-After': '5' });

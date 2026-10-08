@@ -4,6 +4,11 @@ This is the deployment guide for the **entire** Phoenix stack: the hub, parser,
 history, data, skills, OTA, account/portal, and Classic entrypoint. It is not a
 portal-only hosting guide.
 
+Optional Google Speech-to-Text is off by default. Its Node 22 runtime, private
+credentials, durable usage ledger, consent and owner checklist are documented in
+[ASR-GOOGLE-FALLBACK.md](ASR-GOOGLE-FALLBACK.md). The existing native release guard
+also applies when enabling or switching that provider.
+
 The primary deployment in this document is **Docker Compose behind nginx**. The
 same public routing model can be used with the native launcher, but the
 process-supervision and filesystem details differ. Commands that need a target host, DNS, root privileges, nginx, Certbot, a GPU, or a real robot

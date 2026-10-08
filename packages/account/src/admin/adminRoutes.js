@@ -22,6 +22,7 @@ import { consoleSettingsFile, readConsoleSettings } from './consoleSettings.js';
 import { launcherControl, readLauncherState, servicesStatus } from './launcherControl.js';
 import { effectiveValues, readServerValues } from './settingsRoutes.js';
 import { fetchVoiceTurnPage } from './voiceTurnRoutes.js';
+import { fetchAsrStatus } from './asrStatusRoutes.js';
 
 const sameId = (a, b) => a != null && b != null && String(a) === String(b);
 const accepted = (member) => String(member?.status || '').toLowerCase() === 'accepted';
@@ -108,7 +109,7 @@ async function voiceSummary(env, fetchImpl) {
 }
 
 /** Things an administrator should know about, most serious first. */
-function attentionItems({ status, control, settingsError, pendingByService, effective, adminCount, disk, serverFile, launcherStartedAt }) {
+function attentionItems({ status, control, settingsError, pendingByService, effective, adminCount, disk, serverFile, launcherStartedAt, asr }) {
   const items = [];
   const label = (id) => SERVICES[id]?.label || id;
 
@@ -170,10 +171,21 @@ function attentionItems({ status, control, settingsError, pendingByService, effe
     });
   }
 
-  if (!effective.PARAKEET_URL) {
+  if (!effective.PARAKEET_URL && effective.PHOENIX_ASR_PROVIDER !== 'google') {
     items.push({ level: 'warn', title: 'Speech recognition isn’t set up',
       body: 'Without a recognition server, Jibo hears “Hey Jibo” but not the question.',
       action: { label: 'Set it up', href: '#/admin/settings?group=speech' } });
+  }
+  if (asr?.mode !== 'parakeet' && asr?.google) {
+    if (asr.google.unavailable || asr.google.usage?.problem) {
+      items.push({ level: 'warn', title: 'Google speech is unavailable',
+        body: 'Google recognition is disabled, needs configuration, or cannot trust its usage ledger. Review the speech settings and server logs.',
+        action: { label: 'Review speech settings', href: '#/admin/settings?group=speech' } });
+    } else if (asr.google.usage?.exhausted) {
+      items.push({ level: 'warn', title: 'Google speech has reached its usage limit',
+        body: 'Google recognition stops at the daily or monthly limit. Parakeet can still answer in automatic mode.',
+        action: { label: 'Review speech settings', href: '#/admin/settings?group=speech' } });
+    }
   }
   if (!effective.ETCO_account_mailSmtpHost) {
     items.push({ level: 'warn', title: 'Email isn’t set up',
@@ -238,13 +250,14 @@ export function adminOpsRoutes(store, {
       const robots = store.allRobots().map((r) => r.robot);
       const dataDir = env.PHOENIX_DATA_DIR || dirname(store.file);
 
-      const [status, online, voice, disk, release, serverStat] = await Promise.all([
+      const [status, online, voice, disk, release, serverStat, asr] = await Promise.all([
         servicesStatus(control, { fetchImpl }),
         robotsOnline(robots),
         voiceSummary(env, fetchImpl),
         diskUsage(dataDir),
         releaseInfo(),
         server.exists ? stat(server.path).catch(() => null) : Promise.resolve(null),
+        fetchAsrStatus({ env, fetchImpl }),
       ]);
 
       // Saved changes each running service has not picked up yet.
@@ -282,12 +295,14 @@ export function adminOpsRoutes(store, {
           online: known.length ? known.filter(Boolean).length : null,
         },
         voice,
+        asr,
         disk: disk ? { ...disk, path: dataDir } : null,
         attention: attentionItems({
           status, control, settingsError, pendingByService,
           effective: effectiveValues(state, server), adminCount, disk,
           serverFile: { changedAt: serverStat?.mtimeMs ?? null },
           launcherStartedAt: status.launcher?.startedAt ?? null,
+          asr,
         }),
       };
     },

@@ -85,3 +85,17 @@ test('the gateway telemetry endpoint rejects invalid content filters and bounds 
   assert.equal((await fetch(`${base}${tooMany}`, { headers: telemetryHeaders(tooMany) })).status, 400);
   assert.equal((await fetch(`${base}${invalidStage}`, { headers: telemetryHeaders(invalidStage) })).status, 400);
 });
+
+test('ASR status uses the same server proof and anti-replay boundary without constructing Google in default mode', async (t) => {
+  const previous = process.env.PHOENIX_ASR_PROVIDER; delete process.env.PHOENIX_ASR_PROVIDER;
+  t.after(() => { if (previous === undefined) delete process.env.PHOENIX_ASR_PROVIDER; else process.env.PHOENIX_ASR_PROVIDER = previous; });
+  const { gateway, base } = await startGateway();
+  t.after(() => { gateway.wss.close(); gateway.service.server.close(); });
+  const path = '/v1/admin/asr';
+  assert.equal((await fetch(`${base}${path}`)).status, 403);
+  const headers = telemetryHeaders(path);
+  const response = await fetch(`${base}${path}`, { headers }); assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { mode: 'parakeet', parakeet: null, google: null });
+  assert.equal((await fetch(`${base}${path}`, { headers })).status, 403);
+  assert.equal((await fetch(`${base}${path}`, { headers: telemetryHeaders('/v1/admin/voice-turns') })).status, 403);
+});

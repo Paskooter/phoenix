@@ -9,9 +9,17 @@
 // Only en-US / en-CA are supported, anything else throws (reference behavior).
 // setASRProvider(fn) lets tests inject a fake session provider, mirroring
 // ASRFactory.setASRProvider.
+//
+// Phoenix's recognizer choice (docs/ASR-GOOGLE-FALLBACK.md) is
+// PHOENIX_ASR_PROVIDER: unset or "parakeet" builds the Parakeet session exactly
+// as before, without touching the router; "auto" (Parakeet, Google while
+// Parakeet cannot answer) and "google" go through asrRouter.js. The reference
+// seam above (ETCO_server_asrProvider=google, original GoogleASRSession over a
+// mock recognizer) keeps precedence so the parity lanes are unchanged.
 
 import { ParakeetASRSession } from './parakeetSession.js';
 import { GoogleASRProvider } from './googleProvider.js';
+import { asrMode, getAsrRouter } from './asrRouter.js';
 
 const PARAKEET_URL = () => process.env.ETCO_server_parakeetUrl || process.env.PARAKEET_URL || 'http://192.168.1.252:6972';
 
@@ -23,6 +31,9 @@ export function setASRProvider(provider) { injectedProvider = provider || null; 
 function defaultProvider(config, log) {
   if (process.env.ETCO_server_asrProvider === 'google') {
     return GoogleASRProvider.startSession(config, log);
+  }
+  if (asrMode(process.env.PHOENIX_ASR_PROVIDER) !== 'parakeet') {
+    return getAsrRouter().startSession(config, log);
   }
   return new ParakeetASRSession(PARAKEET_URL(), config, log);
 }
