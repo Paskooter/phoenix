@@ -101,6 +101,7 @@ const SILENCE = () => pcmChunk(0);
 
 async function withServerClose(server) {
   if (!server.listening) return;
+  server.closeAllConnections();
   await new Promise((resolve) => server.close(resolve));
 }
 
