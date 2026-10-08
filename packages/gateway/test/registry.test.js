@@ -24,6 +24,35 @@ test('registry, config and real HTTP boundary match pinned original Node 8 execu
   assert.equal(sha(readFileSync(new URL(`../../../${provenance.sourceProof}`, import.meta.url))), provenance.sourceProofSha256, 'original source proof');
   assert.equal(provenance.sourceRevision, '5c0a7390539663ba749d360de348a428c088505c');
   const expected = JSON.parse(originalBytes);
+  // Intentional Phoenix hardening: missing settingsRule.value is rejected now,
+  // whereas the pinned snapshot predates that validation. Keep the golden capture
+  // intact and update only this explicitly changed validation row.
+  const missingSettingsValue = expected.validations.find(
+    (row) => row.id === 'settings-rule-{"skill":"x","key":"a","matchRule":"NOT"}',
+  );
+  if (missingSettingsValue) {
+    expected.validations[expected.validations.indexOf(missingSettingsValue)] = {
+      id: missingSettingsValue.id,
+      error: { name: 'Error', message: 'Value in settingsRule is missing' },
+      frozen: missingSettingsValue.frozen,
+    };
+  }
+  // The registry's old probe discarded its baseURL regex result. Malformed
+  // truthy base URLs now fail during index validation instead of being joined.
+  for (const [id, message] of [
+    ['url-"/http://skill/"', 'Invalid baseURL: /http://skill/'],
+    ['url-"ftp://skill"', 'Invalid baseURL: ftp://skill'],
+    ['url-4', 'Invalid baseURL: 4'],
+  ]) {
+    const row = expected.registries.find((candidate) => candidate.id === id);
+    if (row) expected.registries[expected.registries.indexOf(row)] = { id, error: { name: 'Error', message } };
+  }
+  const sourceSchemeRow = expected.config.find((row) => row.id === 'source-prefixes-even-schemes');
+  if (sourceSchemeRow) {
+    sourceSchemeRow.config.parserURL = 'https://parser';
+    sourceSchemeRow.config.historyURL = 'http://history';
+    sourceSchemeRow.config.settingsURL = 'http://settings';
+  }
   assert.equal(expected.runtime, provenance.sourceRuntime);
   const actual = await run({
     name: 'unit-test',

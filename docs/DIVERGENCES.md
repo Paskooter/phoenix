@@ -173,6 +173,8 @@ intentional robustness differences, not claims of exact original-service parity.
 
 | H-hardening-peers | Settings/history fetches have a 10 s wall-clock deadline; parser/skill fetches have an 11 s transport deadline behind the existing 10 s phase budget. Each accepts a parent cancellation signal. | Peer requests must not outlive a cancelled transaction or hang indefinitely. | A stalled peer now aborts. Existing request payloads, internal Settings authentication and error envelopes are unchanged. |
 
+| H-hardening-config | Gateway NET peers preserve explicit HTTP/HTTPS schemes; `HUB_TOKEN_SECRET` is a fallback to `ETCO_server_hubTokenSecret`. Registry entries reject malformed nonempty base URLs, and settings rules require an own `value` (false, null and zero remain valid). | Avoid unusable double-prefixed URLs and reject incomplete registrations before startup. | These input-validation repairs intentionally differ from the source's discarded URL regex and permissive missing-value handling. Newer Home Assistant registry/configuration remains intact. |
+
 ## Speech endpointing (Phoenix-original; the reference had none)
 
 | # | Decision | Why | Impact |

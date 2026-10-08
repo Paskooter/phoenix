@@ -100,6 +100,17 @@ test('hub config defaults, precedence and required-variable behaviour', async ()
   assert.equal(empty.recordLaunchHistory, true);
 });
 
+test('hub config consumes documented HUB_TOKEN_SECRET and gives explicit ETCO precedence', async () => {
+  const documented = await loadConfig({ HUB_TOKEN_SECRET: 'documented-hub-secret' });
+  assert.equal(documented.hubTokenSecret, 'documented-hub-secret');
+
+  const explicit = await loadConfig({
+    HUB_TOKEN_SECRET: 'documented-hub-secret',
+    ETCO_server_hubTokenSecret: 'explicit-etco-secret',
+  });
+  assert.equal(explicit.hubTokenSecret, 'explicit-etco-secret');
+});
+
 test('startup setup log redacts each skill exactly like the source cli', async () => {
   const config = await loadConfig({});
   const report = config.skills.find((skill) => skill.id === 'report-skill');
