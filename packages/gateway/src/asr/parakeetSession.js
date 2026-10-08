@@ -34,12 +34,30 @@
 // with a `final` transcript/confidence. A server without the streaming endpoint
 // (no `/healthz`, API 0.1.0), or one whose socket fails mid-session, falls back
 // to the unchanged `/transcribe` batch path.
+//
+// Replaceable recognizer (docs/ASR-GOOGLE-FALLBACK.md): everything above --
+// decoding, endpointing, relisten, FAST_EOS, timeouts -- belongs to the turn,
+// not to Parakeet. An optional `transport` (4th constructor argument) supplies
+// the three recognizer operations instead of the Parakeet server:
+//   probeStreaming() -> Promise<boolean>   once per session
+//   openStream()     -> socket             once per recognition window
+//   recognizeWav(wav) -> Promise<{text, confidence}>
+// where the socket behaves like Parakeet's `/stream` WebSocket: `readyState`,
+// `send()` of the JSON `start`/`eos` controls and PCM frames, and `open`,
+// `message` (`interim`/`final` JSON), `error` and `close` events. Without a
+// transport the session talks to Parakeet exactly as before
+// (parakeetTransport.js).
 
-import http from 'node:http';
-import https from 'node:https';
 import fs from 'node:fs';
 import { WebSocket } from 'ws';
 import { FastEOS } from './fastEOS.js';
+import {
+  HEALTH_TIMEOUT_MS,
+  POST_TIMEOUT_MS,
+  openParakeetStream,
+  postParakeetWav,
+  probeParakeet,
+} from './parakeetTransport.js';
 import {
   AUDIO_ENCODINGS,
   openCapture,
@@ -98,29 +116,13 @@ const SPEECH_DEBOUNCE_MS = 30;     // consecutive ms over the gate before speech
 const MAX_BUFFER_MS = 30000;
 const MAX_BUFFER_BYTES = (BYTES_PER_SEC * MAX_BUFFER_MS) / 1000;
 
-const POST_TIMEOUT_MS = 30000;
-
 // Streaming transport: `/healthz` is the capability probe (present only on API
 // >= 0.2.0), `/stream` the WebSocket recognizer. Bounded like the batch path so a
 // wedged socket cannot hold a turn open, and a mid-flight failure falls back to
-// batch rather than dropping the turn.
-const STREAMING_API_VERSION = '0.2.0';
-const HEALTH_TIMEOUT_MS = 3000;
+// batch rather than dropping the turn. (Probe and POST timeouts live with the
+// transport in parakeetTransport.js.)
 const STREAM_FINAL_TIMEOUT_MS = 30000;
 const STREAM_PENDING_MAX_BYTES = 2 * 1024 * 1024;
-
-/** True when `version` (e.g. "0.2.0") is at least `minimum` (e.g. "0.2.0"). */
-function apiVersionAtLeast(version, minimum) {
-  const parse = (value) => String(value).split('.').map((part) => parseInt(part, 10) || 0);
-  const actual = parse(version);
-  const required = parse(minimum);
-  for (let i = 0; i < Math.max(actual.length, required.length); i += 1) {
-    const a = actual[i] || 0;
-    const b = required[i] || 0;
-    if (a !== b) return a > b;
-  }
-  return true;
-}
 
 // A silence endpoint that recognizes no words is treated as a false endpoint
 // (see the header note): keep listening instead of ending the turn. Bounded so a
@@ -139,9 +141,16 @@ const WAKE_TAIL_IGNORE_LIMIT = 2;
 const bytesToMs = (bytes) => (bytes / BYTES_PER_SEC) * 1000;
 
 export class ParakeetASRSession {
-  /** @param {string} parakeetUrl @param {{lang:string, hints?:string[], earlyEOS?:string[], encoding?:string, sampleRate?:number}} config @param {object} log */
-  constructor(parakeetUrl, config, log) {
+  /**
+   * @param {string|null} parakeetUrl  unused when `options.transport` is given
+   * @param {{lang:string, hints?:string[], earlyEOS?:string[], encoding?:string, sampleRate?:number}} config
+   * @param {object} log
+   * @param {{transport?: {probeStreaming:()=>Promise<boolean>, openStream:()=>object,
+   *   recognizeWav:(wav:Buffer)=>Promise<{text:string, confidence:number|null}>, describe?:()=>object}}} [options]
+   */
+  constructor(parakeetUrl, config, log, options = {}) {
     this.parakeetUrl = parakeetUrl;
+    this.transport = options.transport || null;
     this.config = config || {};
     this.log = log || console;
     this.audio = normalizeAudioConfig(this.config);
@@ -742,6 +751,9 @@ export class ParakeetASRSession {
         noiseFloorRms: this.noiseFloor === null ? null : Math.round(this.noiseFloor),
         speechGateRms: Math.round(this._speechGate()),
         speechMs: Math.round(bytesToMs(this.speechBytes)),
+        // Which recognizer answered and why, when one other than the default
+        // Parakeet server is in play (failover, Google). No transcript text.
+        ...(this.transport?.describe ? this.transport.describe() : {}),
       });
     }
     if (this.resultHandler) this.resultHandler(result);
@@ -751,48 +763,14 @@ export class ParakeetASRSession {
 
   // --- Streaming transport ---------------------------------------------------
 
-  /** Probe `/healthz` once; resolves true only for a streaming-capable server. */
+  /** Probe once; resolves true only for a streaming-capable recognizer. */
   _probeStreamingSupport() {
-    return new Promise((resolve) => {
-      let parsed;
-      try {
-        parsed = new URL(this.parakeetUrl);
-      } catch {
-        resolve(false);
-        return;
-      }
-      const secure = parsed.protocol === 'https:';
-      const transport = secure ? https : http;
-      const port = parsed.port ? parseInt(parsed.port, 10) : (secure ? 443 : 80);
-      const req = transport.request({
-        method: 'GET',
-        host: parsed.hostname,
-        port,
-        path: '/healthz',
-        timeout: HEALTH_TIMEOUT_MS,
-        agent: false,
-        headers: { connection: 'close' },
-      }, (res) => {
-        const bufs = [];
-        res.on('data', (c) => bufs.push(c));
-        res.on('end', () => {
-          if (res.statusCode !== 200) { resolve(false); return; }
-          try {
-            const json = JSON.parse(Buffer.concat(bufs).toString('utf8'));
-            resolve(
-              json?.ok === true
-              && typeof json?.api_version === 'string'
-              && apiVersionAtLeast(json.api_version, STREAMING_API_VERSION),
-            );
-          } catch {
-            resolve(false);
-          }
-        });
-      });
-      req.on('timeout', () => { req.destroy(new Error('Parakeet /healthz timed out')); });
-      req.on('error', () => resolve(false));
-      req.end();
-    });
+    if (this.transport) {
+      return Promise.resolve()
+        .then(() => this.transport.probeStreaming())
+        .then((supported) => supported === true, () => false);
+    }
+    return probeParakeet(this.parakeetUrl, { timeoutMs: HEALTH_TIMEOUT_MS }).then((probe) => probe.streaming);
   }
 
   _initStreaming() {
@@ -814,23 +792,12 @@ export class ParakeetASRSession {
   _openStream() {
     if (!this.streamingSupported || this.streamingFailed || this.streamSocket) return;
     if (this.stopped || this.aborted || this.state === 'DONE') return;
-    let url;
-    try {
-      url = new URL(this.parakeetUrl);
-    } catch {
-      this.streamingFailed = true;
-      return;
-    }
-    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
-    url.pathname = '/stream';
-    url.search = '';
-    url.hash = '';
     let socket;
     try {
-      socket = new WebSocket(url.toString());
+      socket = this.transport ? this.transport.openStream() : openParakeetStream(this.parakeetUrl);
     } catch (err) {
       this.streamingFailed = true;
-      this.log.warn?.('[asr] Parakeet streaming socket could not be created; using batch: ' + err.message);
+      this.log.warn?.('[asr] streaming socket could not be created; using batch: ' + err.message);
       return;
     }
     this.streamSocket = socket;
@@ -1112,58 +1079,9 @@ export class ParakeetASRSession {
     return Buffer.concat([header, pcm]);
   }
 
+  /** Batch recognition of the buffered window (transport, or Parakeet POST /transcribe). */
   _postToParakeet(wav) {
-    return new Promise((resolve, reject) => {
-      const parsed = new URL(this.parakeetUrl);
-      const boundary = '----jiboparakeet' + Date.now() + Math.floor(Math.random() * 1e9).toString(16);
-      const head = Buffer.from(
-        `--${boundary}\r\n`
-        + 'Content-Disposition: form-data; name="file"; filename="audio.wav"\r\n'
-        + 'Content-Type: audio/wav\r\n\r\n');
-      const tail = Buffer.from(`\r\n--${boundary}--\r\n`);
-      const body = Buffer.concat([head, wav, tail]);
-
-      const req = http.request({
-        method: 'POST',
-        host: parsed.hostname,
-        port: parsed.port ? parseInt(parsed.port, 10) : 80,
-        path: '/transcribe',
-        headers: {
-          'Content-Type': `multipart/form-data; boundary=${boundary}`,
-          'Content-Length': body.length,
-        },
-      }, (res) => {
-        const bufs = [];
-        res.on('data', (c) => bufs.push(c));
-        res.on('end', () => {
-          const text = Buffer.concat(bufs).toString('utf8');
-          if (res.statusCode !== 200) return reject(new Error(`Parakeet returned ${res.statusCode}: ${text}`));
-          try {
-            const json = JSON.parse(text);
-            let transcript = json.transcript;
-            // The server may report a real decoder confidence. Older
-            // deployments (API 0.1.0) do not, and NeMo leaves every confidence
-            // field null unless the decoding config asks for them, which is why
-            // this client used to invent 1.0 -- a constant that reached the
-            // robot looking like a measurement (DIVERGENCES H07c).
-            let confidence = typeof json.confidence === 'number' ? json.confidence : null;
-            if (transcript && typeof transcript === 'object') {
-              if (confidence === null && typeof transcript.confidence === 'number') {
-                confidence = transcript.confidence;
-              }
-              transcript = transcript.text;
-            }
-            if (typeof transcript !== 'string') transcript = '';
-            resolve({ text: transcript, confidence });
-          } catch (e) {
-            reject(new Error('Could not parse Parakeet response: ' + e));
-          }
-        });
-      });
-      req.setTimeout(POST_TIMEOUT_MS, () => { req.destroy(new Error('Parakeet request timed out')); });
-      req.on('error', reject);
-      req.write(body);
-      req.end();
-    });
+    if (this.transport) return Promise.resolve().then(() => this.transport.recognizeWav(wav));
+    return postParakeetWav(this.parakeetUrl, wav, { timeoutMs: POST_TIMEOUT_MS });
   }
 }
