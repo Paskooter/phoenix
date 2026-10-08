@@ -407,7 +407,7 @@ test('abort destroys an in-flight Parakeet HTTP request', async () => {
     const responseClosed = withTimeout(parakeet.responseClosed(0));
     session.abort();
     assert.equal(await withTimeout(startPr), undefined);
-    await responseClosed;
+    await withTimeout(responseClosed);
   } finally {
     parakeet.release(0);
     parakeet.closeAllConnections?.();

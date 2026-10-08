@@ -1,6 +1,9 @@
 // Synthetic identities and held in-process peers; no external requests.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { once } from 'node:events';
+import { WebSocket } from 'ws';
+import { createGateway } from '../src/index.js';
 import { ProactiveTransaction } from '../src/proactive/proactiveTransaction.js';
 
 const log = { info() {}, debug() {}, error() {}, warn() {} };
@@ -15,6 +18,41 @@ function make(extra = {}) {
   }, { write: frame => frames.push(frame) }, log);
   return { tx, frames };
 }
+
+test('real proactive WebSocket close aborts the transaction waiting for CONTEXT', { timeout: 3000 }, async (t) => {
+  const original = ProactiveTransaction.prototype._handleTrigger;
+  let tx;
+  const observed = deferred();
+  ProactiveTransaction.prototype._handleTrigger = function (...args) {
+    tx = this;
+    observed.resolve();
+    return original.apply(this, args);
+  };
+  t.after(() => { ProactiveTransaction.prototype._handleTrigger = original; });
+  const gateway = await createGateway({
+    disableAuth: true, hubTokenSecret: '', skills: [], parserURL: 'http://127.0.0.1:1',
+    historyURL: 'http://127.0.0.1:1', settingsURL: 'http://127.0.0.1:1',
+    listenTimeout: 1000, proactiveTimeout: 1000, recordLaunchHistory: false,
+  });
+  await gateway.service.listen(0);
+  t.after(async () => {
+    tx?.abandon?.();
+    for (const socket of gateway.wss.clients) socket.terminate();
+    gateway.wss.close();
+    await new Promise(resolve => gateway.service.server.close(resolve));
+  });
+  const ws = new WebSocket(`ws://127.0.0.1:${gateway.service.server.address().port}/proactive`);
+  t.after(() => ws.terminate());
+  await once(ws, 'open');
+  ws.send(JSON.stringify({ type: 'TRIGGER', data: { triggerSource: 'SURPRISE' } }));
+  await observed.promise;
+  const closed = once(ws, 'close');
+  ws.terminate();
+  await closed;
+  await tx.done;
+  assert.equal(tx.abortController.signal.aborted, true);
+  assert.equal(await tx.contextPr.promise, null, 'close releases the CONTEXT waiter');
+});
 
 test('proactive close releases a context waiter and ignores a late trigger', async () => {
   const { tx, frames } = make();

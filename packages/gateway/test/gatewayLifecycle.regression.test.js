@@ -10,6 +10,11 @@ import { ParakeetASRSession, ASR_SILENCE_TO_EOS_MS } from '../src/asr/parakeetSe
 
 const log = { debug() {}, info() {}, warn() {}, error() {} };
 const tick = () => new Promise((resolve) => setImmediate(resolve));
+const withTimeout = (promise, ms = 1000) => new Promise((resolve, reject) => {
+  const timer = setTimeout(() => reject(new Error(`timed out after ${ms}ms`)), ms);
+  promise.then(value => { clearTimeout(timer); resolve(value); }, error => { clearTimeout(timer); reject(error); });
+});
+
 const deferred = () => {
   let resolve;
   const promise = new Promise((done) => { resolve = done; });
@@ -313,7 +318,7 @@ test('client cancellation aborts a Parakeet request already in FINALIZING', asyn
   tx.state = 'ASR';
   tx.asrSession = session;
   tx._cancelASR();
-  await responseClosed.promise;
+  await withTimeout(responseClosed.promise);
   assert.equal(await start, undefined);
   assert.equal(tx.asrSession, null);
   t.after(() => clearTimeout(tx._txTimer));
