@@ -76,6 +76,18 @@ services:
       # the compose network, and every settingsRules-bearing proactive fails closed.
       - NET_settings=account:8080
       - ETCO_server_parakeetUrl=${PARAKEET_URL:-}
+      # Optional Google STT prototype; deploy/google-stt.compose.yml mounts private state and credentials.
+      - PHOENIX_ASR_PROVIDER=${PHOENIX_ASR_PROVIDER:-parakeet}
+      - PHOENIX_GOOGLE_STT_PROJECT=${PHOENIX_GOOGLE_STT_PROJECT:-}
+      - PHOENIX_GOOGLE_STT_MODEL=${PHOENIX_GOOGLE_STT_MODEL:-chirp_3}
+      - PHOENIX_GOOGLE_STT_LOCATION=${PHOENIX_GOOGLE_STT_LOCATION:-us}
+      - PHOENIX_GOOGLE_STT_MONTHLY_MINUTES=${PHOENIX_GOOGLE_STT_MONTHLY_MINUTES:-560}
+      - PHOENIX_GOOGLE_STT_DAILY_MINUTES=${PHOENIX_GOOGLE_STT_DAILY_MINUTES:-}
+      - PHOENIX_GOOGLE_STT_MAX_STREAMS=${PHOENIX_GOOGLE_STT_MAX_STREAMS:-8}
+      - PHOENIX_GOOGLE_STT_DENOISE=${PHOENIX_GOOGLE_STT_DENOISE:-false}
+      - PHOENIX_GOOGLE_STT_HINT_BOOST=${PHOENIX_GOOGLE_STT_HINT_BOOST:-}
+      - PHOENIX_GOOGLE_STT_CREDENTIALS_FILE=${PHOENIX_GOOGLE_STT_CREDENTIALS_FILE:-}
+      - PHOENIX_GOOGLE_STT_USAGE_FILE=${PHOENIX_GOOGLE_STT_USAGE_FILE:-}
       - PHOENIX_FFMPEG=/usr/bin/ffmpeg
     volumes:
       - phoenix-runtime:/home/node/phoenix-runtime:rw

@@ -194,6 +194,79 @@ export const GROUP_IDS = new Set(GROUPS.map((group) => group.id));
 export const SETTINGS = [
   /* ── Speech recognition ─────────────────────────────────────────────── */
   {
+    key: 'PHOENIX_ASR_PROVIDER', label: 'Speech recognizer', group: 'speech', type: 'enum',
+    editable: true, restart: ['hub'], default: 'parakeet',
+    options: [
+      { value: 'parakeet', label: 'Parakeet', hint: 'Use the self-hosted recognizer.' },
+      { value: 'auto', label: 'Parakeet with Google fallback', hint: 'Send audio to Google when Parakeet cannot answer, within the usage limits.' },
+      { value: 'google', label: 'Google', hint: 'Use Google and leave the GPU free, within the usage limits.' },
+    ],
+    help: 'Google sends recordings and recognition hints to Google Cloud. Set up its project and credentials '
+      + 'on the server first. A saved choice takes effect when the voice gateway restarts.',
+  },
+  {
+    key: 'PHOENIX_GOOGLE_STT_PROJECT', label: 'Google Cloud project', group: 'speech', type: 'string',
+    editable: true, restart: ['hub'], default: null, advanced: true,
+    help: 'The project billed for Speech-to-Text. Its billing account must have the credits you want to use.',
+  },
+  {
+    key: 'PHOENIX_GOOGLE_STT_MODEL', label: 'Google speech model', group: 'speech', type: 'enum',
+    editable: true, restart: ['hub'], default: 'chirp_3', advanced: true,
+    options: [{ value: 'chirp_3', label: 'Chirp 3' }, { value: 'chirp_2', label: 'Chirp 2' }],
+    help: 'Chirp 3 is the recommended model. Recognition quality and latency still need a comparison on a robot.',
+  },
+  {
+    key: 'PHOENIX_GOOGLE_STT_LOCATION', label: 'Google processing location', group: 'speech', type: 'enum',
+    editable: true, restart: ['hub'], default: 'us', advanced: true,
+    options: [{ value: 'us', label: 'United States (Chirp 3)' }, { value: 'eu', label: 'European Union (Chirp 3)' },
+      { value: 'us-central1', label: 'Iowa (Chirp 2)' }, { value: 'europe-west4', label: 'Netherlands (Chirp 2)' },
+      { value: 'asia-southeast1', label: 'Singapore (Chirp 2)' }],
+    help: 'Selects the Speech-to-Text endpoint and recognizer location. Chirp 3 uses US or EU; Chirp 2 uses a listed region. Verify project access before choosing Chirp 2.',
+  },
+  {
+    key: 'PHOENIX_GOOGLE_STT_MONTHLY_MINUTES', label: 'Google monthly limit', group: 'speech', type: 'number',
+    editable: true, restart: ['hub'], default: '560', min: 0, max: 100000, unit: 'minutes',
+    help: 'A hard limit on conservatively counted audio each Pacific calendar month. At $0.016/minute, '
+      + '560 minutes costs at most $8.96 before other usage or taxes. Set 0 to disable Google. Credits are applied by Google Billing.',
+  },
+  {
+    key: 'PHOENIX_GOOGLE_STT_DAILY_MINUTES', label: 'Google daily limit', group: 'speech', type: 'number',
+    editable: true, restart: ['hub'], default: null, min: 0, max: 100000, unit: 'minutes', advanced: true,
+    help: 'Stops one day using the whole month. Unset means one tenth of the monthly limit, rounded up '
+      + '(56 minutes with the default). Set 0 for no daily limit.',
+  },
+  {
+    key: 'PHOENIX_GOOGLE_STT_MAX_STREAMS', label: 'Google concurrent streams', group: 'speech', type: 'number',
+    editable: true, restart: ['hub'], default: '8', min: 1, max: 8, integer: true, advanced: true,
+    help: 'Limits simultaneous streaming calls. Each stream uses roughly five audio requests per second.',
+  },
+  {
+    key: 'PHOENIX_GOOGLE_STT_DENOISE', label: 'Google denoising', group: 'speech', type: 'bool',
+    editable: true, restart: ['hub'], default: 'false', advanced: true,
+    help: 'Optional Chirp audio denoising. Leave off until tested with the room and robot microphone.',
+  },
+  {
+    key: 'PHOENIX_GOOGLE_STT_HINT_BOOST', label: 'Google hint boost', group: 'speech', type: 'number',
+    editable: true, restart: ['hub'], default: null, min: 0, max: 20, advanced: true,
+    help: 'Optional speech-adaptation boost. Unset sends phrases without a boost, as the original Jibo request did.',
+  },
+  {
+    key: 'PHOENIX_GOOGLE_STT_CREDENTIALS_FILE', label: 'Google credentials file', group: 'speech', type: 'path',
+    default: null, advanced: true,
+    help: 'Server-owned path to private service-account or federation credentials. Install the file outside the release and Git; never paste its contents here.',
+  },
+  {
+    key: 'GOOGLE_APPLICATION_CREDENTIALS', label: 'Default Google credentials file', group: 'speech', type: 'path',
+    default: null, advanced: true,
+    help: 'Used when the explicit Google speech credentials file is unset. This is a path, never the credential contents.',
+  },
+  {
+    key: 'PHOENIX_GOOGLE_STT_USAGE_FILE', label: 'Google speech usage ledger', group: 'speech', type: 'path',
+    default: null, advanced: true,
+    help: 'A durable server-owned file. Defaults to PHOENIX_DATA_DIR/asr/google-stt-usage.json. Initialize once with '
+      + 'scripts/init-google-stt-usage.mjs; missing or damaged usage state keeps Google off.',
+  },
+  {
     key: 'PARAKEET_URL',
     label: 'Recognition server',
     group: 'speech',
@@ -975,11 +1048,12 @@ export const SETTINGS = [
   },
   {
     key: 'ETCO_server_asrProvider',
-    label: 'Speech provider',
+    label: 'Legacy speech test provider',
     group: 'software',
     type: 'string',
     default: 'parakeet',
-    help: 'Which recognition backend the voice gateway uses.',
+    help: 'Original archive compatibility seam. Keep parakeet or unset for the Speech recognizer choice above; '
+      + 'google here selects the legacy mock recognizer, not the new Cloud Speech-to-Text backend.',
   },
   {
     key: 'PHOENIX_BRANDING_FILE',
@@ -1078,6 +1152,24 @@ export function checkTogether(values) {
   const errors = {};
   const warnings = [];
   const has = (key) => String(values[key] ?? '').trim() !== '';
+  if (['auto', 'google'].includes(values.PHOENIX_ASR_PROVIDER)) {
+    if (!has('PHOENIX_GOOGLE_STT_PROJECT')
+      || (!has('PHOENIX_GOOGLE_STT_CREDENTIALS_FILE') && !has('GOOGLE_APPLICATION_CREDENTIALS'))) {
+      warnings.push({ key: 'PHOENIX_ASR_PROVIDER', message: 'Google needs a Cloud project and a credentials file installed on the server. It stays off until both are configured.' });
+    }
+    if (values.PHOENIX_GOOGLE_STT_MONTHLY_MINUTES === '0') {
+      warnings.push({ key: 'PHOENIX_GOOGLE_STT_MONTHLY_MINUTES', message: 'The monthly limit is zero, so Google is disabled.' });
+    }
+    if (values.ETCO_server_asrProvider === 'google') {
+      warnings.push({ key: 'PHOENIX_ASR_PROVIDER', message: 'The legacy Google mock provider takes precedence. Remove that server setting before using Cloud Speech-to-Text.' });
+    }
+  }
+  const speechModel = values.PHOENIX_GOOGLE_STT_MODEL || 'chirp_3';
+  const speechLocation = values.PHOENIX_GOOGLE_STT_LOCATION || 'us';
+  const speechLocations = speechModel === 'chirp_2' ? ['us-central1', 'europe-west4', 'asia-southeast1'] : ['us', 'eu'];
+  if (['auto', 'google'].includes(values.PHOENIX_ASR_PROVIDER) && !speechLocations.includes(speechLocation)) {
+    errors.PHOENIX_GOOGLE_STT_LOCATION = 'choose a location supported by the selected Google model';
+  }
   if (values.PHOENIX_NEWS_BRIEFINGS_ENABLED === 'true' && !has('WORLD_NEWS_API_KEY')) {
     warnings.push({ key: 'WORLD_NEWS_API_KEY', message: 'News briefings need a World News key. Jibo will use the basic feed until one is added.' });
   }

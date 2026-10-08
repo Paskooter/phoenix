@@ -256,3 +256,29 @@ test('the people list holds people who can sign in, never robots', async () => {
   assert.equal(fleet.robots[0].owner.email, 'boss@example.test');
   assert.equal(fleet.loops.length, 1);
 });
+
+test('Google ASR settings validate provider, region and caps; credential and ledger paths remain server-owned', async () => {
+  const bad = await call('PUT', '/api/admin/settings', { changes: {
+    PHOENIX_ASR_PROVIDER: 'other', PHOENIX_GOOGLE_STT_MONTHLY_MINUTES: '-1',
+    PHOENIX_GOOGLE_STT_DAILY_MINUTES: 'Infinity', PHOENIX_GOOGLE_STT_MAX_STREAMS: '9',
+    PHOENIX_GOOGLE_STT_CREDENTIALS_FILE: '/synthetic/credential.json', PHOENIX_GOOGLE_STT_USAGE_FILE: '/synthetic/reset.json',
+  } });
+  assert.equal(bad.status, 400);
+  for (const key of ['PHOENIX_ASR_PROVIDER', 'PHOENIX_GOOGLE_STT_MONTHLY_MINUTES', 'PHOENIX_GOOGLE_STT_DAILY_MINUTES',
+    'PHOENIX_GOOGLE_STT_MAX_STREAMS', 'PHOENIX_GOOGLE_STT_CREDENTIALS_FILE', 'PHOENIX_GOOGLE_STT_USAGE_FILE']) assert.ok(bad.body.errors[key]);
+  const incompatible = await call('PUT', '/api/admin/settings', { changes: {
+    PHOENIX_ASR_PROVIDER: 'google', PHOENIX_GOOGLE_STT_MODEL: 'chirp_2', PHOENIX_GOOGLE_STT_LOCATION: 'us',
+  } });
+  assert.equal(incompatible.status, 400); assert.ok(incompatible.body.errors.PHOENIX_GOOGLE_STT_LOCATION);
+  const saved = await call('PUT', '/api/admin/settings', { changes: {
+    PHOENIX_ASR_PROVIDER: 'auto', PHOENIX_GOOGLE_STT_PROJECT: 'synthetic-project', PHOENIX_GOOGLE_STT_MODEL: 'chirp_2',
+    PHOENIX_GOOGLE_STT_LOCATION: 'us-central1', PHOENIX_GOOGLE_STT_MONTHLY_MINUTES: '560',
+    PHOENIX_GOOGLE_STT_DAILY_MINUTES: '56', PHOENIX_GOOGLE_STT_MAX_STREAMS: '2', PHOENIX_GOOGLE_STT_DENOISE: 'true',
+  } });
+  assert.equal(saved.status, 200, JSON.stringify(saved.body)); assert.deepEqual(saved.body.restart, ['hub']);
+  assert.equal(find(saved.body.settings, 'PHOENIX_ASR_PROVIDER').value, 'auto');
+  assert.equal(find(saved.body.settings, 'PHOENIX_GOOGLE_STT_CREDENTIALS_FILE').editable, false);
+  assert.equal(readFileSync(envPath, 'utf8'), envText, 'operator configuration stays unchanged');
+  assert.equal((await call('GET', '/api/admin/asr', null, 'anonymous')).status, 401);
+  assert.equal((await call('GET', '/api/admin/asr', null, 'plain')).status, 403);
+});
