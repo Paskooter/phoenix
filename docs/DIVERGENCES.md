@@ -161,6 +161,16 @@ open questions; root read the source and classifies them here.
 
 
 
+## Gateway request and resource hardening
+
+The staged September hardening re-port retains the newer router, failover,
+local-home routing, endpointing and telemetry implementations. These changes are
+intentional robustness differences, not claims of exact original-service parity.
+
+| # | Decision | Why | Impact |
+|---|---|---|---|
+| H-hardening-google | Legacy Google mock sessions settle on stop/abort and unexpected transport end, detach owned listeners, and emit EOS at most once. The mock TCP seam bounds individual audio frames (64 KiB), total audio (4 MiB), pending/outbound audio (512 KiB), and inbound lines/buffers (256/512 KiB); config precedes early audio. | Cancellation must release transport ownership; an unresponsive mock peer must not retain unbounded audio or leave `start()` pending. | Excess input rejects the mock session; unexpected end returns its last incremental or an empty ASR envelope. This affects the legacy line-delimited mock seam, not the newer paid Google recognizer/router. |
+
 ## Speech endpointing (Phoenix-original; the reference had none)
 
 | # | Decision | Why | Impact |

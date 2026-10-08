@@ -16,6 +16,10 @@ import { createGoogleRequest, startSession, GoogleASRProvider, setRecognizerFact
 import { startSession as factoryStartSession, setASRProvider } from '../src/asr/factory.js';
 
 const log = { debug() {}, info() {}, warn() {}, error() {} };
+const withTimeout = (promise, ms = 1000) => new Promise((resolve, reject) => {
+  const timer = setTimeout(() => reject(new Error(`timed out after ${ms}ms`)), ms);
+  promise.then((value) => { clearTimeout(timer); resolve(value); }, (error) => { clearTimeout(timer); reject(error); });
+});
 
 /** In-process fake recognizer stream: records writes, emits ASROutput frames. */
 function fakeRecognizer() {
@@ -219,6 +223,34 @@ test('Google: an empty results frame is tolerated (no SOS, no crash)', async () 
   assert.equal(sos, 0);
   s.stop();
   await startPr;
+});
+
+test('Google: an unspecified frame with omitted results is tolerated', async () => {
+  const stream = fakeRecognizer();
+  const s = session(stream);
+  const startPr = s.start();
+  assert.doesNotThrow(() => stream.emit('data', { speechEventType: 'SPEECH_EVENT_UNSPECIFIED' }));
+  s.stop();
+  assert.equal(await withTimeout(startPr), undefined);
+});
+
+test('Google: stop settles start even when the recognizer never emits end', async () => {
+  const stream = fakeRecognizer();
+  stream.end = () => { stream.ended = true; };
+  const s = session(stream);
+  const startPr = s.start();
+  s.stop();
+  assert.equal(await withTimeout(startPr), undefined);
+  assert.equal(stream.ended, true);
+});
+
+test('Google: an unexpected recognizer end settles start with the last incremental', async () => {
+  const stream = fakeRecognizer();
+  const s = session(stream);
+  const startPr = s.start();
+  stream.emit('data', interim('end safely', 0.7));
+  stream.emit('end');
+  assert.deepEqual(await withTimeout(startPr), { text: 'end safely', confidence: 0.7 });
 });
 
 // --- provider + factory seam ------------------------------------------------
