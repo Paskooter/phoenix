@@ -62,7 +62,7 @@ export function probeParakeet(parakeetUrl, { timeoutMs = HEALTH_TIMEOUT_MS } = {
       const bufs = [];
       res.on('data', (c) => bufs.push(c));
       res.on('end', () => {
-        if (res.statusCode >= 500) {
+        if (res.statusCode !== 200 && res.statusCode !== 404) {
           resolve({ reachable: false, streaming: false, reason: `status-${res.statusCode}` });
           return;
         }
@@ -76,9 +76,10 @@ export function probeParakeet(parakeetUrl, { timeoutMs = HEALTH_TIMEOUT_MS } = {
           const streaming = json?.ok === true
             && typeof json?.api_version === 'string'
             && apiVersionAtLeast(json.api_version, STREAMING_API_VERSION);
-          resolve({ reachable: true, streaming, apiVersion: typeof json?.api_version === 'string' ? json.api_version : undefined });
+          resolve({ reachable: json?.ok === true, streaming, apiVersion: typeof json?.api_version === 'string' ? json.api_version : undefined,
+            ...(json?.ok === true ? {} : { reason: 'not-ready' }) });
         } catch {
-          resolve({ reachable: true, streaming: false, reason: 'unparseable' });
+          resolve({ reachable: false, streaming: false, reason: 'unparseable' });
         }
       });
       res.on('error', () => resolve({ reachable: false, streaming: false, reason: 'response-error' }));

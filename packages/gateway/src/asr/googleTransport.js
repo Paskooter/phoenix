@@ -9,16 +9,16 @@
 //   session                      GoogleStreamSocket            Google V2
 //   'open' <-------------------- config written ------------> {recognizer, streamingConfig}
 //   send({"type":"start"})       (configuration already sent)
-//   send(PCM)  ----------------> coalesced to ~200 ms -------> {audio}  (<= 25 KB)
+//   send(PCM)  ----------------> coalesced to ~200 ms -------> {audio}  (<= 15 KB)
 //                <-- 'interim' - normalized hypothesis <------ results (isFinal=false)
 //   send({"type":"eos"}) ------> flush, half-close ---------> end of audio
 //                <-- 'final' --- normalized finals <---------- results (isFinal=true), end
 //
 // Every transcript is normalized to the Parakeet format before the session
 // sees it (transcriptNormalizer.js), so FAST_EOS, NLU and routing are fed the
-// same text either recognizer would produce.
+// same text format either recognizer uses. Decoded words can still differ.
 //
-// Budget: each stream reserves a full window (30 s) before connecting and
+// Budget: each stream reserves a full window (31 s) before connecting and
 // commits what was actually sent when it ends (googleUsage.js).
 
 import {
@@ -34,6 +34,7 @@ import {
   combineConfidence,
   googleRecognizerPath,
   modelReportsConfidence,
+  sanitizedGoogleError,
   topAlternative,
 } from './googleSpeech.js';
 import { GoogleBudgetError } from './googleUsage.js';
@@ -45,8 +46,23 @@ export const GOOGLE_STREAM_RESERVATION_SECONDS = 31;
 export const DEFAULT_CHUNK_MS = 200;
 export const DEFAULT_FINAL_TIMEOUT_MS = 5000;
 export const DEFAULT_RECOGNIZE_TIMEOUT_MS = 10000;
+export const DEFAULT_CONNECT_TIMEOUT_MS = 2000;
+export const GOOGLE_STREAM_MAX_AUDIO_BYTES = GOOGLE_BYTES_PER_SECOND * GOOGLE_STREAM_RESERVATION_SECONDS;
 
 const billedEstimate = (bytes) => Math.ceil(bytes / GOOGLE_BYTES_PER_SECOND);
+
+async function withinDeadline(promise, timeoutMs, cancellation = null) {
+  let timer;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new GoogleSttError('Google speech request timed out', { code: 'GOOGLE_STT_TIMEOUT' })), timeoutMs);
+      }),
+      ...(cancellation ? [cancellation] : []),
+    ]);
+  } finally { if (timer) clearTimeout(timer); }
+}
 
 export class GoogleStreamSocket extends RecognizerSocket {
   /**
@@ -61,7 +77,9 @@ export class GoogleStreamSocket extends RecognizerSocket {
   constructor({
     client, request, meter, slots, reportsConfidence, normalize = normalizeGoogleTranscript,
     chunkBytes = (GOOGLE_BYTES_PER_SECOND * DEFAULT_CHUNK_MS) / 1000,
-    finalTimeoutMs = DEFAULT_FINAL_TIMEOUT_MS, log = null, onFailure = null,
+    finalTimeoutMs = DEFAULT_FINAL_TIMEOUT_MS, connectTimeoutMs = DEFAULT_CONNECT_TIMEOUT_MS, log = null, onFailure = null,
+    unavailable = () => null,
+    deadlineAt = null, now = Date.now,
   }) {
     super();
     this.client = client;
@@ -72,8 +90,13 @@ export class GoogleStreamSocket extends RecognizerSocket {
     this.normalize = normalize;
     this.chunkBytes = Math.max(320, Math.min(GOOGLE_MAX_AUDIO_BYTES_PER_REQUEST, Math.floor(chunkBytes / 2) * 2));
     this.finalTimeoutMs = finalTimeoutMs;
+    this.connectTimeoutMs = connectTimeoutMs;
     this.log = log;
     this.onFailure = onFailure;
+    this.unavailable = unavailable;
+    this.deadlineAt = deadlineAt;
+    this.now = now;
+    this.deadlineTimer = null;
 
     this.stream = null;
     this.reservation = null;
@@ -88,11 +111,19 @@ export class GoogleStreamSocket extends RecognizerSocket {
     this.eosSent = false;
     this.settled = false;
     this.finalTimer = null;
+    this.writeTimer = null;
+    this.writingAudio = false;
+    this.halfClosed = false;
     setImmediate(() => this._connect());
   }
 
   async _connect() {
     if (this.readyState !== 0) return; // closed before connecting
+    const remaining = this.deadlineAt === null ? Infinity : this.deadlineAt - this.now();
+    if (remaining < 1000) {
+      this._fail(new GoogleSttError('Google speech turn deadline expired', { code: 'GOOGLE_STT_TIMEOUT' }), 'transient');
+      return;
+    }
     this.reservation = this.meter.reserve(GOOGLE_STREAM_RESERVATION_SECONDS);
     if (!this.reservation) {
       const reason = this.meter.refusal(GOOGLE_STREAM_RESERVATION_SECONDS) || 'monthly-limit';
@@ -106,12 +137,28 @@ export class GoogleStreamSocket extends RecognizerSocket {
     this.holdsSlot = true;
     let client;
     try {
-      client = await this.client();
+      client = await withinDeadline(this.client(), Math.min(this.connectTimeoutMs, remaining));
     } catch (err) {
       this._fail(err, classifyGoogleError(err).kind);
       return;
     }
-    if (this.readyState !== 0) { this._release(); return; }
+    if (this.settled || this.readyState !== 0) { this._release(); return; }
+    if (this.unavailable()) {
+      this._fail(new GoogleSttError('Google speech became unavailable before dispatch', { code: 'GOOGLE_STT_UNAVAILABLE' }), 'configuration');
+      return;
+    }
+    const streamRemaining = this.deadlineAt === null ? Infinity : this.deadlineAt - this.now();
+    if (streamRemaining < 1000) {
+      this._fail(new GoogleSttError('Google speech turn deadline expired', { code: 'GOOGLE_STT_TIMEOUT' }), 'transient');
+      return;
+    }
+    if (Number.isFinite(streamRemaining)) {
+      this.deadlineTimer = setTimeout(() => {
+        this.deadlineTimer = null;
+        if (this.halfClosed && (this.finals.length || this.interim)) this._settle('timeout');
+        else this._fail(new GoogleSttError('Google speech turn deadline expired', { code: 'GOOGLE_STT_TIMEOUT' }), 'transient');
+      }, streamRemaining);
+    }
     let stream;
     try {
       stream = client.streamingRecognize(this.request);
@@ -122,7 +169,11 @@ export class GoogleStreamSocket extends RecognizerSocket {
     this.stream = stream;
     stream.on('data', (response) => this._onResponse(response));
     stream.on('error', (err) => this._onStreamError(err));
-    stream.on('end', () => this._settle('end'));
+    stream.on('end', () => {
+      if (!this.settled && !this.halfClosed) {
+        this._fail(new GoogleSttError('Google speech stream ended before all audio was submitted'), 'transient');
+      } else this._settle('end');
+    });
     this._emitOpen();
   }
 
@@ -137,9 +188,27 @@ export class GoogleStreamSocket extends RecognizerSocket {
     }
     const pcm = Buffer.from(data);
     if (!pcm.length) return;
+    if (this.bytesSent + this.pendingBytes + pcm.length > GOOGLE_STREAM_MAX_AUDIO_BYTES) {
+      this._fail(new GoogleSttError('Google speech recognition window exceeds its reserved duration', { code: 'GOOGLE_STT_TOO_LONG' }), 'audio-limit');
+      return;
+    }
     this.pending.push(pcm);
     this.pendingBytes += pcm.length;
-    while (this.pendingBytes >= this.chunkBytes) this._writeAudio(this.chunkBytes);
+    this._pump();
+  }
+
+  /** Google requires audio at approximately real time, including replay. */
+  _pump() {
+    if (this.settled || this.writeTimer || this.writingAudio) return;
+    if (this.pendingBytes >= this.chunkBytes || (this.eosSent && this.pendingBytes > 0)) {
+      const size = Math.min(this.pendingBytes, this.chunkBytes);
+      this.writingAudio = true;
+      try { this._writeAudio(size); } finally { this.writingAudio = false; }
+      if (this.settled) return;
+      this.writeTimer = setTimeout(() => { this.writeTimer = null; this._pump(); }, Math.ceil(size * 1000 / GOOGLE_BYTES_PER_SECOND));
+      return;
+    }
+    if (this.eosSent && !this.halfClosed) this._halfClose();
   }
 
   _writeAudio(bytes) {
@@ -150,8 +219,10 @@ export class GoogleStreamSocket extends RecognizerSocket {
     this.pending = rest.length ? [rest] : [];
     this.pendingBytes = rest.length;
     try {
-      this.stream.write({ audio: chunk });
+      // Count an attempted write before a synchronous error/cancel callback.
+      // The conservative estimate must never refund audio already submitted.
       this.bytesSent += chunk.length;
+      this.stream.write({ audio: chunk });
     } catch (err) {
       this._onStreamError(err);
     }
@@ -159,20 +230,23 @@ export class GoogleStreamSocket extends RecognizerSocket {
 
   _finishAudio() {
     this.eosSent = true;
-    while (this.pendingBytes > 0 && !this.settled) this._writeAudio(Math.min(this.pendingBytes, this.chunkBytes));
-    if (this.settled) return;
+    this._pump();
+  }
+
+  _halfClose() {
+    this.halfClosed = true;
     try {
       this.stream.end();
     } catch (err) {
       this._onStreamError(err);
       return;
     }
+    if (this.settled) return;
     this.finalTimer = setTimeout(() => {
       this.finalTimer = null;
       this.log?.warn?.('[asr] Google final result timed out; using the best hypothesis so far');
       this._settle('timeout');
     }, this.finalTimeoutMs);
-    this.finalTimer.unref?.();
   }
 
   _onResponse(response) {
@@ -208,7 +282,7 @@ export class GoogleStreamSocket extends RecognizerSocket {
     const { kind } = classifyGoogleError(err);
     // After end-of-audio the audio is already billed: a hypothesis in hand is
     // better than re-sending the window elsewhere.
-    if (this.eosSent && (this.finals.length || this.interim)) {
+    if (this.halfClosed && (this.finals.length || this.interim)) {
       this.log?.warn?.('[asr] Google stream failed after end of audio; using the best hypothesis so far', { kind });
       this._settle('error');
       return;
@@ -219,11 +293,12 @@ export class GoogleStreamSocket extends RecognizerSocket {
   _settle(how) {
     if (this.settled) return;
     this.settled = true;
+    this._clearAudio();
     if (this.finalTimer) { clearTimeout(this.finalTimer); this.finalTimer = null; }
     // A stream that ends without finals still had a hypothesis; the original
     // session returned its last good incremental in the same situation.
-    const text = this.finals.length ? this._text(false) : this._text(true);
-    const confidence = this.reportsConfidence && this.finals.length ? combineConfidence(this.finals) : null;
+    const text = this._text(true);
+    const confidence = this.reportsConfidence && this.finals.length && !this.interim ? combineConfidence(this.finals) : null;
     if (how !== 'end') this._cancelStream();
     this._release();
     this._emitMessage({ type: 'final', text, confidence });
@@ -233,11 +308,14 @@ export class GoogleStreamSocket extends RecognizerSocket {
   _fail(err, kind) {
     if (this.settled) return;
     this.settled = true;
+    this._clearAudio();
     if (this.finalTimer) { clearTimeout(this.finalTimer); this.finalTimer = null; }
     this._cancelStream();
     this._release();
-    try { this.onFailure?.(kind, err); } catch { /* reporting must not break the turn */ }
-    const error = err instanceof Error ? err : new Error(String(err));
+    if (err?.code !== 'GOOGLE_STT_UNAVAILABLE') {
+      try { this.onFailure?.(kind, err); } catch { /* reporting must not break the turn */ }
+    }
+    const error = sanitizedGoogleError(err);
     setImmediate(() => {
       this._emitError(error);
       this._emitClose();
@@ -253,6 +331,13 @@ export class GoogleStreamSocket extends RecognizerSocket {
       if (typeof stream.cancel === 'function') stream.cancel();
       else stream.destroy?.();
     } catch { /* already gone */ }
+  }
+
+  _clearAudio() {
+    if (this.deadlineTimer) { clearTimeout(this.deadlineTimer); this.deadlineTimer = null; }
+    if (this.writeTimer) { clearTimeout(this.writeTimer); this.writeTimer = null; }
+    this.pending = [];
+    this.pendingBytes = 0;
   }
 
   _release() {
@@ -273,6 +358,7 @@ export class GoogleStreamSocket extends RecognizerSocket {
     if (this.readyState === CLOSED) return;
     if (!this.settled) {
       this.settled = true;
+      this._clearAudio();
       if (this.finalTimer) { clearTimeout(this.finalTimer); this.finalTimer = null; }
       this._cancelStream();
       this._release();
@@ -286,7 +372,7 @@ export class GoogleStreamSocket extends RecognizerSocket {
 export function streamSlots(max) {
   let active = 0;
   return {
-    acquire() { if (active >= max) return false; active += 1; return true; },
+    acquire(limit = max) { if (active >= Math.min(max, limit)) return false; active += 1; return true; },
     release() { active = Math.max(0, active - 1); },
     get active() { return active; },
   };
@@ -305,6 +391,7 @@ export function streamSlots(max) {
  */
 export function createGoogleTransport({
   config = {}, settings, client, meter, slots, unavailable = () => null, onFailure = null, log = null,
+  deadlineAt = null, now = Date.now,
 }) {
   const recognizer = googleRecognizerPath(settings.projectId, settings.location);
   const recognitionConfig = buildRecognitionConfig({
@@ -316,6 +403,17 @@ export function createGoogleTransport({
   });
   const reportsConfidence = modelReportsConfidence(settings.model);
   const chunkBytes = (GOOGLE_BYTES_PER_SECOND * (settings.chunkMs || DEFAULT_CHUNK_MS)) / 1000;
+  const sockets = new Set();
+  let cancelled = false;
+  let rejectCancellation;
+  const cancellation = new Promise((_, reject) => { rejectCancellation = reject; });
+  cancellation.catch(() => {});
+  const cancellationError = () => new GoogleSttError('Google speech turn was cancelled', { code: 'GOOGLE_STT_CANCELLED' });
+  const remainingMs = (minimum = 0) => {
+    const remaining = deadlineAt === null ? Infinity : deadlineAt - now();
+    if (remaining <= minimum) throw new GoogleSttError('Google speech turn deadline expired', { code: 'GOOGLE_STT_TIMEOUT' });
+    return remaining;
+  };
 
   const transport = {
     name: 'google',
@@ -330,7 +428,10 @@ export function createGoogleTransport({
       return transport.available();
     },
     openStream() {
-      return new GoogleStreamSocket({
+      if (cancelled) throw cancellationError();
+      const reason = unavailable();
+      if (reason) throw new GoogleSttError('Google speech is unavailable', { code: 'GOOGLE_STT_UNAVAILABLE' });
+      const socket = new GoogleStreamSocket({
         client,
         request: buildStreamingRequest({ recognizer, config: recognitionConfig }),
         meter,
@@ -338,12 +439,20 @@ export function createGoogleTransport({
         reportsConfidence,
         chunkBytes,
         finalTimeoutMs: settings.finalTimeoutMs || DEFAULT_FINAL_TIMEOUT_MS,
+        connectTimeoutMs: settings.connectTimeoutMs || DEFAULT_CONNECT_TIMEOUT_MS,
         log,
         onFailure,
+        unavailable,
+        deadlineAt,
+        now,
       });
+      sockets.add(socket);
+      socket.once('close', () => sockets.delete(socket));
+      return socket;
     },
     /** Synchronous Recognize of a whole window (the batch path). */
     async recognizeWav(wav) {
+      if (cancelled) throw cancellationError();
       const pcm = pcmFromWav(wav);
       const seconds = Math.ceil(pcm.length / GOOGLE_BYTES_PER_SECOND);
       if (seconds > GOOGLE_MAX_SYNC_SECONDS) {
@@ -351,30 +460,46 @@ export function createGoogleTransport({
       }
       const reason = unavailable();
       if (reason) throw new GoogleSttError(`Google speech is unavailable: ${reason}`, { code: 'GOOGLE_STT_UNAVAILABLE' });
+      remainingMs(1000);
       const reservation = meter.reserve(seconds);
       if (!reservation) {
         const refusal = meter.refusal(seconds) || 'monthly-limit';
         throw new GoogleBudgetError(`Google speech is over its ${refusal.replace('-', ' ')}`, refusal);
       }
       let response;
+      let submitted = false;
       try {
-        const speech = await client();
-        response = await speech.recognize(
+        const speech = await withinDeadline(client(), Math.min(settings.connectTimeoutMs || DEFAULT_CONNECT_TIMEOUT_MS, remainingMs()), cancellation);
+        if (cancelled) throw cancellationError();
+        if (unavailable()) throw new GoogleSttError('Google speech became unavailable before dispatch', { code: 'GOOGLE_STT_UNAVAILABLE' });
+        const requestTimeout = Math.min(settings.recognizeTimeoutMs || DEFAULT_RECOGNIZE_TIMEOUT_MS, remainingMs(1000));
+        submitted = true;
+        response = await withinDeadline(speech.recognize(
           buildRecognizeRequest({ recognizer, config: recognitionConfig, content: pcm }),
-          { timeoutMs: settings.recognizeTimeoutMs || DEFAULT_RECOGNIZE_TIMEOUT_MS },
-        );
+          { timeoutMs: requestTimeout },
+        ), requestTimeout, cancellation);
       } catch (err) {
         // Conservative: count the audio even though a server error is not billed.
-        meter.commit(reservation, seconds);
-        try { onFailure?.(classifyGoogleError(err).kind, err); } catch { /* reporting only */ }
-        throw err;
+        meter.commit(reservation, submitted ? seconds : 0);
+        if (!cancelled && err?.code !== 'GOOGLE_STT_UNAVAILABLE') { try { onFailure?.(classifyGoogleError(err).kind, err); } catch { /* reporting only */ } }
+        throw sanitizedGoogleError(err);
       }
       meter.commit(reservation, Math.max(billedSecondsOf(response) || 0, seconds));
+      // A ready response and abort can win adjacent microtasks of Promise.race.
+      // Accounting is still owed, but an abandoned turn must never deliver it.
+      if (cancelled) throw cancellationError();
+      remainingMs();
       const segments = (Array.isArray(response?.results) ? response.results : []).map(topAlternative);
       return {
         text: normalizeGoogleTranscript(segments.map((s) => s.transcript).join(' ')),
         confidence: reportsConfidence ? combineConfidence(segments) : null,
       };
+    },
+    cancel() {
+      if (cancelled) return;
+      cancelled = true;
+      rejectCancellation(cancellationError());
+      for (const socket of sockets) socket.terminate();
     },
     describe() {
       return { provider: 'google', model: settings.model };

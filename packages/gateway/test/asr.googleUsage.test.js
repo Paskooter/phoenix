@@ -7,15 +7,17 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import fs, { mkdtempSync, readFileSync, rmSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { GoogleUsageMeter, googleUsageFile } from '../src/asr/googleUsage.js';
+import { GoogleUsageMeter, googleUsageFile, initializeGoogleUsageFile } from '../src/asr/googleUsage.js';
 
 function tempFile(t) {
   const dir = mkdtempSync(join(tmpdir(), 'phx-google-usage-'));
   t.after(() => rmSync(dir, { recursive: true, force: true }));
-  return join(dir, 'asr', 'google-stt-usage.json');
+  const file = join(dir, 'asr', 'google-stt-usage.json');
+  initializeGoogleUsageFile(file);
+  return file;
 }
 
 const clock = (iso) => {
@@ -97,7 +99,7 @@ test('usage persists atomically, privately, and survives a restart', (t) => {
   const meter = new GoogleUsageMeter({ file, monthlyLimitSeconds: 600, now });
   meter.commit(meter.reserve(31), 7);
   const saved = JSON.parse(readFileSync(file, 'utf8'));
-  assert.equal(saved.version, 1);
+  assert.equal(saved.version, 2);
   assert.equal(saved.month, '2026-10');
   assert.equal(saved.monthSeconds, 7);
   assert.equal(statSync(file).mode & 0o777, 0o600);
@@ -119,16 +121,89 @@ test('an unreadable or invalid ledger refuses Google instead of starting from ze
 
 test('a ledger that cannot be written stops Google', (t) => {
   const failing = {
-    readFileSync() { const e = new Error('missing'); e.code = 'ENOENT'; throw e; },
-    mkdirSync() {},
+    ...fs,
     writeFileSync() { const e = new Error('read-only'); e.code = 'EROFS'; throw e; },
-    renameSync() {},
-    unlinkSync() {},
   };
-  const meter = new GoogleUsageMeter({ file: '/ledger/usage.json', monthlyLimitSeconds: 600, fsImpl: failing });
-  meter.commit(meter.reserve(31), 3);
+  const file = tempFile(t);
+  const meter = new GoogleUsageMeter({ file, monthlyLimitSeconds: 600, fsImpl: failing });
+  assert.equal(meter.reserve(31), null, 'no request may start without durable reservation');
   assert.equal(meter.status().problem, 'usage-file-unwritable');
   assert.equal(meter.reserve(1), null);
+});
+
+test('a missing ledger fails closed; initialization cannot erase existing usage', (t) => {
+  const file = tempFile(t);
+  assert.throws(() => initializeGoogleUsageFile(file), { code: 'EEXIST' });
+  unlinkSync(file);
+  const meter = new GoogleUsageMeter({ file, monthlyLimitSeconds: 600 });
+  assert.equal(meter.reserve(31), null);
+  assert.equal(meter.status().problem, 'usage-file-missing');
+});
+
+test('a crash retains the full durable reservation and cannot reopen the budget', (t) => {
+  const file = tempFile(t);
+  const meter = new GoogleUsageMeter({ file, monthlyLimitSeconds: 60 });
+  assert.ok(meter.reserve(31));
+  const reloaded = new GoogleUsageMeter({ file, monthlyLimitSeconds: 60 });
+  assert.equal(reloaded.status().reservedSeconds, 31);
+  assert.equal(reloaded.reserve(31), null);
+  assert.equal(JSON.parse(readFileSync(file)).monthSeconds, 31);
+});
+
+test('independent meters serialize their reservations against the same file', (t) => {
+  const file = tempFile(t);
+  const a = new GoogleUsageMeter({ file, monthlyLimitSeconds: 60 });
+  const b = new GoogleUsageMeter({ file, monthlyLimitSeconds: 60 });
+  const reservation = a.reserve(31);
+  assert.ok(reservation);
+  assert.equal(b.reserve(31), null);
+  a.commit(reservation, 2);
+  assert.ok(b.reserve(31), 'the second meter reloads the first meter’s committed usage');
+  assert.equal(a.status().usedSeconds, 2);
+});
+
+test('in-flight requests keep their reservation across the Pacific month and day boundary', (t) => {
+  const file = tempFile(t);
+  const now = clock('2026-10-31T23:59:59-07:00');
+  const meter = new GoogleUsageMeter({ file, monthlyLimitSeconds: 60, dailyLimitSeconds: 60, now });
+  const reservation = meter.reserve(31);
+  now.set('2026-11-01T00:00:01-07:00');
+  assert.equal(meter.reserve(31), null, 'November includes the request still in flight');
+  meter.commit(reservation, 5);
+  assert.equal(meter.status().usedSeconds, 5);
+  assert.equal(meter.status().dayUsedSeconds, 5);
+});
+
+test('damaged counters fail closed instead of being interpreted as zero', (t) => {
+  const file = tempFile(t);
+  const saved = JSON.parse(readFileSync(file));
+  for (const value of [-1, '100', null, 1.5]) {
+    writeFileSync(file, JSON.stringify({ ...saved, monthSeconds: value }));
+    assert.equal(new GoogleUsageMeter({ file, monthlyLimitSeconds: 600 }).reserve(31), null);
+  }
+});
+
+test('a stale transaction lock refuses Google without changing usage', (t) => {
+  const file = tempFile(t);
+  writeFileSync(`${file}.lock`, 'synthetic stale lock', { mode: 0o600 });
+  const meter = new GoogleUsageMeter({ file, monthlyLimitSeconds: 600 });
+  assert.equal(meter.reserve(31), null);
+  assert.equal(meter.status().problem, 'usage-file-busy');
+  assert.equal(JSON.parse(readFileSync(file)).monthSeconds, 0);
+});
+
+test('a backward clock correction never clears a previously spent period', (t) => {
+  const file = tempFile(t);
+  const now = clock('2026-10-31T10:00:00-07:00');
+  const meter = new GoogleUsageMeter({ file, monthlyLimitSeconds: 12, now });
+  meter.commit(meter.reserve(12), 12);
+  now.set('2026-11-01T10:00:00-07:00');
+  meter.commit(meter.reserve(12), 12);
+  now.set('2026-10-31T10:00:00-07:00');
+  assert.equal(meter.reserve(12), null);
+  assert.equal(meter.status().problem, 'usage-clock-backwards');
+  assert.equal(JSON.parse(readFileSync(file)).month, '2026-11');
+  assert.equal(JSON.parse(readFileSync(file)).monthSeconds, 12);
 });
 
 test('50%, 80% and 100% of the month are logged once each', (t) => {

@@ -17,10 +17,11 @@
 // for a few minutes instead of failing every turn the same way.
 
 import { logger } from '@phoenix/common';
+import { Timeouts } from '@phoenix/contracts';
 import { ParakeetASRSession } from './parakeetSession.js';
 import { createParakeetTransport } from './parakeetTransport.js';
 import { createGoogleTransport, streamSlots } from './googleTransport.js';
-import { GOOGLE_LOCATIONS, GOOGLE_MODELS, classifyGoogleError, createGoogleSpeechClient } from './googleSpeech.js';
+import { googleModelLocationSupported, classifyGoogleError, createGoogleSpeechClient } from './googleSpeech.js';
 import { GoogleUsageMeter, googleUsageFile } from './googleUsage.js';
 import { FAILOVER_DEFAULTS, ParakeetHealth, createFailoverTransport } from './failoverTransport.js';
 
@@ -32,6 +33,7 @@ export const DEFAULT_MODEL = 'chirp_3';
 export const DEFAULT_LOCATION = 'us';
 const CONFIG_PAUSE_MS = 5 * 60 * 1000;
 const PAUSING_FAILURES = new Set(['configuration', 'credentials', 'client-missing']);
+const PROCESS_GOOGLE_SLOTS = streamSlots(8);
 
 /** The mode a value selects; anything unknown is the default. */
 export function asrMode(value) {
@@ -45,10 +47,16 @@ function number(value, fallback) {
   return Number.isFinite(n) && n >= 0 ? n : fallback;
 }
 
+function budgetMinutes(value, fallback) {
+  if (value === undefined || value === null || String(value).trim() === '') return fallback;
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0 && n * 60 <= Number.MAX_SAFE_INTEGER ? n : null;
+}
+
 /** Everything the router needs, read from the environment the launcher gave the hub. */
 export function asrSettingsFromEnv(env = process.env) {
-  const monthlyMinutes = number(env.PHOENIX_GOOGLE_STT_MONTHLY_MINUTES, DEFAULT_MONTHLY_MINUTES);
-  const dailyMinutes = number(env.PHOENIX_GOOGLE_STT_DAILY_MINUTES, Math.ceil(monthlyMinutes / 10));
+  const monthlyMinutes = budgetMinutes(env.PHOENIX_GOOGLE_STT_MONTHLY_MINUTES, DEFAULT_MONTHLY_MINUTES);
+  const dailyMinutes = budgetMinutes(env.PHOENIX_GOOGLE_STT_DAILY_MINUTES, Math.ceil((monthlyMinutes || 0) / 10));
   const model = String(env.PHOENIX_GOOGLE_STT_MODEL || DEFAULT_MODEL).trim();
   const location = String(env.PHOENIX_GOOGLE_STT_LOCATION || DEFAULT_LOCATION).trim();
   return {
@@ -57,17 +65,20 @@ export function asrSettingsFromEnv(env = process.env) {
     google: {
       projectId: String(env.PHOENIX_GOOGLE_STT_PROJECT || '').trim(),
       credentialsFile: String(env.PHOENIX_GOOGLE_STT_CREDENTIALS_FILE || env.GOOGLE_APPLICATION_CREDENTIALS || '').trim(),
-      location: GOOGLE_LOCATIONS.includes(location) ? location : DEFAULT_LOCATION,
-      model: GOOGLE_MODELS.includes(model) ? model : DEFAULT_MODEL,
+      location,
+      model,
+      configurationProblem: !googleModelLocationSupported(model, location)
+        ? 'invalid-model-or-location' : monthlyMinutes === null || dailyMinutes === null ? 'invalid-budget' : null,
       denoise: env.PHOENIX_GOOGLE_STT_DENOISE === 'true',
       hintBoost: number(env.PHOENIX_GOOGLE_STT_HINT_BOOST, null),
-      monthlyLimitSeconds: Math.round(monthlyMinutes * 60),
-      dailyLimitSeconds: Math.round(dailyMinutes * 60),
+      monthlyLimitSeconds: monthlyMinutes === null || dailyMinutes === null ? 0 : Math.floor(monthlyMinutes * 60),
+      dailyLimitSeconds: Math.floor((dailyMinutes || 0) * 60),
       usageFile: googleUsageFile(env),
       maxStreams: Math.max(1, Math.floor(number(env.PHOENIX_GOOGLE_STT_MAX_STREAMS, 8))),
       chunkMs: 200,
       finalTimeoutMs: 5000,
       recognizeTimeoutMs: 10000,
+      connectTimeoutMs: 2000,
     },
     failover: { ...FAILOVER_DEFAULTS },
   };
@@ -84,11 +95,17 @@ export class AsrRouter {
     this.now = now;
     this.log = log;
     this.meter = meter;
-    this.slots = streamSlots(settings.google.maxStreams);
+    this.slots = {
+      acquire: () => PROCESS_GOOGLE_SLOTS.acquire(Math.min(8, settings.google.maxStreams)),
+      release: () => PROCESS_GOOGLE_SLOTS.release(),
+      get active() { return PROCESS_GOOGLE_SLOTS.active; },
+    };
     this.healthByUrl = new Map();
     this.clientPromise = null;
     this.lastFailure = null;
     this.announced = false;
+    this.sessions = new Set();
+    this.retired = false;
   }
 
   get mode() { return this.settings.mode; }
@@ -96,7 +113,7 @@ export class AsrRouter {
   /** Google has what it needs to be called at all. */
   googleConfigured() {
     const google = this.settings.google;
-    return !!(google.projectId && google.credentialsFile && google.monthlyLimitSeconds > 0);
+    return !!(google.projectId && google.credentialsFile && google.monthlyLimitSeconds > 0 && !google.configurationProblem);
   }
 
   _meter() {
@@ -115,6 +132,7 @@ export class AsrRouter {
   /** Null when Google may be called now, else why not (budget is checked separately). */
   googleUnavailable() {
     const google = this.settings.google;
+    if (google.configurationProblem) return google.configurationProblem;
     if (!google.projectId || !google.credentialsFile) return 'not-configured';
     if (google.monthlyLimitSeconds <= 0) return 'disabled';
     const meterProblem = this._meter().status().problem;
@@ -158,6 +176,8 @@ export class AsrRouter {
       slots: this.slots,
       unavailable: () => this.googleUnavailable(),
       onFailure: (kind, err) => this._recordGoogleFailure(kind, err),
+      deadlineAt: this.now() + Timeouts.asr - 250,
+      now: this.now,
       log,
     });
   }
@@ -193,10 +213,11 @@ export class AsrRouter {
 
   /** A session for one turn. */
   startSession(config, log) {
+    if (this.retired) throw new Error('ASR router is retired');
     this._announce();
     const parakeetUrl = this.settings.parakeetUrl();
     if (this.mode === 'google') {
-      return new ParakeetASRSession(null, config, log, { transport: this._googleTransport(config, log) });
+      return this._lease(new ParakeetASRSession(null, config, log, { transport: this._googleTransport(config, log) }));
     }
     if (this.mode === 'auto') {
       const failover = this.settings.failover;
@@ -210,9 +231,29 @@ export class AsrRouter {
         timeouts: failover,
         log,
       });
-      return new ParakeetASRSession(parakeetUrl, config, log, { transport });
+      return this._lease(new ParakeetASRSession(parakeetUrl, config, log, { transport }));
     }
-    return new ParakeetASRSession(parakeetUrl, config, log);
+    return this._lease(new ParakeetASRSession(parakeetUrl, config, log));
+  }
+
+  /** Changing a mode affects new turns; the old client's active turns drain. */
+  _lease(session) {
+    this.sessions.add(session);
+    const release = () => { this.sessions.delete(session); this._closeRetiredClient(); };
+    const start = session.start.bind(session);
+    let tracked = null;
+    session.start = () => {
+      if (!tracked) {
+        try { tracked = start().finally(release); }
+        catch (error) { release(); throw error; }
+      }
+      return tracked;
+    };
+    const abort = session.abort.bind(session);
+    session.abort = () => { try { return abort(); } finally { release(); } };
+    const stop = session.stop.bind(session);
+    session.stop = () => { const result = stop(); if (session.state === 'DONE') release(); return result; };
+    return session;
   }
 
   /** Allow-listed state for the admin console: no URLs, keys, project IDs or text. */
@@ -239,14 +280,22 @@ export class AsrRouter {
           dayUsedSeconds: usage.dayUsedSeconds,
           dayLimitSeconds: usage.dayLimitSeconds,
           exhausted: usage.exhausted,
+          reservedSeconds: usage.reservedSeconds,
+          problem: usage.problem,
         } : null,
       },
     };
   }
 
   close() {
+    this.retired = true;
     for (const health of this.healthByUrl.values()) health.close();
     this.healthByUrl.clear();
+    this._closeRetiredClient();
+  }
+
+  _closeRetiredClient() {
+    if (!this.retired || this.sessions.size) return;
     const pending = this.clientPromise;
     this.clientPromise = null;
     pending?.then((client) => client.close?.()).catch(() => {});

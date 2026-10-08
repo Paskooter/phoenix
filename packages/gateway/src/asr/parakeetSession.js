@@ -464,6 +464,7 @@ export class ParakeetASRSession {
         this.finalizeReason = 'stop';
         this._finalize({ mode: 'end-of-input' }).catch((err) => {
           this.log.error?.('Parakeet finalize on stop failed: ' + err.message);
+          this._closeStream();
           this.state = 'DONE';
           if (this.rejectStart) this.rejectStart(err);
         });
@@ -486,6 +487,7 @@ export class ParakeetASRSession {
     if (this.aborted || this.state === 'DONE') { this.aborted = true; return; }
     this.aborted = true;
     this.stopped = true;
+    this.transport?.cancel?.();
     this.state = 'DONE';
     this.chunks = [];
     this.totalBytes = 0;
@@ -524,6 +526,7 @@ export class ParakeetASRSession {
     this._finalize({ mode: 'cancel' }).catch((err) => {
       this.log.error?.('Parakeet finalize failed: ' + err.message);
       this._closeDecoder();
+      this._closeStream();
       this.state = 'DONE';
       if (this.rejectStart) this.rejectStart(err);
     });
@@ -718,6 +721,7 @@ export class ParakeetASRSession {
    * the reference's batch behavior).
    */
   _emitFinalResult(transcript, confidence) {
+    if (this.aborted) return;
     this._closeDecoder();
     // A max-speech timer settles the transcript without a speech endpoint.
     // Other boundaries deliver one EOS, including a provisional silence boundary
@@ -782,7 +786,9 @@ export class ParakeetASRSession {
           this.streamPendingBytes = 0;
           return;
         }
-        if (this.stopped || this.aborted || this.state === 'DONE') return;
+        // Batch already owns an ended window when the startup probe is late.
+        // Opening here would orphan a paid stream after the batch settles.
+        if (this.stopped || this.aborted || this.state === 'FINALIZING' || this.state === 'DONE') return;
         this.streamingSupported = true;
         this._openStream();
       })
@@ -791,7 +797,7 @@ export class ParakeetASRSession {
 
   _openStream() {
     if (!this.streamingSupported || this.streamingFailed || this.streamSocket) return;
-    if (this.stopped || this.aborted || this.state === 'DONE') return;
+    if (this.stopped || this.aborted || this.state === 'FINALIZING' || this.state === 'DONE') return;
     let socket;
     try {
       socket = this.transport ? this.transport.openStream() : openParakeetStream(this.parakeetUrl);

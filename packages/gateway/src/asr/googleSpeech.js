@@ -8,25 +8,31 @@
 //
 // Request shapes follow google.cloud.speech.v2 (cloud_speech.proto):
 //   StreamingRecognizeRequest #1 { recognizer, streamingConfig }
-//   StreamingRecognizeRequest #n { audio }                  <= 25 KB each
+//   StreamingRecognizeRequest #n { audio }                  <= 15 KB each
 //   RecognizeRequest             { recognizer, config, content }   <= 1 min
 // Field names are the camelCase the Node client (@google-cloud/speech) expects.
 //
 // The client is the official library, loaded only when Google is enabled.
-// It is NOT a dependency of this package: install it in the release that runs
-// Google (docs/ASR-GOOGLE-FALLBACK.md). Its V2 `streamingRecognize()` helper is
+// The pinned optional dependency is installed by npm ci on Node 22+. Parakeet
+// still runs when optional dependencies are omitted. Its `streamingRecognize()` helper is
 // V1-shaped (it writes {streamingConfig} and wraps audio as audioContent), so
 // the adapter drives the raw bidirectional `_streamingRecognize()` stream.
 
 export const GOOGLE_SAMPLE_RATE_HZ = 16000;
 export const GOOGLE_BYTES_PER_SECOND = GOOGLE_SAMPLE_RATE_HZ * 2;
-/** Streaming requests may carry at most 25 KB of audio each (V2 quotas). */
-export const GOOGLE_MAX_AUDIO_BYTES_PER_REQUEST = 25 * 1024;
+/** Conservative limit: the Node V2 reference says 15 KB, quotas say 25 KB. */
+export const GOOGLE_MAX_AUDIO_BYTES_PER_REQUEST = 15_000;
 /** Synchronous Recognize accepts at most one minute of audio. */
 export const GOOGLE_MAX_SYNC_SECONDS = 60;
 
 export const GOOGLE_MODELS = ['chirp_3', 'chirp_2', 'short', 'long', 'telephony_short', 'telephony'];
 export const GOOGLE_LOCATIONS = ['us', 'eu', 'global', 'us-central1', 'europe-west4', 'asia-southeast1'];
+export function googleModelLocationSupported(model, location) {
+  if (!GOOGLE_MODELS.includes(model) || !GOOGLE_LOCATIONS.includes(location)) return false;
+  if (model === 'chirp_3') return ['us', 'eu'].includes(location);
+  if (model === 'chirp_2') return ['us-central1', 'europe-west4', 'asia-southeast1'].includes(location);
+  return true; // Legacy models require an operator's region/language availability check.
+}
 
 // Chirp models return a value in `confidence`, but Google documents that it
 // "isn't truly a confidence score" (chirp_3-model and chirp_2-model pages).
@@ -187,6 +193,13 @@ export function classifyGoogleError(err) {
   return { kind: 'transient', grpcCode };
 }
 
+/** Safe to pass to shared session logs or the Hub error response. */
+export function sanitizedGoogleError(error) {
+  const code = typeof error?.code === 'string' && /^GOOGLE_STT_(?:BUDGET|CLIENT_MISSING|BUSY|TOO_LONG|TIMEOUT|UNAVAILABLE|CANCELLED|ERROR)$/.test(error.code)
+    ? error.code : 'GOOGLE_STT_ERROR';
+  return new GoogleSttError('Google speech request failed', { code, grpcCode: classifyGoogleError(error).grpcCode });
+}
+
 // --- the client adapter ----------------------------------------------------------
 
 /**
@@ -215,14 +228,20 @@ export async function createGoogleSpeechClient({
     keyFilename: credentialsFile,
     projectId,
   });
+  // Generated SDK methods call initialize().catch(rethrow) internally. Exposing
+  // them before initialization rejects can crash Node despite stream handlers.
+  // Bootstrap inside the transport's bounded, caught client promise instead.
+  try { await client.initialize(); }
+  catch (error) { try { await client.close(); } catch { /* failed bootstrap */ } throw error; }
   return {
     streamingRecognize(firstRequest) {
-      const stream = client._streamingRecognize();
+      const stream = client._streamingRecognize({ timeout: 45000 });
       stream.write(firstRequest);
       return stream;
     },
     async recognize(request, { timeoutMs } = {}) {
-      const [response] = await client.recognize(request, timeoutMs ? { timeout: timeoutMs } : undefined);
+      // One admitted request, with no hidden unary retry after a lost response.
+      const [response] = await client.recognize(request, { retry: null, ...(timeoutMs ? { timeout: timeoutMs } : {}) });
       return response;
     },
     close() {

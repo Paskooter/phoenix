@@ -16,8 +16,10 @@ import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { ParakeetASRSession, ASR_SILENCE_TO_EOS_MS } from '../src/asr/parakeetSession.js';
 import { AsrRouter, asrSettingsFromEnv } from '../src/asr/asrRouter.js';
-import { GoogleUsageMeter } from '../src/asr/googleUsage.js';
+import { GoogleUsageMeter, initializeGoogleUsageFile } from '../src/asr/googleUsage.js';
 import { GOOGLE_MAX_AUDIO_BYTES_PER_REQUEST, buildRecognitionConfig } from '../src/asr/googleSpeech.js';
+import { GOOGLE_STREAM_MAX_AUDIO_BYTES } from '../src/asr/googleTransport.js';
+import { once } from 'node:events';
 import { PARAKEET_TEXT } from '../src/asr/transcriptNormalizer.js';
 import { fakeGoogleSpeech, recognizeResponse } from './fixtures/fakeGoogleSpeech.js';
 
@@ -51,6 +53,7 @@ function googleRouter(t, google, env = {}, meterOptions = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'phx-google-asr-'));
   t.after(() => rmSync(dir, { recursive: true, force: true }));
   const usageFile = join(dir, 'usage.json');
+  initializeGoogleUsageFile(usageFile);
   const settings = asrSettingsFromEnv({
     PHOENIX_ASR_PROVIDER: 'google',
     PHOENIX_GOOGLE_STT_PROJECT: 'fixture-project',
@@ -161,7 +164,7 @@ test('FAST_EOS fires on a normalized interim ("5" matches the earlyEOS word "fiv
   const result = await withTimeout(startPr);
   assert.deepEqual(result, { text: 'five', confidence: 1, annotation: 'FAST_EOS' });
   assert.equal(eos, 1, 'EOS is emitted before resolving, without waiting for silence');
-  assert.equal(google.calls.streams[0].halfClosed, true, 'the stream is ended at the trigger');
+  assert.equal(google.calls.streams[0].cancelled, true, 'the paid stream is cancelled at the trigger without sending queued audio');
 });
 
 test('several final segments become one utterance; a model with real confidence passes it on', async (t) => {
@@ -318,4 +321,152 @@ test('a Google session is the same endpointing session class the Parakeet path u
   assert.ok(session instanceof ParakeetASRSession);
   assert.equal(session.transport.name, 'google');
   session.abort();
+});
+
+for (const ending of ['error', 'end']) {
+  test(`paced Google ${ending} before actual half-close retries the complete queued window`, async (t) => {
+    const google = fakeGoogleSpeech({ onAudio: (stream) => {
+      if (stream.scheduled) return; stream.scheduled = true;
+      stream.interim('Synthetic prefix');
+      setTimeout(() => ending === 'error' ? stream.fail(14) : stream.finish(), 50);
+    }, recognize: () => recognizeResponse('Complete synthetic utterance') });
+    const { router, meter } = googleRouter(t, google);
+    const session = router.startSession({}, SILENT); const result = session.start();
+    await waitFor(() => session.streamingReady);
+    const sent = [...Array.from({ length: 5 }, () => SPEECH()), ...silence()];
+    for (const frame of sent) session.provideAudio(frame);
+    assert.equal((await result).text, 'complete synthetic utterance');
+    assert.equal(google.calls.streams[0].halfClosed, false);
+    assert.ok(google.calls.streams[0].bytes < Buffer.concat(sent).length);
+    assert.deepEqual(google.calls.recognize[0].request.content, Buffer.concat(sent));
+    assert.equal(google.calls.recognize.length, 1); assert.ok(meter.status().usedSeconds >= 3);
+  });
+}
+
+test('a final timeout retains confirmed segments and the trailing interim hypothesis', async (t) => {
+  const google = fakeGoogleSpeech({ onHalfClose: (s) => { s.final('Confirmed segment'); s.interim('Trailing 5'); } });
+  const { router, settings } = googleRouter(t, google); settings.google.finalTimeoutMs = 30;
+  const session = router.startSession({}, SILENT); const result = session.start();
+  await waitFor(() => session.streamingReady);
+  for (let n = 0; n < 3; n += 1) session.provideAudio(SPEECH());
+  for (const frame of silence()) session.provideAudio(frame);
+  assert.deepEqual(await result, { text: 'confirmed segment trailing five', confidence: 1 });
+  assert.equal(google.calls.recognize.length, 0); assert.equal(google.calls.streams[0].cancelled, true);
+});
+
+test('queued replay is paced at PCM duration and requests remain within the conservative API limit', async (t) => {
+  const wroteAt = []; const google = fakeGoogleSpeech({ onAudio: () => wroteAt.push(Date.now()), onHalfClose: (s) => s.final('Paced').finish() });
+  const { router } = googleRouter(t, google);
+  const session = router.startSession({}, SILENT); const result = session.start();
+  await waitFor(() => session.streamingReady);
+  for (let n = 0; n < 6; n += 1) session.provideAudio(SPEECH());
+  for (const frame of silence()) session.provideAudio(frame);
+  await result;
+  assert.ok(wroteAt.length >= 5);
+  for (let n = 1; n < wroteAt.length; n += 1) assert.ok(wroteAt[n] - wroteAt[n - 1] >= 180, '200ms audio must not be replayed in a burst');
+  assert.ok(google.calls.streams[0].audio.every((chunk) => chunk.length <= GOOGLE_MAX_AUDIO_BYTES_PER_REQUEST));
+});
+
+test('audio beyond the reserved stream window is refused before writing it', async (t) => {
+  const google = fakeGoogleSpeech(); const { router, meter } = googleRouter(t, google);
+  const socket = router._googleTransport({}, SILENT).openStream();
+  const error = once(socket, 'error'); await once(socket, 'open');
+  socket.send(Buffer.alloc(GOOGLE_STREAM_MAX_AUDIO_BYTES + 2));
+  assert.equal((await error)[0].code, 'GOOGLE_STT_TOO_LONG');
+  assert.equal(google.calls.streams[0].bytes, 0); assert.equal(meter.status().usedSeconds, 0);
+  assert.equal(meter.status().reservedSeconds, 0);
+});
+
+test('client bootstrap has a bounded deadline and releases the durable reservation', async (t) => {
+  const google = fakeGoogleSpeech(); const { router, settings, meter } = googleRouter(t, google);
+  settings.google.connectTimeoutMs = 25; router.createClient = () => new Promise(() => {});
+  const session = router.startSession({}, SILENT); const result = session.start();
+  for (let n = 0; n < 3; n += 1) session.provideAudio(SPEECH());
+  for (const frame of silence()) session.provideAudio(frame);
+  await assert.rejects(result, { code: 'GOOGLE_STT_TIMEOUT' });
+  assert.equal(google.calls.streams.length, 0); assert.equal(google.calls.recognize.length, 0);
+  assert.equal(meter.status().reservedSeconds, 0); assert.equal(meter.status().usedSeconds, 0);
+});
+
+test('a dispatched synchronous request has a deadline and counts its full audio on timeout', async (t) => {
+  const google = fakeGoogleSpeech({ recognize: () => new Promise(() => {}) });
+  const { router, settings, meter } = googleRouter(t, google, { PHOENIX_GOOGLE_STT_MONTHLY_MINUTES: '0.2' });
+  settings.google.recognizeTimeoutMs = 30;
+  const session = router.startSession({}, SILENT); const result = session.start();
+  for (let n = 0; n < 3; n += 1) session.provideAudio(SPEECH());
+  for (const frame of silence()) session.provideAudio(frame);
+  await assert.rejects(result, { code: 'GOOGLE_STT_TIMEOUT' });
+  assert.equal(google.calls.recognize.length, 1); assert.equal(meter.status().usedSeconds, 2);
+  assert.equal(meter.status().reservedSeconds, 0);
+});
+
+test('abort after batch dispatch suppresses all late callbacks while retaining billed audio', async (t) => {
+  let resolve; const reply = new Promise((r) => { resolve = r; });
+  const google = fakeGoogleSpeech({ recognize: () => reply });
+  const { router, meter } = googleRouter(t, google, { PHOENIX_GOOGLE_STT_MONTHLY_MINUTES: '0.2' });
+  const session = router.startSession({}, SILENT); let callbacks = 0;
+  session.onResult(() => { callbacks += 1; }); const result = session.start();
+  for (let n = 0; n < 3; n += 1) session.provideAudio(SPEECH());
+  for (const frame of silence()) session.provideAudio(frame);
+  await waitFor(() => google.calls.recognize.length === 1); session.abort(); assert.equal(await result, undefined);
+  resolve(recognizeResponse('Must not arrive')); await sleep(20);
+  assert.equal(callbacks, 0); assert.equal(google.calls.recognize.length, 1);
+  assert.equal(meter.status().usedSeconds, 2); assert.equal(meter.status().reservedSeconds, 0);
+});
+
+test('FLAC is decoded by the shared session before the Google request', { skip: !FFMPEG && 'ffmpeg is required for encoded audio' }, async (t) => {
+  const pcm = Buffer.concat([...Array.from({ length: 6 }, () => SPEECH()), ...silence()]);
+  const encoded = spawnSync(process.env.PHOENIX_FFMPEG || 'ffmpeg', ['-hide_banner', '-loglevel', 'error', '-f', 's16le', '-ar', '16000', '-ac', '1', '-i', 'pipe:0', '-f', 'flac', 'pipe:1'], { input: pcm });
+  assert.equal(encoded.status, 0, encoded.stderr?.toString());
+  const google = fakeGoogleSpeech({ onHalfClose: (s) => s.final('FLAC input').finish() });
+  const { router } = googleRouter(t, google); const session = router.startSession({ encoding: 'FLAC' }, SILENT);
+  const result = session.start();
+  await waitFor(() => session.streamingReady);
+  for (let offset = 0; offset < encoded.stdout.length; offset += 200) session.provideAudio(encoded.stdout.subarray(offset, offset + 200));
+  await waitFor(() => session.sosFired);
+  session.stop(); assert.equal((await result).text, 'flac input');
+  assert.deepEqual(google.calls.streams[0].pcm, pcm);
+});
+
+test('an already ready batch response cannot deliver callbacks after an abort in the same microtask turn', async (t) => {
+  let session; let finals = 0; let eosAfterAbort = 0;
+  const google = fakeGoogleSpeech({ recognize: () => {
+    queueMicrotask(() => session.abort()); return recognizeResponse('Must not be delivered');
+  } });
+  const { router, meter } = googleRouter(t, google, { PHOENIX_GOOGLE_STT_MONTHLY_MINUTES: '0.2' });
+  session = router.startSession({}, SILENT); session.onResult(() => { finals += 1; });
+  session.onEndOfSpeech(() => { if (session.aborted) eosAfterAbort += 1; });
+  const result = session.start();
+  for (let n = 0; n < 3; n += 1) session.provideAudio(SPEECH());
+  for (const frame of silence()) session.provideAudio(frame);
+  assert.equal(await result, undefined); await sleep(20);
+  assert.equal(finals, 0); assert.equal(eosAfterAbort, 0); assert.equal(session.lastResult, null);
+  assert.equal(google.calls.recognize.length, 1); assert.equal(meter.status().usedSeconds, 2);
+});
+
+test('a late startup probe cannot open an abandoned stream while batch owns finalization', async (t) => {
+  let resolveProbe; let resolveReply;
+  const probe = new Promise((r) => { resolveProbe = r; }); const reply = new Promise((r) => { resolveReply = r; });
+  const google = fakeGoogleSpeech({ recognize: () => reply }); const { router, meter } = googleRouter(t, google);
+  const session = router.startSession({}, SILENT); session.transport.probeStreaming = () => probe;
+  const result = session.start();
+  for (let n = 0; n < 3; n += 1) session.provideAudio(SPEECH());
+  for (const frame of silence()) session.provideAudio(frame);
+  await waitFor(() => google.calls.recognize.length === 1); resolveProbe(true); await sleep(30);
+  assert.equal(google.calls.streams.length, 0); assert.equal(session.state, 'FINALIZING');
+  resolveReply(recognizeResponse('Batch owns window')); assert.equal((await result).text, 'batch owns window'); await sleep(30);
+  assert.equal(google.calls.streams.length, 0); assert.equal(router.status().google.activeStreams, 0);
+  assert.equal(meter.status().reservedSeconds, 0);
+});
+
+test('raw Google provider details never reach shared-session logs or final errors', async (t) => {
+  const hidden = 'synthetic-private-provider-detail'; const captured = [];
+  const log = Object.fromEntries(['debug', 'info', 'warn', 'error'].map((level) => [level, (...args) => captured.push(args)]));
+  const { router } = googleRouter(t, fakeGoogleSpeech());
+  router.createClient = async () => { throw Object.assign(new Error(hidden), { code: 14 }); };
+  const session = router.startSession({}, log); const result = session.start();
+  for (let n = 0; n < 3; n += 1) session.provideAudio(SPEECH());
+  for (const frame of silence()) session.provideAudio(frame);
+  await assert.rejects(result, (error) => error.code === 'GOOGLE_STT_ERROR' && error.grpcCode === 14 && !error.message.includes(hidden));
+  assert.equal(JSON.stringify(captured).includes(hidden), false);
 });

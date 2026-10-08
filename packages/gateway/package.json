@@ -10,5 +10,8 @@
     "@wasm-audio-decoders/flac": "0.2.11",
     "ws": "^8.21.0"
   },
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "optionalDependencies": {
+    "@google-cloud/speech": "8.1.1"
+  }
 }

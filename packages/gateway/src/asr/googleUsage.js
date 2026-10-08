@@ -1,30 +1,17 @@
-// Google Speech-to-Text budget guard.
-//
-// Google bills audio "successfully processed", each request rounded up to the
-// next whole second (cloud.google.com/speech-to-text/pricing; per-second
-// rounding since the 2022-11-11 release note). Google offers no spend cap for
-// Speech-to-Text -- spend-cap budgets cover only Gemini API, Vertex AI, Cloud
-// Run and Cloud Run functions -- so the hard stop has to live here:
-//
-//   * a monthly and a daily limit in billed seconds, by calendar month/day in
-//     Pacific time (Cloud Billing's reporting time zone);
-//   * every request RESERVES its worst case before any audio is sent (a stream
-//     window is at most 30 s), and COMMITS what was actually billed afterwards,
-//     so concurrent turns can never overshoot the limit;
-//   * usage persists across restarts in a small 0600 JSON file. Without one, or
-//     if it cannot be read, Google is refused: a counter that silently restarts
-//     at zero after every restart is not a budget.
-//
-// The ledger is an estimate kept on the safe side: it counts what Phoenix sent,
-// rounded up per request, or Google's own billed duration when that is larger.
+// Conservative Speech-to-Text usage ledger. Reserve durably before contacting
+// Google; an interrupted request keeps its full reservation after a crash.
+// Missing, damaged or unwritable state fails closed. Calendar periods use
+// Cloud Billing's Pacific reporting time zone; in-flight reservations count
+// against both periods when they cross midnight. See ASR-GOOGLE-FALLBACK.md.
 
 import fs from 'node:fs';
 import { dirname, join } from 'node:path';
 import { randomBytes } from 'node:crypto';
 
-export const USAGE_FILE_VERSION = 1;
+export const USAGE_FILE_VERSION = 2;
 export const BILLING_TIME_ZONE = 'America/Los_Angeles';
 const WARN_FRACTIONS = [0.5, 0.8, 1];
+const nonnegativeInteger = (n) => Number.isSafeInteger(n) && n >= 0;
 
 export class GoogleBudgetError extends Error {
   constructor(message, reason) {
@@ -35,7 +22,6 @@ export class GoogleBudgetError extends Error {
   }
 }
 
-/** Where usage is kept: an explicit file, else <PHOENIX_DATA_DIR>/asr/google-stt-usage.json. */
 export function googleUsageFile(env = process.env) {
   if (env.PHOENIX_GOOGLE_STT_USAGE_FILE) return env.PHOENIX_GOOGLE_STT_USAGE_FILE;
   if (env.PHOENIX_DATA_DIR) return join(env.PHOENIX_DATA_DIR, 'asr', 'google-stt-usage.json');
@@ -49,13 +35,23 @@ function periodKeys(timestamp, timeZone) {
   return { month: `${parts.year}-${parts.month}`, day: `${parts.year}-${parts.month}-${parts.day}` };
 }
 
+/** Explicit first-install step; never replaces an existing ledger. */
+export function initializeGoogleUsageFile(file, { now = Date.now(), timeZone = BILLING_TIME_ZONE } = {}) {
+  if (!file) throw new Error('A Google speech usage file is required');
+  const keys = periodKeys(now, timeZone);
+  const state = {
+    version: USAGE_FILE_VERSION, month: keys.month, monthSeconds: 0,
+    day: keys.day, daySeconds: 0, requests: 0, warned: [], pending: {}, updatedAt: now,
+  };
+  fs.mkdirSync(dirname(file), { recursive: true, mode: 0o700 });
+  const fd = fs.openSync(file, 'wx', 0o600);
+  try { fs.writeFileSync(fd, `${JSON.stringify(state)}\n`); fs.fsyncSync(fd); }
+  finally { fs.closeSync(fd); }
+  const directory = fs.openSync(dirname(file), 'r');
+  try { fs.fsyncSync(directory); } finally { fs.closeSync(directory); }
+}
+
 export class GoogleUsageMeter {
-  /**
-   * @param {object} options
-   * @param {string|null} options.file              persistence; null = refuse Google
-   * @param {number} options.monthlyLimitSeconds    0 = Google off
-   * @param {number} options.dailyLimitSeconds      0 = no daily limit
-   */
   constructor({
     file, monthlyLimitSeconds, dailyLimitSeconds = 0, timeZone = BILLING_TIME_ZONE,
     now = Date.now, log = null, fsImpl = fs,
@@ -67,143 +63,182 @@ export class GoogleUsageMeter {
     this.now = now;
     this.log = log;
     this.fs = fsImpl;
-    this.reservedSeconds = 0;
     this.error = null;
     const keys = periodKeys(this.now(), this.timeZone);
-    this.state = { month: keys.month, monthSeconds: 0, day: keys.day, daySeconds: 0, requests: 0, warned: [] };
+    this.state = { month: keys.month, monthSeconds: 0, day: keys.day, daySeconds: 0, requests: 0, warned: [], pending: {} };
     this._load();
   }
 
   _load() {
-    if (!this.file) {
-      this.error = 'no-usage-file';
-      return;
-    }
+    if (!this.file) { this.error = 'no-usage-file'; return; }
     let raw;
-    try {
-      raw = this.fs.readFileSync(this.file, 'utf8');
-    } catch (err) {
-      if (err?.code === 'ENOENT') return; // first use this month
-      this.error = 'usage-file-unreadable';
+    try { raw = this.fs.readFileSync(this.file, 'utf8'); }
+    catch (err) {
+      this.error = err?.code === 'ENOENT' ? 'usage-file-missing' : 'usage-file-unreadable';
       this.log?.error?.('Google speech usage file cannot be read; Google stays off', { code: err?.code || 'EIO' });
       return;
     }
     try {
       const saved = JSON.parse(raw);
-      if (saved?.version !== USAGE_FILE_VERSION) throw new Error('version');
-      const number = (value) => (Number.isFinite(value) && value >= 0 ? value : 0);
+      // Preserve valid v1 counters when upgrading an already initialized meter.
+      if (![1, USAGE_FILE_VERSION].includes(saved?.version)
+        || !/^\d{4}-(0[1-9]|1[0-2])$/.test(saved.month || '')
+        || !/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(saved.day || '')
+        || !saved.day.startsWith(`${saved.month}-`)
+        || !nonnegativeInteger(saved.monthSeconds) || !nonnegativeInteger(saved.daySeconds)
+        || !nonnegativeInteger(saved.requests) || saved.daySeconds > saved.monthSeconds
+        || !Array.isArray(saved.warned) || saved.warned.some((n) => !WARN_FRACTIONS.includes(n))) throw new Error('invalid');
+      const pending = saved.version === 1 ? {} : saved.pending;
+      if (!pending || typeof pending !== 'object' || Array.isArray(pending)) throw new Error('pending');
+      let reserved = 0;
+      for (const [id, item] of Object.entries(pending)) {
+        if (!/^[a-f0-9]{32}$/.test(id) || !item || !nonnegativeInteger(item.seconds)
+          || item.seconds === 0 || item.month !== saved.month || item.day !== saved.day) throw new Error('reservation');
+        reserved += item.seconds;
+      }
+      if (reserved > saved.daySeconds || Object.keys(pending).length > 512) throw new Error('reserved');
       this.state = {
-        month: typeof saved.month === 'string' ? saved.month : this.state.month,
-        monthSeconds: number(saved.monthSeconds),
-        day: typeof saved.day === 'string' ? saved.day : this.state.day,
-        daySeconds: number(saved.daySeconds),
-        requests: number(saved.requests),
-        warned: Array.isArray(saved.warned) ? saved.warned.filter((n) => WARN_FRACTIONS.includes(n)) : [],
+        month: saved.month, monthSeconds: saved.monthSeconds, day: saved.day, daySeconds: saved.daySeconds,
+        requests: saved.requests, warned: saved.warned, pending,
       };
     } catch {
       this.error = 'usage-file-invalid';
-      this.log?.error?.('Google speech usage file is not valid; Google stays off until it is fixed or removed');
+      this.log?.error?.('Google speech usage file is invalid; Google stays off until it is reconciled');
     }
   }
 
+  get reservedSeconds() { return Object.values(this.state.pending).reduce((sum, item) => sum + item.seconds, 0); }
+
   _roll() {
     const keys = periodKeys(this.now(), this.timeZone);
+    if (keys.month < this.state.month || keys.day < this.state.day) {
+      this.error = 'usage-clock-backwards';
+      return;
+    }
     if (keys.month !== this.state.month) {
       this.state.month = keys.month;
-      this.state.monthSeconds = 0;
+      this.state.monthSeconds = this.reservedSeconds;
       this.state.requests = 0;
       this.state.warned = [];
+      for (const item of Object.values(this.state.pending)) item.month = keys.month;
     }
     if (keys.day !== this.state.day) {
       this.state.day = keys.day;
-      this.state.daySeconds = 0;
+      this.state.daySeconds = this.reservedSeconds;
+      for (const item of Object.values(this.state.pending)) item.day = keys.day;
     }
   }
 
   _persist() {
-    if (!this.file) return;
     const body = `${JSON.stringify({ version: USAGE_FILE_VERSION, ...this.state, updatedAt: this.now() })}\n`;
     const temporary = join(dirname(this.file), `.google-stt-usage.${process.pid}.${randomBytes(4).toString('hex')}.tmp`);
+    let fd;
     try {
-      this.fs.mkdirSync(dirname(this.file), { recursive: true, mode: 0o700 });
-      this.fs.writeFileSync(temporary, body, { mode: 0o600, flag: 'wx' });
+      fd = this.fs.openSync(temporary, 'wx', 0o600);
+      this.fs.writeFileSync(fd, body);
+      this.fs.fsyncSync(fd);
+      this.fs.closeSync(fd); fd = undefined;
       this.fs.renameSync(temporary, this.file);
+      const directory = this.fs.openSync(dirname(this.file), 'r');
+      try { this.fs.fsyncSync(directory); } finally { this.fs.closeSync(directory); }
+      return true;
     } catch (err) {
+      if (fd !== undefined) { try { this.fs.closeSync(fd); } catch { /* already closed */ } }
       try { this.fs.unlinkSync(temporary); } catch { /* never created */ }
-      // A ledger that cannot be written cannot be trusted after a restart.
       this.error = 'usage-file-unwritable';
       this.log?.error?.('Google speech usage could not be saved; Google stays off', { code: err?.code || 'EIO' });
+      return false;
     }
   }
 
-  /** Why Google may not be used right now (null when it may). */
+  /** Serialize counters across meters/processes. A stale lock fails closed. */
+  _change(update) {
+    if (this.error) return null;
+    const lock = `${this.file}.lock`;
+    let fd;
+    try { fd = this.fs.openSync(lock, 'wx', 0o600); }
+    catch (err) {
+      this.error = err?.code === 'EEXIST' ? 'usage-file-busy' : 'usage-file-unwritable';
+      return null;
+    }
+    try {
+      this._load();
+      if (this.error) return null;
+      this._roll();
+      if (this.error) return null;
+      const result = update();
+      return this._persist() ? result : null;
+    } finally {
+      try { this.fs.closeSync(fd); } catch { /* already closed */ }
+      try { this.fs.unlinkSync(lock); } catch { this.error = 'usage-file-busy'; }
+    }
+  }
+
   refusal(seconds = 0) {
     if (this.error) return this.error;
     if (this.monthlyLimitSeconds <= 0) return 'disabled';
     this._roll();
-    if (this.state.monthSeconds + this.reservedSeconds + seconds > this.monthlyLimitSeconds) return 'monthly-limit';
-    if (this.dailyLimitSeconds > 0
-      && this.state.daySeconds + this.reservedSeconds + seconds > this.dailyLimitSeconds) return 'daily-limit';
+    if (this.error) return this.error;
+    if (this.state.monthSeconds + seconds > this.monthlyLimitSeconds) return 'monthly-limit';
+    if (this.dailyLimitSeconds > 0 && this.state.daySeconds + seconds > this.dailyLimitSeconds) return 'daily-limit';
+    if (Object.keys(this.state.pending).length >= 512) return 'too-many-reservations';
     return null;
   }
 
-  /** Reserve the worst case for one request; null when that would break a limit. */
   reserve(seconds) {
-    const wanted = Math.max(0, Math.ceil(seconds));
-    if (this.refusal(wanted)) return null;
-    this.reservedSeconds += wanted;
-    return { seconds: wanted, settled: false };
+    if (!Number.isFinite(seconds) || seconds <= 0) return null;
+    const wanted = Math.ceil(seconds);
+    return this._change(() => {
+      if (this.refusal(wanted)) return null;
+      const id = randomBytes(16).toString('hex');
+      this.state.monthSeconds += wanted;
+      this.state.daySeconds += wanted;
+      this.state.pending[id] = { seconds: wanted, month: this.state.month, day: this.state.day };
+      return { id, seconds: wanted, settled: false };
+    });
   }
 
-  /** Record what a request was billed and free the rest of its reservation. */
   commit(reservation, billedSeconds) {
     if (!reservation || reservation.settled) return;
     reservation.settled = true;
-    this.reservedSeconds = Math.max(0, this.reservedSeconds - reservation.seconds);
-    const billed = Math.max(0, Math.ceil(Number(billedSeconds) || 0));
-    if (billed === 0) return;
-    this._roll();
-    this.state.monthSeconds += billed;
-    this.state.daySeconds += billed;
-    this.state.requests += 1;
-    this._warnOnThresholds();
-    this._persist();
+    this._change(() => {
+      const pending = this.state.pending[reservation.id];
+      if (!pending) return null;
+      const billed = Number.isFinite(billedSeconds) && billedSeconds >= 0 ? Math.ceil(billedSeconds) : pending.seconds;
+      this.state.monthSeconds += billed - pending.seconds;
+      this.state.daySeconds += billed - pending.seconds;
+      delete this.state.pending[reservation.id];
+      if (billed) this.state.requests += 1;
+      this._warnOnThresholds();
+      return true;
+    });
   }
 
   _warnOnThresholds() {
     if (!this.monthlyLimitSeconds) return;
-    const fraction = this.state.monthSeconds / this.monthlyLimitSeconds;
+    const fraction = (this.state.monthSeconds - this.reservedSeconds) / this.monthlyLimitSeconds;
     for (const threshold of WARN_FRACTIONS) {
       if (fraction >= threshold && !this.state.warned.includes(threshold)) {
         this.state.warned.push(threshold);
-        const fields = {
-          month: this.state.month,
-          usedMinutes: Math.round(this.state.monthSeconds / 6) / 10,
-          limitMinutes: Math.round(this.monthlyLimitSeconds / 6) / 10,
-        };
+        const fields = { month: this.state.month,
+          usedMinutes: Math.round((this.state.monthSeconds - this.reservedSeconds) / 6) / 10,
+          limitMinutes: Math.round(this.monthlyLimitSeconds / 6) / 10 };
         if (threshold >= 1) this.log?.error?.('Google speech monthly limit reached; Google is off until next month', fields);
         else this.log?.warn?.(`Google speech has used ${Math.round(threshold * 100)}% of its monthly limit`, fields);
       }
     }
   }
 
-  /** Allow-listed numbers for the admin console. */
   status() {
+    if (!this.error) this._load();
     this._roll();
     return {
-      persistent: !!this.file && !this.error,
-      problem: this.error,
-      month: this.state.month,
-      usedSeconds: this.state.monthSeconds,
-      limitSeconds: this.monthlyLimitSeconds,
-      day: this.state.day,
-      dayUsedSeconds: this.state.daySeconds,
-      dayLimitSeconds: this.dailyLimitSeconds,
-      requests: this.state.requests,
-      reservedSeconds: this.reservedSeconds,
-      exhausted: this.error ? null
-        : this.monthlyLimitSeconds > 0 && this.state.monthSeconds >= this.monthlyLimitSeconds ? 'month'
-          : this.dailyLimitSeconds > 0 && this.state.daySeconds >= this.dailyLimitSeconds ? 'day' : null,
+      persistent: !!this.file && !this.error, problem: this.error, month: this.state.month,
+      usedSeconds: this.state.monthSeconds - this.reservedSeconds, limitSeconds: this.monthlyLimitSeconds,
+      day: this.state.day, dayUsedSeconds: this.state.daySeconds - this.reservedSeconds,
+      dayLimitSeconds: this.dailyLimitSeconds, requests: this.state.requests, reservedSeconds: this.reservedSeconds,
+      exhausted: this.error ? null : this.monthlyLimitSeconds > 0 && this.state.monthSeconds >= this.monthlyLimitSeconds ? 'month'
+        : this.dailyLimitSeconds > 0 && this.state.daySeconds >= this.dailyLimitSeconds ? 'day' : null,
     };
   }
 }

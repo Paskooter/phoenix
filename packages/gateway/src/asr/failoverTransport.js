@@ -13,7 +13,9 @@
 //      keeps a copy of everything sent in the window. If the Parakeet socket
 //      errors, closes unexpectedly, does not open in time, or gives no final
 //      within a deadline after end-of-speech, it opens a Google stream and
-//      replays the start, the audio and (if already sent) the end-of-speech.
+//      replays the start and audio. If EOS already happened, the complete ended
+//      window instead uses synchronous Google Recognize: replaying 30 seconds
+//      at real time would consume the Hub's remaining ASR deadline.
 //      The session sees one socket and one result.
 //   3. Batch. If the window is recognized by POST /transcribe (an old server,
 //      or a stream that failed) and Parakeet fails, the same WAV goes to
@@ -39,6 +41,8 @@ export const FAILOVER_DEFAULTS = Object.freeze({
 });
 
 const MAX_REPLAY_BYTES = 2 * 1024 * 1024;
+// A large backlog cannot be resent at real time inside the same 40s turn.
+export const MAX_STREAM_REPLAY_SECONDS = 3;
 const DEFAULT_START = JSON.stringify({ type: 'start', sampleRate: 16000, normalize: false });
 const EOS = JSON.stringify({ type: 'eos' });
 
@@ -140,12 +144,13 @@ function quietly(socket) {
  */
 export class FailoverSocket extends RecognizerSocket {
   constructor({
-    openPrimary, openSecondary = null, onSwitch = null, log = null,
+    openPrimary, openSecondary = null, onEndedFailure = null, onSwitch = null, log = null,
     openTimeoutMs = FAILOVER_DEFAULTS.openTimeoutMs, finalTimeoutMs = FAILOVER_DEFAULTS.finalTimeoutMs,
   }) {
     super();
     this.openSecondary = openSecondary;
     this.onSwitch = onSwitch;
+    this.onEndedFailure = onEndedFailure;
     this.log = log;
     this.finalTimeoutMs = finalTimeoutMs;
     this.startMessage = null;
@@ -189,7 +194,7 @@ export class FailoverSocket extends RecognizerSocket {
       }
     });
     socket.on('message', (data, isBinary) => {
-      if (this.inner !== socket || this.closedByCaller) return;
+      if (this.inner !== socket || this.closedByCaller || this.readyState === CLOSED || this.finalSeen) return;
       if (!isBinary && parseControl(data)?.type === 'final') {
         this.finalSeen = true;
         this._clearFinalTimer();
@@ -207,7 +212,7 @@ export class FailoverSocket extends RecognizerSocket {
   }
 
   send(data) {
-    if (this.readyState !== OPEN || this.closedByCaller) return;
+    if (this.readyState !== OPEN || this.closedByCaller || this.finalSeen || this.eosSent) return;
     if (typeof data === 'string') {
       const control = parseControl(data);
       if (control?.type === 'start') this.startMessage = data;
@@ -259,9 +264,26 @@ export class FailoverSocket extends RecognizerSocket {
   }
 
   _innerFailed(socket, err, reason = null) {
-    if (this.closedByCaller || this.finalSeen || this.inner !== socket) return;
+    if (this.closedByCaller || this.finalSeen || this.readyState === CLOSED || this.inner !== socket) return;
     this._clearFinalTimer();
     this._clearOpenTimer();
+    if (this.innerName === 'parakeet' && !this.switched && this.replayable
+      && (this.eosSent || this.pcmBytes > MAX_STREAM_REPLAY_SECONDS * 32000)) {
+      const why = reason || 'parakeet-stream-failed';
+      let admitted = false;
+      try { admitted = this.onEndedFailure?.(why, Math.ceil(this.pcmBytes / 32000)) === true; } catch { /* fail closed */ }
+      if (admitted) {
+        this.switched = true;
+        this.switchReason = why;
+        this.inner = null;
+        quietly(socket);
+        // The session owns the authoritative PCM. If speech is still arriving,
+        // it keeps buffering to EOS; an ended window's final waiter rejects now.
+        this._emitError(new Error('Parakeet ended stream failed; using Google batch'));
+        this._emitClose();
+        return;
+      }
+    }
     if (this.innerName === 'parakeet' && !this.switched && this.openSecondary && this.replayable) {
       let next = null;
       try { next = this.openSecondary(); } catch { next = null; }
@@ -273,8 +295,9 @@ export class FailoverSocket extends RecognizerSocket {
           reason: why, replayMs: Math.round(this.pcmBytes / 32), afterEos: this.eosSent,
         });
         try { this.onSwitch?.(why); } catch { /* reporting only */ }
-        quietly(socket);
         this._attach(next, 'google');
+        // Detach ownership before teardown: close/error can be synchronous.
+        quietly(socket);
         return;
       }
     }
@@ -302,6 +325,7 @@ export class FailoverSocket extends RecognizerSocket {
     this.closedByCaller = true;
     this._clearFinalTimer();
     this._clearOpenTimer();
+    this.readyState = CLOSING;
     const inner = this.inner;
     if (inner) {
       try { inner.on('error', () => { /* teardown races must not throw */ }); } catch { /* ignore */ }
@@ -310,7 +334,6 @@ export class FailoverSocket extends RecognizerSocket {
         else inner.terminate();
       } catch { /* already gone */ }
     }
-    this.readyState = CLOSING;
     setImmediate(() => this._emitClose());
   }
 }
@@ -326,7 +349,7 @@ export function createFailoverTransport({ primary, secondary = null, health, tim
   const limits = { ...FAILOVER_DEFAULTS, ...timeouts };
   let active = 'parakeet';
   let failover = null;
-  const secondaryReady = () => !!secondary && secondary.available();
+  const secondaryReady = (seconds) => !!secondary && secondary.available(seconds);
   const useSecondary = (reason) => {
     active = 'google';
     failover = failover || reason;
@@ -361,6 +384,12 @@ export function createFailoverTransport({ primary, secondary = null, health, tim
       return new FailoverSocket({
         openPrimary: () => primary.openStream(),
         openSecondary: secondary ? () => (secondaryReady() ? secondary.openStream() : null) : null,
+        onEndedFailure: (reason, seconds) => {
+          if (!secondaryReady(seconds)) return false;
+          health.markDown(reason);
+          useSecondary(reason);
+          return true;
+        },
         openTimeoutMs: limits.openTimeoutMs,
         finalTimeoutMs: limits.finalTimeoutMs,
         onSwitch: (reason) => {
@@ -377,7 +406,11 @@ export function createFailoverTransport({ primary, secondary = null, health, tim
         return await primary.recognizeWav(wav);
       } catch (err) {
         health.markDown('batch-failed');
-        if (!secondaryReady()) throw err;
+        // Session WAVs have a canonical 44-byte header and 16 kHz PCM16.
+        // A short batch may fit the remaining budget even when a complete
+        // streaming reservation would not.
+        const seconds = Math.ceil(Math.max(0, wav.length - 44) / 32000);
+        if (!secondaryReady(seconds)) throw err;
         useSecondary('parakeet-batch-failed');
         log?.warn?.('[asr] Parakeet recognition failed; recognizing this window with Google');
         return secondary.recognizeWav(wav);
@@ -388,5 +421,6 @@ export function createFailoverTransport({ primary, secondary = null, health, tim
       if (active !== 'google') return { provider: 'parakeet' };
       return { ...(secondary?.describe?.() || { provider: 'google' }), ...(failover ? { failover } : {}) };
     },
+    cancel() { secondary?.cancel?.(); },
   };
 }
