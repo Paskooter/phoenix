@@ -16,11 +16,16 @@
 // Pinned source: pegasus@5c0a7390539663ba749d360de348a428c088505c
 //   packages/hub/src/utils/SettingsClient.ts:18-47 (getSettings, response map).
 
+import { boundedSignal, DEFAULT_GATEWAY_REQUEST_TIMEOUT_MS, signalFromOptions } from './requestSignal.js';
+
 const SETTINGS_API_VERSION = '20160801';
 
 export class SettingsClient {
-  constructor(settingsURL) {
+  constructor(settingsURL, options = {}) {
     this.base = (settingsURL || '').replace(/\/$/, '');
+    this.timeoutMs = typeof options === 'number'
+      ? options
+      : (options.timeoutMs ?? DEFAULT_GATEWAY_REQUEST_TIMEOUT_MS);
   }
 
   /**
@@ -31,7 +36,7 @@ export class SettingsClient {
    * @param {string[]} skills skills to return settings for
    * @returns {Promise<Map<string, object>>} skillId -> per-skill settings data
    */
-  async getSettings(accountId, loopId, transId, skills, log) {
+  async getSettings(accountId, loopId, transId, skills, log, options) {
     if (!accountId || !loopId) {
       throw new Error(`Missing creds. Got accountID: ${!!accountId} | loopID: ${!!loopId}`);
     }
@@ -41,8 +46,10 @@ export class SettingsClient {
       return new Map();
     }
 
+    const signal = boundedSignal(this.timeoutMs, signalFromOptions(options));
     const res = await fetch(this.base, {
       method: 'POST',
+      signal,
       headers: {
         'content-type': 'application/json;charset=utf-8',
         'x-amz-credentials': JSON.stringify({ id: accountId }),

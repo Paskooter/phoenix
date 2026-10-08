@@ -8,6 +8,7 @@
 import { message, SkillRequestType, ResponseType } from '@phoenix/contracts';
 import { writeTrace } from '@phoenix/common';
 import { deepFreeze, legacyConfigError, validateSkillConfig } from './skillConfigValidation.js';
+import { boundedSignal, DEFAULT_GATEWAY_REQUEST_TIMEOUT_MS, signalFromOptions } from './requestSignal.js';
 
 export const SkillRequestError = Object.freeze({
   SKILL_NOT_FOUND: 'SKILL_NOT_FOUND',
@@ -40,35 +41,40 @@ export class SkillConfigManager {
 }
 
 export class SkillClient {
-  constructor(skillConfigManager) {
+  constructor(skillConfigManager, options = {}) {
     this.mgr = skillConfigManager;
+    this.timeoutMs = typeof options === 'number'
+      ? options
+      : (options.timeoutMs ?? (DEFAULT_GATEWAY_REQUEST_TIMEOUT_MS + 1000));
   }
 
   /** Build + send a LISTEN_LAUNCH (or LISTEN_UPDATE when update=true). */
-  async launchOrUpdate(skillID, input, trace, update = false) {
+  async launchOrUpdate(skillID, input, trace, update = false, options) {
     const req = update ? buildListenUpdate(skillID, input) : buildListenLaunch(skillID, input);
-    return this._send(skillID, req, trace);
+    return this._send(skillID, req, trace, options);
   }
 
   /** Build + send a fresh LISTEN_LAUNCH (used for redirects). */
-  async launch(skillID, input, trace) {
-    return this._send(skillID, buildListenLaunch(skillID, input), trace);
+  async launch(skillID, input, trace, options) {
+    return this._send(skillID, buildListenLaunch(skillID, input), trace, options);
   }
 
   /** Build + send a PROACTIVE_LAUNCH. */
-  async proactiveLaunch(skillID, input, trace) {
-    return this._send(skillID, buildProactiveLaunch(skillID, input), trace);
+  async proactiveLaunch(skillID, input, trace, options) {
+    return this._send(skillID, buildProactiveLaunch(skillID, input), trace, options);
   }
 
-  async _send(skillID, skillRequest, trace) {
+  async _send(skillID, skillRequest, trace, options = {}) {
     const cfg = this.mgr.get(skillID);
     if (!cfg) return { skillID, error: { code: SkillRequestError.SKILL_NOT_FOUND, message: `Skill "${skillID}" does not exist` } };
     if (cfg.onRobot) return { skillID, error: { code: SkillRequestError.SKILL_NOT_FOUND, message: `Skill "${skillID}" is a robot skill` } };
     try {
+      const signal = boundedSignal(this.timeoutMs, signalFromOptions(options));
       const res = await fetch(cfg.URL, {
         method: 'POST',
         headers: { 'content-type': 'application/json', ...writeTrace(trace) },
         body: JSON.stringify(skillRequest),
+        signal,
       });
       if (!res.ok) {
         const text = await res.text().catch(() => '');

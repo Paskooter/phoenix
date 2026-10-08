@@ -171,6 +171,8 @@ intentional robustness differences, not claims of exact original-service parity.
 |---|---|---|---|
 | H-hardening-google | Legacy Google mock sessions settle on stop/abort and unexpected transport end, detach owned listeners, and emit EOS at most once. The mock TCP seam bounds individual audio frames (64 KiB), total audio (4 MiB), pending/outbound audio (512 KiB), and inbound lines/buffers (256/512 KiB); config precedes early audio. | Cancellation must release transport ownership; an unresponsive mock peer must not retain unbounded audio or leave `start()` pending. | Excess input rejects the mock session; unexpected end returns its last incremental or an empty ASR envelope. This affects the legacy line-delimited mock seam, not the newer paid Google recognizer/router. |
 
+| H-hardening-peers | Settings/history fetches have a 10 s wall-clock deadline; parser/skill fetches have an 11 s transport deadline behind the existing 10 s phase budget. Each accepts a parent cancellation signal. | Peer requests must not outlive a cancelled transaction or hang indefinitely. | A stalled peer now aborts. Existing request payloads, internal Settings authentication and error envelopes are unchanged. |
+
 ## Speech endpointing (Phoenix-original; the reference had none)
 
 | # | Decision | Why | Impact |
