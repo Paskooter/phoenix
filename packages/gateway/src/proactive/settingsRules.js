@@ -58,8 +58,8 @@ export function checkSettingsRules(pr, skillSettingsMap) {
  * Retrieve settings for every skill implicated in the proactive registrations, in one
  * request (source getSkillSettingsMap). No domains short-circuits without a request.
  */
-export async function getSkillSettingsMap(proactiveSkillConfigs, accountId, loopId, transId, settingsClient, log) {
+export async function getSkillSettingsMap(proactiveSkillConfigs, accountId, loopId, transId, settingsClient, log, signal) {
   const domains = getDomainList(proactiveSkillConfigs);
   if (domains.length === 0) return new Map();
-  return settingsClient.getSettings(accountId, loopId, transId, domains, log);
+  return settingsClient.getSettings(accountId, loopId, transId, domains, log, { signal });
 }

@@ -121,25 +121,18 @@ for (const scenario of ['close before input', 'provider finishes after close', '
     client.terminate();
     await Promise.all([serverClosed, clientClosed]);
     // The close listeners and promise continuations have run by this point.
-    assert.equal(outer, undefined, 'disconnect must not settle the outer transaction');
-    assert.equal(internal, undefined, 'disconnect must not settle the internal transaction');
-    assert.deepEqual(history, []);
+    assert.equal(outer.outcome, 'resolved', 'disconnect abandons the outer transaction without an error frame');
+    assert.equal(internal.outcome, 'resolved', 'disconnect settles the internal transaction after aborting work');
+    assert.deepEqual(history, [], 'disconnect suppresses late launch history');
 
-    if (scenario !== 'provider finishes after close') {
-      deadline();
-      await outerSettled.promise;
-      assert.equal(outer.outcome, 'rejected');
-      assert.ok(outer.error instanceof Error);
-      assert.equal(outer.error.code, undefined, 'source transaction deadline has no HubError code');
-      assert.equal(internal, undefined, 'outer deadline must not stop the internal transaction');
-    }
+    if (scenario === 'provider finishes after timeout') deadline();
     if (scenario !== 'close before input') {
       releaseProvider.resolve();
       await Promise.all([providerFinished.promise, internalSettled.promise, outerSettled.promise]);
       assert.equal(internal.outcome, 'resolved');
-      assert.equal(outer.outcome, scenario === 'provider finishes after close' ? 'resolved' : 'rejected');
+      assert.equal(outer.outcome, 'resolved');
       assert.deepEqual(requests.map(request => request.type), ['LISTEN_LAUNCH']);
-      assert.deepEqual(history, [{ robotID: 'robot-h04', sessionID: 'integration-session', skillID: 'source', intent: 'launch-intent', personIDs: ['integration-person'] }]);
+      assert.deepEqual(history, [], 'aborted skill completion cannot create launch history');
       assert.deepEqual(frames.map(frame => frame.type), ['SOS', 'EOS', 'LISTEN']);
     } else {
       assert.deepEqual(requests, []);

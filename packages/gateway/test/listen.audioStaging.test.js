@@ -83,7 +83,7 @@ test('audio after stopASR is dropped, and after abandon too', () => {
   // What leaving the ASR state does in the reference: end and null the stream.
   tx._stopASR();
   for (let i = 0; i < 100; i += 1) tx.handleMessage({ audio: FRAME });
-  assert.equal(tx.audioChunks.length, 1, 'audio after stopASR is dropped, not retained');
+  assert.equal(tx.audioChunks.length, 0, 'stopASR clears queued audio; later audio is dropped');
 
   tx.abandon();
   const afterAbandon = tx.audioChunks.length;

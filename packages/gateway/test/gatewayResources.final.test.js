@@ -332,3 +332,116 @@ test('Google mock recognizer rejects an unterminated oversized inbound frame', a
   assert.equal(stream.socket.destroyed, true);
 });
 
+// --- Transaction audio lifecycle --------------------------------------------
+
+test('completed CLIENT_ASR and CLIENT_NLU transactions clear pre-LISTEN audio', async (t) => {
+  for (const mode of ['CLIENT_ASR', 'CLIENT_NLU']) {
+    const { tx } = makeTransaction();
+    t.after(() => clearTimeout(tx._txTimer));
+    tx.handleMessage({ audio: Buffer.alloc(1024 * 1024) });
+    await tx._handleListen(listenMessage(mode));
+    tx._handleContext(contextMessage());
+    if (mode === 'CLIENT_ASR') {
+      await tx._handleClientASR({ data: { text: 'client transcript' } });
+    } else {
+      await tx._handleClientNLU({ data: { intent: null, rules: [], entities: {}, external: {} } });
+    }
+    await tx.done;
+    assert.equal(tx.audioChunks.length, 0, `${mode}: pre-LISTEN chunks released at terminal state`);
+    assert.equal(tx.audioBufferedBytes, 0, `${mode}: pre-LISTEN byte count released at terminal state`);
+  }
+});
+
+test('server ASR flushes pre-LISTEN audio before terminal cleanup', async (t) => {
+  const received = [];
+  const audio = Buffer.from('first utterance audio');
+  const session = {
+    onStartOfSpeech() {},
+    onEndOfSpeech() {},
+    provideAudio(chunk) { received.push(Buffer.from(chunk)); },
+    start() { return Promise.resolve({ text: 'first utterance', confidence: 0.9 }); },
+    stop() {},
+    getLastIncremental() { return { text: '', confidence: 0 }; },
+  };
+  const { tx } = makeTransaction({ asrProvider: () => session });
+  t.after(() => clearTimeout(tx._txTimer));
+  tx.handleMessage({ audio });
+  tx.handleMessage({ json: listenMessage(undefined) });
+  await tick();
+  tx.handleMessage({ json: contextMessage() });
+  await tx.done;
+
+  assert.deepEqual(received, [audio]);
+  assert.equal(tx.audioChunks.length, 0);
+  assert.equal(tx.audioBufferedBytes, 0);
+});
+
+// --- withTimeout rejection cleanup ------------------------------------------
+
+test('withTimeout clears its timer when the wrapped promise rejects', async (t) => {
+  const realSetTimeout = global.setTimeout;
+  const realClearTimeout = global.clearTimeout;
+  let timeoutTimer;
+  let timeoutCleared = false;
+  global.setTimeout = (fn, ms, ...args) => {
+    const timer = realSetTimeout(fn, ms, ...args);
+    if (ms === 10_000) timeoutTimer = timer;
+    return timer;
+  };
+  global.clearTimeout = (timer) => {
+    if (timer === timeoutTimer) timeoutCleared = true;
+    return realClearTimeout(timer);
+  };
+  t.after(() => {
+    global.setTimeout = realSetTimeout;
+    global.clearTimeout = realClearTimeout;
+    if (timeoutTimer) realClearTimeout(timeoutTimer);
+  });
+
+  const { tx } = makeTransaction({
+    parser: { handleNLU: () => Promise.reject(new Error('parser rejected')) },
+  });
+  t.after(() => clearTimeout(tx._txTimer));
+  tx.listenMessage = { data: { rules: [] } };
+  tx.asrData = { text: 'timer cleanup' };
+  tx.contextPr.resolve(contextMessage());
+
+  await assert.rejects(tx._performNLU(), /parser rejected/);
+  assert.ok(timeoutTimer, 'parser timeout timer was installed');
+  assert.equal(timeoutCleared, true, 'rejection clears the parser timeout');
+});
+
+test('proactive withTimeout clears its timer when context rejects', async (t) => {
+  const realSetTimeout = global.setTimeout;
+  const realClearTimeout = global.clearTimeout;
+  let timeoutTimer;
+  let timeoutCleared = false;
+  global.setTimeout = (fn, ms, ...args) => {
+    const timer = realSetTimeout(fn, ms, ...args);
+    if (ms === 30_000) timeoutTimer = timer;
+    return timer;
+  };
+  global.clearTimeout = (timer) => {
+    if (timer === timeoutTimer) timeoutCleared = true;
+    return realClearTimeout(timer);
+  };
+  t.after(() => {
+    global.setTimeout = realSetTimeout;
+    global.clearTimeout = realClearTimeout;
+    if (timeoutTimer) realClearTimeout(timeoutTimer);
+  });
+
+  const tx = new ProactiveTransaction(
+    { _jiboHeaders: {}, _auth: null, _remoteAddress: '127.0.0.1' },
+    { config: { recordLaunchHistory: false }, skills: [] },
+    { write() {} },
+    log,
+  );
+  t.after(() => clearTimeout(tx._txTimer));
+  const operation = tx._handleTrigger({ data: { triggerSource: 'SURPRISE' } });
+  tx.contextPr.reject(new Error('context rejected'));
+
+  await expectReject(operation, (error) => /context rejected/.test(error.message));
+  assert.ok(timeoutTimer, 'proactive context timeout timer was installed');
+  assert.equal(timeoutCleared, true, 'proactive rejection clears its timeout');
+});

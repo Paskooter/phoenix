@@ -41,6 +41,7 @@ import { HistoryStore } from '../../history/src/store.js';
 import { createAccountService } from '../../account/src/index.js';
 import { Store } from '../../account/src/store.js';
 import { createOwnerAccount, createLoop } from '../../account/src/model.js';
+import { signedLoopHeaders } from '../../account/test/fixtures/signedLoopRequest.js';
 
 const SECRET = 'h06-runtime-secret';
 const ROBOT = 'h06-robot';
@@ -361,6 +362,8 @@ function stubSkill() {
 }
 
 async function withRuntime({ skills, historyURL, settingsURL }, run) {
+  const previousPeerToken = process.env.ETCO_account_internalPeerToken;
+  process.env.ETCO_account_internalPeerToken = 'synthetic-h06-internal-peer';
   const dir = mkdtempSync(join(tmpdir(), 'phx-h06-'));
   const store = new Store(join(dir, 'store.json'));
   const owner = createOwnerAccount(store, { email: 'h06-owner@jetson.test', password: 'h06-pass' });
@@ -375,10 +378,21 @@ async function withRuntime({ skills, historyURL, settingsURL }, run) {
   });
   await gateway.service.listen(0);
   const port = gateway.service.server.address().port;
+  const accountBase = `http://127.0.0.1:${account.address().port}`;
 
   const amz = (op, body) => fetch(`http://127.0.0.1:${account.address().port}/`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json;charset=utf-8', 'x-amz-target': `Settings_20160801.${op}`, 'x-amz-credentials': JSON.stringify({ id: owner._id }) },
+    headers: {
+      'content-type': 'application/json;charset=utf-8',
+      ...signedLoopHeaders(
+        store,
+        accountBase,
+        `Settings_20160801.${op}`,
+        body,
+        owner.accessKeyId,
+      ),
+      'x-amz-credentials': JSON.stringify({ id: owner._id }),
+    },
     body: JSON.stringify(body),
   }).then(async (res) => ({ status: res.status, body: await res.json().catch(() => null) }));
 
@@ -390,6 +404,8 @@ async function withRuntime({ skills, historyURL, settingsURL }, run) {
     await new Promise((r) => gateway.service.server.close(r));
     await new Promise((r) => account.close(r));
     rmSync(dir, { recursive: true, force: true });
+    if (previousPeerToken === undefined) delete process.env.ETCO_account_internalPeerToken;
+    else process.env.ETCO_account_internalPeerToken = previousPeerToken;
   }
 }
 

@@ -170,7 +170,7 @@ export function buildHistoryQuery(queryDef, context = {}, now = Date.now(), vali
  * @param {import('../historyClient.js').HistoryClient} history
  * @param {(def:object)=>void} [validate] IHQueryDefinition validator (SkillConfigValidator.validateIHQuery)
  */
-export async function checkIHRules(prs, ihQueries = {}, ctx, history, validate) {
+export async function checkIHRules(prs, ihQueries = {}, ctx, history, validate, signal) {
   const queryResults = new Map();
   // find all history queries
   for (const pr of prs) {
@@ -183,7 +183,9 @@ export async function checkIHRules(prs, ihQueries = {}, ctx, history, validate) 
     let result;
     try {
       const q = buildHistoryQuery(queryDef, ctx, Date.now(), validate);
-      result = queryDef.type === 'LastEvent' ? await history.getLatestSkillLaunch(q) : await history.getSkillLaunchCount(q);
+      result = queryDef.type === 'LastEvent'
+        ? await history.getLatestSkillLaunch(q, undefined, { signal })
+        : await history.getSkillLaunchCount(q, undefined, { signal });
     } catch {
       // 'ERROR' because null is a valid history-service response (no records found)
       result = 'ERROR';

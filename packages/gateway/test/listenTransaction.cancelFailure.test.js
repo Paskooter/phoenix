@@ -176,6 +176,29 @@ test('CLIENT_ASR cancels the in-flight server ASR phase and keeps the client tra
   assert.equal(frames.at(-1).data.asr.text, 'client words', 'the stale server result cannot overwrite the client transcript');
 });
 
+test('CLIENT_ASR cancellation ignores a stale provider rejection while replacement NLU is pending', async (t) => {
+  const session = new FakeASRSession();
+  let releaseParser;
+  const parserGate = new Promise((resolve) => { releaseParser = resolve; });
+  const { tx, frames } = harness(t, { asrProvider: () => session, parser: { handleNLU: () => parserGate } });
+  const done = tx.done;
+
+  tx.handleMessage({ json: listenNoMode() });
+  await tick();
+  tx.handleMessage({ json: contextFrame() });
+  tx.handleMessage({ json: clientAsr('replacement words') });
+  await tick();
+  assert.equal(tx.state, 'NLU');
+
+  // A superseded provider can reject after the replacement phase has started.
+  session.fail(new Error('stale ASR failure'));
+  await tick();
+  releaseParser({ intent: null, rules: ['launch'], entities: {} });
+  await assert.doesNotReject(done);
+  assert.deepEqual(types(frames), ['EOS', 'LISTEN']);
+  assert.equal(frames.at(-1).data.asr.text, 'replacement words');
+});
+
 test('CLIENT_NLU cancels the in-flight server ASR phase', async (t) => {
   const session = new FakeASRSession();
   const { tx, frames } = harness(t, { asrProvider: () => session });

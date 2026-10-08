@@ -282,7 +282,7 @@ export async function createGateway(config = loadConfig()) {
     // this socket on every hotword re-trigger and on cancel_local_turn, and
     // without this the phase kept streaming into a dead response and recognized
     // audio whose EOS + LISTEN frames were silently dropped.
-    if (isProactive) ws.on('close', () => tx.resolve());
+    if (isProactive) ws.on('close', () => tx.abandon?.());
     else ws.on('close', () => tx.abandon?.());
 
     tx.done.catch((err) => {

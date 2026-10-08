@@ -154,3 +154,22 @@ test('disabled-auth CONTEXT can complete a client-NLU listen turn', async (t) =>
   assert.equal(messages.at(-1).data.match, null);
 });
 
+test('pre-session audio keeps ordinary early chunks but caps excess buffered bytes', () => {
+  const tx = new ListenTransaction(
+    { _jiboHeaders: {}, _auth: AUTH, _remoteAddress: '127.0.0.1' },
+    { config: { recordLaunchHistory: false } },
+    { write() {} },
+    log,
+  );
+  clearTimeout(tx._txTimer);
+  const early = Buffer.from('early audio');
+  tx.handleMessage({ audio: early });
+  assert.equal(tx.audioChunks[0], early);
+  assert.equal(tx.audioBufferedBytes, early.byteLength);
+
+  const remaining = MAX_PRESESSION_AUDIO_BYTES - tx.audioBufferedBytes;
+  tx.handleMessage({ audio: Buffer.alloc(remaining) });
+  tx.handleMessage({ audio: Buffer.alloc(1) });
+  assert.equal(tx.audioBufferedBytes, MAX_PRESESSION_AUDIO_BYTES);
+  assert.equal(tx.audioChunks.reduce((total, chunk) => total + chunk.byteLength, 0), MAX_PRESESSION_AUDIO_BYTES);
+});

@@ -177,6 +177,10 @@ intentional robustness differences, not claims of exact original-service parity.
 
 | H-hardening-anonymous | Explicit `disableAuth` connections use stable non-credentialed `anonymous-account`/`anonymous-robot` identities, including nullish-auth preprocessing. | The original disables upgrade auth but then dereferences missing auth on CONTEXT, making the configured mode unusable. | Nullish auth now accepts the ordinary anonymous CONTEXT path; authenticated identity mismatch checks and the newer missing-runtime divergence remain. No access key or verified robot identity is created, so local-home/control authorization is not granted. The frozen identity differential bounds the new divergence by input shape to three cases. |
 
+| H-hardening-lifecycle | Listen/proactive close, rejection and expiry cancel shared peer work and settle once; late continuations cannot emit frames or launch history. Pre-session audio is capped at 1 MiB, ignores empty frames, and is released at phase/terminal boundaries. Timeout races clear timers on both success and rejection. | A disconnected/expired turn cannot usefully continue; the source leaves the internal listen transaction running after its outer timeout. | Disconnect now resolves only after cancellation; expiry stops work instead of allowing a late skill response. Listen failure bookkeeping retains its two speech-history writes, but transaction timeout does not create fresh history. Empty live ASR completion supplies an empty envelope; max-speech finalization owns its annotated result. Successful turns, router/failover, verified local-home gates and content-free telemetry stay intact. |
+
+| H-hardening-proactive-error | A proactive cloud skill error retains its `code` in the final ERROR data. | Listen and proactive callers need the same actionable peer error. | Adds the supplied code (absent/undefined remains absent on JSON serialization); success frames are unchanged. |
+
 ## Speech endpointing (Phoenix-original; the reference had none)
 
 | # | Decision | Why | Impact |
