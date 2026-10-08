@@ -105,9 +105,12 @@ test('malformed CONTEXTs preserve source property and iteration errors', () => {
   expectError(() => context(null), "Cannot read property 'general' of null", 'TypeError');
 });
 
-test('disabled-auth CONTEXT does not invent an anonymous identity', () => {
-  expectError(() => context({ general: {}, runtime: { loop: {} } }, null), "Cannot read property 'id' of null", 'TypeError');
-  expectError(() => context({ general: {}, runtime: { loop: {} } }, undefined), "Cannot read property 'id' of undefined", 'TypeError');
+test('disabled-auth CONTEXT uses the anonymous identity for nullish auth', () => {
+  for (const auth of [null, undefined]) {
+    const message = context({ general: {}, runtime: { loop: {} } }, auth);
+    assert.equal(message.data.general.accountID, 'anonymous-account');
+    assert.equal(message.data.general.robotID, 'anonymous-robot');
+  }
   expectError(() => context({ general: {}, runtime: { loop: {} } }, {}), 'accountID is missing in general data');
 });
 

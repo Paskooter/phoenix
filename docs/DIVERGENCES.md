@@ -175,6 +175,8 @@ intentional robustness differences, not claims of exact original-service parity.
 
 | H-hardening-config | Gateway NET peers preserve explicit HTTP/HTTPS schemes; `HUB_TOKEN_SECRET` is a fallback to `ETCO_server_hubTokenSecret`. Registry entries reject malformed nonempty base URLs, and settings rules require an own `value` (false, null and zero remain valid). | Avoid unusable double-prefixed URLs and reject incomplete registrations before startup. | These input-validation repairs intentionally differ from the source's discarded URL regex and permissive missing-value handling. Newer Home Assistant registry/configuration remains intact. |
 
+| H-hardening-anonymous | Explicit `disableAuth` connections use stable non-credentialed `anonymous-account`/`anonymous-robot` identities, including nullish-auth preprocessing. | The original disables upgrade auth but then dereferences missing auth on CONTEXT, making the configured mode unusable. | Nullish auth now accepts the ordinary anonymous CONTEXT path; authenticated identity mismatch checks and the newer missing-runtime divergence remain. No access key or verified robot identity is created, so local-home/control authorization is not granted. The frozen identity differential bounds the new divergence by input shape to three cases. |
+
 ## Speech endpointing (Phoenix-original; the reference had none)
 
 | # | Decision | Why | Impact |

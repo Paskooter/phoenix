@@ -101,3 +101,56 @@ test('settings rules require an own value while retaining false and null values'
   }
 });
 
+
+test('disabled-auth preprocessing uses a stable anonymous identity', () => {
+  const message = contextFrame();
+  preprocessContext(message, null, '127.0.0.1');
+  assert.deepEqual(message.data.general, {
+    accountID: 'anonymous-account',
+    robotID: 'anonymous-robot',
+    lang: 'en',
+    release: '1.8.0',
+    remoteAddress: '127.0.0.1',
+  });
+});
+
+test('disabled-auth CONTEXT can complete a client-NLU listen turn', async (t) => {
+  const gateway = await createGateway({
+    hubTokenSecret: '', disableAuth: true, accountUrl: '', skills: [],
+    parserURL: 'http://127.0.0.1:9', historyURL: 'http://127.0.0.1:9', settingsURL: 'http://127.0.0.1:9',
+  });
+  await gateway.service.listen(0);
+  const port = gateway.service.server.address().port;
+  t.after(async () => {
+    for (const socket of gateway.wss.clients) socket.terminate();
+    await new Promise((resolve) => gateway.wss.close(resolve));
+    await new Promise((resolve) => gateway.service.server.close(resolve));
+  });
+
+  let admittedAuth;
+  gateway.wss.on('connection', (socket) => { admittedAuth = socket._auth; });
+  const messages = await new Promise((resolve, reject) => {
+    const ws = new WebSocket(`ws://127.0.0.1:${port}/listen`);
+    const received = [];
+    const timer = setTimeout(() => reject(new Error('disabled-auth listen did not finish')), 1500);
+    ws.on('open', () => {
+      ws.send(JSON.stringify({ type: 'LISTEN', data: { mode: 'CLIENT_NLU', hotphrase: false, rules: [] } }));
+      ws.send(JSON.stringify(contextFrame()));
+      ws.send(JSON.stringify({ type: 'CLIENT_NLU', data: { intent: null, rules: [], entities: {} } }));
+    });
+    ws.on('message', (data) => {
+      const message = JSON.parse(data.toString());
+      received.push(message);
+      if (message.final) {
+        clearTimeout(timer);
+        ws.close();
+        resolve(received);
+      }
+    });
+    ws.on('error', reject);
+  });
+  assert.deepEqual(admittedAuth, { id: 'anonymous-account', friendlyId: 'anonymous-robot' });
+  assert.deepEqual(messages.map((message) => message.type), ['SOS', 'EOS', 'LISTEN']);
+  assert.equal(messages.at(-1).data.match, null);
+});
+
