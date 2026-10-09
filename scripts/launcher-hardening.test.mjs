@@ -73,7 +73,7 @@ test('the dotenv loader rejects a line that is not KEY=VALUE without executing i
 });
 
 test('stack launchers load dotenv files as data instead of sourcing them', () => {
-  for (const path of ['scripts/run-compose-stack.sh']) {
+  for (const path of ['scripts/run-compose-stack.sh', 'scripts/run-sim-stack.sh']) {
     const source = read(path);
     assert.match(source, /load_phoenix_env/, path);
     assert.doesNotMatch(source, /(^|[;&|]|\bthen)\s*\.\s+["']?\$?\{?(ENV_FILE|\.\/\.env|\.env)/m, path);
@@ -196,4 +196,28 @@ test('the robot-side repoint rejects malformed endpoints before reading robot st
     assert.equal(result.status, 2, `${args.join(' ')}: ${result.stderr}`);
     assert.match(result.stderr, pattern);
   }
+});
+
+test('the simulator launcher has no built-in hub secret and stops before starting services without one', () => {
+  const source = read('scripts/run-sim-stack.sh');
+  assert.doesNotMatch(source, /uHGhXhdXzBybGX7YHuEwAFZC/);
+  assert.doesNotMatch(source, /^PHX=\/home\//m, 'the checkout is located from the script, not a fixed path');
+  // Exits at the secret check, before any service or the simulator is launched.
+  const result = spawnSync('bash', [resolve(root, 'scripts/run-sim-stack.sh')], {
+    cwd: root,
+    env: { PATH: process.env.PATH, HOME: process.env.HOME, PHOENIX_ENV_FILE: '/dev/null', PHOENIX_DEV_MODE: '0' },
+    encoding: 'utf8',
+    timeout: 20_000,
+  });
+  assert.equal(result.status, 1, result.stderr);
+  assert.match(result.stderr, /HUB_TOKEN_SECRET must be set/);
+  const mismatch = spawnSync('bash', [resolve(root, 'scripts/run-sim-stack.sh')], {
+    cwd: root,
+    env: { PATH: process.env.PATH, HOME: process.env.HOME, PHOENIX_ENV_FILE: '/dev/null',
+      HUB_TOKEN_SECRET: 'synthetic-a', HUB_AUTH_SECRET: 'synthetic-b' },
+    encoding: 'utf8',
+    timeout: 20_000,
+  });
+  assert.equal(mismatch.status, 1, mismatch.stderr);
+  assert.match(mismatch.stderr, /disagree/);
 });
