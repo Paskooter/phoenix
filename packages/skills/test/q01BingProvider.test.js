@@ -129,6 +129,46 @@ test('Q-01 Bing fallback URL uses the response query when no screenshot is prese
   });
 });
 
+test('Q-01 Bing removes API-key query parameters from provider URLs', () => {
+  const body = withScreenshot(answerBody('Facts', 'The fixture answer.'), 'Facts');
+  body.facts.screenshot.webSearchUrl = 'https://fixture.invalid/search?q=fixture&appid=bing-secret&api_key=another-secret';
+  body.facts.screenshot.thumbnailUrl = 'https://fixture.invalid/thumb.jpg?subscription-key=image-secret';
+  const output = extractBingSpokenAnswer(body, 'en-US');
+  assert.equal(output.url, 'https://fixture.invalid/search?q=fixture');
+  assert.equal(output.image_url, 'https://fixture.invalid/thumb.jpg');
+  assert.equal(JSON.stringify(output).includes('secret'), false);
+});
+
+test('Q-01 Bing keeps the API key out of a response failure message', async () => {
+  const provider = createBingProvider({
+    endpoint: 'https://bing.fixture.invalid/search',
+    apiKey: 'synthetic-bing-secret',
+    fetchImpl: async () => ({
+      status: 200,
+      async json() { throw new Error('bad body for key synthetic-bing-secret at https://bing.fixture.invalid/search?q=x&subscription-key=synthetic-bing-secret'); },
+    }),
+  });
+  const output = await provider({ countryCode: 'US', queryText: 'fixture' });
+  assert.match(output.message, /^Unexpected exception: /);
+  assert.equal(JSON.stringify(output).includes('synthetic-bing-secret'), false);
+});
+
+test('Q-01 Bing returns controlled errors for invalid or nonfinite coordinates before HTTP', async () => {
+  let calls = 0;
+  const provider = createBingProvider({
+    endpoint: 'https://bing.fixture.invalid/search',
+    apiKey: 'bing-secret',
+    fetchImpl: async () => { calls += 1; throw new Error('unexpected HTTP call'); },
+  });
+  for (const latitude of ['not-a-coordinate', 'NaN', Number.NaN, Number.POSITIVE_INFINITY]) {
+    await assert.rejects(
+      provider({ countryCode: 'US', queryText: 'coordinates', latitude, longitude: '-71.2' }),
+      /Invalid latitude coordinate/,
+    );
+  }
+  assert.equal(calls, 0);
+});
+
 test('Q-01 Bing projects source image locations for Entities and SportsTeam', () => {
   const entities = withScreenshot(answerBody('Entities'), 'Entities');
   const sports = withScreenshot(answerBody('SportsTeam'), 'SportsTeam');
