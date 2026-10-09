@@ -1,6 +1,6 @@
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseRequest, ruleInventory } from '../src/requestParser.js';
+import { isUsableWinner, parseRequest, parseRequestAsync, ruleInventory } from '../src/requestParser.js';
 import { start } from '../src/index.js';
 
 // The default external-agent provider is env-selected (PHOENIX_NLU_EXTERNAL),
@@ -26,6 +26,41 @@ before(async () => {
 after(async () => {
   await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
   if (selectedRuntime !== undefined) process.env.PHOENIX_NLU_RUNTIME = selectedRuntime;
+});
+
+test('selected-winner validation rejects SKIP and a missing intent in every profile', () => {
+  assert.equal(isUsableWinner({ intent: 'right', priority: 'SKIP' }), false);
+  assert.equal(isUsableWinner({ intent: 'right', priority: 'skip' }), false);
+  assert.equal(isUsableWinner({ intent: 'right', priority: ' SKIP ' }), false);
+  assert.equal(isUsableWinner({ intent: null, priority: 'LOW' }), false);
+  assert.equal(isUsableWinner(null), false);
+  assert.equal(isUsableWinner({ intent: 'right', priority: 'LOW' }), true);
+  assert.equal(isUsableWinner({ intent: 'right', priority: '' }), true);
+});
+
+test('the AST profile returns EMPTY_NLU for a selected SKIP winner instead of leaking it', async () => {
+  // Synthetic AST candidates injected after source matching and before
+  // ParseRequestHandler's selected-winner validation. No vendored grammar
+  // emits SKIP today, so the seam is the only way to reach this branch.
+  let astMatcherCalls = 0;
+  const options = {
+    astMatcher: name => {
+      astMatcherCalls += 1;
+      const skip = name === 'globals/gui_nav';
+      return {
+        rule: name,
+        intent: skip ? 'synthetic-skip' : 'synthetic-lower',
+        priority: skip ? 'SKIP' : 'LOW',
+        entities: { domain: 'synthetic' },
+        score: skip ? 999 : 1,
+      };
+    },
+  };
+  const request = { text: 'synthetic ast input', rules: ['launch', 'globals/gui_nav'] };
+  assert.deepEqual(parseRequest(request, options), { rules: [], intent: null, entities: null });
+  assert.ok(astMatcherCalls > 1);
+  // The lower-ranked candidate is not promoted, on the async entry too.
+  assert.deepEqual(await parseRequestAsync(request, options), { rules: [], intent: null, entities: null });
 });
 
 test('loads the complete source inventory and the timer named rule', () => {
