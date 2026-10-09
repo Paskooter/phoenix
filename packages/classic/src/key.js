@@ -811,8 +811,12 @@ export function keyRoutes(store, {
       if (!wanted.has(String(binary.encryptedUrl))) continue;
       if (callerBoundary && verified && !verified.isAdmin
         && String(binary.accountId) !== String(verified.accountId)) continue;
-      for (const candidate of [binaryPathOf(binary, false), binaryPathOf(binary, true)]) {
-        try { rmSync(join(binaryDir, candidate), { force: true }); } catch { /* best effort */ }
+      // ShareBinary stores the file under the SHARER's id (the storage key in the decrypted URL),
+      // which is normally not the requesting account recorded on the binary.
+      for (const storageAccountId of binaryStorageAccountIds(binary)) {
+        for (const candidate of [binaryPathOf(binary, false, storageAccountId), binaryPathOf(binary, true, storageAccountId)]) {
+          try { rmSync(join(binaryDir, candidate), { force: true }); } catch { /* best effort */ }
+        }
       }
     }
     store.removeBinaries(b.encryptedUrls);
@@ -868,6 +872,22 @@ export function keyRoutes(store, {
 
 function binaryPathOf(binary, isImage, accountId = binary.accountId) {
   return `${accountId}/${binary.id}${isImage ? '.jpg' : ''}`;
+}
+
+/**
+ * The account directories a binary's file may live under: the storage key ShareBinary wrote into
+ * the decrypted URL (the sharer) and, for a binary that was never shared, the requesting account.
+ */
+function binaryStorageAccountIds(binary) {
+  const ids = new Set();
+  if (binary.decryptedUrl) {
+    try {
+      const sharer = new URL(String(binary.decryptedUrl)).searchParams.get('accountId');
+      if (sharer && SAFE.test(sharer)) ids.add(sharer);
+    } catch { /* not a URL this service issued */ }
+  }
+  if (binary.accountId && SAFE.test(String(binary.accountId))) ids.add(String(binary.accountId));
+  return [...ids];
 }
 
 /** Hapi/Express JSON reply for the two plain routes (no AWS-JSON envelope). */
