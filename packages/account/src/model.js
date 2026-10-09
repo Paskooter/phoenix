@@ -399,14 +399,38 @@ export function takeValidToken(store, tokenId) {
 }
 
 export function deleteToken(store, tokenId) {
-  if (store.tokens.delete(tokenId)) store.flush();
+  if (!store.tokens.has(tokenId)) return;
+  // Keep the map's insertion order and object references intact if the
+  // durable commit is rejected. A failed one-time-token consumption must not
+  // create an in-memory/disk split across a process restart.
+  const before = [...store.tokens.entries()];
+  store.tokens.delete(tokenId);
+  try {
+    store.flush();
+  } catch (error) {
+    store.tokens.clear();
+    for (const [id, token] of before) store.tokens.set(id, token);
+    throw error;
+  }
 }
 
 /** Purge expired tokens (housekeeping; called opportunistically). */
 export function sweepTokens(store) {
+  const before = [...store.tokens.entries()];
   let dirty = false;
   for (const [id, t] of store.tokens) {
-    if (Date.now() - t.created > ACCESS_TOKEN_LIFETIME_MS) { store.tokens.delete(id); dirty = true; }
+    if (Date.now() - t.created > ACCESS_TOKEN_LIFETIME_MS) {
+      store.tokens.delete(id);
+      dirty = true;
+    }
   }
-  if (dirty) store.flush();
+  if (!dirty) return;
+  try {
+    store.flush();
+  } catch (error) {
+    // A rejected sweep must leave memory equal to the committed snapshot.
+    store.tokens.clear();
+    for (const [id, token] of before) store.tokens.set(id, token);
+    throw error;
+  }
 }

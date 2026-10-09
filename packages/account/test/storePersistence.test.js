@@ -132,3 +132,33 @@ test('rejected Account snapshots preserve committed bytes and clean their own te
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('Store.transaction commits one snapshot and restores every collection on failure', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'phoenix-account-transaction-'));
+  try {
+    const file = join(dir, 'account.json');
+    const store = new Store(file);
+    const account = { _id: 'synthetic-account', firstName: 'Before' };
+    store.accounts.set(account._id, account);
+    store.flush();
+    const committed = readFileSync(file, 'utf8');
+
+    assert.throws(() => store.transaction(() => {
+      account.firstName = 'During';
+      store.tokens.set('synthetic-token', { _id: 'synthetic-token' });
+      store.flush(); // an inner helper's save boundary is deferred, not written
+      assert.equal(readFileSync(file, 'utf8'), committed);
+      throw new Error('synthetic mutation failure');
+    }), /synthetic mutation failure/);
+    assert.equal(store.accounts.get('synthetic-account'), account, 'held references are restored in place');
+    assert.equal(account.firstName, 'Before');
+    assert.equal(store.tokens.size, 0);
+    assert.equal(readFileSync(file, 'utf8'), committed);
+
+    assert.throws(() => store.transaction(async () => {}), /must be synchronous/);
+    store.transaction(() => { account.firstName = 'After'; });
+    assert.equal(new Store(file).accounts.get('synthetic-account').firstName, 'After');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
