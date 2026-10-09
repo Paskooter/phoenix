@@ -12,11 +12,14 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { GoogleUsageMeter, googleUsageFile, initializeGoogleUsageFile } from '../src/asr/googleUsage.js';
 
-function tempFile(t) {
+// Initialize the ledger at the meter's own clock. A ledger stamped with the
+// real date would look like the future to a test clock set to an earlier day,
+// and the meter would correctly refuse it as a backward clock correction.
+function tempFile(t, now = Date.now) {
   const dir = mkdtempSync(join(tmpdir(), 'phx-google-usage-'));
   t.after(() => rmSync(dir, { recursive: true, force: true }));
   const file = join(dir, 'asr', 'google-stt-usage.json');
-  initializeGoogleUsageFile(file);
+  initializeGoogleUsageFile(file, { now: now() });
   return file;
 }
 
@@ -61,7 +64,7 @@ test('billed seconds round up per request', (t) => {
 
 test('the monthly limit stops Google, and the next month (Pacific time) starts again', (t) => {
   const now = clock('2026-10-31T23:30:00-07:00');
-  const meter = new GoogleUsageMeter({ file: tempFile(t), monthlyLimitSeconds: 60, now });
+  const meter = new GoogleUsageMeter({ file: tempFile(t, now), monthlyLimitSeconds: 60, now });
   meter.commit(meter.reserve(60), 60);
   assert.equal(meter.status().exhausted, 'month');
   assert.equal(meter.refusal(1), 'monthly-limit');
@@ -78,7 +81,7 @@ test('the monthly limit stops Google, and the next month (Pacific time) starts a
 
 test('the daily limit stops one runaway day from spending the month', (t) => {
   const now = clock('2026-10-08T10:00:00-07:00');
-  const meter = new GoogleUsageMeter({ file: tempFile(t), monthlyLimitSeconds: 6000, dailyLimitSeconds: 40, now });
+  const meter = new GoogleUsageMeter({ file: tempFile(t, now), monthlyLimitSeconds: 6000, dailyLimitSeconds: 40, now });
   meter.commit(meter.reserve(31), 31);
   assert.equal(meter.reserve(31), null, 'today has 9 s left');
   assert.equal(meter.refusal(31), 'daily-limit');
@@ -94,8 +97,8 @@ test('a limit of 0 turns Google off', (t) => {
 });
 
 test('usage persists atomically, privately, and survives a restart', (t) => {
-  const file = tempFile(t);
   const now = clock('2026-10-08T10:00:00-07:00');
+  const file = tempFile(t, now);
   const meter = new GoogleUsageMeter({ file, monthlyLimitSeconds: 600, now });
   meter.commit(meter.reserve(31), 7);
   const saved = JSON.parse(readFileSync(file, 'utf8'));
@@ -163,8 +166,8 @@ test('independent meters serialize their reservations against the same file', (t
 });
 
 test('in-flight requests keep their reservation across the Pacific month and day boundary', (t) => {
-  const file = tempFile(t);
   const now = clock('2026-10-31T23:59:59-07:00');
+  const file = tempFile(t, now);
   const meter = new GoogleUsageMeter({ file, monthlyLimitSeconds: 60, dailyLimitSeconds: 60, now });
   const reservation = meter.reserve(31);
   now.set('2026-11-01T00:00:01-07:00');
@@ -193,8 +196,8 @@ test('a stale transaction lock refuses Google without changing usage', (t) => {
 });
 
 test('a backward clock correction never clears a previously spent period', (t) => {
-  const file = tempFile(t);
   const now = clock('2026-10-31T10:00:00-07:00');
+  const file = tempFile(t, now);
   const meter = new GoogleUsageMeter({ file, monthlyLimitSeconds: 12, now });
   meter.commit(meter.reserve(12), 12);
   now.set('2026-11-01T10:00:00-07:00');
