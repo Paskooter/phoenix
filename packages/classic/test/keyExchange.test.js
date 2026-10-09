@@ -13,21 +13,19 @@
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import http from 'node:http';
-import { spawn } from 'node:child_process';
 import {
   generateKeyPairSync, publicEncrypt, privateDecrypt, randomBytes, constants, createHash,
 } from 'node:crypto';
 import { mkdtempSync, rmSync, readFileSync, existsSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { fileURLToPath } from 'node:url';
+import {
+  SYNTHETIC_PEER_TOKEN, freePort, setEnv, signedAmz, signedFetch, startClassicChild, syntheticAccount,
+  writeSyntheticAccountStore,
+} from './fixtures/signedClassic.js';
 import { createClassicEntrypoint, KeyStore, KEY_ERRORS } from '../src/index.js';
 import { Store, createAccountService } from '@phoenix/account';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
-const ENTRY = join(ROOT, 'packages', 'classic', 'src', 'index.js');
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 let dir; let server; let port; let prevKeyFile; let prevBinDir;
 const base = () => `http://localhost:${port}`;
@@ -408,28 +406,52 @@ test('durable: requests, backups and binaries survive a SIGKILL restart', async 
   const file = join(dir, 'restart-keys.json');
   const binDir = join(dir, 'restart-binaries');
   const binaryBytes = Buffer.from([0x11, 0x22, 0x00, 0xff]);
+  // The executable entrypoint is the authenticated production face (index.js start()): it
+  // verifies SigV4 against the Account snapshot in ETCO_classic_accountDataFile and resolves
+  // loop membership through the private Account peer (key.js accountMembership, which needs
+  // ETCO_account_internalPeerToken). Give it a real Account service over a synthetic store and
+  // sign every call with the synthetic members' credentials.
+  const accountFile = join(dir, 'restart-account.json');
+  const accountStore = writeSyntheticAccountStore(accountFile, {
+    accounts: [CHILD_CREDENTIALS['acct-A'], CHILD_CREDENTIALS['acct-B']],
+    loops: [{
+      _id: 'l-restart', owner: 'acct-A', robot: 'acct-B', isSuspended: false,
+      members: [
+        { accountId: 'acct-A', status: 'accepted', type: 'incoming' },
+        { accountId: 'acct-B', status: 'accepted', type: 'incoming' },
+      ],
+    }],
+  });
+  const restoreEnv = setEnv({ ETCO_account_internalPeerToken: SYNTHETIC_PEER_TOKEN });
+  const accountServer = await createAccountService({ store: accountStore }).listen(0);
+  const childEnv = {
+    NET_account: `127.0.0.1:${accountServer.address().port}`,
+    ETCO_account_internalPeerToken: SYNTHETIC_PEER_TOKEN,
+  };
   let first; let second;
   try {
     const p1 = await freePort();
-    first = await startChild({ port: p1, keyFile: file, binDir });
+    first = await startChild({ port: p1, keyFile: file, binDir, accountFile, env: childEnv });
     const created = await childAmz(first.base, 'Key_20160201.CreateRequest', { loopId: 'l-restart', publicKey: 'PEM-RESTART' }, 'acct-A');
     assert.equal(created.status, 200);
-    const bin = await fetch(`${first.base}/binaryRequest`, {
+    const bin = await signedFetch(`${first.base}/binaryRequest`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ accountId: 'acct-A', encryptedUrl: 'u-restart', loopId: 'l-restart' }),
+      credentials: CHILD_CREDENTIALS['acct-A'],
     });
+    assert.equal(bin.status, 200);
     const binaryDoc = await bin.json();
     // share the decrypted bytes BEFORE the kill so both the document and the object survive
-    const shared = await fetch(`${first.base}/`, {
+    const shared = await signedFetch(`${first.base}/`, {
       method: 'POST',
       headers: {
         'content-type': 'application/octet-stream',
         'x-amz-target': 'Key_20160201.ShareBinary',
         'x-id': binaryDoc.id,
-        authorization: 'AWS4-HMAC-SHA256 Credential=acct-B/20260613/us-east-1/aws4_request, SignedHeaders=host, Signature=ff',
       },
       body: binaryBytes,
+      credentials: CHILD_CREDENTIALS['acct-B'],
     });
     assert.equal(shared.status, 200);
     const sharedDoc = await shared.json();
@@ -438,7 +460,7 @@ test('durable: requests, backups and binaries survive a SIGKILL restart', async 
     await first.stop(); // SIGKILL: nothing flushed on the way out
 
     const p2 = await freePort();
-    second = await startChild({ port: p2, keyFile: file, binDir });
+    second = await startChild({ port: p2, keyFile: file, binDir, accountFile, env: childEnv });
     assert.notEqual(p1, p2, 'a genuinely new process on a new port');
 
     const got = await childAmz(second.base, 'Key_20160201.GetRequest', { id: created.body.id }, 'acct-A');
@@ -453,19 +475,26 @@ test('durable: requests, backups and binaries survive a SIGKILL restart', async 
     assert.equal(listed.status, 200);
     assert.deepEqual(listed.body, [], 'the binary was shared before the kill, so it is no longer pending');
 
-    // The decrypted-binary URL is composed from the serving origin (the source returned a stable
-    // S3 URL). The restarted process listens on a NEW port, so re-base the stored path onto it —
-    // this is the self-hosted-URL divergence (§8.2), not a durability loss.
-    const path = new URL(sharedDoc.decryptedUrl).pathname + new URL(sharedDoc.decryptedUrl).search;
-    const dl = await fetch(`${second.base}${path}`);
-    assert.equal(dl.status, 200, 'the restarted service serves a binary uploaded by the killed process');
-    assert.deepEqual(Buffer.from(await dl.arrayBuffer()), binaryBytes, 'binary bytes survive the restart');
-
     const sc = await childAmz(second.base, 'Key_20160201.ShouldCreate', { loopId: 'l-restart' }, 'acct-A');
     assert.equal(sc.body.shouldCreate, false, 'the satisfied key survives the restart');
+
+    // The decrypted-binary URL is composed from the configured public origin (the source returned
+    // a stable S3 URL). The restarted process listens on a NEW port, so re-base the stored path
+    // onto it — this is the self-hosted-URL divergence (§8.2), not a durability loss. The binary
+    // route sits behind the same SigV4 boundary, so the requesting member signs the GET.
+    // Regression: the requesting member (acct-A) is not the sharer (acct-B). This GET used to
+    // fail 401 SIGNATURE_MISMATCH (the keyRoutes guard verified an entityless GET against
+    // Express's default `{}` body) and then 404 (the file was looked up under the requester's
+    // id instead of the sharer's storage key carried in the URL).
+    const path = new URL(sharedDoc.decryptedUrl).pathname + new URL(sharedDoc.decryptedUrl).search;
+    const dl = await signedFetch(`${second.base}${path}`, { method: 'GET', credentials: CHILD_CREDENTIALS['acct-A'] });
+    assert.equal(dl.status, 200, 'the restarted service serves a binary uploaded by the killed process');
+    assert.deepEqual(Buffer.from(await dl.arrayBuffer()), binaryBytes, 'binary bytes survive the restart');
   } finally {
     await first?.stop();
     await second?.stop();
+    await new Promise((resolve) => accountServer.close(resolve));
+    restoreEnv();
   }
 });
 
@@ -475,7 +504,7 @@ test('membership: end-to-end against a real Account service (GET /loopMembers + 
   const dir2 = mkdtempSync(join(tmpdir(), 'phx-key-acct-'));
   const prevNet = process.env.NET_account;
   const prevKey = process.env.ETCO_classic_keyFile;
-  let accountServer; let classic;
+  let accountServer; let classic; let restorePeerToken;
   try {
     const acct = new Store(join(dir2, 'account.json'));
     for (const id of ['owner-1', 'robot-1', 'stranger-1']) {
@@ -492,6 +521,10 @@ test('membership: end-to-end against a real Account service (GET /loopMembers + 
     accountServer = await accountService.listen(0);
     process.env.NET_account = `127.0.0.1:${accountServer.address().port}`;
     process.env.ETCO_classic_keyFile = join(dir2, 'keys.json');
+    // Since 07178e2 Account's GET /loopMembers and GET /loop are private peer routes that
+    // require ETCO_account_internalPeerToken plus a matching x-phoenix-internal-token header
+    // (account/src/keyPeerRoutes.js, backupPeerRoutes.js); key.js accountMembership sends it.
+    restorePeerToken = setEnv({ ETCO_account_internalPeerToken: SYNTHETIC_PEER_TOKEN });
 
     // DEFAULT membership seam — no injection, the real accountMembership HTTP client.
     classic = await createClassicEntrypoint().listen(0);
@@ -556,6 +589,7 @@ test('membership: end-to-end against a real Account service (GET /loopMembers + 
     if (accountServer) await new Promise((r) => accountServer.close(r));
     if (prevNet === undefined) delete process.env.NET_account; else process.env.NET_account = prevNet;
     if (prevKey === undefined) delete process.env.ETCO_classic_keyFile; else process.env.ETCO_classic_keyFile = prevKey;
+    restorePeerToken?.();
     rmSync(dir2, { recursive: true, force: true });
   }
 });
@@ -610,67 +644,27 @@ async function withMembership(membership, fn) {
   }
 }
 
-async function freePort() {
-  const s = http.createServer();
-  await new Promise((resolve) => s.listen(0, resolve));
-  const p = s.address().port;
-  await new Promise((resolve) => s.close(resolve));
-  return p;
-}
+// Synthetic signing credentials for the executable child. The SigV4 boundary resolves the
+// access key to the Account record; Key then sees the verified account id (`_id`).
+const CHILD_CREDENTIALS = {
+  'acct-A': syntheticAccount('acct-A'),
+  'acct-B': syntheticAccount('acct-B'),
+};
 
-async function startChild({ port, keyFile, binDir }) {
-  const child = spawn(process.execPath, [ENTRY], {
-    cwd: ROOT,
+async function startChild({ port, keyFile, binDir, accountFile, env = {} }) {
+  return startClassicChild({
+    port,
+    accountDataFile: accountFile,
     env: {
-      ...process.env,
-      PORT: String(port),
+      ...env,
       ETCO_classic_keyFile: keyFile,
       ETCO_classic_keyBinaryDir: binDir,
     },
-    stdio: ['ignore', 'pipe', 'pipe'],
+    ready: async (baseUrl) => (await childAmz(baseUrl, 'Key_20160201.ShouldCreate', { loopId: 'l-restart' }, 'acct-A')).status === 200,
   });
-  let stderr = '';
-  child.stdout.resume();
-  child.stderr.on('data', (c) => { stderr += c; });
-  const baseUrl = `http://localhost:${port}`;
-  const ready = async () => {
-    try {
-      const res = await fetch(`${baseUrl}/`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/x-amz-json-1.1', 'x-amz-target': 'Key_20160201.ShouldCreate' },
-        body: JSON.stringify({ loopId: 'readiness-probe' }),
-      });
-      return res.status === 200;
-    } catch { return false; }
-  };
-  for (let i = 0; i < 150; i++) {
-    if (await ready()) {
-      return {
-        base: baseUrl,
-        child,
-        stop: () => new Promise((resolve) => {
-          if (child.exitCode !== null || child.signalCode !== null) return resolve();
-          child.once('close', resolve);
-          child.kill('SIGKILL');
-        }),
-      };
-    }
-    if (child.exitCode !== null) break;
-    await sleep(100);
-  }
-  child.kill('SIGKILL');
-  throw new Error(`classic entrypoint child did not start: ${stderr}`);
 }
 
-async function childAmz(baseUrl, target, body, accessKey) {
-  const res = await fetch(`${baseUrl}/`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/x-amz-json-1.1',
-      'x-amz-target': target,
-      ...(accessKey ? { authorization: `AWS4-HMAC-SHA256 Credential=${accessKey}/20260613/us-east-1/aws4_request, SignedHeaders=host, Signature=ff` } : {}),
-    },
-    body: JSON.stringify(body || {}),
-  });
-  return { status: res.status, body: await res.json().catch(() => null) };
+async function childAmz(baseUrl, target, body, accountId) {
+  const { status, body: parsed } = await signedAmz(baseUrl, target, body, CHILD_CREDENTIALS[accountId]);
+  return { status, body: parsed };
 }
