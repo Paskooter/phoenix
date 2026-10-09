@@ -12,9 +12,10 @@
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { Readable } from 'node:stream';
 import { createClassicEntrypoint } from '../src/index.js';
 import { MediaStore } from '../src/media.js';
 
@@ -429,4 +430,55 @@ test('an uploaded photo survives an entrypoint restart and is re-read over HTTP'
   assert.equal(await bytes.text(), 'survives');
   // A fresh store object built from the same files sees the persisted entry too.
   assert.ok(new MediaStore({ directory: join(dir, 'objects'), file: join(dir, 'media.json') }).find('restart-photo'));
+});
+
+// Re-ported from the September week-review hardening (synthetic data).
+test('an invalid HTTP identity cannot become a media directory component', async () => {
+  const r = await upload('identity-escape', Buffer.from('must not write'), { accessKeyId: '..' });
+  assert.equal(r.status, 400);
+  assert.equal(r.errType, 'ValidationException');
+  assert.equal(store.find('identity-escape'), null);
+  assert.equal(await readFile(join(dir, 'identity-escape.jpg'), 'utf8').catch(() => null), null);
+});
+
+test('MediaStore confines account and media path components, including encoded traversal and symlinked directories', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'phoenix-media-boundary-'));
+  const directory = join(root, 'objects');
+  const media = new MediaStore({ directory, file: join(root, 'media.json') });
+  try {
+    for (const record of [
+      { accountId: '..', path: 'escape', type: 'image' },
+      { accountId: '../escape', path: 'nested', type: 'image' },
+      { accountId: 'account-a', path: '..', type: 'image' },
+      { accountId: 'account-a', path: '../escape', type: 'image' },
+      { accountId: 'account-a', path: '%2e%2e', type: 'image' },
+    ]) {
+      await assert.rejects(
+        () => media.writeBlob(record, Readable.from(Buffer.from('must stay inside'))),
+        /invalid media (accountId|path)/,
+      );
+    }
+    assert.equal(await readFile(join(root, 'escape.jpg'), 'utf8').catch(() => null), null);
+    assert.equal(await readFile(join(root, 'nested.jpg'), 'utf8').catch(() => null), null);
+
+    await mkdir(join(root, 'outside'), { recursive: true });
+    await mkdir(directory, { recursive: true });
+    await symlink(join(root, 'outside'), join(directory, 'link-account'), 'dir');
+    await assert.rejects(
+      () => media.writeBlob({ accountId: 'link-account', path: 'linked', type: 'image' }, Readable.from(Buffer.from('must not follow'))),
+      /symlink|contained/,
+    );
+    assert.equal(await readFile(join(root, 'outside', 'linked.jpg'), 'utf8').catch(() => null), null);
+
+    await mkdir(join(directory, 'account-a'), { recursive: true });
+    await writeFile(join(root, 'outside', 'existing.jpg'), 'keep-this-byte');
+    await symlink(join(root, 'outside', 'existing.jpg'), join(directory, 'account-a', 'existing.jpg'));
+    await assert.rejects(
+      () => media.writeBlob({ accountId: 'account-a', path: 'existing', type: 'image' }, Readable.from(Buffer.from('must not replace'))),
+      /symlink|contained/,
+    );
+    assert.equal(await readFile(join(root, 'outside', 'existing.jpg'), 'utf8'), 'keep-this-byte');
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });
