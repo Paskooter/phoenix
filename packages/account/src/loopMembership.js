@@ -206,6 +206,15 @@ function sameValue(left, right) {
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
+// MAX_SIZE counts household members, accepted or invited, not the robot account that is
+// stored as a loop member for wire compatibility (DIVERGENCES A-hardening-member-cap).
+function activeMemberCount(loop) {
+  return (loop?.members || []).filter((member) => {
+    if (loop.robot && idsEqual(loop.robot, member.accountId)) return false;
+    return isAcceptedStatus(member.status) || isMemberStatus(member.status, MEMBER_STATUS.INVITED);
+  }).length;
+}
+
 function getMemberPath(member, path) {
   return String(path).split('.').reduce((value, part) => (
     value === undefined || value === null ? undefined : value[part]
@@ -306,6 +315,14 @@ function applyLoopMutation(store, mutation) {
       setMemberPath(member, field, snapshotLoop(value));
     }
     next.__v = currentVersion;
+  }
+  // The limit is a commit-time invariant: concurrent requests may all have loaded the same
+  // pre-mutation draft, so addMember's request-side check alone would let them overfill the
+  // loop. Only a mutation that grows the active count is refused, so a loop stored over the
+  // limit (the source never enforced it) can still be trimmed.
+  const activeAfter = activeMemberCount(next);
+  if (activeAfter > MAX_SIZE && activeAfter > activeMemberCount(current)) {
+    fail(LOOP_MEMBERSHIP_ERRORS.ACTIVE_LIMIT_REACHED);
   }
   next.updated = mutation.draft.updated;
   store.loops.set(mutation.loopId, next);
@@ -671,10 +688,10 @@ async function addMember(store, {
       fields: { status: existingMember.status, invitationCode: existingMember.invitationCode },
     });
   }
-  // Source compares the filtered array with MAX_SIZE, not `.length`. Preserve that.
-  const existingAffectingSize = loop.members.filter((member) => !(loop.robot && idsEqual(loop.robot, member.account))
-    && (isAcceptedStatus(member.status) || isMemberStatus(member.status, MEMBER_STATUS.INVITED)));
-  if (existingAffectingSize >= MAX_SIZE) fail(LOOP_MEMBERSHIP_ERRORS.ACTIVE_LIMIT_REACHED);
+  // The source compared the filtered array with MAX_SIZE, so it never refused. Phoenix
+  // enforces the limit (DIVERGENCES A-hardening-member-cap): a cheap request-side refusal for a loop
+  // that is already full, and the authoritative commit-time check in applyLoopMutation.
+  if (!existingMember && activeMemberCount(loop) >= MAX_SIZE) fail(LOOP_MEMBERSHIP_ERRORS.ACTIVE_LIMIT_REACHED);
   const memberIsChild = coppaEnabled && memberProperties && memberProperties.isChild;
   const memberStatus = memberProperties && !memberProperties.email && !memberIsChild
     ? MEMBER_STATUS.ACCEPTED
