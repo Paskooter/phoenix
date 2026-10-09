@@ -3,7 +3,7 @@
 // mapping, @jibo/binary createPublic/remove, and srv-security-gw@43a692fe.
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { request as httpRequest } from 'node:http';
 import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -22,7 +22,7 @@ import {
   updatePhoto,
 } from '../src/accountIdentity.js';
 import { createAccountService } from '../src/index.js';
-import { createClassicEntrypoint } from '../../classic/src/index.js';
+import { createClassicEntrypoint, createVerifiedClassicCaller } from '../../classic/src/index.js';
 
 const PASSWORD = 'ValidPass1';
 const BYTES = Buffer.from([255, 0, 10, 128, 1]);
@@ -86,6 +86,28 @@ async function postPhoto(base, body, account, extraHeaders = {}, secret = accoun
   let parsed;
   try { parsed = JSON.parse(rawBody); } catch { parsed = undefined; }
   return { status: response.status, headers: Object.fromEntries(response.headers), body: parsed, rawBody };
+}
+
+// Since 07178e2 Account's GET /member-photos/:key is session/peer-bound
+// (index.js verifiedClassicPhotoCaller): public photo bytes are served through
+// Classic's SigV4-verified proxy (classic/src/index.js 'GET /member-photos/:key'
+// -> photoProxy.js), which forwards the verified account id to Account with the
+// internal peer token. Download as a signed robot/browser caller would.
+function signedPhotoGet(url, account) {
+  const { host, pathname } = new URL(url);
+  const headers = signSigV4({
+    method: 'GET',
+    path: pathname,
+    body: '',
+    // Classic's replay guard rejects a reused signature; a signed synthetic
+    // nonce keeps repeated GETs of one URL within a second distinct.
+    headers: { host, 'x-synthetic-request-nonce': randomUUID() },
+    accessKeyId: account.accessKeyId,
+    secretAccessKey: account.secretAccessKey,
+    region: 'global',
+    service: 'jibo',
+  }).headers;
+  return fetch(url, { headers });
 }
 
 test('photo operations are credentialed identity methods, not anonymous targets', () => {
@@ -215,11 +237,33 @@ describe('Account UpdatePhoto/RemovePhoto HTTP', { concurrency: 1 }, () => {
     provider.publicBaseUrl = `${accountBase}/member-photos`;
     const previous = process.env.NET_account;
     process.env.NET_account = accountBase;
-    const classic = await createClassicEntrypoint({
-      notificationFile: join(dir, 'notifications.json'),
-      notificationPollIntervalMs: 60000,
-    }).listen(0);
+    // Synthetic Account<->Classic peer token for the private photo hop; restored below.
+    const hadPeerToken = Object.prototype.hasOwnProperty.call(process.env, 'ETCO_account_internalPeerToken');
+    const previousPeerToken = process.env.ETCO_account_internalPeerToken;
+    process.env.ETCO_account_internalPeerToken = 'synthetic-account-photos-peer-token';
+    let classic;
+    let photoGateway;
+    let classicBase;
     try {
+      classic = await createClassicEntrypoint({
+        notificationFile: join(dir, 'notifications.json'),
+        notificationPollIntervalMs: 60000,
+      }).listen(0);
+      // Public photo URLs point at a Classic listener configured like
+      // production (classic/src/index.js start): SigV4 caller boundary on, so
+      // the photo proxy forwards the verified account id to Account. The
+      // upload loop below keeps its original boundary-free Classic, where
+      // Account itself verifies each signed request.
+      photoGateway = await createClassicEntrypoint({
+        notificationFile: join(dir, 'gateway-notifications.json'),
+        notificationPollIntervalMs: 60000,
+        requirePublicUrl: false,
+        callerBoundary: createVerifiedClassicCaller({
+          resolveCredentials: (accessKeyId) => store.accountByAccessKeyId(accessKeyId),
+        }),
+      }).listen(0);
+      classicBase = `http://127.0.0.1:${photoGateway.address().port}`;
+      provider.publicBaseUrl = `${classicBase}/member-photos`;
       for (const service of [account, classic]) {
         const base = `http://127.0.0.1:${service.address().port}`;
         const overLimit = await new Promise((resolve, reject) => {
@@ -272,7 +316,12 @@ describe('Account UpdatePhoto/RemovePhoto HTTP', { concurrency: 1 }, () => {
         const key = url.split('/').pop();
         assert.ok(key.startsWith(owner._id));
         assert.match(key.slice(owner._id.length), /^\d+$/);
-        const download = await fetch(url);
+        assert.ok(url.startsWith(`${classicBase}/member-photos/`), url);
+        assert.equal((await fetch(url)).status, 401, 'photo bytes are not a bearer URL');
+        assert.equal((await fetch(`${accountBase}/member-photos/${key}`)).status, 401,
+          'Account-origin photo ingress refuses an anonymous caller');
+        assert.equal((await signedPhotoGet(url, outsider)).status, 404, 'a non-member cannot read the photo');
+        const download = await signedPhotoGet(url, owner);
         assert.equal(download.status, 200);
         assert.deepEqual(Buffer.from(await download.arrayBuffer()), BYTES);
 
@@ -284,19 +333,19 @@ describe('Account UpdatePhoto/RemovePhoto HTTP', { concurrency: 1 }, () => {
         assert.equal(replaced.status, 200, replaced.rawBody);
         const nextUrl = replaced.body.photoUrl;
         assert.notEqual(nextUrl, url);
-        assert.equal((await fetch(url)).status, 404);
-        assert.deepEqual(Buffer.from(await (await fetch(nextUrl)).arrayBuffer()), REPLACEMENT);
+        assert.equal((await signedPhotoGet(url, owner)).status, 404);
+        assert.deepEqual(Buffer.from(await (await signedPhotoGet(nextUrl, owner)).arrayBuffer()), REPLACEMENT);
 
         const computed = await postPhoto(base, BYTES, owner, {}, owner.secretAccessKey, false);
         assert.equal(computed.status, 200, computed.rawBody);
         const computedUrl = computed.body.photoUrl;
-        assert.deepEqual(Buffer.from(await (await fetch(computedUrl)).arrayBuffer()), BYTES);
+        assert.deepEqual(Buffer.from(await (await signedPhotoGet(computedUrl, owner)).arrayBuffer()), BYTES);
         assert.equal((await postPhoto(base, BYTES, owner, {}, 'synthetic-wrong-secret', false)).status, 401);
 
         const removed = await postJson(base, 'Account_20151111.RemovePhoto', {}, owner);
         assert.equal(removed.status, 200, removed.rawBody);
         assert.equal(removed.body.photoUrl, null);
-        assert.equal((await fetch(computedUrl)).status, 404);
+        assert.equal((await signedPhotoGet(computedUrl, owner)).status, 404);
         const after = await postJson(base, 'Account_20151111.Get', {}, owner);
         assert.equal(after.body[0].photoUrl, null);
 
@@ -309,9 +358,11 @@ describe('Account UpdatePhoto/RemovePhoto HTTP', { concurrency: 1 }, () => {
         assert.deepEqual(jsonStillParsed.body, { exists: true });
       }
     } finally {
-      await Promise.all([account, classic].map((server) => new Promise((resolve) => server.close(resolve))));
+      await Promise.all([account, classic, photoGateway].filter(Boolean).map((server) => new Promise((resolve) => server.close(resolve))));
       if (previous === undefined) delete process.env.NET_account;
       else process.env.NET_account = previous;
+      if (hadPeerToken) process.env.ETCO_account_internalPeerToken = previousPeerToken;
+      else delete process.env.ETCO_account_internalPeerToken;
       await rm(dir, { recursive: true, force: true });
     }
   });
