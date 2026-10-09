@@ -26,10 +26,13 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const dir = mkdtempSync(join(tmpdir(), 'phx-oobe-setup-'));
+const previousDataFile = process.env.ETCO_account_dataFile;
+const previousRobotRead = process.env.NET_robotread;
 process.env.ETCO_account_dataFile = join(dir, 'store.json');
 delete process.env.NET_robotread;
 
 const { createAccountService, getStore, Store } = await import('../src/index.js');
+const { signedLoopHeaders } = await import('./fixtures/signedLoopRequest.js');
 const { createOwnerAccount, createLoop, findOrCreateRobotAccount, mintSetupToken, ACCESS_TOKEN_LIFETIME_MS } = await import('../src/model.js');
 
 // Robot registry stub. A missing id rejects, which the source tolerates
@@ -44,17 +47,13 @@ const robotReadClient = {
 };
 
 let server; let base;
-const sig = (keyId) => `AWS4-HMAC-SHA256 Credential=${keyId}/20260612/us-east-1/account/aws4_request, SignedHeaders=host, Signature=feedface`;
-
-async function amz(target, body, headers = {}) {
+// PrepareRobot and ReconnectRobot verify the complete AWS V4 signature since
+// 07178e2 (robotFace.js verifiedClassicCaller). `as` is the synthetic
+// accessKeyId to sign with; omit it for the unsigned SetupRobot/GetStatus path.
+async function amz(target, body, as) {
   const res = await fetch(`${base}/`, {
     method: 'POST',
-    headers: {
-      'content-type': 'application/x-amz-json-1.1',
-      'x-amz-target': target,
-      ...headers,
-      connection: 'close',
-    },
+    headers: signedLoopHeaders(getStore(), base, target, body, as, { connection: 'close' }),
     body: JSON.stringify(body),
   });
   return {
@@ -79,7 +78,13 @@ before(async () => {
   server = await createAccountService({ robotReadClient }).listen(0);
   base = `http://localhost:${server.address().port}`;
 });
-after(() => { server.close(); rmSync(dir, { recursive: true, force: true }); });
+after(() => {
+  server.close();
+  if (previousDataFile === undefined) delete process.env.ETCO_account_dataFile;
+  else process.env.ETCO_account_dataFile = previousDataFile;
+  if (previousRobotRead !== undefined) process.env.NET_robotread = previousRobotRead;
+  rmSync(dir, { recursive: true, force: true });
+});
 
 // ---------------------------------------------------------------------------
 // suspended-loop robot replacement
@@ -440,13 +445,12 @@ test('the normal OOBE payload validations use the 422 Hapi/Joi envelope', async 
   assert.equal(status.body.message, 'child "token" fails because ["token" is required]');
 
   // PrepareRobot's own schema only constrains loopId (after credentials).
-  const prepared = await amz('OOBE_20161026.PrepareRobot', { loopId: 123 }, { authorization: sig(o.accessKeyId) });
+  const prepared = await amz('OOBE_20161026.PrepareRobot', { loopId: 123 }, o.accessKeyId);
   assert.equal(prepared.status, 422);
   assert.equal(prepared.body.message, 'child "loopId" fails because ["loopId" must be a string]');
 
   // ReconnectRobot: credentials are checked before the payload; id is optional.
-  const reconnect = await amz('OOBE_20161026.ReconnectRobot', { token: token._id, id: 9 },
-    { authorization: sig(o.accessKeyId) });
+  const reconnect = await amz('OOBE_20161026.ReconnectRobot', { token: token._id, id: 9 }, o.accessKeyId);
   assert.equal(reconnect.status, 422);
   assert.equal(reconnect.body.message, 'child "id" fails because ["id" must be a string]');
   assert.ok(store.tokens.has(token._id), 'validation precedes the reconnect checks');
@@ -459,7 +463,7 @@ test('the normal OOBE payload validations use the 422 Hapi/Joi envelope', async 
 test('the full setup sequence is served: PrepareRobot -> SetupRobot -> GetStatus -> token expiry', async () => {
   const store = getStore();
   const o = owner('sequence-owner', 'Sequence');
-  const prepared = await amz('OOBE_20161026.PrepareRobot', {}, { authorization: sig(o.accessKeyId) });
+  const prepared = await amz('OOBE_20161026.PrepareRobot', {}, o.accessKeyId);
   assert.equal(prepared.status, 200);
   assert.equal(typeof prepared.body.token, 'string');
   assert.ok(prepared.body.expires > Date.now(), 'expires = now + 15 minutes');

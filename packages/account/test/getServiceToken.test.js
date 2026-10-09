@@ -17,6 +17,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const dir = mkdtempSync(join(tmpdir(), 'phx-servicetoken-'));
+const previousDataFile = process.env.ETCO_account_dataFile;
 process.env.ETCO_account_dataFile = join(dir, 'store.json');
 
 const { createAccountService, getStore } = await import('../src/index.js');
@@ -38,8 +39,8 @@ async function amz(target, body, headers = {}) {
   return { status: res.status, errType: res.headers.get('x-amzn-errortype'), body: await res.json().catch(() => null) };
 }
 
-// The robot face resolves identity from the SigV4 Authorization access key
-// (accountForClassicRequest -> accessKeyIdFromAuth), not from x-amz-credentials.
+// The robot face resolves identity from a verified SigV4 signature
+// (verifiedClassicCaller), not from x-amz-credentials or a bare Credential=.
 function signed(store, target, body, accessKeyId) {
   return signedLoopHeaders(store, base, target, body, accessKeyId);
 }
@@ -53,6 +54,8 @@ before(async () => {
 
 after(async () => {
   await new Promise((r) => server.close(r));
+  if (previousDataFile === undefined) delete process.env.ETCO_account_dataFile;
+  else process.env.ETCO_account_dataFile = previousDataFile;
   rmSync(dir, { recursive: true, force: true });
 });
 
@@ -113,9 +116,11 @@ test('GetServiceToken rejects an unauthenticated caller', async () => {
   const store = getStore();
   const before = store.accounts.size;
   const res = await amz('OOBE_20161026.GetServiceToken', {});
-  // errors/*.ts gives AUTHORIZED_UNDER_ADMIN statusCode 401 (not 403).
+  // Since 07178e2, getServiceToken (robotFace.js) runs verifiedClassicCaller
+  // before the adminOnly check, so an unsigned caller is refused by the SigV4
+  // gate (MISSING_AUTH_HEADER, 401) rather than reaching AUTHORIZED_UNDER_ADMIN.
   assert.equal(res.status, 401);
-  assert.equal(res.body.__type, 'AUTHORIZED_UNDER_ADMIN');
+  assert.equal(res.body.__type, 'MISSING_AUTH_HEADER');
   assert.equal(store.accounts.size, before, 'no account created without credentials');
 });
 

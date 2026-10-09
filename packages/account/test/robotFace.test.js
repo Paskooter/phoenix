@@ -1,6 +1,7 @@
 import { signedLoopHeaders } from './fixtures/signedLoopRequest.js';
+import { signSigV4 } from '@phoenix/common';
 // G.2 — robot-facing AWS-JSON face: setupRobot happy path, exact error envelopes, prefix
-// tolerance, prepareRobot via SigV4 Credential parse, getStatus, Update_* proxy to a mock OTA.
+// tolerance, prepareRobot via verified SigV4, getStatus, Update_* proxy to a mock OTA.
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -10,6 +11,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const dir = mkdtempSync(join(tmpdir(), 'phx-robotface-'));
+const previousEnv = { ETCO_account_dataFile: process.env.ETCO_account_dataFile, NET_ota: process.env.NET_ota };
 process.env.ETCO_account_dataFile = join(dir, 'store.json');
 
 const { createAccountService, getStore } = await import('../src/index.js');
@@ -46,7 +48,15 @@ before(async () => {
   server = await createAccountService().listen(0);
   base = `http://localhost:${server.address().port}`;
 });
-after(() => { server.close(); mockOta.close(); rmSync(dir, { recursive: true, force: true }); });
+after(() => {
+  server.close();
+  mockOta.close();
+  for (const [key, value] of Object.entries(previousEnv)) {
+    if (value === undefined) delete process.env[key];
+    else process.env[key] = value;
+  }
+  rmSync(dir, { recursive: true, force: true });
+});
 
 test('setupRobot: portal-minted token -> credentials, one-time, robot adopted into a loop', async () => {
   const store = getStore();
@@ -140,21 +150,33 @@ test('getStatus flips to complete once the token is consumed (or invalid)', asyn
   assert.equal((await amz('OOBE.GetStatus', { token: 'bogus' })).body.complete, true);
 });
 
-test('prepareRobot: authed by SigV4 Credential accessKeyId; reuses the live token', async () => {
+test('prepareRobot: authed by a verified SigV4 signature; reuses the live token', async () => {
   const store = getStore();
   const owner = store.accountByEmail('jane@jetson.test');
-  const sig = (keyId) => `AWS4-HMAC-SHA256 Credential=${keyId}/20260612/us-east-1/account/aws4_request, SignedHeaders=host, Signature=feedface`;
+  const target = 'OOBE.PrepareRobot';
 
-  const anon = await amz('OOBE.PrepareRobot', {});
+  // Since 07178e2, prepareRobot (robotFace.js) runs verifiedClassicCaller before
+  // minting: an unsigned caller stops at the SigV4 gate, and a Credential= naming
+  // a real access key without its secret is a signature mismatch, not identity.
+  const anon = await amz(target, {});
   assert.equal(anon.status, 401);
-  assert.equal(anon.body.__type, 'CREDENTIALS_REQUIRED');
+  assert.equal(anon.body.__type, 'MISSING_AUTH_HEADER');
 
-  const r1 = await amz('OOBE.PrepareRobot', {}, { authorization: sig(owner.accessKeyId) });
+  const forgedHeaders = signSigV4({
+    method: 'POST', path: '/', body: '{}',
+    headers: { host: new URL(base).host, 'content-type': 'application/x-amz-json-1.1', 'x-amz-target': target },
+    accessKeyId: owner.accessKeyId, secretAccessKey: 'synthetic-wrong-secret', region: 'global', service: 'jibo',
+  }).headers;
+  const forged = await amz(target, {}, forgedHeaders);
+  assert.equal(forged.status, 401);
+  assert.equal(forged.body.__type, 'SIGNATURE_MISMATCH');
+
+  const r1 = await amz(target, {}, signedLoopHeaders(store, base, target, {}, owner.accessKeyId));
   assert.equal(r1.status, 200);
   assert.ok(r1.body.token && r1.body.expires > Date.now());
 
   // token.ctrl.ts create: same account+loopId within TTL -> the SAME token, refreshed
-  const r2 = await amz('OOBE.PrepareRobot', {}, { authorization: sig(owner.accessKeyId) });
+  const r2 = await amz(target, {}, signedLoopHeaders(store, base, target, {}, owner.accessKeyId));
   assert.equal(r2.body.token, r1.body.token);
 });
 
