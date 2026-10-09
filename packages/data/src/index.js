@@ -123,7 +123,9 @@ export function createDataService({ cache = new TTLCache(), calendarCache, weath
     cache,
     validate: validateNews,
     key: newsKey,
-    fetchExternal: (input, log, req) => newsProvider ? newsProvider(input, { log, req }) : fetchNews(input, newsGet ? { get: newsGet } : {}),
+    fetchExternal: (input, log, req, context) => newsProvider
+      ? newsProvider(input, { log, req, ...(context || {}) })
+      : fetchNews(input, { ...(newsGet ? { get: newsGet } : {}), ...(context || {}) }),
   });
   const maps = createRelay({
     name: 'GoogleMaps',
