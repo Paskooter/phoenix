@@ -523,33 +523,45 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
         //   loop = findById(tokenObj.loopId)          // reread the committed state
         //   loop.isSuspended = false; loop.robot = newRobotAccount._id
         //   loop.members.push({ accountId, status: ACCEPTED }); loop.save()
-        const replacement = findOrCreateRobotAccount(store, id);
-        removeRobotFromLoops(store, loop.robot, loopUpdatedOutbox);
-        removeRobotFromLoops(store, replacement._id, loopUpdatedOutbox);
-        loop = activeLoopById(token.loopId);
-        if (!loop) return void sendAmzError(res, Errors.LOOP_NOT_FOUND);
-        // Mutate a detached draft: saveLoop must be able to leave the stored
-        // object untouched when the LoopUpdated write is rejected.
-        const before = JSON.parse(JSON.stringify(loop));
-        const draft = JSON.parse(JSON.stringify(loop));
-        draft.isSuspended = false;
-        draft.robot = replacement._id;
-        draft.members = Array.isArray(draft.members) ? draft.members : [];
-        // Mongoose applies memberSchema defaults to the pushed
-        // `{ accountId, status }`: created, enrolled, invitedAsLegalGuardian and
-        // memberProperties.isChild. Keep the persisted subdocument shaped the
-        // same way so a reopened Store projects identically.
-        draft.members.push({
-          _id: newId(),
-          accountId: replacement._id,
-          status: MEMBER_STATUS.ACCEPTED,
-          created: Date.now(),
-          invitedAsLegalGuardian: false,
-          enrolled: { face: false, voice: false },
-          memberProperties: { isChild: false },
+        //
+        // Replacement touches the replacement account, any loop holding either
+        // robot, the target loop, LoopUpdated rows and the one-time token. Keep
+        // them in one Store transaction (inner helpers' flushes are deferred),
+        // so a rejected final commit leaves the old topology and a retryable token.
+        const replaced = store.transaction(() => {
+          const replacement = findOrCreateRobotAccount(store, id);
+          removeRobotFromLoops(store, loop.robot, loopUpdatedOutbox);
+          removeRobotFromLoops(store, replacement._id, loopUpdatedOutbox);
+          const current = activeLoopById(token.loopId);
+          if (!current) return null;
+          // Mutate a detached draft: saveLoop must be able to leave the stored
+          // object untouched when the LoopUpdated write is rejected.
+          const before = JSON.parse(JSON.stringify(current));
+          const draft = JSON.parse(JSON.stringify(current));
+          draft.isSuspended = false;
+          draft.robot = replacement._id;
+          draft.members = Array.isArray(draft.members) ? draft.members : [];
+          // Mongoose applies memberSchema defaults to the pushed
+          // `{ accountId, status }`: created, enrolled, invitedAsLegalGuardian and
+          // memberProperties.isChild. Keep the persisted subdocument shaped the
+          // same way so a reopened Store projects identically.
+          draft.members.push({
+            _id: newId(),
+            accountId: replacement._id,
+            status: MEMBER_STATUS.ACCEPTED,
+            created: Date.now(),
+            invitedAsLegalGuardian: false,
+            enrolled: { face: false, voice: false },
+            memberProperties: { isChild: false },
+          });
+          saveLoop(store, draft, loopUpdatedOutbox, before);
+          deleteToken(store, token._id); // ONE-TIME, committed with the topology
+          return draft;
         });
-        saveLoop(store, draft, loopUpdatedOutbox, before);
-        loop = draft;
+        // The loop vanished in between: the transaction already committed the
+        // source's removeRobotFromLoops effects, as the source did before its reread.
+        if (!replaced) return void sendAmzError(res, Errors.LOOP_NOT_FOUND);
+        loop = replaced;
       } else {
         // Same robot after a reset reconnects its live loop and receives its
         // existing credentials. A different robot needs the loop suspended.
@@ -600,8 +612,10 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
         // SetupRobot cannot authenticate an ownership transfer.
         const robotAccount = findOrCreateRobotAccount(store, id);
         removeRobotFromLoops(store, robotAccount._id, loopUpdatedOutbox);
-        ({ loop } = createLoop(store, { owner: account, robotId: id }));
-        loopUpdatedOutbox.record(loop);
+        // Pass the outbox into creation so the loop and its required
+        // LoopUpdated row share one Store snapshot. Recording afterwards
+        // could leave a durable loop without its notification.
+        ({ loop } = createLoop(store, { owner: account, robotId: id }, loopUpdatedOutbox));
         dispatchLoopCreated(loop, invitationProviders);
       }
     }

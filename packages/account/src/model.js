@@ -339,10 +339,16 @@ export function accountToPublicWire(account) {
 }
 
 /** loops.create({owner, robotId, name?}): find-or-create the robot account and attach it. */
-export function createLoop(store, { owner, robotId }) {
+export function createLoop(store, { owner, robotId }, loopUpdatedOutbox = null) {
   const robot = findOrCreateRobotAccount(store, robotId);
   const existing = [...store.loops.values()].find((l) => l.robot === robot._id);
-  if (existing) return { loop: existing, robot }; // one loop per robot (v1)
+  if (existing) {
+    // A caller that passes its outbox used to record the returned loop after
+    // this call even when the one-loop guard returned an existing document.
+    // Keep that event for callers using the optional atomic sink.
+    if (loopUpdatedOutbox && typeof loopUpdatedOutbox.record === 'function') loopUpdatedOutbox.record(existing);
+    return { loop: existing, robot };
+  } // one loop per robot (v1)
   const loop = {
     _id: newId(),
     name: loopName(store, owner),
@@ -356,7 +362,19 @@ export function createLoop(store, { owner, robotId }) {
     created: Date.now(),
   };
   store.loops.set(loop._id, loop);
-  store.flush();
+  try {
+    // A supplied outbox owns the single snapshot commit, so the loop and its
+    // LoopUpdated row cannot become durable in separate states. Portal and
+    // admin callers without an event sink keep the two-argument API.
+    if (loopUpdatedOutbox && typeof loopUpdatedOutbox.record === 'function') {
+      loopUpdatedOutbox.record(loop);
+    } else {
+      store.flush();
+    }
+  } catch (error) {
+    store.loops.delete(loop._id);
+    throw error;
+  }
   return { loop, robot };
 }
 
