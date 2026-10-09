@@ -15,5 +15,9 @@ export class TTLCache {
     this.m.set(key, { v: value, exp: Date.now() + ttlSeconds * 1000 });
   }
 
+  keys() { return [...this.m.keys()]; }
+
+  del(key) { return this.m.delete(key); }
+
   clear() { this.m.clear(); }
 }
