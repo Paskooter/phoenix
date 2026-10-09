@@ -132,3 +132,24 @@ test('expired setup token is not reported as successful pairing', async () => {
   assert.equal(status.body.complete, false);
   assert.equal(status.body.expired, true);
 });
+
+// Re-ported from the September week-review hardening (main's in-flight setup guard).
+test('SetupRobot atomically claims a token under concurrent redemption', async () => {
+  await call('POST', '/api/signup', { email: 'synthetic-concurrent-setup@jetson.test', password: 'astro-the-dog', firstName: 'Concurrent' });
+  const setup = await call('POST', '/api/robots/setup', { ssid: 'JetsonNet', password: 'orbit-city' });
+  assert.equal(setup.status, 200);
+
+  const results = await Promise.all(Array.from({ length: 20 }, () => amz('OOBE.SetupRobot', {
+    token: setup.body.token,
+    id: 'concurrent-setup-robot',
+  })));
+  const successes = results.filter((result) => result.status === 200);
+  const rejected = results.filter((result) => result.status !== 200);
+  assert.equal(successes.length, 1, 'only one concurrent request can claim the setup token');
+  assert.equal(rejected.length, 19);
+  assert.ok(rejected.every((result) => result.body?.__type === 'TOKEN_NOT_FOUND'));
+
+  const post = await call('GET', `/api/robots/setup/status?token=${setup.body.token}`);
+  assert.equal(post.body.complete, true, 'the one winner consumed the token');
+});
+

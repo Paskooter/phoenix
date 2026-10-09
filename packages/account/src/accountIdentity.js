@@ -38,7 +38,12 @@ import {
   verifyPassword,
   verifyWebToken,
 } from './model.js';
-import { stagePhotoDigest } from './loopMemberPhotos.js';
+import {
+  photoObjectKey,
+  stagePhotoDigest,
+  uniquePhotoPath,
+  withPhotoLock,
+} from './loopMemberPhotos.js';
 import { listMembers, LOOP_MEMBERSHIP_ERRORS, removeLoop } from './loopMembership.js';
 import { bumpAccountSessionVersion } from './sessions.js';
 import { markEmailVerified } from './emailVerification.js';
@@ -1212,39 +1217,86 @@ function drainPhotoRequest(req) {
   if (typeof req.resume === 'function') req.resume();
 }
 
-function photoObjectKey(photoUrl) {
-  return String(photoUrl).split('/').pop();
-}
 
 /**
- * AccountController.updatePhoto. Upload the new public object first, then
- * delete the previous basename, then persist photoUrl. A failed remove/save
- * does not roll back the already completed binary write.
+ * AccountController.updatePhoto. Stage the new public object under a unique
+ * key, commit its URL, then delete the old object. A rejected metadata commit
+ * removes the staged object, and a failed old-object removal restores the
+ * previous metadata (DIVERGENCES A-hardening-photo-commit).
  */
 export async function updatePhoto(store, { ownerId, dataStream, photoProvider, clock = Date.now }) {
-  const account = findById(store, ownerId);
-  const savedPhoto = await photoProvider.createPublic({
-    dataStream,
-    path: account._id.valueOf() + clock(),
+  const lockKey = `account:${String(ownerId)}`;
+  return withPhotoLock(store, lockKey, async () => {
+    const account = findById(store, ownerId);
+    const savedPhoto = await photoProvider.createPublic({
+      dataStream,
+      path: uniquePhotoPath(account._id.valueOf(), clock),
+    });
+    const oldObject = photoObjectKey(account.photoUrl);
+    const newObject = photoObjectKey(savedPhoto.path || savedPhoto.url);
+    const previous = snapshotAccount(account);
+    const next = { ...account, photoUrl: savedPhoto.url, updated: Date.now() };
+    try {
+      persistAccount(store, next, previous);
+    } catch (error) {
+      // Best-effort compensation must not hide the original durable-commit
+      // failure. A unique staged key means this cannot delete the object still
+      // referenced by the previous metadata, even when the clock is reused.
+      if (newObject && newObject !== oldObject) {
+        try { await photoProvider.remove(newObject); } catch { /* preserve commit error */ }
+      }
+      throw error;
+    }
+    try {
+      if (oldObject && oldObject !== newObject) await photoProvider.remove(oldObject);
+    } catch (error) {
+      // Preserve the pre-request account state when cleanup fails. Remove the
+      // replacement only after the metadata rollback is durable; otherwise the
+      // committed metadata must continue to point at a readable object.
+      let rolledBack = false;
+      try {
+        persistAccount(store, previous, next);
+        rolledBack = true;
+      } catch {
+        // persistAccount restores the in-memory map on a rejected flush. Keep
+        // the replacement object if the durable snapshot is still the new one.
+        store.accounts.set(next._id, next);
+      }
+      if (rolledBack && newObject && newObject !== oldObject) {
+        try { await photoProvider.remove(newObject); } catch { /* preserve cleanup error */ }
+      }
+      throw error;
+    }
+    return next;
   });
-  if (account.photoUrl) await photoProvider.remove(photoObjectKey(account.photoUrl));
-  const previous = snapshotAccount(account);
-  const next = { ...account, photoUrl: savedPhoto.url, updated: Date.now() };
-  persistAccount(store, next, previous);
-  return next;
 }
 
 /**
- * AccountController.removePhoto. Delete the basename when photoUrl is set,
- * then persist photoUrl = null even when no object existed.
+ * AccountController.removePhoto. Commit photoUrl = null before deleting the
+ * old object, so a failed metadata flush never points at a missing object.
  */
 export async function removePhoto(store, { ownerId, photoProvider }) {
-  const account = findById(store, ownerId);
-  if (account.photoUrl) await photoProvider.remove(photoObjectKey(account.photoUrl));
-  const previous = snapshotAccount(account);
-  const next = { ...account, photoUrl: null, updated: Date.now() };
-  persistAccount(store, next, previous);
-  return next;
+  const lockKey = `account:${String(ownerId)}`;
+  return withPhotoLock(store, lockKey, async () => {
+    const account = findById(store, ownerId);
+    const oldObject = photoObjectKey(account.photoUrl);
+    const previous = snapshotAccount(account);
+    const next = { ...account, photoUrl: null, updated: Date.now() };
+    persistAccount(store, next, previous);
+    try {
+      if (oldObject) await photoProvider.remove(oldObject);
+    } catch (error) {
+      try {
+        persistAccount(store, previous, next);
+      } catch {
+        // A failed rollback flush leaves the new durable null metadata. Align
+        // memory with that snapshot instead of returning a split-brain record.
+        store.accounts.set(next._id, next);
+      }
+      throw error;
+    }
+    return next;
+  });
 }
 
 function authenticatePublicAccount({ store, req, body, target, auth }) {
@@ -1573,7 +1625,7 @@ function resolveMailContext(mailProviders, loopConfig) {
   };
 }
 
-export async function handleAccountIdentity({ store, req, res, body, log, mailProviders, loopConfig, identityProviders, memberPhotoProvider, loopUpdatedOutbox }) {
+export async function handleAccountIdentity({ store, req, res, body, log, mailProviders, loopConfig, identityProviders, memberPhotoProvider, loopUpdatedOutbox, photoMaxBytes }) {
   const target = String(req.headers && req.headers['x-amz-target'] || '');
   const methodName = accountMethodName(target);
   const spec = OPS[methodName];
@@ -1584,7 +1636,7 @@ export async function handleAccountIdentity({ store, req, res, body, log, mailPr
     // supplied a payload hash.  SigV4 must compare that hash to received
     // bytes, not merely trust a signed declaration.
     if (upload && req.headers.authorization && !req.photoBodyDigest) {
-      await stagePhotoDigest(req);
+      await stagePhotoDigest(req, { maxBytes: photoMaxBytes });
     }
     const auth = authenticatePublicAccount({ store, req, body, target, auth: spec.auth });
     if (auth.error) {

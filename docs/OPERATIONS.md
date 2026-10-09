@@ -44,14 +44,14 @@ PHOENIX_NLU_RUNTIME=compiled-fst PHOENIX_NLU_COMPILED_SNAPSHOT_MANIFEST=runtime/
 The default AST parser needs no provisioning at all; see [DIVERGENCES.md](DIVERGENCES.md) for how
 the two profiles relate.
 
-Useful env, all optional:
+Useful environment settings:
 
 | Variable | Effect |
 |---|---|
 | `PARAKEET_URL` | Parakeet ASR host for server-side speech recognition (`POST /transcribe`) |
 | `LLM_URL`, `LLM_MODEL` | OpenAI-compatible endpoint (e.g. LM Studio) for the answer-skill + parser fallback |
-| `HUB_TOKEN_SECRET` | JWT secret robots must sign with (default `dev-hub-token-secret`) |
-| `DISABLE_AUTH` | defaults `true` for local use — set `false` to require robot JWTs |
+| `HUB_TOKEN_SECRET` | JWT secret robots must sign with; provide a unique random value. There is no shared default: without it this launcher cannot issue or verify hub tokens, Compose refuses to start, and a production start (`PHOENIX_REQUIRE_PRODUCTION_CONFIG=true`) stops |
+| `DISABLE_AUTH` | defaults `false` (robot JWTs required). `true` is for local development only and a production start refuses it |
 | — | the admin page (`/#/admin`) has no shared password; grant it per account with `scripts/portal-grant-admin.mjs --email <address>` |
 | `PREFS_FROM_CONFIG` | `true` = personal-report prefs from `packages/skills/resources/report-prefsConfig.json` |
 
@@ -70,13 +70,18 @@ bash scripts/run-sim-stack.sh
 # then open http://localhost:8080  (or https://<host>:8443 for microphone access)
 ```
 
+The simulator launcher uses the same `HUB_TOKEN_SECRET` as the gateway. Set
+`PHOENIX_DEV_MODE=1` only when an ephemeral, process-local secret is acceptable;
+without that explicit mode the launcher exits if no secret is supplied.
 This launcher auto-detects the optional LAN services and degrades gracefully without them
 (the ASR falls back to a mock that saves received audio to `/tmp/parakeet-rx`).
 
 ## Running it — with Docker
 
 `docker-compose.yml` uses the reference service names and host ports. The following starts the
-current Phoenix stack:
+current Phoenix stack. Compose refuses to start until `.env` provides
+`HUB_TOKEN_SECRET`, both internal peer tokens, `OTA_PUBLIC_URL` and
+`CLASSIC_PUBLIC_URL`; no shared development secret is ever substituted:
 
 ```bash
 docker compose up
@@ -583,7 +588,7 @@ Then:
 1. **`cp .env.example .env`** and set, at minimum:
    ```
    # then grant yourself admin (no password): node scripts/portal-grant-admin.mjs --email <you>
-   HUB_TOKEN_SECRET=<long random>          # NOT the dev default
+   HUB_TOKEN_SECRET=<long random>          # required for signed hub tokens
    DISABLE_AUTH=false                      # require per-robot hub auth
    ETCO_account_secureCookies=true         # session cookies only over HTTPS
    ETCO_account_region=your-region         # must match the robot's region

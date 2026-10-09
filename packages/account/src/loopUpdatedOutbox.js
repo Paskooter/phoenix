@@ -24,6 +24,55 @@ function clone(value) {
   return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
 }
 
+export const LOOP_UPDATED_ERROR_MAX_LENGTH = 512;
+const SAFE_ERROR_CODE = /^[A-Za-z][A-Za-z0-9_.:-]{0,63}$/;
+const SENSITIVE_KEY = /^(?:authorization|proxy-authorization|www-authenticate|cookie|set-cookie|auth|x-api-key|api[_-]?key|access[_-]?key[_-]?id|aws[_-]?access[_-]?key[_-]?id|secret[_-]?access[_-]?key|access[_-]?token|refresh[_-]?token|id[_-]?token|oauth[_-]?token|bearer|jwt|token|secret|password|passwd|credential[s]?|signature|sig|session(?:[_-]?id|[_-]?token)?|private[_-]?key|client[_-]?secret)$/i;
+const SENSITIVE_KEY_TEXT = '(?:authorization|proxy-authorization|www-authenticate|cookie|set-cookie|auth|x-api-key|api[_-]?key|access[_-]?key[_-]?id|aws[_-]?access[_-]?key[_-]?id|secret[_-]?access[_-]?key|access[_-]?token|refresh[_-]?token|id[_-]?token|oauth[_-]?token|bearer|jwt|token|secret|password|passwd|credential[s]?|signature|sig|session(?:[_-]?id|[_-]?token)?|private[_-]?key|client[_-]?secret)';
+const SENSITIVE_ASSIGNMENT = new RegExp(`([\\\"']?${SENSITIVE_KEY_TEXT}[\\\"']?\\s*[:=]\\s*)(?:\\\"[^\\\"]*\\\"|'[^']*'|[^\\s,;&)}]+)`, 'gi');
+const URL_PATTERN = /https?:[/][/][^\s<>\"']+/gi;
+
+function safeErrorCode(error) {
+  const code = error && error.code;
+  return typeof code === 'string' && SAFE_ERROR_CODE.test(code) ? code : null;
+}
+
+function sanitizeUrl(value) {
+  try {
+    const url = new URL(value);
+    url.username = '';
+    url.password = '';
+    for (const key of url.searchParams.keys()) {
+      if (SENSITIVE_KEY.test(key) || /^x-amz-(?:credential|signature|security-token)$/i.test(key)) {
+        url.searchParams.set(key, '[REDACTED]');
+      }
+    }
+    // Fragments are not sent on HTTP requests but commonly contain bearer
+    // material in diagnostics, so do not retain them.
+    url.hash = '';
+    return url.toString();
+  } catch {
+    // Keep a useful marker without returning malformed URL text that may carry
+    // userinfo or a credential-bearing query.
+    return '[REDACTED_URL]';
+  }
+}
+
+function sanitizeErrorText(value) {
+  let text = String(value == null ? 'Publisher failed' : value);
+  text = text.replace(URL_PATTERN, (url) => sanitizeUrl(url));
+  text = text.replace(/\b(Bearer|Basic)\s+[^\s,;]+/gi, '$1 [REDACTED]');
+  text = text.replace(SENSITIVE_ASSIGNMENT, '$1[REDACTED]');
+  return text.replace(/\s+/g, ' ').trim() || 'Publisher failed';
+}
+
+/** Keep retry diagnostics useful while preventing publisher data leakage. */
+export function sanitizePublisherError(error) {
+  const code = safeErrorCode(error);
+  const message = sanitizeErrorText(error && error.message !== undefined ? error.message : error);
+  const prefix = code ? `${code}: ` : '';
+  return `${prefix}${message}`.slice(0, LOOP_UPDATED_ERROR_MAX_LENGTH);
+}
+
 function sourceMember(member = {}) {
   const result = {
     memberId: id(member._id),
@@ -185,7 +234,7 @@ export class LoopUpdatedOutbox {
                 const current = this.store.notificationOutbox.get(entry._id);
                 if (!current) return;
                 current.attempts = Number(current.attempts || 0) + 1;
-                current.lastError = error?.message || String(error);
+                current.lastError = sanitizePublisherError(error);
                 current.updated = new Date(this.clock()).toISOString();
               });
             } catch {
