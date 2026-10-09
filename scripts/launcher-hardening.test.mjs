@@ -80,3 +80,120 @@ test('stack launchers load dotenv files as data instead of sourcing them', () =>
     assert.doesNotMatch(source, /\bsource\s+["']?\$?\{?(ENV_FILE|\.\/\.env|\.env)/, path);
   }
 });
+
+// A sandbox whose PATH starts with a stub `ssh` (and `sshpass`) that only
+// records its arguments and stdin. Nothing can leave the machine even if a
+// script under test reaches its SSH step.
+function sshSandbox() {
+  const dir = mkdtempSync(resolve(tmpdir(), 'phoenix-ssh-stub-'));
+  const bin = resolve(dir, 'bin');
+  const log = resolve(dir, 'ssh.log');
+  const knownHosts = resolve(dir, 'known_hosts');
+  writeFileSync(knownHosts, '# synthetic known_hosts for offline tests\n');
+  spawnSync('mkdir', ['-p', bin]);
+  for (const name of ['ssh', 'sshpass']) {
+    writeFileSync(resolve(bin, name), `#!/bin/sh\nprintf '%s\\n' "${name}" "$@" >> "${log}"\nprintf '%s\\n' '--- stdin ---' >> "${log}"\ncat >> "${log}"\nexit 0\n`, { mode: 0o755 });
+  }
+  return {
+    env: { PATH: `${bin}:${process.env.PATH}`, HOME: dir, PHOENIX_SSH_KNOWN_HOSTS: knownHosts },
+    calls: () => (existsSync(log) ? readFileSync(log, 'utf8') : ''),
+    cleanup: () => rmSync(dir, { recursive: true, force: true }),
+  };
+}
+
+function run(script, args, env) {
+  return spawnSync('bash', [resolve(root, script), ...args], { cwd: root, env, encoding: 'utf8', timeout: 20_000, input: '' });
+}
+
+test('point-robot-at-phoenix validates hosts and ports before any SSH', () => {
+  const sandbox = sshSandbox();
+  try {
+    for (const [args, pattern] of [
+      [['not a host', '192.0.2.10'], /robot host/],
+      [['192.0.2.20', 'bad;host'], /Phoenix host/],
+      [['192.0.2.20', '192.0.2.10', '0'], /classic port/],
+      [['192.0.2.20', '192.0.2.10', '9012', '65536'], /hub port/],
+      [['192.0.2.20', '192.0.2.10', "9012'; touch /tmp/x; '"], /classic port/],
+      [['192.0.2.20', '--reset', 'extra'], /usage/],
+    ]) {
+      const result = run('scripts/point-robot-at-phoenix.sh', args, sandbox.env);
+      assert.equal(result.status, 2, `${args.join(' ')}: ${result.stderr}`);
+      assert.match(result.stderr, pattern);
+    }
+    assert.equal(sandbox.calls(), '', 'no SSH attempted');
+  } finally {
+    sandbox.cleanup();
+  }
+});
+
+test('point-robot-at-phoenix uses only OpenSSH with strict host keys and quoted arguments', () => {
+  const sandbox = sshSandbox();
+  try {
+    const apply = run('scripts/point-robot-at-phoenix.sh', ['192.0.2.20', '192.0.2.10', '9012', '9000'], sandbox.env);
+    assert.equal(apply.status, 0, apply.stderr);
+    const reset = run('scripts/point-robot-at-phoenix.sh', ['192.0.2.20', '--reset'], sandbox.env);
+    assert.equal(reset.status, 0, reset.stderr);
+    const calls = sandbox.calls();
+    assert.doesNotMatch(calls, /^sshpass$/m, 'never supplies a password');
+    assert.doesNotMatch(calls, /StrictHostKeyChecking=no|UserKnownHostsFile=\/dev\/null/);
+    assert.match(calls, /StrictHostKeyChecking=yes/);
+    assert.match(calls, /^root@192\.0\.2\.20$/m);
+    assert.match(calls, /^sh -s -- apply http:\/\/192\.0\.2\.10:9012 192\.0\.2\.10 9000 $/m);
+    // Empty endpoint values stay positional in reset mode.
+    assert.match(calls, /^sh -s -- reset '' '' 9000 $/m);
+  } finally {
+    sandbox.cleanup();
+  }
+});
+
+test('point-robot-at-phoenix refuses to run without a readable known-hosts file', () => {
+  const sandbox = sshSandbox();
+  try {
+    const result = run('scripts/point-robot-at-phoenix.sh', ['192.0.2.20', '192.0.2.10'],
+      { ...sandbox.env, PHOENIX_SSH_KNOWN_HOSTS: resolve(sandbox.env.HOME, 'missing_known_hosts') });
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /known-hosts/);
+    assert.equal(sandbox.calls(), '');
+  } finally {
+    sandbox.cleanup();
+  }
+});
+
+test('repoint-robot validates its inputs and pins host keys before connecting', () => {
+  const sandbox = sshSandbox();
+  try {
+    for (const [args, pattern] of [
+      [['--robot', 'root@192.0.2.20', '--phoenix', '192.0.2.10', '--hub-port', '65536', '--dry-run'], /hub port/],
+      [['--robot', 'root@bad host', '--phoenix', '192.0.2.10', '--dry-run'], /robot SSH target/],
+      [['--robot', 'root@192.0.2.20', '--phoenix', "192.0.2.10'", '--dry-run'], /Phoenix host/],
+      [['--robot', 'root@192.0.2.20', '--phoenix', '192.0.2.10', '--regions', 'api,$(id)', '--dry-run'], /region/],
+      [['--robot', 'root@192.0.2.20', '--phoenix', '192.0.2.10', '--classic-url', 'http://192.0.2.10:9012/x', '--dry-run'], /classic URL/],
+    ]) {
+      const result = run('scripts/parity-robot/repoint-robot.sh', args, sandbox.env);
+      assert.equal(result.status, 1, `${args.join(' ')}: ${result.stderr}`);
+      assert.match(result.stderr, pattern);
+    }
+    assert.equal(sandbox.calls(), '', 'no SSH attempted');
+    const source = read('scripts/parity-robot/repoint-robot.sh');
+    assert.match(source, /StrictHostKeyChecking=yes/);
+    assert.match(source, /UserKnownHostsFile=\$SSH_KNOWN_HOSTS/);
+  } finally {
+    sandbox.cleanup();
+  }
+});
+
+test('the robot-side repoint rejects malformed endpoints before reading robot state', () => {
+  // Only rejected inputs are exercised: a valid run would edit the host it runs on.
+  for (const [args, pattern] of [
+    [['http://bad host:9012'], /REST endpoint/],
+    [['http://192.0.2.10:9012/path'], /REST endpoint/],
+    [['http://user@192.0.2.10:9012'], /REST endpoint/],
+    [['http://192.0.2.10:9012', '--hub', '192.0.2.10:0'], /hub host or port/],
+    [['http://192.0.2.10:9012', '--socket', 'wss://bad;host'], /socket endpoint/],
+    [['http://192.0.2.10:9012', '--region', 'api;id'], /region/],
+  ]) {
+    const result = run('scripts/robot-repoint-server-client.sh', args, { PATH: process.env.PATH });
+    assert.equal(result.status, 2, `${args.join(' ')}: ${result.stderr}`);
+    assert.match(result.stderr, pattern);
+  }
+});
