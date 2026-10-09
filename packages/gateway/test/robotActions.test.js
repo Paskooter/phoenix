@@ -19,6 +19,16 @@ const PEER = 'synthetic-private-peer-token';
 const ROBOT_A = { id: 'synthetic-robot-a-account', accessKeyId: 'synthetic-robot-a-key', friendlyId: 'synthetic-robot-a' };
 const ROBOT_B = { id: 'synthetic-robot-b-account', accessKeyId: 'synthetic-robot-b-key', friendlyId: 'synthetic-robot-b' };
 const sign = (identity) => jwt.sign({ ...identity, exp: Math.floor(Date.now() / 1000) + 60 }, SECRET);
+// Admission waits on two Account round trips and three durable fsyncs, which a
+// loaded host can stretch past several seconds. No test relies on this default
+// elapsing: expiry tests pass an already-past deadline, block fsync on purpose,
+// or run the native deadline themselves with holdNativeDeadline().
+const ANNOUNCE_DEADLINE_MS = 30_000;
+// A drain lease that cannot lapse while a test is still asserting on it.
+const DRAIN_LEASE_MS = 10 * 60_000;
+// Tests that hold the fixture Account's answer release it themselves; a request
+// timeout racing that hold would only measure host speed.
+const HELD_ACCOUNT_TIMEOUT_MS = 2 ** 31 - 1;
 
 async function eventually(condition, message) {
   for (let i = 0; i < 400; i++) { if (await condition()) return; await delay(5); }
@@ -26,6 +36,8 @@ async function eventually(condition, message) {
 }
 
 async function fixture(t, overrides = {}) {
+  // Deadlines and the adapter follow the bridge's clock when a test injects one.
+  const now = overrides.robotActions?.now || Date.now;
   const directory = mkdtempSync(join(tmpdir(), 'synthetic-native-announcement-'));
   const priorRuntime = process.env.PHOENIX_RUNTIME_DIR;
   process.env.PHOENIX_RUNTIME_DIR = directory;
@@ -63,7 +75,7 @@ async function fixture(t, overrides = {}) {
   await gateway.service.listen(0, '127.0.0.1');
   const base = `http://127.0.0.1:${gateway.service.server.address().port}`;
   const socketBase = base.replace('http:', 'ws:');
-  const adapter = createRobotAnnouncementAdapter({ url: base, token: PEER });
+  const adapter = createRobotAnnouncementAdapter({ url: base, token: PEER, now });
   t.after(async () => {
     gateway.robotActions.close();
     for (const socket of gateway.wss.clients) socket.terminate();
@@ -94,7 +106,7 @@ async function fixture(t, overrides = {}) {
   const announce = (identity = ROBOT_A, extras = {}) => {
     const requestId = randomUUID();
     return { identity, requestId, authorizationId: `11111111-1111-4111-8111-111111111111:${requestId}`,
-      text: 'Synthetic test announcement.', deadline: Date.now() + 3000, ...extras };
+      text: 'Synthetic test announcement.', deadline: now() + ANNOUNCE_DEADLINE_MS, ...extras };
   };
   return { gateway, base, socketBase, adapter, state, directory, live, permissions, verification, authorization, connect, announce };
 }
@@ -106,6 +118,44 @@ async function rejectUpgrade(url, token) {
   const status = response.statusCode;
   response.resume(); socket.terminate();
   return status;
+}
+
+// Admission schedules the native deadline synchronously right after
+// activity.begin('robot-action'). Capture that one timer so the test, not host
+// load, decides when the deadline elapses; the bridge's clearTimeout still
+// cancels it, and expire() refuses to run a cancelled deadline.
+function holdNativeDeadline(t, f) {
+  const { activity } = f.gateway.robotActions;
+  const begin = activity.begin;
+  const realSetTimeout = globalThis.setTimeout;
+  const realClearTimeout = globalThis.clearTimeout;
+  const held = { callback: null, handle: null, cleared: false };
+  globalThis.clearTimeout = (handle) => {
+    if (handle !== null && handle === held.handle) held.cleared = true;
+    return realClearTimeout(handle);
+  };
+  t.after(() => { globalThis.clearTimeout = realClearTimeout; activity.begin = begin; });
+  activity.begin = kind => {
+    const end = begin(kind);
+    if (end && kind === 'robot-action' && !held.callback) {
+      globalThis.setTimeout = (callback) => {
+        globalThis.setTimeout = realSetTimeout;
+        held.callback = callback;
+        held.handle = realSetTimeout(() => {}, 2 ** 31 - 1);
+        return held.handle;
+      };
+      queueMicrotask(() => { globalThis.setTimeout = realSetTimeout; });
+    }
+    return end;
+  };
+  held.expire = () => {
+    assert.ok(held.callback, 'no native deadline was scheduled');
+    assert.equal(held.cleared, false, 'the native deadline was already cancelled');
+    realClearTimeout(held.handle);
+    held.cleared = true;
+    held.callback();
+  };
+  return held;
 }
 
 const nextFrame = async (socket) => JSON.parse((await once(socket, 'message', { signal: AbortSignal.timeout(5000) }))[0].toString('utf8'));
@@ -223,7 +273,7 @@ test('supplied volume rejects before authorization, reservation, activity or nat
 });
 
 test('final Account authorization rejects household transfer or permission changes during identity lookup', async t => {
-  const f = await fixture(t);
+  const f = await fixture(t, { accountVerifyTimeoutMs: HELD_ACCOUNT_TIMEOUT_MS });
   const native = await f.connect();
   let announced = false;
   native.on('message', data => { if (JSON.parse(data.toString('utf8')).type === 'announce') announced = true; });
@@ -247,7 +297,8 @@ test('final Account authorization rejects household transfer or permission chang
 });
 
 test('two robots remain isolated; native busy, stale status, invalid input and expiry never execute', async t => {
-  const f = await fixture(t, { robotActions: { peerToken: PEER, statusMaxAgeMs: 1500, heartbeatMs: 2000 } });
+  let now = Date.now();
+  const f = await fixture(t, { robotActions: { peerToken: PEER, statusMaxAgeMs: 1500, heartbeatMs: 2000, now: () => now } });
   const nativeA = await f.connect(); const nativeB = await f.connect(ROBOT_B);
   nativeA.send(JSON.stringify({ v: 1, type: 'status', busy: true, active_request_id: null }));
   await eventually(() => f.gateway.robotActions.status(ROBOT_A).busy, 'native busy was not observed');
@@ -258,12 +309,12 @@ test('two robots remain isolated; native busy, stale status, invalid input and e
   result(nativeB, frame, { outcome: 'rejected', confirmed: false, code: 'busy' });
   assert.deepEqual(await operation, { outcome: 'error', code: 'busy' });
   for (const extras of [{ text: 'x'.repeat(301) }, { text: 'invalid\u0000text' },
-    { deadline: Date.now() + 46_000 }, { requestId: 'invented-non-uuid' }, { authorizationId: 'invalid-ledger' },
+    { deadline: now + 46_000 }, { requestId: 'invented-non-uuid' }, { authorizationId: 'invalid-ledger' },
     { authorizationId: '11111111-1111-4111-8111-111111111111:22222222-2222-4222-8222-222222222222' }]) {
     assert.deepEqual(await f.adapter.announce(f.announce(ROBOT_B, extras)), { outcome: 'error', code: 'invalid_request' });
   }
-  assert.deepEqual(await f.adapter.announce(f.announce(ROBOT_B, { deadline: Date.now() - 1 })), { outcome: 'error', code: 'expired' });
-  await delay(1600);
+  assert.deepEqual(await f.adapter.announce(f.announce(ROBOT_B, { deadline: now - 1 })), { outcome: 'error', code: 'expired' });
+  now += 1600; // robot B's last status is now older than statusMaxAgeMs
   assert.deepEqual(await f.adapter.status(ROBOT_B), { online: false, busy: false, announcements_supported: false });
   assert.deepEqual(await f.adapter.announce(f.announce(ROBOT_B)), { outcome: 'error', code: 'robot_offline' });
 });
@@ -299,8 +350,9 @@ test('voice excludes reverse jobs and interrupts announced speech only after nat
 test('lost connection preserves admission until native idle after deadline; reconnect never replays', async t => {
   const f = await fixture(t);
   const native = await f.connect();
+  const deadline = holdNativeDeadline(t, f);
   const incoming = nextFrame(native);
-  const input = f.announce(ROBOT_A, { deadline: Date.now() + 800 });
+  const input = f.announce();
   const operation = f.adapter.announce(input);
   await incoming;
   native.terminate();
@@ -311,7 +363,8 @@ test('lost connection preserves admission until native idle after deadline; reco
   replacement.on('message', data => { if (JSON.parse(data.toString()).type === 'announce') replayed = true; });
   assert.deepEqual(await f.adapter.announce(input), { outcome: 'error', code: 'duplicate_request' });
   assert.equal((await f.adapter.status(ROBOT_A)).busy, true);
-  await eventually(() => f.gateway.robotActions.jobs.get(ROBOT_A.id)?.deadlineExpired, 'native deadline was not reached');
+  deadline.expire();
+  assert.equal(f.gateway.robotActions.jobs.get(ROBOT_A.id)?.deadlineExpired, true, 'native deadline was not reached');
   assert.equal(f.state().active['robot-action'], 1, 'expiry alone cannot prove native speech stopped');
   replacement.send(JSON.stringify({ v: 1, type: 'status', busy: false, active_request_id: null }));
   await eventually(() => f.state().active['robot-action'] === 0, 'fresh native idle did not release unknown speech');
@@ -321,11 +374,14 @@ test('lost connection preserves admission until native idle after deadline; reco
 test('a hung native deadline stop blocks deployment and subsequent voice until physical idle', async t => {
   const f = await fixture(t, { robotActions: { voiceInterruptTimeoutMs: 30 } });
   const native = await f.connect();
+  const deadline = holdNativeDeadline(t, f);
   const incoming = nextFrame(native);
-  const operation = f.adapter.announce(f.announce(ROBOT_A, { deadline: Date.now() + 800 }));
+  const operation = f.adapter.announce(f.announce());
   const frame = await incoming;
   native.send(JSON.stringify({ v: 1, type: 'status', busy: true, active_request_id: frame.request_id }));
+  await eventually(() => f.gateway.robotActions.jobs.get(ROBOT_A.id)?.observedActive, 'native execution was not observed');
   const cancellation = nextFrame(native);
+  deadline.expire();
   assert.deepEqual(await operation, { outcome: 'uncertain', code: 'timeout' });
   assert.equal((await cancellation).reason, 'deadline');
   assert.equal(f.state().active['robot-action'], 1);
@@ -342,7 +398,7 @@ test('retained native speech restores one quarantine during drain and survives r
   const f = await fixture(t);
   const input = f.announce();
   const drainFile = join(f.directory, 'deployment', 'drain.json');
-  writeFileSync(drainFile, JSON.stringify({ version: 1, id: 'recovery-drain', expiresAt: Date.now() + 5000 }));
+  writeFileSync(drainFile, JSON.stringify({ version: 1, id: 'recovery-drain', expiresAt: Date.now() + DRAIN_LEASE_MS }));
   const native = await f.connect(ROBOT_A, { activeRequestId: input.requestId });
   assert.equal(f.state().active['robot-action'], 1);
   assert.equal(f.state().drainId, 'recovery-drain');
@@ -424,17 +480,19 @@ test('ordinary native busy state remains distinct from recovered announcement ac
 });
 
 test('expired native authentication cannot release retained execution with an idle marker', async t => {
-  const f = await fixture(t, { robotActions: { heartbeatMs: 100000 } });
+  let now = Date.now();
+  const f = await fixture(t, { robotActions: { heartbeatMs: 100000, now: () => now } });
   const requestId = randomUUID();
-  const expiresAt = (Math.floor(Date.now() / 1000) + 2) * 1000;
+  const expiresAt = (Math.floor(now / 1000) + 60) * 1000;
   const token = jwt.sign({ ...ROBOT_A, exp: expiresAt / 1000 }, SECRET);
   const native = await f.connect(ROBOT_A, { activeRequestId: requestId, token });
   const closed = once(native, 'close');
-  await delay(expiresAt - Date.now() + 10);
+  now = expiresAt + 10; // the bridge's clock passes the claims' expiry
   native.send(JSON.stringify({ v: 1, type: 'status', busy: false, active_request_id: null }));
   assert.equal((await closed)[0], 4001);
   assert.equal(f.state().active['robot-action'], 1, 'expired claims cannot serve as native stop proof');
-  const replacement = await f.connect(ROBOT_A, { activeRequestId: requestId });
+  const replacement = await f.connect(ROBOT_A, { activeRequestId: requestId,
+    token: jwt.sign({ ...ROBOT_A, exp: expiresAt / 1000 + 60 }, SECRET) });
   replacement.send(JSON.stringify({ v: 1, type: 'status', busy: false, active_request_id: null }));
   await eventually(() => f.state().active['robot-action'] === 0, 'fresh authenticated idle did not release retained execution');
 });
@@ -442,8 +500,9 @@ test('expired native authentication cannot release retained execution with an id
 test('changing recovery IDs retain one reservation and bound transport tombstones', async t => {
   const f = await fixture(t, { robotActions: { maxSeenRequests: 2 } });
   const native = await f.connect();
+  const deadline = holdNativeDeadline(t, f);
   const incoming = nextFrame(native);
-  const operation = f.adapter.announce(f.announce(ROBOT_A, { deadline: Date.now() + 800 }));
+  const operation = f.adapter.announce(f.announce());
   const original = await incoming;
   const job = f.gateway.robotActions.jobs.get(ROBOT_A.id);
   const quiet = f.state().lastActivityAt;
@@ -463,6 +522,7 @@ test('changing recovery IDs retain one reservation and bound transport tombstone
   result(native, original);
   await delay(160);
   assert.equal(f.state().active['robot-action'], 1, 'an old UUID result cannot release replacement recovery');
+  assert.equal(deadline.cleared, true, 'a replacement UUID must cancel the old request deadline');
   assert.equal(cancels, 0, 'the old request deadline cannot cancel a replacement UUID');
   native.send(JSON.stringify({ v: 1, type: 'status', busy: false, active_request_id: null }));
   await eventually(() => f.state().active['robot-action'] === 0, 'fresh physical idle did not release replacement recovery');
@@ -522,7 +582,7 @@ test('native completion with failed durable clear returns uncertainty and keeps 
 });
 
 test('voice cancels durable preparation while final Account authorization is pending', async t => {
-  const f = await fixture(t);
+  const f = await fixture(t, { accountVerifyTimeoutMs: HELD_ACCOUNT_TIMEOUT_MS });
   const native = await f.connect();
   let announces = 0;
   native.on('message', data => { if (JSON.parse(data.toString()).type === 'announce') announces++; });
@@ -633,7 +693,7 @@ test('idle sockets, status polls and heartbeats preserve quiet minute; drain blo
   const operation = f.adapter.announce(f.announce());
   const frame = await incoming;
   const drainFile = join(f.directory, 'deployment', 'drain.json');
-  writeFileSync(drainFile, JSON.stringify({ version: 1, id: 'synthetic-drain', expiresAt: Date.now() + 5000 }));
+  writeFileSync(drainFile, JSON.stringify({ version: 1, id: 'synthetic-drain', expiresAt: Date.now() + DRAIN_LEASE_MS }));
   assert.equal(f.state().active['robot-action'], 1);
   result(native, frame);
   assert.deepEqual(await operation, { outcome: 'success', confirmed: true });

@@ -36,17 +36,29 @@ function pcmChunk(amplitude, ms = 100) {
 const SPEECH = () => pcmChunk(8000);
 const silence = () => Array.from({ length: Math.ceil(ASR_SILENCE_TO_EOS_MS / 100) }, () => pcmChunk(0));
 
-async function waitFor(predicate, timeout = 3000) {
+// These waits only guard against hangs; none asserts latency. Each Google
+// stream paces its audio at playback speed (a 1.2 s window takes >= 1 s of
+// real time) and every reservation and commit fsyncs the usage ledger on the
+// event loop, so elapsed time is a property of the host. The previous 3-4 s
+// budgets sat just above that floor and failed on loaded machines while the
+// session was still making progress. Pacing itself is asserted separately.
+const HANG_GUARD_MS = 60_000;
+
+async function waitFor(predicate, timeout = HANG_GUARD_MS) {
   const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
     if (predicate()) return;
     await sleep(5);
   }
-  throw new Error('timed out waiting for condition');
+  throw new Error(`condition not reached within the ${timeout} ms hang guard`);
 }
 
-function withTimeout(promise, ms = 4000) {
-  return Promise.race([promise, sleep(ms).then(() => { throw new Error(`timed out after ${ms}ms`); })]);
+async function withTimeout(promise, ms = HANG_GUARD_MS) {
+  let timer;
+  const guard = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`not settled within the ${ms} ms hang guard`)), ms);
+  });
+  try { return await Promise.race([promise, guard]); } finally { clearTimeout(timer); }
 }
 
 function googleRouter(t, google, env = {}, meterOptions = {}) {
@@ -308,7 +320,7 @@ test('OGG_OPUS from the robot is decoded locally and Google receives 16 kHz PCM'
     session.provideAudio(encoded.stdout.subarray(offset, offset + 400));
     await sleep(1);
   }
-  const result = await withTimeout(startPr, 8000);
+  const result = await withTimeout(startPr);
   assert.equal(result.text, 'a tone');
   const sentBytes = google.calls.streams[0].bytes;
   assert.ok(sentBytes > 16000 && sentBytes % 2 === 0, `Google received decoded PCM (${sentBytes} bytes)`);
