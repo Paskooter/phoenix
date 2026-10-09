@@ -16,19 +16,16 @@
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
 import http from 'node:http';
 import { mkdtemp, rm, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
+import { signedAmz, startClassicChild, syntheticAccount, writeSyntheticAccountStore } from './fixtures/signedClassic.js';
 import {
   createClassicEntrypoint, JotStore, JOT_OPERATIONS, JOT_TARGET_PREFIXES, JOT_MESSAGES_LIMIT, JOT_BULK_ROUTE,
   JOT_DISPATCH_RULE, jotMethodNotFound, lowerFirstOp,
 } from '../src/index.js';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
-const ENTRY = join(ROOT, 'packages', 'classic', 'src', 'index.js');
 
 const LOOP = '5a0b20f5ddee0000197e2881';
 const OTHER_LOOP = '59e66fc3762588001e64c296';
@@ -769,62 +766,29 @@ test('jot state survives a SIGKILL process restart (fresh process, same store fi
   assert.deepEqual(raw.events.map((e) => e.payload && e.payload.eventKey ? e.payload.eventKey : e.eventKey), ['JotMessageCreated']);
 });
 
-async function freePort() {
-  const srv = http.createServer();
-  await new Promise((resolve) => srv.listen(0, resolve));
-  const port = srv.address().port;
-  await new Promise((resolve) => srv.close(resolve));
-  return port;
-}
+// Synthetic signing credentials for the child. The executable entrypoint (index.js start())
+// verifies every request's SigV4 signature against the Account store named by
+// ETCO_classic_accountDataFile; Jot then sees the VERIFIED account id (person.js
+// accountIdFromRequest), so each synthetic account's _id is the fixture's member id and its
+// access key is deliberately different.
+const CHILD_CREDENTIALS = {
+  [OWNER]: syntheticAccount(OWNER),
+  [RECEIVER]: syntheticAccount(RECEIVER),
+};
 
 /** Start the real classic entrypoint as a child process over `jotFile` (its own fresh JotStore). */
 async function startChild(jotFile) {
-  const port = await freePort();
-  const child = spawn(process.execPath, [ENTRY], {
-    cwd: ROOT,
-    env: { ...process.env, PORT: String(port), ETCO_classic_jotFile: jotFile },
-    stdio: ['ignore', 'pipe', 'pipe'],
+  const accountDataFile = `${jotFile}.account.json`;
+  writeSyntheticAccountStore(accountDataFile, { accounts: Object.values(CHILD_CREDENTIALS) });
+  return startClassicChild({
+    accountDataFile,
+    env: { ETCO_classic_jotFile: jotFile },
+    ready: async (base) => (await childAmz(base, 'Jot_20160512.ListMessages', { loopId: LOOP })).status === 200,
   });
-  let stderr = '';
-  child.stdout.resume();
-  child.stderr.on('data', (chunk) => { stderr += chunk; });
-  const base = `http://localhost:${port}`;
-  for (let attempt = 0; attempt < 150; attempt += 1) {
-    try {
-      const res = await fetch(`${base}/`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/x-amz-json-1.1', 'x-amz-target': 'Jot_20160512.ListMessages', authorization: `AWS4-HMAC-SHA256 Credential=${OWNER}/20180910/us-east-1/jot/aws4_request, SignedHeaders=host, Signature=ff` },
-        body: JSON.stringify({ loopId: LOOP }),
-      });
-      if (res.status === 200) {
-        return {
-          base,
-          child,
-          stop: () => new Promise((resolve) => {
-            if (child.exitCode !== null || child.signalCode !== null) return resolve();
-            child.once('close', resolve);
-            child.kill('SIGKILL');
-          }),
-        };
-      }
-    } catch { /* not listening yet */ }
-    if (child.exitCode !== null) break;
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
-  child.kill('SIGKILL');
-  throw new Error(`classic entrypoint child did not start: ${stderr}`);
 }
 
-function childAmz(base, target, body, accessKeyId = OWNER) {
-  return fetch(`${base}/`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/x-amz-json-1.1',
-      'x-amz-target': target,
-      authorization: `AWS4-HMAC-SHA256 Credential=${accessKeyId}/20180910/us-east-1/jot/aws4_request, SignedHeaders=host, Signature=ff`,
-    },
-    body: JSON.stringify(body || {}),
-  }).then(async (res) => ({ status: res.status, errType: res.headers.get('x-amzn-errortype'), body: await res.json().catch(() => null) }));
+function childAmz(base, target, body, accountId = OWNER) {
+  return signedAmz(base, target, body, CHILD_CREDENTIALS[accountId]);
 }
 
 // ------------------------------------------------------------------------------------------------
