@@ -30,6 +30,8 @@ mapfile -d '' -t PHOENIX_LAUNCH_ENV < <(env -0)
 LAUNCH_ARGS=("$@")
 
 cd "$(dirname "$0")/.."
+# shellcheck source=scripts/load-dotenv.sh
+source scripts/load-dotenv.sh
 # The physical path: a restart keeps running this release even if a deploy has since
 # moved the `current` symlink on to the next one.
 SELF="$(pwd -P)/scripts/run-compose-stack.sh"
@@ -89,16 +91,20 @@ _OTA_PUBLIC_URL_VALUE="${OTA_PUBLIC_URL-}"
 _CLASSIC_PUBLIC_URL_WAS_SET="${CLASSIC_PUBLIC_URL+x}"
 _CLASSIC_PUBLIC_URL_VALUE="${CLASSIC_PUBLIC_URL-}"
 
-# Source .env so friendly names (PARAKEET_URL, LLM_URL, LLM_MODEL, …) are populated for the
+# Load .env so friendly names (PARAKEET_URL, LLM_URL, LLM_MODEL, …) are populated for the
 # ETCO_*/NET_* mappings below. The node services already read .env via @phoenix/common's dotenv
 # loader, but this bash launcher does NOT — without this, `${PARAKEET_URL:-}` etc. resolve empty
 # and the hub silently falls back to mock ASR even though .env has a real PARAKEET_URL.
+# The file is read as KEY=VALUE data (scripts/load-dotenv.sh), never executed as shell code,
+# and a non-empty value already in the environment wins, as in the node loader.
 # `--no-env` and `PHOENIX_ENV_FILE=/dev/null` opt out so a verification run never depends on
 # this machine's private .env (R-02 criterion 3).
 if [ "$NO_ENV" -eq 0 ]; then
   ENV_FILE="${PHOENIX_ENV_FILE:-}"
   if [ -z "$ENV_FILE" ] && [ -f .env ]; then ENV_FILE=.env; fi
-  if [ -n "$ENV_FILE" ] && [ -f "$ENV_FILE" ]; then set -a; . "$ENV_FILE"; set +a; fi
+  if [ -n "$ENV_FILE" ] && [ -f "$ENV_FILE" ]; then
+    load_phoenix_env "$ENV_FILE" || { echo "could not parse dotenv file: $ENV_FILE" >&2; exit 2; }
+  fi
 fi
 
 # Settings saved from the admin console, layered over the environment file. Each pair is

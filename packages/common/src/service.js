@@ -120,22 +120,31 @@ export function createService({
     const routeJsonTypes = route && typeof route.jsonTypes === 'function'
       ? route.jsonTypes(req)
       : route?.jsonTypes;
-    if (routeJsonTypes !== undefined) {
-      let parsersByType = scopedJsonParsers.get(route);
-      if (!parsersByType) {
-        parsersByType = new Map();
-        scopedJsonParsers.set(route, parsersByType);
+    // A route may also raise body-parser's 100 KB default for its own entity
+    // (for example a voice sample); every other route keeps the default.
+    const limit = routeBodyLimit(route, req);
+    if (routeJsonTypes !== undefined || limit !== undefined) {
+      const types = routeJsonTypes ?? JSON_CONTENT_TYPES;
+      let parsersByKey = scopedJsonParsers.get(route);
+      if (!parsersByKey) {
+        parsersByKey = new Map();
+        scopedJsonParsers.set(route, parsersByKey);
       }
-      const typeKey = scopedJsonTypeKey(routeJsonTypes);
-      let parsers = parsersByType.get(typeKey);
-      if (!parsers) {
-        parsers = {
-          strict: bodyParser.json({ type: routeJsonTypes, verify: captureRawBody, strict: true }),
-          loose: bodyParser.json({ type: routeJsonTypes, verify: captureRawBody, strict: false }),
-        };
-        parsersByType.set(typeKey, parsers);
+      const typeKey = scopedJsonTypeKey(types);
+      let parsersByLimit = parsersByKey.get(typeKey);
+      if (!parsersByLimit) {
+        parsersByLimit = new Map();
+        parsersByKey.set(typeKey, parsersByLimit);
       }
-      return (strict ? parsers.strict : parsers.loose)(req, res, next);
+      const parserKey = `${strict ? 'strict' : 'loose'}:${limit === undefined ? 'default' : String(limit)}`;
+      let parser = parsersByLimit.get(parserKey);
+      if (!parser) {
+        const options = { type: types, verify: captureRawBody, strict };
+        if (limit !== undefined) options.limit = limit;
+        parser = bodyParser.json(options);
+        parsersByLimit.set(parserKey, parser);
+      }
+      return parser(req, res, next);
     }
     return (strict ? strictJson : looseJson)(req, res, next);
   });
@@ -173,10 +182,16 @@ export function createService({
     // envelope for one endpoint. Keep this opt-in and route-scoped so the
     // default Phoenix error action remains unchanged for every other route.
     const parserRoute = findRoute(routes, req);
-    if (error?.type === 'entity.parse.failed'
-      && typeof parserRoute?.parserError === 'function') {
+    // A size rejection reaches the adapter only when that route chose its own
+    // bodyLimit for this request; other adapters keep the shared 413.
+    // `undefined` and `false` both mean "not handled": the shared envelope below
+    // still answers, so a route that declines a parser error cannot leave the
+    // request open.
+    const routeParserError = error?.type === 'entity.parse.failed'
+      || (error?.type === 'entity.too.large' && routeBodyLimit(parserRoute, req) !== undefined);
+    if (routeParserError && typeof parserRoute?.parserError === 'function') {
       const handled = parserRoute.parserError({ req, res, error });
-      if (res.headersSent || handled !== undefined) return handled;
+      if (res.headersSent || (handled !== undefined && handled !== false)) return handled;
     }
     return sendJson(res, status, serviceError(errorMessage(error, req)));
   });
@@ -240,6 +255,30 @@ function routeMiddleware(name, handler) {
       })
       .finally(() => logVoiceTurnSpan(reqLog, trace, 'http_request', spanStartedAt, spanOutcome));
   };
+}
+
+// body-parser's own default JSON entity limit.
+const DEFAULT_JSON_LIMIT_BYTES = 100 * 1024;
+const LIMIT_UNITS = { b: 1, kb: 1024, mb: 1024 ** 2, gb: 1024 ** 3 };
+
+function limitBytes(value) {
+  if (Number.isSafeInteger(value) && value >= 0) return value;
+  const match = typeof value === 'string' && /^\s*(\d+(?:\.\d+)?)\s*(b|kb|mb|gb)?\s*$/i.exec(value);
+  if (!match) return undefined;
+  return Math.floor(Number(match[1]) * LIMIT_UNITS[(match[2] || 'b').toLowerCase()]);
+}
+
+/**
+ * A route's bodyLimit lets that route parse an entity LARGER than the shared
+ * default (for example a voice sample). It never lowers the parser limit: a
+ * route-specific cap below the default is a payload rule the route enforces on
+ * the parsed body itself, with its own error shape. Unparseable values are
+ * ignored rather than weakening or breaking the shared parser.
+ */
+function routeBodyLimit(route, req) {
+  if (route?.bodyLimit === undefined) return undefined;
+  const bytes = limitBytes(typeof route.bodyLimit === 'function' ? route.bodyLimit(req) : route.bodyLimit);
+  return bytes !== undefined && bytes > DEFAULT_JSON_LIMIT_BYTES ? bytes : undefined;
 }
 
 function usesRawBody(handler, req) {

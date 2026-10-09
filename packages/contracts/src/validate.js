@@ -63,6 +63,9 @@ function check(schema, v, path, errors) {
     }
     if (schema.items) v.forEach((it, i) => check(schema.items, it, `${path}[${i}]`, errors));
   } else if (t === 'number') {
+    // JSON cannot carry NaN or Infinity, so an in-process value that is not
+    // finite never came from (or can reach) the wire faithfully.
+    if (!Number.isFinite(v)) errors.push(`${path}: expected a finite number`);
     if (schema.minimum !== undefined && v < schema.minimum) errors.push(`${path}: < minimum ${schema.minimum}`);
     if (schema.maximum !== undefined && v > schema.maximum) errors.push(`${path}: > maximum ${schema.maximum}`);
   }

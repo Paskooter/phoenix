@@ -361,3 +361,94 @@ test('route-scoped JSON parser caches each resolved dynamic type set independent
     await new Promise((resolve, reject) => service.server.close((error) => error ? reject(error) : resolve()));
   }
 });
+
+// Synthetic payloads only: the sizes, not the contents, are what these tests pin.
+test('route-scoped bodyLimit raises the JSON parser limit for that route only', async () => {
+  // A fresh handler per route: the options below are properties of the function.
+  const echoSize = () => async ({ body }) => ({ size: typeof body?.blob === 'string' ? body.blob.length : null });
+  const service = createService({
+    name: 'route-body-limit-test',
+    routes: {
+      'POST /large': Object.assign(echoSize(), { bodyLimit: '512kb' }),
+      'POST /dynamic': Object.assign(echoSize(), { bodyLimit: (req) => (req.headers['x-limit'] === 'wide' ? 300 * 1024 : undefined) }),
+      'POST /below-default': Object.assign(echoSize(), { bodyLimit: 16 }),
+      'POST /default': echoSize(),
+      'POST /typed': Object.assign(echoSize(), {
+        bodyLimit: 512 * 1024,
+        jsonTypes: ['application/vnd.synthetic+json'],
+      }),
+    },
+  });
+  await service.listen(0);
+  const port = service.server.address().port;
+  const large = JSON.stringify({ blob: 'x'.repeat(200 * 1024) });
+  const post = (path, extra = {}) => request(port, { method: 'POST', path, body: large, contentType: 'application/json', ...extra });
+  try {
+    const raised = await post('/large');
+    assert.equal(raised.status, 200);
+    assert.deepEqual(JSON.parse(raised.rawBody), { size: 200 * 1024 });
+
+    // Every other route keeps body-parser's 100 KB default and the shared 413 envelope.
+    const unchanged = await post('/default');
+    assert.equal(unchanged.status, 413);
+    assert.equal(JSON.parse(unchanged.rawBody).type, 'ERROR');
+
+    const dynamicWide = await post('/dynamic', { headers: { 'x-limit': 'wide' } });
+    assert.equal(dynamicWide.status, 200);
+    const dynamicDefault = await post('/dynamic');
+    assert.equal(dynamicDefault.status, 413);
+
+    // A cap below the default is the route's own payload rule, not a parser limit.
+    const small = await request(port, { method: 'POST', path: '/below-default', body: '{"blob":"seventeen+chars"}', contentType: 'application/json' });
+    assert.equal(small.status, 200);
+    assert.deepEqual(JSON.parse(small.rawBody), { size: 15 });
+
+    // A route-scoped type list and limit combine.
+    const typed = await post('/typed', { contentType: 'application/vnd.synthetic+json' });
+    assert.equal(typed.status, 200);
+    assert.deepEqual(JSON.parse(typed.rawBody), { size: 200 * 1024 });
+  } finally {
+    await new Promise((resolve, reject) => service.server.close((error) => error ? reject(error) : resolve()));
+  }
+});
+
+test('a route parserError sees its own entity.too.large, and returning false falls back to the shared envelope', async () => {
+  const seen = [];
+  const route = Object.assign(async ({ body }) => body, {
+    bodyLimit: '128kb',
+    parserError: ({ res, error }) => {
+      seen.push(error.type);
+      if (error.type !== 'entity.too.large') return false;
+      res.status(413).type('text/plain').send('synthetic route limit');
+      return true;
+    },
+  });
+  const flaskStyle = Object.assign(async ({ body }) => body, {
+    parserError: ({ res }) => { res.status(400).type('text/html').send('synthetic parse page'); },
+  });
+  const service = createService({ name: 'route-parser-error-test', routes: { 'POST /limited': route, 'POST /flask': flaskStyle } });
+  await service.listen(0);
+  const port = service.server.address().port;
+  const oversized = JSON.stringify({ blob: 'x'.repeat(200 * 1024) });
+  try {
+    const tooLarge = await request(port, { method: 'POST', path: '/limited', body: oversized, contentType: 'application/json' });
+    assert.equal(tooLarge.status, 413);
+    assert.equal(tooLarge.rawBody, 'synthetic route limit');
+
+    // `false` means "not handled": the request must still be answered (it used to hang).
+    const malformed = await request(port, { method: 'POST', path: '/limited', body: '{', contentType: 'application/json' });
+    assert.equal(malformed.status, 400);
+    assert.equal(JSON.parse(malformed.rawBody).type, 'ERROR');
+    assert.deepEqual(seen, ['entity.too.large', 'entity.parse.failed']);
+
+    // A parse-error adapter on a route without its own bodyLimit keeps the shared 413.
+    const sharedLimit = await request(port, { method: 'POST', path: '/flask', body: oversized, contentType: 'application/json' });
+    assert.equal(sharedLimit.status, 413);
+    assert.equal(JSON.parse(sharedLimit.rawBody).type, 'ERROR');
+    const flaskParse = await request(port, { method: 'POST', path: '/flask', body: '{', contentType: 'application/json' });
+    assert.equal(flaskParse.status, 400);
+    assert.equal(flaskParse.rawBody, 'synthetic parse page');
+  } finally {
+    await new Promise((resolve, reject) => service.server.close((error) => error ? reject(error) : resolve()));
+  }
+});

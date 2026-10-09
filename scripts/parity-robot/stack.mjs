@@ -9,6 +9,17 @@ import { execFileSync } from 'node:child_process';
 if (process.env.PHOENIX_ENV_FILE !== '/dev/null') {
   throw new Error('Set PHOENIX_ENV_FILE=/dev/null to isolate this run from checkout .env files');
 }
+// The transport-only (unauthenticated) profile is development-only, and an
+// authenticated run must not silently degrade to LAN trust. Decide before any
+// directory or listener is created.
+const robotAuth = process.env.PHOENIX_ROBOT_AUTH === 'true';
+const developmentMode = process.env.PHOENIX_DEV_MODE === '1';
+if (!robotAuth && !developmentMode) {
+  throw new Error('Set PHOENIX_DEV_MODE=1 for the unauthenticated diagnostic profile, or PHOENIX_ROBOT_AUTH=true');
+}
+if (robotAuth && !process.env.HUB_TOKEN_SECRET && !process.env.ETCO_server_hubTokenSecret) {
+  throw new Error('HUB_TOKEN_SECRET is required when PHOENIX_ROBOT_AUTH=true');
+}
 const runDir = resolve(process.env.PHOENIX_ROBOT_RUN || '.parity/robots/moth/20260905');
 mkdirSync(runDir, { recursive: true, mode: 0o700 });
 const base = Number(process.env.PHOENIX_ROBOT_PORT || 19000);
@@ -126,8 +137,9 @@ try {
   services.push(await data.start(base + 7, fixtureDataOptions));
   services.push(await skills.start(base + 3));
   const config = await loadConfig();
-  // Initial transport-only profile, explicitly not authentication acceptance.
-  config.disableAuth = process.env.PHOENIX_ROBOT_AUTH !== 'true';
+  // Initial transport-only profile, explicitly not authentication acceptance,
+  // and only with PHOENIX_DEV_MODE=1 (checked at startup).
+  config.disableAuth = developmentMode && !robotAuth;
   const gw = await gateway.start(base, config);
   services.push(gw.service);
   let connection = 0;

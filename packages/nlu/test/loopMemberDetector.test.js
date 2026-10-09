@@ -8,9 +8,10 @@
 //
 // Part 2 covers the resolution matrix the source *code* defines but its test
 // file does not pin: the GivenName/LastName aliases (LoopMemberDetector.ts:54-55),
-// the unescaped text patterns (lines 73,84), duplicate members (Array.find),
-// missing/undefined member names, ambiguous text matches, guard clauses
-// (line 48) and the two source error boundaries (lines 5-7, 32-35).
+// duplicate members (Array.find), ambiguous text matches and guard clauses
+// (line 48). It also pins Phoenix's deliberate hardening (DIVERGENCES.md
+// N06c): member names are matched literally (escaped), malformed members are
+// skipped, and a non-object entities map is left alone instead of throwing.
 //
 // Part 3 exercises real HTTP requests through the live NLU service, proving the
 // detector runs inside the request pipeline (as ParseRequestHandler.ts:33 does).
@@ -202,22 +203,48 @@ test('ambiguity: text with two first names resolves to the first member in array
   );
 });
 
-test('missing members: an undefined name produces the literal "undefined" pattern (LoopMemberDetector.ts:73)', () => {
+test('malformed members are skipped instead of matching the literal "undefined"', () => {
+  // Synthetic members. The pinned source interpolated missing names as the
+  // text `undefined` (LoopMemberDetector.ts:73); Phoenix ignores such members.
   const request = { text: 'who is undefined undefined', rules: ['launch'], loop: { users: [{ id: 'u-malformed' }] } };
   const result = { intent: 'whoIsPerson', entities: {} };
-  LoopMemberDetector.detectLoopMembers(request, result);
-  assert.equal(result.entities.loopMemberReferent, 'u-malformed');
-  assert.ok(Object.prototype.hasOwnProperty.call(result.entities, 'given-name'));
-  assert.equal(result.entities['given-name'], undefined);
-  assert.equal(result.entities['last-name'], undefined);
+  assert.deepEqual(LoopMemberDetector.detectLoopMembers(request, result), { intent: 'whoIsPerson', entities: {} });
+
+  // A valid member after malformed ones still resolves.
+  detect(
+    { text: 'who is jane jetson', loopUsers: [
+      { id: 'u-malformed' },
+      { id: 'u-number', firstName: 'Jane', lastName: 7 },
+      null,
+      { id: 'u-jane', firstName: 'Jane', lastName: 'Jetson' },
+    ] },
+    { intent: 'whoIsPerson', entities: {} },
+    { 'given-name': 'Jane', 'last-name': 'Jetson', loopMemberReferent: 'u-jane' },
+  );
 });
 
-test('punctuation: member names are interpolated as a regex, not escaped (LoopMemberDetector.ts:73)', () => {
-  // "A.J." -> \bA.J. Smith\b, so the dot matches any character: "AXJY Smith".
+test('punctuation and regex metacharacters in member names match literally', () => {
+  detect(
+    { text: 'who is A.J. Smith', loopUsers: [{ id: 'u-dot', firstName: 'A.J.', lastName: 'Smith' }] },
+    { intent: 'whoIsPerson', entities: {} },
+    { 'given-name': 'A.J.', 'last-name': 'Smith', loopMemberReferent: 'u-dot' },
+  );
+  // The source's unescaped pattern let "." match any character.
   detect(
     { text: 'who is AXJY Smith', loopUsers: [{ id: 'u-dot', firstName: 'A.J.', lastName: 'Smith' }] },
     { intent: 'whoIsPerson', entities: {} },
-    { 'given-name': 'A.J.', 'last-name': 'Smith', loopMemberReferent: 'u-dot' },
+    {},
+  );
+  // A name is never a pattern: a quantified group must not match other text.
+  detect(
+    { text: 'who is aab x', loopUsers: [{ id: 'u-meta', firstName: '(a+)+b', lastName: 'x' }] },
+    { intent: 'whoIsPerson', entities: {} },
+    {},
+  );
+  detect(
+    { text: 'is aab here', loopUsers: [{ id: 'u-meta', firstName: '(a+)+b', lastName: 'x' }] },
+    { intent: 'whoIsPerson', entities: { 'given-name': '' } },
+    { 'given-name': '' },
   );
   // Hyphen/apostrophe names also resolve literally.
   detect(
@@ -240,16 +267,16 @@ test('guards: no loop, no users, no intent or no result produce no enrichment (L
   assert.equal(LoopMemberDetector.detectLoopMembers({ text: 'who is jane jetson', loop: { users } }, null), null);
 });
 
-test('error boundary: a member with a missing firstName alongside a given-name entity throws (LoopMemberDetector.ts:5-7)', () => {
+test('a malformed member alongside a given-name entity is skipped, not a TypeError', () => {
   const request = { text: 'who is mary', rules: ['launch'], loop: { users: [{ id: 'u-malformed' }] } };
   const result = { intent: 'whoIsPerson', entities: { 'given-name': 'Mary' } };
-  assert.throws(() => LoopMemberDetector.detectLoopMembers(request, result), TypeError);
+  assert.deepEqual(LoopMemberDetector.detectLoopMembers(request, result), { intent: 'whoIsPerson', entities: { 'given-name': 'Mary' } });
 });
 
-test('error boundary: a null entities map with a text match throws on write (LoopMemberDetector.ts:32-35)', () => {
+test('a null entities map is returned unchanged instead of throwing on write', () => {
   const request = { text: 'who is mary jackson', rules: ['launch'], loop: { users: [{ id: 'u-mary', firstName: 'Mary', lastName: 'Jackson' }] } };
   const result = { intent: 'generalWhoQuestions', entities: null };
-  assert.throws(() => LoopMemberDetector.detectLoopMembers(request, result), TypeError);
+  assert.deepEqual(LoopMemberDetector.detectLoopMembers(request, result), { intent: 'generalWhoQuestions', entities: null });
 });
 
 // ---------------------------------------------------------------------------

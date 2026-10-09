@@ -95,16 +95,31 @@ function isThenable(value) {
   return Boolean(value) && typeof value.then === 'function';
 }
 
+// A failed agent's error record (DIVERGENCES.md N-hardening-external). The
+// source copied the underlying error message (DialogflowClient.ts:68-75);
+// resolver and provider messages are untrusted, so one generic text is used.
+export const EXTERNAL_AGENT_ERROR = 'External agent unavailable';
+
+// A pending result cannot be consumed on a synchronous path. Observe its
+// rejection so abandoning it cannot surface as an unhandled rejection.
+function abandon(thenable) {
+  Promise.resolve(thenable).catch(() => {});
+}
+
 function resolveAgent(text, name, agent, agents) {
-  const resolver = agents[name];
+  const resolver = Object.prototype.hasOwnProperty.call(agents, name) ? agents[name] : undefined;
   if (!resolver) {
     // DialogflowClient.ts:106-108 — a failed agent access rejects, which the
     // handler's .catch turns into a null dialogflowResult.
-    throw new Error(`Error accessing Dialogflow agent '${name}': no archived agent available`);
+    throw new Error(EXTERNAL_AGENT_ERROR);
   }
   const out = typeof resolver === 'function' ? resolver(text, agent) : resolver;
-  if (!out || typeof out !== 'object' || !out.intent) {
-    throw new Error(`Error accessing Dialogflow agent '${name}': no intent`);
+  if (isThenable(out)) {
+    abandon(out);
+    throw new Error(EXTERNAL_AGENT_ERROR);
+  }
+  if (!out || typeof out !== 'object' || Array.isArray(out) || !out.intent) {
+    throw new Error(EXTERNAL_AGENT_ERROR);
   }
   // DialogflowClient.ts:100-104
   return { rules: agent.rules, intent: out.intent, entities: out.entities };
@@ -118,9 +133,10 @@ function otherResults(request, agents) {
     const agent = request.external[name];
     try {
       agentResults[name] = resolveAgent(request.text, name, agent, agents);
-    } catch (error) {
-      // DialogflowClient.ts:68-75 — the archived error record.
-      agentResults[name] = { rules: agent.rules, intent: '', entities: {}, error: error.message };
+    } catch {
+      // DialogflowClient.ts:68-75 — the archived error record, with a generic
+      // message instead of the untrusted underlying one.
+      agentResults[name] = { rules: agent?.rules, intent: '', entities: {}, error: EXTERNAL_AGENT_ERROR };
     }
   }
   return agentResults;
@@ -195,7 +211,10 @@ export function attachExternalResult(request, result, provider, revision = DEFAU
   // attachment would silently set `external` to undefined and look like a
   // successful parse. Thrown outside the try so it cannot be swallowed as a
   // provider failure.
-  if (isThenable(dialogflowResult)) throw new Error(ASYNC_PROVIDER_ERROR);
+  if (isThenable(dialogflowResult)) {
+    abandon(dialogflowResult);
+    throw new Error(ASYNC_PROVIDER_ERROR);
+  }
   if (!dialogflowResult) throw new Error(DISABLED_EXTERNAL_ERROR);
   result.external = dialogflowResult.external;
   return result;

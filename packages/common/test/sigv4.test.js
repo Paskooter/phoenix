@@ -223,6 +223,29 @@ test('an explicit x-amz-content-sha256 follows the native source signer path onl
   }
 });
 
+test('an explicit x-amz-content-sha256 must match the received bytes outside the native exception', () => {
+  // Synthetic bodies. The signer hashes the body it was given; the verifier
+  // must recompute from what actually arrived, not trust the header.
+  const body = '{"synthetic":"signed"}';
+  const digest = createHash('sha256').update(body).digest('hex');
+  const result = signed({ body, headers: { 'x-amz-content-sha256': digest } });
+  assert.equal(verify(result.headers, { body }).accessKeyId, ACCESS_KEY);
+  assert.equal(errorCode(() => verify(result.headers, { body: '{"synthetic":"tampered"}' })), 'SIGNATURE_MISMATCH');
+  assert.equal(errorCode(() => verify(result.headers, {
+    body: '{"synthetic":"tampered"}',
+    allowNativeClientPayloadHash: true,
+  })), 'SIGNATURE_MISMATCH');
+
+  // The empty-hash ordering is allowed only for the two documented targets.
+  const emptyHash = createHash('sha256').update('').digest('hex');
+  const native = signSigV4({ ...BASE, body: '', headers: { Host: 'example.test', 'x-amz-content-sha256': emptyHash } });
+  const otherTarget = { ...native.headers, 'X-Amz-Target': 'Account_20151111.Remove' };
+  assert.equal(errorCode(() => verify(otherTarget, {
+    body: '{"attachedAfterSigning":true}',
+    allowNativeClientPayloadHash: true,
+  })), 'SIGNATURE_MISMATCH');
+});
+
 test('the stock Media.Create UNSIGNED-PAYLOAD marker still requires a valid signed-header HMAC', () => {
   const body = Buffer.from('encrypted photo bytes');
   const result = signed({
