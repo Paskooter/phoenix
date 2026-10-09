@@ -195,14 +195,16 @@ function transformSettingsResponse(body) {
   return body;
 }
 
-function requestSettings(peer, body, accountId, redirectCount = 0, method = 'POST') {
+function requestSettings(peer, body, accountId, redirectCount = 0, method = 'POST', forwardIdentityHeaders = true) {
   const target = new URL(peer);
   const transport = target.protocol === 'https:' ? https : http;
   const hasBody = method !== 'GET' && method !== 'HEAD';
   const headers = {
     Accept: SETTINGS_ACCEPT,
     ...(hasBody ? { 'Content-Type': 'application/json;charset=utf-8' } : {}),
-    'x-amz-credentials': JSON.stringify({ id: accountId }),
+    // Once a redirect crosses origin, do not reintroduce the caller credential
+    // (or the internal peer token below) on a later same-origin hop.
+    ...(forwardIdentityHeaders ? { 'x-amz-credentials': JSON.stringify({ id: accountId }) } : {}),
     'x-amz-target': `Settings_${SETTINGS_API_VERSION}.GetSettings`,
     'User-Agent': SETTINGS_USER_AGENT,
     ...(hasBody ? { 'Content-Length': Buffer.byteLength(body) } : {}),
@@ -212,7 +214,7 @@ function requestSettings(peer, body, accountId, redirectCount = 0, method = 'POS
   // The account Settings face accepts this legacy internal peer only when a
   // deployment configured the shared secret.  Never put the secret in the
   // user-controlled credentials envelope; it is an independent header.
-  if (process.env.ETCO_account_internalPeerToken) {
+  if (forwardIdentityHeaders && process.env.ETCO_account_internalPeerToken) {
     headers['x-phoenix-internal-token'] = process.env.ETCO_account_internalPeerToken;
   }
 
@@ -239,8 +241,10 @@ function requestSettings(peer, body, accountId, redirectCount = 0, method = 'POS
           }
           const nextMethod = response.statusCode === 307 ? method : 'GET';
           const nextBody = nextMethod === 'POST' ? body : '';
-          requestSettings(new URL(location, target).toString(), nextBody, accountId,
-            redirectCount + 1, nextMethod).then(resolve, reject);
+          const nextTarget = new URL(location, target);
+          const sameOrigin = target.origin === nextTarget.origin;
+          requestSettings(nextTarget.toString(), nextBody, accountId,
+            redirectCount + 1, nextMethod, forwardIdentityHeaders && sameOrigin).then(resolve, reject);
           return;
         }
 

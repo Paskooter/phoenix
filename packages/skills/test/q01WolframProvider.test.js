@@ -118,6 +118,55 @@ test('Q-01 Wolfram spoken extraction follows response suppression and source pre
   assert.equal(extractWolframSpokenAnswer(entityFallback), 'Entity pod answer.');
 });
 
+test('Q-01 Wolfram keeps API keys out of returned provider URLs', async () => {
+  let requestUrl;
+  const provider = createWolframProvider({
+    endpoint: 'https://api.wolfram.invalid/v2/query',
+    apiKey: 'wolfram-secret',
+    fetchImpl: async (url) => {
+      requestUrl = url.toString();
+      return {
+        status: 200,
+        url: 'https://api.wolfram.invalid/v2/query?input=2%2B2&appid=wolfram-secret',
+        async json() { return sourceBody({ spokenTemplate: 'Two plus two is four.' }); },
+      };
+    },
+    clock: clockFactory([1, 2]),
+  });
+  const output = await provider({ queryText: '2+2' });
+  assert.match(requestUrl, /appid=wolfram-secret/);
+  assert.equal(output.url, 'https://www.wolframalpha.com/input/?i=2%2B2');
+  assert.equal(JSON.stringify(output).includes('wolfram-secret'), false);
+});
+
+test('Q-01 Wolfram keeps the API key out of a transport failure message', async () => {
+  const provider = createWolframProvider({
+    endpoint: 'https://api.wolfram.invalid/v2/query',
+    apiKey: 'synthetic-wolfram-secret',
+    fetchImpl: async (url) => { throw new Error(`request to ${url} failed`); },
+    clock: clockFactory([1, 2]),
+  });
+  const output = await provider({ queryText: '2+2' });
+  assert.match(output.message, /^Unexpected exception: /);
+  assert.equal(JSON.stringify(output).includes('synthetic-wolfram-secret'), false);
+});
+
+test('Q-01 Wolfram returns controlled errors for invalid string coordinates before HTTP', async () => {
+  let calls = 0;
+  const provider = createWolframProvider({
+    endpoint: 'https://wolfram.fixture.invalid/query',
+    apiKey: 'wolfram-secret',
+    fetchImpl: async () => { calls += 1; throw new Error('unexpected HTTP call'); },
+  });
+  for (const latitude of ['not-a-coordinate', 'NaN', 'Infinity']) {
+    await assert.rejects(
+      provider({ queryText: 'coordinates', latitude, longitude: '-71.2' }),
+      /Invalid latitude coordinate/,
+    );
+  }
+  assert.equal(calls, 0);
+});
+
 test('Q-01 Wolfram pod extraction keeps the source last-Result selection', () => {
   const body = sourceBody({ pods: [
     { title: 'Result', primary: false, subpods: [{ plaintext: 'First result.' }] },

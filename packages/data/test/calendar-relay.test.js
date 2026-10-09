@@ -38,10 +38,8 @@ const chicagoEvents = fixture('google-events-chicago.json');
 const chicagoTimezone = fixture('google-calendar-chicago.json').timeZone; // America/Chicago
 const outlookEvents = fixture('outlook-events.json');
 
-const PORT = 7804;
-let base = `http://localhost:${PORT}`;
+let base;
 let server;
-let portRetries = 0;
 
 const providerCalls = [];
 const googleProvider = async (req, ctx) => {
@@ -76,20 +74,9 @@ const outlookProvider = async (req, ctx) => {
 };
 
 before(async () => {
-  // Fixed-port collision guard: credential-durable.test.js also binds 7800+N in the same
-  // parallel run (EADDRINUSE flake reported in w13/a05). Retry on the next port.
-  for (let attempt = 0; ; attempt++) {
-    const port = PORT + portRetries + attempt;
-    try {
-      server = await createDataService({ googleCalendarProvider: googleProvider, outlookCalendarProvider: outlookProvider }).listen(port);
-      base = `http://localhost:${port}`;
-      if (port !== PORT) portRetries += attempt;
-      break;
-    } catch (err) {
-      if (err?.code === 'EADDRINUSE' && attempt < 5) continue;
-      throw err;
-    }
-  }
+  // An ephemeral port: fixed ports collided with other suites under parallel load.
+  server = await createDataService({ googleCalendarProvider: googleProvider, outlookCalendarProvider: outlookProvider }).listen(0);
+  base = `http://localhost:${server.address().port}`;
 });
 after(() => { server?.close?.(); });
 
@@ -419,15 +406,15 @@ test('D-04/19 createUpstreamCalendarProvider issues the pinned wire query and re
     res.statusCode = 404;
     res.end('{}');
   });
-  await new Promise((resolve) => upstream.listen(7810, resolve));
-  const upstreamBase = 'http://localhost:7810';
+  await new Promise((resolve) => upstream.listen(0, resolve));
+  const upstreamBase = `http://localhost:${upstream.address().port}`;
   const service = await createDataService({
     cache: new TTLCache(),
     googleCalendarProvider: createUpstreamCalendarProvider({ serviceName: 'google', baseUrl: upstreamBase, getToken: () => 'goog-token' }),
     outlookCalendarProvider: createUpstreamCalendarProvider({ serviceName: 'outlook', baseUrl: upstreamBase, getToken: () => 'graph-token' }),
-  }).listen(7811);
+  }).listen(0);
   try {
-    const wireBase = 'http://localhost:7811';
+    const wireBase = `http://localhost:${service.address().port}`;
     const endDate = '2050-12-18T23:59:59-07:00';
     const g = await (await fetch(`${wireBase}${url('google', 'wire-g', `&endDate=${endDate}`)}`)).json();
     assert.deepEqual(Object.keys(g), ['relayData', 'lassoDataFromRedis'], 'no top-level mirror');

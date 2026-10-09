@@ -30,6 +30,8 @@ const SOURCE_REVISION = '5c0a7390539663ba749d360de348a428c088505c';
 const TEST_DIR = dirname(fileURLToPath(import.meta.url));
 const SKILLS = resolve(TEST_DIR, '..');
 const NEWS_MIM_DIR = join(SKILLS, 'resources', 'mims', 'report', 'en-us');
+// Phoenix-authored briefing MIMs are kept out of the pinned-source tree.
+const PHOENIX_NEWS_MIM_DIR = join(SKILLS, 'resources', 'mims', 'report-phoenix', 'en-us');
 const NEWS_RESOURCE_DIR = join(SKILLS, 'resources');
 
 const INVENTORY = Object.freeze({
@@ -46,8 +48,7 @@ const SOURCE_NEWS_VIEW_SHA256 = 'c559b0de05db6adc752280856d38284ec39d10cb3bba98c
 
 const sha256 = (value) => createHash('sha256').update(value).digest('hex');
 const EXTENSIONS = ['NewsBriefing.mim', 'NewsBriefingIntro.mim'];
-const allFiles = () => readdirSync(NEWS_MIM_DIR).filter((name) => name.startsWith('News')).sort();
-const files = () => allFiles().filter(name => !EXTENSIONS.includes(name));
+const files = () => readdirSync(NEWS_MIM_DIR).filter((name) => name.startsWith('News')).sort();
 const sourceRefs = (raw, mim) => [...new Set([
   ...(raw.match(/\$\{([^}]+)\}/g) || []).map((match) => match.slice(2, -1)),
   ...(mim.gui?.data ? [mim.gui.data] : []),
@@ -136,8 +137,8 @@ function item(category, index, options = {}) {
 
 test('S-10 inventory: all six News MIMs and both news resources match MCP source bytes', () => {
   assert.equal(SOURCE_REVISION, '5c0a7390539663ba749d360de348a428c088505c');
-  assert.deepEqual(allFiles(), [...Object.keys(INVENTORY), ...EXTENSIONS].sort());
   assert.deepEqual(files(), Object.keys(INVENTORY).sort());
+  assert.deepEqual(readdirSync(PHOENIX_NEWS_MIM_DIR).sort(), [...EXTENSIONS].sort());
 
   for (const name of files()) {
     const raw = readFileSync(join(NEWS_MIM_DIR, name), 'utf8');

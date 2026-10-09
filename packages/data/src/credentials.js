@@ -39,6 +39,7 @@ import { randomUUID } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CredentialError, setTokens } from './oauth.js';
+import { requestAbortSignal } from './upstream.js';
 
 const DEFAULT_GOOGLE_CLIENT_ID = '830717411721';
 // Durable-by-default store path, mirroring packages/account/src/store.js
@@ -74,6 +75,8 @@ export class CredentialStore {
     // Optional configurable OAuth provider (see oauth.js); null keeps the
     // certified D-02 sync behaviour (no live exchange, 501 for google/outlook).
     this.oauth = opts.oauth || null;
+    this.onChange = opts.onChange;
+    this._saveQueue = Promise.resolve();
     this.m = new Map();
     this._load();
   }
@@ -174,8 +177,9 @@ export class CredentialStore {
       this._redeem(cred);
     }
     this.m.set(keyOf(cred), cred);
-    this._deleteOther(cred);
+    const removed = this._deleteOther(cred);
     this._flush();
+    this._notify({ type: 'save', credential: cred, removed });
     return cred;
   }
 
@@ -188,7 +192,15 @@ export class CredentialStore {
    * semantics (duplicate detection BEFORE any exchange, direct-token path,
    * testAuthCode bypass, unsupported-service error) are unchanged.
    */
-  async saveCredential(data) {
+  saveCredential(data, options = {}) {
+    const operation = this._saveQueue.then(() => this._saveCredential(data, options));
+    // A failed operation must not poison the queue for the next save, while
+    // each caller still receives the original rejection from its operation.
+    this._saveQueue = operation.catch(() => undefined);
+    return operation;
+  }
+
+  async _saveCredential(data, { signal } = {}) {
     requireProps(data, REQUIRED_SAVE);
     const tokensArrived = data.accessToken && data.refreshToken && data.expiresAt;
     if (!data.authCode && !tokensArrived) {
@@ -216,6 +228,7 @@ export class CredentialStore {
     };
     const tokens = await provider.redeem(data.serviceName, {
       clientId: data.clientId, redirectUri, authCode: data.authCode, scopes: data.scopes,
+      signal,
     });
     const credential = existing || {
       accountId: data.accountId, skillId: data.skillId, serviceName: data.serviceName,
@@ -228,8 +241,9 @@ export class CredentialStore {
       console.warn(`Credential for ${credential.serviceName}:${credential.serviceAccountName} is saved without refreshToken`);
     }
     this.m.set(keyOf(credential), credential);
-    this._deleteOther(credential);
+    const removed = this._deleteOther(credential);
     this._flush();
+    this._notify({ type: 'save', credential, removed });
     return credential;
   }
 
@@ -238,6 +252,7 @@ export class CredentialStore {
     setTokens(credential, tokens);
     credential.oauth2.refreshedAt = Date.now();
     this._flush();
+    this._notify({ type: 'updateTokens', credential });
     return credential;
   }
 
@@ -246,7 +261,20 @@ export class CredentialStore {
     credential.isActive = false;
     credential.error = errorCode;
     this._flush();
+    this._notify({ type: 'inactive', credential });
     return credential;
+  }
+
+  _notify(change) {
+    if (typeof this.onChange !== 'function') return;
+    try {
+      const result = this.onChange(change);
+      if (result && typeof result.catch === 'function') result.catch((error) => {
+        console.warn(`credential change handler failed: ${error.message}`);
+      });
+    } catch (error) {
+      console.warn(`credential change handler failed: ${error.message}`);
+    }
   }
 
   /**
@@ -289,13 +317,15 @@ export class CredentialStore {
   // does not. Pinned by test `assignment-bug regression fixture` (see
   // packages/data/test/credential-durable.test.js).
   _deleteOther(newCred) {
+    const removed = [];
     if (newCred.skillId === 'report-skill' && ['workCalendar', 'personalCalendar'].includes(newCred.serviceAccountName)) {
       for (const [k, c] of [...this.m]) {
         if (c.accountId === newCred.accountId && c.skillId === newCred.skillId && c.serviceName !== newCred.serviceName && c.serviceAccountName === newCred.serviceAccountName) {
-          this.m.delete(k);
+          if (this.m.delete(k)) removed.push(c);
         }
       }
     }
+    return removed;
   }
 
   checkExists(query) { requireProps(query, REQUIRED_FIND); return { credentialExists: !!this.find(query) }; }
@@ -309,16 +339,20 @@ export class CredentialStore {
     // D-02 report). Indexed/bracketed forms (`scopes[0]=`, `scopes[]=`) already
     // arrive as arrays from credentialQueryFromParams.
     const scopes = query.scopes == null ? null : (Array.isArray(query.scopes) ? query.scopes : [query.scopes]);
-    let changed = false;
+    const removed = [];
     for (const [k, c] of [...this.m]) {
       if (c.accountId !== query.accountId) continue;
       if (query.skillId !== '*' && c.skillId !== query.skillId) continue;
       if (query.serviceName !== '*' && c.serviceName !== query.serviceName) continue;
       if (query.serviceAccountName !== '*' && c.serviceAccountName !== query.serviceAccountName) continue;
       if (scopes && scopes[0] !== '*' && !scopes.every((s) => c.scopes.includes(s))) continue;
-      this.m.delete(k); changed = true;
+      if (this.m.delete(k)) removed.push(c);
     }
-    if (changed) this._flush();
+    if (removed.length) {
+      this._flush();
+      this._notify({ type: 'delete', credentials: removed });
+    }
+    return removed;
   }
 }
 
@@ -373,10 +407,11 @@ export function credentialQueryFromParams(q) {
 /** Build the POST/GET/DELETE /v1/credential route handlers for createService. */
 export function credentialHandlers(store, { onNewCredential } = {}) {
   return {
-    post: async ({ body = {}, res }) => {
+    post: async ({ body = {}, res, req }) => {
       if (body.skillId === 'report-skill' && body.serviceName === 'google' && !body.clientId) body.clientId = DEFAULT_GOOGLE_CLIENT_ID;
+      const requestLifecycle = requestAbortSignal(req, res);
       try {
-        const credential = await store.saveCredential(body);
+        const credential = await store.saveCredential(body, { signal: requestLifecycle.signal });
         // CredentialRequestsHandler.events.newCredential (LassoService wires it
         // to each calendar handler's onNewCredentialArrived, which deletes the
         // cached calendar payload so the next read is fresh).
@@ -388,6 +423,8 @@ export function credentialHandlers(store, { onNewCredential } = {}) {
       } catch (e) {
         if (e.code === 'DUPLICATE_KEY') return { credentialExists: true };
         res.writeHead(e.status || 400, { 'content-type': 'text/plain' }); res.end(e.message); return undefined;
+      } finally {
+        requestLifecycle.cleanup();
       }
     },
     get: ({ url, res }) => {

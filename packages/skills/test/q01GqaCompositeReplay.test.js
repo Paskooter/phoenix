@@ -217,6 +217,10 @@ async function withFixture(callback, {
     gqaEnvironment: env,
     gqaConfig: {
       attribution,
+      // The attribution routes fail closed without an identity boundary. This
+      // loopback fixture uses the documented trusted-internal opt-in, which
+      // accepts the legacy x-amz-credentials header only from a loopback peer.
+      attributionAuth: { trustedInternal: true },
       random: () => 0,
       timeouts,
     },
@@ -388,7 +392,9 @@ test('Q-01 composite success replays selected HTTP profile, account lookup, attr
     assert.equal(retrieve.response.headers.get('content-type'), 'text/html; charset=utf-8');
     assert.deepEqual(retrieve.body.data, attribution.snapshot());
 
-    const wipe = await post(baseUrl, '/wipeID', { ID: 'fixture-loop' });
+    const wipe = await post(baseUrl, '/wipeID', { ID: 'fixture-loop' }, {
+      'x-amz-credentials': JSON.stringify({ id: 'fixture-account' }),
+    });
     assert.equal(wipe.response.status, 200);
     assert.equal(wipe.response.headers.get('content-type'), 'text/html; charset=utf-8');
     assert.deepEqual(wipe.body, { deleted_row: 1 });
@@ -618,7 +624,9 @@ test('Q-01 composite Wolfram attribution is source-backed and retrieve/wipe rema
     });
     assert.equal(retrieve.response.status, 200);
     assert.deepEqual(retrieve.body.data, attribution.snapshot());
-    const wipe = await post(baseUrl, '/wipeID', { ID: 'fixture-loop' });
+    const wipe = await post(baseUrl, '/wipeID', { ID: 'fixture-loop' }, {
+      'x-amz-credentials': JSON.stringify({ id: 'fixture-account' }),
+    });
     assert.equal(wipe.response.status, 200);
     assert.deepEqual(wipe.body, { deleted_row: 2 });
     assert.deepEqual(attribution.snapshot(), []);

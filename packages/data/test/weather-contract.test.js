@@ -49,6 +49,10 @@ test('D05/01 makeLatLon replays the pinned LatLon float-pattern and range checks
   for (const bad of ['1e5', '0x10', '  ', 'Infinity', '', 'NaN']) {
     assert.throws(() => makeLatLon(bad, '0'), RangeError, `lat=${JSON.stringify(bad)} rejected`);
   }
+  for (const bad of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+    assert.throws(() => makeLatLon(bad, 0), RangeError, `lat=${bad} rejected`);
+    assert.throws(() => makeLatLon(0, bad), RangeError, `lon=${bad} rejected`);
+  }
 });
 
 test('D05/02 validateWeather keeps secondsSinceEpoch as the raw string (so "0" stays truthy)', () => {
@@ -81,13 +85,13 @@ test('D05/03 weatherKey appends the date segment on raw-string truthiness', () =
 test('D05/04 daily.data[0] is the requested day (pinned WeatherParse indexing)', () => {
   const forecast = openMeteoToDarkSky(OM, { lat: 42, lon: -71, secondsSinceEpoch: 0 });
   assert.deepEqual(forecast.daily.data.map((d) => d.temperatureHigh), [75, 80, 85]);
-  assert.equal(forecast.daily.data[0].time, sse('2026-06-08T00:00:00Z')); // today
+  assert.equal(forecast.daily.data[0].time, sse('2026-06-08T04:00:00Z')); // today at New York midnight
   assert.equal(forecast.daily.data[1].icon, 'cloudy'); // tomorrow code 3
 
   // A time-machine request for 2026-06-07 (yesterday) moves that day to index 0.
   const historical = openMeteoToDarkSky(OM, { lat: 42, lon: -71, secondsSinceEpoch: String(sse('2026-06-07T12:00:00Z')) });
   assert.deepEqual(historical.daily.data.map((d) => d.temperatureHigh), [70, 75, 80, 85]);
-  assert.equal(historical.daily.data[0].time, sse('2026-06-07T00:00:00Z'));
+  assert.equal(historical.daily.data[0].time, sse('2026-06-07T04:00:00Z'));
 });
 
 test('D05/05 current_weather drives `currently` for a forecast request only', () => {
@@ -169,7 +173,7 @@ test('D05/08 secondsSinceEpoch=0 gets its own ";1970-01-01" cache entry instead 
 test('D05/09 a historical request returns that day at daily.data[0] through the real service', async () => {
   const ts = sse('2026-06-07T12:00:00Z');
   const body = await (await get(`lat=7&lon=7&secondsSinceEpoch=${ts}`)).json();
-  assert.equal(body.relayData.daily.data[0].time, sse('2026-06-07T00:00:00Z'));
+  assert.equal(body.relayData.daily.data[0].time, sse('2026-06-07T04:00:00Z'));
   assert.equal(body.relayData.daily.data[0].temperatureHigh, 70);
   assert.ok([...cache.m.keys()].includes('dark_sky:7;7;2026-06-07'));
 });

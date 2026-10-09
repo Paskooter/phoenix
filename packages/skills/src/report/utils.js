@@ -6,6 +6,10 @@ import { readFileSync } from 'node:fs';
 
 const RESOURCES = join(dirname(fileURLToPath(import.meta.url)), '../../resources');
 const MIM_DIR = join(RESOURCES, 'mims/report/en-us');
+// Phoenix-authored report MIMs live outside the pinned-source tree so that tree
+// stays byte-identical to the original (S-06 asset provenance).
+const PHOENIX_MIM_DIR = join(RESOURCES, 'mims/report-phoenix/en-us');
+const PHOENIX_MIMS = new Set(['NewsBriefing', 'NewsBriefingIntro']);
 
 export const Names = Object.freeze({
   personalReport: 'personalReport',
@@ -28,7 +32,8 @@ export const areIntersecting = (a, b) => [...a].some((word) => b.has(word));
 /** Full path of a vendored report MIM: composeMimPath('weather', 'Intro') -> .../WeatherIntro.mim */
 export function composeMimPath(catName, mimPath) {
   const prefix = titleCase(catName) || '';
-  return join(MIM_DIR, `${prefix}${mimPath}.mim`);
+  const name = `${prefix}${mimPath}`;
+  return join(PHOENIX_MIMS.has(name) ? PHOENIX_MIM_DIR : MIM_DIR, `${name}.mim`);
 }
 
 /** Append composed MIM paths to data.local.mimPaths (creating it if needed). */

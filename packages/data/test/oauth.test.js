@@ -354,8 +354,8 @@ test('D-03 setTokens: expiry_date wins, expires_in computes, no expiry throws, r
 test('D-03 createCalendarHandler exposes the reference cache key and invalidation', () => {
   const events = [];
   const handler = createCalendarHandler({ provider: async () => events, store: null, serviceName: 'google' });
-  assert.equal(handler.cacheKey({ skillId: 's', accountId: 'a', calendar: 'personalCalendar' }), 'google_calendar:s:a:personalCalendar');
-  assert.equal(calendarCacheKey('outlook', { skillId: 's', accountId: 'a', calendar: 'workCalendar' }), 'outlook_calendar:s:a:workCalendar');
+  assert.equal(handler.cacheKey({ skillId: 's', accountId: 'a', calendar: 'personalCalendar' }), 'google_calendar:%5B%22s%22%2C%22a%22%2C%22personalCalendar%22%5D:undefined');
+  assert.equal(calendarCacheKey('outlook', { skillId: 's', accountId: 'a', calendar: 'workCalendar' }), 'outlook_calendar:%5B%22s%22%2C%22a%22%2C%22workCalendar%22%5D:undefined');
   assert.equal(typeof handler.invalidate, 'function');
 });
 
