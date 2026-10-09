@@ -19,7 +19,10 @@ import { createHistoryService } from '../src/index.js';
 import { HistoryStore } from '../src/store.js';
 import { validateEvent, validateQuery, validateRule, MatchMethod, RuleField } from '../src/index.js';
 
-const TS = 1789084000000;
+// Relative to the clock, not a fixed instant: the store applies the reference's 14-day
+// retention on access, so a pinned timestamp silently ages every seeded record out of the
+// semantics tests two weeks after it was written. One hour back keeps TS + offsets in the past.
+const TS = Date.now() - 60 * 60 * 1000;
 
 // ---------------------------------------------------------------------------
 // rule validator (validators/rule.ts)
