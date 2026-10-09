@@ -15,6 +15,10 @@ import { HomeAssistantBroker } from '../src/integrations/homeAssistant/broker.js
 import { homeAssistantRoutes } from '../src/integrations/homeAssistant/routes.js';
 import { CAPABILITIES } from '../src/integrations/homeAssistant/protocol.js';
 
+// Harness deadline for a frame that is expected to arrive. No test relies on it
+// firing; 1500ms was too tight for a loaded full-suite run with durable fsyncs.
+const FRAME_DEADLINE_MS = 10_000;
+
 function fixture(t, options = {}) {
   const root = mkdtempSync(join(tmpdir(), 'phoenix-ha-next-'));
   const store = new Store(join(root, 'account.json'));
@@ -51,7 +55,7 @@ async function connect(t, url, credential, capabilities = CAPABILITIES) {
     const found = frames.find(predicate);
     if (found) return Promise.resolve(found);
     return new Promise((resolve, reject) => {
-      const wait = { predicate, resolve, timer: setTimeout(() => { waits.delete(wait); reject(new Error('Connector result timeout')); }, 1500) };
+      const wait = { predicate, resolve, timer: setTimeout(() => { waits.delete(wait); reject(new Error('Connector result timeout')); }, FRAME_DEADLINE_MS) };
       waits.add(wait);
     });
   };
@@ -70,11 +74,24 @@ const makeAction = (robotId, overrides = {}) => ({ request_id: randomUUID(), rob
   action: 'announce', text: 'An invented fixture announcement.', deadline_ms: Date.now() + 5000, ...overrides });
 const prefs = (shortcuts = [], follow_up = []) => ({ type: 'preferences', shortcuts, follow_up });
 const settle = () => new Promise((resolve) => setTimeout(resolve, 10));
+// Client and server share one event loop. A frame sent over the loopback
+// WebSocket is only read in the poll phase, so a fixed 10ms sleep can fire
+// first whenever the loop was blocked (GC, durable fsync, a loaded suite).
+// Wait for the server-side effect itself instead; a missing effect still fails.
+async function until(predicate, label) {
+  const deadline = Date.now() + FRAME_DEADLINE_MS;
+  while (!predicate()) {
+    if (Date.now() > deadline) throw new Error(`Timed out waiting for ${label}`);
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
+}
 
 test('legacy v1 retains one-turn behavior without unsolicited roster or route fields', async (t) => {
   const { broker, link, identity } = fixture(t);
   const linked = link(); const url = await listen(t, broker);
   const client = await connect(t, url, linked.credential, null);
+  // A legacy connector gets no roster to confirm `ready`; wait for the server to process it.
+  await until(() => broker.sessions.get(linked.installation_id)?.ready === true, 'legacy ready');
   const commandResult = broker.command(identity(), 'turn on the fixture light');
   const command = await client.waitFor((frame) => frame.type === 'command');
   assert.equal('route' in command, false);
@@ -133,7 +150,7 @@ test('authenticated preferences authorize only exact routines and fresh per-robo
   const binding = client.frames.find((frame) => frame.type === 'roster').robots[0].robot_id;
   const id = randomUUID();
   client.send(prefs([{ id, phrase: 'Movie time' }], [{ robot_id: binding, available: true, expires_at_ms: now + 30_000 }]));
-  await settle();
+  await until(() => broker.selectionDetails(identity()).shortcuts.length > 0, 'preferences');
   const selected = broker.selectionDetails(identity());
   assert.deepEqual(selected.shortcuts, [{ id, phrase: 'Movie time' }]);
   assert.equal(selected.follow_up.available, true);
@@ -147,7 +164,8 @@ test('authenticated preferences authorize only exact routines and fresh per-robo
   await pending;
   assert.equal(broker.selectionDetails(identity()).follow_up.available, false);
   client.send(prefs([{ id, phrase: 'Movie time' }], [{ robot_id: binding, available: true, expires_at_ms: now + 30_000 }]));
-  await settle(); now += 30_001;
+  await until(() => broker.selectionDetails(identity()).follow_up.available === true, 'renewed follow-up');
+  now += 30_001;
   assert.equal((await broker.command(identity(), 'and the fixture lamp', 'en', { kind: 'follow_up' })).code, 'follow_up_expired');
   await connect(t, url, linked.credential);
   assert.deepEqual(broker.selectionDetails(identity()).shortcuts, []);
