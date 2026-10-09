@@ -119,14 +119,6 @@ export function createClassicRouter(registrations, { callerBoundary } = {}) {
     if (!reg || !Object.prototype.hasOwnProperty.call(reg, 'jsonTypes')) return undefined;
     return typeof reg.jsonTypes === 'function' ? reg.jsonTypes(req) : reg.jsonTypes;
   };
-  // Parser failures are likewise delegated only to the matched source registration. Returning
-  // undefined lets createService continue with its normal error action for every other family.
-  dispatch.parserError = (context) => {
-    const { prefix } = parseTarget(context?.req || {});
-    const reg = regs.find((entry) => entry.re.test(prefix));
-    if (typeof reg?.parserError === 'function') return reg.parserError(context);
-    return undefined;
-  };
   // The Hapi-backed Account CreateHubToken route validates an omitted payload
   // as null; preserve the historical object default for other Classic routes.
   dispatch.rawBody = isClassicRawBodyTarget;
@@ -136,15 +128,18 @@ export function createClassicRouter(registrations, { callerBoundary } = {}) {
     const limit = reg?.handler?.bodyLimit;
     return typeof limit === 'function' ? limit(req) : limit;
   };
-  dispatch.parserError = ({ req, res, error }) => {
-    const { prefix } = parseTarget(req);
+  // Parser failures are delegated only to the matched source registration, which may attach
+  // its handler to the registration itself (GQA) or to its request handler (voice training).
+  dispatch.parserError = ({ req, res, error } = {}) => {
+    const { prefix } = parseTarget(req || {});
     const reg = regs.find((entry) => entry.re.test(prefix));
     // `undefined` means the route did not handle this parser failure and
     // lets the shared service emit its standard error response. Returning
     // `false` is itself a handled value to the service adapter, which used to
     // leave malformed JSON connections open indefinitely.
-    if (typeof reg?.handler?.parserError !== 'function') return undefined;
-    return reg.handler.parserError({ req, res, error });
+    if (typeof reg?.parserError === 'function') return reg.parserError({ req, res, error });
+    if (typeof reg?.handler?.parserError === 'function') return reg.handler.parserError({ req, res, error });
+    return undefined;
   };
   dispatch.bodyDefault = (req) => {
     const { prefix, op } = parseTarget(req);
