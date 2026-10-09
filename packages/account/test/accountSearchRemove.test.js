@@ -278,7 +278,12 @@ test('Search on Classic uses the same safe projection', async () => {
   assertSafeAccount(hit);
 });
 
-test('Remove without id deletes the caller after loops are suspended, and preserves passwordResetCode', async () => {
+// 07178e2 ("security: harden public service boundaries") deliberately retired
+// DIVERGENCES A1: removeById now deletes passwordResetCode/Created/ExpiresAt and
+// bumps the session version (accountIdentity.js removeById), and passwordReset
+// refuses a deleted row (accountIdentity.js passwordReset). A reset code issued
+// before deletion must therefore not survive Remove.
+test('Remove without id deletes the caller after loops are suspended, and clears any pending password reset', async () => {
   const persistDir = mkdtempSync(join(tmpdir(), 'phx-a03-remove-self-'));
   const persistFile = join(persistDir, 'store.json');
   const persistStore = new Store(persistFile);
@@ -289,6 +294,8 @@ test('Remove without id deletes the caller after loops are suspended, and preser
     lastName: 'Remove',
   });
   self.passwordResetCode = 'pre-delete-code';
+  self.passwordResetCreated = Date.now();
+  self.passwordResetExpiresAt = Date.now() + 60 * 60 * 1000;
   persistStore.flush();
   const created = createLoop(persistStore, { owner: self, robotId: 'a03-self-remove-robot' });
   const other = createOwnerAccount(persistStore, {
@@ -318,7 +325,9 @@ test('Remove without id deletes the caller after loops are suspended, and preser
 
     const persisted = persistStore.accounts.get(self._id);
     assert.equal(persisted.isDeleted, true);
-    assert.equal(persisted.passwordResetCode, 'pre-delete-code');
+    assert.equal(persisted.passwordResetCode, undefined, 'a pre-delete reset code is revoked');
+    assert.equal(persisted.passwordResetCreated, undefined);
+    assert.equal(persisted.passwordResetExpiresAt, undefined);
     assert.equal(persisted.email, 'self-remove@synthetic.invalid');
     assert.equal(typeof persisted.password, 'string');
 
@@ -336,7 +345,8 @@ test('Remove without id deletes the caller after loops are suspended, and preser
     persistService = await createAccountService({ store: new Store(persistFile) }).listen(0);
     const reopened = new Store(persistFile);
     assert.equal(reopened.accounts.get(self._id).isDeleted, true);
-    assert.equal(reopened.accounts.get(self._id).passwordResetCode, 'pre-delete-code');
+    assert.equal(reopened.accounts.get(self._id).passwordResetCode, undefined, 'revocation is persisted');
+    assert.equal([...reopened.accounts.values()].some((row) => row.passwordResetCode === 'pre-delete-code'), false);
     assert.equal(reopened.loops.get(created.loop._id).isDeleted, true);
     assert.equal((reopened.loops.get(host.loop._id).members || []).some((member) => member.accountId === self._id), false);
   } finally {

@@ -1,11 +1,15 @@
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { start } from '../src/index.js';
 import { compiledFstRuntimeConfig, getCompiledFstRuntime, matchCompiledLaunch } from '../src/compiledFstRuntime.js';
 import { parseRequest } from '../src/requestParser.js';
 
-const inventory = JSON.parse(readFileSync(new URL('../resources/rule-inventory.json', import.meta.url)));
+const inventoryBytes = readFileSync(new URL('../resources/rule-inventory.json', import.meta.url));
+const inventory = JSON.parse(inventoryBytes);
+// compiledFstProfileAnchors.test.js pins the approval/anchor to these bytes.
+const inventorySha256 = createHash('sha256').update(inventoryBytes).digest('hex');
 const namedRules = Object.keys(inventory.publicRules).sort();
 
 const configured = process.env.PHOENIX_NLU_RUNTIME === 'compiled-fst'
@@ -69,7 +73,7 @@ test('explicit compiled-FST profile connects the real /v1/parse path', { skip: !
     allNamedRulesLoaded: true,
     ruleManifestSha256: '7648a6449f62d7664c7f9a602ec50e9195daeb92e30aaefbf0ebd2d50a0a3142',
     inventoryRevision: '5c0a7390539663ba749d360de348a428c088505c',
-    inventorySha256: '7dddc9854981f388480fed90f4714b51f22fe69d5174964e18bb4584b441c4f4',
+    inventorySha256,
     sourceRevision: '91b1bb6dbc702d3072df98a6fa0b76a6bc151d3e',
     referenceRevision: '5c0a7390539663ba749d360de348a428c088505c',
     sourceRuntime: 'jibo-nlu v2.8.3',

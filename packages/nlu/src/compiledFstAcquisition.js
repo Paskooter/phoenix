@@ -22,9 +22,14 @@
 //   REMOVE_FROM_MEM erases one URI.
 //   UNION is offline build-rules work, not a public parse operation.
 //
-// This module does not compile text grammars and does not implement OpenFST
-// union. It only discovers existing .fst files and loads them as VectorFST
-// handles so Phoenix can serve graphs outside the closed 98-rule inventory.
+// Development/offline acquisition helpers for inspecting existing VectorFST
+// files and reproducing the native handle protocol in isolated tests. This
+// module is deliberately not imported by compiledFstRuntime.js: arbitrary
+// directory graphs are not a Phoenix parity or production profile until a
+// versioned manifest binds their source, artifact, and compiler provenance.
+//
+// It does not compile text grammars or implement OpenFST union. The runtime
+// profile accepts only the approved binary and portable snapshot contracts.
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';

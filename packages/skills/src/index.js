@@ -173,6 +173,10 @@ export {
   createGqaRetrieveAttributionRoute,
   createGqaWipeAttributionRoute,
   normalizePhoenixGqaIdentity,
+  createGqaAttributionAuthorizer,
+  createGqaSigV4CallerVerifier,
+  readGqaAttributionAuthConfig,
+  safeGqaErrorDetail,
   sourceJsonDumps,
   sourceTruthy,
   GQA_ACCOUNT_SOURCE_REVISION,
@@ -185,6 +189,12 @@ export {
   GQA_ATTRIBUTE_INDEX,
   GQA_ATTRIBUTE_DEFAULT_FILE,
   GqaFileAttributionStore,
+  GQA_ATTRIBUTION_TRUSTED_INTERNAL_ENV,
+  GQA_ATTRIBUTION_TRUSTED_INTERNAL_ADDRESSES_ENV,
+  GQA_ATTRIBUTION_AUTHORIZATION_REQUIRED_MESSAGE,
+  GQA_ATTRIBUTION_AUTHORIZATION_NOT_CONFIGURED_MESSAGE,
+  GQA_ATTRIBUTION_ACCESS_DENIED_MESSAGE,
+  GQA_INTERNAL_ERROR_MESSAGE,
 } from './gqaAccountAttribution.js';
 export {
   NEWS_SOURCE_REVISION,

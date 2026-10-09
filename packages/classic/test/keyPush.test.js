@@ -93,6 +93,13 @@ test('push: CreateDevice / RemoveDevice return the account Devices list; validat
   const rm = await amz('Push_20160729.RemoveDevice', { name: 'phone-1' }, 'acct-C');
   assert.equal(rm.status, 200);
   assert.deepEqual(rm.body, []);
-  const bad = await amz('Push_20160729.CreateDevice', {});
+  // Since 07178e2 the push face has no anonymous 'anon' account: a request with no
+  // caller identity is refused before validation (packages/classic/src/push.js
+  // makePushHandler -> MISSING_AUTH_HEADER 401). Validation is exercised as an
+  // identified caller.
+  const bad = await amz('Push_20160729.CreateDevice', {}, 'acct-C');
   assert.equal(bad.status, 422, 'name required (source Boom.badData)');
+  const anonymous = await amz('Push_20160729.CreateDevice', { name: 'phone-2', pushToken: 'apns-tok-2', type: 'ios' });
+  assert.equal(anonymous.status, 401);
+  assert.equal(anonymous.errType, 'MISSING_AUTH_HEADER');
 });

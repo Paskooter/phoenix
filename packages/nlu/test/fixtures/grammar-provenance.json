@@ -211,9 +211,9 @@
       "phoenix": "packages/nlu/resources/factory-words",
       "source": "reference build data/en-us factory word lists",
       "count": 6,
-      "aggregateSha256": "817daed63b9d8a72b3df47450e5b22ef61c2e1490b00f9f4ef02d0b8211479a8",
+      "aggregateSha256": "6ee8d5b2cdce33b2a163070186c98b00711915a4782b1df0b0bcf6f5950996cc",
       "files": {
-        "canada_province.txt": "a8e566f2189b9ed202480c6140afb2bdec4e9e786e6751971628ec515e4d6553",
+        "canada_province.txt": "d8ba675a8589fcd77ff22dc0956af08283f3dbc48b2eeecb2874271b1456de77",
         "country.txt": "792c6f1b7f532abfec7d1cc39194027a89413b02b4b61afce7668af58a0ae536",
         "first_name.txt": "baffd024ff6c002de92531255def1d0125479123220c239eda76438ae9e98e69",
         "last_name.txt": "998909077d09d6519334b06e0cff0c4db6a9c30ff8134b9e438f6189dd2fa9f8",

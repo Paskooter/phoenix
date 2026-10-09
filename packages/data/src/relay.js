@@ -29,6 +29,7 @@
 //     empty (`?skipCache[]=` skips).
 
 import { sendJson, sendText } from '@phoenix/common';
+import { DEFAULT_UPSTREAM_TIMEOUT_MS, requestAbortSignal, withUpstreamTimeout } from './upstream.js';
 
 class ClientError extends Error {
   constructor(status, message) { super(message); this.status = status; }
@@ -89,11 +90,13 @@ function sendEmptyOk(res) {
  *   name: string, ttlSeconds: number, cache: import('./cache.js').TTLCache,
  *   validate: (q: URLSearchParams) => any,    // throws on bad input (-> 400)
  *   key: (input: any) => string,
- *   fetchExternal: (input: any, log: any, req?: any) => Promise<any>,  // returns relayData (or throws)
+ *   fetchExternal: (input: any, log: any, req?: any, context?: { signal: AbortSignal }) => Promise<any>,
+ *                  // returns relayData (or throws); context.signal aborts at the deadline or disconnect
+ *   timeoutMs?: number,
  * }} opts
  * @returns {(ctx: any) => Promise<void>} a service route handler
  */
-export function createRelay({ name, ttlSeconds, cache, validate, key, fetchExternal }) {
+export function createRelay({ name, ttlSeconds, cache, validate, key, fetchExternal, timeoutMs = DEFAULT_UPSTREAM_TIMEOUT_MS }) {
   return async ({ req, res, url, log }) => {
     let input;
     try {
@@ -120,14 +123,23 @@ export function createRelay({ name, ttlSeconds, cache, validate, key, fetchExter
       }
 
       let relayData;
+      // A client disconnect cancels the upstream call. A HEAD prefetch has
+      // already ended its response, so it keeps warming the cache, but every
+      // upstream call is still bounded by the deadline.
+      const requestLifecycle = requestAbortSignal(req, res);
       try {
-        relayData = await fetchExternal(input, log, req);
+        relayData = await withUpstreamTimeout(
+          (signal) => fetchExternal(input, log, req, { signal }),
+          { signal: requestLifecycle.signal, timeoutMs, label: name },
+        );
       } catch (e) {
         if (!isHead && !res.writableEnded) {
           const ce = fetchError(name, e);
           sendText(res, ce.status, ce.message);
         }
         return;
+      } finally {
+        requestLifecycle.cleanup();
       }
       if (!relayData) { // reference line 167: any falsy provider result is "empty"
         if (!isHead && !res.writableEnded) sendText(res, 502, `Empty reply from ${name}`);

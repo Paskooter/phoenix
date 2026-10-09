@@ -46,7 +46,10 @@
 //     as point arrays rather than an encoded polyline, and report-skill reads
 //     neither field.
 
+import { DEFAULT_UPSTREAM_TIMEOUT_MS, withUpstreamTimeout } from './upstream.js';
+
 export const COMMUTE_MODES = ['driving', 'transit', 'bicycling', 'walking'];
+export const MAPS_TIMEOUT_MS = DEFAULT_UPSTREAM_TIMEOUT_MS;
 
 /** LatLon.ts:21 — the only accepted numeric form. */
 const LATLON_STR = /^-?\d+\.?\d*$/;
@@ -111,7 +114,9 @@ const TOMTOM_TRAVEL_MODE = {
   walking: 'pedestrian',
 };
 
-export async function defaultTomTomGet({ origin, destination, mode }, apiKey) {
+export async function defaultTomTomGet({ origin, destination, mode }, apiKey, {
+  fetchImpl = fetch, signal, timeoutMs = MAPS_TIMEOUT_MS,
+} = {}) {
   const travelMode = TOMTOM_TRAVEL_MODE[mode] || 'car';
   const loc = `${origin.lat},${origin.lon}:${destination.lat},${destination.lon}`;
   const url = new URL(`https://api.tomtom.com/routing/1/calculateRoute/${loc}/json`);
@@ -123,17 +128,20 @@ export async function defaultTomTomGet({ origin, destination, mode }, apiKey) {
   // Pedestrian and bicycle routing reject departAt; only ask for it where it means something.
   if (travelMode === 'car' || travelMode === 'bus') url.searchParams.set('departAt', 'now');
 
-  const res = await fetch(url, { headers: { Accept: 'application/json' } });
-  if (!res.ok) {
-    let data = null;
-    try { data = await res.json(); } catch { data = null; }
-    const e = new Error(`TomTom ${res.status}`);
-    e.response = { status: res.status, data };
-    throw e;
-  }
-  const text = await res.text();
-  if (!text) return null; // -> relay answers 502 `Empty reply from GoogleMaps`
-  return { provider: 'tomtom', body: JSON.parse(text) };
+  // The deadline covers the headers and the body read.
+  return withUpstreamTimeout(async (upstreamSignal) => {
+    const res = await fetchImpl(url, { headers: { Accept: 'application/json' }, signal: upstreamSignal });
+    if (!res.ok) {
+      let data = null;
+      try { data = await res.json(); } catch { data = null; }
+      const e = new Error(`TomTom ${res.status}`);
+      e.response = { status: res.status, data };
+      throw e;
+    }
+    const text = await res.text();
+    if (!text) return null; // -> relay answers 502 `Empty reply from GoogleMaps`
+    return { provider: 'tomtom', body: JSON.parse(text) };
+  }, { signal, timeoutMs, label: 'TomTom' });
 }
 
 /** Map a TomTom calculateRoute body onto the Google Maps subset report-skill reads. */
@@ -173,19 +181,25 @@ export function tomTomToGoogleMaps(body, origin, destination) {
 }
 
 /** The maps provider. TomTom only; ORS was removed because it has no traffic model. */
-export async function defaultMapsGet(input) {
+export async function defaultMapsGet(input, options = {}) {
   const tomtomKey = process.env.TOMTOM_API_KEY || '';
   if (!tomtomKey) {
     const e = new Error('TomTom 401');
     e.response = { status: 401, data: { error: 'TOMTOM_API_KEY is not configured' } };
     throw e;
   }
-  return defaultTomTomGet(input, tomtomKey);
+  return defaultTomTomGet(input, tomtomKey, options);
 }
 
 /** fetchExternal: returns the Google Maps `Maps` object. opts.get(input) overrides the TomTom call. */
-export async function fetchMaps(input, { get = defaultMapsGet } = {}) {
-  const raw = await get(input);
+export async function fetchMaps(input, {
+  get = defaultMapsGet, fetchImpl, signal, timeoutMs = MAPS_TIMEOUT_MS,
+} = {}) {
+  // Bound an injected provider too, even one that ignores its signal.
+  const raw = await withUpstreamTimeout(
+    (upstreamSignal) => get(input, { signal: upstreamSignal, timeoutMs, fetchImpl }),
+    { signal, timeoutMs, label: 'TomTom' },
+  );
   if (!raw) return null; // -> relay answers 502 `Empty reply from GoogleMaps`
   // An injected `get` may return either the tagged provider envelope or a bare
   // TomTom body, so tests can supply a fixture without wrapping it.

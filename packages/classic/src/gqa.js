@@ -8,6 +8,7 @@
 // an injected question handler owned by the parallel Q-01 implementation.
 
 import { accessKeyIdFromAuth } from './awsJson.js';
+import { verifiedCallerFromRequest } from './caller.js';
 
 export const GQA_SOURCE_REVISION = 'ebe1a7d38f511570060c1fbf61bec89d58419b26';
 export const GQA_API_REVISION = '155d20a8102960b2aeb89c197bdf04dc1f1fc344';
@@ -81,13 +82,39 @@ export function sourceTruthy(value) {
 }
 
 /**
+ * The identity srv-security-gw injected only after it verified the signature: the account the
+ * signed access key resolves to. Any client-supplied x-amz-credentials header is replaced, so the
+ * downstream source handlers (which read request.headers) see the verified account only.
+ */
+function verifiedGqaCredentials(req, caller) {
+  const credentials = {
+    id: caller.accountId,
+    email: caller.email ?? null,
+    friendlyId: caller.friendlyId ?? null,
+    isAdmin: caller.isAdmin === true,
+  };
+  if (req?.headers) {
+    for (const key of Object.keys(req.headers)) {
+      if (key.toLowerCase() === 'x-amz-credentials') delete req.headers[key];
+    }
+    req.headers['x-amz-credentials'] = JSON.stringify(credentials);
+  }
+  return credentials;
+}
+
+/**
  * Read the identity that srv-security-gw injects before forwarding to Flask.
  *
- * The public Classic router authenticates before this handler runs. When a
- * compatibility fixture has no gateway-injected credentials, the access key is
- * retained only as the source-shaped downstream identity fallback.
+ * Behind the Classic caller boundary the identity is always the verified caller and a
+ * client-supplied header is overwritten; `requireVerified` (set when the boundary is configured)
+ * refuses a request that carries no verified caller. Only unauthenticated compatibility
+ * entrypoints read the header, and when it is absent they fall back to the access key as the
+ * source-shaped downstream identity.
  */
-export function gqaCredentials(req, { required = false } = {}) {
+export function gqaCredentials(req, { required = false, requireVerified = false } = {}) {
+  const caller = verifiedCallerFromRequest(req);
+  if (caller) return verifiedGqaCredentials(req, caller);
+  if (requireVerified) throw new Error('GQA request has no verified caller');
   const raw = header(req, 'x-amz-credentials');
   if (raw === undefined) {
     const accessKeyId = accessKeyIdFromAuth(req);
@@ -223,14 +250,14 @@ async function runSourceHandler(context, handler) {
   }
 }
 
-function listAttributionHandler({ accountLookup, attribution }) {
+function listAttributionHandler({ accountLookup, attribution, requireVerified }) {
   const search = typeof attribution?.search === 'function' ? attribution.search.bind(attribution) : null;
   const account = handlerFunction(accountLookup, 'GQA account lookup');
   if (!search || !account) return unavailableAttribution;
   return async ({ req, body }) => {
     // /retrieveAtt parses credentials and resolves the account before it calls data.get(). This
     // ordering is observable for malformed top-level JSON and is retained by the adapter.
-    const credentials = gqaCredentials(req, { required: true });
+    const credentials = gqaCredentials(req, { required: true, requireVerified });
     const loopId = await account(credentials.id, { credentials, req });
     if (!sourceTruthy(loopId)) throw new Error('No robot ID!');
     const data = sourceObject(body);
@@ -249,8 +276,12 @@ function listAttributionHandler({ accountLookup, attribution }) {
  *
  * Attribution can be a handler function/object, or `{ accountLookup, search }` where `search`
  * has the source `gqa.attribute.search_db(loopId, service, before, after)` signature.
+ *
+ * With a `callerBoundary` configured (second argument), both operations take their identity from
+ * the verified caller only (see gqaCredentials).
  */
-export function makeGqaHandler(options = {}) {
+export function makeGqaHandler(options = {}, { callerBoundary } = {}) {
+  const requireVerified = !!callerBoundary;
   const structQaHandler = handlerFunction(
     options.structQaHandler ?? options.question ?? options.questionHandler ?? options.structQA,
     'GQA structQA',
@@ -261,11 +292,13 @@ export function makeGqaHandler(options = {}) {
     'GQA account lookup',
   );
   const directAttribution = handlerFunction(options.attributionHandler, 'GQA attribution');
-  const attribution = directAttribution
-    || (typeof options.attribution === 'function' ? options.attribution : null)
+  const customAttribution = directAttribution
+    || (typeof options.attribution === 'function' ? options.attribution : null);
+  const attribution = customAttribution
     || listAttributionHandler({
       accountLookup,
       attribution: options.attribution || options.store,
+      requireVerified,
     });
 
   return async function gqaHandler(context) {
@@ -275,7 +308,7 @@ export function makeGqaHandler(options = {}) {
         ...context,
         send: (status, value) => sendGqaJson(context.res, status, value),
       }, async (questionContext) => {
-        const credentials = gqaCredentials(questionContext.req);
+        const credentials = gqaCredentials(questionContext.req, { requireVerified });
         injectGqaCredentialsHeader(questionContext.req, credentials);
         return structQaHandler(questionContext.body, {
           req: questionContext.req,
@@ -288,6 +321,13 @@ export function makeGqaHandler(options = {}) {
       });
     }
     if (name === 'ListAttribution') {
+      // A custom attribution handler reads the request itself; normalize its identity first.
+      if (requireVerified && customAttribution) {
+        return runSourceHandler(context, (attributionContext) => {
+          gqaCredentials(attributionContext.req, { required: true, requireVerified });
+          return attribution(attributionContext);
+        });
+      }
       return runSourceHandler(context, attribution);
     }
     return sendGqaHtml(context.res, 404, GQA_NOT_FOUND_HTML);

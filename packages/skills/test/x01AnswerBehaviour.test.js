@@ -329,9 +329,11 @@ test('X-01 separation: the shared host mounts the recovered GQA handler by defau
   env.PHOENIX_GQA_DEFAULT_PROFILE = '';
 
   await withHost({ gqaProfile: '', gqaDefaultProfile: '', gqaEnvironment: env }, async (port) => {
-    // Source envelope validation belongs only to the recovered GQA route.
+    // Source envelope validation belongs only to the recovered GQA route. Its
+    // 500 keeps the source version/message envelope but, deliberately, no
+    // internal error text or stack (DIVERGENCES: Q-hardening-errors).
     const malformed = await postJson(port, '/v1/answer-skill/main', { data: {} });
-    assert.equal(malformed.body.message, 'Missing GQA request field type');
+    assert.deepEqual(malformed.body, { version: '5.2.15', message: 'Internal server error' });
 
     // The robot-IP gate likewise belongs only to the recovered route.  Passing
     // a valid envelope without general.remoteAddress must select GQA_error,

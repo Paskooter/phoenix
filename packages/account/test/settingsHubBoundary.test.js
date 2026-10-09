@@ -8,6 +8,9 @@ import { tmpdir } from 'node:os';
 const { createSettingsInternalService } = await import('../src/index.js');
 const { createSettingsProviders } = await import('../src/settingsProviders.js');
 const { Store } = await import('../src/store.js');
+const { useInternalPeerToken, internalPeerHeaders, INTERNAL_PEER_HEADER } = await import('./fixtures/internalPeer.js');
+
+const peerToken = useInternalPeerToken();
 
 function listen(handler) {
   const server = http.createServer(handler);
@@ -36,6 +39,7 @@ function request(port, transactionId) {
         'content-type': 'application/json',
         'x-amz-target': 'Settings_20171219.GetSettings',
         'x-amz-credentials': JSON.stringify({ id: 'boundary-test-user' }),
+        ...internalPeerHeaders(),
         'content-length': Buffer.byteLength(body), connection: 'close',
       },
     }, (res) => {
@@ -59,6 +63,7 @@ for (const failure of [
     const dir = mkdtempSync(join(tmpdir(), 'phx-hub-boundary-'));
     let hubRequests = 0;
     const account = await listen((req, res) => {
+      if (req.headers[INTERNAL_PEER_HEADER] !== peerToken) return json(res, 401, { error: 'internal peer authentication failed' });
       if (req.url.startsWith('/isLoopMember')) return json(res, 200, { result: true });
       if (req.url.startsWith('/loopPopulated')) return json(res, 200, { robotFriendlyId: 'robot-boundary' });
       return json(res, 404, { error: true });
@@ -79,6 +84,7 @@ for (const failure of [
         env: {
           NET_settings_account: `127.0.0.1:${account.port}`,
           NET_settings_hub: `127.0.0.1:${hub.port}`,
+          ETCO_account_internalPeerToken: peerToken,
         },
       });
       providers.person = {

@@ -5,6 +5,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { createServer } from 'node:http';
+import { canonicalPublicOrigin } from '../../packages/classic/src/publicOrigin.js';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 function port(value, name) {
@@ -59,6 +60,9 @@ export async function startAuthenticatedRobotStack({
 } = {}) {
   if (process.env.PHOENIX_ENV_FILE !== '/dev/null') throw new Error('PHOENIX_ENV_FILE=/dev/null is required');
   if (!runDir) throw new Error('runDir is required');
+  // Classic builds bearer object URLs from this origin; reject a path, query,
+  // fragment or userinfo before any listener starts.
+  const canonicalPublicUrl = canonicalPublicOrigin(publicUrl, { name: 'publicUrl' });
 
   // The server owns its robot-facing certificate. Generating it here means a
   // first start is self-sufficient and the repoint script can simply read what
@@ -121,7 +125,7 @@ export async function startAuthenticatedRobotStack({
     ETCO_classic_backupDir: resolve(directory, 'backups'),
     ETCO_classic_notificationFile: resolve(directory, 'notifications.json'),
     ETCO_gqa_attributionFile: resolve(directory, 'gqa-attribution.json'),
-    ETCO_classic_publicUrl: publicUrl,
+    ETCO_classic_publicUrl: canonicalPublicUrl,
     HUB_TOKEN_SECRET: secret, ETCO_server_hubTokenSecret: secret,
     ETCO_hub_disableAuth: 'false', ETCO_hub_accountUrl: '',
     ETCO_server_parakeetUrl: parakeetUrl,
@@ -234,7 +238,14 @@ export async function startAuthenticatedRobotStack({
       endpoints.settings = settings.server.address().port;
     }
 
-    const { createClassicEntrypoint, MediaStore, accessKeyAccountResolver, createVerifiedNotificationAccountResolver } = await import('../../packages/classic/src/index.js');
+    const { createClassicEntrypoint, MediaStore, accessKeyAccountResolver, createVerifiedClassicCaller, createVerifiedNotificationAccountResolver } = await import('../../packages/classic/src/index.js');
+    // The same verified-caller boundary Classic's own launcher installs: every
+    // Classic family sees only a SigV4-verified identity from the Account store.
+    const callerBoundary = createVerifiedClassicCaller({
+      resolveCredentials: (accessKeyId) => accountStore.accountByAccessKeyId(accessKeyId),
+      // Preserve the native Jibo payload-hash exception already supported by Account's verifier.
+      allowNativeClientPayloadHash: true,
+    });
     const notificationAccountResolver = createVerifiedNotificationAccountResolver({
       resolveCredentials: (accessKeyId) => accountStore.accountByAccessKeyId(accessKeyId),
     });
@@ -253,6 +264,9 @@ export async function startAuthenticatedRobotStack({
     };
     classic = createClassicEntrypoint({
       tls: tlsOptions,
+      publicUrl: canonicalPublicUrl,
+      requirePublicUrl: true,
+      callerBoundary,
       notificationFile: resolve(directory, 'notifications.json'),
       notificationAccountResolver,
       // The app authenticates with SigV4 only (no gateway `x-amz-credentials` header), so the key

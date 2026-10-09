@@ -114,6 +114,52 @@ test('LassoClient keeps source method boundaries for missing request/location da
   }
 });
 
+test('LassoClient strips identity headers on cross-origin redirects', async () => {
+  const received = [];
+  const destination = http.createServer((request, response) => {
+    received.push(request.headers);
+    response.end(JSON.stringify({ relayData: { ok: true } }));
+  });
+  await new Promise((resolve) => destination.listen(0, '127.0.0.1', resolve));
+  const destinationUrl = `http://127.0.0.1:${destination.address().port}/final`;
+  const source = http.createServer((request, response) => {
+    response.writeHead(302, { Location: destinationUrl });
+    response.end();
+  });
+  await new Promise((resolve) => source.listen(0, '127.0.0.1', resolve));
+  const previous = process.env.NET_lasso;
+  process.env.NET_lasso = `127.0.0.1:${source.address().port}`;
+  delete process.env.NET_data;
+  clearReportEnvCache();
+  const data = makeData();
+  data.req.jibo.toHeader = () => ({
+    'x-jibo-transid': 'identity-transid',
+    authorization: 'Bearer identity-token',
+    cookie: 'identity-cookie',
+    'x-api-key': 'custom-api-key',
+    'x-auth-token': 'custom-auth-token',
+    'x-custom-identity': 'custom-identity',
+    accept: 'application/json',
+  });
+  try {
+    assert.deepEqual(await LassoClient.fetchDarkSky(data), { ok: true });
+    assert.equal(received.length, 1);
+    assert.equal(received[0]['x-jibo-transid'], undefined);
+    assert.equal(received[0].authorization, undefined);
+    assert.equal(received[0].cookie, undefined);
+    assert.equal(received[0]['x-api-key'], undefined);
+    assert.equal(received[0]['x-auth-token'], undefined);
+    assert.equal(received[0]['x-custom-identity'], undefined);
+    assert.equal(received[0].accept, 'application/json');
+  } finally {
+    await new Promise((resolve) => source.close(resolve));
+    await new Promise((resolve) => destination.close(resolve));
+    if (previous === undefined) delete process.env.NET_lasso;
+    else process.env.NET_lasso = previous;
+    clearReportEnvCache();
+  }
+});
+
 test('LassoClient snapshots Jibo headers once across redirects', async () => {
   const requests = [];
   const server = http.createServer((request, response) => {

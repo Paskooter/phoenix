@@ -11,6 +11,6 @@ nunavut
 ontario
 prince edward island
 quebec
-quÃ©bec
+québec
 saskatchewan
 yukon

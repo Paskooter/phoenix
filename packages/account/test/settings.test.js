@@ -12,9 +12,22 @@ import { SkillRequestType } from '@phoenix/contracts';
 const dir = mkdtempSync(join(tmpdir(), 'phx-settings-'));
 process.env.ETCO_account_dataFile = join(dir, 'store.json');
 
-const { createAccountService, getStore } = await import('../src/index.js');
+const { createAccountService, createSettingsInternalService, getStore } = await import('../src/index.js');
 const { createOwnerAccount, createLoop } = await import('../src/model.js');
 const { Store } = await import('../src/store.js');
+const { useInternalPeerToken, internalPeerHeaders } = await import('./fixtures/internalPeer.js');
+
+// The account face accepts a forwarded x-amz-credentials identity only from the
+// internal report-skill peer presenting the configured (synthetic) peer token, and
+// only when that identity resolves to a real account in the store.
+useInternalPeerToken();
+
+/** Seed a synthetic account in a provider-seam store so the peer identity resolves. */
+function syntheticProviderUser(providerStore, label) {
+  return createOwnerAccount(providerStore, {
+    email: `synthetic-${label}@settings.fixture.test`, password: 'synthetic-provider-password',
+  });
+}
 
 let server; let base; let store; let owner; let loop; const jar = new Map();
 async function call(method, path, body, jarName = 'c') {
@@ -31,7 +44,7 @@ async function amzSettings(op, body, accountId, prefix = 'Settings_20171219') {
     headers: {
       'content-type': 'application/x-amz-json-1.1',
       'x-amz-target': `${prefix}.${op}`,
-      ...(accountId ? { 'x-amz-credentials': JSON.stringify({ id: accountId }) } : {}),
+      ...(accountId ? { 'x-amz-credentials': JSON.stringify({ id: accountId }), ...internalPeerHeaders() } : {}),
     },
     body: JSON.stringify(body || {}),
   });
@@ -80,17 +93,25 @@ test('Settings headers cannot change JSON parsing on unrelated Account routes', 
 });
 
 test('Account peer routes expose the source Account client response fields', async () => {
-  const member = await fetch(`${base}/isLoopMember?accountId=${encodeURIComponent(owner._id)}&loopId=${encodeURIComponent(loop._id)}`);
+  const memberPath = `/isLoopMember?accountId=${encodeURIComponent(owner._id)}&loopId=${encodeURIComponent(loop._id)}`;
+  const unauthenticated = await fetch(`${base}${memberPath}`);
+  assert.equal(unauthenticated.status, 401, 'peer routes still require the internal peer token');
+  const member = await fetch(`${base}${memberPath}`, { headers: internalPeerHeaders() });
   assert.equal(member.status, 200);
   assert.deepEqual(await member.json(), { result: true });
-  const populated = await fetch(`${base}/loopPopulated?loopId=${encodeURIComponent(loop._id)}`);
+  const populated = await fetch(`${base}/loopPopulated?loopId=${encodeURIComponent(loop._id)}`, {
+    headers: internalPeerHeaders(),
+  });
   assert.equal(populated.status, 200);
   assert.deepEqual(await populated.json(), { id: loop._id, robotFriendlyId: 'settings-robot' });
 });
 
 test('internal Settings credentials preserve null failure and falsy primitive provider context', async () => {
   const contexts = [];
-  const providerServer = await createAccountService({
+  // Raw forwarded credentials (null / falsy primitives) only reach the source handler
+  // through the internal Settings listener; the public account face resolves a real
+  // account before dispatch.
+  const providerServer = await createSettingsInternalService({
     store: new Store(join(dir, 'credential-edge-store.json')),
     settingsProviders: {
       account: { checkUserBelongsToLoop: async (context) => {
@@ -107,7 +128,7 @@ test('internal Settings credentials preserve null failure and falsy primitive pr
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-amz-target': 'Settings_20171219.GetSettings',
-        'x-amz-credentials': credentials },
+        'x-amz-credentials': credentials, ...internalPeerHeaders() },
       body: JSON.stringify(body),
     });
     return { status: response.status, body: await response.text() };
@@ -191,7 +212,29 @@ test('Settings_20171219 GetDataForSettings preserves source view/filter semantic
 });
 
 test('Settings Get validation follows source credentials/loop/settings requirements', async () => {
-  const noCreds = await amzSettings('GetSettings', { loopId: 'l' });
+  // The public account face rejects a caller with neither SigV4 nor a peer identity.
+  const unauthenticated = await amzSettings('GetSettings', { loopId: 'l' });
+  assert.equal(unauthenticated.status, 401);
+  assert.equal(unauthenticated.body.__type, 'CREDENTIALS_REQUIRED');
+
+  // An authenticated internal peer that forwards no credentials reaches the source
+  // handler, whose membership check rejects the absent account id.
+  const internal = await createSettingsInternalService({ store }).listen(0);
+  let noCreds;
+  try {
+    const response = await fetch(`http://127.0.0.1:${internal.address().port}/`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-amz-target': 'Settings_20171219.GetSettings',
+        ...internalPeerHeaders(),
+      },
+      body: JSON.stringify({ loopId: 'l' }),
+    });
+    noCreds = { status: response.status, body: await response.json().catch(() => null) };
+  } finally {
+    await new Promise((resolve) => internal.close(resolve));
+  }
   assert.equal(noCreds.status, 403);
   assert.deepEqual(noCreds.body, {
     statusCode: 403,
@@ -247,6 +290,7 @@ test('source-shaped Settings provider seams preserve view, provider order, and p
     },
   };
   const providerStore = new Store(join(dir, 'provider-store.json'));
+  const providerUser = syntheticProviderUser(providerStore, 'provider-seams');
   const providerServer = await createAccountService({ store: providerStore, settingsProviders: providers }).listen(0);
   const providerBase = `http://localhost:${providerServer.address().port}`;
   try {
@@ -255,7 +299,8 @@ test('source-shaped Settings provider seams preserve view, provider order, and p
       headers: {
         'content-type': 'application/json',
         'x-amz-target': 'Settings_20171219.GetSettings',
-        'x-amz-credentials': JSON.stringify({ id: 'provider-user' }),
+        'x-amz-credentials': JSON.stringify({ id: providerUser._id }),
+        ...internalPeerHeaders(),
       },
       body: JSON.stringify({ loopId: 'provider-loop', transId: 'provider-trans' }),
     });
@@ -270,11 +315,11 @@ test('source-shaped Settings provider seams preserve view, provider order, and p
       },
     }]);
     assert.deepEqual(calls, [
-      ['account', { loopId: 'provider-loop', transactionId: 'provider-trans', userId: 'provider-user' }],
-      ['hub', { loopId: 'provider-loop', transactionId: 'provider-trans', userId: 'provider-user' }],
-      ['account-properties', { loopId: 'provider-loop', transactionId: 'provider-trans', userId: 'provider-user' }, ['accountFlag']],
-      ['loop-properties', { loopId: 'provider-loop', transactionId: 'provider-trans', userId: 'provider-user' }, ['loopFlag']],
-      ['credential', { loopId: 'provider-loop', transactionId: 'provider-trans', userId: 'provider-user' }, {
+      ['account', { loopId: 'provider-loop', transactionId: 'provider-trans', userId: providerUser._id }],
+      ['hub', { loopId: 'provider-loop', transactionId: 'provider-trans', userId: providerUser._id }],
+      ['account-properties', { loopId: 'provider-loop', transactionId: 'provider-trans', userId: providerUser._id }, ['accountFlag']],
+      ['loop-properties', { loopId: 'provider-loop', transactionId: 'provider-trans', userId: providerUser._id }, ['loopFlag']],
+      ['credential', { loopId: 'provider-loop', transactionId: 'provider-trans', userId: providerUser._id }, {
         scopes: ['read'], serviceAccountName: 'calendar', serviceName: 'google', skillId: 'report-skill',
       }],
     ]);
@@ -319,6 +364,7 @@ test('source Settings graph runs service groups concurrently and updates connect
     },
   };
   const providerStore = new Store(join(dir, 'concurrent-provider-store.json'));
+  const providerUser = syntheticProviderUser(providerStore, 'concurrent-graph');
   const providerServer = await createAccountService({ store: providerStore, settingsProviders: providers }).listen(0);
   try {
     const response = await fetch(`http://localhost:${providerServer.address().port}/`, {
@@ -326,7 +372,8 @@ test('source Settings graph runs service groups concurrently and updates connect
       headers: {
         'content-type': 'application/json',
         'x-amz-target': 'Settings_20171219.GetSettings',
-        'x-amz-credentials': JSON.stringify({ id: 'provider-user' }),
+        'x-amz-credentials': JSON.stringify({ id: providerUser._id }),
+        ...internalPeerHeaders(),
       },
       body: JSON.stringify({ loopId: 'provider-loop' }),
     });
@@ -353,6 +400,7 @@ test('source Settings graph preserves null credentials and source null-map diagn
     lasso: { getCredential: async () => null },
   };
   const providerStore = new Store(join(dir, 'null-provider-store.json'));
+  const providerUser = syntheticProviderUser(providerStore, 'null-graph');
   const providerServer = await createAccountService({ store: providerStore, settingsProviders: providers }).listen(0);
   async function request(body) {
     const response = await fetch(`http://localhost:${providerServer.address().port}/`, {
@@ -360,7 +408,8 @@ test('source Settings graph preserves null credentials and source null-map diagn
       headers: {
         'content-type': 'application/json',
         'x-amz-target': 'Settings_20171219.GetDataForSettings',
-        'x-amz-credentials': JSON.stringify({ id: 'provider-user' }),
+        'x-amz-credentials': JSON.stringify({ id: providerUser._id }),
+        ...internalPeerHeaders(),
       },
       body: JSON.stringify(body),
     });
@@ -407,6 +456,7 @@ test('source Settings graph preserves null credentials and source null-map diagn
 
 test('Settings route accepts source JSON values before Joi and does not invent item schemas', async () => {
   const providerStore = new Store(join(dir, 'validation-provider-store.json'));
+  const providerUser = syntheticProviderUser(providerStore, 'validation-route');
   const providerServer = await createAccountService({
     store: providerStore,
     settingsProviders: {
@@ -423,7 +473,8 @@ test('Settings route accepts source JSON values before Joi and does not invent i
       headers: {
         'content-type': 'application/json',
         'x-amz-target': `Settings_20171219.${op}`,
-        'x-amz-credentials': JSON.stringify({ id: 'provider-user' }),
+        'x-amz-credentials': JSON.stringify({ id: providerUser._id }),
+        ...internalPeerHeaders(),
       },
       body,
     });

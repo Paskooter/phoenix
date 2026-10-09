@@ -10,35 +10,34 @@
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import http from 'node:http';
-import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { Readable } from 'node:stream';
 import { mkdtempSync, rmSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { fileURLToPath } from 'node:url';
 import { createClassicEntrypoint, BackupStore } from '../src/index.js';
 import { Store, createAccountService } from '@phoenix/account';
+import {
+  SYNTHETIC_PEER_TOKEN, freePort, setEnv, signedAmz, startClassicChild, storeCallerBoundary,
+  syntheticAccount, writeSyntheticAccountStore,
+} from './fixtures/signedClassic.js';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
-const ENTRY = join(ROOT, 'packages', 'classic', 'src', 'index.js');
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-let server; let port; let backupDir; let prevBackupDir;
-const base = () => `http://localhost:${port}`;
+// Since 07178e2 the robot-facing Backup face is authenticated: the executable entrypoint verifies
+// SigV4 against the Account store, Backup's ownership check compares the VERIFIED caller with the
+// Account loop's robot (backup.js ownershipRefusal), and Classic reaches Account's private GET /loop
+// with ETCO_account_internalPeerToken. The shared server below is configured the same way: a
+// synthetic robot account signs every call, and a real Account service owns the synthetic loops.
+const ROBOT = syntheticAccount('robot-backup-synthetic');
+const ROBOT_LOOPS = ['loop-1', 'loop-order', 'loop-retry', 'never-backed-up', 'loop-share', 'loop-restart'];
 
-async function amz(target, body, { headers } = {}) {
-  const res = await fetch(`${base()}/`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/x-amz-json-1.1', 'x-amz-target': target, ...(headers || {}) },
-    body: JSON.stringify(body || {}),
-  });
-  return {
-    status: res.status,
-    errType: res.headers.get('x-amzn-errortype'),
-    body: await res.json().catch(() => null),
-  };
+let server; let port; let backupDir; let accountDir; let accountFile; let accountServer; let restoreEnv;
+const base = () => `http://127.0.0.1:${port}`;
+
+async function amz(target, body) {
+  const { status, errType, body: parsed } = await signedAmz(base(), target, body, ROBOT);
+  return { status, errType, body: parsed };
 }
 
 /** The pinned client's error precedence: lib/protocol/json.js:62-71 (__type || code || error). */
@@ -52,16 +51,34 @@ function clientErrorCode(parsed) {
 // runs and would make `List` counts non-deterministic (a real durability property, not a bug).
 before(async () => {
   backupDir = mkdtempSync(join(tmpdir(), 'phx-backup-shared-'));
-  prevBackupDir = process.env.ETCO_classic_backupDir;
-  process.env.ETCO_classic_backupDir = backupDir;
-  server = await createClassicEntrypoint().listen(0);
-  port = server.address().port;
+  accountDir = mkdtempSync(join(tmpdir(), 'phx-backup-accounts-'));
+  accountFile = join(accountDir, 'account.json');
+  const accounts = writeSyntheticAccountStore(accountFile, {
+    accounts: [ROBOT],
+    loops: ROBOT_LOOPS.map((loopId) => ({
+      _id: loopId, robot: ROBOT._id, owner: 'synthetic-owner', isSuspended: false, members: [],
+    })),
+  });
+  accountServer = await createAccountService({ store: accounts }).listen(0);
+  restoreEnv = setEnv({
+    ETCO_classic_backupDir: backupDir,
+    NET_account: `127.0.0.1:${accountServer.address().port}`,
+    ETCO_account_internalPeerToken: SYNTHETIC_PEER_TOKEN,
+  });
+  // The authenticated entrypoint requires an explicit public origin for its bearer URLs; reserve
+  // an ephemeral port first so the origin names this very listener.
+  port = await freePort();
+  server = await createClassicEntrypoint({
+    callerBoundary: storeCallerBoundary(accounts),
+    publicUrl: base(),
+  }).listen(port, '127.0.0.1');
 });
-after(() => {
+after(async () => {
   server.close();
+  await new Promise((resolve) => accountServer.close(resolve));
+  restoreEnv();
   rmSync(backupDir, { recursive: true, force: true });
-  if (prevBackupDir === undefined) delete process.env.ETCO_classic_backupDir;
-  else process.env.ETCO_classic_backupDir = prevBackupDir;
+  rmSync(accountDir, { recursive: true, force: true });
 });
 
 // ---- the authoritative client sequence + content integrity ------------------
@@ -193,6 +210,12 @@ test('durable: Backup.New -> PUT -> List -> GET survive a real service restart',
   try {
     const p1 = await freePort();
     first = await startChild({ port: p1, backupDir: dir });
+    const unsigned = await fetch(`${first.base}/`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-amz-json-1.1', 'x-amz-target': 'Backup_20170222.New' },
+      body: JSON.stringify({ loopId: 'loop-restart' }),
+    });
+    assert.equal(unsigned.status, 401, 'the executable entrypoint refuses an unsigned Backup call');
     const created = await childAmz(first.base, 'Backup_20170222.New', { loopId: 'loop-restart' });
     assert.equal(created.status, 200);
     const put = await fetch(created.body.uploadUrl, { method: 'PUT', body: blob });
@@ -255,27 +278,47 @@ test('ownership: a different account is refused ROBOT_SHOULD_BELONG_TO_LOOP (403
   }
 });
 
-test('ownership: no resolved identity keeps the documented LAN-trust path (200)', async () => {
+// The historical LAN-trust path (no identity -> allowed) was removed on purpose by 07178e2:
+// backup.js credentialsAccountId/ownershipRefusal — "a missing header is never treated as LAN
+// trust" — answers BACKUP_AUTH_REQUIRED 401. The only identity-free path left is the explicit,
+// socket-loopback-only `allowLoopbackWithoutIdentity` opt-in (ETCO_classic_backupTrustedLoopback).
+test('ownership: no resolved identity is refused BACKUP_AUTH_REQUIRED (401) unless the loopback opt-in is set', async () => {
   const res = await withOwnership(
     { accountId: () => null, loopRobotId: async () => 'someone-else' },
     async (b) => b.amz('Backup_20170222.New', { loopId: 'loop-lan' }),
   );
-  assert.equal(res.status, 200, 'with no gateway-supplied identity there is nothing to check against');
+  assert.equal(res.status, 401, 'an absent identity is never authorization');
+  assert.equal(res.body.code, 'BACKUP_AUTH_REQUIRED');
+  assert.equal(res.body.message, 'Backup credentials required');
+
+  const optedIn = await withOwnership(
+    { accountId: () => null, loopRobotId: async () => 'someone-else', allowLoopbackWithoutIdentity: true },
+    async (b) => b.amz('Backup_20170222.New', { loopId: 'loop-lan' }),
+  );
+  assert.equal(optedIn.status, 200, 'the explicit same-host opt-in accepts a loopback peer');
 });
 
-test('ownership: an unresolved loop lookup does not fail a legitimate backup', async () => {
+// 07178e2 made an unresolved Account lookup fail closed: backup.js accountLoopRobot documents
+// that `undefined` (Account could not resolve the loop) is denied with a service-unavailable
+// response "rather than authorizing through an outage".
+test('ownership: an unresolved loop lookup fails closed (503 ACCOUNT_SERVICE_UNAVAILABLE)', async () => {
   const res = await withOwnership(
     { accountId: () => 'robot-1', loopRobotId: async () => undefined },
     async (b) => b.amz('Backup_20170222.New', { loopId: 'loop-unresolved' }),
   );
-  assert.equal(res.status, 200, 'account service unreachable is not the robot\'s fault');
+  assert.equal(res.status, 503, 'an Account outage is not authorization');
+  assert.equal(res.body.code, 'ACCOUNT_SERVICE_UNAVAILABLE');
+  assert.equal(res.body.message, 'Account service unavailable');
 });
 
 test('ownership: end-to-end through a real Account service (getLoop 200 and 404)', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'phx-backup-acct-'));
   const prev = process.env.NET_account;
-  let accountServer; let classic;
+  let accountServer; let classic; let restorePeerToken;
   try {
+    // Account's GET /loop is a private peer route since 07178e2 (account/src/backupPeerRoutes.js):
+    // it needs ETCO_account_internalPeerToken and the matching header backup.js sends.
+    restorePeerToken = setEnv({ ETCO_account_internalPeerToken: SYNTHETIC_PEER_TOKEN });
     const store = new Store(join(dir, 'account.json'));
     store.accounts.set('robot-1', { _id: 'robot-1', friendlyId: 'r-one', isActive: true, isDeleted: false });
     store.accounts.set('robot-2', { _id: 'robot-2', friendlyId: 'r-two', isActive: true, isDeleted: false });
@@ -312,20 +355,27 @@ test('ownership: end-to-end through a real Account service (getLoop 200 and 404)
     classic?.close();
     if (accountServer) await new Promise((r) => accountServer.close(r));
     if (prev === undefined) delete process.env.NET_account; else process.env.NET_account = prev;
+    restorePeerToken?.();
     rmSync(dir, { recursive: true, force: true });
   }
 });
 
-test('restore authorization is possession of the returned URL (unsigned, self-hosted)', async () => {
+test('restore authorization is possession of the returned bearer URL (no request credentials)', async () => {
   const created = await amz('Backup_20170222.New', { loopId: 'loop-share' });
   await fetch(created.body.uploadUrl, { method: 'PUT', body: Buffer.from('shareable') });
   const listed = await amz('Backup_20170222.List', { loopId: 'loop-share' });
   const url = listed.body[0].location.url;
-  // The source served an S3 presigned GET (the signature WAS the authorization). Phoenix's
-  // self-hosted URL is unsigned, so any holder of it can restore — the H-backup divergence.
-  const res = await fetch(url); // no credentials of any kind
+  // The source served an S3 presigned GET (the signature WAS the authorization). Since 07178e2
+  // Phoenix's self-hosted URL carries the same kind of bearer: a server-held HMAC bound to method,
+  // loop, key and expiry (backup.js signedBlobUrl/bearerIds). Holding the URL is enough...
+  const res = await fetch(url); // no request credentials of any kind
   assert.equal(res.status, 200);
   assert.equal(await res.text(), 'shareable');
+  // ...but the URL without its signature (the old unsigned shape) is refused.
+  const unsigned = new URL(url);
+  unsigned.searchParams.delete('signature');
+  const refused = await fetch(unsigned);
+  assert.equal(refused.status, 403);
 });
 
 test('backup blob endpoints reject path-traversal in loopId/key', async () => {
@@ -355,59 +405,21 @@ async function withOwnership(ownership, fn) {
   }
 }
 
-async function freePort() {
-  const srv = http.createServer();
-  await new Promise((resolve) => srv.listen(0, resolve));
-  const p = srv.address().port;
-  await new Promise((resolve) => srv.close(resolve));
-  return p;
-}
-
-/** Start the real classic entrypoint as a child PROCESS bound to `port` with a fixed backup dir. */
-async function startChild({ port, backupDir }) {
-  const child = spawn(process.execPath, [ENTRY], {
-    cwd: ROOT,
-    env: { ...process.env, PORT: String(port), ETCO_classic_backupDir: backupDir },
-    stdio: ['ignore', 'pipe', 'pipe'],
+/** Start the real executable classic entrypoint as a child PROCESS with a fixed backup dir. */
+async function startChild({ port, backupDir: dir }) {
+  return startClassicChild({
+    port,
+    accountDataFile: accountFile,
+    env: {
+      ETCO_classic_backupDir: dir,
+      NET_account: process.env.NET_account,
+      ETCO_account_internalPeerToken: SYNTHETIC_PEER_TOKEN,
+    },
+    ready: async (baseUrl) => (await childAmz(baseUrl, 'Backup_20170222.List', { loopId: 'loop-restart' })).status === 200,
   });
-  let stderr = '';
-  child.stdout.resume();
-  child.stderr.on('data', (c) => { stderr += c; });
-  const baseUrl = `http://localhost:${port}`;
-  const ready = async () => {
-    try {
-      const res = await fetch(`${baseUrl}/`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/x-amz-json-1.1', 'x-amz-target': 'Backup_20170222.List' },
-        body: JSON.stringify({ loopId: 'readiness-probe' }),
-      });
-      return res.status === 200;
-    } catch { return false; }
-  };
-  for (let i = 0; i < 150; i++) {
-    if (await ready()) {
-      return {
-        base: baseUrl,
-        child,
-        stop: () => new Promise((resolve) => {
-          if (child.exitCode !== null || child.signalCode !== null) return resolve();
-          child.once('close', resolve);
-          child.kill('SIGKILL');
-        }),
-      };
-    }
-    if (child.exitCode !== null) break;
-    await sleep(100);
-  }
-  child.kill('SIGKILL');
-  throw new Error(`classic entrypoint child did not start: ${stderr}`);
 }
 
 async function childAmz(baseUrl, target, body) {
-  const res = await fetch(`${baseUrl}/`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/x-amz-json-1.1', 'x-amz-target': target },
-    body: JSON.stringify(body || {}),
-  });
-  return { status: res.status, body: await res.json().catch(() => null) };
+  const { status, body: parsed } = await signedAmz(baseUrl, target, body, ROBOT);
+  return { status, body: parsed };
 }

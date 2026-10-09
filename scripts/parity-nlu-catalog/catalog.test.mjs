@@ -6,7 +6,7 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readFstIntents, renderExample } from './fstIntents.mjs';
@@ -20,11 +20,26 @@ const RULES = join(
   'packages/parser/robust-parser/rules_src',
 );
 
-const fst = readFstIntents(RULES);
-const catalog = buildCatalog();
-const byName = new Map(catalog.map((tool) => [tool.name, tool]));
+const AGENT = join(
+  repo,
+  '.parity/reference/5c0a7390539663ba749d360de348a428c088505c',
+  'packages/parser/dialogflow/main_agent',
+);
 
-test('the rule sources carry the intent surface, not the Dialogflow agent', () => {
+// The reference tree is gitignored and provisioned out of band, so a fresh clone
+// does not have it. Skip the reference-dependent assertions with a reason rather
+// than failing the suite at import; they run in full wherever the tree exists.
+const missingReference = [RULES, AGENT].filter((path) => !existsSync(path));
+const referenceSkip = missingReference.length
+  ? `reference tree not provisioned (missing ${missingReference.map((path) => path.slice(repo.length + 1)).join(', ')})`
+  : false;
+
+const fst = referenceSkip ? new Map() : readFstIntents(RULES);
+const catalog = referenceSkip ? [] : buildCatalog();
+const byName = new Map(catalog.map((tool) => [tool.name, tool]));
+const needsReference = { skip: referenceSkip };
+
+test('the rule sources carry the intent surface, not the Dialogflow agent', needsReference, () => {
   // 611 by a raw grep of intent literals; the parse keeps essentially all of
   // them. A big drop means the production splitter broke.
   assert.ok(fst.size > 580, `expected >580 rule intents, got ${fst.size}`);
@@ -32,7 +47,7 @@ test('the rule sources carry the intent surface, not the Dialogflow agent', () =
   assert.ok(catalog.length > 600, `expected >600 catalog tools, got ${catalog.length}`);
 });
 
-test('every utility the Dialogflow-only catalog lost is present under its real name', () => {
+test('every utility the Dialogflow-only catalog lost is present under its real name', needsReference, () => {
   for (const name of [
     'askForTime', 'askForDate', 'timerValue', 'alarmValue',
     'volumeUp', 'volumeDown', 'volumeToValue',
@@ -48,7 +63,7 @@ test('every utility the Dialogflow-only catalog lost is present under its real n
   }
 });
 
-test('the hand-written catalog\'s invented names are not real Jibo intents', () => {
+test('the hand-written catalog\'s invented names are not real Jibo intents', needsReference, () => {
   // Ten of its fifteen. Keeping this as a test stops anyone reintroducing them.
   for (const invented of [
     'whatTimeIsIt', 'whoAmI', 'tellAJoke', 'launchSkill', 'tellMeAboutYourself',
@@ -62,7 +77,7 @@ test('the hand-written catalog\'s invented names are not real Jibo intents', () 
   }
 });
 
-test('slots stay attached to the intent that fills them', () => {
+test('slots stay attached to the intent that fills them', needsReference, () => {
   // askForTime and timerValue are declared in the same rule set. Reading slots
   // from the whole production instead of the intent's own semantic-action
   // cluster smears one onto the other.
@@ -75,7 +90,7 @@ test('slots stay attached to the intent that fills them', () => {
   assert.deepEqual(Object.keys(byName.get('volumeToValue').entities.properties), ['volumeLevel']);
 });
 
-test('launch reachability separates idle intents from in-skill ones', () => {
+test('launch reachability separates idle intents from in-skill ones', needsReference, () => {
   // From idle Jibo hears the union of every launch.rule, plus globals. A timer
   // value or a track query only exists once that skill is running, which is why
   // "set a timer for five minutes" resolves to the clock skill's `start`.
@@ -95,7 +110,7 @@ test('launch reachability separates idle intents from in-skill ones', () => {
   assert.ok(idle.length > 520, `expected >520 idle-reachable intents, got ${idle.length}`);
 });
 
-test('a tool carries a usable description', () => {
+test('a tool carries a usable description', needsReference, () => {
   const described = catalog.filter((tool) => tool.description.startsWith('e.g.'));
   assert.ok(
     described.length / catalog.length > 0.9,
@@ -116,7 +131,7 @@ test('renderExample reads the grammar rather than echoing it', () => {
   assert.equal(renderExample('(hi | (good morning to you))'), 'good morning to you');
 });
 
-test('provenance is recorded for every tool', () => {
+test('provenance is recorded for every tool', needsReference, () => {
   for (const tool of catalog) {
     assert.equal(tool.source.reference, '5c0a7390539663ba749d360de348a428c088505c');
     assert.ok(

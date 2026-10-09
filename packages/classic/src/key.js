@@ -748,9 +748,13 @@ export function keyRoutes(store, {
     if (!callerBoundary) return handler(context);
     const { req, res, body, target, op, log } = context;
     try {
+      // As in index.js verifiedDirectRoute: Express defaults an absent body to `{}`, which is
+      // not the wire entity of a GET/HEAD, so authenticate the empty payload the robot signed.
       const wireBody = req.rawBody !== undefined
         ? req.rawBody
-        : body === undefined || body === null ? '' : body;
+        : ['GET', 'HEAD'].includes(String(req.method || '').toUpperCase())
+          ? ''
+          : body === undefined || body === null ? '' : body;
       const caller = await callerBoundary({ req, res, body: wireBody, target, op, log });
       if (!caller) throw new Error('verified caller boundary returned no identity');
       return await handler(context);
@@ -807,8 +811,12 @@ export function keyRoutes(store, {
       if (!wanted.has(String(binary.encryptedUrl))) continue;
       if (callerBoundary && verified && !verified.isAdmin
         && String(binary.accountId) !== String(verified.accountId)) continue;
-      for (const candidate of [binaryPathOf(binary, false), binaryPathOf(binary, true)]) {
-        try { rmSync(join(binaryDir, candidate), { force: true }); } catch { /* best effort */ }
+      // ShareBinary stores the file under the SHARER's id (the storage key in the decrypted URL),
+      // which is normally not the requesting account recorded on the binary.
+      for (const storageAccountId of binaryStorageAccountIds(binary)) {
+        for (const candidate of [binaryPathOf(binary, false, storageAccountId), binaryPathOf(binary, true, storageAccountId)]) {
+          try { rmSync(join(binaryDir, candidate), { force: true }); } catch { /* best effort */ }
+        }
       }
     }
     store.removeBinaries(b.encryptedUrls);
@@ -834,7 +842,11 @@ export function keyRoutes(store, {
       res.writeHead(403, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' });
       return void res.end('forbidden');
     }
-    const path = binaryPathOf(binary, String(binary.encryptedUrl || '').endsWith('.jpg'), accountId);
+    // Authorization above uses the verified identity; the file itself lives under the account
+    // that SHARED it (ShareBinary writes that id into the returned URL), which is normally not
+    // the requesting account, so locate it by the URL's storage key.
+    const storageAccountId = requestedAccountId && SAFE.test(requestedAccountId) ? requestedAccountId : accountId;
+    const path = binaryPathOf(binary, String(binary.encryptedUrl || '').endsWith('.jpg'), storageAccountId);
     try {
       const stat = statSync(join(binaryDir, path));
       res.writeHead(200, {
@@ -860,6 +872,22 @@ export function keyRoutes(store, {
 
 function binaryPathOf(binary, isImage, accountId = binary.accountId) {
   return `${accountId}/${binary.id}${isImage ? '.jpg' : ''}`;
+}
+
+/**
+ * The account directories a binary's file may live under: the storage key ShareBinary wrote into
+ * the decrypted URL (the sharer) and, for a binary that was never shared, the requesting account.
+ */
+function binaryStorageAccountIds(binary) {
+  const ids = new Set();
+  if (binary.decryptedUrl) {
+    try {
+      const sharer = new URL(String(binary.decryptedUrl)).searchParams.get('accountId');
+      if (sharer && SAFE.test(sharer)) ids.add(sharer);
+    } catch { /* not a URL this service issued */ }
+  }
+  if (binary.accountId && SAFE.test(String(binary.accountId))) ids.add(String(binary.accountId));
+  return [...ids];
 }
 
 /** Hapi/Express JSON reply for the two plain routes (no AWS-JSON envelope). */

@@ -184,6 +184,17 @@ function emptyResult() {
   return { intent: EMPTY_NLU.intent, entities: EMPTY_NLU.entities, rules: EMPTY_NLU.rules.slice() };
 }
 
+/**
+ * ParseRequestHandler validates the selected parser result after arbitration.
+ * The check is profile-independent: AST and compiled candidates share the same
+ * no-result contract, so a selected SKIP winner never leaks merely because no
+ * compiled runtime is active.
+ */
+export function isUsableWinner(winner) {
+  return Boolean(winner && winner.intent
+    && String(winner.priority || '').trim().toUpperCase() !== 'SKIP');
+}
+
 function compiledHasRule(runtime, name) {
   if (!runtime) return false;
   if (typeof runtime.hasRule === 'function') return runtime.hasRule(name);
@@ -265,12 +276,15 @@ function matchNamedRule(name, text, state) {
   };
 }
 
-function chooseBest(requested, text, state, compiledRuntime) {
+function chooseBest(requested, text, state, compiledRuntime, options = {}) {
   if (!compiledRuntime) {
+    // `astMatcher` is only a deterministic test seam. The production path uses
+    // matchNamedRule, which reads the hash-checked source inventory above.
+    const astMatcher = typeof options.astMatcher === 'function' ? options.astMatcher : matchNamedRule;
     const candidates = [];
     for (const requestedEntry of requested) {
       for (const name of requestedEntry.names) {
-        const candidate = matchNamedRule(name, text, state);
+        const candidate = astMatcher(name, text, state);
         if (!candidate) continue;
         if (requestedEntry.name !== name) candidate.requestedName = requestedEntry.name;
         candidates.push(candidate);
@@ -335,11 +349,11 @@ function planParse(request, options) {
       }
     }
   }
-  const winner = chooseBest(requested, text, state, compiledRuntime);
+  const winner = chooseBest(requested, text, state, compiledRuntime, options);
   // ParseRequestHandler validates only the selected result. A missing intent or SKIP
   // priority therefore returns the empty NLU result and must not promote another final
   // from the same rule or a lower-ranked rule.
-  if (!winner || (compiledRuntime && (!winner.intent || winner.priority === 'SKIP'))) {
+  if (!isUsableWinner(winner)) {
     return { attach: true, result: emptyResult(), text, detect: false };
   }
   let entities = normalizeChitchatEntities(winner.intent, winner.entities);
@@ -348,7 +362,6 @@ function planParse(request, options) {
     entities = { ...entities, union_original_fst_name: launch.sourceHandles[winner.rule] };
   }
   const result = { entities, intent: winner.intent, rules: [winner.requestedName || winner.rule] };
-  void options;
   return { attach: true, result, text, detect: true, priority: winner.priority };
 }
 
@@ -374,6 +387,8 @@ function finishParse(request, plan, attached) {
  *
  * `options.externalProvider` replaces the disabled Dialogflow provider so the
  * archived external-agent result structure can be replayed (N-07).
+ * `options.astMatcher` is an internal deterministic test seam for injecting an
+ * already-shaped AST candidate; normal callers must omit it.
  * `options.externalAttachmentRevision` selects the ratified reading of the
  * external block: 'attach' (default, ParseRequestHandler@5c0a739) or 'omit'
  * (ParseRequestHandler@715e0dd0, whose restored handler has no external block).

@@ -122,10 +122,10 @@ test('Q-01 provider result shapes retain original HTTP status and action selecti
       const body = JSON.parse(await response.text());
       if (control.status === 500) {
         assert.equal(response.headers.get('content-type'), 'text/html; charset=utf-8');
-        assert.deepEqual(Object.keys(body).sort(), ['message', 'stacktrace', 'version']);
+        assert.deepEqual(Object.keys(body).sort(), ['message', 'version']);
         assert.equal(body.version, '5.2.15');
-        assert.equal(typeof body.message, 'string');
-        assert.equal(typeof body.stacktrace, 'string');
+        assert.equal(body.message, 'Internal server error');
+        assert.equal(Object.prototype.hasOwnProperty.call(body, 'stacktrace'), false);
         continue;
       }
       assert.equal(body.type, 'SKILL_ACTION');
@@ -550,7 +550,7 @@ test('Q-01 GQA HTTP adapter preserves source analytics-before-header failure ord
   await route({ body: {}, req: { headers: {} }, res: response });
   assert.equal(state.statusCode, 500);
   assert.equal(state.contentType, 'html');
-  assert.match(state.body, /Missing GQA request field type/);
+  assert.deepEqual(JSON.parse(state.body), { version: '5.2.15', message: 'Internal server error' });
 
   // Once type exists, a malformed data tree reaches the header branch first.
   state.statusCode = null;
@@ -578,7 +578,7 @@ test('Q-01 GQA HTTP adapter accepts source primitive JSON then exposes its 500 b
       });
       assert.equal(response.status, 500, label);
       const payload = await response.text();
-      assert.match(payload, /GQA request JSON must be an object/);
+      assert.deepEqual(JSON.parse(payload), { version: '5.2.15', message: 'Internal server error' });
     }
 
     const empty = await fetch(`http://127.0.0.1:${port}/v1/answer/main`, {

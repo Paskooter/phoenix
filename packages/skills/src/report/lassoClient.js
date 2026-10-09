@@ -34,6 +34,21 @@ function requestHeaders(data) {
   return toHeader.call(jibo);
 }
 
+const CROSS_ORIGIN_SAFE_HEADERS = new Set([
+  'accept', 'accept-encoding', 'accept-language', 'cache-control', 'content-language',
+  'content-type', 'if-match', 'if-modified-since', 'if-none-match', 'if-range',
+  'pragma', 'range',
+]);
+
+function headersForRedirect(sourceHeaders, sourceURL, destinationURL) {
+  if (sourceHeaders === undefined || sourceURL.origin === destinationURL.origin) return sourceHeaders;
+  // A denylist cannot distinguish a future credential header from an ordinary
+  // custom header. Forward only standard representation/cache headers; Jibo,
+  // authorization, and arbitrary application identity headers stay on the source.
+  return Object.fromEntries(Object.entries(sourceHeaders)
+    .filter(([name]) => CROSS_ORIGIN_SAFE_HEADERS.has(name.toLowerCase())));
+}
+
 // BaseService supplies a Phoenix logger object without the source logger's
 // createChild method. Keep that deployment adapter usable while retaining the
 // source TypeError when the log itself is absent or a primitive.
@@ -129,7 +144,8 @@ function requestLasso(pathname, params, data, method = 'GET', redirectCount = 0,
   const target = new URL(url);
   const transport = target.protocol === 'https:' ? https : http;
   // Axios evaluates the source Jibo headers once while creating the request.
-  // follow-redirects reuses that snapshot; only Host follows the destination.
+  // Same-origin redirects reuse that snapshot; a cross-origin redirect gets only
+  // non-identity headers and always receives the destination Host below.
   const sourceHeaders = headerSnapshot === NO_HEADER_SNAPSHOT
     ? (() => {
       const returnedHeaders = requestHeaders(data);
@@ -179,8 +195,10 @@ function requestLasso(pathname, params, data, method = 'GET', redirectCount = 0,
           // uppercase names, so source HEAD requests become GET on every
           // redirect except 307 (GET remains GET either way).
           const nextMethod = response.statusCode === 307 ? method : 'GET';
+          const nextURL = new URL(location, target);
+          const nextHeaders = headersForRedirect(sourceHeaders, target, nextURL);
           settled = true;
-          requestLasso('', null, data, nextMethod, redirectCount + 1, new URL(location, target).toString(), sourceHeaders).then(resolve, reject);
+          requestLasso('', null, data, nextMethod, redirectCount + 1, nextURL.toString(), nextHeaders).then(resolve, reject);
           return;
         }
 

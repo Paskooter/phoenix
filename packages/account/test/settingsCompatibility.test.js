@@ -6,20 +6,30 @@ import { join } from 'node:path';
 import { createAccountService } from '../src/index.js';
 import { createOwnerAccount, createLoop } from '../src/model.js';
 import { Store } from '../src/store.js';
+import { signedLoopHeaders } from './fixtures/signedLoopRequest.js';
+import { useInternalPeerToken, internalPeerHeaders } from './fixtures/internalPeer.js';
+
+useInternalPeerToken();
 
 const REPORT = 'report-skill';
 const OTHER = 'answer-skill';
 
-async function amz(base, op, body, accountId, prefix = 'Settings_20171219', accessKeyId = null) {
+// An accountId caller is the internal report-skill peer (shared peer token plus the
+// forwarded identity); an accessKeyId caller is a real SigV4 signer (app/robot).
+async function amz(base, op, body, accountId, prefix = 'Settings_20171219', accessKeyId = null, store = null) {
+  const payload = body || {};
+  const target = `${prefix}.${op}`;
+  const headers = accessKeyId
+    ? signedLoopHeaders(store, base, target, payload, accessKeyId)
+    : {
+      'content-type': 'application/x-amz-json-1.1',
+      'x-amz-target': target,
+      ...(accountId ? { 'x-amz-credentials': JSON.stringify({ id: accountId }), ...internalPeerHeaders() } : {}),
+    };
   const res = await fetch(`${base}/`, {
     method: 'POST',
-    headers: {
-      'content-type': 'application/x-amz-json-1.1',
-      'x-amz-target': `${prefix}.${op}`,
-      ...(accountId ? { 'x-amz-credentials': JSON.stringify({ id: accountId }) } : {}),
-      ...(accessKeyId ? { authorization: `AWS4-HMAC-SHA256 Credential=${accessKeyId}/20260911/global/jibo/aws4_request, SignedHeaders=host;x-amz-date;x-amz-target, Signature=abc` } : {}),
-    },
-    body: JSON.stringify(body || {}),
+    headers,
+    body: JSON.stringify(payload),
   });
   return { status: res.status, body: await res.json().catch(() => null) };
 }
@@ -53,7 +63,7 @@ test('A-06 runtime: all four Settings operations are served with the report and 
   const dir = mkdtempSync(join(tmpdir(), 'phx-a06-compat-'));
   try {
     const store = new Store(join(dir, 'store.json'));
-    const { owner, loop } = seed(store);
+    const { owner, outsider, loop } = seed(store);
     const server = await createAccountService({ store }).listen(0);
     const base = `http://127.0.0.1:${server.address().port}`;
     try {
@@ -112,16 +122,24 @@ test('A-06 runtime: all four Settings operations are served with the report and 
 
       // SigV4-only caller (the app, the robot): no x-amz-credentials header, only the
       // Authorization Credential scope. The access key resolves to the member's account
-      // id through the store (same seam as key/media); a stranger's key fails closed.
+      // id through the store (same seam as key/media); a stranger's key fails closed:
+      // a validly signed non-member is refused by the loop-membership check, and an
+      // access key unknown to the store is refused by SigV4 verification.
       const sigv4 = await amz(base, 'GetSettings',
         { loopId: loop._id, transId: 't-sigv4', skills: REPORT, getView: false }, null,
-        'Settings_20171219', owner.accessKeyId);
+        'Settings_20171219', owner.accessKeyId, store);
       assert.equal(sigv4.status, 200);
       assert.deepEqual(sigv4.body.map((s) => s.skillId), [REPORT]);
       const stranger = await amz(base, 'GetSettings',
         { loopId: loop._id, transId: 't-stranger' }, null,
-        'Settings_20171219', 'AKIDEXAMPLE12345678');
+        'Settings_20171219', outsider.accessKeyId, store);
       assert.equal(stranger.status, 403);
+      assert.equal(stranger.body.code, 'LOOP_MEMBER_ONLY');
+      const unknownKey = await amz(base, 'GetSettings',
+        { loopId: loop._id, transId: 't-unknown-key' }, null,
+        'Settings_20171219', 'AKIDSYNTHETICUNKNOWN1', store);
+      assert.equal(unknownKey.status, 401);
+      assert.equal(unknownKey.body.__type, 'ACCESS_KEY_NOT_FOUND');
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }

@@ -14,6 +14,12 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { newJcpId } from './jcpId.js';
 import { gqaBannedWordPresent } from './gqaBannedWords.js';
+import { validateCoordinate } from './gqaCoordinates.js';
+import {
+  GQA_INTERNAL_ERROR_MESSAGE,
+  safeGqaErrorCause,
+  safeGqaErrorDetail,
+} from './gqaAccountAttribution.js';
 
 export const GQA_SOURCE_REVISION = 'ebe1a7d38f511570060c1fbf61bec89d58419b26';
 export const GQA_VERSION = '5.2.15';
@@ -766,8 +772,10 @@ export function validateGqaRequestBody(body) {
   if (!isRecord(runtime)) throw new TypeError('GQA request runtime must be an object');
   const location = requireOwn(runtime, 'location', 'data.runtime.location');
   if (!isRecord(location)) throw new TypeError('GQA request location must be an object');
-  requireOwn(location, 'lat', 'data.runtime.location.lat');
-  requireOwn(location, 'lng', 'data.runtime.location.lng');
+  const latitude = requireOwn(location, 'lat', 'data.runtime.location.lat');
+  const longitude = requireOwn(location, 'lng', 'data.runtime.location.lng');
+  validateCoordinate(latitude, 'latitude');
+  validateCoordinate(longitude, 'longitude');
 
   const general = requireOwn(data, 'general', 'data.general');
   if (!isRecord(general)) throw new TypeError('GQA request general must be an object');
@@ -786,11 +794,12 @@ export function validateGqaRequestBody(body) {
   return body;
 }
 
-function sourceErrorPayload(error) {
+function sourceErrorPayload() {
   return {
     version: GQA_VERSION,
-    message: error?.message || String(error),
-    stacktrace: error?.stack,
+    // Keep the source version/message envelope while preventing provider,
+    // storage, and runtime details from crossing the HTTP boundary.
+    message: GQA_INTERNAL_ERROR_MESSAGE,
   };
 }
 
@@ -839,7 +848,7 @@ function respondGqaSourceError(context, status, error) {
   const response = context.res;
   if (response && typeof response.status === 'function'
     && typeof response.type === 'function' && typeof response.send === 'function') {
-    sendGqaSourceBody(context, status, sourceJsonDumps(sourceErrorPayload(error)));
+    sendGqaSourceBody(context, status, sourceJsonDumps(sourceErrorPayload()));
     return undefined;
   }
   const wrapped = error instanceof Error ? error : new Error(String(error));
@@ -926,7 +935,10 @@ export function createGqaHttpRoute({ skillId = 'answer', handler = gqaAnswerSkil
       }
       return result;
     } catch (error) {
-      context.log?.error?.('GQA handler failed', { error });
+      const fields = { error: safeGqaErrorDetail(error) };
+      const cause = safeGqaErrorCause(error);
+      if (cause !== undefined) fields.cause = cause;
+      context.log?.error?.('GQA handler failed', fields);
       return respondGqaSourceError(context, 500, error);
     }
   };

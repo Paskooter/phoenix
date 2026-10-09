@@ -5,7 +5,7 @@
 // account id (ctrl.js:26-28,48-50), so the value must be the robot ACCOUNT id, not a friendly id.
 //
 // Additive peer route in the same spirit as settingsPeerRoutes: it exists only for the classic
-// Backup service on the trusted internal hop.
+// Backup and Jot services on the trusted internal hop.
 
 import { sendJson } from '@phoenix/common';
 import { timingSafeEqual } from 'node:crypto';
@@ -35,7 +35,12 @@ export function backupPeerRoutes(store) {
       if (!loop || loop.isDeleted === true) {
         return sendJson(res, 404, { statusCode: 404, error: 'Not Found', message: 'Loop not found' });
       }
-      return { id: loop._id, robot: loop.robot, owner: loop.owner, isSuspended: loop.isSuspended };
+      // Jot's AccountClient.get reads the same document for its membership and robot
+      // impersonation gates, so it carries each member's account id and status.
+      const members = (Array.isArray(loop.members) ? loop.members : [])
+        .filter((member) => member && member.accountId)
+        .map((member) => ({ accountId: String(member.accountId), status: member.status }));
+      return { id: loop._id, robot: loop.robot, owner: loop.owner, isSuspended: loop.isSuspended, members };
     },
   };
 }

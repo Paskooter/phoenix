@@ -31,7 +31,7 @@ import { makeNlpHandler, nlpProviderFromEnv } from './nlp.js';
 import { PersonStore, PersonController, PropertyController, makePersonHandler, PERSON_ERRORS } from './person.js';
 import { makeCollisionHandler, detectCollision, graphemePhonemize, levenshteinDistance, COLLISION_ERRORS, COLLISION_DEFAULTS } from './collision.js';
 import { GQA_ROUTE_OPTIONS, makeGqaHandler } from './gqa.js';
-import { JotStore, makeJotHandler, mediaStoreClient, jotHttpRoutes, unavailableMedia, JOT_ERRORS, JOT_OPERATIONS } from './jot.js';
+import { JotStore, makeJotHandler, mediaStoreClient, jotHttpRoutes, accountJotLoops, unavailableMedia, JOT_ERRORS, JOT_OPERATIONS } from './jot.js';
 import {
   VoiceTrainingStore, makeVoiceTrainingHandler, voiceTrainingBackup, voiceTrainingBlobRoutes,
   VOICE_TRAINING_OPERATIONS, VOICE_TRAINING_UNSUPPORTED_OPERATIONS, VOICE_TRAINING_TARGET_PREFIXES,
@@ -84,7 +84,7 @@ export {
   gqaCredentials, gqaEmptyJsonEntity, sendGqaJson, sendGqaHtml, sourceTruthy, makeGqaHandler,
 } from './gqa.js';
 export {
-  JotStore, JotMessageController, JotMessageCreated, makeJotHandler, jotHttpRoutes,
+  JotStore, JotMessageController, JotMessageCreated, makeJotHandler, jotHttpRoutes, accountJotLoops,
   mediaStoreClient, unavailableMedia, JOT_ERRORS, JOT_OPERATIONS, JOT_TARGET_PREFIXES,
   JOT_MESSAGES_LIMIT, JOT_BULK_ROUTE, JOT_EVENTS, JOT_VALIDATORS, JOT_MESSAGE_CREATED_SCHEMA,
   JOT_DISPATCH_RULE, jotMethodNotFound, lowerFirstOp,
@@ -334,15 +334,18 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
     // `$` anchor rejected the trailing character. GQA was the only anchored entry in
     // this table, so it was the only one that could miss a version suffix, and the
     // effect was that answer history never loaded in the app.
-    { match: /^gqa_20160930/i, handler: makeGqaHandler(gqa || {}), ...GQA_ROUTE_OPTIONS },
+    { match: /^gqa_20160930/i, handler: makeGqaHandler(gqa || {}, { callerBoundary }), ...GQA_ROUTE_OPTIONS },
     // Jot (the loop-scoped family messaging surface) owns a real handler now — the five loop-era
     // operations of server/jot-ws@9a725d3, dispatched by operation name under any Jot* prefix. The
     // media seam defaults to the in-process Media store so a message's parts carry real urls.
+    // Behind a caller boundary the membership/impersonation gates must run against Account: the
+    // seam defaults to Account's peer GET /loop and a missing seam fails closed.
     { match: /^jot/i, handler: makeJotHandler({
       store: jotStore,
-      account: jot?.account,
+      account: jot?.account || (callerBoundary ? accountJotLoops() : undefined),
       media: jot?.media || mediaStoreClient(mediaStore, { accountLoops: jot?.accountLoops }),
       onEvent: jotFanOut,
+      requireAccount: !!callerBoundary,
     }) },
     // VoiceTraining (the robot's voice-sample enrollment store) owns a real handler now — the two
     // operations of server/voice-ws@a0ec047a, dispatched by operation NAME under any
@@ -464,6 +467,8 @@ export function createClassicEntrypoint({ extra = [], tls, publicUrl, publicOrig
   });
   const personStore = person?.store || new PersonStore();
   const jotStore = jot?.store || new JotStore();
+  // Authenticated Jot resolves loop membership against Account, like Media above.
+  const jotAccount = jot?.account || (callerBoundary ? accountJotLoops() : undefined);
   const jotMedia = jot?.media || mediaStoreClient(mediaStore, { accountLoops: jot?.accountLoops });
   const voiceTrainingStore = voiceTraining?.store || new VoiceTrainingStore();
   const pushRegistry = jot?.pushRegistry || new DeviceRegistry();
@@ -497,7 +502,7 @@ export function createClassicEntrypoint({ extra = [], tls, publicUrl, publicOrig
         voiceTraining: { ...voiceTraining, store: voiceTrainingStore },
       }),
       // Jot's direct, non-X-Amz-Target bulk unread-count route (srv-jot-ws-archived src/routes/route.js).
-      ...verifiedDirectRoutes(jotHttpRoutes({ store: jotStore, account: jot?.account, media: jotMedia, onEvent: jot?.onEvent }), callerBoundary),
+      ...verifiedDirectRoutes(jotHttpRoutes({ store: jotStore, account: jotAccount, media: jotMedia, onEvent: jot?.onEvent, requireAccount: !!callerBoundary }), callerBoundary),
       // Push's web-portal read sidecar (the AWS surface has no list op).
       ...verifiedDirectRoutes(pushRoutes(pushRegistry, { callerBoundary }), callerBoundary),
       // VoiceTraining's self-hosted blob route: the `url` virtual of the legacy Backup record

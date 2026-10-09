@@ -1,6 +1,8 @@
 // Source-backed Bing provider for the opt-in GQA adapter.
 
 import { unidecodeForBingFilter } from './gqaUnidecodeFilter.js';
+import { validateCoordinate } from './gqaCoordinates.js';
+import { redactProviderText, redactProviderUrls } from './gqaProviderUrl.js';
 
 // The recovered srv-gqa-ws implementation is
 // jiborobot/srv-gqa-ws@ebe1a7d38f511570060c1fbf61bec89d58419b26,
@@ -201,7 +203,7 @@ export function extractBingSpokenAnswer(parsed, market, { unidecode = defaultUni
     output.url = sourceField(screenshot, 'webSearchUrl', `${key}.value.matches[0].screenshot`);
     output.image_url = sourceField(screenshot, 'thumbnailUrl', `${key}.value.matches[0].screenshot`);
   }
-  return output;
+  return redactProviderUrls(output);
 }
 
 function quotePlus(value) {
@@ -322,6 +324,10 @@ export function createBingProvider({
     const ipAddress = context.ipAddress ?? context.ip_address;
     const latitude = context.latitude ?? context.lat;
     const longitude = context.longitude ?? context.lng;
+    const hasLatitude = latitude !== undefined && latitude !== null;
+    const hasLongitude = longitude !== undefined && longitude !== null;
+    if (hasLatitude) validateCoordinate(latitude, 'latitude');
+    if (hasLongitude) validateCoordinate(longitude, 'longitude');
     const requestHeaders = { ...headers };
     if (ipAddress !== undefined && ipAddress !== null) requestHeaders['X-MSEdge-ClientIP'] = String(ipAddress);
     else delete requestHeaders['X-MSEdge-ClientIP'];
@@ -356,7 +362,7 @@ export function createBingProvider({
       parsed = await response.json();
     } catch (error) {
       if (output.timestamps.bing_response === undefined) output.timestamps.bing_response = Math.trunc(clock());
-      output.message = `Unexpected exception: ${errorText(error)}`;
+      output.message = `Unexpected exception: ${redactProviderText(errorText(error), [apiKey])}`;
       return output;
     } finally {
       requestState.cleanup();

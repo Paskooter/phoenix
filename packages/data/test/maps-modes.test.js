@@ -196,6 +196,10 @@ test('D07/runtime-reject: out-of-range coords -> 400 text, provider untouched, n
 test('D07/runtime-upstream-errors: empty body -> 502 Empty reply; HTTP error -> status + json body', async () => {
   await withService(7813, {}, async (port) => {
     const q = `origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(dest)}&mode=walking&skipCache=1`;
+    // The provider refuses to call out without a key. Supply a synthetic one here
+    // so the test does not depend on an untracked .env file.
+    const priorKey = process.env.TOMTOM_API_KEY;
+    process.env.TOMTOM_API_KEY = 'synthetic-test-key';
     try {
       globalThis.fetch = async () => new Response('', { status: 200 });
       const empty = await req(port, q);
@@ -207,6 +211,10 @@ test('D07/runtime-upstream-errors: empty body -> 502 Empty reply; HTTP error -> 
       const bad = await req(port, q);
       assert.equal(bad.status, 401);
       assert.equal(await bad.text(), 'Error getting GoogleMaps data: {"error":"Authorization field missing"}');
-    } finally { globalThis.fetch = realFetch; }
+    } finally {
+      globalThis.fetch = realFetch;
+      if (priorKey === undefined) delete process.env.TOMTOM_API_KEY;
+      else process.env.TOMTOM_API_KEY = priorKey;
+    }
   });
 });

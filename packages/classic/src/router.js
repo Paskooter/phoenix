@@ -15,6 +15,7 @@ import { sendJson } from '@phoenix/common';
 import { DefaultPort } from '@phoenix/contracts';
 import { parseTarget, sendAmzError, UnknownOperation, AMZ_JSON } from './awsJson.js';
 import { cleanupVerifiedClassicRequest, sendVerifiedCallerError } from './caller.js';
+import { declaredContentLength } from './rawUpload.js';
 
 // The OAuth-client admin and LPS services own no in-process store; they proxy to the
 // account service, the process that owns identity and persistent state (A-18). These
@@ -77,6 +78,7 @@ export function createClassicRouter(registrations, { callerBoundary } = {}) {
         if (!caller) throw new Error('verified caller boundary returned no identity');
       } catch (error) {
         await cleanupVerifiedClassicRequest(req);
+        if (sendAccountPhotoLengthRefusal(req, res, error)) return;
         sendVerifiedCallerError(res, error);
         return;
       }
@@ -119,14 +121,6 @@ export function createClassicRouter(registrations, { callerBoundary } = {}) {
     if (!reg || !Object.prototype.hasOwnProperty.call(reg, 'jsonTypes')) return undefined;
     return typeof reg.jsonTypes === 'function' ? reg.jsonTypes(req) : reg.jsonTypes;
   };
-  // Parser failures are likewise delegated only to the matched source registration. Returning
-  // undefined lets createService continue with its normal error action for every other family.
-  dispatch.parserError = (context) => {
-    const { prefix } = parseTarget(context?.req || {});
-    const reg = regs.find((entry) => entry.re.test(prefix));
-    if (typeof reg?.parserError === 'function') return reg.parserError(context);
-    return undefined;
-  };
   // The Hapi-backed Account CreateHubToken route validates an omitted payload
   // as null; preserve the historical object default for other Classic routes.
   dispatch.rawBody = isClassicRawBodyTarget;
@@ -136,15 +130,18 @@ export function createClassicRouter(registrations, { callerBoundary } = {}) {
     const limit = reg?.handler?.bodyLimit;
     return typeof limit === 'function' ? limit(req) : limit;
   };
-  dispatch.parserError = ({ req, res, error }) => {
-    const { prefix } = parseTarget(req);
+  // Parser failures are delegated only to the matched source registration, which may attach
+  // its handler to the registration itself (GQA) or to its request handler (voice training).
+  dispatch.parserError = ({ req, res, error } = {}) => {
+    const { prefix } = parseTarget(req || {});
     const reg = regs.find((entry) => entry.re.test(prefix));
     // `undefined` means the route did not handle this parser failure and
     // lets the shared service emit its standard error response. Returning
     // `false` is itself a handled value to the service adapter, which used to
     // leave malformed JSON connections open indefinitely.
-    if (typeof reg?.handler?.parserError !== 'function') return undefined;
-    return reg.handler.parserError({ req, res, error });
+    if (typeof reg?.parserError === 'function') return reg.parserError({ req, res, error });
+    if (typeof reg?.handler?.parserError === 'function') return reg.handler.parserError({ req, res, error });
+    return undefined;
   };
   dispatch.bodyDefault = (req) => {
     const { prefix, op } = parseTarget(req);
@@ -157,6 +154,32 @@ export function createClassicRouter(registrations, { callerBoundary } = {}) {
   return {
     'POST /': dispatch,
   };
+}
+
+// Account's Hapi binary route for UpdatePhoto/UpdateMemberPhoto: maxBytes 1000000000, checked
+// against the declared Content-Length before dispatch (account/src/robotFace.js).
+const ACCOUNT_PHOTO_MAX_BYTES = 1_000_000_000;
+
+/**
+ * The caller boundary refuses a declared Content-Length above its own cap before reading the body.
+ * When that declared length also exceeds Account's photo route limit, Account would have answered
+ * its own 400 for the same request, so answer that reference response instead of the boundary's
+ * 413. Every other size refusal (a smaller boundary cap, a chunked body crossing the cap) keeps
+ * the boundary's 413.
+ */
+function sendAccountPhotoLengthRefusal(req, res, error) {
+  if (error?.code !== 'PAYLOAD_TOO_LARGE' && error?.statusCode !== 413) return false;
+  const target = String(req?.headers?.['x-amz-target'] || '');
+  if (!/^Loop[^.]*\.UpdateMemberPhoto$/i.test(target) && !/^Account[^.]*\.UpdatePhoto$/i.test(target)) return false;
+  const declared = declaredContentLength(req);
+  if (declared === null || declared <= ACCOUNT_PHOTO_MAX_BYTES) return false;
+  const data = JSON.stringify({
+    statusCode: 400, error: 'Bad Request', message: `Payload content length greater than maximum allowed: ${ACCOUNT_PHOTO_MAX_BYTES}`,
+  });
+  res.writeHead(400, { 'content-type': 'application/json; charset=utf-8', 'content-length': Buffer.byteLength(data), connection: 'close' });
+  res.end(data);
+  req.resume?.();
+  return true;
 }
 
 /** The Hapi/Boom response produced when the pinned dispatcher throws before method lookup. */

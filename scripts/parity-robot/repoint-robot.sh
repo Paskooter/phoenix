@@ -72,6 +72,42 @@
 #   --revert            restore the hosts block and remove the Phoenix CA
 set -euo pipefail
 
+# Every caller- or robot-supplied value below is later interpolated into an SSH
+# command line. Validate shapes first; nothing here contacts the robot.
+validate_host() {
+  local value="${1:-}"
+  [[ "$value" =~ ^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$ ]] || return 1
+  [[ "$value" != *..* ]]
+}
+validate_port() {
+  local value="${1:-}"
+  [[ "$value" =~ ^[0-9]{1,5}$ ]] || return 1
+  (( 10#$value >= 1 && 10#$value <= 65535 ))
+}
+validate_ssh_target() {
+  local target="${1:-}" user host
+  case "$target" in
+    *@*)
+      user="${target%@*}"; host="${target##*@}"
+      [[ "$user" =~ ^[A-Za-z0-9][A-Za-z0-9_.-]*$ ]] || return 1
+      ;;
+    *) host="$target" ;;
+  esac
+  validate_host "$host"
+}
+validate_region() {
+  [[ "${1:-}" =~ ^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?$ ]]
+}
+validate_classic_url() {
+  local url="${1:-}" rest host port
+  [[ "$url" =~ ^https?://[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?(:[0-9]{1,5})?/?$ ]] || return 1
+  rest="${url#*://}"; rest="${rest%/}"
+  host="${rest%%:*}"; validate_host "$host" || return 1
+  if [[ "$rest" == *:* ]]; then
+    port="${rest##*:}"; validate_port "$port" || return 1
+  fi
+}
+
 ROBOT=""; PHOENIX=""; CERT_DIR="${PHOENIX_TLS_HOME:-${XDG_DATA_HOME:-${HOME}/.local/share}/phoenix/tls}"; CA=""
 SERVER_CRT=""; SERVER_KEY=""; EXTRA_NAMES=""; REGEN=0
 EXTRA_REGIONS="api"; DRY=0; ASSUME_YES=0; DROP_BIND=0; VERIFY=0; REVERT=0; CERT_ONLY=0; TRUST_FIRST=0
@@ -124,6 +160,18 @@ die()  { printf '\033[31m[repoint] ERROR:\033[0m %s\n' "$*" >&2; exit 1; }
 ok()   { printf '\033[32m[repoint] OK:\033[0m %s\n' "$*" >&2; }
 
 [ -n "$ROBOT" ] || die "--robot is required"
+validate_ssh_target "$ROBOT" || die "invalid robot SSH target"
+validate_port "$HUB_PORT" || die "invalid hub port"
+[ -z "$PHOENIX" ] || validate_host "$PHOENIX" || die "invalid Phoenix host"
+[ -z "$CLASSIC_URL" ] || validate_classic_url "$CLASSIC_URL" || die "invalid classic URL host or port"
+IFS=',' read -r -a region_values <<< "$EXTRA_REGIONS"
+for region in "${region_values[@]}"; do
+  validate_region "$region" || die "invalid region"
+done
+IFS=',' read -r -a name_values <<< "$EXTRA_NAMES"
+for name in "${name_values[@]}"; do
+  [ -z "$name" ] || validate_host "$name" || die "invalid public name"
+done
 [ -z "$CLAIM_CODE" ] || [ -n "$ADOPTION_URL" ] || die "--claim-code requires --adoption-url"
 [ -z "$CLAIM_CODE" ] || [ "$DO_ADOPT" -eq 1 ] || die "--claim-code cannot be combined with --no-adopt"
 if [ -n "$CLAIM_CODE" ] && [[ ! "$CLAIM_CODE" =~ ^[A-Za-z0-9_-]{43}$ ]]; then
@@ -136,7 +184,11 @@ if [ -n "$ADOPTION_URL" ]; then
   esac
 fi
 [ -r "$PATCHER" ] || die "Node client patch utility is missing or unreadable: $PATCHER"
-SSH=(ssh -o BatchMode=yes -o ConnectTimeout=10 "$ROBOT")
+# Host keys must already be known: never accept a new or changed robot key here,
+# even if the operator's ssh_config relaxes StrictHostKeyChecking.
+SSH_KNOWN_HOSTS="${PHOENIX_SSH_KNOWN_HOSTS:-${HOME:-}/.ssh/known_hosts}"
+[ -n "$SSH_KNOWN_HOSTS" ] && [ -r "$SSH_KNOWN_HOSTS" ] || die "SSH known-hosts file is not readable: $SSH_KNOWN_HOSTS"
+SSH=(ssh -o BatchMode=yes -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$SSH_KNOWN_HOSTS" -o ConnectTimeout=10 "$ROBOT")
 rsh() { timeout 90 "${SSH[@]}" "$@"; }
 
 # Upload only this run's utility to an unguessable temporary path. A stale path
@@ -212,14 +264,23 @@ ok "reachable Jibo ($ARCH), service registry answering"
 # /etc/hosts must be the writable /var symlink, not a read-only rootfs file.
 HOSTS_TARGET="$(rsh 'readlink -f /etc/hosts' 2>/dev/null || true)"
 [ -n "$HOSTS_TARGET" ] || die "cannot resolve /etc/hosts"
+case "$HOSTS_TARGET" in
+  /[A-Za-z0-9._/-]*) ;;
+  *) die "refusing an unsafe /etc/hosts target" ;;
+esac
 rsh "test -w '$HOSTS_TARGET'" 2>/dev/null || die "$HOSTS_TARGET is not writable; this robot stores hosts differently than expected. Stopping rather than guessing."
 ok "hosts file: $HOSTS_TARGET (writable)"
 
 # Live region, read-only. Only the region name is printed; credentials are not read out.
 SM_PORT="$(rsh "curl -s -m 5 http://127.0.0.1:8181/registry | tr ',' '\n' | grep -A2 'system-manager' | grep port | tr -dc '0-9'" 2>/dev/null || true)"
 [ -n "$SM_PORT" ] || SM_PORT=8585
+validate_port "$SM_PORT" || die "robot reported an invalid system-manager port"
 LIVE_REGION="$(rsh "curl -s -m 5 -H 'Authentication: foobar' http://127.0.0.1:${SM_PORT}/credentials | sed -n 's/.*\"region\"[^\"]*\"\\([^\"]*\\)\".*/\\1/p'" 2>/dev/null || true)"
 IDENTITY_NAME="$(rsh "curl -s -m 5 -H 'Authentication: foobar' http://127.0.0.1:${SM_PORT}/identity | sed -n 's/.*\"name\"[^\"]*\"\\([^\"]*\\)\".*/\\1/p'" 2>/dev/null || true)"
+if [ -n "$LIVE_REGION" ] && ! validate_region "$LIVE_REGION"; then
+  warn "system-manager returned an invalid region; ignoring it"
+  LIVE_REGION=""
+fi
 [ -n "$IDENTITY_NAME" ] && ok "robot identity: $IDENTITY_NAME"
 if [ -n "$LIVE_REGION" ]; then ok "live region from system-manager: $LIVE_REGION"
 else warn "could not read the live region; falling back to --regions only"; fi
