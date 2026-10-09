@@ -213,8 +213,7 @@ if [ -n "$HUB_ARG" ]; then
   HUB_PORT="$PARSED_PORT"
 fi
 [ -n "$HUB_HOST" ] || HUB_HOST="$PHX_HOST"
-# Preserve an already-working hub port if one is configured; else use the
-# canonical Phoenix hub port shared by the stack and PC-side repoint launchers.
+# Preserve an already-working hub port if one is configured; else 9000.
 if [ -z "$HUB_PORT" ] && [ -r "$JET" ]; then
   HUB_PORT="$("$NODE" -e 'try{var c=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8"));var o=(c.HubClient&&c.HubClient.override)||{};if(o.hub_port)process.stdout.write(String(o.hub_port));}catch(e){}' "$JET" 2>/dev/null)"
 fi

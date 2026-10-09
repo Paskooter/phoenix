@@ -77,7 +77,7 @@ else
   PARAKEET_URL="http://localhost:6972"
 fi
 
-# Gateway on the canonical hub port, wired to the others, auth secret matching the sim.
+# Gateway on 9000, wired to the others, auth secret matching the sim.
 ETCO_server_hubTokenSecret="$SECRET" \
 ETCO_server_parakeetUrl="$PARAKEET_URL" \
 NET_parser=localhost:7011 \
