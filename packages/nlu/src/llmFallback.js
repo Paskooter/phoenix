@@ -142,8 +142,42 @@ function buildTools(catalog = resolveIntentCatalog()) {
           : {},
         required: entities ? Object.keys(entities) : [],
       };
-    return { type: 'function', function: { name: tool.name, description: tool.description, parameters: schema } };
+    // Closed argument objects: the response check below rejects any argument
+    // the tool does not declare, so the schema says so up front.
+    return { type: 'function', function: { name: tool.name, description: tool.description, parameters: { ...schema, additionalProperties: false } } };
   });
+}
+
+function isPlainObject(value) {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
+/**
+ * The argument contract of one catalog tool, in either catalog shape: the
+ * restored name -> type map (every entity required) or the generated JSON
+ * Schema (typed properties, `required` as declared).
+ */
+function argumentContract(tool) {
+  const entities = tool.entities;
+  if (entities && entities.type === 'object') {
+    const types = {};
+    for (const [key, property] of Object.entries(entities.properties || {})) types[key] = property?.type;
+    return { types, required: Array.isArray(entities.required) ? entities.required : [] };
+  }
+  const types = entities ? { ...entities } : {};
+  return { types, required: Object.keys(types) };
+}
+
+function argumentsMatch(tool, args) {
+  const { types, required } = argumentContract(tool);
+  for (const key of Object.keys(args)) {
+    if (!Object.prototype.hasOwnProperty.call(types, key)) return false;
+    const type = types[key];
+    if (type !== undefined && typeof args[key] !== type) return false;
+  }
+  return required.every(key => Object.prototype.hasOwnProperty.call(args, key));
 }
 
 /**
@@ -202,42 +236,58 @@ export function createLLMClient(config = {}) {
         signal: ctrl.signal,
       });
       const text = await res.text();
-      if (res.status !== 200) throw new Error(`LLM ${res.status}: ${text.slice(0, 300)}`);
-      try { return JSON.parse(text); } catch (error) { throw new Error(`Could not parse LLM JSON: ${error}`); }
+      // Provider bodies are untrusted; keep them out of error messages.
+      if (res.status !== 200) throw new Error('LLM provider request failed');
+      try { return JSON.parse(text); } catch { throw new Error('LLM provider returned invalid JSON'); }
     } finally {
       clearTimeout(timer);
     }
   }
 
-  // LLMClient.ts:170-203
-  function parseToolCallResponse(response, request) {
-    const call = response?.choices?.[0]?.message?.tool_calls?.[0];
-    if (!call || !call.function || !call.function.name) return null;
+  // LLMClient.ts:170-203, with the model's answer treated as untrusted input:
+  // exactly one function call, naming a tool in the catalog this client
+  // offered, with arguments that are a plain object of exactly the declared
+  // keys and types. Anything else (including unparseable arguments, which the
+  // restored source decoded as empty entities) is no classification.
+  function parseToolCallResponse(response, request, catalog) {
+    const calls = response?.choices?.[0]?.message?.tool_calls;
+    if (!Array.isArray(calls) || calls.length !== 1) return null;
+    const call = calls[0];
+    if (!isPlainObject(call) || !isPlainObject(call.function)
+      || (call.type !== undefined && call.type !== 'function')) return null;
     const intent = call.function.name;
-    if (intent === 'unknown') return null;
+    if (typeof intent !== 'string' || intent === 'unknown') return null;
+    const tool = catalog.find(candidate => candidate.name === intent);
+    if (!tool) return null;
     let entities = {};
-    try {
-      const args = call.function.arguments;
-      if (args) entities = typeof args === 'string' ? JSON.parse(args) : args;
-    } catch { /* logged in source; keep parsing failure as empty entities */ }
-    return { intent, entities, rules: request.rules || [] };
+    const args = call.function.arguments;
+    if (args !== undefined && args !== null && args !== '') {
+      if (typeof args === 'string') {
+        try { entities = JSON.parse(args); } catch { return null; }
+      } else {
+        entities = args;
+      }
+    }
+    if (!isPlainObject(entities) || !argumentsMatch(tool, entities)) return null;
+    return { intent, entities: { ...entities }, rules: Array.isArray(request.rules) ? request.rules.slice() : [] };
   }
 
   // LLMClient.ts:76-129
   async function handleNLU(request) {
     if (state !== LLM_STATE.READY) return null;
     try {
+      const catalog = cfg.catalog ? resolveIntentCatalog(cfg.catalog) : resolveIntentCatalog();
       const response = await postChatCompletion({
         model: cfg.model,
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: `Utterance: "${request.text}"` },
         ],
-        tools: buildTools(cfg.catalog ? resolveIntentCatalog(cfg.catalog) : undefined),
+        tools: buildTools(catalog),
         tool_choice: 'auto',
         temperature: cfg.temperature != null ? cfg.temperature : 0,
       });
-      return parseToolCallResponse(response, request);
+      return parseToolCallResponse(response, request, catalog);
     } catch {
       return null;
     }
@@ -258,10 +308,14 @@ export function envLlmConfig() {
   // historical ETCO_parser_llm* names still win, with PHOENIX_LLM_* as the
   // deployment-wide fallback, plus an optional bearer token and extra headers.
   const resolved = resolveLlmProvider('parser', { defaultModel: 'gemma-3' });
+  const enabledFlag = process.env.ETCO_parser_llmEnabled;
   return {
-    // The source has an explicit `enabled` flag; phoenix keeps the historical
-    // ETCO_parser_llmUrl switch and honours an explicit enable as well.
-    enabled: process.env.ETCO_parser_llmEnabled === 'true' || Boolean(resolved.url),
+    // The source has an explicit `enabled` flag, and an explicit value is
+    // authoritative: `false` turns the lane off even with a URL configured.
+    // When the flag is absent, Phoenix keeps the historical URL switch.
+    enabled: enabledFlag === undefined || enabledFlag === ''
+      ? Boolean(resolved.url)
+      : enabledFlag === 'true',
     url: resolved.url,
     model: resolved.model,
     apiKey: resolved.apiKey,
