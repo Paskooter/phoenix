@@ -47,7 +47,9 @@ test('browser photo decryption exactly matches jibo-sts AES-CBC stream and key-d
   const fixedCiphertext = encryptPhoto(fixedPhotoKey);
   assert.deepEqual(Buffer.from(await decryptContent(webcrypto, fixedCiphertext, fixedPhotoKey)), jpeg);
   await assert.rejects(decryptContent(webcrypto, fixedCiphertext, fixedWrongPhotoKey), { name: 'OperationError' });
-  assert.throws(() => contentType(ciphertext), /could not be decoded/);
+  // Random-key ciphertext starts with an MPEG frame sync (0xff, 0xe0..0xff)
+  // about 1 time in 2048 and would be sniffed as audio; this one starts 0xee 0x11.
+  assert.throws(() => contentType(fixedCiphertext), /could not be decoded/);
 });
 
 test('recovery format matches Android including newline base64; wrong passphrase/key length rejected', async () => {
