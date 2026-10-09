@@ -6,6 +6,9 @@ import { tmpdir } from 'node:os';
 
 import { createSettingsInternalService } from '../src/index.js';
 import { Store } from '../src/store.js';
+import { useInternalPeerToken, internalPeerHeaders } from './fixtures/internalPeer.js';
+
+useInternalPeerToken();
 
 const view = {
   type: 'switch',
@@ -45,6 +48,7 @@ async function request(base) {
       'content-type': 'application/json',
       'x-amz-target': 'Settings_20171219.UpdateSettings',
       'x-amz-credentials': JSON.stringify({ id: context.userId }),
+      ...internalPeerHeaders(),
     },
     body: JSON.stringify({
       loopId: context.loopId,

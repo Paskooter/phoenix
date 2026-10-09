@@ -5,6 +5,9 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createSettingsInternalService } from '../src/index.js';
 import { Store } from '../src/store.js';
+import { useInternalPeerToken, internalPeerHeaders } from './fixtures/internalPeer.js';
+
+useInternalPeerToken();
 
 const dataDir = mkdtempSync(join(tmpdir(), 'phx-settings-transport-'));
 const store = new Store(join(dataDir, 'store.json'));
@@ -58,6 +61,7 @@ async function request({ target, contentType = 'application/json', body = '{"loo
   const headers = {
     'content-type': contentType,
     'x-amz-credentials': '{"id":"source-user"}',
+    ...internalPeerHeaders(),
   };
   if (target !== undefined) headers['x-amz-target'] = target;
   if (origin) headers.origin = origin;

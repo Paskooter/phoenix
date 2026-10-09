@@ -6,6 +6,9 @@ import { tmpdir } from 'node:os';
 
 import { createSettingsInternalService } from '../src/index.js';
 import { Store } from '../src/store.js';
+import { useInternalPeerToken, internalPeerHeaders } from './fixtures/internalPeer.js';
+
+useInternalPeerToken();
 
 const context = { userId: 'hub-projection-user', loopId: 'hub-projection-loop' };
 
@@ -38,6 +41,7 @@ async function request(port, operation) {
       'content-type': 'application/json',
       'x-amz-target': `Settings_20171219.${operation}`,
       'x-amz-credentials': JSON.stringify({ id: context.userId }),
+      ...internalPeerHeaders(),
     },
     body: JSON.stringify({ loopId: context.loopId,
       ...(operation === 'GetSettings' ? {} : { data: {} }) }),
