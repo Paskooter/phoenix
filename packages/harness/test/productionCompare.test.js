@@ -9,6 +9,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { compareProduction } from '../src/productionCompare.js';
 import { makeSuite } from '../../../scripts/parity-production/fixtures.mjs';
+import { PRODUCTION_PROVENANCE } from '../../../scripts/parity-production/provenance.mjs';
 
 const root = fileURLToPath(new URL('../../../', import.meta.url));
 const golden = new URL('../resources/goldens/production-smoke/', import.meta.url);
@@ -31,6 +32,9 @@ function change(id, callback) {
 test('production goldens retain reviewed source hashes and agree across two original runtime captures', () => {
   for (const [name, expected] of Object.entries(manifest.files)) assert.equal(sha(readFileSync(new URL(name, golden))), expected);
   assert.equal(manifest.driverSha256, sha(readFileSync(join(root, 'scripts/parity-production/driver.cjs'))));
+  assert.equal(PRODUCTION_PROVENANCE.driverSha256, manifest.driverSha256);
+  assert.equal(PRODUCTION_PROVENANCE.implementations.original.adapterSha256, sha(readFileSync(join(root, 'scripts/parity-production/original.cjs'))));
+  assert.equal(PRODUCTION_PROVENANCE.implementations.phoenix.adapterSha256, sha(readFileSync(join(root, 'scripts/parity-production/phoenix.mjs'))));
   for (const [path, hash] of Object.entries(manifest.originalCaptureTools)) assert.equal(sha(readFileSync(join(root, path))), hash);
   assert.equal(manifest.originalControlArtifactSha256, sha(readFileSync(join(root, manifest.originalControlArtifact))));
   const result = run(control);
@@ -91,6 +95,23 @@ test('production grade rejects incomplete parser requests and changed routing me
   const memo = change('report:0:0:base', c => { c.routing.decision.memo = { entry: c.routing.decision.memo }; });
   assert.equal(memo.pass, false);
   assert.ok(memo.differences.some(d => d.path.endsWith('/routing/decision/memo')));
+});
+
+test('production comparator rejects tampered runtime, implementation, adapter and driver provenance', () => {
+  for (const [name, path, mutate] of [
+    ['runtime', '/runtime', capture => { capture.runtime = 'v22.0.0'; }],
+    ['implementation', '/implementation', capture => { capture.implementation = 'phoenix'; }],
+    ['unknown implementation', '/implementation', capture => { capture.implementation = 'synthetic'; }],
+    ['adapter', '/adapterSha256', capture => { capture.adapterSha256 = '0'.repeat(64); }],
+    ['driver', '/driverSha256', capture => { capture.driverSha256 = '0'.repeat(64); }],
+  ]) {
+    const candidate = structuredClone(control);
+    mutate(candidate);
+    const result = run(candidate);
+    assert.equal(result.pass, false, `${name} provenance must not be trusted`);
+    assert.ok(result.invariants.some(invariant => invariant.side === 'candidate' && invariant.path === path),
+      `${name} provenance failure was not reported: ${JSON.stringify(result.invariants)}`);
+  }
 });
 
 test('production requests use the real builder and retain dialog-reference injection as a compared output', () => {
