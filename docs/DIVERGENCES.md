@@ -184,6 +184,17 @@ intentional robustness differences, not claims of exact original-service parity.
 
 | H-hardening-parakeet | Batch responses are limited to 64 KiB; errors contain at most 1 KiB of UTF-8 diagnostic text without split code points. Abort/decoder failure destroys in-flight POST work, including composed failover transports. A wake tail suppresses only one initial burst of at most 200 ms; later short speech is recognized. Empty candidates wait for new speech. | Limit recognizer-controlled memory and keep short commands from being discarded; dead turns cannot leave a held batch POST running. | These are staged robustness differences. The newer streaming API, confidence reporting, adaptive 900 ms/env-derived silence gate, decoder draining, router and Google fallback remain. Existing relisten storage replaces the September candidate/deferred-PCM rewrite; response hardening belongs in the extracted transport, not a second HTTP implementation. |
 
+## NLU and tooling hardening
+
+Area 2 of the staged September re-port (packages/nlu and tooling). As for the
+gateway, the newer Laya fallback, decision layer, LLM external agent and
+generated intent catalog are retained; each row is an intentional robustness
+difference, not a claim of exact original-service parity.
+
+| # | Decision | Why | Impact |
+|---|---|---|---|
+| N-hardening-loop | LoopMemberDetector matches member names literally (regex-escaped), skips loop members whose `id`/`firstName`/`lastName` is not a non-empty string, and returns a result with a non-object `entities` map unchanged. Supersedes the unescaped/`undefined`-pattern fidelity recorded in N06a. | Loop member names are household-entered data. The pinned detector (`LoopMemberDetector.ts:73,84`) compiled them as patterns, so `A.J.` matched `AXJY` and a nested quantifier could stall the parser; a nameless member matched the literal text `undefined undefined`; a malformed member or null entities threw a TypeError (lines 5-7, 32-35). | Well-formed loops resolve exactly as before (source fixtures and the N-06 gateway speaker/referent tests unchanged). Malformed members no longer resolve or fail the parse; the request is still answered (no 400 is introduced). |
+
 ## Speech endpointing (Phoenix-original; the reference had none)
 
 | # | Decision | Why | Impact |

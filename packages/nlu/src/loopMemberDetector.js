@@ -30,26 +30,44 @@
 //   2. non-empty given-name only: first user with a case-insensitive firstName
 //      match
 //   3. no given-name value at all: first user whose `firstName lastName` appears
-//      in the request text, matched case-insensitively by an UNESCAPED
-//      `\b<first> <last>\b` regex
+//      in the request text, matched case-insensitively by a
+//      `\b<first> <last>\b` regex (source: unescaped; Phoenix: escaped)
 //   4. given-name entity expected (key present, even if empty): first user
-//      whose `firstName` appears in the request text, matched by an UNESCAPED
-//      `\b<first>\b` regex
+//      whose `firstName` appears in the request text, matched by a
+//      `\b<first>\b` regex (source: unescaped; Phoenix: escaped)
 //
-// Fidelity notes (both deliberate, both observable):
-//   * Steps 3 and 4 interpolate the user's name straight into a RegExp with no
-//     escaping (LoopMemberDetector.ts:73,84). A member name containing regex
-//     metacharacters therefore behaves as a pattern, not a literal.
-//   * Steps 3 and 4 guard on no member name being usable; a member whose
-//     firstName/lastName is missing produces the literal `undefined` in the
-//     pattern (LoopMemberDetector.ts:73,84). This port keeps that behavior
-//     rather than adding a guard the source does not have.
-//   * `isEqual` lowercases both sides without a type check
-//     (LoopMemberDetector.ts:5-7); a malformed user alongside a given-name
-//     entity throws, exactly as the source does.
+// Deliberate hardening (DIVERGENCES.md N06c). The pinned source interpolated
+// member names into steps 3 and 4 unescaped (LoopMemberDetector.ts:73,84), so a
+// name with regex metacharacters acted as a pattern and a pathological name
+// could stall the parser; a member with a missing name produced the literal
+// pattern `undefined`; and `isEqual` or the entity write threw a TypeError on a
+// malformed member or a null entities map (LoopMemberDetector.ts:5-7, 32-35).
+// Phoenix instead matches names literally (escaped), skips members whose id,
+// firstName or lastName is not a non-empty string, and leaves a non-object
+// entities map untouched. Well-formed requests resolve exactly as the source.
+
+function isPlainObject(value) {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
+function nonEmptyString(value) {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+export function isValidLoopUser(user) {
+  return isPlainObject(user) && nonEmptyString(user.id)
+    && nonEmptyString(user.firstName) && nonEmptyString(user.lastName);
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 function isEqual(a, b) {
-  return a.toLowerCase() === b.toLowerCase();
+  return typeof a === 'string' && typeof b === 'string'
+    && a.toLowerCase() === b.toLowerCase();
 }
 
 function getStringEntityValue(entities, key) {
@@ -66,6 +84,7 @@ export class LoopMemberDetector {
    * NLU result (LoopMemberDetector.ts:30-38). Mutates `result.entities`.
    */
   static detectLoopMembers(request, result) {
+    if (!result || !isPlainObject(result.entities)) return result;
     const loopMember = LoopMemberDetector.findLoopMember(request, result);
     if (loopMember) {
       result.entities['loopMemberReferent'] = loopMember.id;
@@ -80,11 +99,12 @@ export class LoopMemberDetector {
    * (LoopMemberDetector.ts:47-93). Returns the matched LooperBasicInfo or null.
    */
   static findLoopMember(request, result) {
-    if (!request.loop || !request.loop.users || !result || !result.intent) {
+    if (!request || !request.loop || !Array.isArray(request.loop.users) || !result || !result.intent) {
       return null;
     }
 
-    const loopUsers = request.loop.users;
+    const loopUsers = request.loop.users.filter(isValidLoopUser);
+    const text = typeof request.text === 'string' ? request.text : '';
     const givenNameEntityExpected = result.entities
       && (Object.prototype.hasOwnProperty.call(result.entities, 'given-name')
         || Object.prototype.hasOwnProperty.call(result.entities, 'GivenName'));
@@ -105,19 +125,19 @@ export class LoopMemberDetector {
     }
 
     if (!givenNameEntityValue) {
-      // 3. First + last name together in the request text (unescaped pattern).
+      // 3. First + last name together in the request text (literal match).
       const mentionedUser = loopUsers.find(loopUser => {
-        const fullNameRegEx = new RegExp(`\\b${loopUser.firstName} ${loopUser.lastName}\\b`, 'i');
-        return fullNameRegEx.test(request.text);
+        const fullNameRegEx = new RegExp(`\\b${escapeRegExp(loopUser.firstName)} ${escapeRegExp(loopUser.lastName)}\\b`, 'i');
+        return fullNameRegEx.test(text);
       });
       if (mentionedUser) return mentionedUser;
     }
 
     if (givenNameEntityExpected) {
-      // 4. First name in the request text (unescaped pattern).
+      // 4. First name in the request text (literal match).
       const mentionedByName = loopUsers.find(loopUser => {
-        const firstNameRegEx = new RegExp(`\\b${loopUser.firstName}\\b`, 'i');
-        return firstNameRegEx.test(request.text);
+        const firstNameRegEx = new RegExp(`\\b${escapeRegExp(loopUser.firstName)}\\b`, 'i');
+        return firstNameRegEx.test(text);
       });
       if (mentionedByName) return mentionedByName;
     }
