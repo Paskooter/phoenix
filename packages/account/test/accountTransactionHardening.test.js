@@ -320,3 +320,104 @@ test('outbox publisher errors retain a safe code without credential-bearing text
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+test('account photo commit failure compensates the staged public object', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'phoenix-account-photo-atomic-'));
+  try {
+    const file = join(directory, 'store.json');
+    const store = new Store(file);
+    const owner = createOwnerAccount(store, { email: 'photo-atomic@example.test', password: 'ValidPass1' });
+    owner.photoUrl = 'https://photos.example.test/old-object';
+    store.flush();
+    const objects = new Set(['old-object']);
+    const provider = {
+      async createPublic({ path }) {
+        objects.add(path);
+        return { path, url: `https://photos.example.test/${path}` };
+      },
+      async remove(path) { objects.delete(path); },
+    };
+    const originalFlush = store.flush.bind(store);
+    store.flush = () => { throw new Error('synthetic account snapshot failure'); };
+
+    await assert.rejects(
+      updatePhoto(store, {
+        ownerId: owner._id,
+        dataStream: Readable.from([Buffer.from('photo')]),
+        photoProvider: provider,
+        clock: () => 17,
+      }),
+      /synthetic account snapshot failure/,
+    );
+    assert.equal(store.accounts.get(owner._id).photoUrl, 'https://photos.example.test/old-object');
+    assert.equal(new Store(file).accounts.get(owner._id).photoUrl, 'https://photos.example.test/old-object');
+    assert.equal(objects.has('old-object'), true, 'the old object remains when metadata commit fails');
+    assert.equal(objects.size, 1, 'the staged object is compensated');
+    assert.equal(objects.has(owner._id + '17'), false, 'the deterministic key is never used');
+
+    store.flush = originalFlush;
+    const result = await updatePhoto(store, {
+      ownerId: owner._id,
+      dataStream: Readable.from([Buffer.from('photo')]),
+      photoProvider: provider,
+      clock: () => 18,
+    });
+    const resultKey = result.photoUrl.split('/').pop();
+    assert.match(resultKey, new RegExp(`^${owner._id}18\\d+$`));
+    assert.equal(objects.has('old-object'), false, 'old object is deleted only after the new metadata commits');
+    assert.equal(objects.has(resultKey), true);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test('member photo commit failure compensates the staged public object', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'phoenix-member-photo-atomic-'));
+  try {
+    const file = join(directory, 'store.json');
+    const store = new Store(file);
+    const owner = createOwnerAccount(store, { email: 'member-photo-atomic@example.test', password: 'ValidPass1' });
+    const { loop } = createLoop(store, { owner, robotId: 'member-photo-atomic-robot' });
+    const memberId = 'member-photo-atomic-member';
+    loop.members.push({
+      _id: memberId,
+      status: 'invited',
+      memberProperties: { photoUrl: 'https://photos.example.test/old-member-object' },
+      enrolled: { face: false, voice: false },
+    });
+    store.flush();
+    const objects = new Set(['old-member-object']);
+    const provider = {
+      async createPublic({ path }) {
+        objects.add(path);
+        return { path, url: `https://photos.example.test/${path}` };
+      },
+      async remove(path) { objects.delete(path); },
+    };
+    const outbox = new LoopUpdatedOutbox(store);
+    const originalFlush = store.flush.bind(store);
+    store.flush = () => { throw new Error('synthetic member snapshot failure'); };
+
+    await assert.rejects(
+      updateMemberPhoto(store, {
+        ownerId: owner._id,
+        loopId: loop._id,
+        id: memberId,
+        dataStream: Readable.from([Buffer.from('photo')]),
+      }, provider, outbox, () => 19),
+      /synthetic member snapshot failure/,
+    );
+    assert.equal(store.loops.get(loop._id).members.find((member) => member._id === memberId).memberProperties.photoUrl,
+      'https://photos.example.test/old-member-object');
+    assert.equal(objects.has('old-member-object'), true);
+    assert.equal(objects.size, 1, 'the staged member object is compensated');
+    assert.equal(objects.has(memberId + '19'), false, 'the deterministic key is never used');
+    const reopened = new Store(file);
+    assert.equal(reopened.loops.get(loop._id).members.find((member) => member._id === memberId).memberProperties.photoUrl,
+      'https://photos.example.test/old-member-object');
+    assert.equal(reopened.notificationOutbox.size, 0);
+    assert.equal(outbox.pending().length, 0);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});

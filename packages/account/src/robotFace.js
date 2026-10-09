@@ -37,7 +37,7 @@ import { handleLoopMembership, removeRobotFromLoops, saveLoop } from './loopMemb
 import { dispatchLoopCreated } from './loopCreation.js';
 import { handleLoopAgreements } from './loopAgreements.js';
 import { EchoSignProvider } from './echoSignProvider.js';
-import { handleMemberPhotos, isMemberPhotoUpload, stagePhotoDigest } from './loopMemberPhotos.js';
+import { handleMemberPhotos, isMemberPhotoUpload, normalizePhotoMaxBytes, PHOTO_MAX_BYTES, stagePhotoDigest } from './loopMemberPhotos.js';
 import { handleRobotLookup } from './robotLookup.js';
 import { handleAccountIdentity, isAccountPhotoUpload } from './accountIdentity.js';
 import { oauthClientsDispatch } from './oauthClients.js';
@@ -275,10 +275,15 @@ function validatedOtaRedirect(currentUrl, location, configuredOrigin) {
 }
 
 /** @param {import('./store.js').Store} store */
-export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOutbox = new LoopUpdatedOutbox(store), loopConfig = {}, agreementProvider = new EchoSignProvider(loopConfig), invitationProviders, identityProviders, robotReadClient, memberPhotoProvider, stsProvider } = {}) {
+export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOutbox = new LoopUpdatedOutbox(store), loopConfig = {}, agreementProvider = new EchoSignProvider(loopConfig), invitationProviders, identityProviders, robotReadClient, memberPhotoProvider, stsProvider, photoMaxBytes } = {}) {
   // LoopController snapshots this feature flag at construction; only literal
   // lowercase 'off' disables COPPA, matching the source configuration.
   const coppaEnabled = !loopConfig.features || loopConfig.features.coppa !== 'off';
+  // Account UpdatePhoto and Loop UpdateMemberPhoto share the source binary route's
+  // 1000000000-byte cap. An operator may lower it; it also bounds chunked bodies.
+  const uploadMaxBytes = normalizePhotoMaxBytes(photoMaxBytes === undefined
+    ? (loopConfig.server?.photoMaxBytes ?? process.env.ETCO_account_photoMaxBytes ?? PHOTO_MAX_BYTES)
+    : photoMaxBytes);
   // SetupRobot performs asynchronous robot-registry work before consuming its
   // one-time token.  Serialize redemption in this process so two concurrent
   // requests cannot both pass findToken() and create two loops/credentials.
@@ -317,8 +322,11 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     // Hapi's binary stream route checks the declared length before dispatch.
     // Its stream output does not impose a cumulative limit on chunked bodies.
     // Account UpdatePhoto uses the same POST /binary maxBytes: 1000000000.
-    if ((isMemberPhotoUpload(req) || isAccountPhotoUpload(req)) && Number(req.headers['content-length']) > 1000000000) {
-      const data = JSON.stringify({ statusCode: 400, error: 'Bad Request', message: 'Payload content length greater than maximum allowed: 1000000000' });
+    const declaredLength = Number(req.headers['content-length']);
+    if ((isMemberPhotoUpload(req) || isAccountPhotoUpload(req))
+      && Number.isSafeInteger(declaredLength)
+      && declaredLength > uploadMaxBytes) {
+      const data = JSON.stringify({ statusCode: 400, error: 'Bad Request', message: `Payload content length greater than maximum allowed: ${uploadMaxBytes}` });
       res.writeHead(400, { 'content-type': 'application/json; charset=utf-8', 'content-length': Buffer.byteLength(data), connection: 'close' });
       res.end(data);
       req.resume();
@@ -366,7 +374,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
           // that header matches the bytes we actually received; skipping this
           // for explicit hashes both rejected valid binary requests and would
           // leave the verifier unable to enforce body integrity.
-          if (isMemberPhotoUpload(req) && req.headers.authorization) await stagePhotoDigest(req);
+          if (isMemberPhotoUpload(req) && req.headers.authorization) await stagePhotoDigest(req, { maxBytes: uploadMaxBytes });
           const verification = verifySigV4({
             method: req.method,
             path: req.originalUrl || req.url || '/',
@@ -410,6 +418,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
           // removed account belonged to, so the outbox has to reach the
           // identity handler alongside the photo/mail providers.
           loopUpdatedOutbox,
+          photoMaxBytes: uploadMaxBytes,
         });
         if (identity !== false) return identity;
       } finally {

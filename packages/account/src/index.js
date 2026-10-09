@@ -331,6 +331,7 @@ export function createAccountService({
   loopConfig = {},
   agreementProvider,
   memberPhotoProvider,
+  photoMaxBytes,
   invitationProviders,
   identityProviders,
   robotReadClient = new RobotReadClient(),
@@ -490,6 +491,7 @@ export function createAccountService({
       identityProviders: effectiveIdentityProviders,
       robotReadClient,
       memberPhotoProvider: photoProvider,
+      photoMaxBytes,
       // LPS issues credentials through the injected STS provider; an
       // unconfigured default throws a clear unavailable error.
       stsProvider: lpsStsProvider === undefined
