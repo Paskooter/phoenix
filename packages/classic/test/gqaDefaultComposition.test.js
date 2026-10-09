@@ -9,6 +9,20 @@ import { createClassicEntrypoint } from '../src/index.js';
 
 const CLOCK = 1700000000000;
 const ACCESS_KEY = 'q01-key-with-dashes';
+// Synthetic shared secret for the private Classic -> Account peer hop. Since
+// 07178e2 Account's POST /listAssociatedLoops requires ETCO_account_internalPeerToken
+// plus a matching x-phoenix-internal-token header (packages/account/src/loopResolution.js);
+// the GQA lookup sends that header from the same env (packages/skills/src/gqaAccountAttribution.js).
+const PEER_TOKEN = 'synthetic-q01-internal-peer-token';
+
+function useInternalPeerToken(t) {
+  const prior = process.env.ETCO_account_internalPeerToken;
+  process.env.ETCO_account_internalPeerToken = PEER_TOKEN;
+  t.after(() => {
+    if (prior === undefined) delete process.env.ETCO_account_internalPeerToken;
+    else process.env.ETCO_account_internalPeerToken = prior;
+  });
+}
 
 async function closeServer(server) {
   server?.closeAllConnections?.();
@@ -38,6 +52,7 @@ async function post(port, target, body, { accountId, accessKeyId = ACCESS_KEY } 
 }
 
 test('Classic defaults compose source GQA with Account lookup and no provider/LLM fallback', async (t) => {
+  useInternalPeerToken(t);
   const directory = mkdtempSync(join(tmpdir(), 'phoenix-q01-gqa-default-'));
   const store = new Store(join(directory, 'account.json'));
   const owner = createOwnerAccount(store, {
@@ -99,6 +114,7 @@ test('Classic defaults compose source GQA with Account lookup and no provider/LL
 });
 
 test('Classic default composition persists a provider attribution across restart', async (t) => {
+  useInternalPeerToken(t);
   const directory = mkdtempSync(join(tmpdir(), 'phoenix-q01-gqa-restart-'));
   const store = new Store(join(directory, 'account.json'));
   const owner = createOwnerAccount(store, {

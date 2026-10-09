@@ -1854,7 +1854,8 @@ function clearAssociated(store, accountId, loopUpdatedOutbox) {
  * AccountController.removeById. With `id`, membership is checked first, then
  * an account that has an email is OWNER_CAN_REMOVE, then ownerId is reassigned
  * to the target. Order: isDeleted = true on the in-memory row, then
- * clearAssociated, then save. passwordResetCode is not cleared (DIVERGENCES A1).
+ * clearAssociated, then save. Any pending password reset (code, created,
+ * expiry) is revoked, retiring DIVERGENCES A1.
  */
 function removeById(store, ownerId, accountId, loopUpdatedOutbox) {
   if (accountId) {

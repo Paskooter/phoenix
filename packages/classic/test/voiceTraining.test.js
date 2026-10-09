@@ -16,12 +16,12 @@
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
-import http from 'node:http';
 import { mkdtemp, rm, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
+import {
+  signedAmz, signedFetch, startClassicChild, syntheticAccount, writeSyntheticAccountStore,
+} from './fixtures/signedClassic.js';
 import {
   createClassicEntrypoint, VoiceTrainingStore, voiceTrainingBackup,
   VOICE_TRAINING_OPERATIONS, VOICE_TRAINING_UNSUPPORTED_OPERATIONS, VOICE_TRAINING_TARGET_PREFIXES,
@@ -29,8 +29,6 @@ import {
   VOICE_TRAINING_ACCOUNT_REQUIRED, VOICE_TRAINING_VALIDATORS, MISSING_AUTH_HEADER,
 } from '../src/index.js';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
-const ENTRY = join(ROOT, 'packages', 'classic', 'src', 'index.js');
 
 const A = '5a0b20f5ddee0000197e2881';
 const B = '59e66fc3762588001e64c296';
@@ -320,10 +318,17 @@ test('voiceTraining survives a SIGKILL process restart (fresh process, same stor
     assert.equal(list.length, 1);
     assert.equal(list[0]._id, created._id);
     assert.equal(list[0].accountId, A);
-    // The artifact is still served by the fresh process.
-    const res = await fetch(`${second.base}${VOICE_TRAINING_BLOB_ROUTE}?key=${created._id}`);
+    // The artifact is still served by the fresh process. On the authenticated executable face
+    // the blob route is behind the same SigV4 boundary and is owner-scoped
+    // (voiceTraining.js voiceTrainingBlobRoutes), so the owning account signs the GET.
+    const blobUrl = `${second.base}${VOICE_TRAINING_BLOB_ROUTE}?key=${created._id}`;
+    const res = await signedFetch(blobUrl, { method: 'GET', credentials: CHILD_CREDENTIALS[A] });
     assert.equal(res.status, 200);
     assert.equal(await res.text(), 'raw-bytes');
+    const unsigned = await fetch(blobUrl);
+    assert.equal(unsigned.status, 401, 'an unsigned blob read is refused by the caller boundary');
+    const foreign = await signedFetch(blobUrl, { method: 'GET', credentials: CHILD_CREDENTIALS[B] });
+    assert.equal(foreign.status, 403, 'another account may not read the artifact');
   } finally { await second.stop(); }
 
   const raw = JSON.parse(await readFile(file, 'utf8'));
@@ -331,64 +336,26 @@ test('voiceTraining survives a SIGKILL process restart (fresh process, same stor
   assert.equal(raw.records[0].accountId, A);
 });
 
-async function freePort() {
-  const srv = http.createServer();
-  await new Promise((resolve) => srv.listen(0, resolve));
-  const port = srv.address().port;
-  await new Promise((resolve) => srv.close(resolve));
-  return port;
-}
+// Synthetic signing credentials for the child. The executable entrypoint (index.js start())
+// verifies every request's SigV4 signature against the Account store named by
+// ETCO_classic_accountDataFile; VoiceTraining then sees the VERIFIED account id, so each
+// synthetic account's _id is the fixture's account id and its access key is different.
+const CHILD_CREDENTIALS = {
+  [A]: syntheticAccount(A),
+  [B]: syntheticAccount(B),
+};
 
 /** Start the real classic entrypoint as a child process over `voiceFile` (its own fresh store). */
 async function startChild(voiceFile) {
-  const port = await freePort();
-  const child = spawn(process.execPath, [ENTRY], {
-    cwd: ROOT,
-    env: { ...process.env, PORT: String(port), ETCO_classic_voiceTrainingFile: voiceFile },
-    stdio: ['ignore', 'pipe', 'pipe'],
+  const accountDataFile = `${voiceFile}.account.json`;
+  writeSyntheticAccountStore(accountDataFile, { accounts: Object.values(CHILD_CREDENTIALS) });
+  return startClassicChild({
+    accountDataFile,
+    env: { ETCO_classic_voiceTrainingFile: voiceFile },
+    ready: async (base) => (await childAmz(base, 'VoiceTraining_20151020.ListVoiceTrainings', {})).status === 200,
   });
-  let stderr = '';
-  child.stdout.resume();
-  child.stderr.on('data', (chunk) => { stderr += chunk; });
-  const base = `http://localhost:${port}`;
-  for (let attempt = 0; attempt < 150; attempt += 1) {
-    try {
-      const res = await fetch(`${base}/`, {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/x-amz-json-1.1',
-          'x-amz-target': 'VoiceTraining_20151020.ListVoiceTrainings',
-          authorization: `AWS4-HMAC-SHA256 Credential=${A}/20180910/us-east-1/voice/aws4_request, SignedHeaders=host, Signature=ff`,
-        },
-        body: JSON.stringify({}),
-      });
-      if (res.status === 200) {
-        return {
-          base,
-          child,
-          stop: () => new Promise((resolve) => {
-            if (child.exitCode !== null || child.signalCode !== null) return resolve();
-            child.once('close', resolve);
-            child.kill('SIGKILL');
-          }),
-        };
-      }
-    } catch { /* not listening yet */ }
-    if (child.exitCode !== null) break;
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
-  child.kill('SIGKILL');
-  throw new Error(`classic entrypoint child did not start: ${stderr}`);
 }
 
 function childAmz(base, target, body, accountId = A) {
-  return fetch(`${base}/`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/x-amz-json-1.1',
-      'x-amz-target': target,
-      authorization: `AWS4-HMAC-SHA256 Credential=${accountId}/20180910/us-east-1/voice/aws4_request, SignedHeaders=host, Signature=ff`,
-    },
-    body: JSON.stringify(body || {}),
-  }).then(async (res) => ({ status: res.status, errType: res.headers.get('x-amzn-errortype'), body: await res.json().catch(() => null) }));
+  return signedAmz(base, target, body, CHILD_CREDENTIALS[accountId]);
 }

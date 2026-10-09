@@ -8,6 +8,9 @@ import { tmpdir } from 'node:os';
 import { createSettingsInternalService } from '../src/index.js';
 import { createSettingsProviders, isPersonRequestFatal } from '../src/settingsProviders.js';
 import { Store } from '../src/store.js';
+import { useInternalPeerToken, internalPeerHeaders } from './fixtures/internalPeer.js';
+
+useInternalPeerToken();
 
 const reportView = {
   type: 'switch',
@@ -166,6 +169,7 @@ async function settingsRequest(base, target, body) {
       'content-type': 'application/json',
       'x-amz-target': `Settings_20171219.${target}`,
       'x-amz-credentials': JSON.stringify({ id: context.userId }),
+      ...internalPeerHeaders(),
     },
     body: JSON.stringify(body),
   });

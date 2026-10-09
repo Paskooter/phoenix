@@ -25,29 +25,27 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const dir = mkdtempSync(join(tmpdir(), 'phx-oobe-targets-'));
+const previousDataFile = process.env.ETCO_account_dataFile;
+const previousRobotRead = process.env.NET_robotread;
 process.env.ETCO_account_dataFile = join(dir, 'store.json');
 delete process.env.NET_robotread;
 
 // Relative imports only: node_modules/@phoenix/* symlinks to the MAIN checkout, so a
 // package-name import would exercise the wrong tree.
 const { createAccountService, getStore } = await import('../src/index.js');
+const { signedLoopHeaders } = await import('./fixtures/signedLoopRequest.js');
 const { createOwnerAccount, createLoop, mintSetupToken } = await import('../src/model.js');
 
 let server; let base;
 
-// The legacy OOBE face resolves the caller by the Authorization Credential accessKeyId
-// (oobe.handler.ts @parseCredentials); the gateway, not this handler, owns SigV4.
-const sig = (keyId) => `AWS4-HMAC-SHA256 Credential=${keyId}/20260612/us-east-1/account/aws4_request, SignedHeaders=host, Signature=feedface`;
-
-async function amz(target, body, headers = {}) {
+// Since 07178e2 the authenticated OOBE operations (PrepareRobot, ReconnectRobot,
+// GetServiceToken) verify the complete AWS V4 signature in robotFace.js
+// (verifiedClassicCaller); a bare Credential= substring is not identity. `as` is
+// the synthetic accessKeyId to sign with; omit it for an unsigned request.
+async function amz(target, body, as) {
   const res = await fetch(`${base}/`, {
     method: 'POST',
-    headers: {
-      'content-type': 'application/x-amz-json-1.1',
-      'x-amz-target': target,
-      ...headers,
-      connection: 'close',
-    },
+    headers: signedLoopHeaders(getStore(), base, target, body, as, { connection: 'close' }),
     body: JSON.stringify(body),
   });
   return {
@@ -73,20 +71,31 @@ before(async () => {
   server = await createAccountService({ log: { info() {}, warn() {}, error() {} } }).listen(0);
   base = `http://localhost:${server.address().port}`;
 });
-after(() => { server.close(); rmSync(dir, { recursive: true, force: true }); });
+after(() => {
+  server.close();
+  if (previousDataFile === undefined) delete process.env.ETCO_account_dataFile;
+  else process.env.ETCO_account_dataFile = previousDataFile;
+  if (previousRobotRead !== undefined) process.env.NET_robotread = previousRobotRead;
+  rmSync(dir, { recursive: true, force: true });
+});
 
 test('every archived OOBE operation reaches a real handler, never UnknownOperationException', async () => {
   // SetupRobot and GetStatus are in the gateway's unauthorizedMethods, so a bare request
-  // reaches the handler and is refused by the handler's own boundary (Joi / credentials).
+  // reaches the handler and is refused by the handler's own Joi boundary. The other three
+  // are signed by a synthetic non-admin owner so they too reach their handler-specific
+  // boundary (Joi for PrepareRobot/ReconnectRobot, adminOnly for GetServiceToken).
+  const store = getStore();
+  const caller = createOwnerAccount(store, { email: 'surface-owner@oobe.test', password: 'pw', firstName: 'Surface' });
+  store.flush();
   const cases = [
-    ['OOBE_20161026.PrepareRobot', {}, {}, 'CREDENTIALS_REQUIRED'],
-    ['OOBE_20161026.GetStatus', {}, {}, 'ValidationException(422)'],
-    ['OOBE_20161026.SetupRobot', {}, {}, 'ValidationException(422)'],
-    ['OOBE_20161026.ReconnectRobot', {}, {}, 'CREDENTIALS_REQUIRED'],
-    ['OOBE_20161026.GetServiceToken', {}, {}, 'AUTHORIZED_UNDER_ADMIN'],
+    ['OOBE_20161026.PrepareRobot', { loopId: 7 }, caller.accessKeyId, 'ValidationException(422)'],
+    ['OOBE_20161026.GetStatus', {}, undefined, 'ValidationException(422)'],
+    ['OOBE_20161026.SetupRobot', {}, undefined, 'ValidationException(422)'],
+    ['OOBE_20161026.ReconnectRobot', {}, caller.accessKeyId, 'ValidationException(422)'],
+    ['OOBE_20161026.GetServiceToken', {}, caller.accessKeyId, 'AUTHORIZED_UNDER_ADMIN'],
   ];
-  for (const [target, body, headers, expected] of cases) {
-    const r = await amz(target, body, headers);
+  for (const [target, body, as, expected] of cases) {
+    const r = await amz(target, body, as);
     assert.notEqual(r.errType, 'UnknownOperationException', `${target} must be a served operation`);
     assert.notEqual(r.status, 400, `${target} must not be an unknown target`);
     if (expected === 'ValidationException(422)') {
@@ -94,6 +103,14 @@ test('every archived OOBE operation reaches a real handler, never UnknownOperati
     } else {
       assert.equal(r.body.__type, expected, `${target} reaches the named handler error`);
     }
+  }
+  // Unsigned, the three authenticated operations stop at the SigV4 gate that
+  // 07178e2 placed in front of their controllers.
+  for (const target of ['OOBE_20161026.PrepareRobot', 'OOBE_20161026.ReconnectRobot', 'OOBE_20161026.GetServiceToken']) {
+    const r = await amz(target, {});
+    assert.notEqual(r.errType, 'UnknownOperationException', `${target} must be a served operation`);
+    assert.equal(r.status, 401, target);
+    assert.equal(r.body.__type, 'MISSING_AUTH_HEADER', target);
   }
   assert.equal([...NORMAL_OPS, ...ADMIN_OPS].length, 5, 'the archived surface is five operations');
 });
@@ -106,7 +123,7 @@ test('the admin operation shares the normal OOBE_20161026 target prefix', async 
 
   // oobeadmin-2016-10-26.normal.json declares targetPrefix OOBE_20161026 (not "OOBEAdmin..."),
   // so the generated client sends the admin call on the same prefix as the normal API.
-  const r = await amz('OOBE_20161026.GetServiceToken', {}, { authorization: sig(admin.accessKeyId) });
+  const r = await amz('OOBE_20161026.GetServiceToken', {}, admin.accessKeyId);
   assert.equal(r.status, 200);
   assert.equal(typeof r.body.token, 'string');
 });
@@ -118,8 +135,8 @@ test('both prefix spellings seen in the consumers resolve to the same handlers',
 
   // OOBE_20161026 is the archived targetPrefix; scripts/portal-smoke.mjs and the older
   // local tests send the bare "OOBE." spelling. Dispatch is operation-keyed, so both work.
-  const archived = await amz('OOBE_20161026.PrepareRobot', {}, { authorization: sig(owner.accessKeyId) });
-  const bare = await amz('OOBE.PrepareRobot', {}, { authorization: sig(owner.accessKeyId) });
+  const archived = await amz('OOBE_20161026.PrepareRobot', {}, owner.accessKeyId);
+  const bare = await amz('OOBE.PrepareRobot', {}, owner.accessKeyId);
   assert.equal(archived.status, 200);
   assert.equal(bare.status, 200);
   assert.equal(typeof bare.body.token, 'string');
@@ -139,7 +156,7 @@ test('PrepareRobot/GetStatus/SetupRobot/ReconnectRobot/GetServiceToken return th
   store.flush();
 
   // TokenContainer { token (required), expires (long) } — PrepareRobot.
-  const prepared = await amz('OOBE_20161026.PrepareRobot', {}, { authorization: sig(owner.accessKeyId) });
+  const prepared = await amz('OOBE_20161026.PrepareRobot', {}, owner.accessKeyId);
   assert.equal(prepared.status, 200);
   assert.equal(prepared.ct, AMZ);
   assert.deepEqual(Object.keys(prepared.body).sort(), ['expires', 'token']);
@@ -167,7 +184,7 @@ test('PrepareRobot/GetStatus/SetupRobot/ReconnectRobot/GetServiceToken return th
   const robot = store.accountByFriendlyId('shapes-robot-alpha');
   const loop = [...store.loops.values()].find((l) => l.robot === robot._id);
   const token = mintSetupToken(store, owner._id, loop._id);
-  const reconnect = await amz('OOBE_20161026.ReconnectRobot', { token: token._id }, { authorization: sig(robot.accessKeyId) });
+  const reconnect = await amz('OOBE_20161026.ReconnectRobot', { token: token._id }, robot.accessKeyId);
   assert.equal(reconnect.status, 200);
   assert.deepEqual(reconnect.body, { result: 'Command accepted' });
 
@@ -175,7 +192,7 @@ test('PrepareRobot/GetStatus/SetupRobot/ReconnectRobot/GetServiceToken return th
   const admin = createOwnerAccount(store, { email: 'shapes-admin@oobe.test', password: 'pw' });
   admin.isAdmin = true;
   store.flush();
-  const service = await amz('OOBE_20161026.GetServiceToken', {}, { authorization: sig(admin.accessKeyId) });
+  const service = await amz('OOBE_20161026.GetServiceToken', {}, admin.accessKeyId);
   assert.equal(service.status, 200);
   assert.deepEqual(Object.keys(service.body).sort(), ['expires', 'token']);
   assert.equal(service.body._id, undefined, 'TokenContainer, not the raw token document');
@@ -192,7 +209,7 @@ test('controller failures keep the AWS-JSON envelope plus the x-amzn-errortype h
   assert.equal(missing.errType, 'TOKEN_NOT_FOUND');
   assert.deepEqual(missing.body, { __type: 'TOKEN_NOT_FOUND', message: 'Token not found' });
 
-  const nonAdmin = await amz('OOBE_20161026.GetServiceToken', {}, { authorization: sig(owner.accessKeyId) });
+  const nonAdmin = await amz('OOBE_20161026.GetServiceToken', {}, owner.accessKeyId);
   assert.equal(nonAdmin.status, 401);
   assert.equal(nonAdmin.errType, 'AUTHORIZED_UNDER_ADMIN');
   assert.deepEqual(nonAdmin.body, { __type: 'AUTHORIZED_UNDER_ADMIN', message: 'Must be authorized under admin account' });

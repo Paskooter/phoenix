@@ -748,9 +748,13 @@ export function keyRoutes(store, {
     if (!callerBoundary) return handler(context);
     const { req, res, body, target, op, log } = context;
     try {
+      // As in index.js verifiedDirectRoute: Express defaults an absent body to `{}`, which is
+      // not the wire entity of a GET/HEAD, so authenticate the empty payload the robot signed.
       const wireBody = req.rawBody !== undefined
         ? req.rawBody
-        : body === undefined || body === null ? '' : body;
+        : ['GET', 'HEAD'].includes(String(req.method || '').toUpperCase())
+          ? ''
+          : body === undefined || body === null ? '' : body;
       const caller = await callerBoundary({ req, res, body: wireBody, target, op, log });
       if (!caller) throw new Error('verified caller boundary returned no identity');
       return await handler(context);
@@ -834,7 +838,11 @@ export function keyRoutes(store, {
       res.writeHead(403, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' });
       return void res.end('forbidden');
     }
-    const path = binaryPathOf(binary, String(binary.encryptedUrl || '').endsWith('.jpg'), accountId);
+    // Authorization above uses the verified identity; the file itself lives under the account
+    // that SHARED it (ShareBinary writes that id into the returned URL), which is normally not
+    // the requesting account, so locate it by the URL's storage key.
+    const storageAccountId = requestedAccountId && SAFE.test(requestedAccountId) ? requestedAccountId : accountId;
+    const path = binaryPathOf(binary, String(binary.encryptedUrl || '').endsWith('.jpg'), storageAccountId);
     try {
       const stat = statSync(join(binaryDir, path));
       res.writeHead(200, {

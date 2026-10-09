@@ -1,4 +1,4 @@
-import test from 'node:test';
+import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
@@ -7,15 +7,31 @@ import { createAccountService, Store } from '../src/index.js';
 import { createOwnerAccount, createLoop, newId } from '../src/model.js';
 import { createPhoenixGqaAccountLookup } from '../../skills/src/index.js';
 
+// listAssociatedLoops is an internal peer route (loopResolution.js
+// internalPeerAuthorized): since 07178e2 it requires the configured
+// ETCO_account_internalPeerToken in x-phoenix-internal-token. The token below is
+// synthetic and only configured for this file; the previous value is restored.
+const SYNTHETIC_PEER_TOKEN = 'synthetic-q01-internal-peer-token';
+const hadPeerToken = Object.prototype.hasOwnProperty.call(process.env, 'ETCO_account_internalPeerToken');
+const previousPeerToken = process.env.ETCO_account_internalPeerToken;
+process.env.ETCO_account_internalPeerToken = SYNTHETIC_PEER_TOKEN;
+after(() => {
+  if (hadPeerToken) process.env.ETCO_account_internalPeerToken = previousPeerToken;
+  else delete process.env.ETCO_account_internalPeerToken;
+});
+
 async function closeServer(server) {
   server.closeAllConnections?.();
   await new Promise((resolve) => server.close(resolve));
 }
 
-async function post(base, body) {
+async function post(base, body, peerToken = SYNTHETIC_PEER_TOKEN) {
   const response = await fetch(`${base}/listAssociatedLoops`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: {
+      'content-type': 'application/json',
+      ...(peerToken === null ? {} : { 'x-phoenix-internal-token': peerToken }),
+    },
     body: JSON.stringify(body),
   });
   return { status: response.status, body: JSON.parse(await response.text()) };
@@ -24,7 +40,7 @@ async function post(base, body) {
 async function postRaw(base, rawBody) {
   const response = await fetch(`${base}/listAssociatedLoops`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json', 'x-phoenix-internal-token': SYNTHETIC_PEER_TOKEN },
     body: rawBody,
   });
   const raw = await response.text();
@@ -111,6 +127,13 @@ test('listAssociatedLoops uses source Joi boundaries without mutating state', as
   const base = `http://127.0.0.1:${service.address().port}`;
   const before = readFileSync(store.file, 'utf8');
   try {
+    // Without (or with a wrong) peer token the route refuses before validation.
+    for (const peerToken of [null, 'synthetic-wrong-peer-token']) {
+      const refused = await post(base, { accountsIds: [owner._id] }, peerToken);
+      assert.equal(refused.status, 401, String(peerToken));
+      assert.equal(refused.body.error, 'internal peer authentication failed');
+    }
+
     for (const body of [null, [], ['account-id'], 'account-id', 7, false]) {
       const result = await post(base, body);
       assert.equal(result.status, 422, JSON.stringify(body));
