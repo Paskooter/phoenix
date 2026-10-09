@@ -293,8 +293,18 @@ test('InviteLoopMember enforces owner access, statuses, and source errors', asyn
       loopId: many.body.id,
       firstName: `Extra${i}`,
     }, owner.accessKeyId);
-    assert.equal(extra.status, 200, `source compares the member array with MAX_SIZE, so invite ${i} is not ACTIVE_LIMIT_REACHED`);
+    // DIVERGENCES A-hardening-member-cap: the source compared the filtered array with MAX_SIZE and so
+    // never refused; Phoenix enforces 16 active (accepted or invited) members, owner included.
+    const expectedStatus = i < 15 ? 200 : 409;
+    assert.equal(extra.status, expectedStatus, `MAX_SIZE commit invariant at invite ${i}`);
+    if (expectedStatus === 409) assert.equal(extra.body.__type, 'ACTIVE_LIMIT_REACHED');
   }
+  const limited = store.loops.get(many.body.id);
+  const active = limited.members.filter((member) => {
+    if (member.accountId === limited.robot) return false;
+    return [MEMBER_STATUS.ACCEPTED, MEMBER_STATUS.INVITED].includes(String(member.status).toLowerCase());
+  });
+  assert.equal(active.length, 16);
 });
 
 test('InviteLoopMember rejects mutation of a suspended or deleted loop', async () => {

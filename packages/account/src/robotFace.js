@@ -37,7 +37,7 @@ import { handleLoopMembership, removeRobotFromLoops, saveLoop } from './loopMemb
 import { dispatchLoopCreated } from './loopCreation.js';
 import { handleLoopAgreements } from './loopAgreements.js';
 import { EchoSignProvider } from './echoSignProvider.js';
-import { handleMemberPhotos, isMemberPhotoUpload, stagePhotoDigest } from './loopMemberPhotos.js';
+import { handleMemberPhotos, isMemberPhotoUpload, normalizePhotoMaxBytes, PHOTO_MAX_BYTES, stagePhotoDigest } from './loopMemberPhotos.js';
 import { handleRobotLookup } from './robotLookup.js';
 import { handleAccountIdentity, isAccountPhotoUpload } from './accountIdentity.js';
 import { oauthClientsDispatch } from './oauthClients.js';
@@ -246,11 +246,44 @@ function otaBase() {
   return /^https?:\/\//.test(net) ? net : `http://${net}`;
 }
 
+const OTA_REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
+const OTA_MAX_REDIRECTS = 10;
+
+function otaRedirectError(message) {
+  const error = new Error(message);
+  error.code = 'OTA_REDIRECT_REJECTED';
+  return error;
+}
+
+function validatedOtaRedirect(currentUrl, location, configuredOrigin) {
+  if (!location) throw otaRedirectError('OTA redirect did not include a location');
+  let destination;
+  try {
+    destination = new URL(location, currentUrl);
+  } catch {
+    throw otaRedirectError('OTA redirect location is invalid');
+  }
+  // The proxy may only follow redirects within the explicitly configured OTA
+  // origin. Reject URL userinfo as well; it is never needed for this service.
+  if (!['http:', 'https:'].includes(destination.protocol)
+    || destination.origin !== configuredOrigin
+    || destination.username
+    || destination.password) {
+    throw otaRedirectError('OTA redirect destination is not allowed');
+  }
+  return destination;
+}
+
 /** @param {import('./store.js').Store} store */
-export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOutbox = new LoopUpdatedOutbox(store), loopConfig = {}, agreementProvider = new EchoSignProvider(loopConfig), invitationProviders, identityProviders, robotReadClient, memberPhotoProvider, stsProvider } = {}) {
+export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOutbox = new LoopUpdatedOutbox(store), loopConfig = {}, agreementProvider = new EchoSignProvider(loopConfig), invitationProviders, identityProviders, robotReadClient, memberPhotoProvider, stsProvider, photoMaxBytes } = {}) {
   // LoopController snapshots this feature flag at construction; only literal
   // lowercase 'off' disables COPPA, matching the source configuration.
   const coppaEnabled = !loopConfig.features || loopConfig.features.coppa !== 'off';
+  // Account UpdatePhoto and Loop UpdateMemberPhoto share the source binary route's
+  // 1000000000-byte cap. An operator may lower it; it also bounds chunked bodies.
+  const uploadMaxBytes = normalizePhotoMaxBytes(photoMaxBytes === undefined
+    ? (loopConfig.server?.photoMaxBytes ?? process.env.ETCO_account_photoMaxBytes ?? PHOTO_MAX_BYTES)
+    : photoMaxBytes);
   // SetupRobot performs asynchronous robot-registry work before consuming its
   // one-time token.  Serialize redemption in this process so two concurrent
   // requests cannot both pass findToken() and create two loops/credentials.
@@ -289,8 +322,11 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
     // Hapi's binary stream route checks the declared length before dispatch.
     // Its stream output does not impose a cumulative limit on chunked bodies.
     // Account UpdatePhoto uses the same POST /binary maxBytes: 1000000000.
-    if ((isMemberPhotoUpload(req) || isAccountPhotoUpload(req)) && Number(req.headers['content-length']) > 1000000000) {
-      const data = JSON.stringify({ statusCode: 400, error: 'Bad Request', message: 'Payload content length greater than maximum allowed: 1000000000' });
+    const declaredLength = Number(req.headers['content-length']);
+    if ((isMemberPhotoUpload(req) || isAccountPhotoUpload(req))
+      && Number.isSafeInteger(declaredLength)
+      && declaredLength > uploadMaxBytes) {
+      const data = JSON.stringify({ statusCode: 400, error: 'Bad Request', message: `Payload content length greater than maximum allowed: ${uploadMaxBytes}` });
       res.writeHead(400, { 'content-type': 'application/json; charset=utf-8', 'content-length': Buffer.byteLength(data), connection: 'close' });
       res.end(data);
       req.resume();
@@ -338,7 +374,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
           // that header matches the bytes we actually received; skipping this
           // for explicit hashes both rejected valid binary requests and would
           // leave the verifier unable to enforce body integrity.
-          if (isMemberPhotoUpload(req) && req.headers.authorization) await stagePhotoDigest(req);
+          if (isMemberPhotoUpload(req) && req.headers.authorization) await stagePhotoDigest(req, { maxBytes: uploadMaxBytes });
           const verification = verifySigV4({
             method: req.method,
             path: req.originalUrl || req.url || '/',
@@ -382,6 +418,7 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
           // removed account belonged to, so the outbox has to reach the
           // identity handler alongside the photo/mail providers.
           loopUpdatedOutbox,
+          photoMaxBytes: uploadMaxBytes,
         });
         if (identity !== false) return identity;
       } finally {
@@ -523,33 +560,45 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
         //   loop = findById(tokenObj.loopId)          // reread the committed state
         //   loop.isSuspended = false; loop.robot = newRobotAccount._id
         //   loop.members.push({ accountId, status: ACCEPTED }); loop.save()
-        const replacement = findOrCreateRobotAccount(store, id);
-        removeRobotFromLoops(store, loop.robot, loopUpdatedOutbox);
-        removeRobotFromLoops(store, replacement._id, loopUpdatedOutbox);
-        loop = activeLoopById(token.loopId);
-        if (!loop) return void sendAmzError(res, Errors.LOOP_NOT_FOUND);
-        // Mutate a detached draft: saveLoop must be able to leave the stored
-        // object untouched when the LoopUpdated write is rejected.
-        const before = JSON.parse(JSON.stringify(loop));
-        const draft = JSON.parse(JSON.stringify(loop));
-        draft.isSuspended = false;
-        draft.robot = replacement._id;
-        draft.members = Array.isArray(draft.members) ? draft.members : [];
-        // Mongoose applies memberSchema defaults to the pushed
-        // `{ accountId, status }`: created, enrolled, invitedAsLegalGuardian and
-        // memberProperties.isChild. Keep the persisted subdocument shaped the
-        // same way so a reopened Store projects identically.
-        draft.members.push({
-          _id: newId(),
-          accountId: replacement._id,
-          status: MEMBER_STATUS.ACCEPTED,
-          created: Date.now(),
-          invitedAsLegalGuardian: false,
-          enrolled: { face: false, voice: false },
-          memberProperties: { isChild: false },
+        //
+        // Replacement touches the replacement account, any loop holding either
+        // robot, the target loop, LoopUpdated rows and the one-time token. Keep
+        // them in one Store transaction (inner helpers' flushes are deferred),
+        // so a rejected final commit leaves the old topology and a retryable token.
+        const replaced = store.transaction(() => {
+          const replacement = findOrCreateRobotAccount(store, id);
+          removeRobotFromLoops(store, loop.robot, loopUpdatedOutbox);
+          removeRobotFromLoops(store, replacement._id, loopUpdatedOutbox);
+          const current = activeLoopById(token.loopId);
+          if (!current) return null;
+          // Mutate a detached draft: saveLoop must be able to leave the stored
+          // object untouched when the LoopUpdated write is rejected.
+          const before = JSON.parse(JSON.stringify(current));
+          const draft = JSON.parse(JSON.stringify(current));
+          draft.isSuspended = false;
+          draft.robot = replacement._id;
+          draft.members = Array.isArray(draft.members) ? draft.members : [];
+          // Mongoose applies memberSchema defaults to the pushed
+          // `{ accountId, status }`: created, enrolled, invitedAsLegalGuardian and
+          // memberProperties.isChild. Keep the persisted subdocument shaped the
+          // same way so a reopened Store projects identically.
+          draft.members.push({
+            _id: newId(),
+            accountId: replacement._id,
+            status: MEMBER_STATUS.ACCEPTED,
+            created: Date.now(),
+            invitedAsLegalGuardian: false,
+            enrolled: { face: false, voice: false },
+            memberProperties: { isChild: false },
+          });
+          saveLoop(store, draft, loopUpdatedOutbox, before);
+          deleteToken(store, token._id); // ONE-TIME, committed with the topology
+          return draft;
         });
-        saveLoop(store, draft, loopUpdatedOutbox, before);
-        loop = draft;
+        // The loop vanished in between: the transaction already committed the
+        // source's removeRobotFromLoops effects, as the source did before its reread.
+        if (!replaced) return void sendAmzError(res, Errors.LOOP_NOT_FOUND);
+        loop = replaced;
       } else {
         // Same robot after a reset reconnects its live loop and receives its
         // existing credentials. A different robot needs the loop suspended.
@@ -600,8 +649,10 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
         // SetupRobot cannot authenticate an ownership transfer.
         const robotAccount = findOrCreateRobotAccount(store, id);
         removeRobotFromLoops(store, robotAccount._id, loopUpdatedOutbox);
-        ({ loop } = createLoop(store, { owner: account, robotId: id }));
-        loopUpdatedOutbox.record(loop);
+        // Pass the outbox into creation so the loop and its required
+        // LoopUpdated row share one Store snapshot. Recording afterwards
+        // could leave a durable loop without its notification.
+        ({ loop } = createLoop(store, { owner: account, robotId: id }, loopUpdatedOutbox));
         dispatchLoopCreated(loop, invitationProviders);
       }
     }
@@ -1091,24 +1142,78 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
 
   async function proxyToOta(req, res, body, log) {
     try {
-      const upstream = await fetch(`${otaBase()}/`, {
-        method: 'POST',
-        headers: {
+      let target;
+      try {
+        target = new URL(otaBase());
+      } catch {
+        throw otaRedirectError('OTA endpoint is invalid');
+      }
+      if (!['http:', 'https:'].includes(target.protocol) || target.username || target.password) {
+        throw otaRedirectError('OTA endpoint is not allowed');
+      }
+      // NET_ota is a service base, so match the previous `${base}/` request
+      // while discarding config query/fragment material that is not part of the
+      // OTA API endpoint.
+      target.pathname = target.pathname.replace(/\/?$/, '/');
+      target.search = '';
+      target.hash = '';
+      const configuredOrigin = target.origin;
+      let method = 'POST';
+      let requestBody = JSON.stringify(body || {});
+      let authorization = req.headers.authorization;
+      let redirects = 0;
+
+      while (true) {
+        const requestHeaders = {
           'content-type': req.headers['content-type'] || AMZ_JSON,
           'x-amz-target': req.headers['x-amz-target'],
-          ...(req.headers.authorization ? { authorization: req.headers.authorization } : {}),
-        },
-        body: JSON.stringify(body || {}),
-      });
-      const text = await upstream.text();
-      const headers = { 'content-type': upstream.headers.get('content-type') || AMZ_JSON, 'content-length': Buffer.byteLength(text) };
-      const errType = upstream.headers.get('x-amzn-errortype');
-      if (errType) headers['x-amzn-errortype'] = errType;
-      res.writeHead(upstream.status, headers);
-      res.end(text);
+        };
+        // The robot's credential goes to the configured OTA service on the
+        // first hop only. Never carry it over a redirect; a redirect target
+        // must authenticate independently if it needs to.
+        if (authorization && redirects === 0) requestHeaders.authorization = authorization;
+        const upstream = await fetch(target, {
+          method,
+          headers: requestHeaders,
+          body: method === 'GET' || method === 'HEAD' ? undefined : requestBody,
+          redirect: 'manual',
+        });
+
+        if (OTA_REDIRECT_STATUSES.has(upstream.status)) {
+          if (redirects >= OTA_MAX_REDIRECTS) {
+            try { await upstream.body?.cancel(); } catch { /* preserve redirect error */ }
+            throw otaRedirectError('Maximum redirections reached');
+          }
+          const location = upstream.headers.get('location');
+          try { await upstream.body?.cancel(); } catch { /* follow-up request is still safe */ }
+          const next = validatedOtaRedirect(target, location, configuredOrigin);
+          if ((upstream.status === 301 || upstream.status === 302) && method === 'POST') {
+            method = 'GET';
+            requestBody = undefined;
+          } else if (upstream.status === 303 && method !== 'HEAD') {
+            method = 'GET';
+            requestBody = undefined;
+          }
+          target = next;
+          authorization = undefined;
+          redirects += 1;
+          continue;
+        }
+
+        const text = await upstream.text();
+        const headers = { 'content-type': upstream.headers.get('content-type') || AMZ_JSON, 'content-length': Buffer.byteLength(text) };
+        const errType = upstream.headers.get('x-amzn-errortype');
+        if (errType) headers['x-amzn-errortype'] = errType;
+        res.writeHead(upstream.status, headers);
+        res.end(text);
+        return;
+      }
     } catch (err) {
-      log.error('OTA proxy failed', { error: err.message, ota: otaBase() });
-      sendJson(res, 502, { error: `OTA service unreachable: ${err.message}` });
+      // Neither the transport message nor the configured endpoint reaches the
+      // robot: either could carry internal hosts or credentials.
+      const safeMessage = err?.code === 'OTA_REDIRECT_REJECTED' ? err.message : 'OTA service unreachable';
+      try { log?.error('OTA proxy failed', { code: err?.code || 'OTA_PROXY_FAILED' }); } catch { /* logging is best effort */ }
+      sendJson(res, 502, { error: safeMessage });
     }
   }
 }

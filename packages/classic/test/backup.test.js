@@ -423,3 +423,136 @@ async function childAmz(baseUrl, target, body) {
   const { status, body: parsed } = await signedAmz(baseUrl, target, body, ROBOT);
   return { status, body: parsed };
 }
+
+// Re-ported from the September week-review hardening (synthetic data).
+test('ownership: missing identity fails closed unless the explicit loopback boundary is enabled', async () => {
+  const denied = await withOwnership(
+    undefined,
+    async (b) => ({
+      n: await b.amz('Backup_20170222.New', { loopId: 'loop-no-identity' }),
+      l: await b.amz('Backup_20170222.List', { loopId: 'loop-no-identity' }),
+    }),
+  );
+  for (const [name, res] of Object.entries(denied)) {
+    assert.equal(res.status, 401, `${name}: a missing forwarding identity is not an authorization signal`);
+    assert.equal(res.body.code, 'BACKUP_AUTH_REQUIRED');
+  }
+
+  const trusted = await withOwnership(
+    { accountId: () => null, loopRobotId: async () => 'someone-else', allowLoopbackWithoutIdentity: true },
+    async (b) => ({
+      n: await b.amz('Backup_20170222.New', { loopId: 'loop-loopback' }),
+      l: await b.amz('Backup_20170222.List', { loopId: 'loop-loopback' }),
+    }),
+  );
+  assert.equal(trusted.n.status, 200, 'only the explicitly configured loopback seam may omit identity');
+  assert.equal(trusted.l.status, 200, 'the same explicit loopback seam applies to List');
+});
+
+test('ownership: an Account lookup outage fails closed with ACCOUNT_SERVICE_UNAVAILABLE', async () => {
+  const denied = await withOwnership(
+    { accountId: () => 'robot-1', loopRobotId: async () => undefined },
+    async (b) => ({
+      n: await b.amz('Backup_20170222.New', { loopId: 'loop-unresolved' }),
+      l: await b.amz('Backup_20170222.List', { loopId: 'loop-unresolved' }),
+    }),
+  );
+  for (const [name, res] of Object.entries(denied)) {
+    assert.equal(res.status, 503, `${name}: an unavailable Account lookup cannot authorize ownership`);
+    assert.equal(res.body.statusCode, 503);
+    assert.equal(res.body.error, 'Service Unavailable');
+    assert.equal(res.body.code, 'ACCOUNT_SERVICE_UNAVAILABLE');
+  }
+});
+
+test('restore authorization is possession of the returned URL (expiring, loop-bound bearer)', async () => {
+  const created = await amz('Backup_20170222.New', { loopId: 'loop-share' });
+  await fetch(created.body.uploadUrl, { method: 'PUT', body: Buffer.from('shareable') });
+  const listed = await amz('Backup_20170222.List', { loopId: 'loop-share' });
+  const url = listed.body[0].location.url;
+  // The source served an S3 presigned GET. The self-hosted URL keeps that possession model, but
+  // now carries a server-held HMAC and an enforced expiry; no robot credentials are needed.
+  const res = await fetch(url); // no credentials of any kind
+  assert.equal(res.status, 200);
+  assert.equal(await res.text(), 'shareable');
+});
+
+test('backup blob bearer rejects forgery, wrong loop, expiry changes, and method replay on GET and PUT', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'phx-backup-bearer-'));
+  const secret = 'only-used-to-prove-it-is-not-in-the-url';
+  let now = Date.now();
+  let svc;
+  try {
+    const listenPort = await freePort();
+    svc = await createClassicEntrypoint({
+      publicUrl: `http://localhost:${listenPort}`,
+      backup: { dir, bearerSecret: secret, clock: () => now, urlExpirationMs: 1000 },
+      backupOwnership: { allowLoopbackWithoutIdentity: true },
+    }).listen(listenPort);
+    const p = svc.address().port;
+    const post = async (target, body) => {
+      const response = await fetch(`http://localhost:${p}/`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/x-amz-json-1.1', 'x-amz-target': target },
+        body: JSON.stringify(body),
+      });
+      return { status: response.status, body: await response.json().catch(() => null) };
+    };
+    const created = await post('Backup_20170222.New', { loopId: 'loop-bearer' });
+    assert.equal(created.status, 200);
+    const putUrl = new URL(created.body.uploadUrl);
+    assert.equal(putUrl.searchParams.get('loopId'), 'loop-bearer');
+    assert.equal(putUrl.searchParams.get('key')?.length > 0, true);
+    assert.match(putUrl.searchParams.get('signature') || '', /^[a-f0-9]{64}$/);
+    assert.equal(putUrl.href.includes(secret), false, 'the bearer secret is never serialized into the URL');
+
+    const unsigned = new URL(putUrl);
+    unsigned.searchParams.delete('expires');
+    unsigned.searchParams.delete('signature');
+    assert.equal((await fetch(unsigned, { method: 'PUT', body: 'unsigned' })).status, 403);
+
+    const forged = new URL(putUrl);
+    forged.searchParams.set('signature', `${'0'.repeat(63)}0`);
+    assert.equal((await fetch(forged, { method: 'PUT', body: 'forged' })).status, 403);
+
+    const futureOnly = new URL(putUrl);
+    futureOnly.searchParams.set('expires', String(now + 60_000));
+    assert.equal((await fetch(futureOnly, { method: 'PUT', body: 'expiry-tampered' })).status, 403);
+
+    const wrongLoop = new URL(putUrl);
+    wrongLoop.searchParams.set('loopId', 'another-loop');
+    assert.equal((await fetch(wrongLoop, { method: 'PUT', body: 'wrong-loop' })).status, 403);
+
+    const put = await fetch(putUrl, { method: 'PUT', body: Buffer.from('bearer-bytes') });
+    assert.equal(put.status, 200);
+    assert.equal((await fetch(putUrl)).status, 403, 'a PUT bearer cannot be replayed as a GET bearer');
+
+    const listed = await post('Backup_20170222.List', { loopId: 'loop-bearer' });
+    assert.equal(listed.status, 200);
+    const getUrl = new URL(listed.body[0].location.url);
+    assert.equal(listed.body[0].location.expires, Number(getUrl.searchParams.get('expires')));
+    assert.match(getUrl.searchParams.get('signature') || '', /^[a-f0-9]{64}$/);
+    assert.equal((await fetch(getUrl, { method: 'PUT', body: 'method-replay' })).status, 403);
+
+    const unsignedGet = new URL(getUrl);
+    unsignedGet.searchParams.delete('expires');
+    unsignedGet.searchParams.delete('signature');
+    assert.equal((await fetch(unsignedGet)).status, 403, 'GET requires its bearer, not just loopId/key');
+
+    const futureGet = new URL(getUrl);
+    futureGet.searchParams.set('expires', String(now + 60_000));
+    assert.equal((await fetch(futureGet)).status, 403, 'GET rejects an advertised expiry that is not signed');
+
+    now += 1001;
+    assert.equal((await fetch(getUrl)).status, 403, 'GET enforces expiry instead of trusting location.expires');
+
+    const later = await post('Backup_20170222.New', { loopId: 'loop-bearer-put-expiry' });
+    assert.equal(later.status, 200);
+    const laterUrl = later.body.uploadUrl;
+    now += 1001;
+    assert.equal((await fetch(laterUrl, { method: 'PUT', body: 'expired-put' })).status, 403, 'PUT enforces expiry too');
+  } finally {
+    svc?.close();
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

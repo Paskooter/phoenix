@@ -359,3 +359,14 @@ async function startChild(voiceFile) {
 function childAmz(base, target, body, accountId = A) {
   return signedAmz(base, target, body, CHILD_CREDENTIALS[accountId]);
 }
+
+// Re-ported from the September week-review hardening (synthetic data).
+test('the advertised 100 MB request limit does not inherit common parser\'s 100 KB default', async () => {
+  const j = await fresh();
+  try {
+    const body = 'v'.repeat(128 * 1024);
+    const accepted = await j.amz('VoiceTraining_20151020.UploadVoiceTraining', { key: 'large', body });
+    assert.equal(accepted.status, 200);
+    assert.equal(j.store.records[0].size, Buffer.byteLength(body));
+  } finally { await j.server.close(); }
+});

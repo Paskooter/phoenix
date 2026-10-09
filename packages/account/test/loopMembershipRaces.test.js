@@ -214,6 +214,78 @@ test('same-email sequential InviteLoopMember updates the pending row through Cla
   }
 });
 
+function activeMembers(loop) {
+  return loop.members.filter((member) => {
+    if (String(member.accountId) === String(loop.robot)) return false;
+    return [MEMBER_STATUS.ACCEPTED, MEMBER_STATUS.INVITED].includes(String(member.status).toLowerCase());
+  });
+}
+
+// DIVERGENCES A-hardening-member-cap: MAX_SIZE is a commit-time invariant.
+test('20 concurrent invitations commit at most MAX_SIZE active members', async () => {
+  const state = makeState('a04-race-cap');
+  const side = makeProviders();
+  const outbox = new LoopUpdatedOutbox(state.store);
+  try {
+    const results = await Promise.allSettled(Array.from({ length: 20 }, (_, index) => inviteMember(
+      state.store,
+      {
+        ownerId: state.owner._id,
+        loopId: state.loop._id,
+        email: `cap-${index}@fixture.test`,
+        firstName: `Cap ${index}`,
+      },
+      outbox,
+      { invitationProviders: side.invitationProviders },
+    )));
+    const fulfilled = results.filter((result) => result.status === 'fulfilled');
+    const rejected = results.filter((result) => result.status === 'rejected');
+    assert.equal(fulfilled.length, 15, 'owner occupies one of the 16 active member slots');
+    assert.equal(rejected.length, 5);
+    assert.ok(rejected.every((result) => result.reason.code === 'ACTIVE_LIMIT_REACHED'));
+
+    const saved = state.store.loops.get(state.loop._id);
+    assert.equal(activeMembers(saved).length, 16, 'commit-time invariant prevents over-capacity');
+    assert.equal(side.mail.length, 15, 'side effects run only for committed invitations');
+    assert.equal(side.events.length, 15);
+  } finally {
+    rmSync(state.directory, { recursive: true, force: true });
+  }
+});
+
+test('a loop stored over MAX_SIZE can still shrink but cannot grow', async () => {
+  const state = makeState('a04-race-overfull');
+  const side = makeProviders();
+  const outbox = new LoopUpdatedOutbox(state.store);
+  try {
+    // Synthetic legacy data: the source never enforced the limit, so a stored loop may
+    // already hold more than 16 active members.
+    const stored = state.store.loops.get(state.loop._id);
+    for (let index = 0; index < 18; index += 1) {
+      stored.members.push({
+        _id: `legacy-member-${index}`,
+        status: MEMBER_STATUS.INVITED,
+        invitationCode: `legacy-code-${index}`,
+        memberProperties: { email: `legacy-${index}@fixture.test`, firstName: `Legacy ${index}` },
+      });
+    }
+    state.store.flush();
+    assert.equal(activeMembers(stored).length, 19);
+
+    await removeMember(state.store, {
+      ownerId: state.owner._id, loopId: state.loop._id, id: 'legacy-member-0',
+    }, outbox, { invitationProviders: side.invitationProviders });
+    assert.equal(activeMembers(state.store.loops.get(state.loop._id)).length, 18, 'removal is not blocked');
+
+    await assert.rejects(inviteMember(state.store, {
+      ownerId: state.owner._id, loopId: state.loop._id, email: 'one-more@fixture.test', firstName: 'More',
+    }, outbox, { invitationProviders: side.invitationProviders }), { code: 'ACTIVE_LIMIT_REACHED' });
+    assert.equal(activeMembers(state.store.loops.get(state.loop._id)).length, 18);
+  } finally {
+    rmSync(state.directory, { recursive: true, force: true });
+  }
+});
+
 test('same-email concurrent InviteLoopMember appends two members when both load before save', async () => {
   const state = makeState('a04-race-dup-append');
   const side = makeProviders();

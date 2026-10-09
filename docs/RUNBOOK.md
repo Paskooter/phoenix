@@ -22,6 +22,9 @@ than a procedure, see [Operations](OPERATIONS.md).
   use a public reverse proxy as a substitute for the robot's private CA trust.
 - `root` SSH access to the robot, key-based. (Stock robots ship with `root:jibo`;
   copy your key over with `ssh-copy-id` so the scripts can run unattended.)
+  `scripts/point-robot-at-phoenix.sh` never supplies a password and refuses an
+  unknown host key: put the robot's key in `~/.ssh/known_hosts` (or point
+  `PHOENIX_SSH_KNOWN_HOSTS` at a file that has it) before running it.
 - The robot powered on and on your WiFi.
 
 Throughout, `192.168.1.182` is the server and `root@moth-....jibo` is the robot.

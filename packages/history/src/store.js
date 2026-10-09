@@ -108,6 +108,9 @@ export class HistoryStore {
     // Verified against the pinned compiled collection with the model call counted
     // (docs/parity/evidence/2026-09-10/i01-history-routes/w7-ref-routes-oracle.json).
     const payloadSize = Object.keys(data.payload).length;
+    // The TTL index has already removed an expired launch, so it cannot match. Prune only
+    // after the payload check above, so a rejected request flushes nothing.
+    this._pruneExpired();
     const rec = [...this.skillLaunches]
       .reverse()
       .find((r) => r.sessionID === data.sessionID && r.robotID === data.robotID && r.skillID === data.skillID);

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync, statSync, readFileSync, writeFileSync, chmodSync, mkdirSync, readdirSync } from 'node:fs';
+import { mkdtempSync, rmSync, statSync, existsSync, readFileSync, writeFileSync, chmodSync, mkdirSync, readdirSync, utimesSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { Store } from '../src/store.js';
@@ -61,6 +61,48 @@ test('Account saves retain private credentials across replacement and reload', (
   }
 });
 
+test('reopening Account stores removes abandoned UUID temp files without touching the committed snapshot', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'phoenix-account-stale-temp-'));
+  try {
+    const file = join(dir, 'account.json');
+    const store = new Store(file);
+    store.accounts.set('robot', { _id: 'robot', accessKeyId: 'synthetic-fixture-key' });
+    store.flush();
+    const committed = readFileSync(file);
+    // A SIGKILL between write and rename leaves this behind; backdate it past the grace period.
+    const stale = `${file}.00000000-0000-4000-8000-000000000000.tmp`;
+    writeFileSync(stale, '{partial snapshot');
+    const old = new Date(Date.now() - 10 * 60 * 1000);
+    utimesSync(stale, old, old);
+    // Not this store's temporary-name shape: never touched.
+    const foreign = `${file}.backup.tmp`;
+    writeFileSync(foreign, 'operator file');
+    utimesSync(foreign, old, old);
+
+    const reopened = new Store(file);
+    assert.deepEqual(readFileSync(file), committed, 'startup keeps the committed snapshot');
+    assert.equal(existsSync(stale), false, 'startup removes an abandoned Store temporary file');
+    assert.equal(existsSync(foreign), true, 'only this store\'s UUID temp names are removed');
+    assert.equal(reopened.accounts.get('robot').accessKeyId, 'synthetic-fixture-key');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('reopening an Account store leaves a temp file another process may still be writing', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'phoenix-account-live-temp-'));
+  try {
+    const file = join(dir, 'account.json');
+    new Store(file).flush();
+    const live = `${file}.11111111-1111-4111-8111-111111111111.tmp`;
+    writeFileSync(live, '{in flight');
+    new Store(file);
+    assert.equal(existsSync(live), true, 'a fresh temporary file is not deleted by a second opener');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('rejected Account snapshots preserve committed bytes and clean their own temporary file', () => {
   const dir = mkdtempSync(join(tmpdir(), 'phoenix-account-save-failure-'));
   try {
@@ -86,6 +128,36 @@ test('rejected Account snapshots preserve committed bytes and clean their own te
     store.file = file;
     store.flush();
     assert.deepEqual(new Store(file).accounts.get('robot'), { _id: 'robot' });
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('Store.transaction commits one snapshot and restores every collection on failure', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'phoenix-account-transaction-'));
+  try {
+    const file = join(dir, 'account.json');
+    const store = new Store(file);
+    const account = { _id: 'synthetic-account', firstName: 'Before' };
+    store.accounts.set(account._id, account);
+    store.flush();
+    const committed = readFileSync(file, 'utf8');
+
+    assert.throws(() => store.transaction(() => {
+      account.firstName = 'During';
+      store.tokens.set('synthetic-token', { _id: 'synthetic-token' });
+      store.flush(); // an inner helper's save boundary is deferred, not written
+      assert.equal(readFileSync(file, 'utf8'), committed);
+      throw new Error('synthetic mutation failure');
+    }), /synthetic mutation failure/);
+    assert.equal(store.accounts.get('synthetic-account'), account, 'held references are restored in place');
+    assert.equal(account.firstName, 'Before');
+    assert.equal(store.tokens.size, 0);
+    assert.equal(readFileSync(file, 'utf8'), committed);
+
+    assert.throws(() => store.transaction(async () => {}), /must be synchronous/);
+    store.transaction(() => { account.firstName = 'After'; });
+    assert.equal(new Store(file).accounts.get('synthetic-account').firstName, 'After');
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

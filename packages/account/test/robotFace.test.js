@@ -15,7 +15,7 @@ const previousEnv = { ETCO_account_dataFile: process.env.ETCO_account_dataFile, 
 process.env.ETCO_account_dataFile = join(dir, 'store.json');
 
 const { createAccountService, getStore } = await import('../src/index.js');
-const { createOwnerAccount, mintSetupToken, ACCESS_TOKEN_LIFETIME_MS } = await import('../src/model.js');
+const { createOwnerAccount, createLoop, mintSetupToken, ACCESS_TOKEN_LIFETIME_MS } = await import('../src/model.js');
 
 let server; let base; let mockOta; let otaHits = [];
 
@@ -224,4 +224,50 @@ test('Loop.List: robot creds -> its one loop with `id` (what jibo-system-backup.
   const rm = await amz('Loop_20160324.Remove', { loopId: mine[0].id }, signedLoopHeaders(store, base, 'Loop_20160324.Remove', { loopId: mine[0].id }, robot.accessKeyId));
   assert.equal(rm.status, 400);
   assert.equal(rm.body.__type, 'UnknownOperationException');
+});
+
+// Re-ported from the September week-review hardening (synthetic accounts).
+test('forged SigV4 signatures cannot reach PrepareRobot, GetServiceToken, or ReconnectRobot', async () => {
+  const store = getStore();
+  const owner = createOwnerAccount(store, {
+    email: 'synthetic-forged-oobe@jetson.test', password: 'orbit-city-4ever', firstName: 'Forged',
+  });
+  owner.isAdmin = true;
+  const { loop, robot } = createLoop(store, { owner, robotId: 'forged-oobe-robot' });
+  const token = mintSetupToken(store, owner._id, loop._id);
+  const forge = (target, body) => {
+    const headers = signedLoopHeaders(store, base, target, body, owner.accessKeyId);
+    const authorizationKey = Object.keys(headers).find((key) => key.toLowerCase() === 'authorization');
+    headers[authorizationKey] = headers[authorizationKey].replace(/Signature=[^,]+/, 'Signature=00'.padEnd(64, '0'));
+    return headers;
+  };
+  const beforeTokens = store.tokens.size;
+
+  const prepared = await amz('OOBE.PrepareRobot', {}, forge('OOBE.PrepareRobot', {}));
+  assert.equal(prepared.status, 401);
+  assert.equal(prepared.body.__type, 'SIGNATURE_MISMATCH');
+
+  const service = await amz('OOBE.GetServiceToken', {}, forge('OOBE.GetServiceToken', {}));
+  assert.equal(service.status, 401);
+  assert.equal(service.body.__type, 'SIGNATURE_MISMATCH');
+  assert.equal(store.tokens.size, beforeTokens, 'forged admin request minted no token');
+
+  const reconnect = await amz(
+    'OOBE.ReconnectRobot', { token: token._id }, forge('OOBE.ReconnectRobot', { token: token._id }),
+  );
+  assert.equal(reconnect.status, 401);
+  assert.equal(reconnect.body.__type, 'SIGNATURE_MISMATCH');
+  assert.ok(store.tokens.has(token._id), 'forged reconnect did not consume the token');
+  assert.notEqual(store.accounts.get(robot._id).isDeleted, true);
+
+  const plain = createOwnerAccount(store, {
+    email: 'synthetic-plain-oobe@jetson.test', password: 'orbit-city-4ever', firstName: 'Plain',
+  });
+  const injectedAdminHeaders = signedLoopHeaders(
+    store, base, 'OOBE.GetServiceToken', {}, plain.accessKeyId,
+    { 'x-amz-credentials': JSON.stringify({ id: owner._id, isAdmin: true }) },
+  );
+  const injectedAdmin = await amz('OOBE.GetServiceToken', {}, injectedAdminHeaders);
+  assert.equal(injectedAdmin.status, 401);
+  assert.equal(injectedAdmin.body.__type, 'AUTHORIZED_UNDER_ADMIN');
 });

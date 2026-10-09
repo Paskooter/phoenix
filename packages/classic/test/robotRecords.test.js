@@ -470,3 +470,24 @@ test('every robot/robotadmin operation is served over HTTP and state survives a 
 
   await new Promise((resolve) => serverA.close(resolve));
 });
+
+// Re-ported from the September week-review hardening (synthetic data).
+test('authenticated robot ownership checks fail closed when Account lookup is unavailable', async () => {
+  const store = storeFor('account-outage');
+  store.append({ name: 'RobotCreated', objectId: CID, created: 1, payload: { serialNumber: 'S1' } });
+  const h = makeRobotHandler({
+    store,
+    ownedRobots: async () => { throw new Error('account unavailable'); },
+    clock: () => 2,
+  });
+
+  const before = store.eventsFor(CID).length;
+  const update = await call(h, 'UpdateRobot', { id: ID, payload: { label: 'must-not-write' } }, OWNER());
+  assert.equal(update.status, 503);
+  assert.equal(update.body.__type, 'ACCOUNT_SERVICE_UNAVAILABLE');
+  assert.equal(store.eventsFor(CID).length, before, 'ownership outage must not authorize a write');
+
+  const read = await call(h, 'GetRobot', { id: ID }, OWNER());
+  assert.equal(read.status, 503);
+  assert.equal(read.body.__type, 'ACCOUNT_SERVICE_UNAVAILABLE');
+});
