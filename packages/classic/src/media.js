@@ -56,12 +56,12 @@ export const MEDIA_MAX_BYTES = 1_000_000_000;
 const SAFE_PATH = /^[A-Za-z0-9_-]+$/;
 const ACCOUNT_TIMEOUT_MS = 2_000;
 
-function accountPeerBase(value = process.env.NET_account) {
+export function accountPeerBase(value = process.env.NET_account) {
   const configured = value || `localhost:${DefaultPort.account}`;
   return /^https?:\/\//i.test(configured) ? configured.replace(/\/+$/, '') : `http://${configured}`;
 }
 
-function accountPeerHeaders(token = process.env.ETCO_account_internalPeerToken) {
+export function accountPeerHeaders(token = process.env.ETCO_account_internalPeerToken) {
   return token ? { 'x-phoenix-internal-token': token } : {};
 }
 

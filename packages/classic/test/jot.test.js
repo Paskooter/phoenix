@@ -20,7 +20,8 @@ import http from 'node:http';
 import { mkdtemp, rm, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { signedAmz, startClassicChild, syntheticAccount, writeSyntheticAccountStore } from './fixtures/signedClassic.js';
+import { SYNTHETIC_PEER_TOKEN, setEnv, signedAmz, startClassicChild, syntheticAccount, writeSyntheticAccountStore } from './fixtures/signedClassic.js';
+import { createAccountService } from '../../account/src/index.js';
 import {
   createClassicEntrypoint, JotStore, JOT_OPERATIONS, JOT_TARGET_PREFIXES, JOT_MESSAGES_LIMIT, JOT_BULK_ROUTE,
   JOT_DISPATCH_RULE, jotMethodNotFound, lowerFirstOp,
@@ -776,15 +777,47 @@ const CHILD_CREDENTIALS = {
   [RECEIVER]: syntheticAccount(RECEIVER),
 };
 
-/** Start the real classic entrypoint as a child process over `jotFile` (its own fresh JotStore). */
+/**
+ * Start the real classic entrypoint as a child process over `jotFile` (its own fresh JotStore).
+ * The authenticated entrypoint resolves Jot loop membership through Account's private peer
+ * GET /loop, so a real in-process Account service serves the same synthetic store to the child.
+ */
 async function startChild(jotFile) {
   const accountDataFile = `${jotFile}.account.json`;
-  writeSyntheticAccountStore(accountDataFile, { accounts: Object.values(CHILD_CREDENTIALS) });
-  return startClassicChild({
-    accountDataFile,
-    env: { ETCO_classic_jotFile: jotFile },
-    ready: async (base) => (await childAmz(base, 'Jot_20160512.ListMessages', { loopId: LOOP })).status === 200,
+  const store = writeSyntheticAccountStore(accountDataFile, {
+    accounts: Object.values(CHILD_CREDENTIALS),
+    loops: Object.values(LOOPS).map((loop) => ({
+      _id: loop.id, robot: loop.robot, owner: OWNER,
+      members: loop.members.map(({ accountId, status }) => ({ accountId, status })),
+    })),
   });
+  // Account's peer routes read the token per request, so it stays set until stop().
+  const restore = setEnv({ ETCO_account_internalPeerToken: SYNTHETIC_PEER_TOKEN });
+  const accountService = await createAccountService({ store }).listen(0, '127.0.0.1');
+  const stopAccount = async () => {
+    await new Promise((resolve) => accountService.close(resolve));
+    restore();
+  };
+  const child = await startClassicChild({
+    accountDataFile,
+    env: {
+      ETCO_classic_jotFile: jotFile,
+      ETCO_account_internalPeerToken: SYNTHETIC_PEER_TOKEN,
+      NET_account: `http://127.0.0.1:${accountService.address().port}`,
+    },
+    ready: async (base) => (await childAmz(base, 'Jot_20160512.ListMessages', { loopId: LOOP })).status === 200,
+  }).catch(async (error) => {
+    await stopAccount();
+    throw error;
+  });
+  const stopChild = child.stop;
+  return {
+    ...child,
+    async stop() {
+      await stopChild();
+      await stopAccount();
+    },
+  };
 }
 
 function childAmz(base, target, body, accountId = OWNER) {

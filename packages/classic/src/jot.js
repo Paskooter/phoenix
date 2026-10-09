@@ -91,8 +91,11 @@
 
 // DEAD DEPENDENCIES (explicit seams, never faked):
 //   * AccountClient.get(loopId)  -> GET http://<account>/loop?loopId=  (membership + robot check).
-//     Reproduced by an injected `account` seam `{ get(loopId) }`. When no seam is wired the two
-//     membership gates are SKIPPED (documented LAN-trust divergence, same posture as Media/Person).
+//     Reproduced by an injected `account` seam `{ get(loopId) }`. The authenticated entrypoint
+//     wires `accountJotLoops()` (the peer-token-protected Account GET /loop) and constructs the
+//     controller with `requireAccount`, so a missing seam answers ACCOUNT_SERVICE_UNAVAILABLE.
+//     Only the unauthenticated standalone entrypoint, which wires no seam, SKIPS the two
+//     membership gates (documented LAN-trust divergence, same posture as Media/Person).
 //   * MediaClient.getMedia(accountId, paths) -> POST http://<media>/getMedia (part url population).
 //     Reproduced by an injected `media` seam; the classic entrypoint wires `mediaStoreClient()`
 //     (an in-process read of the same Media store, since there is no second HTTP hop here). The
@@ -113,7 +116,7 @@ import { randomBytes } from 'node:crypto';
 import { sendJson } from '@phoenix/common';
 import { sendAmz, sendAmzError } from './awsJson.js';
 import { accountIdFromRequest, MISSING_AUTH_HEADER } from './person.js';
-import { expandMedia } from './media.js';
+import { expandMedia, accountPeerBase, accountPeerHeaders } from './media.js';
 
 // jibo:server/jot-ws@9a725d3 src/errors/message.js — verbatim codes, messages and statuses.
 export const JOT_ERRORS = {
@@ -422,17 +425,57 @@ export function mediaStoreClient(mediaStore, { accountLoops } = {}) {
   };
 }
 
+/**
+ * AccountClient.get(loopId) for the authenticated entrypoint: the private, peer-token-protected
+ * Account `GET /loop?loopId=` route, which carries the loop's robot and its members' account ids
+ * and statuses. Account's own "Loop not found" 404 is passed through as the source Boom; every
+ * other failure (transport, timeout, non-2xx, malformed body) answers `undefined`, which the
+ * controller maps to ACCOUNT_SERVICE_UNAVAILABLE so the membership gates fail closed.
+ */
+export function accountJotLoops({
+  base = accountPeerBase(),
+  fetcher = globalThis.fetch,
+  token = process.env.ETCO_account_internalPeerToken,
+  timeoutMs = 2_000,
+} = {}) {
+  return {
+    async get(loopId) {
+      let res;
+      try {
+        const url = new URL(`/loop?loopId=${encodeURIComponent(String(loopId))}`, `${String(base).replace(/\/+$/, '')}/`);
+        res = await fetcher(url, { headers: accountPeerHeaders(token), signal: AbortSignal.timeout(timeoutMs) });
+      } catch {
+        return undefined;
+      }
+      let body;
+      try { body = await res.json(); } catch { return undefined; }
+      if (res.status === 404 && body?.message === 'Loop not found') {
+        throw Object.assign(new Error('Loop not found'), { isBoom: true, statusCode: 404 });
+      }
+      if (!res.ok || !body || typeof body !== 'object' || !Array.isArray(body.members)) return undefined;
+      return body;
+    },
+  };
+}
+
 export class JotMessageController {
-  constructor({ store, account, media, onEvent, logger } = {}) {
+  /**
+   * @param {object} options
+   * @param {boolean} [options.requireAccount]  set by the authenticated entrypoint: the membership
+   *   and impersonation gates must run, so an absent account seam is ACCOUNT_SERVICE_UNAVAILABLE.
+   */
+  constructor({ store, account, media, onEvent, logger, requireAccount = false } = {}) {
     if (!store) throw new TypeError('jot controller requires a JotStore');
     this.store = store;
     this.account = account;
+    this.requireAccount = requireAccount === true;
     this.media = media || unavailableMedia();
     this.onEvent = onEvent;
     this.logger = logger || { warn: () => {}, info: () => {} };
   }
 
-  /** No account seam wired => the membership/impersonation gates are skipped (LAN trust). */
+  /** No account seam wired => the membership/impersonation gates are skipped (LAN trust), unless
+   *  the controller serves an authenticated entrypoint (`requireAccount`). */
   hasAccountSeam() { return !!this.account && typeof this.account.get === 'function'; }
 
   async requireLoop(loopId) {
@@ -457,8 +500,12 @@ export class JotMessageController {
    */
   async getImpersonatedAccount({ loopId, accountId, impersonateAs }) {
     // LAN trust: no membership source is wired, so the robot-check and membership gates cannot run
-    // (documented divergence). The impersonation SUBSTITUTION is kept — it is not a gate.
-    if (!this.hasAccountSeam()) return impersonateAs || accountId;
+    // (documented divergence). The impersonation SUBSTITUTION is kept — it is not a gate. An
+    // authenticated entrypoint never skips the gates.
+    if (!this.hasAccountSeam()) {
+      if (this.requireAccount) throw fail('ACCOUNT_SERVICE_UNAVAILABLE');
+      return impersonateAs || accountId;
+    }
     const loop = await this.requireLoop(loopId);
     const members = (Array.isArray(loop.members) ? loop.members : [])
       .filter((member) => member && String(member.status || '').toLowerCase() === 'accepted');
@@ -560,12 +607,40 @@ export class JotMessageController {
    *  archived revision also returned accountId/loopIds, which the generated client strips, so the
    *  AWS-JSON answer is exactly {count} and the direct bulk route carries the triple. */
   async numberOfUnreadMessagesInLoops({ accountId, loopIds }) {
+    await this.authorizeLoops({ accountId, loopIds });
     return { count: this.store.countUnread({ accountId, loopIds }) };
   }
 
-  /** srv-jot-ws-archived src/controllers/message.ctrl.js numberOfUnreadMessagesBulk. */
-  async numberOfUnreadMessagesBulk(accounts) {
-    return Promise.all((accounts || []).map(async (account) => {
+  /**
+   * Authenticated entrypoint only (Phoenix divergence): an unread count describes a loop's
+   * messages, so every counted loop passes the same membership/impersonation gate as
+   * ListMessages. The source counted without a membership check.
+   */
+  async authorizeLoops({ accountId, impersonateAs, loopIds }) {
+    if (!this.requireAccount) return;
+    for (const loopId of Array.isArray(loopIds) ? loopIds : []) {
+      await this.getImpersonatedAccount({ loopId, accountId, impersonateAs });
+    }
+  }
+
+  /**
+   * srv-jot-ws-archived src/controllers/message.ctrl.js numberOfUnreadMessagesBulk. On the
+   * authenticated entrypoint `callerId` is the verified caller: an entry for another account is an
+   * impersonation (only that loop's robot, for an accepted member), and an entry with no account
+   * id counts for the caller.
+   */
+  async numberOfUnreadMessagesBulk(accounts, { callerId } = {}) {
+    if (this.requireAccount && !callerId) throw fail('ACCOUNT_SERVICE_UNAVAILABLE');
+    const entries = (accounts || []).map((account) => (this.requireAccount && (account?.accountId === undefined || account?.accountId === null)
+      ? { ...account, accountId: callerId } : account));
+    for (const account of entries) {
+      await this.authorizeLoops({
+        accountId: callerId,
+        impersonateAs: this.requireAccount && !sameId(account.accountId, callerId) ? String(account.accountId) : undefined,
+        loopIds: account.loopIds,
+      });
+    }
+    return Promise.all(entries.map(async (account) => {
       const count = await this.store.countUnread({ accountId: account.accountId, loopIds: account.loopIds });
       return { count, accountId: account.accountId, loopIds: account.loopIds };
     }));
@@ -684,8 +759,8 @@ function sendBoom(res, statusCode, message, code) {
  * @param {Function} [options.onEvent]  (JotMessageCreated) => void|Promise; the dead Kafka sink
  * @param {{warn?:Function, info?:Function, error?:Function}} [options.logger]
  */
-export function makeJotHandler({ store = new JotStore(), account, media, onEvent, logger } = {}) {
-  const controller = new JotMessageController({ store, account, media, onEvent, logger });
+export function makeJotHandler({ store = new JotStore(), account, media, onEvent, logger, requireAccount } = {}) {
+  const controller = new JotMessageController({ store, account, media, onEvent, logger, requireAccount });
 
   const ops = {
     createmessage: ({ body, accountId }) => controller.create({
@@ -746,20 +821,27 @@ export function makeJotHandler({ store = new JotStore(), account, media, onEvent
  * jibo:jiborobot/srv-jot-ws-archived src/routes/route.js. It carries NO credentials header — the
  * source route has no parseCredentials — and answers one `{count, accountId, loopIds}` per requested
  * account. Hapi validated `payload: Joi.array().items(Joi.object()).required()`; a non-array body is
- * a 400, and a controller failure is `Boom.wrap(err, 400)`.
+ * a 400, and a controller failure is `Boom.wrap(err, 400)` (which leaves an existing Boom, such as
+ * a membership refusal, unchanged).
+ *
+ * On the authenticated entrypoint (`requireAccount`) the route is wrapped by the verified caller
+ * boundary and every requested loop passes the ListMessages membership/impersonation gate.
  */
-export function jotHttpRoutes({ store = new JotStore(), account, media, onEvent, logger } = {}) {
-  const controller = new JotMessageController({ store, account, media, onEvent, logger });
+export function jotHttpRoutes({ store = new JotStore(), account, media, onEvent, logger, requireAccount } = {}) {
+  const controller = new JotMessageController({ store, account, media, onEvent, logger, requireAccount });
   return {
-    [`POST ${JOT_BULK_ROUTE}`]: async ({ res, body }) => {
+    [`POST ${JOT_BULK_ROUTE}`]: async ({ res, body, caller }) => {
       if (!Array.isArray(body)) {
         return void sendJson(res, 400, {
           statusCode: 400, error: 'Bad Request', message: 'child "value" fails because ["value" must be an array]',
         });
       }
       try {
-        return await controller.numberOfUnreadMessagesBulk(body);
+        return await controller.numberOfUnreadMessagesBulk(body, { callerId: caller?.accountId });
       } catch (error) {
+        if (error?.isBoom && error.statusCode) {
+          return void sendBoom(res, error.statusCode, error.message, error.code);
+        }
         return void sendJson(res, 400, { statusCode: 400, error: 'Bad Request', message: error.message });
       }
     },
