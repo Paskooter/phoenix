@@ -89,6 +89,8 @@ function calendarUpstreamProvider(serviceName) {
  *           weatherProvider?: Function, newsProvider?: Function, mapsProvider?: Function,
  *           credentialStore?: CredentialStore, googleCalendarProvider?: Function,
  *           outlookCalendarProvider?: Function, oauth?: object, oauthSecretsDir?: string,
+ *           weatherTimeoutMs?: number, mapsTimeoutMs?: number, calendarTimeoutMs?: number,
+ *           oauthTimeoutMs?: number,
  *           newsPolling?: { enabled?: boolean, intervalMS?: number } }} [opts]
  *   *Get/*Provider override the live upstream calls (used by tests).
  *   oauth is a configurable provider from oauth.js (createOAuthProvider); when it
@@ -99,9 +101,9 @@ function calendarUpstreamProvider(serviceName) {
  *   newsPolling mirrors the source APNewsConfig (LassoService.ts:28-32); when it is
  *   omitted the ETCO_lasso_apNews* environment wins, and polling stays off by default.
  */
-export function createDataService({ cache = new TTLCache(), calendarCache, weatherGet, newsGet, mapsGet, weatherProvider, newsProvider, mapsProvider, credentialStore, oauth, oauthSecretsDir, googleCalendarProvider, outlookCalendarProvider, newsPolling, newsBriefings } = {}) {
+export function createDataService({ cache = new TTLCache(), calendarCache, weatherGet, newsGet, mapsGet, weatherProvider, newsProvider, mapsProvider, credentialStore, oauth, oauthSecretsDir, weatherTimeoutMs, mapsTimeoutMs, calendarTimeoutMs, oauthTimeoutMs, googleCalendarProvider, outlookCalendarProvider, newsPolling, newsBriefings } = {}) {
   const briefings = createNewsBriefingWorker(newsBriefings);
-  const oauthProvider = oauth || oauthFromEnv(oauthSecretsDir) || null;
+  const oauthProvider = oauth || oauthFromEnv(oauthSecretsDir, oauthTimeoutMs) || null;
   const store = credentialStore || new CredentialStore({ oauth: oauthProvider });
   if (oauthProvider) store.oauth = oauthProvider;
   const weather = createRelay({
@@ -110,7 +112,10 @@ export function createDataService({ cache = new TTLCache(), calendarCache, weath
     cache,
     validate: validateWeather,
     key: weatherKey,
-    fetchExternal: (input, log, req) => weatherProvider ? weatherProvider(input, { log, req }) : fetchWeather(input, weatherGet ? { get: weatherGet } : {}),
+    timeoutMs: weatherTimeoutMs,
+    fetchExternal: (input, log, req, context) => weatherProvider
+      ? weatherProvider(input, { log, req, ...(context || {}) })
+      : fetchWeather(input, { ...(weatherGet ? { get: weatherGet } : {}), ...(context || {}), timeoutMs: weatherTimeoutMs }),
   });
   const news = createRelay({
     name: 'APNews',
