@@ -334,7 +334,7 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
     // `$` anchor rejected the trailing character. GQA was the only anchored entry in
     // this table, so it was the only one that could miss a version suffix, and the
     // effect was that answer history never loaded in the app.
-    { match: /^gqa_20160930/i, handler: makeGqaHandler(gqa || {}), ...GQA_ROUTE_OPTIONS },
+    { match: /^gqa_20160930/i, handler: makeGqaHandler(gqa || {}, { callerBoundary }), ...GQA_ROUTE_OPTIONS },
     // Jot (the loop-scoped family messaging surface) owns a real handler now — the five loop-era
     // operations of server/jot-ws@9a725d3, dispatched by operation name under any Jot* prefix. The
     // media seam defaults to the in-process Media store so a message's parts carry real urls.
