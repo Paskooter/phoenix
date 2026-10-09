@@ -223,7 +223,7 @@ test('auth differential: 1965 pinned-source outcomes replay exactly', async () =
   assert.equal(Object.keys(direct).length + Object.keys(auth).length + Object.keys(upgrades).length, 1965, 'total auth cases');
 });
 
-test('identity differential: 182 exact outcomes and 5 explicit missing-runtime divergences', () => {
+test('identity differential: 179 exact outcomes and 8 bounded compatibility divergences', () => {
   const actual = identityResults();
   const expected = IDENTITY_GOLDEN.cases;
   // Define the compatibility boundary by JSON shape, never by fixture name.
@@ -234,9 +234,29 @@ test('identity differential: 182 exact outcomes and 5 explicit missing-runtime d
       typeof data === 'object' && !Array.isArray(data) && data.runtime == null;
   }).map(({ id, message }) => [id, String(message.data.runtime)]));
   assert.equal(divergences.size, 5, 'bounded missing-runtime cases');
+  const anonymous = new Map(IDENTITY_FIXTURE.cases.filter((spec) =>
+    spec.message?.type === 'CONTEXT' && Object.hasOwn(spec, 'auth') &&
+    (spec.auth == null || spec.auth === 'undefined'),
+  ).map((spec) => [spec.id, spec]));
+  assert.equal(anonymous.size, 3, 'bounded nullish-auth cases');
+  assert.equal([...anonymous.keys()].filter((id) => divergences.has(id)).length, 0, 'disjoint compatibility boundaries');
   assert.deepEqual(Object.keys(actual).sort(), Object.keys(expected).sort(), 'case id set');
   for (const id of Object.keys(expected)) {
-    if (divergences.has(id)) {
+    if (anonymous.has(id)) {
+      const spec = anonymous.get(id);
+      const nullish = spec.auth === 'undefined' ? 'undefined' : 'null';
+      assert.equal(expected[id].ok, false, `source/${id}`);
+      assert.deepEqual(expected[id].error, {
+        name: 'TypeError', constructor: 'TypeError', message: `Cannot read property 'id' of ${nullish}`,
+      }, `source/${id}`);
+      const candidate = JSON.parse(JSON.stringify(spec.message));
+      candidate.data.general = {
+        accountID: 'anonymous-account', robotID: 'anonymous-robot', lang: 'en',
+        release: '1.8.0', remoteAddress: IDENTITY_FIXTURE.remoteAddress,
+        ...candidate.data.general,
+      };
+      assert.deepEqual(actual[id], { ok: true, message: candidate }, `anonymous-divergence/${id}`);
+    } else if (divergences.has(id)) {
       // Keep the frozen source failure intact. Phoenix deliberately accepts
       // absent runtime, without inventing runtime data or changing identity.
       assert.equal(expected[id].ok, false, `source/${id}`);
@@ -251,4 +271,17 @@ test('identity differential: 182 exact outcomes and 5 explicit missing-runtime d
     }
   }
   assert.equal(Object.keys(actual).length, 187, 'total identity cases');
+});
+
+test('authenticated CONTEXT identity mapping remains load-bearing outside disableAuth', () => {
+  const actual = identityResults();
+  assert.deepEqual(actual.defaults.message.data.general, {
+    accountID: IDENTITY_FIXTURE.auth.id,
+    robotID: IDENTITY_FIXTURE.auth.friendlyId,
+    lang: 'en',
+    release: '1.8.0',
+    remoteAddress: IDENTITY_FIXTURE.remoteAddress,
+  });
+  assert.deepEqual(actual['conflicting-account'], IDENTITY_GOLDEN.cases['conflicting-account']);
+  assert.deepEqual(actual['conflicting-robot'], IDENTITY_GOLDEN.cases['conflicting-robot']);
 });

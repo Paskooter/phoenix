@@ -1,9 +1,13 @@
 // CONTEXT message preprocessing — port of utils/MessagePreProcessor.ts + MessageValidator.ts.
 //
 // Fills GeneralData defaults from the authenticated socket, trims loop-member names, and
-// validates that the CONTEXT identity matches the socket's JWT. This mirrors the original
-// MessagePreProcessor: disableAuth leaves socket.auth unset, so a CONTEXT then fails at the
-// same identity access instead of inventing an anonymous account.
+// validates that the CONTEXT identity matches the socket's JWT. Disabled authentication still
+// supplies a stable, non-credentialed identity so CONTEXT turns can use the normal path.
+
+export const ANONYMOUS_AUTH = Object.freeze({
+  id: 'anonymous-account',
+  friendlyId: 'anonymous-robot',
+});
 
 /**
  * Mutates the CONTEXT message in place.
@@ -12,9 +16,10 @@
  * @param {string} [remoteAddress]
  */
 export function preprocessContext(message, auth, remoteAddress) {
+  const identity = auth == null ? ANONYMOUS_AUTH : auth;
   const defaults = {
-    accountID: readLegacyProperty(auth, 'id'),
-    robotID: readLegacyProperty(auth, 'friendlyId'),
+    accountID: readLegacyProperty(identity, 'id'),
+    robotID: readLegacyProperty(identity, 'friendlyId'),
     lang: 'en',
     release: '1.8.0', // assume Fajita unless told otherwise
     remoteAddress,
@@ -44,16 +49,17 @@ export function preprocessContext(message, auth, remoteAddress) {
     });
   }
 
-  validateGeneralData(data.general, auth);
+  validateGeneralData(data.general, identity);
 }
 
 /** Cross-check CONTEXT identity against the socket JWT (MessageValidator.validateGeneralData). */
 export function validateGeneralData(general, auth) {
+  const identity = auth == null ? ANONYMOUS_AUTH : auth;
   if (!readLegacyProperty(general, 'accountID')) throw new Error('accountID is missing in general data');
   if (!readLegacyProperty(general, 'robotID')) throw new Error('robotID is missing in general data');
   if (!readLegacyProperty(general, 'release')) throw new Error('release is missing in general data');
-  if (general.accountID !== readLegacyProperty(auth, 'id')) throw new Error('data.general.accountID is not equal to socket accountID');
-  if (general.robotID !== readLegacyProperty(auth, 'friendlyId')) throw new Error('data.general.robotID is not equal to socket robotID');
+  if (general.accountID !== readLegacyProperty(identity, 'id')) throw new Error('data.general.accountID is not equal to socket accountID');
+  if (general.robotID !== readLegacyProperty(identity, 'friendlyId')) throw new Error('data.general.robotID is not equal to socket robotID');
 }
 
 /** Minimal CONTEXT validation independent of auth (MessageValidator.validateContextMessage). */

@@ -36,6 +36,7 @@ import { ListenTransaction } from './listenTransaction.js';
 import { HistoryClient } from './historyClient.js';
 import { SettingsClient } from './settingsClient.js';
 import { ProactiveTransaction } from './proactive/proactiveTransaction.js';
+import { ANONYMOUS_AUTH } from './preprocessor.js';
 import { HomeAssistantClient } from './homeAssistantClient.js';
 import { RobotActionBridge } from './robotActionBridge.js';
 import { robotActionRoutes } from './robotActionRoutes.js';
@@ -211,6 +212,7 @@ export async function createGateway(config = loadConfig()) {
       const pathOk = LISTEN_PATHS.has(url) || PROACTIVE_PATHS.has(url);
       if (config.disableAuth) {
         if (!pathOk) return cb(false, 404, `WebSocket url '${info.req.url}' has no handler`);
+        info.req._auth = { ...ANONYMOUS_AUTH };
         return admit(info, cb);
       }
       const { error, auth } = checkAuthentication(info.req.headers, config.hubTokenSecret);
@@ -237,7 +239,7 @@ export async function createGateway(config = loadConfig()) {
 
   wss.on('connection', (ws, req) => {
     req._deploymentConnected = true;
-    ws._auth = req._auth || null;
+    ws._auth = req._auth || (config.disableAuth ? { ...ANONYMOUS_AUTH } : null);
     // Separate from legacy claims: set only after signature + live Account
     // mapping equality. Native local routing cannot use context or headers
     // to manufacture this verified identity.
@@ -280,7 +282,7 @@ export async function createGateway(config = loadConfig()) {
     // this socket on every hotword re-trigger and on cancel_local_turn, and
     // without this the phase kept streaming into a dead response and recognized
     // audio whose EOS + LISTEN frames were silently dropped.
-    if (isProactive) ws.on('close', () => tx.resolve());
+    if (isProactive) ws.on('close', () => tx.abandon?.());
     else ws.on('close', () => tx.abandon?.());
 
     tx.done.catch((err) => {

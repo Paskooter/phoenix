@@ -19,6 +19,37 @@ export const STREAMING_API_VERSION = '0.2.0';
 export const HEALTH_TIMEOUT_MS = 3000;
 export const POST_TIMEOUT_MS = 30000;
 
+const MAX_RESPONSE_BYTES = 64 * 1024;
+const MAX_RESPONSE_DIAGNOSTIC_BYTES = 1024;
+const UTF8_ELLIPSIS = '…';
+const UTF8_ELLIPSIS_BYTES = Buffer.byteLength(UTF8_ELLIPSIS, 'utf8');
+
+export const PARAKEET_RESPONSE_LIMITS = Object.freeze({
+  maxBytes: MAX_RESPONSE_BYTES,
+  maxDiagnosticBytes: MAX_RESPONSE_DIAGNOSTIC_BYTES,
+});
+
+/**
+ * Return a diagnostic prefix whose UTF-8 encoding is no larger than maxBytes.
+ * Decode Buffer input before measuring so malformed response bytes become the
+ * same bounded replacement characters Node would expose in an Error message.
+ * The cut is made on the encoded representation, never in the middle of a
+ * multibyte code point.
+ */
+export function truncateUtf8ByBytes(value, maxBytes) {
+  const limit = Math.max(0, Math.floor(Number(maxBytes)) || 0);
+  if (limit === 0) return '';
+  const text = Buffer.isBuffer(value) ? value.toString('utf8') : String(value ?? '');
+  const encoded = Buffer.from(text, 'utf8');
+  if (encoded.length <= limit) return text;
+
+  let end = limit;
+  while (end > 0 && (encoded[end] & 0xc0) === 0x80) end -= 1;
+  return encoded.subarray(0, end).toString('utf8');
+}
+
+
+
 /** True when `version` (e.g. "0.2.0") is at least `minimum` (e.g. "0.2.0"). */
 export function apiVersionAtLeast(version, minimum) {
   const parse = (value) => String(value).split('.').map((part) => parseInt(part, 10) || 0);
@@ -108,60 +139,131 @@ export function openParakeetStream(parakeetUrl) {
  * POST a WAV to `/transcribe`. Resolves `{text, confidence}`; confidence is
  * null when the server reports none (API 0.1.0, or NeMo without confidence).
  */
-export function postParakeetWav(parakeetUrl, wav, { timeoutMs = POST_TIMEOUT_MS } = {}) {
+export function postParakeetWav(parakeetUrl, wav, { timeoutMs = POST_TIMEOUT_MS, signal } = {}) {
   return new Promise((resolve, reject) => {
-    const parsed = new URL(parakeetUrl);
-    const boundary = '----jiboparakeet' + Date.now() + Math.floor(Math.random() * 1e9).toString(16);
-    const head = Buffer.from(
-      `--${boundary}\r\n`
-      + 'Content-Disposition: form-data; name="file"; filename="audio.wav"\r\n'
-      + 'Content-Type: audio/wav\r\n\r\n');
-    const tail = Buffer.from(`\r\n--${boundary}--\r\n`);
-    const body = Buffer.concat([head, wav, tail]);
+    let settled = false;
+    let req = null;
+    let res = null;
+    const cleanup = () => {
+      signal?.removeEventListener('abort', abort);
+    };
+    const settle = (handler, value) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      handler(value);
+    };
+    const fail = (err) => settle(reject, err);
+    const abort = () => {
+      const error = signal.reason || new Error('Parakeet request aborted');
+      fail(error);
+      req?.destroy(error);
+      res?.destroy(error);
+    };
+    if (signal?.aborted) { fail(signal.reason || new Error('Parakeet request aborted')); return; }
 
-    const req = http.request({
-      method: 'POST',
-      host: parsed.hostname,
-      port: parsed.port ? parseInt(parsed.port, 10) : 80,
-      path: '/transcribe',
-      headers: {
-        'Content-Type': `multipart/form-data; boundary=${boundary}`,
-        'Content-Length': body.length,
-      },
-    }, (res) => {
-      const bufs = [];
-      res.on('data', (c) => bufs.push(c));
-      res.on('end', () => {
-        const text = Buffer.concat(bufs).toString('utf8');
-        if (res.statusCode !== 200) return reject(new Error(`Parakeet returned ${res.statusCode}: ${text}`));
-        try {
-          const json = JSON.parse(text);
-          let transcript = json.transcript;
-          // The server may report a real decoder confidence. Older
-          // deployments (API 0.1.0) do not, and NeMo leaves every confidence
-          // field null unless the decoding config asks for them, which is why
-          // this client used to invent 1.0 -- a constant that reached the
-          // robot looking like a measurement (DIVERGENCES H07c).
-          let confidence = typeof json.confidence === 'number' ? json.confidence : null;
-          if (transcript && typeof transcript === 'object') {
-            if (confidence === null && typeof transcript.confidence === 'number') {
-              confidence = transcript.confidence;
-            }
-            transcript = transcript.text;
+    try {
+      const parsed = new URL(parakeetUrl);
+      const boundary = '----jiboparakeet' + Date.now() + Math.floor(Math.random() * 1e9).toString(16);
+      const head = Buffer.from(
+        `--${boundary}\r\n`
+        + 'Content-Disposition: form-data; name="file"; filename="audio.wav"\r\n'
+        + 'Content-Type: audio/wav\r\n\r\n');
+      const tail = Buffer.from(`\r\n--${boundary}--\r\n`);
+      const body = Buffer.concat([head, wav, tail]);
+
+      req = http.request({
+        method: 'POST',
+        host: parsed.hostname,
+        port: parsed.port ? parseInt(parsed.port, 10) : 80,
+        path: '/transcribe',
+        headers: {
+          'Content-Type': `multipart/form-data; boundary=${boundary}`,
+          'Content-Length': body.length,
+        },
+      }, (response) => {
+        res = response;
+        const bufs = [];
+        let responseBytes = 0;
+        let responseEnded = false;
+        const rejectOversized = (declaredBytes) => {
+          const detail = Number.isSafeInteger(declaredBytes) ? ` (declared ${declaredBytes} bytes)` : '';
+          const error = new Error(`Parakeet response exceeded ${MAX_RESPONSE_BYTES} bytes${detail}`);
+          error.code = 'ERR_PARAKEET_RESPONSE_TOO_LARGE';
+          // Stop both directions. In particular, destroying only the response
+          // leaves the request/socket alive until the peer times out.
+          fail(error);
+          try { req?.destroy(error); } catch { /* already closed */ }
+          try { res?.destroy(error); } catch { /* already closed */ }
+        };
+        res.on('data', (chunk) => {
+          responseBytes += chunk.length;
+          if (responseBytes > MAX_RESPONSE_BYTES) {
+            rejectOversized(responseBytes);
+            return;
           }
-          if (typeof transcript !== 'string') transcript = '';
-          resolve({ text: transcript, confidence });
-        } catch (e) {
-          reject(new Error('Could not parse Parakeet response: ' + e));
+          bufs.push(chunk);
+        });
+        res.on('error', fail);
+        res.on('aborted', () => fail(new Error('Parakeet response was aborted')));
+        res.on('close', () => {
+          if (!responseEnded && !settled) fail(new Error('Parakeet response closed before completion'));
+        });
+        res.on('end', () => {
+          responseEnded = true;
+          const text = Buffer.concat(bufs).toString('utf8');
+          if (res.statusCode !== 200) {
+            const textBytes = Buffer.byteLength(text, 'utf8');
+            const truncated = textBytes > MAX_RESPONSE_DIAGNOSTIC_BYTES;
+            const diagnostic = truncateUtf8ByBytes(
+              text,
+              truncated ? MAX_RESPONSE_DIAGNOSTIC_BYTES - UTF8_ELLIPSIS_BYTES : MAX_RESPONSE_DIAGNOSTIC_BYTES,
+            );
+            const suffix = truncated ? UTF8_ELLIPSIS : '';
+            fail(new Error(`Parakeet returned ${res.statusCode}: ${diagnostic}${suffix}`));
+            return;
+          }
+          try {
+            const json = JSON.parse(text);
+            let transcript = json.transcript;
+            // The server may report a real decoder confidence. Older
+            // deployments (API 0.1.0) do not, and NeMo leaves every confidence
+            // field null unless the decoding config asks for them, which is why
+            // this client used to invent 1.0 -- a constant that reached the
+            // robot looking like a measurement (DIVERGENCES H07c).
+            let confidence = typeof json.confidence === 'number' ? json.confidence : null;
+            if (transcript && typeof transcript === 'object') {
+              if (confidence === null && typeof transcript.confidence === 'number') {
+                confidence = transcript.confidence;
+              }
+              transcript = transcript.text;
+            }
+            if (typeof transcript !== 'string') transcript = '';
+            settle(resolve, { text: transcript, confidence });
+          } catch (error) {
+            fail(new Error('Could not parse Parakeet response: ' + error));
+          }
+        });
+        const declaredLength = Number(response.headers['content-length']);
+        if (Number.isSafeInteger(declaredLength) && declaredLength > MAX_RESPONSE_BYTES) {
+          rejectOversized(declaredLength);
         }
       });
-    });
-    req.setTimeout(timeoutMs, () => { req.destroy(new Error('Parakeet request timed out')); });
-    req.on('error', reject);
-    req.write(body);
-    req.end();
+      signal?.addEventListener('abort', abort, { once: true });
+      req.setTimeout(timeoutMs, () => { req.destroy(new Error('Parakeet request timed out')); });
+      req.on('error', fail);
+      req.write(body);
+      req.end();
+    } catch (error) {
+      // A synchronous write/setup failure can otherwise leave the request
+      // socket alive even though the promise has rejected.
+      try { if (req) req.destroy(error); } catch { /* already closed */ }
+      try { if (res) res.destroy(error); } catch { /* already closed */ }
+      fail(error);
+    }
   });
 }
+
 
 /**
  * A transport object over one Parakeet server, for composition (failover).
@@ -171,11 +273,13 @@ export function createParakeetTransport(parakeetUrl, {
   probeTimeoutMs = HEALTH_TIMEOUT_MS,
   postTimeoutMs = POST_TIMEOUT_MS,
 } = {}) {
+  const controller = new AbortController();
   return {
     name: 'parakeet',
     url: parakeetUrl,
     probe: () => probeParakeet(parakeetUrl, { timeoutMs: probeTimeoutMs }),
     openStream: () => openParakeetStream(parakeetUrl),
-    recognizeWav: (wav) => postParakeetWav(parakeetUrl, wav, { timeoutMs: postTimeoutMs }),
+    recognizeWav: (wav) => postParakeetWav(parakeetUrl, wav, { timeoutMs: postTimeoutMs, signal: controller.signal }),
+    cancel: () => controller.abort(new Error('Parakeet request aborted')),
   };
 }

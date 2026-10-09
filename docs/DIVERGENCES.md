@@ -162,6 +162,28 @@ open questions; root read the source and classifies them here.
 
 
 
+## Gateway request and resource hardening
+
+The staged September hardening re-port retains the newer router, failover,
+local-home routing, endpointing and telemetry implementations. These changes are
+intentional robustness differences, not claims of exact original-service parity.
+
+| # | Decision | Why | Impact |
+|---|---|---|---|
+| H-hardening-google | Legacy Google mock sessions settle on stop/abort and unexpected transport end, detach owned listeners, and emit EOS at most once. The mock TCP seam bounds individual audio frames (64 KiB), total audio (4 MiB), pending/outbound audio (512 KiB), and inbound lines/buffers (256/512 KiB); config precedes early audio. | Cancellation must release transport ownership; an unresponsive mock peer must not retain unbounded audio or leave `start()` pending. | Excess input rejects the mock session; unexpected end returns its last incremental or an empty ASR envelope. This affects the legacy line-delimited mock seam, not the newer paid Google recognizer/router. |
+
+| H-hardening-peers | Settings/history fetches have a 10 s wall-clock deadline; parser/skill fetches have an 11 s transport deadline behind the existing 10 s phase budget. Each accepts a parent cancellation signal. | Peer requests must not outlive a cancelled transaction or hang indefinitely. | A stalled peer now aborts. Existing request payloads, internal Settings authentication and error envelopes are unchanged. |
+
+| H-hardening-config | Gateway NET peers preserve explicit HTTP/HTTPS schemes; `HUB_TOKEN_SECRET` is a fallback to `ETCO_server_hubTokenSecret`. Registry entries reject malformed nonempty base URLs, and settings rules require an own `value` (false, null and zero remain valid). | Avoid unusable double-prefixed URLs and reject incomplete registrations before startup. | These input-validation repairs intentionally differ from the source's discarded URL regex and permissive missing-value handling. Newer Home Assistant registry/configuration remains intact. |
+
+| H-hardening-anonymous | Explicit `disableAuth` connections use stable non-credentialed `anonymous-account`/`anonymous-robot` identities, including nullish-auth preprocessing. | The original disables upgrade auth but then dereferences missing auth on CONTEXT, making the configured mode unusable. | Nullish auth now accepts the ordinary anonymous CONTEXT path; authenticated identity mismatch checks and the newer missing-runtime divergence remain. No access key or verified robot identity is created, so local-home/control authorization is not granted. The frozen identity differential bounds the new divergence by input shape to three cases. |
+
+| H-hardening-lifecycle | Listen/proactive close, rejection and expiry cancel shared peer work and settle once; late continuations cannot emit frames or launch history. Pre-session audio is capped at 1 MiB, ignores empty frames, and is released at phase/terminal boundaries. Timeout races clear timers on both success and rejection. | A disconnected/expired turn cannot usefully continue; the source leaves the internal listen transaction running after its outer timeout. | Disconnect now resolves only after cancellation; expiry stops work instead of allowing a late skill response. Listen failure bookkeeping retains its two speech-history writes, but transaction timeout does not create fresh history. Empty live ASR completion supplies an empty envelope; max-speech finalization owns its annotated result. Successful turns, router/failover, verified local-home gates and content-free telemetry stay intact. |
+
+| H-hardening-proactive-error | A proactive cloud skill error retains its `code` in the final ERROR data. | Listen and proactive callers need the same actionable peer error. | Adds the supplied code (absent/undefined remains absent on JSON serialization); success frames are unchanged. |
+
+| H-hardening-parakeet | Batch responses are limited to 64 KiB; errors contain at most 1 KiB of UTF-8 diagnostic text without split code points. Abort/decoder failure destroys in-flight POST work, including composed failover transports. A wake tail suppresses only one initial burst of at most 200 ms; later short speech is recognized. Empty candidates wait for new speech. | Limit recognizer-controlled memory and keep short commands from being discarded; dead turns cannot leave a held batch POST running. | These are staged robustness differences. The newer streaming API, confidence reporting, adaptive 900 ms/env-derived silence gate, decoder draining, router and Google fallback remain. Existing relisten storage replaces the September candidate/deferred-PCM rewrite; response hardening belongs in the extracted transport, not a second HTTP implementation. |
+
 ## Speech endpointing (Phoenix-original; the reference had none)
 
 | # | Decision | Why | Impact |

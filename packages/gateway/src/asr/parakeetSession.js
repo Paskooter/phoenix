@@ -131,12 +131,12 @@ const EMPTY_ENDPOINT_RELISTEN_LIMIT = 3;
 
 // A wake-phrase tail is a short energy burst (observed 150-300 ms of the "-bo" in
 // "Hey Jibo"). On a hotphrase turn the turn's audio always opens with it, so an
-// endpoint that follows a run shorter than this cannot be an utterance: keep
-// listening. Local (non-hotphrase) turns have no wake tail, so short answers such
-// as "no" are unaffected. Cumulative speech still ends the turn, so several short
-// bursts converge on a real endpoint.
-const MIN_ENDPOINT_SPEECH_MS = 400;
-const WAKE_TAIL_IGNORE_LIMIT = 2;
+// first endpoint suppresses at most the conservative 200 ms tail window.
+// Longer continuous tail-plus-command bursts must be recognized intact; after
+// ignoring one tail, even a short real request can end the listening window.
+// Local (non-hotphrase) turns have no wake tail.
+const WAKE_TAIL_MAX_SPEECH_MS = 200;
+const WAKE_TAIL_IGNORE_LIMIT = 1;
 
 const bytesToMs = (bytes) => (bytes / BYTES_PER_SEC) * 1000;
 
@@ -171,6 +171,7 @@ export class ParakeetASRSession {
     this.eosEmitted = false;
     this.stopped = false;
     this.aborted = false;
+    this.requestController = new AbortController();
     this.relistenCount = 0;
     this.wakeTailIgnored = 0;
 
@@ -383,11 +384,17 @@ export class ParakeetASRSession {
         if (this._isWakeTailBurst()) {
           // The wake phrase's own tail: not an utterance. Drop the endpoint and
           // keep listening for the request the speaker has not made yet.
+          const speechMs = bytesToMs(this.speechBytes);
           this.wakeTailIgnored += 1;
+          this.chunks = [];
+          this.totalBytes = 0;
+          this.speechBytes = 0;
           this.silenceBytes = 0;
+          this.pcmCarry = null;
+          this.eosFired = false;
           this.state = 'WAITING';
           this.log.debug?.('[asr] short burst after the wake phrase: not an endpoint, continuing to listen', {
-            speechMs: Math.round(bytesToMs(this.speechBytes)),
+            speechMs: Math.round(speechMs),
             ignored: this.wakeTailIgnored,
           });
           return;
@@ -484,9 +491,10 @@ export class ParakeetASRSession {
    * longer be delivered.
    */
   abort() {
-    if (this.aborted || this.state === 'DONE') { this.aborted = true; return; }
+    if (this.aborted) return;
     this.aborted = true;
     this.stopped = true;
+    this.requestController.abort(new Error('Parakeet request aborted'));
     this.transport?.cancel?.();
     this.state = 'DONE';
     this.chunks = [];
@@ -570,7 +578,7 @@ export class ParakeetASRSession {
     return this.config.hotphrase === true
       && !this.eosFired
       && this.wakeTailIgnored < WAKE_TAIL_IGNORE_LIMIT
-      && bytesToMs(this.speechBytes) < MIN_ENDPOINT_SPEECH_MS;
+      && bytesToMs(this.speechBytes) <= WAKE_TAIL_MAX_SPEECH_MS;
   }
 
   /** Restart the recognition window after an empty endpoint, keeping SOS state. */
@@ -584,7 +592,7 @@ export class ParakeetASRSession {
     this.pcmCarry = null;
     this.eosFired = false;      // the next endpoint ends this window (wire EOS stays single)
     this.eosAt = null;
-    this.state = this.sosFired ? 'TRAILING_SILENCE' : 'WAITING';
+    this.state = 'WAITING';
     this.finalizeReason = null;
     this.log.debug?.('[asr] empty silence endpoint: no words recognized, continuing to listen', {
       relisten: this.relistenCount,
@@ -642,9 +650,12 @@ export class ParakeetASRSession {
     if (this.pcmCarry) throw new AudioFormatError('ASR PCM ended on an odd byte boundary');
     const pcm = Buffer.concat(this.chunks);
     if (pcm.length === 0) {
+      const result = { text: '', confidence: 0 };
+      if (this.finalizeReason === 'max-speech') result.annotation = 'MAX_SPEECH_TIMEOUT';
+      this.lastResult = result;
       this.state = 'DONE';
-      if (this.resolveStart) this.resolveStart(undefined);
-      return;
+      if (this.resolveStart) this.resolveStart(result);
+      return result;
     }
     const wav = ParakeetASRSession.makeWav(pcm);
     const posted = await this._postToParakeet(wav);
@@ -1030,6 +1041,8 @@ export class ParakeetASRSession {
 
   _handleAudioError(err) {
     if (this.decoderError || this.state === 'DONE') return;
+    this.requestController.abort(new Error('Parakeet request aborted'));
+    this.transport?.cancel?.();
     this.decoderError = err instanceof AudioFormatError
       ? err
       : new AudioDecodeError(err?.message || String(err), err);
@@ -1088,6 +1101,6 @@ export class ParakeetASRSession {
   /** Batch recognition of the buffered window (transport, or Parakeet POST /transcribe). */
   _postToParakeet(wav) {
     if (this.transport) return Promise.resolve().then(() => this.transport.recognizeWav(wav));
-    return postParakeetWav(this.parakeetUrl, wav, { timeoutMs: POST_TIMEOUT_MS });
+    return postParakeetWav(this.parakeetUrl, wav, { timeoutMs: POST_TIMEOUT_MS, signal: this.requestController.signal });
   }
 }

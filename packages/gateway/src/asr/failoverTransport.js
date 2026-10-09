@@ -349,6 +349,7 @@ export function createFailoverTransport({ primary, secondary = null, health, tim
   const limits = { ...FAILOVER_DEFAULTS, ...timeouts };
   let active = 'parakeet';
   let failover = null;
+  let cancelled = false;
   const secondaryReady = (seconds) => !!secondary && secondary.available(seconds);
   const useSecondary = (reason) => {
     active = 'google';
@@ -401,10 +402,12 @@ export function createFailoverTransport({ primary, secondary = null, health, tim
     },
 
     async recognizeWav(wav) {
+      if (cancelled) throw new Error('ASR recognition aborted');
       if (active === 'google') return secondary.recognizeWav(wav);
       try {
         return await primary.recognizeWav(wav);
       } catch (err) {
+        if (cancelled) throw err;
         health.markDown('batch-failed');
         // Session WAVs have a canonical 44-byte header and 16 kHz PCM16.
         // A short batch may fit the remaining budget even when a complete
@@ -421,6 +424,10 @@ export function createFailoverTransport({ primary, secondary = null, health, tim
       if (active !== 'google') return { provider: 'parakeet' };
       return { ...(secondary?.describe?.() || { provider: 'google' }), ...(failover ? { failover } : {}) };
     },
-    cancel() { secondary?.cancel?.(); },
+    cancel() {
+      cancelled = true;
+      primary.cancel?.();
+      secondary?.cancel?.();
+    },
   };
 }

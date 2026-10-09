@@ -61,6 +61,8 @@ export const GLOBAL_TURN_RULES = Object.freeze([
   'globals/mim_thanks',
 ]);
 
+export const MAX_PRESESSION_AUDIO_BYTES = 1024 * 1024;
+
 const State = {
   WAIT_LISTEN: 'WAIT_LISTEN',
   WAIT_CLIENT_ASR: 'WAIT_CLIENT_ASR',
@@ -85,8 +87,24 @@ function defer() {
 const TIMEOUT = Symbol('timeout');
 function withTimeout(promise, ms) {
   let t;
-  const timer = new Promise((resolve) => { t = setTimeout(() => resolve(TIMEOUT), ms); t.unref?.(); });
-  return Promise.race([promise.then((v) => { clearTimeout(t); return v; }), timer]);
+  const clear = () => {
+    if (t !== undefined && t !== null) {
+      clearTimeout(t);
+      t = null;
+    }
+  };
+  const guarded = Promise.resolve(promise).then(
+    (value) => { clear(); return value; },
+    (error) => { clear(); throw error; },
+  );
+  const timer = new Promise((resolve) => {
+    t = setTimeout(() => {
+      clear();
+      resolve(TIMEOUT);
+    }, ms);
+    t.unref?.();
+  });
+  return Promise.race([guarded, timer]);
 }
 
 export class ListenTransaction {
@@ -155,6 +173,13 @@ export class ListenTransaction {
     this.asrData = null;
     this.nluData = null;
     this.audioChunks = [];
+    this.audioBufferedBytes = 0;
+    this.asrSession = null;
+    this.abortController = new AbortController();
+    this.aborted = false;
+    this.settled = false;
+    this.abortReason = null;
+    this.asrAbortRequested = false;
     this.redirectCount = 0;
     // ASR phase bookkeeping. asrCancelled mirrors the reference's stopASR()
     // effect: once a client-supplied turn (or any state exit) supersedes the
@@ -168,17 +193,9 @@ export class ListenTransaction {
     this.maxSpeechTimer = null;
 
     this._handle = defer();
-    // The reference TransactionHandler wraps its internal ExtPromise with a
-    // timeout promise. A timeout rejects the outer handle promise but does not
-    // call reject(), stop the state machine, or add a HubError code; an
-    // in-flight skill may still complete and resolve the internal transaction.
-    // Keep those two settlement layers separate here as well.
-    this._timeout = defer();
-    this._done = Promise.race([this._handle.promise, this._timeout.promise]);
-    this._txTimer = setTimeout(() => {
-      this._txTimer = null;
-      this._timeout.reject(new Error(`Maximum transaction time of ${Timeouts.transaction} exceeded`));
-    }, Timeouts.transaction);
+    // One lifecycle owns all work; expired turns cannot continue into peers.
+    this._done = this._handle.promise;
+    this._txTimer = setTimeout(() => this._onTransactionTimeout(), Timeouts.transaction);
     this._txTimer.unref?.();
   }
 
@@ -188,6 +205,7 @@ export class ListenTransaction {
   // --- message intake -------------------------------------------------------
 
   handleMessage({ json, audio }) {
+    if (!this._isActive()) return;
     if (audio) {
       // Binary frames = raw 16 kHz 16-bit mono PCM. Stream straight into a live
       // ASR session (reference: audioStream.on('data') -> provideAudio); buffer
@@ -201,9 +219,17 @@ export class ListenTransaction {
       // (closeAfterFinal) on the settled path, and for the whole NLU + skill legs
       // on the normal path. Same rule here, so the retained set matches the
       // reference's.
-      if (this.audioStreamClosed) return;
-      if (this.asrSession) this.asrSession.provideAudio(audio);
-      else this.audioChunks.push(audio);
+      if (this.audioStreamClosed || (this.state !== State.WAIT_LISTEN && this.state !== State.ASR)) return;
+      const byteLength = audio.byteLength ?? audio.length;
+      if (!Number.isSafeInteger(byteLength) || byteLength <= 0) return;
+      if (this.asrSession) {
+        try { this.asrSession.provideAudio(audio); } catch (err) { this.reject(err); }
+      } else if (this.audioBufferedBytes + byteLength > MAX_PRESESSION_AUDIO_BYTES) {
+        this.log.warn('dropping pre-session audio beyond buffer limit', { byteLength, bufferedBytes: this.audioBufferedBytes, limit: MAX_PRESESSION_AUDIO_BYTES });
+      } else {
+        this.audioChunks.push(audio);
+        this.audioBufferedBytes += byteLength;
+      }
       return;
     }
     if (!json) return this.reject(new Error('Message has no audio and no data'));
@@ -232,6 +258,7 @@ export class ListenTransaction {
   }
 
   async _handleJSON(message) {
+    if (!this._isActive()) return;
     switch (message.type) {
       case RequestType.LISTEN: return this._handleListen(message);
       case RequestType.CONTEXT: return this._handleContext(message);
@@ -243,6 +270,7 @@ export class ListenTransaction {
   }
 
   async _handleListen(message) {
+    if (!this._isActive()) return;
     if (localHomeDeclared(message.data)) {
       this.localHomeRequested = true;
       this.localHomeUnsupported = true; // LISTEN has no supported native setter.
@@ -264,6 +292,7 @@ export class ListenTransaction {
   }
 
   async _handleClientASR(message) {
+    if (!this._isActive()) return;
     // Reference: "If we're already doing ASR then we cancel that"
     // (ListenTransactionHandler.ts:253-256). Without it the stale server ASR
     // session keeps running and its late result overwrites the transcript the
@@ -278,6 +307,7 @@ export class ListenTransaction {
   }
 
   async _handleClientNLU(message) {
+    if (!this._isActive()) return;
     // Same cancellation guard as CLIENT_ASR (ListenTransactionHandler.ts:272-276).
     if (this.state === State.ASR) this._cancelASR();
     if (!this.listenMessage) this._beginGlobalTurn(State.WAIT_CLIENT_NLU, message.data && message.data.rules);
@@ -314,6 +344,7 @@ export class ListenTransaction {
   }
 
   _handleContext(message) {
+    if (!this._isActive()) return;
     if (localHomeDeclared(message.data)) this.localHomeRequested = true;
     if (message.data?.general && Object.hasOwn(message.data.general, 'phoenix_local_home')) {
       this.localHomeUnsupported = true;
@@ -333,6 +364,7 @@ export class ListenTransaction {
   // --- state machine --------------------------------------------------------
 
   _gotoState(target) {
+    if (!this._isActive()) return;
     const allowed = {
       [State.ASR]: [State.WAIT_LISTEN],
       [State.NLU]: [State.ASR, State.WAIT_CLIENT_ASR, State.WAIT_CLIENT_NLU],
@@ -350,6 +382,7 @@ export class ListenTransaction {
     // Reference _exitCurrentState(): leaving ASR stops the ASR session
     // (ListenTransactionHandler.ts:207-226).
     if (this.state === State.ASR) this._cancelASR();
+    if (target === State.DONE || target === State.STOP) this._clearPreSessionAudio();
     this.stateTrace.push(target);
     this.state = target;
     const exec = {
@@ -370,17 +403,25 @@ export class ListenTransaction {
     // maxSpeechTimeout annotations, 40 s budget, transcript normalization, and the
     // GARBAGE short-circuit. Real robots stream raw PCM here; the sim's mic mode
     // follows the same path.
+    if (!this._isActive()) return;
     const t0 = now();
     let outcome = 'ok';
+    let out;
+    let asrFailed = false;
     this.asrCancelled = false;
     // A fresh ASR phase reopens the audio path, matching a reference transaction
     // that had not yet reached stopASR().
     this.audioStreamClosed = false;
     try {
-      const out = await withTimeout(this._runASRSession(), Timeouts.asr).finally(() => {
-        // Reference stopASR(): always stop the session when the ASR phase settles.
-        this._stopASR();
-      });
+      try {
+        out = await withTimeout(this._runASRSession(), Timeouts.asr);
+      } catch (err) {
+        asrFailed = true;
+        throw err;
+      } finally {
+        if (asrFailed || out === TIMEOUT || this.asrCancelled || this.aborted) this._abortASR();
+        else this._stopASR();
+      }
       if (out === TIMEOUT) throw new HubError(HubErrorCode.TIMEOUT_ASR, `Timeout of ${Timeouts.asr} while waiting for ASR`);
       // A cancelled phase contributes nothing: the reference stops the session so
       // it cannot answer, and its performASR guards the assignment with
@@ -390,22 +431,22 @@ export class ListenTransaction {
         outcome = 'cancelled';
         return;
       }
-      // `if (asrData)` in the reference: an ASR phase that produced no result
-      // must not overwrite data the client already supplied.
-      if (out) {
-        this.asrData = out;
+      // Remote end without words still needs a usable empty NLU input.
+      {
+        this.asrData = out || { text: '', confidence: 0 };
         this.timings.asr = now() - t0;
         // Record the RAW ASR before normalization (ListenTransactionHandler.ts:465); the clone
         // keeps the logged transcript from following the in-place normalizeString below.
         this._updateSpeech({ asr: Object.assign({}, this.asrData) });
         this.asrData.text = normalizeString(this.asrData.text);
-        if (out.annotation === 'GARBAGE') {
+        if (this.asrData.annotation === 'GARBAGE') {
           this.nluData = { intent: null, rules: [], entities: {} };
           this._emitListenResult(null, true);
           return this._gotoState(State.DONE);
         }
       }
     } catch (err) {
+      if (this.asrCancelled || this.state !== State.ASR || !this._isActive()) { outcome = 'cancelled'; return; }
       outcome = metricOutcome(err);
       // The reference's outer catch re-wraps EVERY ASR failure — including its
       // own TIMEOUT_ASR throw — as HubErrorCode.ASR, so TIMEOUT_ASR never
@@ -440,7 +481,14 @@ export class ListenTransaction {
       // Only the phase that started this closure may emit or resolve; after a
       // cancel the reference's session is stopped and its timers cleared, so a
       // superseded phase must go quiet rather than answer.
-      const live = () => !this.asrCancelled;
+      const live = () => this._isActive() && !this.asrCancelled;
+      let maxSpeechPromise = null;
+
+      if (!live()) {
+        this._abortASR();
+        resolve(undefined);
+        return;
+      }
 
       if (config.sosTimeout > 0) {
         this.sosTimer = setTimeout(() => {
@@ -456,7 +504,7 @@ export class ListenTransaction {
         if (config.maxSpeechTimeout > 0) {
           this.maxSpeechTimer = setTimeout(() => {
             if (!live()) return;
-            const last = session.getLastIncremental();
+            const last = session.getLastIncremental?.() || null;
             const settle = (text, confidence) => {
               if (!live()) return;
               resolve({ text: text || '', confidence: confidence || 0, annotation: 'MAX_SPEECH_TIMEOUT' });
@@ -465,9 +513,14 @@ export class ListenTransaction {
             // the reference's incremental seam would report them here, so ask for
             // them instead of settling the turn with an empty no-match result.
             if (typeof session.finalizeNow === 'function') {
-              session.finalizeNow().then(
+              // Set the gate before calling finalizeNow. A batch session may
+              // resolve start() synchronously with undefined while its own
+              // finalization promise is still unwinding; letting that promise win
+              // loses the max-speech envelope and sends null into NLU.
+              maxSpeechPromise = Promise.resolve().then(() => session.finalizeNow());
+              maxSpeechPromise.then(
                 (batchText) => (batchText
-                  ? settle(batchText, 1.0)
+                  ? settle(typeof batchText === 'string' ? batchText : batchText.text, 1.0)
                   : settle(last && last.text, last && last.confidence)),
                 (err) => { this.log.warn('batch finalize on max-speech timeout failed', { error: err.message }); settle(last && last.text, last && last.confidence); },
               );
@@ -486,12 +539,25 @@ export class ListenTransaction {
       });
 
       session.start()
-        .then((data) => { this._clearASRTimers(); resolve(data); })
-        .catch((err) => { this._clearASRTimers(); reject(err); });
+        .then((data) => {
+          this._clearASRTimers();
+          // When max-speech finalization owns the result, its continuation must
+          // settle the wrapper. If cancellation won the race, however, resolve
+          // the wrapper now so the stale ASR phase cannot hold the transaction.
+          if (maxSpeechPromise && live()) return;
+          resolve(data);
+        })
+        .catch((err) => {
+          this._clearASRTimers();
+          if (maxSpeechPromise && live()) return;
+          reject(err);
+        });
 
       // Flush audio that arrived before the session existed, then handleMessage
       // streams subsequent frames directly (push-style, like audioStream.on('data')).
-      for (const chunk of this.audioChunks.splice(0)) session.provideAudio(chunk);
+      const buffered = this.audioChunks.splice(0);
+      this.audioBufferedBytes = 0;
+      for (const chunk of buffered) session.provideAudio(chunk);
     });
   }
 
@@ -500,9 +566,16 @@ export class ListenTransaction {
    * drop the audio path and clear the SOS / max-speech timers.
    */
   _stopASR() {
-    if (this.asrSession) {
-      try { this.asrSession.stop(); } catch { /* already done */ }
-      this.asrSession = null;
+    const session = this.asrSession;
+    if (session) {
+      try {
+        const abort = this.asrAbortRequested || this.asrCancelled || this.aborted || session.state === 'FINALIZING';
+        if (abort && typeof session.abort === 'function') session.abort();
+        else session.stop?.();
+        this.asrSession = null;
+      } catch (err) {
+        this.log.warn?.('ASR session stop failed; retaining session reference', { error: err.message });
+      }
     }
     this._clearASRTimers();
     // Reference stopASR() ends AND nulls `audioStream`, so every later packet
@@ -511,7 +584,7 @@ export class ListenTransaction {
     // during the NLU and skill legs (up to the parser and skill budgets) sits in a
     // buffer nothing reads. A fresh ASR phase reopens the stream.
     this.audioStreamClosed = true;
-    if (this.asrCancelled) this.audioChunks.length = 0;
+    this._clearPreSessionAudio();
   }
 
   _clearASRTimers() {
@@ -522,7 +595,7 @@ export class ListenTransaction {
   /** Cancel the in-flight ASR phase: stop it and make it invisible from then on. */
   _cancelASR() {
     this.asrCancelled = true;
-    this._stopASR();
+    this._abortASR();
   }
 
   /**
@@ -535,29 +608,22 @@ export class ListenTransaction {
    * on until maxSpeechTimeout and recognized audio for a dead peer).
    */
   abandon() {
-    if (this.abandoned) return;
+    if (this.abandoned || this.settled) return;
     this.abandoned = true;
-    this.asrCancelled = true;
-    // The peer is gone: nothing can consume audio any more, so close the path the
-    // same way stopASR() does rather than letting later frames accumulate.
-    this.audioStreamClosed = true;
-    const session = this.asrSession;
-    if (session) {
-      try {
-        if (typeof session.abort === 'function') session.abort();
-        else session.stop();
-      } catch { /* the peer is gone; nothing to recover */ }
-      this.asrSession = null;
-    }
-    this._clearASRTimers();
-    this.audioChunks.length = 0;
+    this.settled = true;
+    this._abort(new Error('Listen socket closed'));
+    clearTimeout(this._txTimer);
+    this._txTimer = null;
+    this._handle.resolve();
     this._markFinalResponse('abandoned');
   }
 
   async _performNLU() {
     const context = await this._awaitContext();
+    if (!this._isActive()) return;
     const t0 = now();
     if (await this._selectHomeCommand(context)) {
+      if (!this._isActive()) return;
       this.nluData = { intent: 'phoenixHomeCommand', entities: {}, rules: ['launch'] };
       this.timings.nlu = now() - t0;
       this._span('nlu', t0, 'home_command');
@@ -569,6 +635,7 @@ export class ListenTransaction {
     // Tells the parser's decision layer that a smart-home request has somewhere
     // to go; without it the parser never chooses Home Assistant.
     const home = await this._homeAvailable(context);
+    if (!this._isActive()) return;
     const parserPr = this.components.parser.handleNLU(
       {
         text: this.asrData.text,
@@ -578,13 +645,16 @@ export class ListenTransaction {
         ...(home ? { home: true } : {}),
       },
       this.trace,
+      { signal: this.abortController.signal },
     );
     try {
       const result = await withTimeout(parserPr, Timeouts.parser);
+      if (!this._isActive()) return;
       if (result === TIMEOUT) throw new HubError(HubErrorCode.TIMEOUT_PARSER, `Timeout of ${Timeouts.parser} while waiting for parser`);
       this.nluData = result;
       this.timings.nlu = now() - t0;
     } catch (err) {
+      if (!this._isActive()) { outcome = 'cancelled'; return; }
       outcome = metricOutcome(err);
       // The reference wraps the whole parser block in a catch that re-throws
       // HubErrorCode.PARSER — including its own TIMEOUT_PARSER throw, so even a
@@ -596,12 +666,14 @@ export class ListenTransaction {
     } finally {
       this._span('nlu', t0, outcome);
     }
+    if (!this._isActive()) return;
     this._updateSpeech({ nlu: this.nluData }); // ListenTransactionHandler.ts:323
     this._gotoState(State.ROUTE);
   }
 
   async _performRouting() {
     const context = await this._awaitContext();
+    if (!this._isActive()) return;
     const t0 = now();
     let decision = this.homeCommand ? null : this.components.intentRouter.getSkillIDFromNLU(this.nluData) || null;
     // CLIENT_NLU and recognized Hue commands also pass the same opt-in gate.
@@ -717,6 +789,7 @@ export class ListenTransaction {
   }
 
   async _onSkillMatch(skillID, context, memo = null, isUpdate = false) {
+    if (!this._isActive()) return;
     const onRobot = this.components.skillConfigManager.isOnRobotSkill(skillID);
     const matchData = { skillID, launch: !isUpdate, onRobot };
     if (onRobot) {
@@ -734,6 +807,7 @@ export class ListenTransaction {
         this._skillLaunchOrUpdate(skillID, { context: context.data, nlu: this.nluData, asr: this.asrData, memo }, this.trace, isUpdate),
         Timeouts.skill,
       );
+      if (!this._isActive()) return;
       if (skillOutput === TIMEOUT) {
         skillOutcome = 'timeout';
         throw new HubError(HubErrorCode.TIMEOUT_SKILL, `Timeout of ${Timeouts.skill} while waiting for the skill response from '${skillID}'`);
@@ -761,6 +835,7 @@ export class ListenTransaction {
       let redirectOutcome = 'ok';
       try {
         skillOutput = await this._handleRedirect(skillOutput.response, context, skillID);
+        if (!this._isActive()) return;
         if (skillOutput.error) redirectOutcome = 'remote_error';
       } catch (err) {
         redirectOutcome = metricOutcome(err);
@@ -770,12 +845,13 @@ export class ListenTransaction {
       }
       this.timings.skill = now() - redirectStart;
     }
+    if (!this._isActive()) return;
     this._emitSkillResult(skillOutput, true);
   }
 
   // Fire-and-forget skill-launch history record (TransactionHandler.recordSkillLaunch).
   _record(skillID, context, skillResponse) {
-    if (!this.components.config.recordLaunchHistory || !this.components.historyClient) return;
+    if (!this._isActive() || !this.components.config.recordLaunchHistory || !this.components.historyClient) return;
     const general = (context.data && context.data.general) || {};
     const runtime = (context.data && context.data.runtime) || {};
     const perception = runtime.perception || {};
@@ -785,7 +861,7 @@ export class ListenTransaction {
     const personIDs = perception.speaker ? [perception.speaker] : ['UNKNOWN'];
     const sessionID = (skillResponse && skillResponse.data && skillResponse.data.skill && skillResponse.data.skill.session && skillResponse.data.skill.session.id) || newMsgId();
     const startedAt = now();
-    this.components.historyClient.writeSkillLaunch({ robotID: general.robotID, sessionID, skillID, intent: this.nluData && this.nluData.intent, personIDs }, this.trace)
+    this.components.historyClient.writeSkillLaunch({ robotID: general.robotID, sessionID, skillID, intent: this.nluData && this.nluData.intent, personIDs }, this.trace, { signal: this.abortController.signal })
       .then((result) => this._span('history_launch', startedAt, result === null ? 'error' : 'ok'))
       .catch(() => this._span('history_launch', startedAt, 'error'));
   }
@@ -801,15 +877,20 @@ export class ListenTransaction {
    * Fire-and-forget write of the whole speech record (ListenTransactionHandler.saveSpeechHistoryRecord).
    * Never throws into the transaction: a history outage is logged, exactly as the reference does.
    */
-  _saveSpeech() {
+  _saveSpeech(options) {
     if (!this.speechRecord || !this.components.historyClient) return;
     const startedAt = now();
-    this.components.historyClient.saveSpeechRecord(this.speechRecord, this.trace)
+    try {
+      Promise.resolve(this.components.historyClient.saveSpeechRecord(this.speechRecord, this.trace, options))
       .then(() => this._span('history_speech', startedAt, 'ok'))
       .catch((err) => {
         this._span('history_speech', startedAt, 'error');
         this.log.error(err.message);
       });
+    } catch (err) {
+      this._span('history_speech', startedAt, 'error');
+      this.log.error(err.message);
+    }
   }
 
   /**
@@ -820,19 +901,26 @@ export class ListenTransaction {
    * redirect handling.
    */
   async _skillLaunchOrUpdate(skillID, input, trace, isUpdate) {
-    const out = await this.components.skillClient.launchOrUpdate(skillID, input, trace, isUpdate);
-    this._updateSpeech({ skill: out });
+    const out = await this.components.skillClient.launchOrUpdate(
+      skillID,
+      input,
+      trace,
+      isUpdate,
+      { signal: this.abortController.signal },
+    );
+    if (this._isActive()) this._updateSpeech({ skill: out });
     return out;
   }
 
   /** Reference handleSkillRedirect's skill launch (ListenTransactionHandler.ts:623-632). */
   async _skillLaunch(skillID, input, trace) {
-    const out = await this.components.skillClient.launch(skillID, input, trace);
-    this._updateSpeech({ skill: out });
+    const out = await this.components.skillClient.launch(skillID, input, trace, { signal: this.abortController.signal });
+    if (this._isActive()) this._updateSpeech({ skill: out });
     return out;
   }
 
   async _handleRedirect(redirect, context, sourceSkillID) {
+    if (!this._isActive()) return null;
     // The reference records the redirect payload BEFORE emitting the notification and before
     // the second skill call (ListenTransactionHandler.ts:619).
     this._updateSpeech({ redirect: redirect.data });
@@ -843,6 +931,7 @@ export class ListenTransaction {
       this._skillLaunch(redirect.data.skillID, { context: context.data, nlu: redirect.data.nlu, memo: redirect.data.memo }, this.trace),
       Timeouts.skill,
     );
+    if (!this._isActive()) return null;
     // The reference's redirect timeout message names the ORIGINAL skill: the
     // throw is raised in onSkillMatch while `skillOutput` still refers to the
     // first response (ListenTransactionHandler.ts:406-407).
@@ -923,6 +1012,46 @@ export class ListenTransaction {
 
   // --- lifecycle ------------------------------------------------------------
 
+  _isActive() { return !this.aborted && !this.settled && !this.abandoned; }
+
+  _clearPreSessionAudio() {
+    this.audioChunks.length = 0;
+    this.audioBufferedBytes = 0;
+  }
+
+  _abortASR() {
+    this.asrAbortRequested = true;
+    this.audioStreamClosed = true;
+    const session = this.asrSession;
+    this._clearASRTimers();
+    this._clearPreSessionAudio();
+    if (!session) return;
+    try {
+      if (typeof session.abort === 'function') session.abort();
+      else session.stop?.();
+      this.asrSession = null;
+    } catch (err) {
+      this.log.warn?.('ASR session abort failed; retaining session reference', { error: err.message });
+    }
+  }
+
+  _abort(reason) {
+    if (this.aborted) return;
+    this.aborted = true;
+    this.abortReason = reason;
+    this.asrCancelled = true;
+    this.abortController.abort(reason);
+    this._abortASR();
+    // Release a CONTEXT waiter without allowing a late CONTEXT to restart work.
+    this.contextPr.resolve(null);
+  }
+
+  _onTransactionTimeout() {
+    this._txTimer = null;
+    if (!this._isActive()) return;
+    this.reject(new Error(`Maximum transaction time of ${Timeouts.transaction} exceeded`), { saveHistory: false });
+  }
+
   _finish() { this.resolve(); return Promise.resolve(); }
 
   /** Called by the gateway error writer after it queues its final ERROR frame. */
@@ -959,14 +1088,22 @@ export class ListenTransaction {
   }
 
   resolve() {
+    if (this.settled || this.aborted) return;
+    this.settled = true;
     clearTimeout(this._txTimer);
+    this._txTimer = null;
+    this._clearPreSessionAudio();
     this._handle.resolve();
-    this._saveSpeech(); // TransactionHandler.onTransactionSuccess
+    this._saveSpeech({ signal: this.abortController.signal }); // TransactionHandler.onTransactionSuccess
   }
 
-  reject(err) {
+  reject(err, { saveHistory = true } = {}) {
+    if (this.settled || this.aborted) return;
+    this.settled = true;
     clearTimeout(this._txTimer);
+    this._txTimer = null;
     this.state = State.STOP;
+    this._abort(err);
     this._handle.reject(err);
     // TransactionHandler.reject runs onTransactionError (record the error, then save) and then
     // stop() -> gotoState(STOP) -> done() -> resolve() -> onTransactionSuccess, which saves the
@@ -975,8 +1112,13 @@ export class ListenTransaction {
     // original in docs/parity/evidence/2026-09-11/h08-speech-history/source-speech-history.json
     // (tooManyRedirects / parserFailure: two speechSave events, both recordId=<undefined>).
     this._updateSpeech({ error: err });
-    this._saveSpeech();
-    this._saveSpeech();
+    if (saveHistory) {
+      // Error history is terminal bookkeeping, not a continuation of the
+      // canceled request. It keeps the existing failure record contract while
+      // the transaction signal aborts any already-running history call.
+      this._saveSpeech();
+      this._saveSpeech();
+    }
   }
 }
 

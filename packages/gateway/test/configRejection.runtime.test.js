@@ -99,7 +99,7 @@ test('an invalid or malformed skill manifest is rejected, never skipped', async 
       [{ configPath: 'manifest.json' }, { raw: '{"a":}' }, { name: 'Error', message: "Error when parsing '<fixture>/manifest.json': Unexpected token } in JSON at position 5" }],
       [{}, null, { name: 'TypeError', message: "Cannot set property 'URL' of null" }],
       [{}, 5, { name: 'TypeError', message: "Cannot create property 'URL' on number '5'" }],
-      [{ baseURL: 4 }, basicManifest(), { name: 'TypeError', message: 'pathElement.startsWith is not a function' }],
+      [{ baseURL: 4 }, basicManifest(), { name: 'Error', message: 'Invalid baseURL: 4' }],
       [{ baseURL: 'http://skill/' }, Object.assign(basicManifest(), { basePath: null }), { name: 'TypeError', message: "Cannot read property 'startsWith' of null" }],
     ];
     for (const [entry, manifest, expected] of rows) {
