@@ -1,12 +1,12 @@
 // N-07: the fallback/external matrix must hold for EVERY supported NLU profile,
 // not just the default AST path.
 //
-// Phoenix supports two observable parser profiles (compiledFstRuntime.js:1-13):
+// Phoenix supports two observable parser profiles (compiledFstRuntime.js:1-11):
 //   - 'ast'                — the default; no binary artifacts required
 //   - 'compiled-fst-approved' — the archived production profile, provisioned out
 //     of band (Phoenix cannot ship the binary graphs in git). Three acquisition
-//     contracts all produce this same runtime: approved home, portable snapshot
-//     manifest, source-faithful directory glob.
+//     contracts all produce this same runtime: approved home, portable snapshot,
+//     and closed binary pins.
 //
 // The fallback arbitration and the external-agent attachment run at the
 // ParseRequestHandler layer, AFTER profile selection, so the contract is
@@ -34,7 +34,7 @@ function provisionedCompiledHome() {
   return null;
 }
 
-test('a graph the compiled profile cannot load aborts selection instead of dropping a rule', async () => {
+test('unprovenanced directory selection is rejected before graph loading', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'n07-compiled-'));
   const savedRuntime = process.env.PHOENIX_NLU_RUNTIME;
   const savedHome = process.env.PHOENIX_NLU_COMPILED_HOME;
@@ -46,11 +46,10 @@ test('a graph the compiled profile cannot load aborts selection instead of dropp
     process.env.PHOENIX_NLU_RUNTIME = 'compiled-fst';
     process.env.PHOENIX_NLU_COMPILED_FST_DIRECTORIES = join(dir, 'graphs');
     const { getCompiledFstRuntime } = await import('../src/compiledFstRuntime.js');
-    // RobustParserClient.loadAllFSTs() must not reach RUNNING with a dropped rule
-    // (compiledFstRuntime.js:610-634, preloadRuleExecutors); a malformed graph
-    // rejects profile construction rather than being skipped on the request that
-    // names it.
-    assert.throws(() => getCompiledFstRuntime(), /Malformed compiled NLU FST/);
+    // Directory discovery is intentionally not a Phoenix profile. Its mutable
+    // graphs have no approved inventory/source/artifact provenance and must be
+    // rejected before any graph bytes are loaded.
+    assert.throws(() => getCompiledFstRuntime(), /PHOENIX_NLU_COMPILED_FST_DIRECTORIES.*unprovenanced.*parity/i);
   } finally {
     if (savedRuntime === undefined) delete process.env.PHOENIX_NLU_RUNTIME; else process.env.PHOENIX_NLU_RUNTIME = savedRuntime;
     if (savedHome === undefined) delete process.env.PHOENIX_NLU_COMPILED_HOME; else process.env.PHOENIX_NLU_COMPILED_HOME = savedHome;
