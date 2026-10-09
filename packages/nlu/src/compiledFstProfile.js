@@ -16,7 +16,7 @@ export const COMPILED_FST_PROFILE = Object.freeze({
   referenceRevision: '5c0a7390539663ba749d360de348a428c088505c',
   sourceRuntime: 'jibo-nlu v2.8.3',
   nativeParserSha256: '373b6509036c6ab841023fa541b931f1ccc966dee750058cdbbf560ab467ce9b',
-  decodedHashAnchorSha256: '882e4e7e3b541b7fcd9b059279b1ce8079a39c158b36ade95309f8d5c0a95520',
+  decodedHashAnchorSha256: 'dee78fbfa673eca1dc924c42efd04bf556307ca129c3159b1d2b83ca80bf5ee1',
   factoryManifestSha256: '4ea19a27acbfaecdb60de0688cb5f3f75ef31c93c2865d2d6710989f98ffe97e',
   factoryFiles: Object.freeze({
     'canada_city_province.fst': '3f51276ae65825ab22aa0ebba97766e5fdea055e6db7d89ce9e77e9195cf5076',
