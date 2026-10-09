@@ -64,7 +64,9 @@ let service;
 let gEvents = [];
 let gCalls = 0;
 let oCalls = 0;
-const PORT = 7812;
+// Ephemeral ports read back from each bound server: fixed ports here (7812-7815)
+// overlapped maps-modes.test.js (7811-7813) when the two files ran concurrently.
+let port;
 
 before(async () => {
   tokenServer = http.createServer((req, res) => {
@@ -93,7 +95,8 @@ before(async () => {
     oauth,
     googleCalendarProvider: async () => { gCalls++; return gEvents; },
     outlookCalendarProvider: async () => { oCalls++; return gEvents; },
-  }).listen(PORT);
+  }).listen(0);
+  port = service.address().port;
 });
 
 after(() => {
@@ -102,7 +105,7 @@ after(() => {
   rmSync(ROOT, { recursive: true, force: true });
 });
 
-const j = (path, opts) => fetch(`http://localhost:${PORT}${path}`, opts);
+const j = (path, opts) => fetch(`http://localhost:${port}${path}`, opts);
 const post = (body) => j('/v1/credential', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 const googleCred = (over = {}) => ({ accountId: 'g-acct', skillId: 'report-skill', serviceName: 'google', serviceAccountName: 'personalCalendar', scopes: GOOGLE_SCOPES, clientId: GOOGLE_CLIENT_ID, ...over });
 const outlookCred = (over = {}) => ({ accountId: 'o-acct', skillId: 'report-skill', serviceName: 'outlook', serviceAccountName: 'personalCalendar', scopes: OUTLOOK_SCOPES, clientId: OUTLOOK_CLIENT_ID, ...over });
@@ -256,11 +259,12 @@ test('D-03 revoked access: a Google "expired or revoked" reply marks REVOKED_ACC
     credentialStore: new CredentialStore({ file: nextFile() }),
     oauth,
     googleCalendarProvider: async () => { throw new Error('Failed to get Google Calendar events, Google response was 400 Token has been expired or revoked'); },
-  }).listen(PORT + 1);
+  }).listen(0);
+  const localPort = local.address().port;
   try {
-    const seed = await fetch(`http://localhost:${PORT + 1}/v1/credential`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(googleCred({ accountId: 'rev-1', accessToken: 'at', refreshToken: 'rt', expiresAt: Date.now() + 3600 * 1000 })) });
+    const seed = await fetch(`http://localhost:${localPort}/v1/credential`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(googleCred({ accountId: 'rev-1', accessToken: 'at', refreshToken: 'rt', expiresAt: Date.now() + 3600 * 1000 })) });
     assert.deepEqual(await seed.json(), { created: true });
-    const res = await fetch(`http://localhost:${PORT + 1}/v1/google_calendar?skillId=report-skill&accountId=rev-1&calendar=personalCalendar`);
+    const res = await fetch(`http://localhost:${localPort}/v1/google_calendar?skillId=report-skill&accountId=rev-1&calendar=personalCalendar`);
     assert.equal(res.status, 502);
     assert.match(await res.text(), /expired or revoked/);
   } finally {
@@ -274,12 +278,13 @@ test('D-03 invalid token: an Outlook InvalidAuthenticationToken reply marks INVA
     credentialStore: new CredentialStore({ file: nextFile() }),
     oauth,
     outlookCalendarProvider: async () => { throw new Error('Failed to get Outlook events, Outlook response was 401 InvalidAuthenticationToken'); },
-  }).listen(PORT + 2);
+  }).listen(0);
+  const localPort = local.address().port;
   try {
     const seedBody = outlookCred({ accountId: 'o-rev', accessToken: 'at', refreshToken: 'rt', expiresAt: Date.now() + 3600 * 1000 });
-    const seed = await fetch(`http://localhost:${PORT + 2}/v1/credential`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(seedBody) });
+    const seed = await fetch(`http://localhost:${localPort}/v1/credential`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(seedBody) });
     assert.deepEqual(await seed.json(), { created: true });
-    const res = await fetch(`http://localhost:${PORT + 2}/v1/outlook_calendar?skillId=report-skill&accountId=o-rev&calendar=personalCalendar`);
+    const res = await fetch(`http://localhost:${localPort}/v1/outlook_calendar?skillId=report-skill&accountId=o-rev&calendar=personalCalendar`);
     assert.equal(res.status, 502);
     assert.match(await res.text(), /InvalidAuthenticationToken/);
     const store = new CredentialStore({ file: join(ROOT, `credentials-${seq}.json`) });
@@ -296,15 +301,14 @@ test('D-03 invalid token: an Outlook InvalidAuthenticationToken reply marks INVA
 // ---------------------------------------------------------------------------
 
 test('D-03 cache invalidation: a new credential drops the cached calendar payload', async () => {
-  const port = PORT + 3;
   let events = [{ summary: 'v1', start: { dateTime: '2026-06-08T09:00:00Z' } }];
   let calls = 0;
   const local = await createDataService({
     credentialStore: new CredentialStore({ file: nextFile() }),
     oauth,
     googleCalendarProvider: async () => { calls++; return events; },
-  }).listen(port);
-  const base = `http://localhost:${port}`;
+  }).listen(0);
+  const base = `http://localhost:${local.address().port}`;
   try {
     const seedBody = googleCred({ accountId: 'ci-1', accessToken: 'at', refreshToken: 'rt', expiresAt: Date.now() + 3600 * 1000 });
     await fetch(`${base}/v1/credential`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(seedBody) });
