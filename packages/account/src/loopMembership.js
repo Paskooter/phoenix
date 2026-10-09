@@ -83,6 +83,14 @@ export const LOOP_MEMBERSHIP_ERRORS = Object.freeze({
     statusCode: 422,
   },
   ROBOT_NOT_FOUND: { code: 'ROBOT_NOT_FOUND', message: 'Robot not found', statusCode: 404 },
+  // Phoenix security guard (no source counterpart; see the comment on
+  // createLoopFromApi). A friendlyId is displayed on the robot and used by
+  // normal setup, so it is not a secret and cannot authorize a takeover.
+  ROBOT_ALREADY_CLAIMED: {
+    code: 'ROBOT_ALREADY_CLAIMED',
+    message: 'Robot already belongs to another loop',
+    statusCode: 409,
+  },
   ROBOT_DISABLED: { code: 'ROBOT_DISABLED', message: 'Robot disabled', statusCode: 409 },
   CREDENTIALS_REQUIRED: { code: 'CREDENTIALS_REQUIRED', message: 'Credentials required', statusCode: 401 },
 });
@@ -591,9 +599,37 @@ export function removeRobotFromLoops(store, robotAccountId, loopUpdatedOutbox) {
   }
 }
 
+// Source LoopController.create relocates any robot from its current loop to the
+// caller's new one (loop.ctrl.ts:138-139 calls removeRobotFromLoops
+// unconditionally), so on the original cloud the friendlyId alone was proof of
+// ownership — anyone could take over another household's robot and lock out its
+// real owner. The friendlyId is displayed on the robot and used in normal
+// setup flows, so it is not a secret. Phoenix keeps the source's re-setup and
+// robot-replacement semantics (the same owner may relocate freely, an unowned
+// robot may be claimed) but refuses a CreateLoop that would detach a robot
+// from a live loop owned by a DIFFERENT account. The refusal predicate is
+// removeRobotFromLoops's own detach query (robot relation AND member, non-
+// deleted): exactly the loops a takeover would suspend, nothing broader.
+// setupRobot (QR re-pair), the adoption/claim paths and the admin transfer do
+// not go through this boundary, so only the cross-account takeover is refused.
+function robotClaimedByForeignLoop(store, robotAccountId, ownerId) {
+  return [...store.loops.values()].some((loop) => loop.isDeleted !== true
+    && idsEqual(loop.robot, robotAccountId)
+    && (loop.members || []).some((member) => idsEqual(member.accountId, robotAccountId))
+    && !idsEqual(loop.owner, ownerId));
+}
+
 export function createLoopFromApi(store, { ownerId, name, robotId }, loopUpdatedOutbox, { invitationProviders } = {}) {
   if (!robotId) fail(LOOP_MEMBERSHIP_ERRORS.ROBOT_REQUIRED);
   if (!ownerId) fail(LOOP_MEMBERSHIP_ERRORS.CREDENTIALS_REQUIRED);
+  // Refuse before any mutation: a rejected caller must not even reactivate the
+  // robot account (the only other write this path performs before the loop
+  // save) or suspend the victim loop. findOrCreateRobotAccount reuses the
+  // existing account's _id, so the pre-check sees the same identity.
+  const knownRobot = store.accountByFriendlyId(robotId);
+  if (knownRobot && robotClaimedByForeignLoop(store, knownRobot._id, ownerId)) {
+    fail(LOOP_MEMBERSHIP_ERRORS.ROBOT_ALREADY_CLAIMED);
+  }
   const robotAccount = findOrCreateRobotAccount(store, robotId);
   removeRobotFromLoops(store, robotAccount._id, loopUpdatedOutbox);
   const loop = {
