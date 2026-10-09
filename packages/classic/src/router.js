@@ -15,6 +15,7 @@ import { sendJson } from '@phoenix/common';
 import { DefaultPort } from '@phoenix/contracts';
 import { parseTarget, sendAmzError, UnknownOperation, AMZ_JSON } from './awsJson.js';
 import { cleanupVerifiedClassicRequest, sendVerifiedCallerError } from './caller.js';
+import { declaredContentLength } from './rawUpload.js';
 
 // The OAuth-client admin and LPS services own no in-process store; they proxy to the
 // account service, the process that owns identity and persistent state (A-18). These
@@ -77,6 +78,7 @@ export function createClassicRouter(registrations, { callerBoundary } = {}) {
         if (!caller) throw new Error('verified caller boundary returned no identity');
       } catch (error) {
         await cleanupVerifiedClassicRequest(req);
+        if (sendAccountPhotoLengthRefusal(req, res, error)) return;
         sendVerifiedCallerError(res, error);
         return;
       }
@@ -152,6 +154,32 @@ export function createClassicRouter(registrations, { callerBoundary } = {}) {
   return {
     'POST /': dispatch,
   };
+}
+
+// Account's Hapi binary route for UpdatePhoto/UpdateMemberPhoto: maxBytes 1000000000, checked
+// against the declared Content-Length before dispatch (account/src/robotFace.js).
+const ACCOUNT_PHOTO_MAX_BYTES = 1_000_000_000;
+
+/**
+ * The caller boundary refuses a declared Content-Length above its own cap before reading the body.
+ * When that declared length also exceeds Account's photo route limit, Account would have answered
+ * its own 400 for the same request, so answer that reference response instead of the boundary's
+ * 413. Every other size refusal (a smaller boundary cap, a chunked body crossing the cap) keeps
+ * the boundary's 413.
+ */
+function sendAccountPhotoLengthRefusal(req, res, error) {
+  if (error?.code !== 'PAYLOAD_TOO_LARGE' && error?.statusCode !== 413) return false;
+  const target = String(req?.headers?.['x-amz-target'] || '');
+  if (!/^Loop[^.]*\.UpdateMemberPhoto$/i.test(target) && !/^Account[^.]*\.UpdatePhoto$/i.test(target)) return false;
+  const declared = declaredContentLength(req);
+  if (declared === null || declared <= ACCOUNT_PHOTO_MAX_BYTES) return false;
+  const data = JSON.stringify({
+    statusCode: 400, error: 'Bad Request', message: `Payload content length greater than maximum allowed: ${ACCOUNT_PHOTO_MAX_BYTES}`,
+  });
+  res.writeHead(400, { 'content-type': 'application/json; charset=utf-8', 'content-length': Buffer.byteLength(data), connection: 'close' });
+  res.end(data);
+  req.resume?.();
+  return true;
 }
 
 /** The Hapi/Boom response produced when the pinned dispatcher throws before method lookup. */
