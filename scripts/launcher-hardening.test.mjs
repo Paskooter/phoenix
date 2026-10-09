@@ -221,3 +221,24 @@ test('the simulator launcher has no built-in hub secret and stops before startin
   assert.equal(mismatch.status, 1, mismatch.stderr);
   assert.match(mismatch.stderr, /disagree/);
 });
+
+test('the diagnostic robot stack requires explicit development mode or real authentication', () => {
+  const dir = mkdtempSync(resolve(tmpdir(), 'phoenix-diagnostic-stack-'));
+  const base = { PATH: process.env.PATH, HOME: dir, PHOENIX_ENV_FILE: '/dev/null', PHOENIX_ROBOT_RUN: resolve(dir, 'run'), PHOENIX_ROBOT_PORT: '47100' };
+  try {
+    // Both refusals happen before any directory or listener is created.
+    const unauthenticated = spawnSync(process.execPath, [resolve(root, 'scripts/parity-robot/stack.mjs')], {
+      cwd: root, env: base, encoding: 'utf8', timeout: 15_000,
+    });
+    assert.notEqual(unauthenticated.status, 0);
+    assert.match(unauthenticated.stderr, /PHOENIX_DEV_MODE=1/);
+    const noSecret = spawnSync(process.execPath, [resolve(root, 'scripts/parity-robot/stack.mjs')], {
+      cwd: root, env: { ...base, PHOENIX_ROBOT_AUTH: 'true' }, encoding: 'utf8', timeout: 15_000,
+    });
+    assert.notEqual(noSecret.status, 0);
+    assert.match(noSecret.stderr, /HUB_TOKEN_SECRET is required/);
+    assert.equal(existsSync(resolve(dir, 'run')), false);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
