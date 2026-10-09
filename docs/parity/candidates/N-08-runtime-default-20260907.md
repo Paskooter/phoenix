@@ -1,7 +1,8 @@
 # N-08 production NLU compiled-graph runtime and default contracts
 
-Status: candidate unverified. Source-backed compiled-graph acquisition is
-implemented and unit-tested. This candidate does **not** replay the 20,528-case
+Status: candidate unverified. The approved compiled profiles are source-backed
+and unit-tested; unprovenanced directory discovery is intentionally rejected.
+This candidate does **not** replay the 20,528-case
 corpus and does **not** claim to move the `c125`/main 51-residual AST baseline.
 
 Source revision: hashbrown/Pegasus `5c0a7390539663ba749d360de348a428c088505c`.
@@ -12,6 +13,16 @@ Implementation commit: `e1f0fc5ab4c4896b6aae8c6ab3043167b8f521d5`.
 
 Private receipts live under
 `.parity/reviews/n08-runtime-default-20260907/` (gitignored).
+
+## Current integration boundary
+
+The earlier directory-acquisition implementation is retained only as an
+offline/dev helper for inspecting native handle semantics. The runtime no longer
+imports it. `PHOENIX_NLU_COMPILED_FST_DIRECTORIES` is rejected before any graph
+bytes are loaded because that selector has no approved inventory, source hash,
+artifact hash, or compiler/runtime provenance and therefore cannot be used for
+parity evidence or a production profile. Re-enabling it requires a versioned
+manifest and an explicit provenance review.
 
 ## 1. How the original parser acquires FSTs
 
@@ -106,40 +117,36 @@ Source-backed Phoenix defaults:
 | No `PHOENIX_NLU_RUNTIME` | `ast` (development / no-bundle path) |
 | `compiled-fst` + approved binary pins | closed 98-rule binary profile |
 | `compiled-fst` + snapshot manifest | closed 98-rule portable profile |
-| `compiled-fst` + `PHOENIX_NLU_COMPILED_FST_DIRECTORIES` | discovered `.fst` graphs, including names outside the 98-rule map |
+| `compiled-fst` + `PHOENIX_NLU_COMPILED_FST_DIRECTORIES` | rejected: unprovenanced directory selector |
 
-A selected compiled profile still has **no AST fallback**. Malformed discovered
-graphs fail before `listen()`.
+A selected compiled profile still has **no AST fallback**. The rejected
+directory selector fails before any graph is loaded or `listen()` can start.
 
 Migration sequence:
 
 1. Keep AST as the no-bundle compatibility path. Do not change the repo default.
-2. Provision graphs: either the reviewed snapshot/binary bundle, or a directory
-   of existing `.fst` files (the original `rules_fst` layout).
-3. Set `PHOENIX_NLU_RUNTIME=compiled-fst` and exactly one acquisition contract.
-4. Confirm startup validation. Extra skill graphs are additional `.fst` files
-   in a configured directory, not a new public compile route.
+2. Provision the reviewed snapshot/binary bundle. A raw FST directory is not an
+   approved migration input.
+3. Set `PHOENIX_NLU_RUNTIME=compiled-fst` and exactly one approved acquisition
+   contract.
+4. Confirm startup validation and the emitted provenance metadata.
 5. Revisit making compiled-fst the process default only after that deployment
    class actually has graphs on disk. A full corpus replay is required before
    claiming the 20,528-case baseline moved.
 
 ## 4. Bounded implementation
 
-New wiring is justified by `RulesRegistry` + `RobustParserClient.loadFSTIntoMemory`
-/ `parseFromHandle`. Phoenix now has an in-process subset of that protocol and
-a directory-discovered compiled runtime that is not locked to the 98-rule
-inventory.
+The historical helper wiring is justified by `RulesRegistry` +
+`RobustParserClient.loadFSTIntoMemory` / `parseFromHandle`, but it is not a
+runtime profile until its graph set has a reviewed provenance manifest.
 
-* `packages/nlu/src/compiledFstAcquisition.js` — glob discovery, `handle:` URIs,
-  COMPILE BINARYFST_PATH, PARSE_FROM_URI, REMOVE_FROM_MEM, RESET_MEMORY.
-* `packages/nlu/src/compiledFstRuntime.js` — third acquisition path
-  `PHOENIX_NLU_COMPILED_FST_DIRECTORIES` (colon-separated). Mutually exclusive
-  with snapshot and closed binary pins. Optional factory directory. No approved
-  launch-hash requirement on this path.
-* `packages/nlu/src/requestParser.js` — when a compiled runtime is selected,
-  requested names present in the discovered registry are parsed even if they
-  are absent from `rule-inventory.json` public rules. AST still filters to the
-  public map.
+* `packages/nlu/src/compiledFstAcquisition.js` — offline/dev-only glob and
+  handle-protocol helper; it is not imported by the runtime.
+* `packages/nlu/src/compiledFstRuntime.js` — approved binary and portable
+  snapshot profiles; raw `PHOENIX_NLU_COMPILED_FST_DIRECTORIES` selection is
+  rejected before acquisition.
+* `packages/nlu/src/requestParser.js` — profile-independent selected-winner
+  validation; AST and compiled paths both reject missing intent/SKIP winners.
 
 UNION, text COMPILE, PARSE_FROM_TEXT, and exposing `/nlu_interface` are
 intentionally not added.
@@ -167,15 +174,15 @@ node --test
 # log sha256 607ee0e6b6e493855d8b1fe5afb3ab590a26cd4994d6469bf125782463c7d03e
 ```
 
-Focused new controls (synthetic VectorFST files, not the approved 98-rule
-bundle): handle format; colon-separated directories; missing directory is
-empty; nested `skill/extra.fst` name reconstruction; later directory overwrite;
-COMPILE then PARSE_FROM_URI; missing/malformed COMPILE does not register a
-handle; RESET_MEMORY and REMOVE_FROM_MEM; in-memory bytes survive a disk
-replace; directory runtime parses a public-inventory-unknown rule on
-`POST /v1/parse`; unknown extra names return EMPTY_NLU; malformed discovered
-FST blocks `start()`; snapshot/binary mix is rejected; default profile remains
-`ast` without `PHOENIX_NLU_RUNTIME`.
+Focused controls (synthetic VectorFST files, not the approved 98-rule
+bundle): the offline helper preserves handle format, colon-separated directory
+parsing, missing-directory behavior, nested-name reconstruction, later-directory
+overwrite, COMPILE/PARSE_FROM_URI, failed COMPILE registration, RESET_MEMORY,
+REMOVE_FROM_MEM, and in-memory bytes after a disk replace. Runtime controls now
+reject `PHOENIX_NLU_COMPILED_FST_DIRECTORIES` before discovery or graph loading,
+reject its mix with approved/snapshot settings, and prevent the HTTP listener
+from starting. The AST request-parser regression rejects a selected SKIP
+candidate without a compiled runtime.
 
 The `c125`/main baseline of 20,528 cases / 20,477 matches / **51 residuals is
 untouched**. No full HTTP replay was run. No new coverage is claimed for the
@@ -190,15 +197,16 @@ Unknown from this slice:
 * Native `Promise.all` last-writer race across multiple `fstDirectories`.
 * OpenFST UNION semantics for a newly built `launch.fst`.
 * Directory-mode factory preload via `factory_list.txt` versus loading every
-  top-level factory `.fst` (Phoenix directory mode does the latter when a
+  top-level factory `.fst` (the historical helper does the latter when a
   factory dir is supplied).
 * Whether a provisioned original `rules_fst` tree plus this directory runtime
-  reproduces the 20,528-case compiled profile (zero differences on the portable
-  snapshot is prior root evidence for the closed bundle, not for arbitrary
-  extra graphs).
+  reproduces the 20,528-case compiled profile. The directory runtime is now
+  intentionally rejected, so this is not a Phoenix deployment claim.
 
-Concrete next step: provision a real `rules_fst` (or extra skill `.fst` files)
-under `PHOENIX_NLU_COMPILED_FST_DIRECTORIES`, commit, then run a bounded native
-COMPILE/PARSE_FROM_URI comparison on those graphs. A full 20k replay is only
-justified after that directory profile is the one a deployment would actually
-serve.
+Concrete next step: if directory execution is needed in a future deployment,
+first produce a versioned manifest that binds the complete graph set to the
+approved inventory, source/artifact hashes, and compiler/runtime provenance;
+then add an explicit reviewed acquisition contract and bounded native
+comparison. Until that work is complete, use the approved binary or snapshot
+profile. A full 20k replay is only justified after that reviewed profile is the
+one a deployment would actually serve.
