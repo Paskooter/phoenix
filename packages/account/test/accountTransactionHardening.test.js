@@ -218,3 +218,105 @@ test('OOBE setup does not persist a loop without its required LoopUpdated row', 
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+test('OTA redirects stay on the configured origin and drop Authorization on a follow-up', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'phoenix-ota-redirect-'));
+  let source;
+  let destination;
+  let account;
+  const previousOta = process.env.NET_ota;
+  try {
+    const sourceRequests = [];
+    const destinationRequests = [];
+    let mode = 'same-origin';
+    destination = http.createServer((req, res) => {
+      destinationRequests.push({ method: req.method, authorization: req.headers.authorization || null });
+      req.resume();
+      req.on('end', () => { res.writeHead(200, { 'content-type': 'application/json' }); res.end('{"destination":true}'); });
+    });
+    const destinationBase = await listen(destination);
+    source = http.createServer((req, res) => {
+      sourceRequests.push({ url: req.url, method: req.method, authorization: req.headers.authorization || null });
+      req.resume();
+      req.on('end', () => {
+        if (mode === 'same-origin' && req.url === '/') {
+          res.writeHead(307, { location: '/target' });
+          return res.end();
+        }
+        if (mode === 'cross-origin' && req.url === '/') {
+          res.writeHead(302, { location: `${destinationBase}/target` });
+          return res.end();
+        }
+        res.writeHead(200, { 'content-type': 'application/json' });
+        return res.end('{"source":true}');
+      });
+    });
+    const sourceBase = await listen(source);
+    process.env.NET_ota = sourceBase;
+    account = await createAccountService({ store: new Store(join(directory, 'store.json')) }).listen(0);
+    const accountBase = `http://127.0.0.1:${account.address().port}`;
+
+    const call = () => fetch(`${accountBase}/`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-amz-target': 'Update_20160301.GetUpdateFrom',
+        authorization: 'AWS4-HMAC-SHA256 Credential=synthetic-auth-marker',
+        connection: 'close',
+      },
+      body: '{}',
+    });
+
+    const sameOrigin = await call();
+    assert.equal(sameOrigin.status, 200);
+    assert.deepEqual(sourceRequests.map(({ url, method, authorization }) => ({ url, method, authorization })), [
+      { url: '/', method: 'POST', authorization: 'AWS4-HMAC-SHA256 Credential=synthetic-auth-marker' },
+      { url: '/target', method: 'POST', authorization: null },
+    ]);
+    assert.deepEqual(destinationRequests, []);
+
+    mode = 'cross-origin';
+    sourceRequests.length = 0;
+    const crossOrigin = await call();
+    assert.equal(crossOrigin.status, 502);
+    assert.deepEqual(destinationRequests, [], 'a redirect to another origin is rejected before contact');
+  } finally {
+    if (previousOta === undefined) delete process.env.NET_ota;
+    else process.env.NET_ota = previousOta;
+    await closeServer(account);
+    await closeServer(source);
+    await closeServer(destination);
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test('outbox publisher errors retain a safe code without credential-bearing text', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'phoenix-outbox-private-'));
+  try {
+    const store = new Store(join(directory, 'store.json'));
+    const outbox = new LoopUpdatedOutbox(store, {
+      publisher: async () => {
+        const error = new Error(
+          `request https://user:opaqueOne@example.test/ota?access_token=opaqueTwo&accessKeyId=opaqueSeven&safe=yes `
+          + 'Authorization: Bearer opaqueThree Credential=opaqueFour '
+          + 'x-api-key=opaqueFive X-Amz-Signature=opaqueSix X-Amz-Security-Token=opaqueNine '
+          + 'secretAccessKey=opaqueEight ' + 'x'.repeat(900),
+        );
+        error.code = 'ETIMEDOUT';
+        throw error;
+      },
+    });
+    outbox.record({ _id: 'private-loop', robot: 'private-robot', members: [] });
+    await outbox.draining;
+
+    const lastError = outbox.pending()[0].lastError;
+    assert.match(lastError, /^ETIMEDOUT:/);
+    assert.match(lastError, /request/);
+    assert.ok(lastError.length <= 512, 'publisher diagnostics are bounded');
+    for (const marker of ['opaqueOne', 'opaqueTwo', 'opaqueThree', 'opaqueFour', 'opaqueFive', 'opaqueSix', 'opaqueSeven', 'opaqueEight', 'opaqueNine']) {
+      assert.doesNotMatch(lastError, new RegExp(marker));
+    }
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
