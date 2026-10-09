@@ -30,6 +30,7 @@ import {
   createGqaAccountLookup,
   createGqaAttributionStore,
   createGqaFileAttributionStore,
+  readGqaAttributionAuthConfig,
   createGqaRetrieveAttributionRoute,
   createGqaWipeAttributionRoute,
 } from './gqaAccountAttribution.js';
@@ -101,6 +102,13 @@ function configuredAttribution(value) {
     return createGqaFileAttributionStore(value);
   }
   throw new TypeError('GQA attribution configuration must provide a store or collection');
+}
+
+function configuredAttributionAuth(value) {
+  if (value === undefined || value === null) return undefined;
+  if (typeof value === 'function') return { verifyCaller: value };
+  if (typeof value === 'object' && !Array.isArray(value)) return value;
+  throw new TypeError('GQA attribution authorization must provide verifyCaller or trustedInternal');
 }
 
 function sourceProfileWikipediaProvider(provider) {
@@ -197,6 +205,7 @@ export function createGqaMultiProviderProfile({
   skillId = GQA_MULTI_PROVIDER_SKILL_ID,
   account,
   attribution,
+  attributionAuth,
 } = {}) {
   const bingConfig = providerSection(bing, 'Bing');
   const wikipediaConfig = providerSection(wikipedia, 'Wikipedia');
@@ -204,6 +213,7 @@ export function createGqaMultiProviderProfile({
   const providerTimeouts = configuredTimeouts(timeouts);
   const accountLookup = configuredAccountLookup(account);
   const attributionStore = configuredAttribution(attribution);
+  const attributionAuthorization = configuredAttributionAuth(attributionAuth);
 
   const bingProvider = bingEndpointConfigured(bingConfig.endpoint)
     ? createBingProvider({
@@ -262,6 +272,7 @@ export function createGqaMultiProviderProfile({
     timeouts: Object.freeze(providerTimeouts),
     accountLookup,
     attribution: attributionStore,
+    attributionAuth: attributionAuthorization,
   });
 }
 
@@ -286,11 +297,16 @@ export function createGqaMultiProviderService(options = {}) {
     'POST /v1/main': route,
   };
   if (selected.attribution) {
-    routes['POST /wipeID'] = createGqaWipeAttributionRoute({ attribution: selected.attribution });
+    routes['POST /wipeID'] = createGqaWipeAttributionRoute({
+      attribution: selected.attribution,
+      accountLookup: selected.accountLookup,
+      attributionAuth: selected.attributionAuth,
+    });
     if (selected.accountLookup) {
       routes['POST /retrieveAtt'] = createGqaRetrieveAttributionRoute({
         accountLookup: selected.accountLookup,
         attribution: selected.attribution,
+        attributionAuth: selected.attributionAuth,
       });
     }
   }
@@ -304,6 +320,9 @@ export function createGqaMultiProviderService(options = {}) {
 export function startGqaMultiProviderService(port, options = {}) {
   const { env = process.env, ...overrides } = options;
   const config = readGqaMultiProviderProfileConfig(env);
+  const attributionAuth = Object.prototype.hasOwnProperty.call(overrides, 'attributionAuth')
+    ? overrides.attributionAuth
+    : readGqaAttributionAuthConfig(env);
   const account = Object.prototype.hasOwnProperty.call(overrides, 'account')
     ? overrides.account
     : env.ETCO_server_accountService
@@ -312,6 +331,7 @@ export function startGqaMultiProviderService(port, options = {}) {
   return createGqaMultiProviderService({
     ...config,
     ...overrides,
+    attributionAuth,
     account,
     bing: { ...config.bing, ...(overrides.bing || {}) },
     wikipedia: { ...config.wikipedia, ...(overrides.wikipedia || {}) },

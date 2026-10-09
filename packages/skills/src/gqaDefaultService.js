@@ -11,6 +11,7 @@ import {
   createGqaMultiProviderProfile,
   readGqaMultiProviderProfileConfig,
 } from './gqaMultiProviderService.js';
+import { readGqaAttributionAuthConfig } from './gqaAccountAttribution.js';
 
 export const GQA_DEFAULT_PROFILE = 'multi-provider';
 export const GQA_DEFAULT_PROFILE_ENV = 'PHOENIX_GQA_DEFAULT_PROFILE';
@@ -33,9 +34,13 @@ function own(options, key) {
  */
 export function createGqaDefaultSkill({ env = process.env, ...options } = {}) {
   const sourceConfig = readGqaMultiProviderProfileConfig(env);
+  const attributionAuth = own(options, 'attributionAuth')
+    ? options.attributionAuth
+    : readGqaAttributionAuthConfig(env);
   const merged = {
     ...sourceConfig,
     ...options,
+    attributionAuth,
     // Preserve environment values while allowing tests/deployments to
     // replace an individual provider with an explicitly supplied seam.
     bing: { ...sourceConfig.bing, ...(options.bing || {}) },
