@@ -11,7 +11,7 @@ import { readFileSync } from 'node:fs';
 import { parseRequest } from '../src/requestParser.js';
 import {
   createExternalAgentProvider, createDisabledExternalAgentProvider,
-  attachExternalResult, DECOY_INTENT, DISABLED_EXTERNAL_ERROR, EXTERNAL_STATE,
+  attachExternalResult, ASYNC_PROVIDER_ERROR, DECOY_INTENT, DISABLED_EXTERNAL_ERROR, EXTERNAL_AGENT_ERROR, EXTERNAL_STATE,
   EXTERNAL_ATTACHMENT_REVISION, DEFAULT_EXTERNAL_ATTACHMENT_REVISION, resolveExternalAttachmentRevision,
 } from '../src/externalAgents.js';
 
@@ -28,6 +28,10 @@ test.after(() => { if (selectedRuntime !== undefined) process.env.PHOENIX_NLU_RU
 
 const recordings = JSON.parse(readFileSync(new URL('./fixtures/fallback-provider-recordings.json', import.meta.url)));
 const ext = recordings.external;
+// DIVERGENCES.md N-hardening-external: a failed agent records one generic
+// error instead of the underlying message (the recording keeps the old text).
+const expectedExternal = structuredClone(ext.expectedExternal);
+expectedExternal.agent_missing.error = 'External agent unavailable';
 
 function recordedProvider() {
   return createExternalAgentProvider({
@@ -66,14 +70,14 @@ test('a replaceable provider preserves the archived external result structure', 
   assert.equal(result.intent, 'timerValue');
   assert.deepEqual(result.entities, { hours: 'null', minutes: '5', seconds: 'null', domain: 'timer' });
   // DialogflowClient.ts:50-55 — the default agent result plus the external map.
-  assert.deepEqual(result.external, ext.expectedExternal);
+  assert.deepEqual(result.external, expectedExternal);
   // The successful agents carry { rules, intent, entities } (DialogflowClient.ts:100-104).
   assert.deepEqual(result.external.agent_one, { rules: ['launch'], intent: 'doesJiboLikeThing', entities: { GeneralLikes: 'Penguin' } });
   assert.deepEqual(result.external.agent_two, { rules: ['globals/mim_repeat'], intent: 'repeat', entities: { domain: 'mim_global' } });
   // A failed agent access records the error and empty intent/entities (DialogflowClient.ts:68-75).
   assert.deepEqual(result.external.agent_missing, {
     rules: ['clock/timer_set_value'], intent: '', entities: {},
-    error: "Error accessing Dialogflow agent 'agent_missing': no archived agent available",
+    error: 'External agent unavailable',
   });
 });
 
@@ -85,7 +89,7 @@ test('an enabled provider emits the default-agent + external envelope itself', (
     rules: ['launch'],
     intent: 'doesJiboLikeThing',
     entities: { GeneralLikes: 'Penguin' },
-    external: ext.expectedExternal,
+    external: expectedExternal,
   });
   // Without external agents the envelope is the default agent only (DialogflowClient.ts:52-54).
   const bare = provider.handleNLU({ text: 'do you like penguins', rules: ['launch'] });
@@ -188,4 +192,60 @@ test('parseRequest selects the attachment revision per request', () => {
     () => parseRequest({ text: 'five minutes', rules: ['clock/timer_set_value'] }, { externalAttachmentRevision: 'nope' }),
     /Unsupported external-agent attachment revision/,
   );
+});
+
+// Synthetic resolvers; SECRET_SENTINEL stands in for provider-internal detail.
+const SECRET_SENTINEL = 'SECRET_SENTINEL';
+
+async function unhandledRejectionsDuring(fn) {
+  const seen = [];
+  const listener = reason => seen.push(reason);
+  process.on('unhandledRejection', listener);
+  try {
+    fn();
+    await new Promise(resolve => setTimeout(resolve, 20));
+  } finally {
+    process.off('unhandledRejection', listener);
+  }
+  return seen;
+}
+
+test('a failing agent records a generic error without provider or agent detail', async () => {
+  assert.equal(EXTERNAL_AGENT_ERROR, 'External agent unavailable');
+  const provider = createExternalAgentProvider({
+    enabled: true,
+    agents: {
+      default: () => ({ intent: 'ok', entities: {} }),
+      throws: () => { throw new Error(SECRET_SENTINEL); },
+      rejects: () => Promise.reject(new Error(SECRET_SENTINEL)),
+      array: () => [{ intent: SECRET_SENTINEL }],
+    },
+  });
+  const request = {
+    text: 'synthetic', rules: ['launch'],
+    external: { throws: { rules: ['launch'] }, rejects: { rules: ['launch'] }, array: { rules: ['launch'] }, nullAgent: null },
+  };
+  let result;
+  const unhandled = await unhandledRejectionsDuring(() => {
+    result = attachExternalResult(request, { intent: 'ok', entities: {}, rules: ['launch'] }, provider);
+  });
+  assert.deepEqual(unhandled, []);
+  for (const name of ['throws', 'rejects', 'array']) {
+    assert.deepEqual(result.external[name], { rules: ['launch'], intent: '', entities: {}, error: EXTERNAL_AGENT_ERROR }, name);
+  }
+  // A null agent entry is a failed agent, not a TypeError for the whole parse.
+  assert.deepEqual(result.external.nullAgent, { rules: undefined, intent: '', entities: {}, error: EXTERNAL_AGENT_ERROR });
+  assert.equal(JSON.stringify(result).includes(SECRET_SENTINEL), false);
+});
+
+test('an async provider on the synchronous path fails loudly without an unhandled rejection', async () => {
+  const asyncProvider = { handleNLU: () => Promise.reject(new Error(SECRET_SENTINEL)) };
+  let thrown;
+  const unhandled = await unhandledRejectionsDuring(() => {
+    try {
+      attachExternalResult({ text: 'synthetic', rules: [], external: {} }, { intent: 'ok', entities: {}, rules: [] }, asyncProvider);
+    } catch (error) { thrown = error; }
+  });
+  assert.equal(thrown?.message, ASYNC_PROVIDER_ERROR);
+  assert.deepEqual(unhandled, []);
 });
