@@ -3,15 +3,20 @@
 // file with atomic writes (tmp + rename) is plenty at household scale and keeps Phoenix
 // zero-dependency. Collections are Maps keyed by _id; every mutation schedules a flush.
 
-import { readFileSync, writeFileSync, renameSync, existsSync, mkdirSync, openSync, closeSync, unlinkSync, fsyncSync } from 'node:fs';
+import { readFileSync, writeFileSync, renameSync, existsSync, mkdirSync, openSync, closeSync, unlinkSync, fsyncSync, readdirSync, statSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
-import { dirname, join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { reconcileHomeAssistantBindings } from './integrations/homeAssistant/bindings.js';
 
 const DEFAULT_FILE = join(dirname(fileURLToPath(import.meta.url)), '../data/store.json');
 // `settings` holds per-account report-skill PersonalReportSettingsData (keyed by _id = accountId).
 // `oauthClients` holds the admin OAuth-client registry (OauthClients_20171108), keyed by _id.
+// flush() names its temporary snapshot `<file>.<uuid>.tmp`. One older than this grace period
+// was abandoned (a kill between write and rename); a younger one may belong to another process
+// (for example scripts/portal-grant-admin.mjs) that is flushing the same store right now.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const STALE_TEMP_AGE_MS = 60 * 1000;
 const COLLECTIONS = ['accounts', 'loops', 'tokens', 'sessions', 'settings', 'notificationOutbox', 'emailResets', 'emailVerifications', 'phoneVerifications', 'oauthClients', 'webPushSubscriptions', 'homeAssistantInstallations', 'homeAssistantCodes', 'homeAssistantActions'];
 
 export class Store {
@@ -31,6 +36,33 @@ export class Store {
       }
     } catch (err) {
       throw new Error(`account store unreadable (${this.file}): ${err.message}`);
+    }
+    // The parsed committed snapshot is authoritative. A missing primary is left alone above,
+    // so a possible first-snapshot recovery artifact is not discarded blindly.
+    this._cleanupStaleTemps();
+  }
+
+  _cleanupStaleTemps() {
+    const directory = dirname(this.file);
+    const prefix = `${basename(this.file)}.`;
+    let entries;
+    try {
+      entries = readdirSync(directory, { withFileTypes: true });
+    } catch (error) {
+      if (error.code === 'ENOENT') return;
+      throw error;
+    }
+    const cutoff = Date.now() - STALE_TEMP_AGE_MS;
+    for (const entry of entries) {
+      if (!entry.isFile() || !entry.name.startsWith(prefix) || !entry.name.endsWith('.tmp')) continue;
+      if (!UUID_RE.test(entry.name.slice(prefix.length, -'.tmp'.length))) continue;
+      const path = join(directory, entry.name);
+      try {
+        if (statSync(path).mtimeMs > cutoff) continue;
+        unlinkSync(path);
+      } catch (error) {
+        if (error.code !== 'ENOENT') throw error;
+      }
     }
   }
 
