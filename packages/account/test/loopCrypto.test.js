@@ -30,13 +30,26 @@ test('browser RSA unwrap matches stock Node 6 RSA_PKCS1_PADDING; wrong key/lengt
   assert.throws(() => other.unwrap(wrap(exchange)), /could not unlock/);
 });
 
+// A wrong AES key yields a random-looking last block, which still ends in valid
+// PKCS#7 padding about 1 time in 256, so a random wrong key cannot be expected
+// to fail. This synthetic pair was checked to fail padding for the JPEG fixture.
+const fixedPhotoKey = Uint8Array.from({ length: 32 }, (_, i) => i);
+const fixedWrongPhotoKey = Uint8Array.from({ length: 32 }, (_, i) => 31 - i);
+function encryptPhoto(bytes) {
+  const cipher = createCipheriv('aes-256-cbc', bytes, Buffer.from(CONTENT_IV_POSITIONS.map((i) => bytes[i])));
+  return Buffer.concat([cipher.update(jpeg), cipher.final()]);
+}
+
 test('browser photo decryption exactly matches jibo-sts AES-CBC stream and key-derived IV', async () => {
-  const cipher = createCipheriv('aes-256-cbc', key, Buffer.from(CONTENT_IV_POSITIONS.map((i) => key[i])));
-  const ciphertext = Buffer.concat([cipher.update(jpeg), cipher.final()]);
+  const ciphertext = encryptPhoto(key);
   assert.deepEqual(Buffer.from(await decryptContent(webcrypto, ciphertext, key)), jpeg);
   assert.equal(contentType(await decryptContent(webcrypto, ciphertext, key)), 'image/jpeg');
-  await assert.rejects(decryptContent(webcrypto, ciphertext, new Uint8Array(randomBytes(32))));
-  assert.throws(() => contentType(ciphertext), /could not be decoded/);
+  const fixedCiphertext = encryptPhoto(fixedPhotoKey);
+  assert.deepEqual(Buffer.from(await decryptContent(webcrypto, fixedCiphertext, fixedPhotoKey)), jpeg);
+  await assert.rejects(decryptContent(webcrypto, fixedCiphertext, fixedWrongPhotoKey), { name: 'OperationError' });
+  // Random-key ciphertext starts with an MPEG frame sync (0xff, 0xe0..0xff)
+  // about 1 time in 2048 and would be sniffed as audio; this one starts 0xee 0x11.
+  assert.throws(() => contentType(fixedCiphertext), /could not be decoded/);
 });
 
 test('recovery format matches Android including newline base64; wrong passphrase/key length rejected', async () => {

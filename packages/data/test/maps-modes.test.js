@@ -127,9 +127,11 @@ test('D07/empty-reply: an empty provider body is returned as null so the relay s
 const realFetch = globalThis.fetch;
 const req = (port, q, method = 'GET') => realFetch(`http://127.0.0.1:${port}/v1/google_maps?${q}`, { method });
 
-async function withService(port, opts, fn) {
-  const srv = await createDataService(opts).listen(port);
-  try { return await fn(port); } finally { await new Promise((r) => srv.close(r)); }
+// Ephemeral port read back from the bound server: fixed ports here (7811-7813)
+// overlapped oauth.test.js (7812-7815) when the two files ran concurrently.
+async function withService(opts, fn) {
+  const srv = await createDataService(opts).listen(0);
+  try { return await fn(srv.address().port); } finally { await new Promise((r) => srv.close(r)); }
 }
 
 test('D07/runtime-modes: every CommuteMode reaches TomTom on its own travel mode', async () => {
@@ -141,7 +143,7 @@ test('D07/runtime-modes: every CommuteMode reaches TomTom on its own travel mode
   const priorKey = process.env.TOMTOM_API_KEY;
   process.env.TOMTOM_API_KEY = 'test-key';
   try {
-    await withService(7811, {}, async (port) => {
+    await withService({}, async (port) => {
       const want = { driving: 'car', transit: 'bus', bicycling: 'bicycle', walking: 'pedestrian' };
       for (const mode of COMMUTE_MODES) {
         wire.length = 0;
@@ -170,7 +172,7 @@ test('D07/runtime-modes: every CommuteMode reaches TomTom on its own travel mode
 
 test('D07/runtime-reject: out-of-range coords -> 400 text, provider untouched, nothing cached', async () => {
   let calls = 0;
-  await withService(7812, { mapsGet: async () => { calls += 1; return TOMTOM; } }, async (port) => {
+  await withService({ mapsGet: async () => { calls += 1; return TOMTOM; } }, async (port) => {
     const cases = [
       [JSON.stringify({ lat: 800, lon: 58.6 }), dest, 'Invalid latitude 800'],
       [origin, JSON.stringify({ lat: -65, lon: 654 }), 'Invalid longitude 654'],
@@ -194,7 +196,7 @@ test('D07/runtime-reject: out-of-range coords -> 400 text, provider untouched, n
 });
 
 test('D07/runtime-upstream-errors: empty body -> 502 Empty reply; HTTP error -> status + json body', async () => {
-  await withService(7813, {}, async (port) => {
+  await withService({}, async (port) => {
     const q = `origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(dest)}&mode=walking&skipCache=1`;
     // The provider refuses to call out without a key. Supply a synthetic one here
     // so the test does not depend on an untracked .env file.

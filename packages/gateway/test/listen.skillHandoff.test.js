@@ -67,6 +67,7 @@ async function turn(peer, {
   if (timeoutMap) global.setTimeout = (fn, ms, ...rest) => realSetTimeout(fn, timeoutMap[ms] || ms, ...rest);
   const frames = [];
   let gateway;
+  let bound;
   try {
     gateway = await createGateway({
       skills: [
@@ -79,7 +80,11 @@ async function turn(peer, {
       recordSpeechHistory: false, asrProvider: 'none', accountUrl: '',
     });
     await gateway.service.listen(0);
-    const port = gateway.service.server.address().port;
+    // listen(0) without a host binds `::` (dual-stack) where IPv6 exists and
+    // `0.0.0.0` on IPv4-only hosts; keep what was actually bound so callers can
+    // derive how this server reports the 127.0.0.1 client's address.
+    bound = gateway.service.server.address();
+    const { port } = bound;
     const ws = new WebSocket(`ws://127.0.0.1:${port}/v1/listen`, {
       headers: { authorization: `Bearer ${token()}`, 'x-jibo-transid': 'tid:h04' },
     });
@@ -98,7 +103,7 @@ async function turn(peer, {
       wait(8000),
     ]);
     if (settleMs) await wait(settleMs);
-    return { frames, types: () => frames.map((f) => f.type), requests: peer.requests, gateway };
+    return { frames, types: () => frames.map((f) => f.type), requests: peer.requests, gateway, bound };
   } finally {
     if (gateway) {
       for (const client of gateway.wss.clients) client.terminate();
@@ -136,8 +141,12 @@ test('launch: full request shape, trace defaults, and the action forwarded verba
     assert.deepEqual(Object.keys(req.body.data.result).sort(), ['asr', 'memo', 'nlu']);
     assert.equal(req.body.data.result.memo, null);
     assert.equal(req.body.data.result.asr.text, '');
+    // The robot connected to 127.0.0.1: a dual-stack (IPv6) listener sees it
+    // as an IPv4-mapped address, an IPv4-only listener sees it unchanged.
+    assert.ok(['IPv6', 'IPv4'].includes(out.bound.family), `unexpected bound family ${out.bound.family}`);
     assert.deepEqual(req.body.data.general, {
-      accountID: 'account-h04', robotID: 'robot-h04', lang: 'en', release: '1.8.0', remoteAddress: '::ffff:127.0.0.1',
+      accountID: 'account-h04', robotID: 'robot-h04', lang: 'en', release: '1.8.0',
+      remoteAddress: out.bound.family === 'IPv6' ? '::ffff:127.0.0.1' : '127.0.0.1',
     });
     // JiboHeaders defaults ride every skill call.
     assert.deepEqual({
