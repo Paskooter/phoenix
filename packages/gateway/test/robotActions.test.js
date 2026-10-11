@@ -21,8 +21,8 @@ const ROBOT_B = { id: 'synthetic-robot-b-account', accessKeyId: 'synthetic-robot
 const sign = (identity) => jwt.sign({ ...identity, exp: Math.floor(Date.now() / 1000) + 60 }, SECRET);
 // Admission waits on two Account round trips and three durable fsyncs, which a
 // loaded host can stretch past several seconds. No test relies on this default
-// elapsing: expiry tests pass an already-past deadline, block fsync on purpose,
-// or run the native deadline themselves with holdNativeDeadline().
+// elapsing: expiry tests pass an already-past deadline, move an injected bridge
+// clock past it, or run the native deadline themselves with holdNativeDeadline().
 const ANNOUNCE_DEADLINE_MS = 30_000;
 // A drain lease that cannot lapse while a test is still asserting on it.
 const DRAIN_LEASE_MS = 10 * 60_000;
@@ -66,12 +66,29 @@ async function fixture(t, overrides = {}) {
     response.end(JSON.stringify(identity ? { valid: true, id: identity.id, friendlyId: identity.friendlyId } : { valid: false }));
   });
   await new Promise(resolve => account.listen(0, '127.0.0.1', resolve));
-  const gateway = await createGateway({ disableAuth: false, hubTokenSecret: SECRET,
-    accountUrl: `http://127.0.0.1:${account.address().port}`, accountVerifyTimeoutMs: 1000,
-    parserURL: 'http://127.0.0.1:9', historyURL: 'http://127.0.0.1:9', skills: [],
-    recordLaunchHistory: false, recordSpeechHistory: false,
-    ...overrides, robotActions: { peerToken: PEER, heartbeatMs: 2000, ...overrides.robotActions },
-  });
+  // Remember the real interval callbacks scheduled during startup, so a test can
+  // run the bridge heartbeat at the moment a slow host could make it due.
+  const intervals = new Map();
+  const realSetInterval = globalThis.setInterval;
+  globalThis.setInterval = (callback, ...rest) => {
+    const handle = realSetInterval(callback, ...rest);
+    intervals.set(handle, callback);
+    return handle;
+  };
+  let gateway;
+  try {
+    gateway = await createGateway({ disableAuth: false, hubTokenSecret: SECRET,
+      accountUrl: `http://127.0.0.1:${account.address().port}`, accountVerifyTimeoutMs: 1000,
+      parserURL: 'http://127.0.0.1:9', historyURL: 'http://127.0.0.1:9', skills: [],
+      recordLaunchHistory: false, recordSpeechHistory: false,
+      ...overrides, robotActions: { peerToken: PEER, heartbeatMs: 2000, ...overrides.robotActions },
+    });
+  } finally { globalThis.setInterval = realSetInterval; }
+  const heartbeat = () => {
+    const tick = intervals.get(gateway.robotActions.timer);
+    assert.ok(tick, 'the bridge heartbeat interval was not captured');
+    tick();
+  };
   await gateway.service.listen(0, '127.0.0.1');
   const base = `http://127.0.0.1:${gateway.service.server.address().port}`;
   const socketBase = base.replace('http:', 'ws:');
@@ -108,16 +125,55 @@ async function fixture(t, overrides = {}) {
     return { identity, requestId, authorizationId: `11111111-1111-4111-8111-111111111111:${requestId}`,
       text: 'Synthetic test announcement.', deadline: now() + ANNOUNCE_DEADLINE_MS, ...extras };
   };
-  return { gateway, base, socketBase, adapter, state, directory, live, permissions, verification, authorization, connect, announce };
+  return { gateway, base, socketBase, adapter, state, directory, live, permissions, verification, authorization, connect, announce, heartbeat };
 }
 
 async function rejectUpgrade(url, token) {
   const socket = new WebSocket(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
   socket.on('error', () => {});
-  const [, response] = await once(socket, 'unexpected-response');
-  const status = response.statusCode;
-  response.resume(); socket.terminate();
-  return status;
+  // An accepted upgrade reports 101 rather than waiting forever for a refusal.
+  const settled = new AbortController();
+  const response = await Promise.race([
+    once(socket, 'unexpected-response', { signal: settled.signal }).then(([, refused]) => { refused.resume(); return refused; }),
+    once(socket, 'upgrade', { signal: settled.signal }).then(([accepted]) => accepted),
+  ]).finally(() => settled.abort());
+  socket.terminate();
+  return response.statusCode;
+}
+
+// One connection's frames are handled strictly in order: the server answers this
+// ping only after every earlier frame's 'message' handler has returned, and the
+// bridge handles receiver frames synchronously. Once the matching pong arrives,
+// whatever the earlier frames changed is visible, so "nothing changed" is
+// asserted after the frame was handled instead of after a hopeful sleep. The
+// pong also arrives after every frame the server had already sent on that
+// connection, so it is the delivery barrier before asserting nothing was sent.
+const processed = (socket) => new Promise((resolve, reject) => {
+  const payload = Buffer.from(randomUUID());
+  const settle = (error) => {
+    socket.off('pong', onPong); socket.off('close', onClose);
+    if (error) reject(error); else resolve();
+  };
+  const onPong = (data) => { if (payload.equals(data)) settle(); };
+  const onClose = () => settle(new Error('socket closed before the server handled its earlier frames'));
+  socket.on('pong', onPong); socket.once('close', onClose);
+  socket.ping(payload);
+});
+
+// lastActivityAt carries the activity clock's (Date.now) millisecond, so a
+// begin immediately followed by its end within the snapshot's own millisecond
+// would leave it numerically unchanged. Take the quiet snapshot, then wait until
+// that clock has moved past it, before any frame under test is sent: from then
+// on any activity, even such a pulse, must change lastActivityAt. A sleep after
+// sending cannot provide this. The bound only turns a stopped clock into a failure.
+async function quietActivity(f) {
+  const quiet = f.state().lastActivityAt;
+  const started = performance.now();
+  while (Date.now() <= quiet) {
+    if (performance.now() - started > 10_000) assert.fail('the activity clock did not move past the quiet snapshot');
+    await new Promise(resolve => setImmediate(resolve));
+  }
+  return quiet;
 }
 
 // Admission schedules the native deadline synchronously right after
@@ -158,13 +214,63 @@ function holdNativeDeadline(t, f) {
   return held;
 }
 
+// Ordinary voice waits at most voiceInterruptTimeoutMs for the native stop
+// acknowledgement. prepareVoice schedules that one timer synchronously, right
+// after sending the cancel, so capture it per call the same way. A held window
+// never elapses on its own: the test elapses it to prove refusal without an
+// acknowledgement, or leaves it held so only the acknowledgement can admit voice.
+function holdVoiceInterrupts(t, f) {
+  const bridge = f.gateway.robotActions;
+  const prepareVoice = bridge.prepareVoice;
+  const realSetTimeout = globalThis.setTimeout;
+  const windows = [];
+  const arrivals = [];
+  let taken = 0;
+  bridge.prepareVoice = function (...args) {
+    let window = null;
+    globalThis.setTimeout = (callback, ms, ...rest) => {
+      if (ms !== bridge.voiceInterruptTimeoutMs) return realSetTimeout(callback, ms, ...rest);
+      globalThis.setTimeout = realSetTimeout;
+      window = { callback, handle: realSetTimeout(() => {}, 2 ** 31 - 1), elapsed: false, settled: false, ready: undefined };
+      window.handle.unref();
+      return window.handle;
+    };
+    let pending;
+    try { pending = prepareVoice.apply(this, args); } finally { globalThis.setTimeout = realSetTimeout; }
+    if (window) {
+      pending.then(ready => { window.settled = true; window.ready = ready; }, () => { window.settled = true; });
+      window.elapse = () => {
+        assert.equal(window.settled, false, 'voice admission settled before its interrupt window elapsed');
+        window.elapsed = true;
+        clearTimeout(window.handle);
+        window.callback();
+      };
+      arrivals[windows.push(window) - 1]?.(window);
+    }
+    return pending;
+  };
+  t.after(() => { bridge.prepareVoice = prepareVoice; for (const window of windows) clearTimeout(window.handle); });
+  return {
+    windows,
+    // The next window in call order; a voice upgrade that settles before
+    // reaching it never waited for the native stop acknowledgement.
+    next(upgrade) {
+      const index = taken++;
+      const arrived = windows[index] ? Promise.resolve(windows[index])
+        : new Promise(resolve => { arrivals[index] = resolve; });
+      return Promise.race([arrived, upgrade.then(outcome => assert.fail(
+        `voice upgrade settled (${outcome}) without waiting for the native stop acknowledgement`))]);
+    },
+  };
+}
+
 const nextFrame = async (socket) => JSON.parse((await once(socket, 'message', { signal: AbortSignal.timeout(5000) }))[0].toString('utf8'));
 const result = (socket, frame, overrides = {}) => socket.send(JSON.stringify({ v: 1, type: 'action_result',
   request_id: frame.request_id, outcome: 'completed', confirmed: true, ...overrides }));
 
 test('native upgrade requires live matching robot claims; receiver cannot claim another identity', async t => {
   const f = await fixture(t);
-  const quiet = f.state().lastActivityAt;
+  const quiet = await quietActivity(f);
   for (const token of [null, sign({ id: ROBOT_A.id }), sign({ ...ROBOT_A, id: ROBOT_B.id }),
     sign({ ...ROBOT_A, friendlyId: ROBOT_B.friendlyId }), jwt.sign(ROBOT_A, SECRET)]) {
     assert.equal(await rejectUpgrade(`${f.socketBase}/v1/robot-actions`, token), 401);
@@ -251,7 +357,7 @@ test('supplied volume rejects before authorization, reservation, activity or nat
   const native = await f.connect();
   let announces = 0;
   native.on('message', data => { if (JSON.parse(data.toString()).type === 'announce') announces++; });
-  const quiet = f.state().lastActivityAt;
+  const quiet = await quietActivity(f);
   for (const volume of [0, 0.3, 1, 2, null]) {
     const response = await fetch(`${f.base}/internal/home-assistant/robot-action/announce`, {
       method: 'POST', headers: { 'content-type': 'application/json', 'x-phoenix-internal-token': PEER },
@@ -262,6 +368,7 @@ test('supplied volume rejects before authorization, reservation, activity or nat
   }
   assert.deepEqual(await f.gateway.robotActions.announce(f.announce(ROBOT_A, { volume: undefined })),
     { outcome: 'error', code: 'unsupported_volume' });
+  await processed(native);
   assert.equal(announces, 0);
   assert.equal(f.authorization.calls, 0);
   assert.equal(f.gateway.robotActions.jobs.size, 0);
@@ -277,7 +384,7 @@ test('final Account authorization rejects household transfer or permission chang
   const native = await f.connect();
   let announced = false;
   native.on('message', data => { if (JSON.parse(data.toString('utf8')).type === 'announce') announced = true; });
-  const quiet = f.state().lastActivityAt;
+  const quiet = await quietActivity(f);
   for (const code of ['revoked', 'permission_disabled']) {
     let release;
     f.verification.entered = false;
@@ -289,6 +396,7 @@ test('final Account authorization rejects household transfer or permission chang
     f.permissions.set(ROBOT_A.id, code);
     f.verification.gate = null; release();
     assert.deepEqual(await operation, { outcome: 'error', code });
+    await processed(native);
     assert.equal(announced, false);
     assert.equal(f.gateway.robotActions.jobs.size, 0);
     assert.equal(f.state().lastActivityAt, quiet);
@@ -321,6 +429,7 @@ test('two robots remain isolated; native busy, stale status, invalid input and e
 
 test('voice excludes reverse jobs and interrupts announced speech only after native stop ack', async t => {
   const f = await fixture(t);
+  const interrupts = holdVoiceInterrupts(t, f);
   const native = await f.connect();
   const voice = new WebSocket(`${f.socketBase}/v1/listen`, { headers: { Authorization: `Bearer ${sign(ROBOT_A)}` } });
   await once(voice, 'open');
@@ -337,11 +446,15 @@ test('voice excludes reverse jobs and interrupts announced speech only after nat
   nextVoice.on('open', () => { opened = true; });
   const voiceOpened = once(nextVoice, 'open');
   assert.deepEqual(await cancellation, { v: 1, type: 'cancel', request_id: frame.request_id, reason: 'voice' });
+  // The interrupt window is held, so only the acknowledgement below can admit voice.
+  const window = await interrupts.next(voiceOpened);
+  assert.equal(window.settled, false, 'voice admission settled before native speech stopped');
   assert.equal(opened, false, 'voice started before native speech stopped');
   assert.equal(f.state().active['robot-action'], 1);
   result(native, frame, { outcome: 'uncertain', confirmed: false, code: 'interrupted' });
   assert.deepEqual(await operation, { outcome: 'uncertain', code: 'interrupted' });
   await voiceOpened;
+  assert.deepEqual([window.elapsed, window.ready], [false, true], 'the native stop acknowledgement admitted voice');
   assert.equal(f.state().active['robot-action'], 0);
   const nextReply = nextFrame(nextVoice); nextVoice.send('invalid JSON'); await nextReply;
   nextVoice.terminate();
@@ -368,11 +481,13 @@ test('lost connection preserves admission until native idle after deadline; reco
   assert.equal(f.state().active['robot-action'], 1, 'expiry alone cannot prove native speech stopped');
   replacement.send(JSON.stringify({ v: 1, type: 'status', busy: false, active_request_id: null }));
   await eventually(() => f.state().active['robot-action'] === 0, 'fresh native idle did not release unknown speech');
+  await processed(replacement);
   assert.equal(replayed, false);
 });
 
 test('a hung native deadline stop blocks deployment and subsequent voice until physical idle', async t => {
   const f = await fixture(t, { robotActions: { voiceInterruptTimeoutMs: 30 } });
+  const interrupts = holdVoiceInterrupts(t, f);
   const native = await f.connect();
   const deadline = holdNativeDeadline(t, f);
   const incoming = nextFrame(native);
@@ -385,7 +500,10 @@ test('a hung native deadline stop blocks deployment and subsequent voice until p
   assert.deepEqual(await operation, { outcome: 'uncertain', code: 'timeout' });
   assert.equal((await cancellation).reason, 'deadline');
   assert.equal(f.state().active['robot-action'], 1);
-  assert.equal(await rejectUpgrade(`${f.socketBase}/v1/listen`, sign(ROBOT_A)), 503);
+  const rejected = rejectUpgrade(`${f.socketBase}/v1/listen`, sign(ROBOT_A));
+  // The hung native never acknowledges; the whole interrupt window elapses.
+  (await interrupts.next(rejected)).elapse();
+  assert.equal(await rejected, 503);
   assert.equal(f.state().active['robot-action'], 1);
   assert.equal(f.state().active.voice, 0);
   assert.deepEqual(await f.adapter.announce(f.announce()), { outcome: 'error', code: 'busy' });
@@ -403,14 +521,14 @@ test('retained native speech restores one quarantine during drain and survives r
   assert.equal(f.state().active['robot-action'], 1);
   assert.equal(f.state().drainId, 'recovery-drain');
   assert.equal(f.gateway.robotActions.jobs.get(ROBOT_A.id).recovered, true);
-  const quiet = f.state().lastActivityAt;
+  const quiet = await quietActivity(f);
   let replayed = false;
   const watchReplay = data => { if (JSON.parse(data.toString()).type === 'announce') replayed = true; };
   native.on('message', watchReplay);
   for (let i = 0; i < 3; i++) {
     native.send(JSON.stringify({ v: 1, type: 'status', busy: true, active_request_id: input.requestId }));
     assert.equal((await f.adapter.status(ROBOT_A)).busy, true);
-    await delay(55);
+    await processed(native);
     assert.equal(f.state().active['robot-action'], 1);
     assert.equal(f.state().lastActivityAt, quiet, 'unchanged retained work is not new activity');
   }
@@ -423,27 +541,31 @@ test('retained native speech restores one quarantine during drain and survives r
   assert.equal(f.state().lastActivityAt, quiet);
   result(replacement, { request_id: input.requestId }, { outcome: 'rejected', confirmed: false, code: 'busy' });
   replacement.send(JSON.stringify({ v: 1, type: 'status', busy: true, active_request_id: null }));
-  await delay(20);
+  await processed(replacement);
   assert.equal(f.state().active['robot-action'], 1, 'neither rejection nor generic busy proves retained speech stopped');
   replacement.send(JSON.stringify({ v: 1, type: 'status', busy: false, active_request_id: null }));
   await eventually(() => f.state().active['robot-action'] === 0, 'fresh native idle did not release recovered execution');
   assert.equal(f.gateway.robotActions.jobs.size, 0);
   assert.deepEqual(await f.adapter.announce(input), { outcome: 'error', code: 'duplicate_request' });
+  await processed(replacement);
   assert.equal(replayed, false);
   unlinkSync(drainFile);
 });
 
 test('recovered speech blocks voice until a correlated native stop acknowledgement', async t => {
   const f = await fixture(t, { robotActions: { voiceInterruptTimeoutMs: 40 } });
+  const interrupts = holdVoiceInterrupts(t, f);
   const requestId = randomUUID();
   const native = await f.connect(ROBOT_A, { activeRequestId: requestId });
   const foreignNative = await f.connect(ROBOT_B);
   result(foreignNative, { request_id: requestId }, { outcome: 'uncertain', confirmed: false, code: 'interrupted' });
-  await delay(10);
+  await processed(foreignNative);
   assert.equal(f.state().active['robot-action'], 1, 'another robot cannot release recovered speech');
   const cancellation = nextFrame(native);
   const rejected = rejectUpgrade(`${f.socketBase}/v1/listen`, sign(ROBOT_A));
   assert.deepEqual(await cancellation, { v: 1, type: 'cancel', request_id: requestId, reason: 'voice' });
+  // No acknowledgement arrives; the whole interrupt window elapses.
+  (await interrupts.next(rejected)).elapse();
   assert.equal(await rejected, 503);
   assert.equal(f.state().active['robot-action'], 1);
   assert.equal(f.state().active.voice, 0);
@@ -454,9 +576,13 @@ test('recovered speech blocks voice until a correlated native stop acknowledgeme
   let opened = false; voice.on('open', () => { opened = true; });
   const voiceOpened = once(voice, 'open');
   assert.deepEqual(await nextCancellation, { v: 1, type: 'cancel', request_id: requestId, reason: 'voice' });
+  // This window is held, so only the correlated acknowledgement can admit voice.
+  const window = await interrupts.next(voiceOpened);
+  assert.equal(window.settled, false, 'voice admission settled before the correlated stop acknowledgement');
   assert.equal(opened, false);
   result(replacement, { request_id: requestId }, { outcome: 'uncertain', confirmed: false, code: 'interrupted' });
   await voiceOpened;
+  assert.deepEqual([window.elapsed, window.ready], [false, true], 'the correlated acknowledgement admitted voice');
   assert.equal(f.state().active['robot-action'], 0);
   assert.equal(f.state().active.voice, 1);
   const reply = nextFrame(voice); voice.send('invalid JSON'); await reply;
@@ -466,9 +592,9 @@ test('recovered speech blocks voice until a correlated native stop acknowledgeme
 test('ordinary native busy state remains distinct from recovered announcement activity', async t => {
   const f = await fixture(t);
   const native = await f.connect(ROBOT_A, { busy: true });
-  const quiet = f.state().lastActivityAt;
+  const quiet = await quietActivity(f);
   native.send(JSON.stringify({ v: 1, type: 'status', busy: true, active_request_id: null }));
-  await delay(55);
+  await processed(native);
   assert.deepEqual(f.state().active, {});
   assert.equal(f.state().lastActivityAt, quiet);
   assert.equal(f.gateway.robotActions.jobs.size, 0);
@@ -505,7 +631,7 @@ test('changing recovery IDs retain one reservation and bound transport tombstone
   const operation = f.adapter.announce(f.announce());
   const original = await incoming;
   const job = f.gateway.robotActions.jobs.get(ROBOT_A.id);
-  const quiet = f.state().lastActivityAt;
+  const quiet = await quietActivity(f);
   let cancels = 0;
   native.on('message', data => { if (JSON.parse(data.toString()).type === 'cancel') cancels++; });
   for (let i = 0; i < 10; i++) {
@@ -520,7 +646,7 @@ test('changing recovery IDs retain one reservation and bound transport tombstone
   }
   assert.deepEqual(await operation, { outcome: 'uncertain', code: 'confirmation_lost' });
   result(native, original);
-  await delay(160);
+  await processed(native);
   assert.equal(f.state().active['robot-action'], 1, 'an old UUID result cannot release replacement recovery');
   assert.equal(deadline.cleared, true, 'a replacement UUID must cancel the old request deadline');
   assert.equal(cancels, 0, 'the old request deadline cannot cancel a replacement UUID');
@@ -533,10 +659,14 @@ test('startup restores durable execution while native is entirely offline', asyn
   const f = await fixture(t, { robotActions: { voiceInterruptTimeoutMs: 30 }, setupRuntime: directory => {
     assert.equal(new RobotActionReservations({ runtimeDir: directory }).reserve(ROBOT_A, requestId), true);
   } });
+  const interrupts = holdVoiceInterrupts(t, f);
   assert.equal(f.state().active['robot-action'], 1);
   assert.equal(f.gateway.robotActions.jobs.get(ROBOT_A.id).session, null);
   assert.deepEqual(await f.adapter.status(ROBOT_A), { online: false, busy: true, announcements_supported: false });
-  assert.equal(await rejectUpgrade(`${f.socketBase}/v1/listen`, sign(ROBOT_A)), 503);
+  const rejected = rejectUpgrade(`${f.socketBase}/v1/listen`, sign(ROBOT_A));
+  // No native session can acknowledge; the whole interrupt window elapses.
+  (await interrupts.next(rejected)).elapse();
+  assert.equal(await rejected, 503);
   assert.equal(f.state().active['robot-action'], 1);
   const native = await f.connect(ROBOT_A, { activeRequestId: requestId });
   assert.equal(f.state().active['robot-action'], 1, 'reconnect cannot count loaded execution twice');
@@ -595,6 +725,7 @@ test('voice cancels durable preparation while final Account authorization is pen
   await once(voice, 'open');
   f.authorization.gate = null; release();
   assert.deepEqual(await operation, { outcome: 'error', code: 'busy' });
+  await processed(native);
   assert.equal(announces, 0);
   assert.equal(new RobotActionReservations({ runtimeDir: f.directory }).entries.size, 0);
   const reply = nextFrame(voice); voice.send('invalid JSON'); await reply;
@@ -602,18 +733,32 @@ test('voice cancels durable preparation while final Account authorization is pen
 });
 
 test('fsync latency cannot dispatch an announcement after its deadline', async t => {
-  const f = await fixture(t);
+  let now = Date.now();
+  const f = await fixture(t, { robotActions: { now: () => now } });
   const native = await f.connect();
   let announces = 0;
   native.on('message', data => { if (JSON.parse(data.toString()).type === 'announce') announces++; });
   const store = f.gateway.robotActions.reservations;
+  // The bridge clock jumps only below, so the jump must stay as coherent with the
+  // transport as real elapsed time: under the heartbeat's 2 x 2000 ms staleness
+  // bound. The 30 s default deadline made the robot's last pong look 30 s old, and
+  // a heartbeat falling due before the barrier closed the socket. 1000 ms adds no
+  // host window: the fixture's Account bound is already 1000 ms.
+  const input = f.announce(ROBOT_A, { deadline: now + 1000 });
   let delayed = false;
   store.fs = { ...fs, fsyncSync(fd) {
     fs.fsyncSync(fd);
-    if (!delayed) { delayed = true; Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 350); }
+    // The durable reserve's first fsync takes the bridge's clock 50 ms past the
+    // deadline (formerly a real 350 ms block against a 300 ms deadline), so host
+    // speed can neither expire the input earlier nor leave it unexpired.
+    if (!delayed) { delayed = true; now = input.deadline + 50; }
   } };
-  const input = f.announce(ROBOT_A, { deadline: Date.now() + 300 });
   assert.deepEqual(await f.gateway.robotActions.announce(input), { outcome: 'error', code: 'expired' });
+  assert.equal(delayed, true, 'the deadline must pass during durable preparation');
+  // A slow durable fsync can make the real heartbeat due right at expiry: run it
+  // now, then the delivery barrier must still complete on the open socket.
+  f.heartbeat();
+  await processed(native);
   assert.equal(announces, 0);
   assert.equal(f.gateway.robotActions.jobs.size, 0);
   assert.equal(new RobotActionReservations({ runtimeDir: f.directory }).entries.size, 0);
@@ -632,6 +777,7 @@ test('failed durable reserve sends no native announcement and retains uncertaint
       fs.fsyncSync(fd);
     } };
   assert.deepEqual(await f.adapter.announce(f.announce()), { outcome: 'error', code: 'unavailable' });
+  await processed(native);
   assert.equal(announces, 0);
   assert.equal(f.state().active['robot-action'], 1);
   assert.equal(new RobotActionReservations({ runtimeDir: f.directory }).loadFault, true);
@@ -673,6 +819,7 @@ test('telemetry latency after admission cannot send an already-expired native fr
   assert.deepEqual(await f.gateway.robotActions.announce(f.announce(ROBOT_A, { deadline })),
     { outcome: 'error', code: 'expired' });
   assert.equal(delayed, true);
+  await processed(native);
   assert.equal(announces, 0);
   assert.equal(f.state().active['robot-action'], 0);
   assert.equal(new RobotActionReservations({ runtimeDir: f.directory }).entries.size, 0);
@@ -681,11 +828,11 @@ test('telemetry latency after admission cannot send an already-expired native fr
 test('idle sockets, status polls and heartbeats preserve quiet minute; drain blocks dispatch only', async t => {
   const f = await fixture(t);
   const native = await f.connect();
-  const quiet = f.state().lastActivityAt;
+  const quiet = await quietActivity(f);
   for (let i = 0; i < 3; i++) {
     native.send(JSON.stringify({ v: 1, type: 'status', busy: false, active_request_id: null }));
     assert.deepEqual(await f.adapter.status(ROBOT_A), { online: true, busy: false, announcements_supported: true });
-    await delay(55);
+    await processed(native);
   }
   assert.deepEqual(f.state().active, {});
   assert.equal(f.state().lastActivityAt, quiet);

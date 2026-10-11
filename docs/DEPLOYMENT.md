@@ -1772,16 +1772,8 @@ The native launcher defaults `ETCO_log_storeAsrAudio=false`, which declines
 legacy ASR diagnostic upload requests and rejects previously issued ASR upload
 URLs. Keep `PHOENIX_ASR_CAPTURE_DIR` unset to avoid the separate, opt-in gateway
 audio capture. This policy does not remove voice enrollment data or other robot
-media. For the public edge, install
-[`deploy/nginx/phoenix-observability.conf`](../deploy/nginx/phoenix-observability.conf)
-in nginx's `http` context and enable its dedicated access/error paths in each
-Phoenix virtual host as described in that file. Create `/var/log/nginx/phoenix`
-and install [`deploy/logrotate/phoenix-nginx`](../deploy/logrotate/phoenix-nginx)
-for seven-day rotation without changing other sites' logs. Validate with
-`nginx -t` before reloading. The access format records upstream status and
-Classic operation names without request bodies, authorization headers, cookies,
-client addresses, or query strings. Nginx's native error log can include request
-URLs, so keep the directory restricted to operators.
+media. For the public edge's dedicated nginx access/error logs, follow
+[Dedicated nginx edge logs](#dedicated-nginx-edge-logs) below.
 
 For a deployment health sweep, use the host-local backends before testing nginx:
 
@@ -1798,6 +1790,129 @@ done
 Expected: HTTP 200 for healthy services; most bodies are `ok`, while History's
 body is its source-shaped status object. A failure or timeout is a private
 service problem, not an nginx problem.
+
+### Dedicated nginx edge logs
+
+Install
+[`deploy/nginx/phoenix-observability.conf`](../deploy/nginx/phoenix-observability.conf)
+in nginx's `http` context and enable its dedicated access/error paths in each
+Phoenix virtual host as described in that file. The access format records
+upstream status and Classic operation names without request bodies,
+authorization headers, cookies, client addresses, or query strings. Nginx's
+native error log can include request URLs, so only the nginx worker user and
+operators may read these log files.
+
+Directory and file permissions do different jobs here. The nginx master opens
+the logs as root at startup, but after each rotation (the
+`invoke-rc.d nginx rotate` hook in
+[`deploy/logrotate/phoenix-nginx`](../deploy/logrotate/phoenix-nginx), or
+`nginx -s reopen`) every **worker reopens them as the unprivileged worker user**.
+That user needs execute (traverse) permission on each directory in the path; it
+needs neither read permission on the directory nor membership in `adm`.
+A `0750 root:adm` directory denies traverse to a worker outside `adm`, such as
+Debian's `www-data`: the reopen fails with `Permission denied` and the worker
+keeps writing to the rotated file, which becomes a deleted inode once logrotate
+compresses it. The new `access.log` then stays empty while requests continue.
+
+Before any Phoenix server block references these paths (and before `nginx -t`,
+which creates missing log files as root, normally with mode `0644`), create the
+directory with traverse-only access for other accounts and pre-create both files
+with the owner, group, and mode of the logrotate `create 0640 www-data adm` line:
+
+**Operator step — not run here:**
+
+```sh
+sudo install -d -o root -g adm -m 0751 /var/log/nginx/phoenix
+sudo touch /var/log/nginx/phoenix/access.log /var/log/nginx/phoenix/error.log
+sudo chown www-data:adm /var/log/nginx/phoenix/access.log /var/log/nginx/phoenix/error.log
+sudo chmod 0640 /var/log/nginx/phoenix/access.log /var/log/nginx/phoenix/error.log
+```
+
+Replace `www-data` with the actual worker user, here and in the logrotate
+`create` line (many non-Debian packages use `nginx`). The block is idempotent:
+`touch` never truncates an existing log. `0751` lets other local accounts
+traverse the directory but not list it; the files' `0640` mode is what keeps
+request data unreadable to them. Do not make the log files or `/var/log/nginx`
+world-readable, do not `chmod -R` the nginx log tree, and do not add the worker
+to `adm` (that group can read the host's other logs). Then install
+[`deploy/logrotate/phoenix-nginx`](../deploy/logrotate/phoenix-nginx) as
+`/etc/logrotate.d/phoenix-nginx` for seven-day rotation without changing other
+sites' logs, and validate with `nginx -t` before reloading.
+
+#### Verify the running worker can reopen the logs
+
+Check the user the running workers actually have; the `nginx: worker process`
+lines show it:
+
+**Operator step — not run here:**
+
+```sh
+ps -o user:32=,pid=,args= -C nginx
+```
+
+As that user, confirm that both files can be reopened for writing. `test -w`
+resolves every path component as the worker, so a missing traverse bit fails here
+even though root can still read everything. Both labels must print, and the
+`find` must print nothing (no log file is accessible to other accounts):
+
+**Operator step — not run here:**
+
+```sh
+sudo -u www-data test -w /var/log/nginx/phoenix/access.log && echo access-ok
+sudo -u www-data test -w /var/log/nginx/phoenix/error.log && echo error-ok
+sudo find /var/log/nginx/phoenix -type f -perm /o=rwx
+```
+
+`namei -l /var/log/nginx/phoenix/access.log` shows which component lacks `x`.
+After a rotation, confirm that no nginx process still holds a rotated or deleted
+log:
+
+**Operator step — not run here:**
+
+```sh
+for pid in $(pgrep -x nginx); do sudo ls -l "/proc/$pid/fd"; done | grep -F /var/log/nginx/phoenix/
+```
+
+The list must not be empty, and every target must end in
+`/var/log/nginx/phoenix/access.log` or `/var/log/nginx/phoenix/error.log`. A
+target ending in `.1` or `(deleted)` is a process that did not reopen; nginx's
+main error log (`/var/log/nginx/error.log`) then contains a line such as:
+
+```text
+open() "/var/log/nginx/phoenix/access.log" failed (13: Permission denied)
+```
+
+An empty or unchanged `access.log` is not evidence that no requests arrived:
+send one request to a Phoenix host and confirm that the live file grows.
+
+#### Correct an existing directory
+
+If a host already shows the failure, change only the Phoenix log directory.
+Remove other-account access from its files first, then grant traverse:
+
+**Operator step — not run here:**
+
+```sh
+sudo find /var/log/nginx/phoenix -type f -perm /o=rwx -exec chmod o-rwx {} +
+sudo chmod 0751 /var/log/nginx/phoenix
+```
+
+Lines already written to a deleted inode are freed when the worker reopens; if
+they matter, first copy them from the `/proc/<pid>/fd/<n>` entry shown above
+into a root-only file. Repeat the `test -w` checks, then reopen the logs:
+
+**Operator step — not run here:**
+
+```sh
+sudo nginx -s reopen
+```
+
+Reopening is nginx's normal rotation signal: it does not drop connections and
+does not touch Phoenix. Do not restart Phoenix for this correction (an nginx
+restart is unnecessary too); Phoenix releases still go only through the guarded
+workflow in [Native immutable releases](#native-immutable-releases). Repeat the
+descriptor check and send one request to confirm that the live `access.log`
+grows.
 
 ## 15. Verification checklist
 
