@@ -26,10 +26,37 @@ import { UPDATE_ALREADY_EXISTS, UpdateError } from './errors.js';
 export const DEFAULT_SUBSYSTEM = 'main';
 export const DEFAULT_FILTER = '';
 
-/** Compare dotted numeric versions (e.g. "12.10.0" vs "3.3.4"). Non-numeric segments compare as strings. */
+/**
+ * Compare versions. Dotted numeric versions compare numerically ("12.10.0" > "3.3.4"); a
+ * non-numeric segment compares as a string, as before.
+ *
+ * Phoenix extension: a SemVer pre-release (`X.Y.Z-dev.N`, any `-<id>(.<id>)*` after a
+ * numeric core) sorts BELOW the release it precedes, so a robot on a test build is offered
+ * the release: 13.6.1 < 13.7.0-dev.1 < 13.7.0-dev.2 < 13.7.0-dev.10 < 13.7.0 < 13.7.1.
+ * Identifiers compare as in SemVer §11 (numeric < alphanumeric, shorter set first).
+ * Versions without a `-` keep exactly the comparison above.
+ */
 export function cmpVersion(a, b) {
-  const pa = String(a).split('.');
-  const pb = String(b).split('.');
+  const [ca, pa] = splitPre(String(a));
+  const [cb, pb] = splitPre(String(b));
+  if (pa === null && pb === null) return cmpDotted(ca, cb);
+  const core = cmpDotted(ca, cb);
+  if (core !== 0) return core;
+  if (pa === null) return 1; // release > its pre-release
+  if (pb === null) return -1;
+  return cmpPre(pa, pb);
+}
+
+const PRE = /^((?:0|[1-9][0-9]*)(?:\.(?:0|[1-9][0-9]*))*)-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)$/;
+
+function splitPre(v) {
+  const m = PRE.exec(v);
+  return m ? [m[1], m[2].split('.')] : [v, null];
+}
+
+function cmpDotted(a, b) {
+  const pa = a.split('.');
+  const pb = b.split('.');
   const n = Math.max(pa.length, pb.length);
   for (let i = 0; i < n; i++) {
     const xa = pa[i] ?? '0';
@@ -40,6 +67,24 @@ export function cmpVersion(a, b) {
       if (na !== nb) return na - nb;
     } else if (xa !== xb) {
       return xa < xb ? -1 : 1;
+    }
+  }
+  return 0;
+}
+
+function cmpPre(a, b) {
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    if (i >= a.length) return -1;
+    if (i >= b.length) return 1;
+    const da = /^[0-9]+$/.test(a[i]);
+    const db = /^[0-9]+$/.test(b[i]);
+    if (da && db) {
+      const d = Number(a[i]) - Number(b[i]);
+      if (d !== 0) return d;
+    } else if (da !== db) {
+      return da ? -1 : 1;
+    } else if (a[i] !== b[i]) {
+      return a[i] < b[i] ? -1 : 1;
     }
   }
   return 0;

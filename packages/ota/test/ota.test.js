@@ -73,6 +73,44 @@ test('cmpVersion orders dotted numeric versions', () => {
   assert.equal(cmpVersion('1.0.0', '1.0.0'), 0);
 });
 
+test('cmpVersion puts a dev build below the release it precedes', () => {
+  const order = ['13.6.1', '13.7.0-dev.1', '13.7.0-dev.2', '13.7.0-dev.10', '13.7.0', '13.7.1'];
+  for (let i = 0; i < order.length; i++) {
+    for (let j = 0; j < order.length; j++) {
+      const got = Math.sign(cmpVersion(order[i], order[j]));
+      assert.equal(got, Math.sign(i - j), `${order[i]} vs ${order[j]}`);
+    }
+  }
+  assert.ok(cmpVersion('1.0.0-alpha', '1.0.0-alpha.1') < 0); // fewer identifiers first
+  assert.ok(cmpVersion('1.0.0-alpha.1', '1.0.0-alpha.beta') < 0); // numeric below alphanumeric
+  assert.ok(cmpVersion('1.0.0-beta', '1.0.0-rc.1') < 0);
+});
+
+test('cmpVersion keeps the existing order of every live catalog version', () => {
+  const live = ['9.0.2', '13.0.2', '13.0.7', '13.0.8', '13.1.2', '13.2.0', '13.2.1', '13.2.2', '13.5.2', '13.5.3', '13.6.0', '13.6.1'];
+  for (let i = 1; i < live.length; i++) assert.ok(cmpVersion(live[i - 1], live[i]) < 0, `${live[i - 1]} < ${live[i]}`);
+  assert.ok(cmpVersion('13.2', '13.2.0') === 0); // missing segments still count as 0
+  assert.ok(cmpVersion('1.x', '1.y') < 0); // non-numeric segments still compare as strings
+});
+
+test('a robot on a dev build is offered the release, and not an older dev build', async () => {
+  const dir = await mkdtemp(path.join(os.tmpdir(), 'ota-dev-'));
+  try {
+    const rows = ['13.7.0-dev.1', '13.7.0-dev.2', '13.7.0'].map((v) => ({
+      id: `be-${v}`, subsystem: '@be/be', fromVersion: '*', toVersion: v, filter: '', dependencies: {}, file: `be-${v}.tar`,
+    }));
+    for (const r of rows) await writeFile(path.join(dir, r.file), Buffer.from(r.id));
+    const cat = await Catalog.load({ entries: rows, dataDir: dir, log: {} });
+    assert.equal(cat.getUpdateFrom({ fromVersion: '13.7.0-dev.2', subsystem: '@be/be', filter: '' }).toVersion, '13.7.0');
+    assert.deepEqual(cat.listUpdatesFrom({ fromVersion: '13.7.0-dev.2', subsystem: '@be/be', filter: '' }).map((e) => e.toVersion), ['13.7.0']);
+    assert.deepEqual(cat.listUpdatesFrom({ fromVersion: '13.6.1', subsystem: '@be/be', filter: '' }).map((e) => e.toVersion),
+      ['13.7.0', '13.7.0-dev.2', '13.7.0-dev.1']);
+    assert.equal(cat.getUpdateFrom({ fromVersion: '13.7.0', subsystem: '@be/be', filter: '' }), null);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
 // --- catalog ----------------------------------------------------------------
 test('load skips entries whose package file is missing', () => {
   assert.equal(catalog.entries.length, 5);
