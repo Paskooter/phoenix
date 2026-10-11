@@ -227,4 +227,8 @@ archived reference source and the robot's own wire protocol. Reference material 
 compatibility work lives at [`jiboV2/pegasus@phoenix`](https://pvindex.org/gitea/jiboV2/pegasus)
 and its `docs/atlas/`.
 
-There is no LICENSE file in this repository; `package.json` marks it private and `UNLICENSED`.
+## License
+
+Phoenix's own source code is licensed under the [BSD 3-Clause License](LICENSE).
+Third-party components and material from the original Jibo software keep their
+own terms; see [NOTICE.md](NOTICE.md).

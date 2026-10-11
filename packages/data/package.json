@@ -8,5 +8,5 @@
     "@phoenix/common": "*",
     "@phoenix/contracts": "*"
   },
-  "license": "UNLICENSED"
+  "license": "BSD-3-Clause"
 }

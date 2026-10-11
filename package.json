@@ -35,7 +35,7 @@
     "start:ota": "node packages/ota/src/index.js",
     "harness": "node packages/harness/src/index.js"
   },
-  "license": "UNLICENSED",
+  "license": "BSD-3-Clause",
   "dependencies": {
     "node-forge": "1.4.0",
     "web-push": "^3.6.7",
