@@ -7,8 +7,9 @@ import { pathToFileURL } from 'node:url';
 import { packDirectory } from './pack.mjs';
 import theme from './themeFormat.cjs';
 import { explain } from './errors.mjs';
+import { scaffold } from './new.mjs';
 
-const usage = 'Usage: node tools/theme-kit/cli.mjs check <dir> | pack <dir> --out <dir>';
+const usage = 'Usage: node tools/theme-kit/cli.mjs check <dir> | pack <dir> --out <dir> | new <name> --from ember|orbit [--author <name>]';
 export function measurements(pack) {
   const p = pack.manifest.theme.palette;
   return { schema: 2, runtime: theme.RUNTIME, sha256: pack.descriptor.sha256,
@@ -42,6 +43,16 @@ export function output(pack, directory, stem) {
 }
 export async function main(args = process.argv.slice(2)) {
   const [command, directory] = args;
+  if (command === 'new') {
+    const options = {};
+    for (let i = 2; i < args.length; i += 2) {
+      const key = args[i];
+      if (!['--from', '--author'].includes(key) || key in options || args[i + 1] === undefined || args[i + 1].startsWith('--')) throw new Error(usage);
+      options[key] = args[i + 1];
+    }
+    if (!options['--from']) throw new Error(usage);
+    return scaffold(directory, options['--from'], options['--author']);
+  }
   if (!directory || directory.startsWith('--') || !(
     command === 'check' && args.length === 2 ||
     command === 'pack' && args.length === 4 && args[2] === '--out' && args[3] && !args[3].startsWith('--')
