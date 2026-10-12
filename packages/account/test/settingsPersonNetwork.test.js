@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
+import { EventEmitter } from 'node:events';
 import { readFileSync } from 'node:fs';
 
 const { createSettingsProviders } = await import('../src/settingsProviders.js');
@@ -504,32 +505,73 @@ test('network Person preserves the source redirect-limit Bad Gateway envelope an
   }
 });
 
-test('network Person rejects malformed redirect locations through the normal error path', async () => {
+test('network Person rejects malformed redirect locations through the normal error path', async (t) => {
   const previous = process.env.ETCO_server_http_timeout;
   process.env.ETCO_server_http_timeout = '200';
-  for (const location of ['http://[::1', 'http://%zz']) {
-    const peer = await listenPeer((request, index) => {
-      if (index === 0) return { status: 307, headers: { location }, body: '' };
-      return { status: 200, contentType: 'application/json', body: '{}' };
-    });
-    try {
-      await assert.rejects(
-        () => providers(peer.address).person.getAccountProperties(context, ['x']),
-        (error) => {
-          assert.equal(error.isBoom, true);
-          assert.equal(error.isServer, true);
-          assert.equal(error.output.statusCode, 502);
-          assert.match(error.message, /^Client request error: /);
-          return true;
-        },
-      );
-      assert.equal(peer.requests.length, 1);
-    } finally {
-      await closePeer(peer);
+  const controls = [
+    { location: 'http://[::1', code: 'ENOTFOUND', message: 'getaddrinfo ENOTFOUND :1' },
+    { location: 'http://%zz', code: 'ECONNREFUSED', message: '' },
+    { location: 'http://%zz', code: 'ECONNREFUSED', message: 'controlled connection refusal' },
+  ];
+  try {
+    for (const { location, code, message } of controls) {
+      const peer = await listenPeer((request, index) => {
+        if (index === 0) return { status: 307, headers: { location }, body: '' };
+        return { status: 200, contentType: 'application/json', body: '{}' };
+      });
+      const cause = Object.assign(new Error(message), { code });
+      const redirected = [];
+      const originalRequest = http.request;
+      // Keep the first hop real, but never resolve malformed authorities or
+      // connect to ambient loopback port 80. Emit through the real error listener.
+      const requestMock = t.mock.method(http, 'request', function (options, callback) {
+        if (options.hostname === '127.0.0.1' && String(options.port) === peer.address.split(':')[1]) {
+          return originalRequest.call(this, options, callback);
+        }
+        redirected.push(options);
+        const request = new EventEmitter();
+        request.write = () => true;
+        request.end = () => { process.nextTick(() => request.emit('error', cause)); };
+        return request;
+      });
+      try {
+        await assert.rejects(
+          () => providers(peer.address).person.getAccountProperties(context, ['x']),
+          (error) => {
+            assert.equal(error, cause);
+            assert.equal(error.code, code);
+            assert.equal(error.isBoom, true);
+            assert.equal(error.isServer, true);
+            assert.equal(error.output.statusCode, 502);
+            const expectedMessage = `Client request error${message ? `: ${message}` : ''}`;
+            assert.equal(error.message, expectedMessage);
+            assert.deepEqual(error.output, {
+              statusCode: 502,
+              payload: { statusCode: 502, error: 'Bad Gateway', message: expectedMessage },
+              headers: {},
+            });
+            assert.deepEqual(error.trace, [
+              { method: 'POST', url: `http://${peer.address}/` },
+              { method: 'POST', url: location },
+            ]);
+            return true;
+          },
+        );
+        assert.equal(peer.requests.length, 1);
+        assert.equal(redirected.length, 1);
+        assert.equal(redirected[0].method, 'POST');
+        assert.equal(redirected[0].hostname, '');
+        assert.equal(redirected[0].port, location === 'http://%zz' ? undefined : '1');
+        assert.equal(redirected[0].path, location === 'http://%zz' ? '%zz' : '/[:');
+      } finally {
+        requestMock.mock.restore();
+        await closePeer(peer);
+      }
     }
+  } finally {
+    if (previous === undefined) delete process.env.ETCO_server_http_timeout;
+    else process.env.ETCO_server_http_timeout = previous;
   }
-  if (previous === undefined) delete process.env.ETCO_server_http_timeout;
-  else process.env.ETCO_server_http_timeout = previous;
 });
 
 test('network Person preserves pinned Boom factory and reformat behavior', async () => {
