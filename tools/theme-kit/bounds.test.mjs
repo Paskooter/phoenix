@@ -145,6 +145,27 @@ test('output collision rolls back only newly created outputs and never follows a
   assert.deepEqual(readdirSync(dir).sort(), ['ember-1.0.0.manifest.json', 'marker']);
   assert.equal(readFileSync(marker, 'utf8'), 'keep');
 });
+test('partial output write failure removes the failed file as well as earlier derivatives', t => {
+  const dir = temporary(t);
+  const script = `
+    import fs from 'node:fs';
+    import { syncBuiltinESMExports } from 'node:module';
+    const original = fs.writeFileSync;
+    let calls = 0;
+    fs.writeFileSync = (...args) => {
+      original(...args);
+      if (++calls === 2) { const error = new Error('synthetic full disk after partial write'); error.code = 'ENOSPC'; throw error; }
+    };
+    syncBuiltinESMExports();
+    const { output } = await import(${JSON.stringify(new URL('./cli.mjs', import.meta.url).href)});
+    try { output({ bytes: Buffer.from('fixture'), manifestBytes: Buffer.from('{}'), manifest: {version:'1.0.0', assets:[], theme:{}} }, ${JSON.stringify(dir)}, 'fixture'); process.exitCode = 2; }
+    catch (error) { if (error.code !== 'ENOSPC') throw error; }
+  `;
+  const result = spawnSync(process.execPath, ['--input-type=module', '-e', script], { encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(readdirSync(dir), [], 'no failed or half-written output survives');
+});
+
 test('author guide covers every source icon and exact semantic mapping', () => {
   const doc = readFileSync(join(root, 'docs/THEMES.md'), 'utf8');
   const table = doc.split('## Full icon role table')[1].split('## Check, pack')[0];

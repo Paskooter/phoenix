@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: BSD-3-Clause
 // Copyright (c) 2026, pasketti and the Phoenix project.
-import { mkdirSync, writeFileSync, unlinkSync } from 'node:fs';
+import { mkdirSync, writeFileSync, unlinkSync, openSync, closeSync } from 'node:fs';
 import { resolve, join, basename } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { packDirectory } from './pack.mjs';
@@ -32,8 +32,9 @@ export function output(pack, directory, stem) {
   const created = [];
   try {
     for (const [file, bytes] of entries) {
-      writeFileSync(file, bytes, { flag: 'wx', mode: 0o600 });
-      created.push(file);
+      const fd = openSync(file, 'wx', 0o600);
+      created.push(file); // Own the file before writing: even ENOSPC needs cleanup.
+      try { writeFileSync(fd, bytes); } finally { closeSync(fd); }
     }
   } catch (error) {
     for (const file of created) unlinkSync(file);
