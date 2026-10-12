@@ -17,6 +17,10 @@ export { readTrace, writeTrace } from './headers.js';
 export { logger, recentLogs } from './log.js';
 export {
   createVoiceTurnId,
+  asrFailureFields,
+  socketCloseFields,
+  recordVoiceTurnFailure,
+  recordVoiceTurnSocketClose,
   logVoiceTurnSpan,
   logVoiceTurnComplete,
   recordVoiceTurnStart,

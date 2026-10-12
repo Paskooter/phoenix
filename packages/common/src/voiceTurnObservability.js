@@ -17,6 +17,58 @@ const RETAIN_MS = Math.max(60_000, Math.min(24 * 60 * 60 * 1000, Number(process.
 const MAX_QUERY_LIMIT = 100;
 const STAGES = new Set(['context_wait', 'asr', 'nlu', 'route', 'skill', 'skill_redirect', 'history_launch', 'history_speech', 'response_ready', 'http_request']);
 const OUTCOMES = new Set(['ok', 'matched', 'unmatched', 'remote_error', 'timeout', 'error', 'cancelled', 'abandoned', 'listen', 'skill', 'redirect']);
+const ASR_PROVIDERS = new Set(['parakeet', 'google', 'unknown']);
+const ASR_ERROR_CODES = new Set(['ASR_UNKNOWN', 'TIMEOUT_ASR', 'ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND', 'EHOSTUNREACH', 'EPIPE', 'ERR_INVALID_URL',
+  'ERR_AUDIO_FORMAT', 'ERR_AUDIO_DECODE', 'ERR_GOOGLE_AUDIO_LIMIT', 'ERR_GOOGLE_RESPONSE_FORMAT', 'ERR_PARAKEET_RESPONSE_TOO_LARGE', 'ERR_PARAKEET_INVALID_RESPONSE', 'ERR_PARAKEET_TIMEOUT',
+  'ERR_PARAKEET_RESPONSE_ABORTED', 'ERR_ASR_STREAM_CLOSED', 'ERR_ASR_STREAM_TIMEOUT',
+  'GOOGLE_STT_BUDGET', 'GOOGLE_STT_CLIENT_MISSING', 'GOOGLE_STT_BUSY', 'GOOGLE_STT_TOO_LONG', 'GOOGLE_STT_TIMEOUT', 'GOOGLE_STT_UNAVAILABLE', 'GOOGLE_STT_CANCELLED', 'GOOGLE_STT_ERROR']);
+const ASR_FAILOVERS = new Set(['parakeet-down', 'parakeet-unreachable', 'parakeet-batch-failed', 'parakeet-stream-failed', 'parakeet-open-timeout', 'parakeet-slow']);
+const CLOSE_STAGES = new Set([...STAGES, 'wait_listen', 'client_asr', 'client_nlu', 'unknown']);
+const CLOSE_REASONS = new Set(['normal-close', 'going-away', 'abnormal-close', 'protocol-error', 'policy-violation', 'message-too-big', 'transport-error', 'other-close']);
+
+/** Fixed taxonomy only: never inspect/copy an error message or provider body. */
+export function asrFailureFields(error, description = {}) {
+  // A primary failure can arrive after the transport has already selected its
+  // recoverer. Prefer explicit, allowlisted failure provenance over that new
+  // active provider; never copy arbitrary provider labels into diagnostics.
+  const sourceProvider = ASR_PROVIDERS.has(error?.asrProvider) ? error.asrProvider : description?.provider;
+  const provider = ASR_PROVIDERS.has(sourceProvider) ? sourceProvider : 'unknown';
+  const httpStatus = error?.httpStatus;
+  const errorCode = Number.isInteger(httpStatus) && httpStatus >= 400 && httpStatus <= 599 ? `HTTP_${httpStatus}`
+    : ASR_ERROR_CODES.has(error?.code) ? error.code : 'ASR_UNKNOWN';
+  const grpcCode = Number.isInteger(error?.grpcCode) ? error.grpcCode : error?.code;
+  return { provider, errorCode,
+    ...(Number.isInteger(grpcCode) && grpcCode >= 0 && grpcCode <= 16 ? { grpcCode } : {}),
+    ...(ASR_FAILOVERS.has(description?.failover) ? { failover: description.failover } : {}),
+  };
+}
+function safeAsrFailure(value) {
+  const status = typeof value?.errorCode === 'string' && /^HTTP_[45][0-9]{2}$/.test(value.errorCode) ? Number(value.errorCode.slice(5)) : null;
+  return asrFailureFields({ code: value?.errorCode, grpcCode: value?.grpcCode, httpStatus: status }, value);
+}
+
+/** Close-code classification, not the arbitrary WebSocket reason string. */
+export function socketCloseFields(value = {}) {
+  const closeCode = Number.isInteger(value.code) && value.code >= 1000 && value.code <= 4999 ? value.code : null;
+  const reasons = { 1000: 'normal-close', 1001: 'going-away', 1002: 'protocol-error', 1006: 'abnormal-close', 1008: 'policy-violation', 1009: 'message-too-big' };
+  return { stage: CLOSE_STAGES.has(value.stage) ? value.stage : 'unknown',
+    closedBy: ['peer', 'server', 'unknown'].includes(value.closedBy) ? value.closedBy : 'unknown', closeCode,
+    reason: value.transportError === true ? 'transport-error' : reasons[closeCode] || 'other-close' };
+}
+function safeSocketClose(value) {
+  const safe = socketCloseFields({ ...value, code: value?.closeCode });
+  if (CLOSE_REASONS.has(value?.reason)) safe.reason = value.reason;
+  return safe;
+}
+
+export function recordVoiceTurnFailure(trace, fields) {
+  const turn = existingTurn(trace?.turnId);
+  if (turn) { turn.failure = safeAsrFailure(fields); changed(); }
+}
+export function recordVoiceTurnSocketClose(trace, fields) {
+  const turn = existingTurn(trace?.turnId);
+  if (turn) { turn.socketClose = safeSocketClose(fields); changed(); }
+}
 
 // This is intentionally separate from the general log ring. It holds a
 // purpose-built, allow-listed projection for the admin UI; no log messages or
@@ -75,7 +127,9 @@ function restoreTurn(value, now) {
   } : null;
   return { turnId: value.turnId, startedAt: Math.round(value.startedAt),
     completedAt: number(value.completedAt), totalMs: number(value.totalMs),
-    outcome: OUTCOMES.has(value.outcome) ? value.outcome : null, stages, asr };
+    outcome: OUTCOMES.has(value.outcome) ? value.outcome : null, stages, asr,
+    ...(value.failure ? { failure: safeAsrFailure(value.failure) } : {}),
+    ...(value.socketClose ? { socketClose: safeSocketClose(value.socketClose) } : {}) };
 }
 
 /** Called only by the gateway. Other services must never write its snapshot. */
@@ -149,6 +203,8 @@ function publicTurn(turn) {
       outcome: stage.outcome,
     })),
     asr: turn.asr ? { ...turn.asr } : null,
+    ...(turn.failure ? { failure: safeAsrFailure(turn.failure) } : {}),
+    ...(turn.socketClose ? { socketClose: safeSocketClose(turn.socketClose) } : {}),
   };
 }
 

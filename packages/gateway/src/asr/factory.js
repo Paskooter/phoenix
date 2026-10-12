@@ -28,6 +28,11 @@ let injectedProvider = null;
 
 export function setASRProvider(provider) { injectedProvider = provider || null; }
 
+export function asrProviderName() {
+  if (injectedProvider) return 'unknown';
+  return process.env.ETCO_server_asrProvider === 'google' || asrMode(process.env.PHOENIX_ASR_PROVIDER) === 'google' ? 'google' : 'parakeet';
+}
+
 function defaultProvider(config, log) {
   if (process.env.ETCO_server_asrProvider === 'google') {
     return GoogleASRProvider.startSession(config, log);
@@ -43,7 +48,12 @@ export function startSession(config, log) {
   switch (config.lang) {
     case 'en-US':
     case 'en-CA':
-      return (injectedProvider || defaultProvider)(config, log);
+      {
+        const session = (injectedProvider || defaultProvider)(config, log);
+        const provider = asrProviderName();
+        if (!session.describe) session.describe = () => ({ provider });
+        return session;
+      }
     default:
       throw new Error(`Unsupported ASR language code "${config.lang}"`);
   }

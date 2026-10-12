@@ -27,6 +27,7 @@
 // less often (doubling, capped), so a flapping server does not bounce every
 // turn between recognizers. A turn never switches back mid-window.
 
+import { asrFailureFields } from '@phoenix/common';
 import { CLOSED, CLOSING, CONNECTING, OPEN, RecognizerSocket, parseControl } from './recognizerSocket.js';
 
 export const FAILOVER_DEFAULTS = Object.freeze({
@@ -279,7 +280,13 @@ export class FailoverSocket extends RecognizerSocket {
         quietly(socket);
         // The session owns the authoritative PCM. If speech is still arriving,
         // it keeps buffering to EOS; an ended window's final waiter rejects now.
-        this._emitError(new Error('Parakeet ended stream failed; using Google batch'));
+        // Keep the failing provider/code when the session's describe() now
+        // names Google, which was selected for recovery, not the failure.
+        const failure = err instanceof Error ? err : new Error(String(err));
+        failure.asrProvider = 'parakeet';
+        if (!failure.code) failure.code = why === 'parakeet-slow' || why === 'parakeet-open-timeout'
+          ? 'ERR_ASR_STREAM_TIMEOUT' : 'ERR_ASR_STREAM_CLOSED';
+        this._emitError(failure);
         this._emitClose();
         return;
       }
@@ -292,7 +299,7 @@ export class FailoverSocket extends RecognizerSocket {
         const why = reason || (this.readyState === CONNECTING ? 'parakeet-unreachable' : 'parakeet-stream-failed');
         this.switchReason = why;
         this.log?.warn?.('[asr] Parakeet stream failed; this window continues on Google', {
-          reason: why, replayMs: Math.round(this.pcmBytes / 32), afterEos: this.eosSent,
+          ...asrFailureFields(err, { provider: 'parakeet' }), reason: why, replayMs: Math.round(this.pcmBytes / 32), afterEos: this.eosSent,
         });
         try { this.onSwitch?.(why); } catch { /* reporting only */ }
         this._attach(next, 'google');
@@ -415,7 +422,7 @@ export function createFailoverTransport({ primary, secondary = null, health, tim
         const seconds = Math.ceil(Math.max(0, wav.length - 44) / 32000);
         if (!secondaryReady(seconds)) throw err;
         useSecondary('parakeet-batch-failed');
-        log?.warn?.('[asr] Parakeet recognition failed; recognizing this window with Google');
+        log?.warn?.('[asr] Parakeet recognition failed; recognizing this window with Google', asrFailureFields(err, { provider: 'parakeet', failover }));
         return secondary.recognizeWav(wav);
       }
     },

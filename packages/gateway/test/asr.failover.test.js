@@ -5,9 +5,14 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { once } from 'node:events';
-import { ParakeetASRSession, ASR_SILENCE_TO_EOS_MS } from '../src/asr/parakeetSession.js';
-import { AsrRouter, asrSettingsFromEnv, setAsrRouter, asrStatus } from '../src/asr/asrRouter.js';
-import { startSession } from '../src/asr/factory.js';
+// This file retains the historical 20/30-second failover cases as an explicit
+// supported long-window configuration. Default 12-second endpoint behavior is
+// exercised independently in asr.voiceReliability.test.js. Set the knob before
+// importing anything that loads the shared session's module-time constants.
+process.env.PHOENIX_ASR_MAX_UTTERANCE_MS = '30000';
+const { ParakeetASRSession, ASR_SILENCE_TO_EOS_MS } = await import('../src/asr/parakeetSession.js');
+const { AsrRouter, asrSettingsFromEnv, setAsrRouter, asrStatus } = await import('../src/asr/asrRouter.js');
+const { startSession } = await import('../src/asr/factory.js');
 import { GoogleUsageMeter, initializeGoogleUsageFile } from '../src/asr/googleUsage.js';
 import { FailoverSocket, ParakeetHealth } from '../src/asr/failoverTransport.js';
 import { RecognizerSocket, parseControl } from '../src/asr/recognizerSocket.js';
@@ -169,6 +174,7 @@ test('a 20-second ended turn with a primary interim uses batch without another 2
   const started = Date.now(); const sent = feed(session, 200);
   assert.equal((await result).text, 'complete synthetic utterance');
   assert.ok(Date.now() - started < 3000, 'ended audio must not be replayed at real time');
+  assert.equal(google.calls.recognize[0].request.content.length, sent.length, 'recognize the complete explicitly long fixture');
   assert.deepEqual(google.calls.recognize[0].request.content, sent);
   assert.equal(google.calls.streams.length, 0); assert.equal(google.calls.recognize.length, 1);
   assert.equal(finals, 1); assert.equal(eos, 1);

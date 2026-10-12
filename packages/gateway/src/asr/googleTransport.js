@@ -39,6 +39,7 @@ import {
 } from './googleSpeech.js';
 import { GoogleBudgetError } from './googleUsage.js';
 import { CLOSED, OPEN, RecognizerSocket, parseControl } from './recognizerSocket.js';
+import { asrFailureFields } from '@phoenix/common';
 import { normalizeGoogleTranscript } from './transcriptNormalizer.js';
 
 /** A recognition window never holds more than 30 s of audio (MAX_BUFFER_MS). */
@@ -244,7 +245,7 @@ export class GoogleStreamSocket extends RecognizerSocket {
     if (this.settled) return;
     this.finalTimer = setTimeout(() => {
       this.finalTimer = null;
-      this.log?.warn?.('[asr] Google final result timed out; using the best hypothesis so far');
+      this.log?.warn?.('[asr] Google final result timed out; using the best hypothesis so far', asrFailureFields({ code: 'GOOGLE_STT_TIMEOUT' }, { provider: 'google' }));
       this._settle('timeout');
     }, this.finalTimeoutMs);
   }
@@ -283,7 +284,7 @@ export class GoogleStreamSocket extends RecognizerSocket {
     // After end-of-audio the audio is already billed: a hypothesis in hand is
     // better than re-sending the window elsewhere.
     if (this.halfClosed && (this.finals.length || this.interim)) {
-      this.log?.warn?.('[asr] Google stream failed after end of audio; using the best hypothesis so far', { kind });
+      this.log?.warn?.('[asr] Google stream failed after end of audio; using the best hypothesis so far', { ...asrFailureFields(err, { provider: 'google' }), kind });
       this._settle('error');
       return;
     }

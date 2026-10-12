@@ -49,6 +49,7 @@
 // (parakeetTransport.js).
 
 import fs from 'node:fs';
+import { asrFailureFields } from '@phoenix/common';
 import { WebSocket } from 'ws';
 import { FastEOS } from './fastEOS.js';
 import {
@@ -73,8 +74,24 @@ const BYTES_PER_SEC = SAMPLE_RATE * BYTES_PER_SAMPLE;
 const VAD_WINDOW_MS = 10;
 const VAD_WINDOW_BYTES = (BYTES_PER_SEC * VAD_WINDOW_MS) / 1000;
 
-const SPEECH_RMS_THRESHOLD = 400;
-const SPEECH_MIN_MS = 150;
+function envNumber(name, fallback, min, max) {
+  const value = process.env[name];
+  if (value === undefined || value.trim() === '') return fallback;
+  const n = Number(value);
+  return Number.isFinite(n) && n >= min && n <= max ? n : fallback;
+}
+
+// A hard command endpoint is deliberately independent of the energy classifier:
+// steady noise above its initial gate can never be learned as ambient noise.
+// Keep the existing gates/pause tolerance; recognize, rather than discard, the
+// buffered utterance when either its audio or wall-clock budget is exhausted.
+export const ASR_ENDPOINT_LIMITS = Object.freeze({
+  maxUtteranceMs: envNumber('PHOENIX_ASR_MAX_UTTERANCE_MS', 12000, 1000, 30000),
+  relistenLimit: Math.floor(envNumber('PHOENIX_ASR_RELISTEN_LIMIT', 1, 0, 3)),
+  relistenWaitMs: envNumber('PHOENIX_ASR_RELISTEN_WAIT_MS', 2500, 250, 10000),
+});
+const SPEECH_RMS_THRESHOLD = envNumber('PHOENIX_ASR_SPEECH_RMS', 400, 1, 32767);
+const SPEECH_MIN_MS = envNumber('PHOENIX_ASR_SPEECH_MIN_MS', 150, 10, 1000);
 // How much trailing silence ends the turn. The reference never endpointed here
 // (Google's recognizer reported END_OF_SINGLE_UTTERANCE itself), so this is a
 // Phoenix choice, and it is the dominant cost in the pause a person feels after
@@ -82,7 +99,7 @@ const SPEECH_MIN_MS = 150;
 // pages, so the silence is not even visible until the page that carries it lands.
 // 400 ms clipped ordinary mid-sentence pauses on Moth. Leave room for a breath
 // without returning to the multi-second waits that motivated the shorter gate.
-const SILENCE_TO_EOS_MS = Number(process.env.PHOENIX_ASR_SILENCE_EOS_MS || 900);
+const SILENCE_TO_EOS_MS = envNumber('PHOENIX_ASR_SILENCE_EOS_MS', 900, 100, 5000);
 
 // Exported so tests derive the window instead of restating it: a test that
 // asserts a literal keeps passing when the constant changes, and then pins the
@@ -105,14 +122,14 @@ export const ASR_SILENCE_TO_EOS_MS = SILENCE_TO_EOS_MS;
 //   * track the room's noise floor and lift the speech gate above it;
 //   * require a sustained burst to re-open speech, so one noisy window no longer
 //     discards an otherwise-quiet run.
-const NOISE_FLOOR_MARGIN = Number(process.env.PHOENIX_ASR_NOISE_MARGIN || 1.8);
+const NOISE_FLOOR_MARGIN = envNumber('PHOENIX_ASR_NOISE_MARGIN', 1.8, 1, 10);
 // Hysteresis: starting a turn requires a clear burst, but continuing an already
 // established utterance must allow the speaker's quieter syllables. Keep the
 // lower gate above room noise, and keep the same debounce for isolated spikes.
-const CONTINUING_SPEECH_MARGIN = Math.min(NOISE_FLOOR_MARGIN, 1.3);
-const NOISE_FLOOR_ATTACK = 0.05;   // EMA weight while the floor is rising
-const NOISE_FLOOR_DECAY = 0.25;    // faster when it drops, so a quiet room recovers
-const SPEECH_DEBOUNCE_MS = 30;     // consecutive ms over the gate before speech resumes
+const CONTINUING_SPEECH_MARGIN = Math.min(NOISE_FLOOR_MARGIN, envNumber('PHOENIX_ASR_CONTINUING_MARGIN', 1.3, 1, 10));
+const NOISE_FLOOR_ATTACK = envNumber('PHOENIX_ASR_NOISE_ATTACK', 0.05, 0.001, 1);   // EMA weight while the floor is rising
+const NOISE_FLOOR_DECAY = envNumber('PHOENIX_ASR_NOISE_DECAY', 0.25, 0.001, 1);    // faster when it drops, so a quiet room recovers
+const SPEECH_DEBOUNCE_MS = envNumber('PHOENIX_ASR_SPEECH_DEBOUNCE_MS', 30, 10, 1000);     // consecutive ms over the gate before speech resumes
 const MAX_BUFFER_MS = 30000;
 const MAX_BUFFER_BYTES = (BYTES_PER_SEC * MAX_BUFFER_MS) / 1000;
 
@@ -127,7 +144,7 @@ const STREAM_PENDING_MAX_BYTES = 2 * 1024 * 1024;
 // A silence endpoint that recognizes no words is treated as a false endpoint
 // (see the header note): keep listening instead of ending the turn. Bounded so a
 // quiet stream cannot hold a turn open with recognition after recognition.
-const EMPTY_ENDPOINT_RELISTEN_LIMIT = 3;
+const EMPTY_ENDPOINT_RELISTEN_LIMIT = ASR_ENDPOINT_LIMITS.relistenLimit;
 
 // A wake-phrase tail is a short energy burst (observed 150-300 ms of the "-bo" in
 // "Hey Jibo"). On a hotphrase turn the turn's audio always opens with it, so an
@@ -135,8 +152,8 @@ const EMPTY_ENDPOINT_RELISTEN_LIMIT = 3;
 // Longer continuous tail-plus-command bursts must be recognized intact; after
 // ignoring one tail, even a short real request can end the listening window.
 // Local (non-hotphrase) turns have no wake tail.
-const WAKE_TAIL_MAX_SPEECH_MS = 200;
-const WAKE_TAIL_IGNORE_LIMIT = 1;
+const WAKE_TAIL_MAX_SPEECH_MS = envNumber('PHOENIX_ASR_WAKE_TAIL_MS', 200, 0, 1000);
+const WAKE_TAIL_IGNORE_LIMIT = envNumber('PHOENIX_ASR_WAKE_TAIL_IGNORE_LIMIT', 1, 0, 3);
 
 const bytesToMs = (bytes) => (bytes / BYTES_PER_SEC) * 1000;
 
@@ -172,7 +189,12 @@ export class ParakeetASRSession {
     this.stopped = false;
     this.aborted = false;
     this.requestController = new AbortController();
+    this.utteranceTimer = null;
+    this.utteranceAudioMs = null; // persists across provisional endpoints/wake-tail resets
     this.relistenCount = 0;
+    this.relistenTimer = null;
+    this.relistenDeadlineAt = null;
+    this.relistenWaitExpired = false;
     this.wakeTailIgnored = 0;
 
     this.sosHandler = null;
@@ -218,6 +240,8 @@ export class ParakeetASRSession {
       this.fastEOSRegex = FastEOS.buildRegex(this.config.earlyEOS);
     }
   }
+
+  describe() { return this.transport?.describe?.() || { provider: this.transport?.name === 'google' ? 'google' : 'parakeet' }; }
 
   onStartOfSpeech(handler) { this.sosHandler = handler; }
   onEndOfSpeech(handler) { this.eosHandler = handler; }
@@ -355,6 +379,7 @@ export class ParakeetASRSession {
   }
 
   _consumeVadWindow(window) {
+    if (this.utteranceAudioMs !== null) this.utteranceAudioMs += VAD_WINDOW_MS;
     const rms = ParakeetASRSession.computeRMS(window);
     const gate = this._speechGate();
     if (rms <= gate) {
@@ -371,9 +396,23 @@ export class ParakeetASRSession {
       && (this.speechRunMs >= SPEECH_DEBOUNCE_MS || this.state === 'SPEAKING');
     if (isSpeech) {
       this.speechBytes += window.length;
+      // A genuine request after the false endpoint keeps the command budget.
+      // Near-empty bursts do not buy another wait window.
+      if (this.relistenCount > 0 && bytesToMs(this.speechBytes) >= SPEECH_MIN_MS) this._clearRelistenTimer();
       this.silenceBytes = 0;
       if (!this.sosFired && bytesToMs(this.speechBytes) >= SPEECH_MIN_MS) {
         this.sosFired = true;
+        this.utteranceAudioMs = bytesToMs(this.speechBytes);
+        this.utteranceTimer = setTimeout(() => {
+          this.utteranceTimer = null;
+          if (this.state === 'FINALIZING') {
+            // The recognition already in flight owns these bytes; do not post
+            // again, but make its empty result terminal rather than relistening.
+            this.finalizeReason = 'max-utterance';
+            this._emitEOS();
+          } else if (this.state !== 'DONE') this._fireEOSAndFinalize('max-utterance');
+        }, ASR_ENDPOINT_LIMITS.maxUtteranceMs);
+        this.utteranceTimer.unref?.();
         if (this.sosHandler) this.sosHandler(null);
       }
       if (this.sosFired && this.state !== 'FINALIZING') this.state = 'SPEAKING';
@@ -404,7 +443,8 @@ export class ParakeetASRSession {
       }
     }
 
-    if (this.totalBytes >= MAX_BUFFER_BYTES) this._fireEOSAndFinalize('max-buffer');
+    if (this.utteranceAudioMs >= ASR_ENDPOINT_LIMITS.maxUtteranceMs) this._fireEOSAndFinalize('max-utterance');
+    else if (this.totalBytes >= MAX_BUFFER_BYTES) this._fireEOSAndFinalize('max-buffer');
   }
 
   start() {
@@ -460,6 +500,7 @@ export class ParakeetASRSession {
   stop() {
     if (this.stopped) return;
     this.stopped = true;
+    this._clearUtteranceTimer();
     if (this.state === 'FINALIZING') this._closeDecoder();
     if (this.state !== 'FINALIZING' && this.state !== 'DONE') {
       if (this.sosFired) {
@@ -470,7 +511,7 @@ export class ParakeetASRSession {
         this.state = 'FINALIZING';
         this.finalizeReason = 'stop';
         this._finalize({ mode: 'end-of-input' }).catch((err) => {
-          this.log.error?.('Parakeet finalize on stop failed: ' + err.message);
+          this.log.error?.('ASR finalize on stop failed', asrFailureFields(err, this.describe()));
           this._closeStream();
           this.state = 'DONE';
           if (this.rejectStart) this.rejectStart(err);
@@ -493,6 +534,7 @@ export class ParakeetASRSession {
   abort() {
     if (this.aborted) return;
     this.aborted = true;
+    this._clearUtteranceTimer();
     this.stopped = true;
     this.requestController.abort(new Error('Parakeet request aborted'));
     this.transport?.cancel?.();
@@ -532,7 +574,7 @@ export class ParakeetASRSession {
     // Other boundaries are final and can notify the robot immediately.
     if (reason !== 'silence') this._emitEOS();
     this._finalize({ mode: 'cancel' }).catch((err) => {
-      this.log.error?.('Parakeet finalize failed: ' + err.message);
+      this.log.error?.('ASR finalize failed', asrFailureFields(err, this.describe()));
       this._closeDecoder();
       this._closeStream();
       this.state = 'DONE';
@@ -566,7 +608,9 @@ export class ParakeetASRSession {
     return !this.stopped
       && !this.aborted
       && this.finalizeReason === 'silence'
-      && this.relistenCount < EMPTY_ENDPOINT_RELISTEN_LIMIT;
+      && this.relistenCount < EMPTY_ENDPOINT_RELISTEN_LIMIT
+      && !this.relistenWaitExpired
+      && (this.relistenDeadlineAt === null || Date.now() < this.relistenDeadlineAt);
   }
 
   /**
@@ -584,6 +628,18 @@ export class ParakeetASRSession {
   /** Restart the recognition window after an empty endpoint, keeping SOS state. */
   _resetForRelisten() {
     this.relistenCount += 1;
+    if (this.relistenDeadlineAt === null) this.relistenDeadlineAt = Date.now() + ASR_ENDPOINT_LIMITS.relistenWaitMs;
+    this._clearRelistenTimer();
+    this.relistenTimer = setTimeout(() => {
+      this.relistenTimer = null;
+      this.relistenWaitExpired = true;
+      if (this.state === 'DONE' || this.state === 'FINALIZING' || this.aborted || this.stopped) return;
+      this.finalizeReason = 'relisten-timeout';
+      this.eosAt = Date.now();
+      this._closeStream();
+      this._emitFinalResult('', 0);
+    }, Math.max(0, this.relistenDeadlineAt - Date.now()));
+    this.relistenTimer.unref?.();
     this.chunks = [];
     this.totalBytes = 0;
     this.speechBytes = 0;
@@ -710,7 +766,7 @@ export class ParakeetASRSession {
       // The socket failed while we waited for the final: the buffered PCM is
       // still good, so recognize it over the unchanged batch path instead of
       // losing the turn.
-      this.log.warn?.('Parakeet /stream final failed; falling back to batch: ' + err.message);
+      this.log.warn?.('ASR stream final failed; falling back to batch', asrFailureFields(err, this.describe()));
       this._streamFailed(err);
       this._closeStream();
       return this._finalizeBatchWork(mode);
@@ -745,6 +801,7 @@ export class ParakeetASRSession {
         ? confidence
         : (text ? 1.0 : 0.0),
     };
+    if (this.finalizeReason === 'relisten-timeout') result.annotation = 'SOS_TIMEOUT';
     if (text && this.fastEOSRegex && this.fastEOSRegex.test(text)) {
       result.annotation = 'FAST_EOS';
     }
@@ -814,7 +871,7 @@ export class ParakeetASRSession {
       socket = this.transport ? this.transport.openStream() : openParakeetStream(this.parakeetUrl);
     } catch (err) {
       this.streamingFailed = true;
-      this.log.warn?.('[asr] streaming socket could not be created; using batch: ' + err.message);
+      this.log.warn?.('[asr] streaming socket could not be created; using batch', asrFailureFields(err, this.describe()));
       return;
     }
     this.streamSocket = socket;
@@ -854,11 +911,11 @@ export class ParakeetASRSession {
         const waiter = this.streamFinalWaiter;
         this.streamFinalWaiter = null;
         if (this.streamFinalTimer) { clearTimeout(this.streamFinalTimer); this.streamFinalTimer = null; }
-        waiter.reject(new Error('Parakeet stream closed before a final result'));
+        waiter.reject(Object.assign(new Error('Parakeet stream closed before a final result'), { code: 'ERR_ASR_STREAM_CLOSED' }));
       } else if (!this.streamClosing && this.state !== 'DONE') {
         // A close we did not ask for is a mid-session failure: latch it so the
         // rest of the turn (and its buffered PCM) goes through batch instead.
-        this._streamFailed(new Error('Parakeet stream closed unexpectedly'));
+        this._streamFailed(Object.assign(new Error('Parakeet stream closed unexpectedly'), { code: 'ERR_ASR_STREAM_CLOSED' }));
       }
     });
   }
@@ -965,7 +1022,7 @@ export class ParakeetASRSession {
           const waiter = this.streamFinalWaiter;
           this.streamFinalWaiter = null;
           this.streamFinalTimer = null;
-          waiter.reject(new Error('Parakeet stream final timed out'));
+          waiter.reject(Object.assign(new Error('Parakeet stream final timed out'), { code: 'ERR_ASR_STREAM_TIMEOUT' }));
         }
       }, STREAM_FINAL_TIMEOUT_MS);
       this.streamFinalTimer.unref?.();
@@ -1012,7 +1069,7 @@ export class ParakeetASRSession {
       waiter.reject(err instanceof Error ? err : new Error(String(err)));
     }
     if (!this.stopped && this.state !== 'DONE') {
-      this.log.warn?.('[asr] Parakeet /stream failed; falling back to batch: ' + (err?.message || err));
+      this.log.warn?.('[asr] recognizer stream failed; falling back to batch', asrFailureFields(err, this.describe()));
     }
   }
 
@@ -1057,7 +1114,19 @@ export class ParakeetASRSession {
     }
   }
 
+  _clearRelistenTimer() {
+    if (this.relistenTimer) clearTimeout(this.relistenTimer);
+    this.relistenTimer = null;
+  }
+
+  _clearUtteranceTimer() {
+    if (this.utteranceTimer) clearTimeout(this.utteranceTimer);
+    this.utteranceTimer = null;
+  }
+
   _closeDecoder() {
+    this._clearUtteranceTimer();
+    this._clearRelistenTimer();
     this.relistenPcm = [];
     this.relistenBytes = 0;
     this.pendingEncodedChunks = [];

@@ -24,6 +24,8 @@ test('voice timing metadata survives a new process, expires after a day, and rej
     v.recordVoiceTurnStart(trace, start);
     v.logVoiceTurnSpan(log, trace, 'asr', start, 'ok');
     v.recordVoiceTurnAsrBreakdown(trace, { audioMs: 1000, silenceWaitMs: 200, recognizeMs: 50, transcript: 'private-fixture-speech', audio: 'private-fixture-audio' });
+    v.recordVoiceTurnFailure?.(trace, { provider: 'google', errorCode: 'GOOGLE_STT_ERROR', grpcCode: 14, failover: 'parakeet-batch-failed', message: 'private-fixture-message', transcript: 'private-fixture-transcript' });
+    v.recordVoiceTurnSocketClose?.(trace, { stage: 'asr', closedBy: 'peer', closeCode: 1001, reason: 'going-away', rawReason: 'private-fixture-reason' });
     v.logVoiceTurnComplete(log, trace, start, 'skill');
     await v.flushVoiceTurns(); console.log(JSON.stringify(v.recentVoiceTurns()));`);
   assert.equal(statSync(file).mode & 0o777, 0o600);
@@ -34,8 +36,14 @@ test('voice timing metadata survives a new process, expires after a day, and rej
   assert.equal(page.turns[0].turnId, id);
   assert.equal(page.turns[0].stages[0].stage, 'asr');
   assert.deepEqual(page.turns[0].asr, { audioMs: 1000, silenceWaitMs: 200, recognizeMs: 50 });
+  assert.deepEqual(page.turns[0].failure, { provider: 'google', errorCode: 'GOOGLE_STT_ERROR', grpcCode: 14, failover: 'parakeet-batch-failed' });
+  assert.deepEqual(page.turns[0].socketClose, { stage: 'asr', closedBy: 'peer', closeCode: 1001, reason: 'going-away' });
 
   const saved = JSON.parse(readFileSync(file, 'utf8'));
+  saved.turns[0].failure.message = 'private-fixture-failure';
+  saved.turns[0].failure.provider = 'private-fixture-provider';
+  saved.turns[0].failure.errorCode = 'private-fixture-code';
+  saved.turns[0].socketClose.rawReason = 'private-fixture-reason';
   saved.turns[0].robotId = 'private-fixture-robot';
   saved.turns[0].asr.transcript = 'private-fixture-transcript';
   saved.turns.push({ ...saved.turns[0], turnId: '95ad7609-211a-450d-9a65-ced5c15e00c8', startedAt: Date.now() - 86400_001 });

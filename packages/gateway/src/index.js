@@ -250,6 +250,20 @@ export async function createGateway(config = loadConfig()) {
     const isProactive = PROACTIVE_PATHS.has(path);
     const reqLog = logger(isProactive ? 'gateway.proactive' : 'gateway.listen', { transId: req.headers['x-jibo-transid'] });
 
+    // Observe server initiation before ws echoes a received close frame. A
+    // transport loss without a close frame is unknown, not an inferred cancel.
+    let closeInitiator = null;
+    let transportError = false;
+    if (!isProactive) {
+      for (const method of ['close', 'terminate']) {
+        const original = ws[method];
+        ws[method] = function (...args) {
+          if (!ws._closeFrameReceived && !closeInitiator) closeInitiator = 'server';
+          return original.apply(this, args);
+        };
+      }
+      ws.on('error', () => { transportError = true; });
+    }
     const response = new ResponseWrapper(ws, reqLog);
     const tx = isProactive
       ? new ProactiveTransaction(ws, components, response, reqLog)
@@ -283,10 +297,12 @@ export async function createGateway(config = loadConfig()) {
     // without this the phase kept streaming into a dead response and recognized
     // audio whose EOS + LISTEN frames were silently dropped.
     if (isProactive) ws.on('close', () => tx.abandon?.());
-    else ws.on('close', () => tx.abandon?.());
+    else ws.on('close', (code) => tx.abandon?.({
+      code, closedBy: closeInitiator || (ws._closeFrameReceived ? 'peer' : 'unknown'), transportError,
+    }));
 
     tx.done.catch((err) => {
-      reqLog.error('transaction failed', { error: err.safeLogMessage || err.message, code: err.code });
+      reqLog.error('transaction failed', { error: err.safeLogMessage || err.message, code: err.code, ...(err.asrDiagnostics || {}) });
       const wrote = response.write({ type: ResponseType.ERROR, msgID: newMsgId(), ts: now(), final: true, data: { code: err.code, message: err.message }, timings: { total: now() - tx.startTime } });
       if (wrote !== false) tx.markErrorResponse?.();
     });

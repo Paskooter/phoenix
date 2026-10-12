@@ -16,7 +16,7 @@
 // Parakeet alone. A configuration or credential error from Google pauses it
 // for a few minutes instead of failing every turn the same way.
 
-import { logger } from '@phoenix/common';
+import { logger, asrFailureFields } from '@phoenix/common';
 import { Timeouts } from '@phoenix/contracts';
 import { ParakeetASRSession } from './parakeetSession.js';
 import { createParakeetTransport } from './parakeetTransport.js';
@@ -157,13 +157,13 @@ export class AsrRouter {
     return this.clientPromise;
   }
 
-  _recordGoogleFailure(kind, err) {
+  _recordGoogleFailure(kind, err, log = this.log) {
     this.lastFailure = { kind, at: this.now(), grpcCode: classifyGoogleError(err).grpcCode };
-    const fields = { kind, grpcCode: this.lastFailure.grpcCode };
+    const fields = { ...asrFailureFields(err, { provider: 'google' }), kind, grpcCode: this.lastFailure.grpcCode };
     if (PAUSING_FAILURES.has(kind)) {
-      this.log?.error?.('[asr] Google speech is misconfigured; pausing it', { ...fields, pauseMs: CONFIG_PAUSE_MS });
+      log?.error?.('[asr] Google speech is misconfigured; pausing it', { ...fields, pauseMs: CONFIG_PAUSE_MS });
     } else {
-      this.log?.warn?.('[asr] Google speech request failed', fields);
+      log?.warn?.('[asr] Google speech request failed', fields);
     }
   }
 
@@ -175,7 +175,7 @@ export class AsrRouter {
       meter: this._meter(),
       slots: this.slots,
       unavailable: () => this.googleUnavailable(),
-      onFailure: (kind, err) => this._recordGoogleFailure(kind, err),
+      onFailure: (kind, err) => this._recordGoogleFailure(kind, err, log),
       deadlineAt: this.now() + Timeouts.asr - 250,
       now: this.now,
       log,

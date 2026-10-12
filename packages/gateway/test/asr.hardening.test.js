@@ -6,7 +6,7 @@ import { spawnSync } from 'node:child_process';
 import http from 'node:http';
 import { createParakeetTransport } from '../src/asr/parakeetTransport.js';
 import { createFailoverTransport } from '../src/asr/failoverTransport.js';
-import { ParakeetASRSession, ASR_SILENCE_TO_EOS_MS } from '../src/asr/parakeetSession.js';
+import { ParakeetASRSession, ASR_SILENCE_TO_EOS_MS, ASR_ENDPOINT_LIMITS } from '../src/asr/parakeetSession.js';
 import {
   AUDIO_DECODER_LIMITS,
   AUDIO_ENCODINGS,
@@ -383,10 +383,14 @@ test('encoded OGG and FLAC relisten keep their decoder alive across an empty can
       assert.ok(session.decoder, `${encoding}: decoder remains open while candidate response is held`);
       parakeet.release(0);
       await withTimeout(parakeet.waitForRequest(1));
-      assert.ok(session.decoder, `${encoding}: relisten still has a live decoder`);
+      // A provisional candidate needs its original container for more audio.
+      // Once the relisten limit is exhausted, EOS is final and decoding stops
+      // before recognition settles; the accepted second utterance still survives.
+      if (session.relistenCount >= ASR_ENDPOINT_LIMITS.relistenLimit) assert.equal(session.decoder, null);
+      else assert.ok(session.decoder, `${encoding}: a provisional relisten retains its decoder`);
       parakeet.release(1);
       assert.deepEqual(await withTimeout(startPr), { text: `encoded ${encoding}`, confidence: 1.0 });
-      assert.equal(session.decoder, null, `${encoding}: decoder closes only after the accepted result`);
+      assert.equal(session.decoder, null, `${encoding}: decoder is closed by the accepted result`);
     } finally {
       if (!session.stopped) session.abort();
       for (let i = 0; i < 2; i += 1) parakeet.release(i);

@@ -9,6 +9,10 @@
 import { newMsgId, now, ResponseType, RequestType, HubErrorCode, Timeouts } from '@phoenix/contracts';
 import {
   createVoiceTurnId,
+  asrFailureFields,
+  socketCloseFields,
+  recordVoiceTurnFailure,
+  recordVoiceTurnSocketClose,
   logVoiceTurnComplete,
   logVoiceTurnSpan,
   recordVoiceTurnAsrBreakdown,
@@ -18,7 +22,7 @@ import {
 import { SpeechHistoryRecord } from './historyClient.js';
 import { preprocessContext, validateContextMessage } from './preprocessor.js';
 import { isRedirect } from './skillClient.js';
-import { startSession as startASRSession, cleanHintsEOS } from './asr/factory.js';
+import { startSession as startASRSession, cleanHintsEOS, asrProviderName } from './asr/factory.js';
 import { normalizeString } from './stringNormalizer.js';
 import { mediateDecision } from './decisionMediator.js';
 import { HUE_SKILL_ID, homeCommandCandidate, homeCommandEligible } from './homeAssistantRoute.js';
@@ -156,6 +160,8 @@ export class ListenTransaction {
       : null;
 
     this.state = State.WAIT_LISTEN;
+    this.activeStage = 'wait_listen';
+    this.asrDescription = { provider: 'unknown' };
     this.stateTrace = [this.state];
     this.startTime = now();
     this.timings = {};
@@ -223,7 +229,7 @@ export class ListenTransaction {
       const byteLength = audio.byteLength ?? audio.length;
       if (!Number.isSafeInteger(byteLength) || byteLength <= 0) return;
       if (this.asrSession) {
-        try { this.asrSession.provideAudio(audio); } catch (err) { this.reject(err); }
+        try { this.asrSession.provideAudio(audio); } catch (err) { this.reject(this._asrFailure(err)); }
       } else if (this.audioBufferedBytes + byteLength > MAX_PRESESSION_AUDIO_BYTES) {
         this.log.warn('dropping pre-session audio beyond buffer limit', { byteLength, bufferedBytes: this.audioBufferedBytes, limit: MAX_PRESESSION_AUDIO_BYTES });
       } else {
@@ -385,6 +391,7 @@ export class ListenTransaction {
     if (target === State.DONE || target === State.STOP) this._clearPreSessionAudio();
     this.stateTrace.push(target);
     this.state = target;
+    this.activeStage = ({ ASR: 'asr', NLU: 'nlu', ROUTE: 'route', WAIT_CLIENT_ASR: 'client_asr', WAIT_CLIENT_NLU: 'client_nlu' })[target] || this.activeStage;
     const exec = {
       [State.ASR]: () => this._performASR(),
       [State.NLU]: () => this._performNLU(),
@@ -419,6 +426,7 @@ export class ListenTransaction {
         asrFailed = true;
         throw err;
       } finally {
+        if (this.asrSession?.describe) this.asrDescription = this.asrSession.describe();
         if (asrFailed || out === TIMEOUT || this.asrCancelled || this.aborted) this._abortASR();
         else this._stopASR();
       }
@@ -451,11 +459,19 @@ export class ListenTransaction {
       // The reference's outer catch re-wraps EVERY ASR failure — including its
       // own TIMEOUT_ASR throw — as HubErrorCode.ASR, so TIMEOUT_ASR never
       // reaches the robot (ListenTransactionHandler.ts:452-484).
-      throw new HubError(HubErrorCode.ASR, errMsg(err));
+      throw this._asrFailure(err);
     } finally {
       this._span('asr', t0, outcome);
     }
     this._gotoState(State.NLU);
+  }
+
+  _asrFailure(err) {
+    const failure = new HubError(HubErrorCode.ASR, errMsg(err));
+    failure.asrDiagnostics = asrFailureFields(err, this.asrSession?.describe?.() || this.asrDescription);
+    failure.safeLogMessage = 'ASR failed';
+    recordVoiceTurnFailure(this.trace, failure.asrDiagnostics);
+    return failure;
   }
 
   /** Reference _performASR: build the session config, wire SOS/EOS, feed audio. */
@@ -475,6 +491,7 @@ export class ListenTransaction {
       // Scope only that provider logger so those existing fields gain the same
       // opaque turn correlation without changing the supplied transaction log
       // object or provider/test interface.
+      this.asrDescription = { provider: this.components.asrProvider ? 'unknown' : asrProviderName() };
       const session = (this.components.asrProvider || startASRSession)(config, this._asrLog());
       this.asrSession = session;
 
@@ -522,7 +539,7 @@ export class ListenTransaction {
                 (batchText) => (batchText
                   ? settle(typeof batchText === 'string' ? batchText : batchText.text, 1.0)
                   : settle(last && last.text, last && last.confidence)),
-                (err) => { this.log.warn('batch finalize on max-speech timeout failed', { error: err.message }); settle(last && last.text, last && last.confidence); },
+                (err) => { this.log.warn('batch finalize on max-speech timeout failed', asrFailureFields(err, session.describe?.() || this.asrDescription)); settle(last && last.text, last && last.confidence); },
               );
             } else {
               settle(last && last.text, last && last.confidence);
@@ -574,7 +591,7 @@ export class ListenTransaction {
         else session.stop?.();
         this.asrSession = null;
       } catch (err) {
-        this.log.warn?.('ASR session stop failed; retaining session reference', { error: err.message });
+        this.log.warn?.('ASR session stop failed; retaining session reference', asrFailureFields(err, session.describe?.() || this.asrDescription));
       }
     }
     this._clearASRTimers();
@@ -607,8 +624,11 @@ export class ListenTransaction {
    * cancel_local_turn the robot closes the socket, and without this the phase ran
    * on until maxSpeechTimeout and recognized audio for a dead peer).
    */
-  abandon() {
+  abandon(close = {}) {
     if (this.abandoned || this.settled) return;
+    const fields = socketCloseFields({ ...close, stage: this.activeStage });
+    this.log.info?.('voice_turn_socket_close', fields);
+    recordVoiceTurnSocketClose(this.trace, fields);
     this.abandoned = true;
     this.settled = true;
     this._abort(new Error('Listen socket closed'));
@@ -696,6 +716,9 @@ export class ListenTransaction {
     } else if (context.data && context.data.skill && context.data.skill.id && !this.listenMessage.data.hotphrase) {
       await this._onSkillMatch(context.data.skill.id, context, null, true);
     } else {
+      // Native global no-match handling owns Classic's Idle feedback and the
+      // connected Agent adapter's relaunch handoff. The hub has no trustworthy
+      // mode flag; injecting a skill/TTS fallback here would compete with both.
       this._emitListenResult(null, true);
     }
     this._gotoState(State.DONE);
@@ -799,6 +822,7 @@ export class ListenTransaction {
     }
     this._emitListenResult(matchData, false);
 
+    this.activeStage = 'skill';
     const t0 = now();
     let skillOutcome = 'ok';
     let skillOutput;
@@ -831,6 +855,7 @@ export class ListenTransaction {
     if (!skillOutput.error) this._record(skillID, context, skillOutput.response);
 
     if (skillOutput.response && isRedirect(skillOutput.response)) {
+      this.activeStage = 'skill_redirect';
       const redirectStart = now();
       let redirectOutcome = 'ok';
       try {
@@ -947,6 +972,8 @@ export class ListenTransaction {
   }
 
   async _awaitContext() {
+    const previousStage = this.activeStage;
+    this.activeStage = 'context_wait';
     const t0 = now();
     let outcome = 'ok';
     try {
@@ -960,6 +987,7 @@ export class ListenTransaction {
       if (outcome === 'ok') outcome = metricOutcome(err);
       throw err;
     } finally {
+      if (this.activeStage === 'context_wait') this.activeStage = previousStage;
       if (!this.contextSpanRecorded) {
         this.contextSpanRecorded = true;
         this._span('context_wait', t0, outcome);
@@ -1031,7 +1059,7 @@ export class ListenTransaction {
       else session.stop?.();
       this.asrSession = null;
     } catch (err) {
-      this.log.warn?.('ASR session abort failed; retaining session reference', { error: err.message });
+      this.log.warn?.('ASR session abort failed; retaining session reference', asrFailureFields(err, session.describe?.() || this.asrDescription));
     }
   }
 

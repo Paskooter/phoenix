@@ -30,6 +30,7 @@
 // tests supply a recorded/fake recognizer stream (no live vendor).
 
 import { FastEOS } from './fastEOS.js';
+import { asrFailureFields } from '@phoenix/common';
 
 const FINAL_RESULT_WAIT_MS = 3000;
 
@@ -211,7 +212,7 @@ export class GoogleASRSession {
         this.recStream.end();
       }
     } catch (error) {
-      this.log.warn?.(`Google recognizer stream destroy failed: ${error.message}`);
+      this.log.warn?.('Google recognizer stream destroy failed', asrFailureFields(error, { provider: 'google' }));
     }
   }
 
@@ -240,7 +241,7 @@ export class GoogleASRSession {
       this.streamEnded = true;
       this.recStream.end();
     } catch (error) {
-      this.log.warn?.(`Google recognizer stream close failed: ${error.message}`);
+      this.log.warn?.('Google recognizer stream close failed', asrFailureFields(error, { provider: 'google' }));
     }
   }
 
@@ -272,6 +273,7 @@ export class GoogleASRSession {
       return;
     }
     this.startSettled = true;
+    this.log.error?.('Google recognizer failed', asrFailureFields(error, { provider: 'google' }));
     clearTimeout(this.finalResultTimeout);
     this.finalResultTimeout = null;
     const reject = this.rejectStart;
@@ -311,7 +313,7 @@ export class GoogleASRSession {
       const fail = (error) => this._rejectStart(error);
       const handleData = (rawData) => {
         const data = rawData || {};
-        this.log.debug?.(`Received data from google: ${JSON.stringify(data)}`);
+        this.log.debug?.('Received data from Google recognizer');
         if (this.stopped || this.startSettled) {
           this.log.debug?.('ASR data arrived but GoogleASRSession is stopped already');
           return;
@@ -321,7 +323,7 @@ export class GoogleASRSession {
           return;
         }
         if (!data.speechEventType) {
-          this.log.warn?.(`Missing speechEventType: ${JSON.stringify(data)}`);
+          this.log.warn?.('Missing speechEventType', asrFailureFields({ code: 'ERR_GOOGLE_RESPONSE_FORMAT' }, { provider: 'google' }));
           return;
         }
 
@@ -333,7 +335,7 @@ export class GoogleASRSession {
           this.finalResultTimeout = setTimeout(() => {
             if (this.startSettled) return;
             const asrResult = this.getLastIncremental();
-            this.log.info?.(`Timeout waiting for final result after EOS, returning ${JSON.stringify(asrResult)}`);
+            this.log.warn?.('Timeout waiting for final result after EOS; returning the best hypothesis', asrFailureFields({ code: 'GOOGLE_STT_TIMEOUT' }, { provider: 'google' }));
             this.sendResult(asrResult);
             this._resolveStart(asrResult);
           }, FINAL_RESULT_WAIT_MS);
@@ -341,7 +343,7 @@ export class GoogleASRSession {
         }
 
         if (data.speechEventType !== 'SPEECH_EVENT_UNSPECIFIED') {
-          this.log.warn?.(`Unknown speechEventType '${data.speechEventType}': ${JSON.stringify(data)}`);
+          this.log.warn?.('Unknown speechEventType', asrFailureFields({ code: 'ERR_GOOGLE_RESPONSE_FORMAT' }, { provider: 'google' }));
           return;
         }
 
@@ -349,13 +351,13 @@ export class GoogleASRSession {
         if (results.length === 0) {
           // Google occasionally sends a progress frame without results. It is
           // not speech and must not advance SOS or settle the transaction.
-          this.log.info?.(`Received empty results: ${JSON.stringify(data)}`);
+          this.log.info?.('Received empty results');
           return;
         }
         const result = results[0];
         const alternative = result && Array.isArray(result.alternatives) ? result.alternatives[0] : null;
         if (!alternative) {
-          this.log.info?.(`Received a result without an alternative: ${JSON.stringify(data)}`);
+          this.log.info?.('Received a result without an alternative');
           return;
         }
         const asrResult = {

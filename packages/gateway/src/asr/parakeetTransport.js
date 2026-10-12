@@ -205,9 +205,9 @@ export function postParakeetWav(parakeetUrl, wav, { timeoutMs = POST_TIMEOUT_MS,
           bufs.push(chunk);
         });
         res.on('error', fail);
-        res.on('aborted', () => fail(new Error('Parakeet response was aborted')));
+        res.on('aborted', () => fail(Object.assign(new Error('Parakeet response was aborted'), { code: 'ERR_PARAKEET_RESPONSE_ABORTED' })));
         res.on('close', () => {
-          if (!responseEnded && !settled) fail(new Error('Parakeet response closed before completion'));
+          if (!responseEnded && !settled) fail(Object.assign(new Error('Parakeet response closed before completion'), { code: 'ERR_PARAKEET_RESPONSE_ABORTED' }));
         });
         res.on('end', () => {
           responseEnded = true;
@@ -220,7 +220,7 @@ export function postParakeetWav(parakeetUrl, wav, { timeoutMs = POST_TIMEOUT_MS,
               truncated ? MAX_RESPONSE_DIAGNOSTIC_BYTES - UTF8_ELLIPSIS_BYTES : MAX_RESPONSE_DIAGNOSTIC_BYTES,
             );
             const suffix = truncated ? UTF8_ELLIPSIS : '';
-            fail(new Error(`Parakeet returned ${res.statusCode}: ${diagnostic}${suffix}`));
+            fail(Object.assign(new Error(`Parakeet returned ${res.statusCode}: ${diagnostic}${suffix}`), { httpStatus: res.statusCode }));
             return;
           }
           try {
@@ -241,7 +241,7 @@ export function postParakeetWav(parakeetUrl, wav, { timeoutMs = POST_TIMEOUT_MS,
             if (typeof transcript !== 'string') transcript = '';
             settle(resolve, { text: transcript, confidence });
           } catch (error) {
-            fail(new Error('Could not parse Parakeet response: ' + error));
+            fail(Object.assign(new Error('Could not parse Parakeet response: ' + error), { code: 'ERR_PARAKEET_INVALID_RESPONSE' }));
           }
         });
         const declaredLength = Number(response.headers['content-length']);
@@ -250,7 +250,7 @@ export function postParakeetWav(parakeetUrl, wav, { timeoutMs = POST_TIMEOUT_MS,
         }
       });
       signal?.addEventListener('abort', abort, { once: true });
-      req.setTimeout(timeoutMs, () => { req.destroy(new Error('Parakeet request timed out')); });
+      req.setTimeout(timeoutMs, () => { req.destroy(Object.assign(new Error('Parakeet request timed out'), { code: 'ERR_PARAKEET_TIMEOUT' })); });
       req.on('error', fail);
       req.write(body);
       req.end();
