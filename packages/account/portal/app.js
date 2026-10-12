@@ -3144,6 +3144,9 @@ async function renderClaim() {
     body.replaceChildren(
       h('p', { class: 'instruct' }, 'Jibo needs to be in ', h('strong', {}, 'int-developer'),
         ' mode and on your Wi-Fi. The command asks for his IP address, shows what it will change, and waits for you to confirm.'),
+      h('p', { class: 'field-hint' }, 'Not there yet? The ',
+        h('a', { class: 'link', href: '/guide' }, 'setup guide'),
+        ' walks through it with the free DFU toolkit, and Jibo shows his IP address on his screen when he’s ready.'),
       segment,
       h('div', { class: 'restart-cmd run-cmd' }, commandText, copyButton(() => commandText.textContent)),
       where,
