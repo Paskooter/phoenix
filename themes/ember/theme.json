@@ -1,0 +1,153 @@
+{
+  "schema": 2,
+  "kind": "theme",
+  "runtime": "phoenix-menu-theme-v1",
+  "appId": "app-a8d18f7f-7846-4ab9-9f22-380666cdd1ed",
+  "version": "1.0.0",
+  "minFirmware": "13.6.1",
+  "name": "Phoenix Ember",
+  "description": "A quiet charcoal field with a low amber glow behind the menu. Warm copper buttons, ivory labels and line icons with a small amber accent. Keeps Jibo’s familiar paged menus.",
+  "releaseNotes": "First release: palette, background and 38 original icons for Main, Fun, Personal Report, Clock, Create, Exercise and Settings menus.",
+  "permissions": ["menu-theme"],
+  "launchNames": [],
+  "themeApi": 1,
+  "theme": {
+    "layout": "native",
+    "palette": {
+      "background": "#10151D",
+      "surface": "#5B2F1B",
+      "surfaceSecondary": "#36251F",
+      "text": "#FFF4E5",
+      "mutedText": "#E6D5BE",
+      "accent": "#FFB15C"
+    },
+    "fonts": {
+      "titleFamily": "Proxima Nova Soft",
+      "labelFamily": "Proxima Nova Light",
+      "titleSize": 80,
+      "labelSize": 50
+    },
+    "background": { "asset": "background", "opacity": 0.22 },
+    "previewAsset": "preview",
+    "storeAppIcon": "app",
+    "overrides": [
+      {
+        "menuKey": "@be/main-menu#main-menu",
+        "icons": [
+          { "itemId": "introduction", "asset": "introduction" },
+          { "itemId": "thingsToDo", "asset": "things-to-do" },
+          { "itemId": "fun", "asset": "fun" },
+          { "itemId": "clock", "asset": "clock" },
+          { "itemId": "personalReport", "asset": "report" },
+          { "itemId": "radio", "asset": "music" },
+          { "itemId": "snapshot", "asset": "camera" },
+          { "itemId": "gallery", "asset": "gallery" },
+          { "itemId": "photobooth", "asset": "photobooth" },
+          { "itemId": "exercise", "asset": "yoga" },
+          { "itemId": "tutorial", "asset": "tutorial" },
+          { "itemId": "settings", "asset": "settings" },
+          { "itemId": "phoenix-agent", "asset": "agent" },
+          { "itemId": "phoenix-spotify", "asset": "spotify" },
+          { "itemId": "phoenix-tic-tac-toe", "asset": "tic-tac-toe" }
+        ]
+      },
+      {
+        "menuKey": "@be/main-menu#fun-stuff",
+        "icons": [
+          { "itemId": "circuitSaver", "asset": "circuit-saver" },
+          { "itemId": "wordOfTheDay", "asset": "word-of-day" },
+          { "itemId": "joke", "asset": "joke" },
+          { "itemId": "dance", "asset": "dance" },
+          { "itemId": "surprise", "asset": "surprise" }
+        ]
+      },
+      {
+        "menuKey": "@be/main-menu#personal-report",
+        "icons": [
+          { "itemId": "fullReport", "asset": "report" },
+          { "itemId": "weather", "asset": "weather" },
+          { "itemId": "calendar", "asset": "calendar" },
+          { "itemId": "commute", "asset": "commute" },
+          { "itemId": "news", "asset": "news" }
+        ]
+      },
+      {
+        "menuKey": "@be/clock#clockMenu",
+        "icons": [
+          { "itemId": "time", "asset": "time" },
+          { "itemId": "date", "asset": "date" },
+          { "itemId": "timer", "asset": "timer" },
+          { "itemId": "alarm", "asset": "alarm" }
+        ]
+      },
+      {
+        "menuKey": "@be/create#createMenu",
+        "icons": [
+          { "itemId": "photo", "asset": "camera" },
+          { "itemId": "photobooth", "asset": "photobooth" }
+        ]
+      },
+      {
+        "menuKey": "@be/exercise#exercise-menu",
+        "icons": [
+          { "itemId": "sunSalutation", "asset": "yoga-sun" },
+          { "itemId": "basicWarrior", "asset": "yoga-warrior" }
+        ]
+      },
+      {
+        "menuKey": "@be/settings#settingsMenu",
+        "icons": [
+          { "itemId": "volume", "asset": "volume" },
+          { "itemId": "wifi", "asset": "wifi" },
+          { "itemId": "battery", "asset": "battery" },
+          { "itemId": "about", "asset": "about" },
+          { "itemId": "updates", "asset": "updates" },
+          { "itemId": "homeAssistant", "asset": "home-assistant" },
+          { "itemId": "themes", "asset": "themes" }
+        ]
+      }
+    ]
+  },
+  "assets": [
+    { "id": "about", "role": "icon", "path": "assets/icons/about.png" },
+    { "id": "agent", "role": "icon", "path": "assets/icons/agent.png" },
+    { "id": "alarm", "role": "icon", "path": "assets/icons/alarm.png" },
+    { "id": "app", "role": "icon", "path": "assets/icons/app.png" },
+    { "id": "background", "role": "background", "path": "assets/background.png" },
+    { "id": "battery", "role": "icon", "path": "assets/icons/battery.png" },
+    { "id": "calendar", "role": "icon", "path": "assets/icons/calendar.png" },
+    { "id": "camera", "role": "icon", "path": "assets/icons/camera.png" },
+    { "id": "circuit-saver", "role": "icon", "path": "assets/icons/circuit-saver.png" },
+    { "id": "clock", "role": "icon", "path": "assets/icons/clock.png" },
+    { "id": "commute", "role": "icon", "path": "assets/icons/commute.png" },
+    { "id": "dance", "role": "icon", "path": "assets/icons/dance.png" },
+    { "id": "date", "role": "icon", "path": "assets/icons/date.png" },
+    { "id": "fun", "role": "icon", "path": "assets/icons/fun.png" },
+    { "id": "gallery", "role": "icon", "path": "assets/icons/gallery.png" },
+    { "id": "home-assistant", "role": "icon", "path": "assets/icons/home-assistant.png" },
+    { "id": "introduction", "role": "icon", "path": "assets/icons/introduction.png" },
+    { "id": "joke", "role": "icon", "path": "assets/icons/joke.png" },
+    { "id": "music", "role": "icon", "path": "assets/icons/music.png" },
+    { "id": "news", "role": "icon", "path": "assets/icons/news.png" },
+    { "id": "photobooth", "role": "icon", "path": "assets/icons/photobooth.png" },
+    { "id": "preview", "role": "preview", "path": "assets/preview.png" },
+    { "id": "report", "role": "icon", "path": "assets/icons/report.png" },
+    { "id": "settings", "role": "icon", "path": "assets/icons/settings.png" },
+    { "id": "spotify", "role": "icon", "path": "assets/icons/spotify.png" },
+    { "id": "surprise", "role": "icon", "path": "assets/icons/surprise.png" },
+    { "id": "themes", "role": "icon", "path": "assets/icons/themes.png" },
+    { "id": "things-to-do", "role": "icon", "path": "assets/icons/things-to-do.png" },
+    { "id": "tic-tac-toe", "role": "icon", "path": "assets/icons/tic-tac-toe.png" },
+    { "id": "time", "role": "icon", "path": "assets/icons/time.png" },
+    { "id": "timer", "role": "icon", "path": "assets/icons/timer.png" },
+    { "id": "tutorial", "role": "icon", "path": "assets/icons/tutorial.png" },
+    { "id": "updates", "role": "icon", "path": "assets/icons/updates.png" },
+    { "id": "volume", "role": "icon", "path": "assets/icons/volume.png" },
+    { "id": "weather", "role": "icon", "path": "assets/icons/weather.png" },
+    { "id": "wifi", "role": "icon", "path": "assets/icons/wifi.png" },
+    { "id": "word-of-day", "role": "icon", "path": "assets/icons/word-of-day.png" },
+    { "id": "yoga", "role": "icon", "path": "assets/icons/yoga.png" },
+    { "id": "yoga-sun", "role": "icon", "path": "assets/icons/yoga-sun.png" },
+    { "id": "yoga-warrior", "role": "icon", "path": "assets/icons/yoga-warrior.png" }
+  ]
+}

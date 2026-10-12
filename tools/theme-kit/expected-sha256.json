@@ -1,0 +1,18 @@
+{
+  "ember": {
+    "sha256": "8e9740ba5131080c41d4b24d505f02ab773f4d5c3cf7f959f109e55bdf708289",
+    "manifestSha256": "83a2d46638e36a912943fedbf8c4f99e6b4be4951dbf3f6998125b43edcbac6e",
+    "bytes": 653017,
+    "manifestBytes": 9708,
+    "assetCount": 40,
+    "pixels": 3930368
+  },
+  "orbit": {
+    "sha256": "dbd4963ac78bd6f42f73822187b73b632cfab77a90cdba4ce543260e8710d7ed",
+    "manifestSha256": "045e032d285f8785082412e1db1a8962a90c462771c916b18105d2a19c64c596",
+    "bytes": 387993,
+    "manifestBytes": 9777,
+    "assetCount": 40,
+    "pixels": 3930368
+  }
+}
