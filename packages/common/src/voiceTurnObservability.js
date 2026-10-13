@@ -16,7 +16,7 @@ const MAX_TURNS = Math.max(20, Math.min(10000, Number(process.env.PHOENIX_VOICE_
 const RETAIN_MS = Math.max(60_000, Math.min(24 * 60 * 60 * 1000, Number(process.env.PHOENIX_VOICE_TURN_RETAIN_MS) || 24 * 60 * 60 * 1000));
 const MAX_QUERY_LIMIT = 100;
 const STAGES = new Set(['context_wait', 'asr', 'nlu', 'route', 'skill', 'skill_redirect', 'history_launch', 'history_speech', 'response_ready', 'http_request']);
-const OUTCOMES = new Set(['ok', 'matched', 'unmatched', 'remote_error', 'timeout', 'error', 'cancelled', 'abandoned', 'listen', 'skill', 'redirect']);
+const OUTCOMES = new Set(['ok', 'matched', 'unmatched', 'remote_error', 'timeout', 'error', 'cancelled', 'abandoned', 'idle_spare', 'listen', 'skill', 'redirect']);
 const ASR_PROVIDERS = new Set(['parakeet', 'google', 'unknown']);
 const ASR_ERROR_CODES = new Set(['ASR_UNKNOWN', 'TIMEOUT_ASR', 'ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND', 'EHOSTUNREACH', 'EPIPE', 'ERR_INVALID_URL',
   'ERR_AUDIO_FORMAT', 'ERR_AUDIO_DECODE', 'ERR_GOOGLE_AUDIO_LIMIT', 'ERR_GOOGLE_RESPONSE_FORMAT', 'ERR_PARAKEET_RESPONSE_TOO_LARGE', 'ERR_PARAKEET_INVALID_RESPONSE', 'ERR_PARAKEET_TIMEOUT',

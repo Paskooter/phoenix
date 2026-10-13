@@ -5835,10 +5835,11 @@ const VOICE_STAGE_LABELS = Object.freeze({
 const VOICE_OUTCOME_LABELS = Object.freeze({
   skill: 'Answered', listen: 'Handled on Jibo', redirect: 'Redirected', ok: 'Done', matched: 'Matched',
   unmatched: 'Not understood', remote_error: 'Service error', timeout: 'Timed out', error: 'Error',
-  cancelled: 'Cancelled', abandoned: 'Abandoned',
+  cancelled: 'Cancelled', abandoned: 'Abandoned', idle_spare: 'Idle spare',
 });
 
 function voiceOutcome(turn) {
+  if (turn.outcome === 'idle_spare') return { label: VOICE_OUTCOME_LABELS.idle_spare, tone: 'quiet' };
   const route = (turn.stages || []).find((stage) => stage.stage === 'route');
   if (turn.outcome === 'listen' && route?.outcome === 'unmatched') return { label: 'Not understood', tone: 'warn' };
   if (['error', 'timeout', 'remote_error', 'abandoned', 'cancelled'].includes(turn.outcome)) {

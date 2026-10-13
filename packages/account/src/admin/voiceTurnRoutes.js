@@ -12,7 +12,7 @@ const QUERY_KEYS = ['turnId', 'from', 'to', 'outcome', 'stage', 'limit'];
 const TIMEOUT_MS = 2500;
 const TURN_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const STAGES = new Set(['context_wait', 'asr', 'nlu', 'route', 'skill', 'skill_redirect', 'history_launch', 'history_speech', 'response_ready', 'http_request']);
-const OUTCOMES = new Set(['ok', 'matched', 'unmatched', 'remote_error', 'timeout', 'error', 'cancelled', 'abandoned', 'listen', 'skill', 'redirect']);
+const OUTCOMES = new Set(['ok', 'matched', 'unmatched', 'remote_error', 'timeout', 'error', 'cancelled', 'abandoned', 'idle_spare', 'listen', 'skill', 'redirect']);
 
 const safeNumber = (value) => Number.isFinite(value) && value >= 0 ? Math.round(value) : null;
 function safeTurn(value) {

@@ -84,7 +84,8 @@ async function voiceSummary(env, fetchImpl) {
     env, fetchImpl, query: new URLSearchParams({ limit: '100', from: String(Date.now() - windowMs) }),
   });
   if (!result.ok) return null;
-  const turns = result.page.turns;
+  // Unused preconnections are not user turns or response-latency samples.
+  const turns = result.page.turns.filter((turn) => turn.outcome !== 'idle_spare');
   const failed = new Set(['error', 'timeout', 'remote_error', 'abandoned', 'cancelled']);
   let understood = 0;
   let missed = 0;

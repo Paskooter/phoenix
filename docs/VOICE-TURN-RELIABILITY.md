@@ -56,6 +56,47 @@ raised. Provider recognition itself retains its existing ASR deadline.
 | `PHOENIX_ASR_RELISTEN_LIMIT` | 1 | 0–3 (integer, fractional values floored) | Extra empty-result recognition windows |
 | `PHOENIX_ASR_RELISTEN_WAIT_MS` | 2500 | 250–10000 | Total wait for fresh speech after the first empty result |
 
+## Idle spare connections (before a turn starts)
+
+A `/listen` or `/v1/listen` socket that receives **no turn-bearing frame for
+10,000 ms after admission** now closes with WebSocket code `1000`, reason
+`idle-spare`. It resolves its transaction/reservations without an `ERROR` frame,
+speech-history write or `response_ready` span. The timing store records
+`outcome: idle_spare`; `voice_turn_idle_spare` logs only the existing turn ID and
+idle duration. Account preserves the classification, labels it **Idle spare**,
+and excludes it from user-turn counts and response-latency statistics.
+
+This is not a speech-start timeout and never expires an already-started listen.
+`LISTEN` (including client modes), implicit `CLIENT_ASR`/`CLIENT_NLU`, `CONTEXT`,
+or nonempty pre-listen audio permanently cancel the spare timer. Even a caller
+whose trace says “SPARE” can run a real turn. Empty audio, deprecated speaker-ID
+frames and WebSocket ping/pong do not renew the grace. Timers belong to individual
+sockets; a new turn does not expire another turn, and reconnects get a fresh grace.
+All existing real-turn/ASR/context/parser/skill deadlines remain unchanged.
+
+**Why ten seconds:** the archived Jetstream protocol sends LISTEN immediately
+on successful Hub connection, before starting audio; it does not wait for SOS
+or context first (`jiboV2/jetstream@8170355`, `ListenLoop.cc`,
+`phw_jm_hub_client_connect_result`; `LhubClient.cc`, `send_listen`). A production
+sample of 406 recorded ASR phases began 26–395 ms after socket admission, while
+unused sibling sockets survived to the 60-second outer transaction timeout.
+Ten seconds is a conservative Phoenix admission grace, **not a protocol-mandated
+maximum** and not the robot's separate ten-second local SOS timeout. Any request
+that remains completely silent beyond the grace is indistinguishable from a
+spare and must reconnect; evidence of real work arriving before the boundary
+protects even a much later LISTEN. No physical robot latency guarantee is implied.
+
+`PHOENIX_HUB_IDLE_SPARE_MS` may extend the grace at module load: integer values
+10000–59999 are accepted; absent/invalid/shorter values use 10000. Extending to
+the existing 60000 ms terminal deadline is not supported. Change the gateway
+environment only through the guarded deployment workflow.
+
+A `1006/unknown` mid-turn close still does **not** distinguish robot retrigger,
+network loss or a proxy-side drop. Do not reclassify it as an idle spare or add
+a retry/server-close workaround without a correlated trace. Tests exercise
+real loopback close frames, reservation release, concurrent/proactive sockets,
+reconnects, and delayed/implicit listens; they do not certify hardware behavior.
+
 ## Failure and socket-close diagnostics
 
 Every terminal ASR failure keeps the existing robot-facing `ASR` code/message,

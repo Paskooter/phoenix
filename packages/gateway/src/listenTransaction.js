@@ -67,6 +67,13 @@ export const GLOBAL_TURN_RULES = Object.freeze([
 
 export const MAX_PRESESSION_AUDIO_BYTES = 1024 * 1024;
 
+// Jetstream sends LISTEN when its Hub connection is ready, before audio. Spare
+// connections may never be promoted. This grace is ONLY for a pristine socket,
+// not an SOS/ASR/turn deadline. An override may extend it, never shorten it.
+const idleSpareOverride = Number(process.env.PHOENIX_HUB_IDLE_SPARE_MS);
+export const IDLE_SPARE_TIMEOUT_MS = Number.isSafeInteger(idleSpareOverride)
+  && idleSpareOverride >= 10_000 && idleSpareOverride < Timeouts.transaction ? idleSpareOverride : 10_000;
+
 const State = {
   WAIT_LISTEN: 'WAIT_LISTEN',
   WAIT_CLIENT_ASR: 'WAIT_CLIENT_ASR',
@@ -203,6 +210,8 @@ export class ListenTransaction {
     this._done = this._handle.promise;
     this._txTimer = setTimeout(() => this._onTransactionTimeout(), Timeouts.transaction);
     this._txTimer.unref?.();
+    this._idleSpareTimer = setTimeout(() => this._expireIdleSpare(), IDLE_SPARE_TIMEOUT_MS);
+    this._idleSpareTimer.unref?.();
   }
 
   /** Resolves when the transaction completes (success or failure handled internally). */
@@ -228,6 +237,7 @@ export class ListenTransaction {
       if (this.audioStreamClosed || (this.state !== State.WAIT_LISTEN && this.state !== State.ASR)) return;
       const byteLength = audio.byteLength ?? audio.length;
       if (!Number.isSafeInteger(byteLength) || byteLength <= 0) return;
+      this._clearIdleSpareTimer(); // audio before LISTEN is real work too
       if (this.asrSession) {
         try { this.asrSession.provideAudio(audio); } catch (err) { this.reject(this._asrFailure(err)); }
       } else if (this.audioBufferedBytes + byteLength > MAX_PRESESSION_AUDIO_BYTES) {
@@ -259,6 +269,11 @@ export class ListenTransaction {
         });
       }
       return this.reject(err);
+    }
+    // Any turn-bearing frame protects delayed/implicit listens. Do not rely on
+    // the caller's tracing label (even a SPARE can be promoted to a real turn).
+    if ([RequestType.LISTEN, RequestType.CONTEXT, RequestType.CLIENT_ASR, RequestType.CLIENT_NLU].includes(json.type)) {
+      this._clearIdleSpareTimer();
     }
     this._handleJSON(json).catch((err) => this.reject(err));
   }
@@ -632,6 +647,7 @@ export class ListenTransaction {
     this.abandoned = true;
     this.settled = true;
     this._abort(new Error('Listen socket closed'));
+    this._clearIdleSpareTimer();
     clearTimeout(this._txTimer);
     this._txTimer = null;
     this._handle.resolve();
@@ -1074,6 +1090,29 @@ export class ListenTransaction {
     this.contextPr.resolve(null);
   }
 
+  _clearIdleSpareTimer() {
+    clearTimeout(this._idleSpareTimer);
+    this._idleSpareTimer = null;
+  }
+
+  _expireIdleSpare() {
+    if (this._idleSpareTimer === null || !this._isActive() || this.state !== State.WAIT_LISTEN) return;
+    this._clearIdleSpareTimer();
+    clearTimeout(this._txTimer);
+    this._txTimer = null;
+    // Settle BEFORE close: its close event must not record an abandonment or
+    // emit ERROR. No turn was requested, so there is no speech history/response.
+    this.settled = true;
+    this.state = State.STOP;
+    this._abort(new Error('Idle spare socket'));
+    this.turnCompleted = true;
+    this.log.info?.('voice_turn_idle_spare', { event: 'voice_turn_idle_spare',
+      turnId: this.trace.turnId, idleMs: now() - this.startTime });
+    logVoiceTurnComplete(this.log, this.trace, this.startTime, 'idle_spare');
+    this._handle.resolve();
+    this.socket.close(1000, 'idle-spare');
+  }
+
   _onTransactionTimeout() {
     this._txTimer = null;
     if (!this._isActive()) return;
@@ -1118,6 +1157,7 @@ export class ListenTransaction {
   resolve() {
     if (this.settled || this.aborted) return;
     this.settled = true;
+    this._clearIdleSpareTimer();
     clearTimeout(this._txTimer);
     this._txTimer = null;
     this._clearPreSessionAudio();
@@ -1128,6 +1168,7 @@ export class ListenTransaction {
   reject(err, { saveHistory = true } = {}) {
     if (this.settled || this.aborted) return;
     this.settled = true;
+    this._clearIdleSpareTimer();
     clearTimeout(this._txTimer);
     this._txTimer = null;
     this.state = State.STOP;
