@@ -1492,6 +1492,10 @@ function browserTimeZone(candidate) {
   }
 }
 
+/* -- Calendar: pure month and agenda state ----------------------------------
+   Nothing between this line and the end marker touches the page, so the
+   calendar state test can run the block on its own in a sandbox. */
+
 function calendarDateKey(timestamp, timeZone) {
   const parts = new Intl.DateTimeFormat('en-US', {
     timeZone, year: 'numeric', month: '2-digit', day: '2-digit', numberingSystem: 'latn',
@@ -1554,167 +1558,660 @@ function calendarStatus(subscription) {
   };
 }
 
+const CALENDAR_DAY_MS = 86400000;
+const CALENDAR_PALETTE_SIZE = 6;
+const CALENDAR_CIVIL_DATE = /^(\d{4}-\d{2}-\d{2})/;
+
+/** "2026-10-14" for a Date whose UTC fields hold a civil date. */
+function calendarCivilKey(civil) {
+  return `${String(civil.getUTCFullYear()).padStart(4, '0')}-${String(civil.getUTCMonth() + 1).padStart(2, '0')}-${String(civil.getUTCDate()).padStart(2, '0')}`;
+}
+
+/** The civil date of a day key, as UTC midnight. */
+function calendarKeyDate(key) {
+  const [year, month, day] = String(key).split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day));
+}
+
+function calendarAddDays(key, days) {
+  return calendarCivilKey(new Date(calendarKeyDate(key).getTime() + days * CALENDAR_DAY_MS));
+}
+
+/** The same day `months` later, or the last day of a shorter month. */
+function calendarAddMonths(key, months) {
+  const date = calendarKeyDate(key);
+  const first = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + months, 1));
+  const length = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate();
+  return calendarCivilKey(new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth(), Math.min(date.getUTCDate(), length))));
+}
+
+function calendarSameMonth(key, cursor) {
+  const date = calendarKeyDate(key);
+  return date.getUTCFullYear() === cursor.getUTCFullYear() && date.getUTCMonth() === cursor.getUTCMonth();
+}
+
+/** The 42 days of the month grid, Sunday first: the days calendarMonthWindow covers. */
+function calendarGridKeys(cursor) {
+  const year = cursor.getUTCFullYear();
+  const month = cursor.getUTCMonth();
+  const firstDay = new Date(Date.UTC(year, month, 1)).getUTCDay();
+  return Array.from({ length: 42 }, (_, index) => calendarCivilKey(new Date(Date.UTC(year, month, 1 + index - firstDay))));
+}
+
+/**
+ * The first and last day an event touches in `timeZone`.
+ *
+ * An all-day event keeps the dates its calendar wrote. Its timestamps are
+ * midnight in the zone it was checked in, so reading them in another zone
+ * would move it to the day before. A timed event covers every day its time
+ * overlaps; the end is exclusive, so a meeting that ends at midnight stays on
+ * one day.
+ */
+function calendarEventSpan(event, timeZone) {
+  const start = Number(event?.start?.timestamp);
+  if (!Number.isFinite(start)) return null;
+  const endValue = Number(event?.end?.timestamp);
+  const end = Number.isFinite(endValue) ? endValue : start;
+  if (event.fullDay) {
+    const first = CALENDAR_CIVIL_DATE.exec(event.start?.dateTime || '')?.[1];
+    const after = CALENDAR_CIVIL_DATE.exec(event.end?.dateTime || '')?.[1];
+    if (first) return { first, last: after && after > first ? calendarAddDays(after, -1) : first };
+  }
+  const first = calendarDateKey(start, timeZone);
+  const last = end > start ? calendarDateKey(end - 1, timeZone) : first;
+  return { first, last: last < first ? first : last };
+}
+
+/** A calendar's colour is its place in the list, so the first six never share one. */
+function calendarColorIndex(subscriptions, subscriptionId) {
+  const index = (subscriptions || []).findIndex((item) => item.id === subscriptionId);
+  return index < 0 ? -1 : index % CALENDAR_PALETTE_SIZE;
+}
+
+function calendarTitleOrder(a, b) {
+  return String(a.summary || '').localeCompare(String(b.summary || ''));
+}
+
+/** The order of a day's agenda: all-day first, then by start time. */
+function calendarAgendaOrder(a, b) {
+  if (!!a.fullDay !== !!b.fullDay) return a.fullDay ? -1 : 1;
+  return (a.start.timestamp - b.start.timestamp)
+    || ((b.end?.timestamp ?? 0) - (a.end?.timestamp ?? 0))
+    || calendarTitleOrder(a, b);
+}
+
+function calendarItems(events, timeZone, firstKey, lastKey) {
+  const items = [];
+  for (const event of events || []) {
+    const span = calendarEventSpan(event, timeZone);
+    if (!span || span.last < firstKey || span.first > lastKey) continue;
+    items.push({ event, first: span.first, last: span.last, bar: !!event.fullDay || span.first !== span.last });
+  }
+  return items;
+}
+
+/**
+ * One month, laid out for drawing.
+ *
+ * Every grid day lists its events in rows. All-day and multi-day events are
+ * bars that keep one row for their whole week, so a trip reads as one bar
+ * across its days; the day's timed events follow in start order. A day draws
+ * at most `rows` rows. When it needs more, its last row becomes "+N more",
+ * where `more` counts the events left out; `events` always lists them all.
+ * `bars` joins each bar's visible days into one piece per week.
+ */
+function calendarMonthModel(events, cursor, timeZone, { rows = 3 } = {}) {
+  const keys = calendarGridKeys(cursor);
+  const items = calendarItems(events, timeZone, keys[0], keys[41]);
+  const bars = items.filter((item) => item.bar).sort((a, b) => a.first.localeCompare(b.first)
+    || b.last.localeCompare(a.last)
+    || (a.event.start.timestamp - b.event.start.timestamp)
+    || calendarTitleOrder(a.event, b.event));
+  const timed = items.filter((item) => !item.bar).sort((a, b) => (a.event.start.timestamp - b.event.start.timestamp)
+    || calendarTitleOrder(a.event, b.event));
+  const weeks = [];
+  for (let week = 0; week < 6; week += 1) {
+    const weekKeys = keys.slice(week * 7, week * 7 + 7);
+    const lanes = [];
+    const slots = weekKeys.map(() => []);
+    for (const item of bars) {
+      if (item.last < weekKeys[0] || item.first > weekKeys[6]) continue;
+      const from = weekKeys.findIndex((key) => key >= item.first);
+      let to = 6;
+      while (weekKeys[to] > item.last) to -= 1;
+      let lane = 0;
+      while (lanes[lane]?.slice(from, to + 1).some(Boolean)) lane += 1;
+      lanes[lane] ||= Array(7).fill(false);
+      for (let column = from; column <= to; column += 1) {
+        lanes[lane][column] = true;
+        slots[column][lane] = item;
+      }
+    }
+    const days = weekKeys.map((key, column) => {
+      const dayRows = [];
+      for (let lane = 0; lane < slots[column].length; lane += 1) {
+        dayRows.push(slots[column][lane] ? { kind: 'bar', item: slots[column][lane] } : { kind: 'spacer' });
+      }
+      for (const item of timed) if (item.first === key) dayRows.push({ kind: 'timed', item });
+      const dayEvents = dayRows.filter((row) => row.item).map((row) => row.item.event);
+      let shown = dayRows;
+      let more = 0;
+      if (dayRows.length > rows) {
+        shown = dayRows.slice(0, Math.max(0, rows - 1));
+        more = dayEvents.length - shown.filter((row) => row.item).length;
+      }
+      return { key, rows: shown, more, events: dayEvents };
+    });
+    const pieces = [];
+    days.forEach((day, column) => day.rows.forEach((row, index) => {
+      if (row.kind !== 'bar') return;
+      const open = pieces.find((piece) => piece.item === row.item && piece.row === index && piece.to === column - 1);
+      if (open) open.to = column;
+      else pieces.push({ item: row.item, row: index, from: column, to: column });
+    }));
+    for (const piece of pieces) {
+      piece.before = piece.item.first < weekKeys[piece.from];
+      piece.after = piece.item.last > weekKeys[piece.to];
+    }
+    weeks.push({ keys: weekKeys, days, bars: pieces });
+  }
+  return { keys, weeks, days: weeks.flatMap((week) => week.days) };
+}
+
+/** How many events touch the cursor's month (not the neighbouring days the grid also shows). */
+function calendarMonthEventCount(events, cursor, timeZone) {
+  const first = calendarCivilKey(cursor);
+  const last = calendarCivilKey(new Date(Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth() + 1, 0)));
+  return calendarItems(events, timeZone, first, last).length;
+}
+
+function calendarFormatRange(format, start, end) {
+  return typeof format.formatRange === 'function'
+    ? format.formatRange(new Date(start), new Date(end))
+    : `${format.format(new Date(start))} – ${format.format(new Date(end))}`;
+}
+
+/** When an event happens, in the calendar's time zone, for the day agenda. */
+function calendarEventWhen(event, timeZone, locale) {
+  const span = calendarEventSpan(event, timeZone);
+  if (!span) return '';
+  if (event.fullDay) {
+    if (span.first === span.last) return 'All day';
+    const days = new Intl.DateTimeFormat(locale, { timeZone: 'UTC', weekday: 'short', month: 'short', day: 'numeric' });
+    return `All day · ${calendarFormatRange(days, calendarKeyDate(span.first), calendarKeyDate(span.last))}`;
+  }
+  const start = Number(event.start.timestamp);
+  const end = Number.isFinite(Number(event.end?.timestamp)) ? Number(event.end.timestamp) : start;
+  if (span.first === span.last) {
+    const times = new Intl.DateTimeFormat(locale, { timeZone, hour: 'numeric', minute: '2-digit' });
+    return end > start ? calendarFormatRange(times, start, end) : times.format(new Date(start));
+  }
+  const moments = new Intl.DateTimeFormat(locale, { timeZone, month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  return calendarFormatRange(moments, start, end);
+}
+
+/** A short start time for a month cell: "10 AM", "3:30 PM", or "15:30" where clocks run to 24. */
+function calendarChipTime(timestamp, timeZone, locale) {
+  const date = new Date(timestamp);
+  const minute = Number(new Intl.DateTimeFormat('en-US', { timeZone, minute: 'numeric' }).format(date));
+  const hour12 = new Intl.DateTimeFormat(locale, { timeZone, hour: 'numeric' }).resolvedOptions().hour12;
+  return new Intl.DateTimeFormat(locale, minute || !hour12
+    ? { timeZone, hour: 'numeric', minute: '2-digit' }
+    : { timeZone, hour: 'numeric' }).format(date);
+}
+
+/** "Pacific Daylight Time (GMT-7)" for a zone at a moment; the zone's name if Intl cannot say. */
+function calendarZoneDescription(timeZone, at = Date.now(), locale) {
+  try {
+    const part = (timeZoneName) => new Intl.DateTimeFormat(locale, { timeZone, timeZoneName })
+      .formatToParts(new Date(at)).find((item) => item.type === 'timeZoneName')?.value;
+    const name = part('long');
+    const offset = part('shortOffset');
+    return name && offset && name !== offset ? `${name} (${offset})` : (name || offset || timeZone);
+  } catch {
+    return timeZone;
+  }
+}
+
+/** "5 calendars · 4 in use · 3 need attention" */
+function calendarSubscriptionSummary(subscriptions) {
+  const list = subscriptions || [];
+  const inUse = list.filter((item) => item.enabled !== false);
+  const attention = inUse.filter((item) => item.verification?.status !== 'ok' || item.verification?.lastError).length;
+  return [
+    `${list.length} calendar${list.length === 1 ? '' : 's'}`,
+    `${inUse.length} in use`,
+    attention ? `${attention} need${attention === 1 ? 's' : ''} attention` : null,
+  ].filter(Boolean).join(' · ');
+}
+
+/** A server problem as a sentence: "calendar fetch timed out" -> "Calendar fetch timed out." */
+function calendarSentence(text) {
+  const value = String(text || '').trim();
+  if (!value) return '';
+  const sentence = value[0].toUpperCase() + value.slice(1);
+  return /[.!?…]$/.test(sentence) ? sentence : `${sentence}.`;
+}
+
+/* -- end of the calendar pure state ---------------------------------------- */
+
+const CALENDAR_WEEKDAYS = [['Sun', 'Sunday'], ['Mon', 'Monday'], ['Tue', 'Tuesday'], ['Wed', 'Wednesday'],
+  ['Thu', 'Thursday'], ['Fri', 'Friday'], ['Sat', 'Saturday']];
+const CALENDAR_STATUS_ICONS = { 'status-ok': 'check', 'status-error': 'alert', 'status-unknown': 'clock' };
+let calendarIdCount = 0;
+const calendarId = (name) => `calendar-${name}-${calendarIdCount += 1}`;
+
 function createCalendarManager({ subscriptions: initialSubscriptions, timeZone: initialTimeZone }) {
   let subscriptions = Array.isArray(initialSubscriptions) ? initialSubscriptions : [];
   let timeZone = browserTimeZone(initialTimeZone);
   let cursor = calendarCursorForToday(timeZone);
+  let selectedKey = calendarDateKey(Date.now(), timeZone);
   let editingId = null;
+  // With nothing linked yet, the form is the whole point of the section.
+  let formOpen = !subscriptions.length;
+  let events = null; // null while a month is loading
+  let loadSeq = 0;
+  let focusNext = false;
+  let zoneProblem = null;
 
+  const ids = {
+    list: calendarId('list'), add: calendarId('add'), month: calendarId('month'), agenda: calendarId('agenda'), zones: calendarId('zones'),
+  };
   const root = h('div', { class: 'ical-manager' });
+
+  // Linked calendars, and whether each one works, come first.
+  const listSummary = h('p', { class: 'ical-section-sub' });
+  const addToggle = h('button', { type: 'button', class: 'btn btn-sm', 'aria-controls': ids.add, 'aria-expanded': 'false' },
+    icon('plus', 15), 'Add calendar');
   const list = h('div', { class: 'ical-subscription-list' });
-  const preview = h('div', { class: 'ical-preview' });
   const helper = h('p', { class: 'field-hint ical-manager-hint' },
     'Paste a read-only iCal URL. Phoenix checks it now and refreshes it daily while enabled, even when this page is closed. Removing it stops the refresh.');
   const labelInput = h('input', { type: 'text', maxlength: 120, placeholder: 'e.g. Family', autocomplete: 'off' });
   const urlInput = h('input', { type: 'url', inputmode: 'url', placeholder: 'https://calendar.example.com/feed.ics', autocomplete: 'url' });
   const timeZoneInput = h('input', {
     type: 'text', name: 'calendarTimeZone', value: timeZone, placeholder: 'America/New_York',
-    spellcheck: 'false', autocomplete: 'off',
+    spellcheck: 'false', autocomplete: 'off', list: ids.zones,
   });
   const addButton = h('button', { type: 'button', class: 'btn btn-primary btn-sm' }, 'Save calendar link');
   const cancelButton = h('button', { type: 'button', class: 'btn btn-sm', hidden: true }, 'Cancel edit');
   const addStatus = h('p', { class: 'field-hint ical-add-status', role: 'status', 'aria-live': 'polite' });
+  const addTitle = h('h4', { class: 'ical-add-title' });
+  const addPanel = h('div', { class: 'ical-add', id: ids.add },
+    addTitle,
+    helper,
+    h('div', { class: 'ical-add-grid' },
+      field('Calendar name', labelInput, 'A name only you will see in this account.'),
+      field('iCal subscription URL', urlInput, 'http, https, and webcal links are supported.')),
+    h('div', { class: 'ical-add-actions' }, addButton, cancelButton, addStatus));
+
+  // The time zone is a report setting as well: it is saved with the rest of the form.
+  const zoneNow = h('p', { class: 'ical-zone-now', role: 'status', 'aria-live': 'polite' });
+  const zoneList = h('datalist', { id: ids.zones });
+  const zone = h('div', { class: 'ical-zone' },
+    field('Display timezone', timeZoneInput, 'Events are laid out in this IANA timezone.'),
+    zoneNow,
+    zoneList);
+
+  // The month, and the selected day's agenda beside or below it.
+  const monthLabel = h('h3', { class: 'calendar-month-label', id: ids.month });
+  const monthSummary = h('p', { class: 'calendar-month-summary' });
+  const previewHead = h('div', { class: 'ical-preview-head' },
+    h('div', { class: 'ical-preview-title' }, monthLabel, monthSummary),
+    h('div', { class: 'ical-preview-nav' },
+      h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Previous month', on: { click: () => showMonth(-1) } }, icon('back', 16)),
+      h('button', { type: 'button', class: 'btn btn-sm', on: { click: showToday } }, 'Today'),
+      h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Next month', on: { click: () => showMonth(1) } }, icon('arrow', 16))));
+  const grid = h('div', { class: 'calendar-month', role: 'grid', 'aria-labelledby': ids.month });
+  const agenda = h('section', { class: 'calendar-agenda', 'aria-labelledby': ids.agenda });
+  const layout = h('div', { class: 'calendar-layout' }, grid, agenda);
+  const preview = h('section', { class: 'ical-preview', 'aria-label': 'Calendar preview' });
+
+  const colorClass = (subscriptionId) => {
+    const index = calendarColorIndex(subscriptions, subscriptionId);
+    return index < 0 ? '' : ` cal-c${index}`;
+  };
+
+  function syncForm() {
+    const editing = subscriptions.find((item) => item.id === editingId);
+    if (!editing) editingId = null;
+    if (!subscriptions.length) formOpen = true;
+    addPanel.hidden = !formOpen;
+    addToggle.hidden = formOpen;
+    addToggle.setAttribute('aria-expanded', String(formOpen));
+    addTitle.textContent = editing ? `Edit ${editing.label}` : 'Add a calendar';
+    addButton.textContent = editing ? 'Update calendar link' : 'Save calendar link';
+    cancelButton.textContent = editing ? 'Cancel edit' : 'Close';
+    cancelButton.hidden = !editing && !subscriptions.length;
+    for (const row of list.querySelectorAll('.ical-subscription')) row.classList.toggle('is-editing', row.dataset.id === editingId);
+  }
+
+  function resetForm() {
+    editingId = null;
+    labelInput.value = '';
+    urlInput.value = '';
+  }
+
+  function subscriptionRow(subscription, index) {
+    const state = calendarStatus(subscription);
+    const on = subscription.enabled !== false;
+    const enabled = h('input', {
+      type: 'checkbox', checked: on,
+      'aria-label': `Use and refresh ${subscription.label}`,
+      title: 'Turn off to pause daily refresh and exclude this calendar from the report',
+    });
+    // The tick wears the calendar's colour, so the list is also the month's key.
+    const enabledBox = h('label', { class: 'ical-enabled' }, enabled);
+    enabled.addEventListener('change', async () => {
+      enabled.disabled = true;
+      enabledBox.classList.add('is-saving');
+      const result = await api('PUT', `/api/calendar/subscriptions/${encodeURIComponent(subscription.id)}`, { enabled: enabled.checked });
+      if (!result.ok) {
+        enabled.checked = subscription.enabled !== false;
+        notify(result.data.error || 'Could not change this calendar', 'error');
+      }
+      else await reloadSubscriptions();
+      enabled.disabled = false;
+      enabledBox.classList.remove('is-saving');
+    });
+    const verify = h('button', {
+      type: 'button', class: 'btn btn-sm', on: { click: async () => {
+        verify.disabled = true;
+        const result = await api('POST', `/api/calendar/subscriptions/${encodeURIComponent(subscription.id)}/verify`);
+        verify.disabled = false;
+        if (result.ok) {
+          const verification = result.data.subscription.verification;
+          notify(verification.lastError ? 'Refresh failed; saved events remain available'
+            : verification.status === 'ok' ? 'Calendar verified' : 'Calendar still needs attention',
+          verification.lastError ? 'error' : verification.status === 'ok' ? 'ok' : 'error');
+          await reloadSubscriptions();
+        }
+        else notify(result.data.error || 'Could not verify calendar', 'error');
+      } },
+    }, 'Verify');
+    const edit = h('button', {
+      type: 'button', class: 'btn btn-sm', on: { click: () => {
+        editingId = subscription.id;
+        labelInput.value = subscription.label || '';
+        urlInput.value = subscription.url || '';
+        addStatus.textContent = '';
+        formOpen = true;
+        syncForm();
+        urlInput.focus();
+      } },
+    }, 'Edit');
+    const remove = h('button', {
+      type: 'button', class: 'btn btn-sm btn-danger', on: { click: async () => {
+        const yes = await confirmDialog({ title: 'Remove this calendar?', body: `Remove ${subscription.label} from the account?`, confirmLabel: 'Remove' });
+        if (!yes) return;
+        const result = await api('DELETE', `/api/calendar/subscriptions/${encodeURIComponent(subscription.id)}`);
+        if (result.ok) {
+          if (editingId === subscription.id) resetForm();
+          notify('Calendar removed');
+          await reloadSubscriptions();
+        }
+        else notify(result.data.error || 'Could not remove calendar', 'error');
+      } },
+    }, 'Remove');
+    const problem = subscription.verification?.lastError;
+    const error = problem
+      ? h('p', { class: 'ical-subscription-error' }, icon('alert', 14), h('span', {
+        text: subscription.verification.status === 'ok'
+          ? `Last refresh failed; showing saved events. ${calendarSentence(problem)}`
+          : calendarSentence(problem),
+      })) : null;
+    const count = subscription.verification?.eventCount || 0;
+    const address = maskedCalendarUrl(subscription.url);
+    return h('article', {
+      class: `ical-subscription cal-c${index % CALENDAR_PALETTE_SIZE}${on ? '' : ' is-paused'}${subscription.id === editingId ? ' is-editing' : ''}`,
+      'data-id': subscription.id,
+    },
+    enabledBox,
+    h('div', { class: 'ical-subscription-main' },
+      h('div', { class: 'ical-subscription-title' },
+        h('strong', { text: subscription.label }),
+        h('span', { class: `status-badge ${state.className}` }, icon(CALENDAR_STATUS_ICONS[state.className] || 'clock', 12), state.label),
+        on ? null : h('span', { class: 'status-badge status-paused', text: 'Paused' })),
+      h('div', { class: 'ical-subscription-url', text: address, title: address }),
+      h('div', { class: 'ical-subscription-meta' },
+        `${count} event${count === 1 ? '' : 's'}`,
+        subscription.verification?.lastSuccess ? ` · updated ${fmtDate(subscription.verification.lastSuccess)}` : '',
+        subscription.verification?.lastChecked ? ` · checked ${fmtDate(subscription.verification.lastChecked)}` : ''),
+      error),
+    h('div', { class: 'ical-subscription-actions' }, verify, edit, remove));
+  }
 
   function renderSubscriptions() {
+    listSummary.hidden = !subscriptions.length;
+    listSummary.textContent = calendarSubscriptionSummary(subscriptions);
     if (!subscriptions.length) {
       list.replaceChildren(empty('No calendars linked', 'Add a read-only iCal URL above to see its events here.', 'calendar'));
       return;
     }
-    list.replaceChildren(...subscriptions.map((subscription) => {
-      const state = calendarStatus(subscription);
-      const enabled = h('input', {
-        type: 'checkbox', checked: subscription.enabled !== false,
-        'aria-label': `Use and refresh ${subscription.label}`,
-        title: 'Turn off to pause daily refresh and exclude this calendar from the report',
-      });
-      enabled.addEventListener('change', async () => {
-        enabled.disabled = true;
-        const result = await api('PUT', `/api/calendar/subscriptions/${encodeURIComponent(subscription.id)}`, { enabled: enabled.checked });
-        if (!result.ok) enabled.checked = subscription.enabled !== false;
-        else await reloadSubscriptions();
-        enabled.disabled = false;
-      });
-      const verify = h('button', {
-        type: 'button', class: 'btn btn-sm', on: { click: async () => {
-          verify.disabled = true;
-          const result = await api('POST', `/api/calendar/subscriptions/${encodeURIComponent(subscription.id)}/verify`);
-          verify.disabled = false;
-          if (result.ok) {
-            const verification = result.data.subscription.verification;
-            notify(verification.lastError ? 'Refresh failed; saved events remain available'
-              : verification.status === 'ok' ? 'Calendar verified' : 'Calendar still needs attention',
-            verification.lastError ? 'error' : verification.status === 'ok' ? 'ok' : 'error');
-            await reloadSubscriptions();
-          }
-          else notify(result.data.error || 'Could not verify calendar', 'error');
-        } },
-      }, 'Verify');
-      const edit = h('button', {
-        type: 'button', class: 'btn btn-sm', on: { click: () => {
-          editingId = subscription.id;
-          labelInput.value = subscription.label || '';
-          urlInput.value = subscription.url || '';
-          addButton.textContent = 'Update calendar link';
-          cancelButton.hidden = false;
-          urlInput.focus();
-        } },
-      }, 'Edit');
-      const remove = h('button', {
-        type: 'button', class: 'btn btn-sm btn-danger', on: { click: async () => {
-          const yes = await confirmDialog({ title: 'Remove this calendar?', body: `Remove ${subscription.label} from the account?`, confirmLabel: 'Remove' });
-          if (!yes) return;
-          const result = await api('DELETE', `/api/calendar/subscriptions/${encodeURIComponent(subscription.id)}`);
-          if (result.ok) { notify('Calendar removed'); await reloadSubscriptions(); }
-          else notify(result.data.error || 'Could not remove calendar', 'error');
-        } },
-      }, 'Remove');
-      const error = subscription.verification?.lastError
-        ? h('p', { class: 'ical-subscription-error', text: subscription.verification.status === 'ok'
-          ? `Last refresh failed; showing saved events. ${subscription.verification.lastError}`
-          : subscription.verification.lastError }) : null;
-      return h('article', { class: 'ical-subscription' },
-        h('div', { class: 'ical-subscription-main' },
-          h('div', { class: 'ical-subscription-title' },
-            h('span', { class: 'ical-enabled' }, enabled),
-            h('strong', { text: subscription.label }),
-            h('span', { class: `status-badge ${state.className}`, text: state.label })),
-          h('div', { class: 'ical-subscription-url', text: maskedCalendarUrl(subscription.url) }),
-          h('div', { class: 'ical-subscription-meta' },
-            `${subscription.verification?.eventCount || 0} events`,
-            subscription.verification?.lastSuccess ? ` · updated ${fmtDate(subscription.verification.lastSuccess)}` : '',
-            subscription.verification?.lastChecked ? ` · checked ${fmtDate(subscription.verification.lastChecked)}` : ''),
-          error),
-        h('div', { class: 'ical-subscription-actions' }, verify, edit, remove));
+    list.replaceChildren(...subscriptions.map(subscriptionRow));
+  }
+
+  function paintZone() {
+    zoneNow.classList.toggle('is-problem', !!zoneProblem);
+    zoneNow.replaceChildren(icon(zoneProblem ? 'alert' : 'clock', 14), h('span', {
+      text: zoneProblem
+        ? `“${zoneProblem}” isn’t a time zone this browser knows, so times are shown in ${timeZone}.`
+        : `Times below are in ${calendarZoneDescription(timeZone)}.`,
     }));
   }
 
-  function renderMonth(events) {
-    const eventByDay = new Map();
-    for (const event of events || []) {
-      if (!event?.start?.timestamp) continue;
-      const key = calendarDateKey(event.start.timestamp, timeZone);
-      if (!eventByDay.has(key)) eventByDay.set(key, []);
-      eventByDay.get(key).push(event);
+  // Swap only what changes, so the month header (and a focused button in it)
+  // stays put while a month loads or fails.
+  function showPreview(...nodes) {
+    const current = [...preview.children];
+    if (current.length === nodes.length && current.every((node, index) => node === nodes[index])) return;
+    if (current[0] === previewHead && nodes[0] === previewHead) {
+      for (const node of current.slice(1)) node.remove();
+      preview.append(...nodes.slice(1));
+      return;
     }
-    const year = cursor.getUTCFullYear();
-    const month = cursor.getUTCMonth();
-    const firstDay = new Date(Date.UTC(year, month, 1)).getUTCDay();
-    const today = calendarDateKey(Date.now(), timeZone);
-    const cells = [];
-    for (let index = 0; index < 42; index += 1) {
-      const civil = new Date(Date.UTC(year, month, 1 + index - firstDay));
-      const key = `${civil.getUTCFullYear()}-${String(civil.getUTCMonth() + 1).padStart(2, '0')}-${String(civil.getUTCDate()).padStart(2, '0')}`;
-      const dayEvents = eventByDay.get(key) || [];
-      cells.push(h('div', { class: `calendar-day${civil.getUTCMonth() === month ? '' : ' outside'}${key === today ? ' today' : ''}` },
-        h('span', { class: 'calendar-day-number', text: civil.getUTCDate() }),
-        h('div', { class: 'calendar-day-events' }, dayEvents.slice(0, 4).map((event) => h('div', {
-          class: `calendar-event${event.fullDay ? ' all-day' : ''}`, title: event.summary || 'Calendar event',
-        }, event.fullDay ? (event.summary || 'Untitled') : `${new Intl.DateTimeFormat(undefined, { timeZone, timeStyle: 'short' }).format(new Date(event.start.timestamp))} · ${event.summary || 'Untitled'}`))),
-        dayEvents.length > 4 ? h('span', { class: 'calendar-more', text: `+${dayEvents.length - 4} more` }) : null));
+    preview.replaceChildren(...nodes);
+  }
+
+  // Grid placement goes through the style object rather than a style
+  // attribute, so it works under a Content-Security-Policy without inline styles.
+  const place = (node, column, span, row) => {
+    node.style.gridColumn = `${column + 1} / span ${span}`;
+    if (row) node.style.gridRow = String(row);
+    return node;
+  };
+
+  function dayCell(day, column, context) {
+    const civil = calendarKeyDate(day.key);
+    const outside = !calendarSameMonth(day.key, cursor);
+    const isToday = day.key === context.todayKey;
+    const selected = day.key === selectedKey;
+    const count = day.events.length;
+    const label = `${context.dayName.format(civil)}${isToday ? ', today' : ''}, ${!context.loaded ? 'loading' : count ? `${count} event${count === 1 ? '' : 's'}` : 'no events'}`;
+    const dots = day.events.slice(0, 3).map((event) => h('span', { class: `calendar-dot${colorClass(event.subscriptionId)}` }));
+    if (count > 3) dots.push(h('span', { class: 'calendar-dots-more', text: `+${count - 3}` }));
+    return place(h('div', {
+      class: `calendar-day${outside ? ' outside' : ''}${isToday ? ' today' : ''}${selected ? ' selected' : ''}`,
+      role: 'gridcell', 'aria-selected': String(selected), 'data-date': day.key,
+    },
+    h('button', {
+      type: 'button', class: 'calendar-day-button', tabindex: selected ? '0' : '-1', 'aria-label': label,
+      'aria-current': isToday ? 'date' : null, on: { click: (event) => {
+        selectDay(day.key, { focus: true });
+        // On a phone the agenda sits below the month: a tap on a day brings it
+        // up when it would otherwise start near the bottom of the screen.
+        const below = agenda.getBoundingClientRect();
+        if (event.detail && agenda.isConnected && below.top >= grid.getBoundingClientRect().bottom - 1 && below.top > innerHeight * .7) {
+          agenda.scrollIntoView({ block: 'nearest' });
+        }
+      } },
+    },
+    h('span', { class: 'calendar-day-number', 'aria-hidden': 'true', text: civil.getUTCDate() }),
+    h('span', { class: 'calendar-day-dots', 'aria-hidden': 'true' }, dots))), column, 1);
+  }
+
+  // Chips sit on the week's own grid, over the day cells, so a bar can cross
+  // several days. They ignore the pointer: a click lands on the day beneath.
+  function weekChips(week, context) {
+    const chips = [];
+    const chipTitle = (event) => h('span', { class: 'calendar-chip-text', text: event.summary || 'Untitled' });
+    for (const piece of week.bars) {
+      const event = piece.item.event;
+      chips.push(place(h('span', {
+        class: `calendar-chip bar${event.fullDay ? ' all-day' : ''}${piece.before ? ' continues-before' : ''}${piece.after ? ' continues-after' : ''}${colorClass(event.subscriptionId)}`,
+        'aria-hidden': 'true',
+      },
+      event.fullDay || piece.before ? null : h('span', { class: 'calendar-chip-time', text: context.chipTime(event.start.timestamp) }),
+      chipTitle(event)), piece.from, piece.to - piece.from + 1, piece.row + 2));
     }
-    const header = h('div', { class: 'ical-preview-head' },
-      h('div', {}, h('h4', { text: calendarMonthLabel(cursor, timeZone) }), h('p', { text: `${events.length} event${events.length === 1 ? '' : 's'} · ${timeZone}` })),
-      h('div', { class: 'ical-preview-nav' },
-        h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Previous month', on: { click: () => { cursor = new Date(Date.UTC(year, month - 1, 1)); loadEvents(); } } }, icon('back', 16)),
-        h('button', { type: 'button', class: 'btn btn-sm', on: { click: () => { cursor = calendarCursorForToday(timeZone); loadEvents(); } } }, 'Today'),
-        h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Next month', on: { click: () => { cursor = new Date(Date.UTC(year, month + 1, 1)); loadEvents(); } } }, icon('arrow', 16))));
-    const weekLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => h('span', { class: 'calendar-weekday', text: day }));
-    preview.replaceChildren(header, h('div', { class: 'calendar-grid' }, ...weekLabels, ...cells));
+    week.days.forEach((day, column) => {
+      const outside = calendarSameMonth(day.key, cursor) ? '' : ' outside';
+      day.rows.forEach((row, index) => {
+        if (row.kind !== 'timed') return;
+        // A day is too narrow for a time and a title; the agenda gives the time.
+        const event = row.item.event;
+        chips.push(place(h('span', { class: `calendar-chip timed${outside}${colorClass(event.subscriptionId)}`, 'aria-hidden': 'true' },
+          chipTitle(event)), column, 1, index + 2));
+      });
+      if (day.more) {
+        chips.push(place(h('span', { class: `calendar-more${outside}`, 'aria-hidden': 'true', text: `+${day.more} more` }),
+          column, 1, day.rows.length + 2));
+      }
+    });
+    return chips;
+  }
+
+  function renderAgenda(model, context) {
+    const dayEvents = [...(model.days.find((day) => day.key === selectedKey)?.events || [])].sort(calendarAgendaOrder);
+    const count = dayEvents.length;
+    const sub = !context.loaded ? 'Loading events…'
+      : [selectedKey === context.todayKey ? 'Today' : null, count ? `${count} event${count === 1 ? '' : 's'}` : 'Nothing scheduled'].filter(Boolean).join(' · ');
+    agenda.replaceChildren(
+      h('div', { class: 'calendar-agenda-head' },
+        h('h4', { id: ids.agenda, text: context.dayName.format(calendarKeyDate(selectedKey)) }),
+        h('p', { text: sub })),
+      !context.loaded ? loading(3)
+        : count ? h('ul', { class: 'calendar-agenda-list' }, dayEvents.map((event) => h('li', {
+          class: `calendar-agenda-event${colorClass(event.subscriptionId)}`,
+        },
+        h('div', { class: 'calendar-agenda-title', text: event.summary || 'Untitled' }),
+        h('div', { class: 'calendar-agenda-when', text: calendarEventWhen(event, timeZone) }),
+        event.subscriptionLabel || event.location
+          ? h('div', { class: 'calendar-agenda-meta', text: [event.subscriptionLabel, event.location].filter(Boolean).join(' · ') })
+          : null)))
+          : h('p', { class: 'calendar-agenda-empty', text: 'No events on this day.' }));
+  }
+
+  function renderMonth() {
+    const hadFocus = grid.contains(document.activeElement);
+    const loaded = Array.isArray(events);
+    if (!calendarSameMonth(selectedKey, cursor)) selectedKey = calendarCivilKey(cursor);
+    const model = calendarMonthModel(loaded ? events : [], cursor, timeZone);
+    const context = {
+      loaded,
+      todayKey: calendarDateKey(Date.now(), timeZone),
+      chipTime: (timestamp) => calendarChipTime(timestamp, timeZone),
+      dayName: new Intl.DateTimeFormat(undefined, { timeZone: 'UTC', weekday: 'long', month: 'long', day: 'numeric' }),
+    };
+    const monthName = new Intl.DateTimeFormat(undefined, { timeZone: 'UTC', month: 'long' }).format(cursor);
+    const count = loaded ? calendarMonthEventCount(events, cursor, timeZone) : 0;
+    monthLabel.textContent = calendarMonthLabel(cursor, timeZone);
+    monthSummary.textContent = loaded ? `${count} event${count === 1 ? '' : 's'} in ${monthName} · ${timeZone}` : `Loading events… · ${timeZone}`;
+    grid.setAttribute('aria-busy', String(!loaded));
+    grid.replaceChildren(
+      h('div', { class: 'calendar-weekdays', role: 'row' }, CALENDAR_WEEKDAYS.map(([short, long]) => h('div', {
+        class: 'calendar-weekday', role: 'columnheader', 'aria-label': long,
+      }, h('span', { 'aria-hidden': 'true', text: short })))),
+      ...model.weeks.map((week) => h('div', { class: 'calendar-week', role: 'row' },
+        week.days.map((day, column) => dayCell(day, column, context)),
+        weekChips(week, context))));
+    renderAgenda(model, context);
+    if (hadFocus || focusNext) {
+      focusNext = false;
+      grid.querySelector('.calendar-day.selected .calendar-day-button')?.focus();
+    }
+  }
+
+  function selectDay(key, { focus = false } = {}) {
+    selectedKey = key;
+    if (focus) focusNext = true;
+    if (calendarSameMonth(key, cursor)) { renderMonth(); return; }
+    const date = calendarKeyDate(key);
+    cursor = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
+    loadEvents();
+  }
+
+  function showMonth(offset) {
+    cursor = new Date(Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth() + offset, 1));
+    const todayKey = calendarDateKey(Date.now(), timeZone);
+    selectedKey = calendarSameMonth(todayKey, cursor) ? todayKey : calendarCivilKey(cursor);
+    loadEvents();
+  }
+
+  function showToday() {
+    cursor = calendarCursorForToday(timeZone);
+    selectedKey = calendarDateKey(Date.now(), timeZone);
+    loadEvents();
   }
 
   async function loadEvents() {
+    const seq = loadSeq += 1;
+    events = null;
     if (!subscriptions.length) {
-      preview.replaceChildren(empty('Your calendar preview starts here', 'Verify a subscription to populate a live month view.', 'calendar'));
+      focusNext = false;
+      showPreview(empty('Your calendar preview starts here', 'Verify a subscription to populate a live month view.', 'calendar'));
       return;
     }
     if (!subscriptions.some((subscription) => subscription.verification?.status === 'ok')) {
-      preview.replaceChildren(errorBox('Calendar preview unavailable', 'At least one subscription must verify successfully before Phoenix can show events.'));
+      focusNext = false;
+      showPreview(errorBox('Calendar preview unavailable', 'At least one subscription must verify successfully before Phoenix can show events.'));
       return;
     }
-    preview.replaceChildren(h('div', { class: 'ical-preview-loading' }, loading(7)));
+    showPreview(previewHead, layout);
+    renderMonth();
     const window = calendarMonthWindow(cursor);
     const result = await api('GET', `/api/calendar/events?start=${encodeURIComponent(window.start)}&end=${encodeURIComponent(window.end)}`);
+    // A newer month, or a reload, was asked for meanwhile and draws itself.
+    if (seq !== loadSeq) return;
     if (!result.ok) {
-      preview.replaceChildren(errorBox('Could not load the calendar preview.', result.data.error));
+      const hadFocus = focusNext || grid.contains(document.activeElement);
+      focusNext = false;
+      monthSummary.textContent = timeZone;
+      const retry = h('button', { type: 'button', class: 'btn btn-sm', on: { click: () => { focusNext = true; loadEvents(); } } },
+        icon('refresh', 15), 'Try again');
+      showPreview(previewHead, h('div', { class: 'ical-preview-message' },
+        errorBox('Could not load the calendar preview.', result.data.error), retry));
+      if (hadFocus) retry.focus();
       return;
     }
-    renderMonth(result.data.events || []);
+    events = result.data.events || [];
+    renderMonth();
   }
 
   async function reloadSubscriptions() {
     const result = await api('GET', '/api/calendar/subscriptions');
     if (!result.ok) {
+      loadSeq += 1;
       list.replaceChildren(errorBox('Could not load calendar subscriptions.', result.data.error));
-      preview.replaceChildren(errorBox('Could not load the calendar preview.', result.data.error));
+      showPreview(errorBox('Could not load the calendar preview.', result.data.error));
       return;
     }
     subscriptions = result.data.subscriptions || [];
     timeZone = browserTimeZone(result.data.timeZone || timeZone);
     timeZoneInput.value = timeZone;
+    zoneProblem = null;
+    paintZone();
     renderSubscriptions();
+    syncForm();
     await loadEvents();
   }
 
+  addToggle.addEventListener('click', () => {
+    resetForm();
+    addStatus.textContent = '';
+    formOpen = true;
+    syncForm();
+    labelInput.focus();
+  });
   addButton.addEventListener('click', async () => {
     const url = urlInput.value.trim();
     if (!url) { addStatus.textContent = 'Paste an iCal URL first.'; return; }
@@ -1731,38 +2228,68 @@ function createCalendarManager({ subscriptions: initialSubscriptions, timeZone: 
     }
     const status = result.data.subscription.verification.status;
     notify(status === 'ok' ? 'Calendar linked' : 'Calendar saved — needs attention', status === 'ok' ? 'ok' : 'error');
-    editingId = null;
-    labelInput.value = '';
-    urlInput.value = '';
-    addButton.textContent = 'Save calendar link';
-    cancelButton.hidden = true;
+    resetForm();
+    syncForm();
     addStatus.textContent = status === 'ok' ? 'Verified and ready for the report.' : 'Saved safely. Fix the link or verify it again when ready.';
     await reloadSubscriptions();
   });
   cancelButton.addEventListener('click', () => {
-    editingId = null;
-    labelInput.value = '';
-    urlInput.value = '';
-    addButton.textContent = 'Save calendar link';
-    cancelButton.hidden = true;
+    resetForm();
     addStatus.textContent = '';
+    formOpen = !subscriptions.length;
+    syncForm();
+    if (!formOpen) addToggle.focus();
   });
+  // Enter in a calendar link field saves that link. Without this the browser
+  // submits the whole report form instead, and the link is never saved.
+  for (const input of [labelInput, urlInput]) {
+    input.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' || event.isComposing) return;
+      event.preventDefault();
+      if (!addButton.disabled) addButton.click();
+    });
+  }
+  timeZoneInput.addEventListener('focus', () => {
+    const zones = typeof Intl.supportedValuesOf === 'function' ? Intl.supportedValuesOf('timeZone') : [];
+    zoneList.replaceChildren(...[...new Set(['UTC', ...zones])].map((value) => h('option', { value })));
+  }, { once: true });
   timeZoneInput.addEventListener('change', () => {
+    const typed = timeZoneInput.value.trim();
     timeZone = browserTimeZone(timeZoneInput.value);
     timeZoneInput.value = timeZone;
-    loadEvents();
+    zoneProblem = typed && typed !== timeZone ? typed : null;
+    paintZone();
+    if (Array.isArray(events)) renderMonth();
+    else loadEvents();
+  });
+  grid.addEventListener('keydown', (event) => {
+    if (!event.target.closest?.('.calendar-day-button') || event.altKey || event.ctrlKey || event.metaKey) return;
+    const steps = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 };
+    const weekday = calendarKeyDate(selectedKey).getUTCDay();
+    let next = null;
+    if (Object.prototype.hasOwnProperty.call(steps, event.key)) next = calendarAddDays(selectedKey, steps[event.key]);
+    else if (event.key === 'Home') next = calendarAddDays(selectedKey, -weekday);
+    else if (event.key === 'End') next = calendarAddDays(selectedKey, 6 - weekday);
+    else if (event.key === 'PageUp' || event.key === 'PageDown') {
+      next = calendarAddMonths(selectedKey, (event.key === 'PageUp' ? -1 : 1) * (event.shiftKey ? 12 : 1));
+    }
+    if (!next) return;
+    event.preventDefault();
+    selectDay(next, { focus: true });
   });
 
   root.append(
-    helper,
-    h('div', { class: 'ical-add-grid' },
-      field('Calendar name', labelInput, 'A name only you will see in this account.'),
-      field('iCal subscription URL', urlInput, 'http, https, and webcal links are supported.'),
-      field('Display timezone', timeZoneInput, 'Events are laid out in this IANA timezone.')),
-    h('div', { class: 'ical-add-actions' }, addButton, cancelButton, addStatus),
-    list,
+    h('section', { class: 'ical-section', 'aria-labelledby': ids.list },
+      h('div', { class: 'ical-section-head' },
+        h('div', {}, h('h3', { id: ids.list, text: 'Linked calendars' }), listSummary),
+        addToggle),
+      addPanel,
+      list),
+    zone,
     preview);
   renderSubscriptions();
+  syncForm();
+  paintZone();
   loadEvents();
   return { element: root };
 }
