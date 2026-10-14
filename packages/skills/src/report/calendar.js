@@ -141,31 +141,49 @@ export async function getData(userPrefs, data) {
 
 // --- CalendarParse ------------------------------------------------------------------
 
-function eventDateTime(event, localISO) {
-  // All-day dates are calendar dates, not instants to move across midnight.
-  return new DateTime(event.start.dateTime, event.fullDay ? null : parseIsoOffset(localISO));
+function calendarDisplayZone(data) {
+  const runtime = data.runtime || {};
+  const location = runtime.location || {};
+  const candidates = [data.local?.userPrefs?.calendar?.timeZone,
+    location.timeZone, location.timezone, runtime.timeZone, runtime.timezone];
+  for (const zone of candidates) {
+    if (typeof zone !== 'string' || !zone) continue;
+    try {
+      new Intl.DateTimeFormat('en-US', { timeZone: zone });
+      return zone;
+    } catch { /* Fall back to the next zone or the robot's explicit ISO offset. */ }
+  }
+  return parseIsoOffset(location.iso) ?? 0;
 }
 
-function isEventNDaysFromNow(event, offsetDays, localISO) {
+function eventDateTime(event, displayZone) {
+  // All-day dates are calendar dates, not instants to move across midnight.
+  return new DateTime(event.start.dateTime, event.fullDay ? null : displayZone);
+}
+
+function isEventNDaysFromNow(event, offsetDays, displayZone) {
   if (!event.start || !event.start.dateTime) return null;
-  const dt = eventDateTime(event, localISO);
+  const dt = eventDateTime(event, displayZone);
   // fullDay events start at 00:00, so include them even if the start is past.
   return (dt.isFuture() || event.fullDay) && (dt.getRelativeDays() === offsetDays);
 }
 
 /** Normal work-arrival DateTime on the day (today/tomorrow) of the next event. */
-export function getWorkArrivalDT(nextEvent, localISO, workTime = { hour: 9, min: 0 }) {
-  const dt = new DateTime(localISO);
+export function getWorkArrivalDT(nextEvent, localISO, workTime = { hour: 9, min: 0 }, displayZone = null) {
+  const zone = displayZone ?? parseIsoOffset(localISO);
+  // Start on the event's civil day, rather than adding 24 hours across DST.
+  const tomorrow = nextEvent && isEventNDaysFromNow(nextEvent, 1, zone);
+  const dt = tomorrow ? eventDateTime(nextEvent, zone) : new DateTime(localISO, zone);
   dt.setTime(workTime.hour, workTime.min);
-  if (nextEvent && isEventNDaysFromNow(nextEvent, 1, localISO)) dt.utc += 24 * 3600 * 1000;
   return dt;
 }
 
 export function calendarParse(rawEvents, data) {
   if (!rawEvents || !Array.isArray(rawEvents)) return undefined;
   const localISO = data.runtime.location.iso;
-  const eventsToday = rawEvents.filter((e) => isEventNDaysFromNow(e, 0, localISO));
-  const eventsTomorrow = rawEvents.filter((e) => isEventNDaysFromNow(e, 1, localISO));
+  const displayZone = calendarDisplayZone(data);
+  const eventsToday = rawEvents.filter((e) => isEventNDaysFromNow(e, 0, displayZone));
+  const eventsTomorrow = rawEvents.filter((e) => isEventNDaysFromNow(e, 1, displayZone));
   const numEventsToday = eventsToday.length;
   const numEventsTomorrow = eventsTomorrow.length;
 
@@ -173,12 +191,12 @@ export function calendarParse(rawEvents, data) {
 
   const workTime = data.local.userPrefs && data.local.userPrefs.commute && data.local.userPrefs.commute.workTime;
   const firstNonAllDayEvent = upcomingEvents.find((event) => !event.fullDay);
-  const workArrivalDT = getWorkArrivalDT(firstNonAllDayEvent, data.runtime.location.iso, workTime || undefined);
+  const workArrivalDT = getWorkArrivalDT(firstNonAllDayEvent, localISO, workTime || undefined, displayZone);
 
   const events = upcomingEvents.map((event) => {
     const fullDay = event.fullDay;
     const summary = event.summary || 'No event description';
-    const dateTime = eventDateTime(event, localISO); // validated by isEventNDaysFromNow
+    const dateTime = eventDateTime(event, displayZone); // validated by isEventNDaysFromNow
     const isEarly = (!fullDay && workArrivalDT) ? (dateTime.utc < workArrivalDT.utc) : false;
     return { isEarly, summary, dateTime, fullDay };
   });
