@@ -2631,7 +2631,11 @@ function robotGeneralPanel(state, identity, d) {
   return h('div', { class: 'stack' },
     card('Name and color', {}, form),
     companion,
-    card('About this Jibo', {}, h('div', { class: 'kv-list' }, ...robotFacts(d))));
+    card('About this Jibo', {}, h('div', { class: 'kv-list' }, ...robotFacts(d))),
+    card('Remove this Jibo', { sub: 'Works even when Jibo is offline' },
+      h('p', { class: 'field-hint' }, 'Remove this Jibo and his household from Phoenix. Your account stays.'),
+      h('button', { type: 'button', class: 'btn btn-danger-quiet',
+        on: { click: () => removalDialog({ loopId: state.loopId }, { owner: true }) } }, 'Remove this Jibo')));
 }
 
 function timeZoneSelect(current) {
@@ -4646,13 +4650,14 @@ async function renderAdminRobots() {
  * server's own preview of what would go, and requires the robot's name or the
  * loop id to be typed before anything is removed.
  */
-function removalDialog(target) {
-  const title = h('h3', { text: target.robot ? `Remove ${target.robot}?` : 'Remove this loop?' });
+function removalDialog(target, { owner = false } = {}) {
+  const endpoint = owner ? '/api/robot/removal' : '/api/admin/removal';
+  const title = h('h3', { text: owner ? 'Remove this Jibo?' : target.robot ? `Remove ${target.robot}?` : 'Remove this loop?' });
   const content = h('div', { class: 'removal-body' }, loading(4));
   const close = () => { dialog.close(); dialog.remove(); };
   const cancel = h('button', { class: 'btn', type: 'button', on: { click: close } }, 'Cancel');
   const confirmInput = h('input', { autocomplete: 'off', spellcheck: 'false', autocapitalize: 'off', disabled: true });
-  const remove = h('button', { class: 'btn btn-danger', type: 'button', disabled: true }, icon('trash', 15), 'Remove');
+  const remove = h('button', { class: 'btn btn-danger', type: 'button', disabled: true }, icon('trash', 15), owner ? 'Remove this Jibo' : 'Remove');
   const confirmField = field('', confirmInput);
   confirmField.hidden = true;
   const dialog = h('dialog', { class: 'modal removal-modal' }, title, content, confirmField,
@@ -4664,6 +4669,7 @@ function removalDialog(target) {
   const countsText = (removed) => Object.entries(removed || {})
     .map(([name, count]) => `${count} ${name.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase()}`).join(', ');
   const serviceRows = (services) => (services || []).map((entry) => {
+    if (entry.unavailable) return row(prettyLabel(entry.service), 'Could not check this service.');
     if (entry.skipped || entry.error) {
       return row(prettyLabel(entry.service), h('span', { class: 'pill pill-warn' }, entry.skipped ? `skipped: ${entry.skipped}` : entry.error));
     }
@@ -4673,22 +4679,28 @@ function removalDialog(target) {
   });
 
   void (async () => {
-    const preview = await apiRaw('POST', '/api/admin/removal/preview', target);
+    const preview = await apiRaw('POST', `${endpoint}/preview`, target);
     if (!preview.ok) { content.replaceChildren(errorBox('Could not prepare the removal.', preview.data.error)); return; }
     const plan = preview.data;
     const account = plan.account;
     content.replaceChildren(
-      h('p', { class: 'field-hint' }, plan.kind === 'robot'
+      h('p', { class: 'field-hint' }, owner
+        ? 'This removes this Jibo, his household on Phoenix and what Phoenix keeps for them, including photos, messages and settings. Your account and other people’s accounts stay. This Jibo can be set up again from scratch by a new owner.'
+        : plan.kind === 'robot'
         ? 'This removes the robot, every loop it belongs to, and everything the server keeps for them. The owners’ own accounts stay. Afterwards the server has never heard of this robot, so it can be set up again from scratch.'
         : 'This removes the loop and everything the server keeps for it. Its robot, if any, stays.'),
       h('div', { class: 'kv-list' },
         account.robot ? row('Robot account', h('code', { text: account.robot.friendlyId })) : null,
-        ...account.loops.map((loop) => row('Loop', `${loop.name || 'Unnamed'} · ${loop.ownerEmail || 'no owner'} · ${loop.members} member${loop.members === 1 ? '' : 's'}`)),
+        ...account.loops.map((loop) => row(owner ? 'Household' : 'Loop',
+          `${loop.name || 'Unnamed'}${owner ? '' : ` · ${loop.ownerEmail || 'no owner'}`} · ${loop.members} member${loop.members === 1 ? '' : 's'}`)),
         Object.keys(account.removed).length || account.memberships
           ? row('Other account records', [countsText(account.removed), account.memberships ? `${account.memberships} membership(s) in other loops` : ''].filter(Boolean).join(', '))
           : null,
         ...serviceRows(plan.services)),
-      h('p', { class: 'field-hint' }, 'Each service saves a backup under removal-backups/ before it removes anything.'));
+      owner ? h('p', { class: 'field-hint' }, 'If this Jibo is still connected to Phoenix, he is signed out and needs to be set up again.') : null,
+      h('p', { class: 'field-hint' }, owner
+        ? 'Phoenix saves a backup before removing anything. The person running Phoenix keeps these removal backups until they delete them.'
+        : 'Each service saves a backup under removal-backups/ before it removes anything.'));
     confirmField.querySelector('.field-label').replaceChildren('Type ', h('code', { text: plan.confirmWith }), ' to confirm');
     confirmField.hidden = false;
     confirmInput.disabled = false;
@@ -4700,23 +4712,27 @@ function removalDialog(target) {
       remove.disabled = true;
       cancel.disabled = true;
       confirmInput.disabled = true;
-      const done = await apiRaw('POST', '/api/admin/removal', { ...target, confirm: confirmInput.value.trim() });
+      const done = await apiRaw('POST', endpoint, { ...target, confirm: confirmInput.value.trim() });
       cancel.disabled = false;
       if (!done.ok) {
         content.prepend(errorBox('The removal did not complete.', done.data.error));
         confirmInput.disabled = false;
+        remove.disabled = confirmInput.value.trim().toLowerCase() !== plan.confirmWith.toLowerCase();
         return;
       }
       content.replaceChildren(
-        h('div', { class: 'notice notice-ok' }, icon('check', 16), h('div', {}, `${plan.label} was removed from this server.`)),
-        h('div', { class: 'kv-list' },
+        h('div', { class: 'notice notice-ok' }, icon('check', 16), h('div', {}, `${plan.label} was removed from ${owner ? 'Phoenix' : 'this server'}.`)),
+        owner ? null : h('div', { class: 'kv-list' },
           row('Account backup', h('code', { text: done.data.account.backupDir })),
           ...(done.data.services || []).filter((entry) => entry.backupDir)
             .map((entry) => row(`${prettyLabel(entry.service)} backup`, h('code', { text: entry.backupDir })))));
       confirmField.hidden = true;
       remove.hidden = true;
       cancel.replaceChildren('Close');
-      cancel.addEventListener('click', () => renderAdminRobots(), { once: true });
+      cancel.addEventListener('click', () => {
+        if (owner) location.hash = '#/robot';
+        else void renderAdminRobots();
+      }, { once: true });
       notify(`${plan.label} removed`);
     });
   })();

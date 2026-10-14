@@ -253,8 +253,12 @@
     <p>Data stays on the instance until it is deleted there. The console can delete media and remove
       members, browser push registrations and robots. Nothing is retained anywhere else, because there is
       nowhere else.</p>
-    <p>Deleting the instance's data directory removes everything. There is no backup you do not
-      control, which also means there is no recovery if you delete something by mistake.</p>
+    <p>A household owner can remove their Jibo in the console even when he is offline. This removes
+      his household and what Phoenix keeps for them, without deleting anyone’s personal account.
+      Phoenix saves a backup before removing a Jibo or deleting an account. Removal backups stay until the person running Phoenix deletes them.
+      Account-deletion backups are deleted after the configured retention period (30 days by default).</p>
+    <p>Deleting the instance's data directory, including its backups, removes everything. These
+      backups are held by the person running the instance, not by the Phoenix project.</p>
 
     <h2 id="rights">9. Your rights</h2>
     <p>Depending on where you live, you may have rights to access, correct, export, delete or
