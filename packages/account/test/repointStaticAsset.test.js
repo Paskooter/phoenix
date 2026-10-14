@@ -6,6 +6,23 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { staticRoutes } from '../src/static.js';
 
+test('setup and the legacy helper addresses serve identical script bytes', () => {
+  const routes = staticRoutes();
+  const read = (path) => {
+    assert.equal(typeof routes[`GET ${path}`], 'function', path);
+    let status, body, headers;
+    routes[`GET ${path}`]({ res: {
+      writeHead(code, value) { status = code; headers = value; },
+      end(value) { body = value; },
+    } });
+    assert.equal(status, 200, path);
+    return { body, headers };
+  };
+  const setup = read('/setup');
+  for (const path of ['/repoint', '/robot-ota-repoint.sh']) assert.deepEqual(read(path), setup, path);
+  assert.deepEqual(Buffer.from(setup.body), readFileSync(new URL('../../../scripts/robot-ota-repoint.sh', import.meta.url)));
+});
+
 test('the public repoint helper can fetch its SHA-pinned cloud config support file', () => {
   const route = staticRoutes()['GET /robot-client/repoint-cloud-config.cjs'];
   assert.equal(typeof route, 'function');

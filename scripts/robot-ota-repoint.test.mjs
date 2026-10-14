@@ -109,7 +109,7 @@ run_native_ota
 `], { encoding: 'utf8', timeout: 5000 });
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /PREVIEWED/);
-  assert.match(result.stdout, /no firmware or configuration files changed/);
+  assert.match(result.stdout, /no system software or configuration files changed/);
 });
 
 test('native OTA plan mode audits the manager but never downloads or installs', () => {
@@ -260,6 +260,23 @@ echo "ssh-keygen $*" >> "$PHOENIX_TEST_LOG"; rm -f "$PHOENIX_TEST_STALE_KEY"
   }
 }
 
+test('setup terminal plans and help avoid prohibited owner-facing wording', () => {
+  const banned = /\b(?:firmware|repoint(?:ed|ing)?|migrat(?:e[ds]?|ing|ion))\b|\bother server\b/i;
+  const stripPaths = text => text.replace(/(?:https?:\/\/)?[\w.~-]*(?:\/[\w.@~-]+)+/g, '');
+  assert.doesNotMatch(stripPaths(execFileSync('bash', [script, '--help'], { encoding: 'utf8' })), banned);
+  for (const firmware of Object.keys(FIRMWARE)) {
+    for (const credentials of [false, true]) {
+      const output = preview({ firmware, credentials, mode: 'int-developer', claim: credentials, region: 'open-jibo' });
+      assert.doesNotMatch(stripPaths(output), banned, `${firmware}, credentials=${credentials}`);
+    }
+  }
+  const source = readFileSync(script, 'utf8');
+  for (const line of source.split('\n').filter(line => !line.trimStart().startsWith('#'))) {
+    const messages = [...line.matchAll(/(?:\b(?:say|step|die)\s+|REGION_NOTE=)"([^"]*)"/g)];
+    for (const [, copy] of messages) assert.doesNotMatch(stripPaths(copy), banned, copy);
+  }
+});
+
 test('OOBE screen with preserved credentials selects adoption and native OTA', () => {
   const out = preview({ credentials: true, mode: 'oobe', claim: true });
   assert.match(out, /credentials present; adopt\/claim and start native OTA/);
@@ -294,7 +311,7 @@ test('an OpenJibo region migrates to api on both credentialed and QR setup paths
   for (const credentials of [true, false]) {
     const out = preview({ credentials, mode: 'int-developer', claim: true,
       region: 'open-jibo', destinationRegion: 'api', credentialOverride: credentials });
-    assert.match(out, /region\s+: api \(migrated from open-jibo\)/);
+    assert.match(out, /region\s+: api \(Phoenix connection\)/);
     assert.match(out, /will call : https:\/\/api\.jibo\.io\//);
     assert.match(out, /socket\s+: wss:\/\/api-socket\.jibo\.io\//);
     assert.match(out, /setup region: patched/);
@@ -329,7 +346,7 @@ test('a modified client that is not exactly the reviewed stock TLS edit still st
 
 test('missing credentials selects OOBE and never spends an account claim code', () => {
   const out = preview({ credentials: false, mode: 'int-developer', claim: true });
-  assert.match(out, /credentials absent; repoint for QR setup and its automatic OTA/);
+  assert.match(out, /credentials absent; connect Jibo to Phoenix for QR setup and its automatic OTA/);
   assert.match(out, /claim code: not used on this path/);
   assert.match(out, /QR pairing creates credentials/);
   assert.doesNotMatch(out, /prove possession with the robot's existing credentials/);
@@ -410,13 +427,13 @@ test('a changed host key without a terminal stops before any password and names 
 
 test('a new-in-box RTM3 robot gets the 2.x client build, a default region, and no backup patch', () => {
   const out = preview({ credentials: false, mode: 'int-developer', firmware: 'rtm3', region: '' });
-  assert.match(out, /credentials absent; repoint for QR setup/);
-  assert.match(out, /region {4}: api \(default: this firmware's setup skill names no region\)/);
+  assert.match(out, /credentials absent; connect Jibo to Phoenix for QR setup/);
+  assert.match(out, /region {4}: api \(default: Jibo's setup skill names no region\)/);
   assert.match(out, /node {6}: v4\.1\.2/);
   assert.match(out, /oobe-config\/node_modules\/@jibo\/jibo-server-client\/lib\/region_config\.json {2}\(jibo\.com lines: 5; 2\.x client\)/);
-  assert.match(out, /no system backup\/restore helpers on this firmware/);
+  assert.match(out, /no system backup\/restore helpers in this system software/);
   assert.match(out, /OTA downloader: reviewed stock version; ready to patch/);
-  assert.match(out, /no jetstream hub config on this firmware/);
+  assert.match(out, /no jetstream hub config in this system software/);
   // The factory Wi-Fi check still names the old cloud and is patched (see patch-ssm-wifi-check.cjs).
   assert.match(out, /Wi-Fi server check: reviewed stock version; ready to patch/);
   assert.doesNotMatch(out, /backup\/restore helpers: /);

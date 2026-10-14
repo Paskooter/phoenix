@@ -49,7 +49,7 @@
 #
 # The console's one-line form runs the published copy directly and asks for the
 # robot's address, since it has no --robot (a claim code implies --auto):
-#   bash <(curl -fsSL https://jibo.io/repoint) --claim-code <portal-code>
+#   bash <(curl -fsSL https://jibo.io/setup) --claim-code <portal-code>
 #
 # Nothing is changed without showing a plan first. Edited cloud configs receive
 # timestamped backups; --revert restores region configs only, not credentials,
@@ -71,10 +71,18 @@ STAMP="$(date -u +%Y%m%d-%H%M%S)"
 
 # Run as `bash <(curl ...)`, $0 is a pipe that has already been read: point at
 # the published copy instead, for help text and for the commands printed below.
-if [ -f "$0" ]; then SELF_CMD="$0"; else SELF_CMD="bash <(curl -fsSL https://jibo.io/repoint)"; fi
+if [ -f "$0" ]; then SELF_CMD="$0"; else SELF_CMD="bash <(curl -fsSL https://jibo.io/setup)"; fi
 usage() {
-  if [ -f "$0" ]; then sed -n '2,56p' "$0" | sed 's/^# \{0,1\}//'
-  else printf "Usage: see https://jibo.io/robot-ota-repoint.sh\n"; fi
+  printf '%s\n' \
+    'Connect Jibo to Phoenix and install his latest update.' \
+    'Usage: bash <(curl -fsSL https://jibo.io/setup) --claim-code <code>' \
+    'Jibo needs int-developer mode and Wi-Fi. The command asks for his IP address.' \
+    'Options: --robot root@<ip>, --region <name>, --region-ca <pem>, --suffix <domain>' \
+    'Modes: --auto, --oobe, --ota-only, --ota-plan, --start-ota, --revert' \
+    'Controls: --dry-run, --yes, --verify, --no-reboot, --help' \
+    'Advanced: --full <flags> runs the complete helper from a local source checkout.' \
+    'Nothing changes until you approve the plan. Identity and calibration are kept.' \
+    '--revert restores connection configs only, not identity or the full update.'
   exit "${1:-0}"
 }
 
@@ -237,8 +245,8 @@ if [ "$FULL" -eq 1 ]; then
   [ "$OTA_ONLY" -eq 0 ] && [ "$OTA_PLAN_ONLY" -eq 0 ] && [ "$START_OTA" -eq 0 ] && [ "$AUTO" -eq 0 ] || die "OTA/auto flags cannot be combined with --full"
   SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
   FULL_SCRIPT="${SELF_DIR}/parity-robot/repoint-robot.sh"
-  [ -x "$FULL_SCRIPT" ] || die "full repoint script not found: $FULL_SCRIPT"
-  say "delegating to the full repoint (unchanged behaviour): $FULL_SCRIPT"
+  [ -x "$FULL_SCRIPT" ] || die "full setup script not found: $FULL_SCRIPT"
+  say "delegating to the full setup helper (unchanged behaviour): $FULL_SCRIPT"
   exec "$FULL_SCRIPT" ${ROBOT:+--robot "$ROBOT"} "${FULL_ARGS[@]}"
 fi
 
@@ -254,14 +262,14 @@ if [ -z "$ROBOT" ] && { : </dev/tty; } 2>/dev/null; then
   read -r ROBOT </dev/tty || ROBOT=""
   ROBOT="$(printf '%s' "$ROBOT" | tr -d '[:space:]')"
 fi
-[ -n "$ROBOT" ] || die "--robot root@<ip> is required (or --full for the complete repoint)"
+[ -n "$ROBOT" ] || die "--robot root@<ip> is required (or --full for the complete setup helper)"
 [ "$AUTO" -eq 0 ] || { [ "$OOBE" -eq 0 ] && [ "$OTA_ONLY" -eq 0 ] && [ "$OTA_PLAN_ONLY" -eq 0 ] && [ "$START_OTA" -eq 0 ] && [ "$REVERT" -eq 0 ]; } \
   || die "--auto selects the credential path itself; do not combine it with --oobe, --ota-only, --ota-plan, --start-ota, or --revert"
 [ "$OTA_ONLY" -eq 0 ] || { [ "$START_OTA" -eq 0 ] && [ "$OOBE" -eq 0 ] && [ "$REVERT" -eq 0 ] \
-  && [ -z "$CLAIM_CODE" ]; } || die "--ota-only cannot be combined with repoint, OOBE, revert, or claim flags"
+  && [ -z "$CLAIM_CODE" ]; } || die "--ota-only cannot be combined with connection, OOBE, revert, or claim flags"
 [ "$OTA_PLAN_ONLY" -eq 0 ] || { [ "$OTA_ONLY" -eq 0 ] && [ "$START_OTA" -eq 0 ] && [ "$AUTO" -eq 0 ] \
   && [ "$OOBE" -eq 0 ] && [ "$REVERT" -eq 0 ] && [ "$DRY" -eq 0 ] && [ -z "$CLAIM_CODE" ]; } \
-  || die "--ota-plan is a non-installing native OTA diagnostic; do not combine it with repoint, --dry-run, or a claim code"
+  || die "--ota-plan is a non-installing native OTA diagnostic; do not combine it with connection flags, --dry-run, or a claim code"
 [ "$START_OTA" -eq 0 ] || { [ "$OOBE" -eq 0 ] && [ "$REVERT" -eq 0 ]; } \
   || die "--start-ota requires an already-paired robot and cannot be combined with --revert"
 if [ "$OOBE" -eq 1 ] && [ -n "$CLAIM_CODE" ]; then
@@ -423,7 +431,7 @@ run_native_ota() {
       || die "could not preview the full native OTA: $plan_output"
     printf '%s\n' "$plan_output"
     rsh "rm -f '$remote'" >/dev/null 2>&1 || true
-    say "  dry run: no firmware or configuration files changed; no OTA download or installation started"
+    say "  dry run: no system software or configuration files changed; no OTA download or installation started"
     return 0
   fi
   plan_output="$(rsh "node '$remote' --plan fcs" 2>&1 | tr -d '\r')" \
@@ -495,7 +503,7 @@ if [ "$AUTO" -eq 1 ]; then
     fi
   else
     OOBE=1
-    say "  detected  : credentials absent; repoint for QR setup and its automatic OTA"
+    say "  detected  : credentials absent; connect Jibo to Phoenix for QR setup and its automatic OTA"
     if [ -n "$CLAIM_CODE" ]; then
       say "  claim code: not used on this path; QR setup will link the robot to the account"
       CLAIM_CODE=""
@@ -503,7 +511,7 @@ if [ "$AUTO" -eq 1 ]; then
   fi
 fi
 if [ "$OOBE" -eq 1 ]; then
-  [ "$HAS_CREDS" -eq 0 ] || die "--oobe requires no active robot credentials; use the already-set-up migration path"
+  [ "$HAS_CREDS" -eq 0 ] || die "--oobe requires no active robot credentials; use the already-set-up connection path"
 else
   [ "$HAS_CREDS" -eq 1 ] || die "robot has no active credentials; use --oobe if it is on the setup screen"
 fi
@@ -516,7 +524,7 @@ if [ -z "$REGION" ]; then
     # fall back to the production region, which is what this server serves.
     if [ -z "$REGION" ]; then
       REGION="api"
-      REGION_NOTE=" (default: this firmware's setup skill names no region)"
+      REGION_NOTE=" (default: Jibo's setup skill names no region)"
     fi
   else
     # Do not echo the credential material sitting beside the region field.
@@ -531,12 +539,12 @@ if [ -z "$REGION" ]; then
   if [ "$OTA_ONLY" -eq 0 ] && [ "$OTA_PLAN_ONLY" -eq 0 ]; then
     if [ -z "$REGION" ]; then
       REGION="api"
-      REGION_NOTE=" (default: this firmware names no region)"
+      REGION_NOTE=" (default: Jibo's system software names no region)"
     else
       [[ "$REGION" =~ ^[a-z0-9][a-z0-9-]*$ ]] || die "invalid region name"
       case "$REGION" in
         api|stg-entrypoint|alpha-entrypoint|dev-entrypoint|preprod-entrypoint|neo-entrypoint) ;;
-        *) REGION_NOTE=" (migrated from ${REGION})"; REGION="api" ;;
+        *) REGION_NOTE=" (Phoenix connection)"; REGION="api" ;;
       esac
     fi
   fi
@@ -695,7 +703,7 @@ fi
 
 # ── 5. Revert ───────────────────────────────────────────────────────────────
 if [ "$REVERT" -eq 1 ]; then
-  step "Reverting the OTA repoint"
+  step "Reverting the Phoenix connection settings"
   say "  backups are kept beside each file as <file>.prerepoint-<stamp>.bak"
   n=0
   for p in "${PRESENT[@]}"; do
@@ -725,14 +733,14 @@ if [ "$HAS_BACKUP_HELPERS" -eq 1 ]; then
   say "  5. patch system-manager backup and restore with that maintained public CA bundle"
   say "     (the stock Node helpers bypass the patched server client)"
 else
-  say "  5. (no system backup/restore helpers on this firmware; nothing to patch)"
+  say "  5. (no system backup/restore helpers in this system software; nothing to patch)"
 fi
 if [ "$HAS_JETSTREAM" -eq 1 ]; then
   say "  6. point the jetstream hub override at ${HUB_HOST}:443, so audio"
   say "     turns go to this server instead of wherever it was pointed before"
   say "     (and the notification socket at <region>-socket.${PUBLIC_SUFFIX} where the server service names one)"
 else
-  say "  6. (no jetstream hub config on this firmware; its audio path uses the client configs in step 1)"
+  say "  6. (no jetstream hub config in this system software; its audio path uses the client configs in step 1)"
 fi
 say "  7. ensure /var/jibo/keys exists as a private directory (mode 0700; preserve existing keys),"
 say "     and point jibo-ssm's Wi-Fi server check at ${PUBLIC_SUFFIX} where it still names the old cloud;"
@@ -821,7 +829,7 @@ preflight_patcher() {
   [[ "$remote" =~ ^/tmp/phoenix-preflight\.[A-Za-z0-9]+$ ]] || die "could not allocate a safe remote preflight path"
   rput "$source" "$remote" || die "could not upload the ${label} check"
   out="$(rsh "node '$remote' --dry-run $*; status=\$?; rm -f '$remote'; exit \$status" 2>&1 | tr -d '\r')" \
-    || die "this firmware's ${label} is not a reviewed version, so nothing was changed: ${out}"
+    || die "Jibo's system software ${label} is not a reviewed version, so nothing was changed: ${out}"
   case "$out" in
     patched) out="reviewed stock version; ready to patch" ;;
     already-patched) out="already patched" ;;
@@ -883,7 +891,7 @@ if [ "$OPT_RESIZE" -eq 1 ]; then
   rsh "resize2fs '$OPT_DEVICE' >/dev/null && sync" || die "could not expand /opt filesystem"
   OPT_FREE_KIB="$(rsh "df -k /opt | awk 'NR==2 {print \$4}'" 2>/dev/null | tr -d '\r')"
   [[ "$OPT_FREE_KIB" =~ ^[0-9]+$ ]] && [ "$OPT_FREE_KIB" -ge "$OPT_MIN_FREE_KIB" ] \
-    || die "/opt still has less than 2 GiB free after resize; stopping before repoint"
+    || die "/opt still has less than 2 GiB free after resize; stopping before connecting Jibo to Phoenix"
   say "  /opt expanded; ${OPT_FREE_KIB} KiB free"
 fi
 
@@ -1134,7 +1142,7 @@ fi
 [ -r "$BACKUP_TLS_PATCHER" ] || die "the system backup TLS support file is unavailable"
 # Factory RTM2/RTM3 images (platform 3.x) have no backup/restore helpers at all.
 if [ "$HAS_BACKUP_HELPERS" -eq 0 ]; then
-  say "  no system backup/restore helpers on this firmware; nothing to patch"
+  say "  no system backup/restore helpers in this system software; nothing to patch"
 else
 BACKUP_TLS_REMOTE="$(rsh 'mktemp /tmp/phoenix-system-backup-tls.XXXXXX' 2>/dev/null | tr -d '\r')"
 [[ "$BACKUP_TLS_REMOTE" =~ ^/tmp/phoenix-system-backup-tls\.[A-Za-z0-9]+$ ]] || die "could not allocate a safe remote backup TLS patch path"
@@ -1307,7 +1315,7 @@ rsh "
 }
 JSON
   echo \"  receipt written to ${RECEIPT}\"
-" 2>&1 | tr -d '\r' || die "could not write the robot repoint receipt"
+" 2>&1 | tr -d '\r' || die "could not write the robot setup receipt"
 
 # ── 8. Verify ───────────────────────────────────────────────────────────────
 step "Verify"
