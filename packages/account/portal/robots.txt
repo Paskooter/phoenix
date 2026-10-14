@@ -1,16 +1,24 @@
-# Phoenix — a self-hosted instance.
-#
-# The public pages may be indexed. Everything behind a session — the console,
-# the admin surface and the whole API — must not be, and is disallowed here as
-# well as being refused without a valid session.
-
+# Public pages and their rendering assets may be crawled.
+# Robots rules are not authentication; private routes still require a session.
 User-agent: *
 Allow: /$
 Allow: /terms
 Allow: /privacy
 Allow: /security
+Allow: /apps
+Allow: /guide
+Disallow: /app$
+# Compatibility for prefix-only parsers: the earlier /apps allow wins there;
+# Google/Bing choose the more specific /apps allow over this /app prefix.
 Disallow: /app
 Disallow: /admin
+Disallow: /activate
+Disallow: /reset
+Disallow: /invite
+Disallow: /create
+Disallow: /home
+Disallow: /verify-email
+Disallow: /confirmemailreset
 Disallow: /api/
 Disallow: /member-photos/
 

@@ -13,6 +13,7 @@ import { dirname, join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { renderBrandedHtml } from './brandRender.js';
+import { landingStructuredData, sitemapEntry } from './seo.js';
 
 const SOURCE_DIR = dirname(fileURLToPath(import.meta.url));
 const PORTAL_DIR = join(SOURCE_DIR, '../portal');
@@ -50,7 +51,9 @@ function siteUrl() {
 }
 
 function applyPlaceholders(buffer) {
-  return Buffer.from(buffer.toString('utf8').split('%SITE_URL%').join(siteUrl()));
+  const origin = siteUrl();
+  return Buffer.from(buffer.toString('utf8').split('%SITE_URL%').join(origin)
+    .split('%SECURITY_URL%').join(origin.startsWith('https://') ? `${origin}/security` : 'https://github.com/Paskooter/phoenix/security'));
 }
 
 const MIME = {
@@ -80,7 +83,8 @@ function prepare(buffer, ext, branding) {
   if (!SUBSTITUTED.has(ext)) return buffer;
   const substituted = applyPlaceholders(buffer);
   if (ext !== '.html' || !branding) return substituted;
-  return Buffer.from(renderBrandedHtml(substituted.toString('utf8'), branding()));
+  const brand = branding();
+  return Buffer.from(landingStructuredData(renderBrandedHtml(substituted.toString('utf8'), brand), brand, siteUrl()));
 }
 
 function serve(file, type, branding) {
@@ -180,28 +184,26 @@ function lazyBranding() {
  * too, or a crawler never learns they exist. Locations are made absolute from
  * PHOENIX_SITE_URL, as the sitemap protocol requires, when that is set.
  */
-function serveSitemap(operatorPages) {
-  let cached = null;
+function serveSitemap(operatorPages, sitemapEntries) {
   return ({ res }) => {
-    if (cached === null) {
-      let xml = applyPlaceholders(readFileSync(join(PORTAL_DIR, 'sitemap.xml'))).toString('utf8');
-      const origin = siteUrl();
-      const listed = new Set([...xml.matchAll(/<loc>([^<]*)<\/loc>/g)]
-        .map((m) => new URL(m[1], 'http://localhost').pathname));
-      const extra = operatorPages
-        .map((name) => `/${name}`)
-        .filter((path) => !listed.has(path))
-        .map((path) => `  <url><loc>${origin}${path}</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>\n`)
-        .join('');
-      xml = xml.replace('</urlset>', `${extra}</urlset>`);
-      cached = Buffer.from(xml);
-    }
+    // Catalog changes must be reflected without a restart; only the static
+    // page bytes are cached, never the provider's publication/visibility state.
+    let xml = applyPlaceholders(readFileSync(join(PORTAL_DIR, 'sitemap.xml'))).toString('utf8');
+    const origin = siteUrl();
+    const listed = new Set([...xml.matchAll(/<loc>([^<]*)<\/loc>/g)]
+      .map((m) => new URL(m[1], 'http://localhost').pathname));
+    const entries = [...operatorPages.map(name => ({ path: `/${name}` })), ...sitemapEntries()];
+    const extra = entries.map(entry => sitemapEntry(entry, origin)).filter(entry => {
+      if (!entry || listed.has(entry.path)) return false;
+      listed.add(entry.path); return true;
+    }).map(entry => entry.xml).join('');
+    xml = xml.replace('</urlset>', `${extra}</urlset>`);
     res.writeHead(200, {
       'content-type': MIME['.xml'],
       'cache-control': 'no-cache',
       'x-content-type-options': 'nosniff',
     });
-    res.end(cached);
+    res.end(Buffer.from(xml));
   };
 }
 
@@ -251,7 +253,7 @@ export function portalNotFound() {
 }
 
 /** Explicit GET routes for every portal asset and page. */
-export function staticRoutes() {
+export function staticRoutes({ sitemapEntries = () => [] } = {}) {
   // Vendored third-party assets keep their own directory so it stays obvious
   // what is ours. Leaflet is served from here rather than a CDN: the portal
   // runs on a LAN beside the robot and must not depend on an outside host to
@@ -269,7 +271,7 @@ export function staticRoutes() {
     // vendored
     'vendor/leaflet.js', 'vendor/leaflet.css',
     // assets and metadata
-    'assets/favicon.svg', 'assets/og.png', 'robots.txt', 'manifest.webmanifest',
+    'assets/favicon.svg', 'assets/og.png', 'favicon.ico', 'apple-touch-icon.png', 'robots.txt', 'manifest.webmanifest',
   ];
 
   // One merged branding per route table, shared by /branding.json and every
@@ -363,7 +365,10 @@ export function staticRoutes() {
       else if (name !== '404') operatorPages.push(name);
     }
   }
-  routes['GET /sitemap.xml'] = serveSitemap(operatorPages.sort());
+  routes['GET /sitemap.xml'] = serveSitemap(operatorPages.sort(), sitemapEntries);
+  const securityFile = process.env.PHOENIX_SECURITY_FILE;
+  routes['GET /.well-known/security.txt'] = securityFile
+    ? serveExternal(securityFile, MIME['.txt']) : serve('security.txt');
 
   return routes;
 }

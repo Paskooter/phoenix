@@ -1,0 +1,7 @@
+# The existing security page is the reporting-policy entry point.
+# Operators: set PHOENIX_SECURITY_FILE to an owner-reviewed RFC 9116 file with
+# your real reporting contact. Do not publish a placeholder email address.
+Contact: %SECURITY_URL%
+Expires: 2027-04-01T00:00:00Z
+Preferred-Languages: en
+Policy: %SECURITY_URL%
