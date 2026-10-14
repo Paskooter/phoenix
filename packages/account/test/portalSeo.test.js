@@ -21,7 +21,7 @@ test('served robots allows public pages and assets with prefix and end-anchor-aw
   const robots = get(staticRoutes()['GET /robots.txt']).body;
   const code = `import sys,json,urllib.robotparser,re
 r=sys.stdin.read();p=urllib.robotparser.RobotFileParser();p.parse(r.splitlines())
-public=['/','/terms','/privacy','/security','/guide','/apps','/apps/app-phoenix-tic-tac-toe','/apps.js','/apps.css']
+public=['/','/terms','/privacy','/security','/guide','/apps','/apps/app-phoenix-tic-tac-toe','/apps.js','/apps.css','/apple-touch-icon.png']
 private=['/app','/admin','/activate','/reset','/invite','/create','/home','/verify-email','/confirmemailreset','/api/me','/member-photos/a']
 rules=[]
 for line in r.splitlines():
