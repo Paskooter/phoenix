@@ -1,6 +1,6 @@
 // The console Calendar's month layout and agenda wording, run on the DOM-free
 // block of app.js in a sandbox. Synthetic events only.
-import { test } from 'node:test';
+import { test as nodeTest } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
@@ -21,7 +21,14 @@ function load() {
   return context.calendar;
 }
 const plain = (value) => JSON.parse(JSON.stringify(value));
-const cal = load();
+// Each test reports a missing block on its own rather than failing the file.
+let cal = null;
+let missing = null;
+try { cal = load(); } catch (error) { missing = error; }
+const test = (name, body) => nodeTest(name, () => {
+  if (missing) throw missing;
+  return body();
+});
 const LA = 'America/Los_Angeles';
 const OCTOBER = new Date(Date.UTC(2026, 9, 1));
 
@@ -79,13 +86,15 @@ test('a multi-day bar keeps one row across its week and splits at the week bound
   const trip = allDay('trip', '2026-10-16', '2026-10-19');
   const conference = timed('conference', '2026-10-19T16:00:00Z', '2026-10-21T00:00:00Z'); // 9 AM Mon to 5 PM Tue in LA
   const dentist = timed('dentist', '2026-10-16T17:00:00Z', '2026-10-16T17:45:00Z');
-  const model = cal.calendarMonthModel([dentist, trip, conference], OCTOBER, LA);
+  const party = timed('party', '2026-10-22T03:00:00Z', '2026-10-22T07:00:00Z'); // 8 PM Wed to midnight in LA
+  const model = cal.calendarMonthModel([dentist, trip, conference, party], OCTOBER, LA);
   assert.deepEqual(rowSummary(day(model, '2026-10-16')), ['bar:trip', 'timed:dentist'], 'bars sit above timed events');
   assert.deepEqual(rowSummary(day(model, '2026-10-17')), ['bar:trip']);
   assert.deepEqual(rowSummary(day(model, '2026-10-18')), ['bar:trip']);
   assert.deepEqual(rowSummary(day(model, '2026-10-19')), ['bar:conference']);
   assert.deepEqual(rowSummary(day(model, '2026-10-20')), ['bar:conference']);
-  assert.deepEqual(rowSummary(day(model, '2026-10-21')), [], 'an event ending at midnight does not touch the next day');
+  assert.deepEqual(rowSummary(day(model, '2026-10-21')), ['timed:party']);
+  assert.deepEqual(rowSummary(day(model, '2026-10-22')), [], 'an event that ends at midnight does not touch the next day');
   const pieces = (weekIndex) => model.weeks[weekIndex].bars.map((piece) => ({
     uid: piece.item.event.uid, row: piece.row, from: piece.from, to: piece.to, before: piece.before, after: piece.after,
   }));
@@ -129,6 +138,17 @@ test('a busy day shows two events and "+N more", and the count covers everything
   assert.equal(wed.more, 2);
   assert.deepEqual(plain(stacked.weeks[3].bars.map((piece) => [piece.item.event.uid, piece.row, piece.from, piece.to])),
     [['A', 0, 1, 2], ['B', 1, 2, 4]]);
+  // A gap among the rows left out is not counted as an event either. P and Q
+  // fill the week; S takes the third row on Mon-Tue, so R (Tue-Fri) needs a
+  // fourth row and Thursday's third row is an empty gap.
+  const gapped = cal.calendarMonthModel([
+    allDay('P', '2026-10-18', '2026-10-25'), allDay('Q', '2026-10-18', '2026-10-25'),
+    allDay('S', '2026-10-19', '2026-10-21'), allDay('R', '2026-10-20', '2026-10-24'),
+  ], OCTOBER, LA);
+  const thursday = day(gapped, '2026-10-22');
+  assert.deepEqual(rowSummary(thursday), ['bar:P', 'bar:Q']);
+  assert.equal(thursday.events.length, 3);
+  assert.equal(thursday.more, 1, 'only R is left out');
 });
 
 test('the agenda lists all-day events first, then by start time, and describes each in plain words', () => {

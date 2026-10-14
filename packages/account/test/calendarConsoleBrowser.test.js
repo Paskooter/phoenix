@@ -66,6 +66,7 @@ async function open(t, { viewport = VIEWPORTS.desktop, scenario = 'busy', colorS
   await page.goto(`${running.url}/app#/settings`);
   await page.locator('fieldset.calendar-fieldset .ical-manager').waitFor();
   if (wait === 'month') await monthReady(page);
+  if (wait === 'rows') await page.locator('.ical-subscription').first().waitFor();
   return { page, running, calls };
 }
 
@@ -240,18 +241,32 @@ test('keyboard: arrow keys move the day, Page Up and Page Down change month, and
   await press('ArrowRight', '2026-11-01');
   await monthReady(page);
   assert.equal(await page.locator('.calendar-month-label').innerText(), 'November 2026', 'stepping past the last day turns the page');
-
-  // The month buttons keep focus, so pressing one again carries on.
-  const next = page.getByRole('button', { name: 'Next month' });
-  await next.focus();
-  await eventsLoaded(page, () => page.keyboard.press('Enter'));
-  assert.equal(await page.locator('.calendar-month-label').innerText(), 'December 2026');
-  assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')), 'Next month');
-  await eventsLoaded(page, () => page.keyboard.press('Enter'));
-  assert.equal(await page.locator('.calendar-month-label').innerText(), 'January 2027');
   await eventsLoaded(page, () => page.getByRole('button', { name: 'Today', exact: true }).click());
   assert.equal(await page.locator('.calendar-month-label').innerText(), 'October 2026');
   assert.equal(await selectedDate(page), '2026-10-14');
+});
+
+// Written against what both the old and the new calendar share (the month
+// buttons, the month heading and the events request), so it also shows the
+// old page losing focus.
+test('the month buttons keep keyboard focus while the next month loads', async (t) => {
+  const opened = await open(t, { wait: 'rows' });
+  if (!opened) return;
+  const { page } = opened;
+  const month = (name) => page.getByRole('heading', { name, exact: true }).waitFor();
+  const events = (action) => Promise.all([
+    page.waitForResponse((item) => new URL(item.url()).pathname === '/api/calendar/events'), action()]);
+  await month('October 2026');
+  const next = page.getByRole('button', { name: 'Next month' });
+  await next.focus();
+  await events(() => page.keyboard.press('Enter'));
+  await month('November 2026');
+  assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('aria-label') || document.activeElement?.tagName),
+    'Next month', 'focus stays on Next month');
+  await events(() => page.keyboard.press('Enter'));
+  await month('December 2026');
+  assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('aria-label') || document.activeElement?.tagName),
+    'Next month', 'so pressing it again carries on');
 });
 
 test('the subscription actions still call the same calendar API', async (t) => {
@@ -325,20 +340,23 @@ test('the subscription actions still call the same calendar API', async (t) => {
   ], 'no other writes, and none to the report settings');
 });
 
+// Also written against what both versions share: the link fields and the requests.
 test('pressing Enter in a calendar link field saves the link, not the report form', async (t) => {
-  const opened = await open(t);
+  const opened = await open(t, { wait: 'rows' });
   if (!opened) return;
   const { page, calls } = opened;
   const add = page.getByRole('button', { name: 'Add calendar' });
-  if (await add.isVisible()) await add.click();
+  if (await add.count() && await add.isVisible()) await add.click();
   await page.getByLabel('Calendar name').fill('Neighbourhood');
   const url = page.getByLabel('iCal subscription URL');
   await url.fill(FEEDS.added);
-  await eventsLoaded(page, () => url.press('Enter'));
-  await page.locator('#toast', { hasText: 'Calendar linked' }).waitFor();
+  const written = page.waitForResponse((response) => response.request().method() !== 'GET'
+    && ['/api/calendar/subscriptions', '/api/settings'].includes(new URL(response.url()).pathname));
+  await url.press('Enter');
+  await written;
   assert.deepEqual(calls.filter((call) => call.method !== 'GET').map((call) => `${call.method} ${call.path}`),
     ['POST /api/calendar/subscriptions']);
-  assert.equal(await row(page, 'Neighbourhood').count(), 1);
+  await row(page, 'Neighbourhood').waitFor();
 });
 
 test('time zone: all-day events keep their dates, times follow the zone, and an unknown zone is explained', async (t) => {
@@ -384,6 +402,9 @@ test('time zone: all-day events keep their dates, times follow the zone, and an 
 test('loading, failure and empty states keep their place and offer a way forward', async (t) => {
   let release;
   const held = new Promise((done) => { release = done; });
+  // Teardown hooks run in the order they are added: let a held request go
+  // before open() closes the browser, so a failing check cannot hang the run.
+  t.after(() => release());
   let mode = 'hold';
   const opened = await open(t, {
     wait: 'none',
