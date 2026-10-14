@@ -103,6 +103,13 @@ test('phone: the month and the selected day’s agenda fit 390px without sideway
       overflowing: [...document.querySelectorAll('.ical-manager *')].filter((node) => node.getBoundingClientRect().right > innerWidth + 0.5).length,
       smallestTarget: Math.min(...buttons.map((button) => Math.min(button.width, button.height))),
       visibleChips: chips.filter((chip) => getComputedStyle(chip).display !== 'none').length,
+      overflowingDayMarkers: [...document.querySelectorAll('.calendar-day')].flatMap((cell) => {
+        const box = cell.getBoundingClientRect();
+        return [...cell.querySelectorAll('.calendar-day-dots > *')].filter((marker) => {
+          const rect = marker.getBoundingClientRect();
+          return rect.left < box.left - 0.5 || rect.right > box.right + 0.5;
+        });
+      }).length,
     };
   });
   assert.equal(geometry.cells, 42);
@@ -110,6 +117,7 @@ test('phone: the month and the selected day’s agenda fit 390px without sideway
   assert.equal(geometry.overflowing, 0, 'nothing in the calendar section reaches past the screen edge');
   assert.ok(geometry.smallestTarget >= 44, `every day is a 44px tap target (smallest ${geometry.smallestTarget})`);
   assert.equal(geometry.visibleChips, 0, 'a phone day shows dots, not clipped titles');
+  assert.equal(geometry.overflowingDayMarkers, 0, 'busy-day dots and overflow counts stay within their day cells');
   assert.equal(await dayCell(page, '2026-10-14').locator('.calendar-dot').count(), 3);
 
   // Today is selected, and its agenda lists the day in the calendar's own time zone.

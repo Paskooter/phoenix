@@ -3784,7 +3784,7 @@ pre.json {
   .calendar-chip, .calendar-more { display: none; }
   .calendar-weekday { padding-inline: 0; text-align: center; letter-spacing: .02em; }
   .calendar-day-button { align-items: center; gap: .35rem; padding: .3rem .1rem; }
-  .calendar-day-dots { display: flex; align-items: center; justify-content: center; gap: 3px; min-height: .5rem; }
+  .calendar-day-dots { display: flex; align-items: center; justify-content: center; gap: 1px; max-width: 100%; min-height: .5rem; }
   .calendar-agenda { padding: .9rem .85rem 1rem; }
 }
 
