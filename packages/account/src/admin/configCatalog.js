@@ -872,11 +872,11 @@ export const SETTINGS = [
   },
   {
     key: 'ETCO_account_repointHost',
-    label: 'Repoint address',
+    label: 'Robot connection address',
     group: 'addresses',
     type: 'string',
     default: null,
-    help: 'The public IP the repoint command points a robot at.',
+    help: 'The public IP the setup command uses to connect a robot to Phoenix.',
   },
   {
     key: 'ETCO_account_region',

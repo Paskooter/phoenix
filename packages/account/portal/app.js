@@ -3602,14 +3602,14 @@ function detectCmdPlatform() {
 }
 
 function repointCommand(code, platform) {
-  const run = `bash <(curl -fsSL https://jibo.io/repoint) --claim-code ${code}`;
+  const run = `bash <(curl -fsSL https://jibo.io/setup) --claim-code ${code}`;
   // wsl -e passes the quoted line to bash unchanged from both PowerShell and CMD.
   return platform === 'windows' ? `wsl -e bash -c "${run}"` : run;
 }
 
 async function renderClaim() {
   const publicJiboIo = /(^|\.)jibo\.io$/i.test(location.hostname);
-  const container = page('Connect or migrate a Jibo', publicJiboIo
+  const container = page('Connect a Jibo', publicJiboIo
     ? 'One command checks your Jibo and takes the right setup path.'
     : 'Link a Jibo that was set up before to this account, using the credentials he already has.');
   container.querySelector('.page-head').prepend(
@@ -3640,7 +3640,7 @@ async function renderClaim() {
       body.replaceChildren(...[
         h('p', { class: 'instruct' }, 'From a Phoenix checkout, replacing ', h('code', {}, '<robot-ip>'), ':'),
         h('div', { class: 'restart-cmd run-cmd' }, h('code', { text: command }), copyButton(() => command)),
-        res.data.repointHost ? null : h('p', { class: 'field-hint' }, 'This server has not published its robot-repoint IP, so replace ',
+        res.data.repointHost ? null : h('p', { class: 'field-hint' }, 'This server has not published its robot connection IP, so replace ',
           h('code', {}, '<server-ip>'), ' with the public IP the robot should reach.'),
         renewRow,
       ].filter(Boolean));
@@ -3720,13 +3720,13 @@ function renderAdd() {
       h('button', { type: 'button', class: 'btn btn-quiet', on: { click: () => { next.replaceChildren(); } } },
         'Change my answer')));
   };
-  container.append(card(`1. Has this Jibo already been pointed at ${cloudName}?`, {},
-    h('p', { class: 'instruct' }, 'A factory-reset Jibo may show a setup screen while still pointing at the original, offline cloud.'),
+  container.append(card(`1. Has this Jibo already been connected to ${cloudName}?`, {},
+    h('p', { class: 'instruct' }, 'A factory-reset Jibo may still need the setup command, even if he shows a setup screen.'),
     h('div', { class: 'row', style: 'margin-top:1.25rem' },
       h('button', { type: 'button', class: 'btn btn-primary', on: { click: () => chooseTarget(true) } }, 'Yes'),
       h('button', { type: 'button', class: 'btn', on: { click: () => chooseTarget(false) } }, 'No'),
       h('button', { type: 'button', class: 'btn', on: { click: () => chooseTarget(false) } }, 'I’m not sure')),
-    h('p', { class: 'field-hint' }, '“No” and “I’m not sure” use the same safe repoint check. Jibo needs to be in int-developer mode so the helper can reach him over SSH.')),
+    h('p', { class: 'field-hint' }, '“No” and “I’m not sure” use the same safe setup check. Jibo needs to be in int-developer mode so the helper can reach him over SSH.')),
   next,
   cloudName === 'jibo.io'
     ? h('p', { class: 'field-hint' }, 'Need more context? Read the ', h('a', { class: 'link', href: '/guide' }, 'setup guide'), '.')
@@ -3753,8 +3753,8 @@ async function renderAddNew() {
       icon('back', 14), 'Choose a different path'));
 
   container.append(h('div', { class: 'notice notice-warn' }, icon('alert', 16),
-    h('div', {}, 'This works only after Jibo has been pointed at this server. If it is still trying to reach the original cloud, ',
-      h('a', { href: '#/claim' }, 'repoint it first'), '.')));
+    h('div', {}, 'This works only after Jibo has been connected to Phoenix. If you haven’t run the setup command yet, ',
+      h('a', { href: '#/claim' }, 'connect him to Phoenix first'), '.')));
   const errorLine = h('p', { class: 'error', hidden: true });
   const form = h('form', {},
     h('p', { class: 'field-hint' }, 'A Jibo already paired to this account keeps its loop, people, and history. A new Jibo gets a new loop.'),
@@ -5119,7 +5119,7 @@ async function renderAdminRobots() {
 
   const robotsCard = card('Every robot', { sub: known ? `${online} of ${robots.length} online` : `${robots.length}` },
     robots.length ? h('div', { class: 'adm-toolbar' }, search, chips) : null,
-    robots.length ? robotList : empty('No robots yet', 'A robot appears here once someone sets it up or migrates it to this server.', 'robot'),
+    robots.length ? robotList : empty('No robots yet', 'A robot appears here once someone connects it to Phoenix.', 'robot'),
     noMatch);
   robotsCard.classList.add('adm-list-card');
 
@@ -5137,7 +5137,7 @@ async function renderAdminRobots() {
   const result = h('pre', { class: 'json', hidden: true });
   const adoptForm = h('form', { class: 'adm-adopt' },
     h('p', { class: 'field-hint' },
-      'For a robot that finished setup with the original cloud years ago and can’t run the migration command. '
+      'For a robot that finished setup with the original cloud years ago and can’t run the setup command. '
       + 'This creates its credentials and a loop, and shows what to write to the robot.'),
     h('div', { class: 'grid2' },
       field('Robot name', h('input', { name: 'friendlyId', placeholder: 'castle-cylinder-fig-quilt', required: true, autocapitalize: 'off', spellcheck: 'false' }),
@@ -5157,13 +5157,13 @@ async function renderAdminRobots() {
     result.hidden = false;
     if (!out.ok) { result.textContent = `Error: ${out.data.error}`; return; }
     result.textContent = ['# Write this to /var/jibo/credentials.json on the robot:',
-      JSON.stringify(out.data.credentialsJson, null, 2), '', '# Then point the robot at this server:',
+      JSON.stringify(out.data.credentialsJson, null, 2), '', '# Then connect the robot to Phoenix:',
       ...(out.data.instructions || [])].join('\n');
     notify('Robot adopted');
   });
   const adopt = h('details', { class: 'card adm-disclosure' },
     h('summary', {}, h('span', { class: 'adm-group-ic', 'aria-hidden': 'true' }, icon('plus', 16)),
-      h('div', {}, h('strong', { text: 'Adopt a robot by hand' }), h('span', { text: 'Only for a robot that can’t be migrated with the repoint command.' })),
+      h('div', {}, h('strong', { text: 'Adopt a robot by hand' }), h('span', { text: 'Only for a robot that can’t be connected with the setup command.' })),
       icon('chevron', 15, 'adm-more-caret')),
     h('div', { class: 'card-body' }, adoptForm));
 
