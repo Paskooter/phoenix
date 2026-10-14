@@ -53,7 +53,7 @@ function siteUrl() {
 function applyPlaceholders(buffer) {
   const origin = siteUrl();
   return Buffer.from(buffer.toString('utf8').split('%SITE_URL%').join(origin)
-    .split('%SECURITY_URL%').join(origin ? `${origin}/security` : 'https://github.com/Paskooter/phoenix/security'));
+    .split('%SECURITY_URL%').join(origin.startsWith('https://') ? `${origin}/security` : 'https://github.com/Paskooter/phoenix/security'));
 }
 
 const MIME = {

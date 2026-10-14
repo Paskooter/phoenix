@@ -73,6 +73,10 @@ test('security.txt uses the existing security page, never invents a contact and 
     const text = get(staticRoutes()['GET /.well-known/security.txt']).body;
     assert.match(text, /^Contact: https:\/\//m, 'RFC 9116 Contact is an absolute URI even without an instance origin');
   });
+  env({ PHOENIX_SITE_URL: 'http://localhost:9011' }, () => {
+    const text = get(staticRoutes()['GET /.well-known/security.txt']).body;
+    assert.match(text, /^Contact: https:\/\//m, 'web Contact URIs must use HTTPS, not the development HTTP origin');
+  });
   const dir=mkdtempSync(join(tmpdir(),'phx-seo-')); const file=join(dir,'security.txt');
   writeFileSync(file,'Contact: mailto:reviewed@synthetic.example\nExpires: 2027-01-01T00:00:00Z\n');
   try { env({ PHOENIX_SECURITY_FILE:file }, () => assert.match(get(staticRoutes()['GET /.well-known/security.txt']).body,/mailto:reviewed@synthetic.example/)); }

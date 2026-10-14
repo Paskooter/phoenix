@@ -26,8 +26,8 @@ and Apple 180×180 PNG are rasterizations of that same asset, not new artwork.
 ## Security discovery
 
 `/.well-known/security.txt` points to the existing instance `/security` page.
-Without an origin it uses the public repository's security page instead of an
-invalid relative Contact URI. This is discovery, not a claim that an inbox or
+Without an HTTPS origin it uses the public repository's security page instead
+of an invalid relative or plain-HTTP Contact URI. This is discovery, not a claim that an inbox or
 private reporting channel has been provisioned. For an operated instance,
 point `PHOENIX_SECURITY_FILE` at an owner-reviewed RFC 9116 text file outside the
 checkout. Include an actual HTTPS reporting URL or mailto contact, an Expires
