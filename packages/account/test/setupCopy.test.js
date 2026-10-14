@@ -14,14 +14,18 @@ function prose(text) {
 function strings(source) {
   const result = [];
   const tree = parse(source, { ecmaVersion: 'latest', sourceType: 'module' });
-  function walk(node) {
+  function walk(node, parent, field) {
     if (!node || typeof node !== 'object') return;
-    if (node.type === 'Literal' && typeof node.value === 'string') result.push(node.value);
+    // Attribute keys and CSS/id values are structural identifiers, never prose.
+    const attribute = parent?.type === 'Property' && (field === 'key'
+      || (field === 'value' && ['class', 'id', 'style', 'aria-labelledby'].includes(parent.key.name || parent.key.value)));
+    const marker = node.type === 'Literal' && ['migration-', 'migration:'].includes(node.value);
+    if (node.type === 'Literal' && typeof node.value === 'string' && !attribute && !marker) result.push(node.value);
     if (node.type === 'TemplateElement') result.push(node.value.cooked || node.value.raw);
     for (const [key, value] of Object.entries(node)) {
       if (key === 'value' && node.type === 'Literal') continue;
-      if (Array.isArray(value)) value.forEach(walk);
-      else if (value && typeof value === 'object') walk(value);
+      if (Array.isArray(value)) value.forEach(child => walk(child, node, key));
+      else if (value && typeof value === 'object') walk(value, node, key);
     }
   }
   walk(tree);
@@ -35,6 +39,9 @@ test('copy scanner catches new phrases but excludes identifiers and compatibilit
   assert.doesNotMatch(prose('/repoint scripts/parity-robot/repoint-robot.sh minFirmware'), banned);
   assert.deepEqual(strings('// firmware\nconst repointHost = "setup command";'), ['setup command']);
   assert.match(prose(strings('const x = `Please migrate ${name}`;')[0]), banned);
+  assert.deepEqual(strings('const x = { class: "robot-firmware", "data-migration-app": id, title: "New firmware" };'), ['New firmware']);
+  assert.match(prose(strings('const x = "A migration is needed for /migration/status";')[0]), banned);
+  assert.deepEqual(strings('const id = "migration-"; const key = "migration:";'), []);
 });
 
 test('shipped console scripts and shells have no prohibited user-facing setup wording', () => {
