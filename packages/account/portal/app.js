@@ -1672,25 +1672,25 @@ function calendarMonthModel(events, cursor, timeZone, { rows = 3 } = {}) {
   const weeks = [];
   for (let week = 0; week < 6; week += 1) {
     const weekKeys = keys.slice(week * 7, week * 7 + 7);
-    const lanes = [];
+    const taken = [];
     const slots = weekKeys.map(() => []);
     for (const item of bars) {
       if (item.last < weekKeys[0] || item.first > weekKeys[6]) continue;
       const from = weekKeys.findIndex((key) => key >= item.first);
       let to = 6;
       while (weekKeys[to] > item.last) to -= 1;
-      let lane = 0;
-      while (lanes[lane]?.slice(from, to + 1).some(Boolean)) lane += 1;
-      lanes[lane] ||= Array(7).fill(false);
+      let level = 0;
+      while (taken[level]?.slice(from, to + 1).some(Boolean)) level += 1;
+      taken[level] ||= Array(7).fill(false);
       for (let column = from; column <= to; column += 1) {
-        lanes[lane][column] = true;
-        slots[column][lane] = item;
+        taken[level][column] = true;
+        slots[column][level] = item;
       }
     }
     const days = weekKeys.map((key, column) => {
       const dayRows = [];
-      for (let lane = 0; lane < slots[column].length; lane += 1) {
-        dayRows.push(slots[column][lane] ? { kind: 'bar', item: slots[column][lane] } : { kind: 'spacer' });
+      for (let level = 0; level < slots[column].length; level += 1) {
+        dayRows.push(slots[column][level] ? { kind: 'bar', item: slots[column][level] } : { kind: 'spacer' });
       }
       for (const item of timed) if (item.first === key) dayRows.push({ kind: 'timed', item });
       const dayEvents = dayRows.filter((row) => row.item).map((row) => row.item.event);
