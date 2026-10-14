@@ -262,3 +262,28 @@ test('calendar fetch includes the last local hour of tomorrow after DST ends', a
   await getData(prefs, data);
   assert.equal(endDate, '2026-11-01T23:59:59-05:00');
 });
+
+test('calendar event the day after the US DST change uses standard time', (t) => {
+  const iso = '2026-11-01T00:30:00-04:00';
+  freeze(t, iso);
+  const parsed = parse([eventAt('2026-11-02T18:00:00Z')], reportData(iso));
+  assert.equal(parsed.numEventsTomorrow, 1);
+  assert.equal(parsed.events[0].dateTime.toString({ prefixOnAt: true }), 'tomorrow at 1:00 PM');
+});
+
+test('calendar uses the new local work-arrival offset when DST starts', (t) => {
+  const iso = '2026-03-07T18:00:00-05:00';
+  freeze(t, iso);
+  const parsed = parse([eventAt('2026-03-08T12:30:00Z')], reportData(iso));
+  assert.equal(parsed.events[0].dateTime.toString(), '8:30 AM');
+  assert.equal(parsed.workArrivalDT.utc, Date.parse('2026-03-08T09:00:00-04:00'));
+  assert.equal(parsed.events[0].isEarly, true);
+});
+
+test('a UTC robot offset overrides a timed event with a nonzero suffix', (t) => {
+  const iso = '2026-10-14T08:00:00Z';
+  freeze(t, iso);
+  const parsed = parse([eventAt('2026-10-14T13:00:00+02:00')], reportData(iso, null));
+  assert.equal(parsed.events[0].dateTime.toString(), '11:00 AM');
+  assert.equal(parsed.events[0].dateTime.utc, Date.parse('2026-10-14T11:00:00Z'));
+});
