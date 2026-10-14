@@ -31,9 +31,10 @@ export const MimPath = Object.freeze({
  *
  * `parseZone` keeps the offset written in the runtime ISO instead of
  * converting the instant to UTC. Moment's `format()` also emits second
- * precision, without milliseconds.
+ * precision, without milliseconds. When an IANA zone is supplied, resolve
+ * tomorrow's wall date and offset in that zone instead of freezing today's offset.
  */
-export function endOfTomorrowISO(iso) {
+export function endOfTomorrowISO(iso, timeZone = null) {
   // Moment's parseZone accepts the ISO calendar forms used by the runtime:
   // YYYY, YYYY-MM, YYYY-MM-DD, and an optional time plus Z/±HH[:MM]. Keep
   // this parser local so the report does not acquire the source's 60 KiB
@@ -61,6 +62,19 @@ export function endOfTomorrowISO(iso) {
   const zone = match ? match[8] : dateMatch[4];
   const offset = normalizeOffset(zone);
   if (offset === null) return 'Invalid date';
+
+  if (typeof timeZone === 'string') {
+    const dt = new DateTime(iso, timeZone);
+    if (!Number.isFinite(dt.utc)) return 'Invalid date';
+    dt.setTime(47, 59, 59); // Tomorrow at 23:59:59, in local calendar days.
+    const local = dt.getLocalTime();
+    const wallUTC = Date.UTC(local.year, local.monthNum, local.date, 23, 59, 59);
+    const minutes = (wallUTC - dt.utc) / 60000;
+    const absolute = Math.abs(minutes);
+    const suffix = minutes === 0 ? 'Z'
+      : `${minutes < 0 ? '-' : '+'}${String(Math.floor(absolute / 60)).padStart(2, '0')}:${String(absolute % 60).padStart(2, '0')}`;
+    return formatEndDate(local.year, local.monthNum + 1, local.date, suffix);
+  }
 
   let nextYear = year;
   let nextMonth = month;
@@ -107,7 +121,7 @@ export async function getData(userPrefs, data) {
   const log = data.log;
   const prefs = userPrefs.calendar;
   const iso = data.runtime.location.iso;
-  const endDate = endOfTomorrowISO(iso);
+  const endDate = endOfTomorrowISO(iso, calendarDisplayZone(data, userPrefs));
   const subscriptions = Array.isArray(prefs.icalSubscriptions) ? prefs.icalSubscriptions : [];
   const enabledIcal = subscriptions.filter((subscription) => subscription && subscription.enabled !== false);
   const validIcal = enabledIcal.filter((subscription) => subscription.verification?.status === 'ok');
@@ -141,10 +155,10 @@ export async function getData(userPrefs, data) {
 
 // --- CalendarParse ------------------------------------------------------------------
 
-function calendarDisplayZone(data) {
+function calendarDisplayZone(data, userPrefs = data.local?.userPrefs) {
   const runtime = data.runtime || {};
   const location = runtime.location || {};
-  const candidates = [data.local?.userPrefs?.calendar?.timeZone,
+  const candidates = [userPrefs?.calendar?.timeZone,
     location.timeZone, location.timezone, runtime.timeZone, runtime.timezone];
   for (const zone of candidates) {
     if (typeof zone !== 'string' || !zone) continue;
@@ -290,7 +304,7 @@ export class CalendarMimLogic extends DefaultNode {
     const localISO = data.runtime.location.iso;
     const calData = data.local.calendar;
 
-    const isAfterNoon = new DateTime(localISO).getLocalTime().hour >= 12;
+    const isAfterNoon = new DateTime(localISO, calendarDisplayZone(data)).getLocalTime().hour >= 12;
     const earlyEventExists = calData.events.some((event) => event.isEarly);
     const fullDayEventExists = calData.events.some((event) => event.fullDay);
     const mentionFullDay = !earlyEventExists && fullDayEventExists;
