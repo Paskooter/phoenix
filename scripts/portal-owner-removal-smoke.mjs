@@ -112,3 +112,18 @@ test('owners remove an offline Jibo through the preview and typed-name dialog', 
   assert.deepEqual(f.errors, []);
   assert.deepEqual(f.external, []);
 });
+
+
+test('account deletion explains earlier removal backups separately', async (t) => {
+  const f = await fixture(t, 'owner');
+  await f.page.goto(`${f.base}/app#/profile`);
+  await f.page.getByRole('button', { name: 'Delete account…', exact: true }).waitFor();
+  await f.page.getByRole('button', { name: 'Delete account…', exact: true }).click();
+  const dialog = f.page.locator('dialog');
+  await dialog.locator('input[type=password]').waitFor({ state: 'visible' });
+  const text = await dialog.innerText();
+  assert.match(text, /Backups made for account deletion are deleted within \d+ days/);
+  assert.match(text, /Earlier removal backups may also include your account/);
+  assert.doesNotMatch(text, /Backup copies that include your account are deleted within/);
+  assert.deepEqual(f.errors, []);
+});

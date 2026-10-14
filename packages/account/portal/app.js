@@ -2273,8 +2273,9 @@ function deleteAccountDialog() {
         h('div', {}, `To keep ${list(shared.map(named))} for the others, make one of them the owner first, in `,
           h('a', { href: '#/loop', on: { click: close } }, 'Loops'), '.')) : null,
       plan.backupDays > 0
-        ? h('p', { class: 'field-hint', text: `Backup copies that include your account are deleted within ${plan.backupDays} days.` })
-        : null);
+        ? h('p', { class: 'field-hint', text: `Backups made for account deletion are deleted within ${plan.backupDays} days.` })
+        : null,
+      h('p', { class: 'field-hint', text: 'Earlier removal backups may also include your account. Those stay until the person running Phoenix deletes them.' }));
     passwordField.hidden = false;
     password.focus();
   })();

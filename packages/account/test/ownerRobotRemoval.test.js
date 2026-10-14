@@ -253,9 +253,12 @@ test('a required purge service failure keeps the robot account and its credentia
   assert.equal((await f.call('owner', '/api/token', { accessKeyId: f.robot.accessKeyId, secretAccessKey: f.robot.secretAccessKey })).status, 200);
 });
 
-test('privacy explains that removal backups remain until the operator deletes them', () => {
+test('privacy and console distinguish removal backups from account-deletion backups', () => {
   const privacy = readFileSync(new URL('../portal/privacy.html', import.meta.url), 'utf8');
   assert.match(privacy, /Removal backups stay until the person running Phoenix deletes them/);
+  const consoleSource = readFileSync(new URL('../portal/app.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(consoleSource, /Backup copies that include your account are deleted within/);
+  assert.match(consoleSource, /Earlier removal backups may also include your account/);
 });
 
 
