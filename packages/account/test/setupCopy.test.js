@@ -47,6 +47,10 @@ test('shipped console scripts and shells have no prohibited user-facing setup wo
       if (banned.test(prose(text))) findings.push(`${name}: ${text}`);
     }
   }
+  // Labels/help returned by the admin settings API are console copy too.
+  for (const text of strings(readFileSync(new URL('../src/admin/configCatalog.js', import.meta.url), 'utf8'))) {
+    if (banned.test(prose(text))) findings.push(`configCatalog.js: ${text}`);
+  }
   for (const name of ['app.html', 'verify-email.html', 'console.css']) {
     const source = readFileSync(new URL(name, portal), 'utf8').replace(/<!--[\s\S]*?-->|\/\*[\s\S]*?\*\//g, '');
     const visible = name.endsWith('.css')
