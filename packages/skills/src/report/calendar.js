@@ -10,6 +10,7 @@ import { DefaultNode, DefaultTransition } from '../graph/nodes.js';
 import { Names, addMimPathsToLocalData, askedForTomorrow, getJSON } from './utils.js';
 import { LassoClient } from './lassoClient.js';
 import { DateTime } from './dateTime.js';
+import { parseIsoOffset } from '../graph/mims/dateTime.js';
 import { calEventViews } from './calendarViews.js';
 
 export const MimPath = Object.freeze({
@@ -30,9 +31,10 @@ export const MimPath = Object.freeze({
  *
  * `parseZone` keeps the offset written in the runtime ISO instead of
  * converting the instant to UTC. Moment's `format()` also emits second
- * precision, without milliseconds.
+ * precision, without milliseconds. When an IANA zone is supplied, resolve
+ * tomorrow's wall date and offset in that zone instead of freezing today's offset.
  */
-export function endOfTomorrowISO(iso) {
+export function endOfTomorrowISO(iso, timeZone = null) {
   // Moment's parseZone accepts the ISO calendar forms used by the runtime:
   // YYYY, YYYY-MM, YYYY-MM-DD, and an optional time plus Z/±HH[:MM]. Keep
   // this parser local so the report does not acquire the source's 60 KiB
@@ -60,6 +62,19 @@ export function endOfTomorrowISO(iso) {
   const zone = match ? match[8] : dateMatch[4];
   const offset = normalizeOffset(zone);
   if (offset === null) return 'Invalid date';
+
+  if (typeof timeZone === 'string') {
+    const dt = new DateTime(iso, timeZone);
+    if (!Number.isFinite(dt.utc)) return 'Invalid date';
+    dt.setTime(47, 59, 59); // Tomorrow at 23:59:59, in local calendar days.
+    const local = dt.getLocalTime();
+    const wallUTC = Date.UTC(local.year, local.monthNum, local.date, 23, 59, 59);
+    const minutes = (wallUTC - dt.utc) / 60000;
+    const absolute = Math.abs(minutes);
+    const suffix = minutes === 0 ? 'Z'
+      : `${minutes < 0 ? '-' : '+'}${String(Math.floor(absolute / 60)).padStart(2, '0')}:${String(absolute % 60).padStart(2, '0')}`;
+    return formatEndDate(local.year, local.monthNum + 1, local.date, suffix);
+  }
 
   let nextYear = year;
   let nextMonth = month;
@@ -106,7 +121,7 @@ export async function getData(userPrefs, data) {
   const log = data.log;
   const prefs = userPrefs.calendar;
   const iso = data.runtime.location.iso;
-  const endDate = endOfTomorrowISO(iso);
+  const endDate = endOfTomorrowISO(iso, calendarDisplayZone(data, userPrefs));
   const subscriptions = Array.isArray(prefs.icalSubscriptions) ? prefs.icalSubscriptions : [];
   const enabledIcal = subscriptions.filter((subscription) => subscription && subscription.enabled !== false);
   const validIcal = enabledIcal.filter((subscription) => subscription.verification?.status === 'ok');
@@ -140,25 +155,49 @@ export async function getData(userPrefs, data) {
 
 // --- CalendarParse ------------------------------------------------------------------
 
-function isEventNDaysFromNow(event, offsetDays) {
+function calendarDisplayZone(data, userPrefs = data.local?.userPrefs) {
+  const runtime = data.runtime || {};
+  const location = runtime.location || {};
+  const candidates = [userPrefs?.calendar?.timeZone,
+    location.timeZone, location.timezone, runtime.timeZone, runtime.timezone];
+  for (const zone of candidates) {
+    if (typeof zone !== 'string' || !zone) continue;
+    try {
+      new Intl.DateTimeFormat('en-US', { timeZone: zone });
+      return zone;
+    } catch { /* Fall back to the next zone or the robot's explicit ISO offset. */ }
+  }
+  return parseIsoOffset(location.iso) ?? 0;
+}
+
+function eventDateTime(event, displayZone) {
+  // All-day dates are calendar dates, not instants to move across midnight.
+  return new DateTime(event.start.dateTime, event.fullDay ? null : displayZone);
+}
+
+function isEventNDaysFromNow(event, offsetDays, displayZone) {
   if (!event.start || !event.start.dateTime) return null;
-  const dt = new DateTime(event.start.dateTime);
+  const dt = eventDateTime(event, displayZone);
   // fullDay events start at 00:00, so include them even if the start is past.
   return (dt.isFuture() || event.fullDay) && (dt.getRelativeDays() === offsetDays);
 }
 
 /** Normal work-arrival DateTime on the day (today/tomorrow) of the next event. */
-export function getWorkArrivalDT(nextEvent, localISO, workTime = { hour: 9, min: 0 }) {
-  const dt = new DateTime(localISO);
+export function getWorkArrivalDT(nextEvent, localISO, workTime = { hour: 9, min: 0 }, displayZone = null) {
+  const zone = displayZone ?? parseIsoOffset(localISO);
+  // Start on the event's civil day, rather than adding 24 hours across DST.
+  const tomorrow = nextEvent && isEventNDaysFromNow(nextEvent, 1, zone);
+  const dt = tomorrow ? eventDateTime(nextEvent, zone) : new DateTime(localISO, zone);
   dt.setTime(workTime.hour, workTime.min);
-  if (nextEvent && isEventNDaysFromNow(nextEvent, 1)) dt.utc += 24 * 3600 * 1000;
   return dt;
 }
 
 export function calendarParse(rawEvents, data) {
   if (!rawEvents || !Array.isArray(rawEvents)) return undefined;
-  const eventsToday = rawEvents.filter((e) => isEventNDaysFromNow(e, 0));
-  const eventsTomorrow = rawEvents.filter((e) => isEventNDaysFromNow(e, 1));
+  const localISO = data.runtime.location.iso;
+  const displayZone = calendarDisplayZone(data);
+  const eventsToday = rawEvents.filter((e) => isEventNDaysFromNow(e, 0, displayZone));
+  const eventsTomorrow = rawEvents.filter((e) => isEventNDaysFromNow(e, 1, displayZone));
   const numEventsToday = eventsToday.length;
   const numEventsTomorrow = eventsTomorrow.length;
 
@@ -166,12 +205,12 @@ export function calendarParse(rawEvents, data) {
 
   const workTime = data.local.userPrefs && data.local.userPrefs.commute && data.local.userPrefs.commute.workTime;
   const firstNonAllDayEvent = upcomingEvents.find((event) => !event.fullDay);
-  const workArrivalDT = getWorkArrivalDT(firstNonAllDayEvent, data.runtime.location.iso, workTime || undefined);
+  const workArrivalDT = getWorkArrivalDT(firstNonAllDayEvent, localISO, workTime || undefined, displayZone);
 
   const events = upcomingEvents.map((event) => {
     const fullDay = event.fullDay;
     const summary = event.summary || 'No event description';
-    const dateTime = new DateTime(event.start.dateTime); // validated by isEventNDaysFromNow
+    const dateTime = eventDateTime(event, displayZone); // validated by isEventNDaysFromNow
     const isEarly = (!fullDay && workArrivalDT) ? (dateTime.utc < workArrivalDT.utc) : false;
     return { isEarly, summary, dateTime, fullDay };
   });
@@ -265,7 +304,7 @@ export class CalendarMimLogic extends DefaultNode {
     const localISO = data.runtime.location.iso;
     const calData = data.local.calendar;
 
-    const isAfterNoon = new DateTime(localISO).getLocalTime().hour >= 12;
+    const isAfterNoon = new DateTime(localISO, calendarDisplayZone(data)).getLocalTime().hour >= 12;
     const earlyEventExists = calData.events.some((event) => event.isEarly);
     const fullDayEventExists = calData.events.some((event) => event.fullDay);
     const mentionFullDay = !earlyEventExists && fullDayEventExists;
