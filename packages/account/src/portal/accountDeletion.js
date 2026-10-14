@@ -18,8 +18,8 @@
 //
 // Classic must confirm before the account store changes; History is asked but
 // optional. Every service first saves a backup under removal-backups/deletion-…,
-// deleted after PHOENIX_DELETION_BACKUP_DAYS (default 30): the privacy policy
-// says deleted data can survive only in a backup that has not yet aged out.
+// deleted after PHOENIX_DELETION_BACKUP_DAYS (default 30). Earlier removal
+// backups can also hold account data; those are kept until the operator deletes them.
 //
 // The server's only administrator cannot delete their account, or nobody could
 // administer the server afterwards.

@@ -55,6 +55,7 @@ import { requestEmailVerification, confirmEmailVerification } from './emailVerif
 import { emailVerificationContext, emailVerificationRoutes, allowVerificationRequest, resendPublicVerification } from './portal/emailVerification.js';
 import { accountDeletionRoutes } from './portal/accountDeletion.js';
 import { portalRobotRoutes } from './portal/robots.js';
+import { ownerRobotRemovalRoutes } from './portal/robotRemoval.js';
 import { portalMediaRoutes } from './portal/media.js';
 import { portalLoopKeyRoutes } from './portal/loopKeys.js';
 import { portalPeopleRoutes } from './portal/people.js';
@@ -635,6 +636,7 @@ export function portalRoutes(store, options = {}) {
       ...(options.accountDeletion || {}),
     }),
     ...portalRobotRoutes(store, portal),
+    ...ownerRobotRemovalRoutes(store),
     ...portalMediaRoutes(store, portal),
     ...portalLoopKeyRoutes(store, portal),
     ...portalPeopleRoutes(store, portal),
@@ -667,7 +669,7 @@ export function portalRoutes(store, options = {}) {
     ...adminLogRoutes(store, { requireAdmin, sendJson }),
     ...adminVoiceTurnRoutes(store, { requireAdmin, sendJson }),
     ...adminAsrStatusRoutes(store, { requireAdmin, sendJson }),
-    ...adminRemovalRoutes(store, { requireAdmin, sendJson, ...(options.adminRemoval || {}) }),
+    ...adminRemovalRoutes(store, { requireAdmin, sendJson, currentAccount: sessionUser, ...(options.adminRemoval || {}) }),
 
     // Self-service adoption for a robot that already holds credentials. This one
     // is deliberately NOT session-guarded: the caller is the repoint script

@@ -20,16 +20,17 @@
 // and set up from scratch: afterwards the server has never heard of it, so QR setup
 // creates it again. Every service first saves a backup copy under removal-backups/.
 
-import { copyFileSync, mkdirSync } from 'node:fs';
+import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { net, purgeBackupDir, purgeCollections, purgeNeedles, requireInternalPeer } from '@phoenix/common';
+import { logger, net, purgeBackupDir, purgeCollections, purgeNeedles, requireInternalPeer } from '@phoenix/common';
 import { classicBaseUrl } from '../portal/classicClient.js';
 
 // Account-store collections that can reference a robot or loop. `accounts` and `loops`
-// are handled explicitly; `settings` only by the robot's own entry, so an owner's
+// are handled explicitly; `settings` only by robot and loop keys, so an owner's
 // report settings are never caught by a stray mention.
 export const SIDE_COLLECTIONS = ['tokens', 'sessions', 'notificationOutbox', 'webPushSubscriptions',
-  'emailResets', 'phoneVerifications', 'oauthClients', 'homeAssistantInstallations', 'homeAssistantCodes'];
+  'emailResets', 'emailVerifications', 'phoneVerifications', 'oauthClients', 'homeAssistantInstallations', 'homeAssistantCodes',
+  'homeAssistantActions'];
 
 /** The other services that keep a robot's, a loop's or a person's records. Classic must answer. */
 export const defaultPeers = () => [
@@ -42,17 +43,22 @@ export const defaultBackupRoot = (store) => (process.env.PHOENIX_DATA_DIR
   ? join(process.env.PHOENIX_DATA_DIR, 'removal-backups')
   : join(dirname(store.file), 'removal-backups'));
 
+/** The shared, server-only removal scope for a robot. */
+export function robotRemovalTarget(store, robot) {
+  const loops = [...store.loops.values()].filter((loop) => String(loop.robot) === String(robot._id));
+  return {
+    kind: 'robot', label: robot.friendlyId, robot, loops,
+    ids: [robot._id, robot.accessKeyId, robot.friendlyId, ...loops.map((loop) => loop._id)].filter(Boolean).map(String),
+  };
+}
+
 function resolveTarget(store, body) {
   if (typeof body?.robot === 'string' && body.robot.trim()) {
     const wanted = body.robot.trim().toLowerCase();
     const robot = [...store.accounts.values()]
       .find((account) => account.friendlyId && String(account.friendlyId).toLowerCase() === wanted);
     if (!robot) return { status: 404, error: `No robot named ${body.robot.trim()}` };
-    const loops = [...store.loops.values()].filter((loop) => String(loop.robot) === String(robot._id));
-    return {
-      kind: 'robot', label: robot.friendlyId, robot, loops,
-      ids: [robot._id, robot.accessKeyId, robot.friendlyId, ...loops.map((loop) => loop._id)].filter(Boolean).map(String),
-    };
+    return robotRemovalTarget(store, robot);
   }
   if (typeof body?.loopId === 'string' && body.loopId.trim()) {
     const loop = store.loops.get(body.loopId.trim());
@@ -84,9 +90,13 @@ function accountStorePlan(store, target, { apply = false } = {}) {
   const collections = {};
   for (const name of SIDE_COLLECTIONS) if (store[name]) collections[name] = store[name];
   const removed = purgeCollections(collections, needles, { dryRun: !apply });
-  if (robotId && store.settings?.has(robotId)) {
-    removed.settings = 1;
-    if (apply) store.settings.delete(robotId);
+  const settingsKeys = [
+    ...(robotId ? [robotId, `lasso:${robotId}`] : []),
+    ...[...loopIds].map((id) => `loop:${id}`),
+  ].filter((key) => store.settings?.has(key));
+  if (settingsKeys.length) {
+    removed.settings = settingsKeys.length;
+    if (apply) for (const key of settingsKeys) store.settings.delete(key);
   }
   // The robot's membership in any loop that is not itself being removed.
   let memberships = 0;
@@ -149,34 +159,44 @@ export async function purgePeers(peers, fetchImpl, body) {
   return results;
 }
 
-export function adminRemovalRoutes(store, {
-  requireAdmin,
+/** Shared preview, backup and purge implementation for administrator and owner routes. */
+export function removalHandlers(store, {
   sendJson,
+  resolve = ({ body }) => resolveTarget(store, body),
   fetch: fetchImpl = globalThis.fetch,
   peers = defaultPeers,
   backupRoot = () => defaultBackupRoot(store),
 } = {}) {
   const askPeers = (target, dryRun) => purgePeers(peers(), fetchImpl, { ids: target.ids, dryRun });
 
-  const preview = async ({ res, body }) => {
-    const target = resolveTarget(store, body);
+  const preview = async (ctx) => {
+    const { res } = ctx;
+    const target = resolve(ctx);
     if (target.error) return sendJson(res, target.status, { error: target.error });
     let services;
     try { services = await askPeers(target, true); }
     catch (error) { return sendJson(res, 502, { error: `Could not preview the removal (${error.message})` }); }
-    return { kind: target.kind, label: target.label, confirmWith: target.label,
+    return { kind: target.kind, label: target.label, confirmWith: target.confirmWith || target.label,
       account: accountStorePlan(store, target), services };
   };
 
-  const remove = async ({ res, body }) => {
-    const target = resolveTarget(store, body);
+  const remove = async (ctx) => {
+    const { res, body } = ctx;
+    const target = resolve(ctx);
     if (target.error) return sendJson(res, target.status, { error: target.error });
-    if (typeof body?.confirm !== 'string' || body.confirm.trim().toLowerCase() !== target.label.toLowerCase()) {
-      return sendJson(res, 400, { error: `Type ${target.label} to confirm the removal` });
+    const confirmWith = target.confirmWith || target.label;
+    if (typeof body?.confirm !== 'string' || body.confirm.trim().toLowerCase() !== confirmWith.toLowerCase()) {
+      return sendJson(res, 400, { error: `Type ${confirmWith} to confirm the removal` });
     }
     const backupDir = purgeBackupDir(backupRoot(), 'removal', 'account');
     mkdirSync(backupDir, { recursive: true, mode: 0o700 });
     copyFileSync(store.file, join(backupDir, 'store.json'));
+    const audit = {
+      kind: target.kind, label: target.label, actorId: ctx.actorId || ctx.account?._id || null,
+      source: ctx.removalSource || (ctx.account ? 'owner' : 'administrator'), requestedAt: new Date().toISOString(), completed: false,
+    };
+    const saveAudit = () => writeFileSync(join(backupDir, 'removal.json'), JSON.stringify(audit, null, 2), { mode: 0o600 });
+    saveAudit();
     let services;
     try {
       services = await askPeers(target, false);
@@ -185,11 +205,22 @@ export function adminRemovalRoutes(store, {
       return sendJson(res, 502, { error: `Removal stopped; the account store was not changed (${error.message})` });
     }
     const account = accountStorePlan(store, target, { apply: true });
+    audit.completed = true;
+    audit.services = services.map((entry) => ({ service: entry.service, complete: !entry.error && !entry.skipped }));
+    saveAudit();
+    logger('account.removal').info('removal completed', { kind: audit.kind, source: audit.source, actorId: audit.actorId, loops: target.loops.length });
     return { kind: target.kind, label: target.label, removed: true, account: { ...account, backupDir }, services };
   };
 
-  const asAdmin = (handler) => (ctx) => (requireAdmin(store, ctx.req, ctx.res) ? handler(ctx) : undefined);
-  const asPeer = (handler) => (ctx) => (requireInternalPeer(ctx.req, ctx.res) ? handler(ctx) : undefined);
+  return { preview, remove };
+}
+
+export function adminRemovalRoutes(store, { requireAdmin, sendJson, currentAccount = () => null, ...options } = {}) {
+  const { preview, remove } = removalHandlers(store, { sendJson, ...options });
+  const asAdmin = (handler) => (ctx) => (requireAdmin(store, ctx.req, ctx.res)
+    ? handler({ ...ctx, actorId: currentAccount(store, ctx.req)?._id, removalSource: 'administrator' }) : undefined);
+  const asPeer = (handler) => (ctx) => (requireInternalPeer(ctx.req, ctx.res)
+    ? handler({ ...ctx, removalSource: 'operator' }) : undefined);
 
   return {
     'POST /api/admin/removal/preview': asAdmin(preview),
