@@ -69,6 +69,10 @@ test('security.txt uses the existing security page, never invents a contact and 
   const baseline = get(staticRoutes()['GET /.well-known/security.txt']);
   assert.equal(baseline.status,200); assert.match(baseline.body, /^Contact: https:\/\/synthetic.example\/security$/m); assert.match(baseline.body,/^Expires: /m);
   assert.ok(!baseline.body.includes('mailto:'));
+  env({ PHOENIX_SITE_URL: undefined }, () => {
+    const text = get(staticRoutes()['GET /.well-known/security.txt']).body;
+    assert.match(text, /^Contact: https:\/\//m, 'RFC 9116 Contact is an absolute URI even without an instance origin');
+  });
   const dir=mkdtempSync(join(tmpdir(),'phx-seo-')); const file=join(dir,'security.txt');
   writeFileSync(file,'Contact: mailto:reviewed@synthetic.example\nExpires: 2027-01-01T00:00:00Z\n');
   try { env({ PHOENIX_SECURITY_FILE:file }, () => assert.match(get(staticRoutes()['GET /.well-known/security.txt']).body,/mailto:reviewed@synthetic.example/)); }
