@@ -3453,56 +3453,108 @@ pre.json {
 /* iCal calendar manager -------------------------------------------------- */
 .ical-manager {
   display: grid;
-  gap: 1rem;
+  gap: 1.25rem;
   min-width: 0;
   max-width: 100%;
+  /* One colour per linked calendar, in list order: the list is the month's key. */
+  --cal-0: var(--accent);
+  --cal-1: var(--cool);
+  --cal-2: var(--ok);
+  --cal-3: var(--accent-hot);
+  --cal-4: #b48cff;
+  --cal-5: #3cc7bf;
 }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .ical-manager { --cal-4: #6c45d8; --cal-5: #0a7c75; }
+}
+:root[data-theme="light"] .ical-manager { --cal-4: #6c45d8; --cal-5: #0a7c75; }
+.ical-manager .cal-c0 { --cal: var(--cal-0); }
+.ical-manager .cal-c1 { --cal: var(--cal-1); }
+.ical-manager .cal-c2 { --cal: var(--cal-2); }
+.ical-manager .cal-c3 { --cal: var(--cal-3); }
+.ical-manager .cal-c4 { --cal: var(--cal-4); }
+.ical-manager .cal-c5 { --cal: var(--cal-5); }
 .settings-form fieldset.calendar-fieldset.group-off > .ical-manager {
   opacity: 1;
   pointer-events: auto;
 }
+
+/* Linked calendars */
+.ical-section { display: grid; gap: .75rem; min-width: 0; }
+.ical-section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .6rem 1rem;
+  min-width: 0;
+}
+.ical-section-head h3 { font-size: var(--t-md); font-weight: 620; letter-spacing: -.015em; }
+.ical-section-sub { margin-top: .2rem; color: var(--muted); font-size: var(--t-sm); }
+.ical-section-head > .btn { flex: none; }
+.ical-add {
+  display: grid;
+  gap: .85rem;
+  min-width: 0;
+  padding: 1rem 1.1rem 1.05rem;
+  border: 1px solid var(--accent-line);
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+  box-shadow: var(--edge);
+}
+.ical-add-title { font-size: var(--t-base); font-weight: 620; letter-spacing: -.01em; }
 .ical-manager-hint { margin: 0; max-width: 72ch; line-height: 1.55; }
 .ical-add-grid {
   display: grid;
-  grid-template-columns: minmax(0, .7fr) minmax(0, 1.5fr) minmax(0, .8fr);
+  grid-template-columns: minmax(0, .8fr) minmax(0, 1.6fr);
   gap: .8rem;
-  align-items: end;
+  align-items: start;
   min-width: 0;
 }
 @media (max-width: 760px) { .ical-add-grid { grid-template-columns: 1fr; } }
 .ical-add-grid .field { min-width: 0; }
 .ical-add-actions { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
 .ical-add-status { min-height: 1.2em; margin: 0; }
-.ical-subscription-list { display: grid; gap: .65rem; min-width: 0; max-width: 100%; }
+.ical-subscription-list { display: grid; gap: .5rem; min-width: 0; max-width: 100%; }
 .ical-subscription {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: .85rem 1rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--panel-2);
-  box-shadow: var(--edge);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: .2rem .8rem;
   width: 100%;
   min-width: 0;
   max-width: 100%;
+  padding: .75rem 1rem .8rem .7rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--cal, var(--border));
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+  box-shadow: var(--edge);
   overflow: hidden;
 }
-@media (max-width: 650px) {
-  .ical-subscription { flex-direction: column; }
-  .ical-subscription-main { width: 100%; }
+.ical-subscription.is-paused { border-left-color: var(--border); background: var(--bg-soft); }
+.ical-subscription.is-editing { border-color: var(--accent-line); box-shadow: var(--ring); }
+.ical-enabled {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  margin: -.25rem 0 0 -.15rem;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
 }
-.ical-subscription-main { min-width: 0; flex: 1 1 0; }
-.ical-subscription-title { display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; }
-.ical-subscription-title strong { font-weight: 620; color: var(--fg); }
-.ical-enabled input { accent-color: var(--accent); }
+.ical-enabled:hover { background: var(--hairline); }
+.ical-enabled input { width: 1.05rem; height: 1.05rem; margin: 0; accent-color: var(--cal, var(--accent)); cursor: pointer; }
+.ical-enabled.is-saving { opacity: .6; cursor: progress; }
+.ical-subscription-main { min-width: 0; }
+.ical-subscription-title { display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; min-height: 1.5rem; }
+.ical-subscription-title strong { font-weight: 620; color: var(--fg); overflow-wrap: anywhere; }
 .ical-subscription-url {
   display: block;
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  margin-top: .25rem;
+  margin-top: .2rem;
   color: var(--muted);
   font-family: var(--font-mono);
   font-size: var(--t-xs);
@@ -3510,97 +3562,230 @@ pre.json {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.ical-subscription-meta { margin-top: .3rem; color: var(--faint); font-size: var(--t-xs); }
-.ical-subscription-error { margin: .45rem 0 0; color: var(--error); font-size: var(--t-xs); line-height: 1.4; }
-.ical-subscription-actions { display: flex; gap: .4rem; flex-wrap: wrap; align-items: center; flex: none; }
+.ical-subscription-meta { margin-top: .2rem; color: var(--muted); font-size: var(--t-xs); }
+.ical-subscription-error {
+  display: flex;
+  align-items: flex-start;
+  gap: .4rem;
+  margin: .45rem 0 0;
+  color: var(--error);
+  font-size: var(--t-xs);
+  line-height: 1.45;
+}
+.ical-subscription-error svg { margin-top: .1rem; }
+.ical-subscription-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .4rem; }
+@media (max-width: 650px) {
+  .ical-subscription { grid-template-columns: auto minmax(0, 1fr); padding-right: .8rem; }
+  .ical-subscription-actions { grid-column: 2; justify-content: flex-start; margin-top: .5rem; }
+  .ical-enabled { width: 2.75rem; height: 2.75rem; margin: -.6rem -.25rem 0 -.55rem; }
+  .ical-enabled input { width: 1.25rem; height: 1.25rem; }
+}
 .status-badge {
   display: inline-flex;
   align-items: center;
-  padding: .18rem .5rem;
+  gap: .3rem;
+  padding: .16rem .5rem;
   border-radius: var(--radius-pill);
   font-size: var(--t-xs);
   font-weight: 620;
+  line-height: 1.35;
+  white-space: nowrap;
 }
-.status-ok { color: var(--ok); background: var(--ok-soft); }
-.status-error { color: var(--error); background: var(--error-soft); }
-.status-unknown { color: var(--warn); background: var(--warn-soft); }
+/* Badge text leans toward the page's text colour, so it stays readable (4.5:1)
+   on its own tint in both themes. */
+.status-ok { color: color-mix(in srgb, var(--ok) 78%, var(--fg)); background: var(--ok-soft); }
+.status-error { color: color-mix(in srgb, var(--error) 78%, var(--fg)); background: var(--error-soft); }
+.status-unknown { color: color-mix(in srgb, var(--warn) 78%, var(--fg)); background: var(--warn-soft); }
+.status-paused { color: var(--fg-dim); background: var(--panel-3); }
+
+/* Time zone */
+.ical-zone { display: grid; gap: .5rem; max-width: 32rem; min-width: 0; }
+.ical-zone-now { display: flex; align-items: flex-start; gap: .45rem; color: var(--fg-dim); font-size: var(--t-sm); line-height: 1.45; }
+.ical-zone-now svg { margin-top: .15rem; color: var(--muted); }
+.ical-zone-now.is-problem, .ical-zone-now.is-problem svg { color: var(--warn); }
+
+/* Month and selected-day agenda */
 .ical-preview {
+  container: calendar / inline-size;
   min-width: 0;
   max-width: 100%;
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: var(--bg-soft);
+  background: var(--panel);
   box-shadow: var(--shadow);
 }
+.ical-preview > .empty, .ical-preview > .notice { margin: 1rem; }
+.ical-preview-message { display: grid; justify-items: start; gap: .75rem; padding: 1rem; }
 .ical-preview-head {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.1rem;
-  background: linear-gradient(120deg, var(--panel-2), var(--panel));
-  border-bottom: 1px solid var(--border);
+  gap: .6rem 1rem;
+  padding: .9rem 1.1rem;
+  background: var(--panel-2);
+  border-bottom: 1px solid var(--border-soft);
 }
-.ical-preview-head > * { min-width: 0; }
-.ical-preview-head h4 { margin: 0; font-size: var(--t-lg); letter-spacing: -.02em; }
-.ical-preview-head p { margin: .2rem 0 0; color: var(--muted); font-size: var(--t-xs); }
-.ical-preview-nav { display: flex; gap: .35rem; align-items: center; }
-.ical-preview-nav .icon-btn { width: 32px; height: 32px; }
-.calendar-grid {
+.ical-preview-title { min-width: 0; }
+.calendar-month-label { font-size: var(--t-lg); font-weight: 640; letter-spacing: -.02em; }
+.calendar-month-summary { margin-top: .15rem; color: var(--muted); font-size: var(--t-xs); overflow-wrap: anywhere; }
+.ical-preview-nav { display: flex; align-items: center; gap: .35rem; flex: none; }
+.ical-preview-nav .icon-btn { width: 36px; min-width: 36px; height: 36px; border-color: var(--border); background: var(--panel); }
+.ical-preview-nav .icon-btn:hover { background: var(--panel-3); }
+@media (max-width: 900px) { .ical-preview-nav .icon-btn { width: 44px; min-width: 44px; height: 44px; } }
+.calendar-layout { display: grid; align-items: start; min-width: 0; }
+/* Grid lines a step firmer than the console's borders, so a week reads as a
+   row on a pale screen as well as a dark one. */
+.calendar-month { --calendar-line: color-mix(in srgb, var(--border) 70%, var(--muted)); }
+.calendar-month { display: grid; gap: 1px; min-width: 0; background: var(--calendar-line); }
+.calendar-weekdays, .calendar-week {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  width: 100%;
+  column-gap: 1px;
   min-width: 0;
-  background: var(--border-soft);
-  gap: 1px;
+  background: var(--calendar-line);
 }
 .calendar-weekday {
   min-width: 0;
   overflow: hidden;
-  padding: .55rem .45rem;
+  padding: .5rem .5rem .45rem;
   background: var(--panel-2);
   color: var(--muted);
   font-size: var(--t-xs);
   font-weight: 620;
-  letter-spacing: .04em;
+  letter-spacing: .05em;
   text-transform: uppercase;
-}
-.calendar-day {
-  min-width: 0;
-  overflow: hidden;
-  min-height: 7.2rem;
-  padding: .45rem;
-  background: var(--panel);
-  transition: background var(--fast) var(--ease);
-}
-.calendar-day.outside { background: var(--bg-soft); color: var(--faint); }
-.calendar-day.today { box-shadow: inset 0 2px 0 var(--accent); }
-.calendar-day-number { display: inline-grid; place-items: center; min-width: 1.6rem; height: 1.6rem; font-size: var(--t-sm); font-weight: 620; color: var(--fg-dim); }
-.calendar-day.today .calendar-day-number { border-radius: 50%; background: var(--accent); color: var(--accent-ink); }
-.calendar-day-events { display: grid; gap: .25rem; margin-top: .35rem; }
-.calendar-event {
-  min-width: 0;
-  overflow: hidden;
-  padding: .28rem .35rem;
-  border-left: 2px solid var(--accent-warm);
-  border-radius: 3px;
-  background: var(--accent-soft);
-  color: var(--fg-dim);
-  font-size: .68rem;
-  line-height: 1.25;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
-.calendar-event.all-day { border-left-color: var(--cool); background: var(--cool-soft); }
-.calendar-more { color: var(--muted); font-size: .68rem; }
-.ical-preview-loading { padding: 1rem; }
-@media (max-width: 650px) {
-  .ical-preview-head { align-items: flex-start; padding: .8rem; }
-  .ical-preview-nav { flex: none; }
-  .calendar-day { min-height: 5.4rem; padding: .3rem; }
-  .calendar-event { font-size: .6rem; }
-  .calendar-weekday { padding-inline: .25rem; font-size: .65rem; }
+/* A week is one grid: the day cells fill it, and event chips are laid over
+   them in rows 2-4 so an all-day or multi-day event can run across days. */
+.calendar-week {
+  grid-template-rows: 1.95rem repeat(3, 1.4rem) minmax(.4rem, 1fr);
+  min-height: 6.6rem;
+  isolation: isolate;
+}
+.calendar-day { grid-row: 1 / -1; position: relative; min-width: 0; background: var(--panel); }
+.calendar-day.outside { background: var(--bg-soft); }
+.calendar-day.selected { background: color-mix(in srgb, var(--accent) 9%, var(--panel)); }
+.calendar-day-button {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .2rem;
+  padding: .3rem .35rem;
+  background: transparent;
+  color: var(--fg-dim);
+  text-align: left;
+  transition: background var(--fast) var(--ease);
+}
+.calendar-day-button:hover { background: var(--hairline); }
+.calendar-day-button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 0; }
+.calendar-day.selected .calendar-day-button { box-shadow: inset 0 0 0 2px var(--accent); }
+.calendar-day.today:not(.selected) .calendar-day-button { box-shadow: inset 0 2px 0 var(--accent); }
+.calendar-day-number {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.55rem;
+  height: 1.55rem;
+  padding: 0 .3rem;
+  border-radius: var(--radius-pill);
+  font-size: var(--t-sm);
+  font-weight: 620;
+  font-variant-numeric: tabular-nums;
+}
+.calendar-day.outside .calendar-day-number { color: var(--muted); font-weight: 500; }
+.calendar-day.today .calendar-day-number { background: var(--accent); color: var(--accent-ink); }
+.calendar-chip, .calendar-more {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  align-self: center;
+  min-width: 0;
+  height: 1.25rem;
+  margin: 0 .25rem;
+  overflow: hidden;
+  font-size: var(--t-xs);
+  line-height: 1.25rem;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.calendar-chip-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.calendar-chip-time { flex: none; color: var(--muted); font-variant-numeric: tabular-nums; }
+.calendar-chip.timed { padding: 0 .15rem; color: var(--fg-dim); }
+.calendar-chip.timed::before {
+  content: "";
+  flex: none;
+  width: .45rem;
+  height: .45rem;
+  border-radius: 50%;
+  background: var(--cal, var(--accent));
+}
+.calendar-chip.timed.outside, .calendar-more.outside { color: var(--muted); }
+.calendar-chip.bar {
+  padding: 0 .45rem;
+  border-radius: var(--radius-xs);
+  background: color-mix(in srgb, var(--cal, var(--accent)) 26%, var(--panel));
+  color: var(--fg);
+  font-weight: 560;
+}
+.calendar-chip.bar .calendar-chip-time { color: var(--fg-dim); }
+.calendar-chip.bar.continues-before { margin-left: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.calendar-chip.bar.continues-after { margin-right: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.calendar-more { padding: 0 .3rem; color: var(--fg-dim); font-weight: 620; }
+.calendar-day-dots { display: none; }
+.calendar-dot { width: .5rem; height: .5rem; border-radius: 50%; background: var(--cal, var(--accent)); }
+.calendar-dots-more { color: var(--muted); font-size: .625rem; font-weight: 620; line-height: 1; }
+.calendar-agenda {
+  display: grid;
+  align-content: start;
+  gap: .75rem;
+  min-width: 0;
+  padding: 1rem 1.1rem 1.15rem;
+  border-top: 1px solid var(--border-soft);
+  background: var(--panel);
+}
+.calendar-agenda-head h4 { font-size: var(--t-base); font-weight: 620; letter-spacing: -.01em; }
+.calendar-agenda-head p { margin-top: .1rem; color: var(--muted); font-size: var(--t-xs); }
+.calendar-agenda-list { display: grid; gap: .5rem; margin: 0; padding: 0; list-style: none; }
+.calendar-agenda-event {
+  display: grid;
+  gap: .1rem;
+  min-width: 0;
+  padding: .55rem .75rem .6rem;
+  border-left: 3px solid var(--cal, var(--accent));
+  border-radius: var(--radius-xs);
+  background: var(--panel-2);
+}
+.calendar-agenda-title { color: var(--fg); font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; }
+.calendar-agenda-when { color: var(--fg-dim); font-size: var(--t-sm); font-variant-numeric: tabular-nums; }
+.calendar-agenda-meta { color: var(--muted); font-size: var(--t-xs); overflow-wrap: anywhere; }
+.calendar-agenda-empty { color: var(--muted); font-size: var(--t-sm); }
+/* Clear of the phone tab bar and the save bar when a tap scrolls it up. */
+@media (max-width: 900px) { .calendar-agenda { scroll-margin-bottom: calc(5.5rem + env(safe-area-inset-bottom)); } }
+/* With room to spare, the selected day's agenda sits beside the month. */
+@container calendar (min-width: 52rem) {
+  .calendar-layout { grid-template-columns: minmax(0, 1fr) 16rem; }
+  .calendar-month { border-right: 1px solid var(--border); }
+  .calendar-agenda { border-top: 0; }
+}
+/* On a phone a day is too narrow for titles: it shows a dot per event, and the
+   agenda below lists them. The section's side padding is a little narrower
+   there, so each of the seven days stays a full 44px tap target. */
+@media (max-width: 600px) {
+  .settings-form fieldset.calendar-fieldset { padding-inline: 1rem; }
+  .ical-preview-head { padding: .8rem .85rem; }
+  .calendar-week { grid-template-rows: minmax(3.3rem, auto); min-height: 0; }
+  .calendar-chip, .calendar-more { display: none; }
+  .calendar-weekday { padding-inline: 0; text-align: center; letter-spacing: .02em; }
+  .calendar-day-button { align-items: center; gap: .35rem; padding: .3rem .1rem; }
+  .calendar-day-dots { display: flex; align-items: center; justify-content: center; gap: 3px; min-height: .5rem; }
+  .calendar-agenda { padding: .9rem .85rem 1rem; }
 }
 
 
