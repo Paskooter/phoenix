@@ -669,7 +669,7 @@ export function portalRoutes(store, options = {}) {
     ...adminLogRoutes(store, { requireAdmin, sendJson }),
     ...adminVoiceTurnRoutes(store, { requireAdmin, sendJson }),
     ...adminAsrStatusRoutes(store, { requireAdmin, sendJson }),
-    ...adminRemovalRoutes(store, { requireAdmin, sendJson, ...(options.adminRemoval || {}) }),
+    ...adminRemovalRoutes(store, { requireAdmin, sendJson, currentAccount: sessionUser, ...(options.adminRemoval || {}) }),
 
     // Self-service adoption for a robot that already holds credentials. This one
     // is deliberately NOT session-guarded: the caller is the repoint script

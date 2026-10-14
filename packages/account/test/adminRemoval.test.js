@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createAccountService, Store } from '../src/index.js';
@@ -129,6 +129,11 @@ test('an administrator removes one robot and its loop from every service, leavin
     assert.ok(backups.some((name) => name.endsWith('-account')));
     assert.ok(backups.some((name) => name.endsWith('-classic')));
     assert.ok(backups.some((name) => name.endsWith('-history')));
+    const accountBackup = join(dir, 'removal-backups', backups.find((name) => name.endsWith('-account')));
+    const audit = JSON.parse(readFileSync(join(accountBackup, 'removal.json'), 'utf8'));
+    assert.equal(audit.actorId, admin._id);
+    assert.equal(audit.source, 'administrator');
+    assert.equal(audit.completed, true);
     const classicBackup = join(dir, 'removal-backups', backups.find((name) => name.endsWith('-classic')));
     assert.ok(existsSync(join(classicBackup, `backups-${String(gone.loop._id)}`, 'blob')));
 

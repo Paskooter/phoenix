@@ -28,11 +28,12 @@ async function fixture(t) {
   loop.members.push({ _id: 'fixture-member', accountId: member._id, status: 'accepted' });
   const kept = createLoop(store, { owner: stranger, robotId: 'Birch-Pond-Robin-Fern' });
   for (const name of SIDE_COLLECTIONS) {
-    store[name].set(`removed-${name}`, { accountId: robot._id, loopId: loop._id, bindings: [], expiresAt: Date.now() + 60_000 });
-    store[name].set(`kept-${name}`, { accountId: owner._id, bindings: [], expiresAt: Date.now() + 60_000 });
+    if (name === 'notificationOutbox') continue;
+    store[name].set(`removed-${name}`, { _id: `removed-${name}`, accountId: robot._id, loopId: loop._id, bindings: [], expiresAt: Date.now() + 60_000 });
+    store[name].set(`kept-${name}`, { _id: `kept-${name}`, accountId: owner._id, bindings: [], expiresAt: Date.now() + 60_000 });
   }
-  store.settings.set(robot._id, { news: false });
-  store.settings.set(owner._id, { news: true });
+  store.settings.set(robot._id, { _id: robot._id, news: false });
+  store.settings.set(owner._id, { _id: owner._id, news: true });
   store.flush();
   process.env.PHOENIX_DATA_DIR = dir;
   process.env.HUB_TOKEN_SECRET = 'fixture-hub-secret';
@@ -60,11 +61,6 @@ async function fixture(t) {
   const historyServer = await createHistoryService(history).listen(0, '127.0.0.1');
   servers.push(historyServer);
   process.env.NET_history = `http://127.0.0.1:${historyServer.address().port}`;
-  let robotCalls = 0;
-  const account = await createAccountService({ store, notificationPublisher: () => { robotCalls += 1; throw new Error('Robot contact is forbidden'); } }).listen(0, '127.0.0.1');
-  servers.push(account);
-  const base = `http://127.0.0.1:${account.address().port}`;
-  const cookies = {};
   const originalFetch = globalThis.fetch;
   const requests = [];
   globalThis.fetch = (url, options) => {
@@ -73,6 +69,16 @@ async function fixture(t) {
     requests.push({ path: parsed.pathname, body: options?.body ? JSON.parse(options.body) : null });
     return originalFetch(url, options);
   };
+  let robotCalls = 0;
+  const account = await createAccountService({ store, notificationPublisher: () => { robotCalls += 1; throw new Error('Robot contact is forbidden'); } }).listen(0, '127.0.0.1');
+  servers.push(account);
+  // Pending notifications are seeded after startup recovery, so only removal
+  // can trigger the forbidden robot publisher in these tests.
+  store.notificationOutbox.set('removed-notificationOutbox', { _id: 'removed-notificationOutbox', accountId: robot._id, loopId: loop._id });
+  store.notificationOutbox.set('kept-notificationOutbox', { _id: 'kept-notificationOutbox', accountId: owner._id });
+  store.flush();
+  const base = `http://127.0.0.1:${account.address().port}`;
+  const cookies = {};
   t.after(async () => {
     globalThis.fetch = originalFetch;
     for (const server of servers.reverse()) await new Promise((resolve) => server.close(resolve));
@@ -120,10 +126,13 @@ test('owner previews and removes an offline Jibo with peer purges and backups, w
   assert.doesNotMatch(JSON.stringify(result.body), /backupDir|secretAccessKey|ownerEmail/);
   assert.equal(f.store.accountByFriendlyId(f.robot.friendlyId), null);
   assert.equal(f.store.loops.has(f.loop._id), false);
-  assert.equal(new Store(f.store.file).accountByAccessKeyId(f.robot.accessKeyId), null);
+  const persisted = new Store(f.store.file);
+  assert.equal(persisted.accountByAccessKeyId(f.robot.accessKeyId), null);
   for (const name of SIDE_COLLECTIONS) {
     assert.equal(f.store[name].has(`removed-${name}`), false, name);
     assert.equal(f.store[name].has(`kept-${name}`), true, name);
+    assert.equal(persisted[name].has(`removed-${name}`), false, `${name} on disk`);
+    assert.equal(persisted[name].has(`kept-${name}`), true, `${name} on disk`);
   }
   assert.ok(f.store.accounts.has(f.owner._id));
   assert.ok(f.store.accounts.has(f.member._id));
@@ -144,6 +153,8 @@ test('owner previews and removes an offline Jibo with peer purges and backups, w
   assert.equal(audit.source, 'owner');
   assert.match(readFileSync(accountBackup, 'utf8'), new RegExp(f.robot.accessKeyId));
   assert.equal(f.robotCalls(), 0);
+  assert.equal(f.requests.filter((request) => request.path === '/internal/admin/purge').length, 4,
+    'both services were observed during preview and removal');
   assert.ok(f.requests.every((request) => [previewPath, removePath, '/internal/admin/purge'].includes(request.path)), JSON.stringify(f.requests));
 });
 
@@ -245,4 +256,48 @@ test('a required purge service failure keeps the robot account and its credentia
 test('privacy explains that removal backups remain until the operator deletes them', () => {
   const privacy = readFileSync(new URL('../portal/privacy.html', import.meta.url), 'utf8');
   assert.match(privacy, /Removal backups stay until the person running Phoenix deletes them/);
+});
+
+
+test('removal also purges household settings and robot integration action records', async (t) => {
+  const f = await fixture(t);
+  f.store.settings.set(`loop:${f.loop._id}`, { _id: `loop:${f.loop._id}`, timezone: 'UTC' });
+  f.store.settings.set(`loop:${f.kept.loop._id}`, { _id: `loop:${f.kept.loop._id}`, timezone: 'UTC' });
+  f.store.homeAssistantActions.set('fixture-gone-action', { _id: 'fixture-gone-action', robotId: f.robot._id });
+  f.store.homeAssistantActions.set('fixture-kept-action', { _id: 'fixture-kept-action', robotId: f.kept.robot._id });
+  f.store.emailVerifications.set(f.robot._id, { _id: f.robot._id, verified: true });
+  f.store.flush();
+  assert.equal((await f.call('owner', removePath, { loopId: f.loop._id, confirm: f.loop.name })).status, 200);
+  assert.equal(f.store.settings.has(`loop:${f.loop._id}`), false);
+  assert.equal(f.store.homeAssistantActions.has('fixture-gone-action'), false);
+  assert.equal(f.store.emailVerifications.has(f.robot._id), false);
+  assert.equal(f.store.settings.has(`loop:${f.kept.loop._id}`), true);
+  assert.equal(f.store.homeAssistantActions.has('fixture-kept-action'), true);
+});
+
+test('a preview does not keep authorizing a former owner after ownership changes', async (t) => {
+  const f = await fixture(t);
+  assert.equal((await f.call('owner', previewPath, { loopId: f.loop._id })).status, 200);
+  f.loop.owner = f.stranger._id;
+  f.store.flush();
+  f.requests.length = 0;
+  assert.deepEqual(await f.call('owner', removePath, { loopId: f.loop._id, confirm: f.loop.name }),
+    { status: 404, body: { error: 'Owned robot not found' } });
+  assert.ok(f.store.accounts.has(f.robot._id));
+  assert.equal(f.requests.filter((entry) => entry.path === '/internal/admin/purge').length, 0);
+});
+
+
+test('owner preview requests are rate limited before another peer purge', async (t) => {
+  const f = await fixture(t);
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    assert.equal((await f.call('owner', previewPath, { loopId: f.loop._id })).status, 200);
+  }
+  f.requests.length = 0;
+  assert.equal((await f.call('owner', previewPath, { loopId: f.loop._id })).status, 429);
+  assert.equal(f.requests.filter((entry) => entry.path === '/internal/admin/purge').length, 0);
+  assert.ok(f.store.accounts.has(f.robot._id));
+  assert.equal((await f.call('member', previewPath, { loopId: f.loop._id })).status, 404);
+  assert.equal((await f.call('owner', removePath, { loopId: f.loop._id, confirm: f.loop.name })).status, 200,
+    'preview budget does not prevent the confirmed removal');
 });
