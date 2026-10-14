@@ -4723,10 +4723,10 @@ function removalDialog(target, { owner = false } = {}) {
       }
       content.replaceChildren(
         h('div', { class: 'notice notice-ok' }, icon('check', 16), h('div', {}, `${plan.label} was removed from ${owner ? 'Phoenix' : 'this server'}.`)),
-        owner ? null : h('div', { class: 'kv-list' },
+        ...(owner ? [] : [h('div', { class: 'kv-list' },
           row('Account backup', h('code', { text: done.data.account.backupDir })),
           ...(done.data.services || []).filter((entry) => entry.backupDir)
-            .map((entry) => row(`${prettyLabel(entry.service)} backup`, h('code', { text: entry.backupDir })))));
+            .map((entry) => row(`${prettyLabel(entry.service)} backup`, h('code', { text: entry.backupDir }))))]));
       confirmField.hidden = true;
       remove.hidden = true;
       cancel.replaceChildren('Close');

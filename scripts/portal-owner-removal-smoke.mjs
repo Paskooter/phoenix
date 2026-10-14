@@ -104,6 +104,7 @@ test('owners remove an offline Jibo through the preview and typed-name dialog', 
   assert.equal(await remove.isEnabled(), true);
   await remove.click();
   await dialog.getByText(`${f.loop.name} was removed from Phoenix.`, { exact: true }).waitFor();
+  assert.doesNotMatch(await dialog.innerText(), /\bnull\b/, 'success state contains no null DOM child');
   assert.equal(f.store.accountByFriendlyId(f.robot.friendlyId), null);
   assert.ok(f.store.accountByEmail('owner@fixture.test'));
   await dialog.getByRole('button', { name: 'Close', exact: true }).click();
