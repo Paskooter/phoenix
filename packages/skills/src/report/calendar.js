@@ -10,6 +10,7 @@ import { DefaultNode, DefaultTransition } from '../graph/nodes.js';
 import { Names, addMimPathsToLocalData, askedForTomorrow, getJSON } from './utils.js';
 import { LassoClient } from './lassoClient.js';
 import { DateTime } from './dateTime.js';
+import { parseIsoOffset } from '../graph/mims/dateTime.js';
 import { calEventViews } from './calendarViews.js';
 
 export const MimPath = Object.freeze({
@@ -140,9 +141,14 @@ export async function getData(userPrefs, data) {
 
 // --- CalendarParse ------------------------------------------------------------------
 
-function isEventNDaysFromNow(event, offsetDays) {
+function eventDateTime(event, localISO) {
+  // All-day dates are calendar dates, not instants to move across midnight.
+  return new DateTime(event.start.dateTime, event.fullDay ? null : parseIsoOffset(localISO));
+}
+
+function isEventNDaysFromNow(event, offsetDays, localISO) {
   if (!event.start || !event.start.dateTime) return null;
-  const dt = new DateTime(event.start.dateTime);
+  const dt = eventDateTime(event, localISO);
   // fullDay events start at 00:00, so include them even if the start is past.
   return (dt.isFuture() || event.fullDay) && (dt.getRelativeDays() === offsetDays);
 }
@@ -151,14 +157,15 @@ function isEventNDaysFromNow(event, offsetDays) {
 export function getWorkArrivalDT(nextEvent, localISO, workTime = { hour: 9, min: 0 }) {
   const dt = new DateTime(localISO);
   dt.setTime(workTime.hour, workTime.min);
-  if (nextEvent && isEventNDaysFromNow(nextEvent, 1)) dt.utc += 24 * 3600 * 1000;
+  if (nextEvent && isEventNDaysFromNow(nextEvent, 1, localISO)) dt.utc += 24 * 3600 * 1000;
   return dt;
 }
 
 export function calendarParse(rawEvents, data) {
   if (!rawEvents || !Array.isArray(rawEvents)) return undefined;
-  const eventsToday = rawEvents.filter((e) => isEventNDaysFromNow(e, 0));
-  const eventsTomorrow = rawEvents.filter((e) => isEventNDaysFromNow(e, 1));
+  const localISO = data.runtime.location.iso;
+  const eventsToday = rawEvents.filter((e) => isEventNDaysFromNow(e, 0, localISO));
+  const eventsTomorrow = rawEvents.filter((e) => isEventNDaysFromNow(e, 1, localISO));
   const numEventsToday = eventsToday.length;
   const numEventsTomorrow = eventsTomorrow.length;
 
@@ -171,7 +178,7 @@ export function calendarParse(rawEvents, data) {
   const events = upcomingEvents.map((event) => {
     const fullDay = event.fullDay;
     const summary = event.summary || 'No event description';
-    const dateTime = new DateTime(event.start.dateTime); // validated by isEventNDaysFromNow
+    const dateTime = eventDateTime(event, localISO); // validated by isEventNDaysFromNow
     const isEarly = (!fullDay && workArrivalDT) ? (dateTime.utc < workArrivalDT.utc) : false;
     return { isEarly, summary, dateTime, fullDay };
   });
