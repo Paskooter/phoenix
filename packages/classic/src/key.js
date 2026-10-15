@@ -230,6 +230,20 @@ export class KeyStore {
 
   get(id) { return this.keys.get(String(id)) || null; }
 
+  /** Discard pending work whose requester is no longer in the authoritative member set. */
+  invalidatePending(loopId, accountIds) {
+    const accepted = new Set(accountIds.map(String));
+    const keys = [...this.keys.values()].filter(key => key.loopId === loopId
+      && !key.encryptedKey && !accepted.has(String(key.accountId)));
+    const binaries = [...this.binaries.values()].filter(binary => binary.loopId === loopId
+      && !binary.decryptedUrl && !accepted.has(String(binary.accountId)));
+    if (!keys.length && !binaries.length) return;
+    this._commit(() => {
+      for (const key of keys) this.keys.delete(key.id);
+      for (const binary of binaries) this.binaries.delete(binary.id);
+    });
+  }
+
   /** Source KeyController.share: set encryptedKey + keyHash on the request document. */
   share(id, encryptedKey, keyHash) {
     const key = this.keys.get(String(id));
@@ -510,6 +524,7 @@ export function makeKeyHandler(store = new KeyStore(), {
       return undefined;
     }
     const list = ids.map(String);
+    store.invalidatePending(loopId, list);
     if (forAccountId && !list.includes(String(forAccountId))) throw KEY_ERRORS.KEY_NOT_PART_OF_LOOP;
     return list;
   }
@@ -575,13 +590,12 @@ export function makeKeyHandler(store = new KeyStore(), {
         if (invalid) return void sendBadData(res, invalid);
         const key = store.get(b.id);
         if (!key) return void notFound(res, 'KEY_NOT_FOUND');
-        if (caller && String(key.accountId) !== String(caller)) {
-          // Source getRequest: a requester other than the owner must be a loop sibling.
-          try {
-            await members(key.loopId, caller);
-          } catch (error) {
-            return void sendAmzError(res, error);
-          }
+        // Reads require current membership for both the requester and any sibling reader.
+        try {
+          const ids = await members(key.loopId, key.accountId);
+          if (ids && caller && !ids.includes(String(caller))) return void refuse(res, 'KEY_NOT_PART_OF_LOOP');
+        } catch (error) {
+          return void sendAmzError(res, error);
         }
         return void sendAmz(res, 200, requestView(key));
       }
@@ -700,6 +714,14 @@ export function makeKeyHandler(store = new KeyStore(), {
             return void sendAmzError(res, { code: 'PAYLOAD_TOO_LARGE', statusCode: 413, message: error.message });
           }
           return void sendAmzError(res, { code: 'INTERNAL_ERROR', statusCode: 500, message: 'Binary store failed' });
+        }
+        // Confirm current membership before publishing the uploaded binary's URL.
+        try {
+          const ids = await members(binary.loopId, binary.accountId);
+          if (ids && caller && !ids.includes(String(caller))) throw KEY_ERRORS.BINARY_NOT_PART_OF_LOOP;
+        } catch (error) {
+          try { unlinkSync(binaryFile(path)); } catch { /* unpublished object cleanup is best effort */ }
+          return void sendAmzError(res, error);
         }
         // The source uploaded to S3 (BinaryController.createPublic) and returned its public url.
         const decryptedUrl = `${urlBase(req)}/key/binary?accountId=${encodeURIComponent(caller || binary.accountId)}&id=${encodeURIComponent(binary.id)}`;
@@ -841,6 +863,19 @@ export function keyRoutes(store, {
       && String(binary.accountId) !== String(verified.accountId)) {
       res.writeHead(403, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' });
       return void res.end('forbidden');
+    }
+    if (callerBoundary) {
+      let ids;
+      try {
+        ids = await membership.memberIds(binary.loopId);
+        if (Array.isArray(ids)) store.invalidatePending(binary.loopId, ids);
+      } catch { ids = undefined; }
+      if (!verified || !Array.isArray(ids)
+        || !ids.map(String).includes(String(binary.accountId))
+        || !ids.map(String).includes(String(verified.accountId))) {
+        res.writeHead(403, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' });
+        return void res.end('forbidden');
+      }
     }
     // Authorization above uses the verified identity; the file itself lives under the account
     // that SHARED it (ShareBinary writes that id into the returned URL), which is normally not

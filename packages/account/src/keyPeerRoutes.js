@@ -11,12 +11,12 @@
 // the Key membership checks resolve in a real deployment instead of always falling back to
 // LAN trust.
 //
-// Scope mirrors the source: every member of the loop that carries an accountId (the controller
-// itself filters on `member.accountId && member.loopId === loopId`). Member status is NOT
-// filtered — ListLoopMembers is called with an empty payload, which selects every status.
+// This is an authorization projection, used only by Classic Key and Media. Keep the public
+// ListLoopMembers informational status filters separate: access requires accepted membership.
 
 import { sendJson } from '@phoenix/common';
 import { timingSafeEqual } from 'node:crypto';
+import { isAcceptedStatus } from './model.js';
 
 function internalPeerAuthorized(req, res) {
   const expected = process.env.ETCO_account_internalPeerToken;
@@ -44,7 +44,7 @@ export function keyPeerRoutes(store) {
         return sendJson(res, 404, { statusCode: 404, error: 'Not Found', message: 'Loop not found' });
       }
       const members = (Array.isArray(loop.members) ? loop.members : [])
-        .filter((member) => member && member.accountId)
+        .filter((member) => member && member.accountId && isAcceptedStatus(member.status))
         .map((member) => String(member.accountId));
       return { id: loop._id, members };
     },
