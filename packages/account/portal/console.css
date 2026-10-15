@@ -1379,6 +1379,11 @@ body.console {
   box-shadow: var(--shadow-lg);
 }
 .save-bar p { font-size: var(--t-sm); color: var(--muted); flex: 1; min-width: 12rem; }
+/* On phones the fixed tab bar owns the bottom of the screen, so the sticky
+   save bar stops just above it instead of sliding underneath. */
+@media (max-width: 900px) {
+  .save-bar { bottom: calc(4.25rem + env(safe-area-inset-bottom)); }
+}
 
 /* ==========================================================================
    Location picker (rendered by map.js)

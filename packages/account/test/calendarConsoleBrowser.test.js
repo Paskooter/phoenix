@@ -142,6 +142,55 @@ test('phone: the month and the selected day’s agenda fit 390px without sideway
   assert.equal(await fitsWidth(page), true);
 });
 
+test('phone: the Save bar stays above the bottom tab bar while the form scrolls', async (t) => {
+  const opened = await open(t, { viewport: VIEWPORTS.phone });
+  if (!opened) return;
+  const { page } = opened;
+  // An edit is what brings up the Save bar; then the page scrolls mid-way.
+  await page.locator('select[name=units]').selectOption('c');
+  await page.evaluate(() => window.scrollTo(0, Math.round((document.documentElement.scrollHeight - innerHeight) / 2)));
+  const geometry = await page.evaluate(() => {
+    const box = (node) => { const rect = node.getBoundingClientRect(); return { top: rect.top, bottom: rect.bottom }; };
+    const bar = document.querySelector('.save-bar');
+    const button = bar.querySelector('button[type="submit"]');
+    const centre = button.getBoundingClientRect();
+    const hit = document.elementFromPoint((centre.left + centre.right) / 2, (centre.top + centre.bottom) / 2);
+    return {
+      bar: box(bar), button: box(button), tabbar: box(document.querySelector('.mobile-tabbar')),
+      hitIsButton: hit === button || button.contains(hit),
+    };
+  });
+  assert.ok(geometry.tabbar.top < 844 && geometry.tabbar.bottom > 0, 'the bottom tab bar is on screen');
+  assert.ok(geometry.button.top > 0 && geometry.button.bottom < 844, 'the Save button is on screen mid-scroll');
+  assert.ok(geometry.button.bottom <= geometry.tabbar.top + 0.5,
+    `the Save button is fully above the tab bar (button ends at ${geometry.button.bottom}, tab bar starts at ${geometry.tabbar.top})`);
+  assert.ok(geometry.bar.bottom <= geometry.tabbar.top + 0.5, 'the whole Save bar is fully above the tab bar');
+  assert.equal(geometry.hitIsButton, true, 'the element at the Save button’s centre is the button itself');
+});
+
+test('desktop: the Save bar still sticks to the very bottom of the window', async (t) => {
+  const opened = await open(t);
+  if (!opened) return;
+  const { page } = opened;
+  await page.locator('select[name=units]').selectOption('c');
+  await page.evaluate(() => window.scrollTo(0, Math.round((document.documentElement.scrollHeight - innerHeight) / 2)));
+  const geometry = await page.evaluate(() => {
+    const bar = document.querySelector('.save-bar');
+    const button = bar.querySelector('button[type="submit"]');
+    const centre = button.getBoundingClientRect();
+    const hit = document.elementFromPoint((centre.left + centre.right) / 2, (centre.top + centre.bottom) / 2);
+    return {
+      barBottom: bar.getBoundingClientRect().bottom, innerHeight,
+      tabbarShown: getComputedStyle(document.querySelector('.mobile-tabbar')).display !== 'none',
+      hitIsButton: hit === button || button.contains(hit),
+    };
+  });
+  assert.equal(geometry.tabbarShown, false, 'there is no tab bar on the desktop');
+  assert.ok(Math.abs(geometry.barBottom - geometry.innerHeight) <= 1,
+    `the Save bar still hugs the bottom edge of the window (bar ends at ${geometry.barBottom}, window is ${geometry.innerHeight} tall)`);
+  assert.equal(geometry.hitIsButton, true, 'the Save button is still tappable');
+});
+
 test('desktop: bars span their days, “+N more” counts what a day hides, and the agenda sits beside the month', async (t) => {
   const opened = await open(t);
   if (!opened) return;
