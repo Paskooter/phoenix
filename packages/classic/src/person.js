@@ -37,9 +37,9 @@
 //   * Mongo is gone. The store is one atomically replaced JSON file, written synchronously on
 //     every mutation (same discipline as MediaStore/NotificationStore) so state survives a
 //     restart. `id` fields are opaque strings.
-//   * The account service is reached through an injected seam. When no seam is wired the
-//     membership/ownership gates are skipped (LAN trust), exactly like Media's dropped gates —
-//     the deployed launcher injects the real client.
+//   * Classic composes the private Account peer for membership/ownership checks. A missing
+//     or unavailable client fails closed. Standalone compatibility callers may explicitly
+//     opt into allowTrustedLan, which is never honored behind a verified caller boundary.
 //   * ListAccountPropertyKeys answers the declared API shape `{keys:[…]}`, while the source
 //     controller returned a bare array (see A-01 candidate, "verified/inferred/unknown" split).
 //     The generated client can only observe the declared structure, so `{keys}` is the wire.
@@ -285,7 +285,7 @@ export class PersonController {
   }
 
   async requireOwnerOrRobot({ loopId, accountId }) {
-    if (!this.account || typeof this.account.isAccountOwnerOrRobot !== 'function') return;
+    if (!this.account || typeof this.account.isAccountOwnerOrRobot !== 'function') fail('ACCOUNT_SERVICE_UNAVAILABLE');
     let ok;
     try {
       ok = await this.account.isAccountOwnerOrRobot({ loopId, accountId });
@@ -397,7 +397,7 @@ export class PropertyController {
   }
 
   async requireLoopMember({ accountId, loopId }) {
-    if (!this.account || typeof this.account.isLoopMember !== 'function') return;
+    if (!this.account || typeof this.account.isLoopMember !== 'function') fail('ACCOUNT_SERVICE_UNAVAILABLE');
     let ok;
     try {
       ok = await this.account.isLoopMember({ loopId, accountId });
@@ -481,14 +481,20 @@ const VALIDATORS = {
 
 /**
  * Person_20160801 handler. `account` is the source AccountClient seam
- * ({ isLoopMember, isAccountOwnerOrRobot, listBirthdays }); it may be omitted (LAN trust).
+ * ({ isLoopMember, isAccountOwnerOrRobot, listBirthdays }). Missing authorization fails closed;
+ * standalone compatibility tests may opt into allowTrustedLan without a caller boundary.
  */
 export function makePersonHandler({
   store, account, questions = PERSON_QUESTIONS, holidays = HOLIDAYS, now = Date.now, callerBoundary,
+  allowTrustedLan = false,
 } = {}) {
   if (!store) throw new TypeError('person handler requires a PersonStore');
-  const controller = new PersonController(account, questions, holidays, store, now);
-  const properties = new PropertyController(account, store);
+  const accountClient = account || (allowTrustedLan === true && !callerBoundary ? {
+    isLoopMember: async () => true,
+    isAccountOwnerOrRobot: async () => true,
+  } : undefined);
+  const controller = new PersonController(accountClient, questions, holidays, store, now);
+  const properties = new PropertyController(accountClient, store);
 
   const handlers = {
     list: ({ body, accountId }) => controller.list({ accountId, category: body.category }),

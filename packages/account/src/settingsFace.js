@@ -1038,8 +1038,17 @@ export function settingsPeerRoutes(store) {
       const accountId = url.searchParams.get('accountId');
       const loopId = url.searchParams.get('loopId');
       const loop = loopId ? store.loops.get(loopId) : null;
-      const result = Boolean(loop && accountId && Array.isArray(loop.members)
-        && loop.members.some((item) => item.accountId === accountId && isAcceptedStatus(item.status)));
+      const result = Boolean(loop && loop.isDeleted !== true && accountId && Array.isArray(loop.members)
+        && loop.members.some((item) => item && item.accountId === accountId && isAcceptedStatus(item.status)));
+      return { result };
+    },
+    'GET /isAccountOwnerOrRobot': ({ req, res, url }) => {
+      if (!authorizedPeer(req, res)) return;
+      const accountId = url.searchParams.get('accountId');
+      const loopId = url.searchParams.get('loopId');
+      const loop = loopId ? store.loops.get(loopId) : null;
+      const result = Boolean(loop && loop.isDeleted !== true && accountId
+        && (loop.owner === accountId || loop.robot === accountId));
       return { result };
     },
     'GET /loopPopulated': ({ req, res, url }) => {

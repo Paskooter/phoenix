@@ -30,9 +30,8 @@ const OWNER = '43ca532ad4090cfb80f2e7a5';
 const ROBOT = '43ca532ad4090cfb80f2e7a6';
 const OUTSIDER = 'deadbeefdeadbeefdeadbeef';
 
-// The source AccountClient seam: isLoopMember / isAccountOwnerOrRobot / listBirthdays. Injected
-// the way the deployed launcher injects it (colocated account store). Omitting it exercises the
-// documented LAN-trust skip instead.
+// The source AccountClient seam: isLoopMember / isAccountOwnerOrRobot / listBirthdays.
+// These isolated contract tests inject it; production composes the private Account peer.
 const account = {
   isLoopMember: async ({ loopId, accountId }) => loopId === LOOP && accountId === OWNER,
   isAccountOwnerOrRobot: async ({ loopId, accountId }) => loopId === LOOP && (accountId === OWNER || accountId === ROBOT),
@@ -193,7 +192,7 @@ test('person holidays are owner-or-robot only and null over account-service fail
 test('person holiday table outside the pinned years yields no named holidays', async () => {
   // config/config.json only lists dates 2016..2020; a live `now` has no configured named holiday.
   const store = new PersonStore({ file: join(dir, 'frozen.json') });
-  const live = await createClassicEntrypoint({ person: { store } }).listen(0);
+  const live = await createClassicEntrypoint({ person: { store, allowTrustedLan: true } }).listen(0);
   const livePort = live.address().port;
   try {
     const res = await fetch(`http://localhost:${livePort}/`, {

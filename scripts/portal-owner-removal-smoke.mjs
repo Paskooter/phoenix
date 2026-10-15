@@ -5,6 +5,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { chromium } from 'playwright';
+import { freePort } from '../packages/classic/test/fixtures/signedClassic.js';
 
 process.env.PHOENIX_ENV_FILE = '/dev/null';
 process.env.ETCO_account_secureCookies = 'false';
@@ -29,6 +30,9 @@ async function fixture(t, who) {
   loop.name = 'Living room';
   loop.members.push({ _id: 'fixture-member', accountId: member._id, status: 'accepted' });
   store.flush();
+  // Configure both peer endpoints before composing their clients.
+  const accountPort = await freePort();
+  process.env.NET_account = `http://127.0.0.1:${accountPort}`;
   const classic = await createClassicEntrypoint({
     publicUrl: 'http://classic.fixture.test',
     callerBoundary: createVerifiedClassicCaller({ resolveCredentials: (id) => store.accountByAccessKeyId(id) }),
@@ -37,7 +41,7 @@ async function fixture(t, who) {
     notificationFile: join(dir, 'notifications.json'), log: { dir: join(dir, 'logs') }, backup: { dir: join(dir, 'backups') },
   }).listen(0, '127.0.0.1');
   process.env.NET_classic = `http://127.0.0.1:${classic.address().port}`;
-  const account = await createAccountService({ store }).listen(0, '127.0.0.1');
+  const account = await createAccountService({ store }).listen(accountPort, '127.0.0.1');
   const base = `http://127.0.0.1:${account.address().port}`;
   const browser = await chromium.launch({
     ...(process.env.CHROME_BIN ? { executablePath: process.env.CHROME_BIN } : {}),
@@ -65,6 +69,10 @@ async function fixture(t, who) {
   await page.locator('#auth-form input[name=password]').fill('Fixture-password-1');
   await page.locator('#auth-submit').click();
   await page.locator('#shell').waitFor({ state: 'visible' });
+  if (who === 'owner') {
+    const holidays = await page.request.get(`${base}/api/robot/holidays?loopId=${encodeURIComponent(loop._id)}`);
+    assert.equal(holidays.status(), 200, 'the fixture supplies Account authorization for household settings');
+  }
   await page.goto(`${base}/app#/robot/${loop._id}`);
   return { page, store, loop, robot, errors, external, base };
 }

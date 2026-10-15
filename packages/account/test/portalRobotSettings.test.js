@@ -7,6 +7,7 @@ import { createHash } from 'node:crypto';
 import { createAccountService, Store } from '../src/index.js';
 import { createLoop, createOwnerAccount } from '../src/model.js';
 import { createClassicEntrypoint, createVerifiedClassicCaller, KeyStore, PersonStore, RobotStore } from '../../classic/src/index.js';
+import { freePort } from '../../classic/test/fixtures/signedClassic.js';
 
 test('production-authenticated robot settings preserve ownership and Classic data', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'phx-robot-settings-'));
@@ -24,6 +25,9 @@ test('production-authenticated robot settings preserve ownership and Classic dat
   let classicServer; let accountServer;
   const keyStore = new KeyStore(join(dir, 'keys.json'));
   try {
+    // Configure both peers before their clients are composed.
+    const accountPort = await freePort();
+    process.env.NET_account = `127.0.0.1:${accountPort}`;
     classicServer = await createClassicEntrypoint({
       publicUrl: 'http://classic.fixture.test',
       callerBoundary: createVerifiedClassicCaller({
@@ -34,8 +38,7 @@ test('production-authenticated robot settings preserve ownership and Classic dat
       person: { store: new PersonStore({ file: join(dir, 'person.json') }) },
     }).listen(0);
     process.env.NET_classic = `127.0.0.1:${classicServer.address().port}`;
-    accountServer = await createAccountService({ store: accountStore }).listen(0);
-    process.env.NET_account = `127.0.0.1:${accountServer.address().port}`;
+    accountServer = await createAccountService({ store: accountStore }).listen(accountPort);
     const base = `http://127.0.0.1:${accountServer.address().port}`;
     const cookies = {};
     async function call(actor, method, path, body) {

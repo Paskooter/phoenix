@@ -29,6 +29,7 @@ import { makeRomHandler } from './rom.js';
 import { IftttStore, makeIftttHandler } from './ifttt.js';
 import { makeNlpHandler, nlpProviderFromEnv } from './nlp.js';
 import { PersonStore, PersonController, PropertyController, makePersonHandler, PERSON_ERRORS } from './person.js';
+import { accountPersonMembership } from './personAccount.js';
 import { makeCollisionHandler, detectCollision, graphemePhonemize, levenshteinDistance, COLLISION_ERRORS, COLLISION_DEFAULTS } from './collision.js';
 import { GQA_ROUTE_OPTIONS, makeGqaHandler } from './gqa.js';
 import { JotStore, makeJotHandler, mediaStoreClient, jotHttpRoutes, accountJotLoops, unavailableMedia, JOT_ERRORS, JOT_OPERATIONS } from './jot.js';
@@ -77,6 +78,7 @@ export {
 export { IftttStore, makeIftttHandler, IFTTT_ERRORS, localPhoneticKey, singleHouseholdLoops, unavailableIftttNotify, unavailableKeyClient } from './ifttt.js';
 export { makeNlpHandler, cleanInput, unavailableNlpProvider, createHttpNlpProvider, nlpProviderFromEnv, WH_WORDS } from './nlp.js';
 export { PersonStore, PersonController, PropertyController, makePersonHandler, accountIdFromRequest, PERSON_ERRORS, PERSON_OPERATIONS, MISSING_AUTH_HEADER } from './person.js';
+export { accountPersonMembership } from './personAccount.js';
 export { makeCollisionHandler, detectCollision, graphemePhonemize, levenshteinDistance, COLLISION_ERRORS, COLLISION_DEFAULTS, COLLISION_OPERATIONS } from './collision.js';
 export {
   GQA_SOURCE_REVISION, GQA_API_REVISION, GQA_GATEWAY_REVISION, GQA_TARGET_PREFIX, GQA_OPERATIONS,
@@ -321,7 +323,11 @@ export function classicRoutes(hub, extra = [], { notificationAccountResolver, lo
     // Person_20160801 (questions/answers, properties, holidays) and Collision_20161126 (phonetic
     // username collision) own real handlers now (A-15), registered ahead of the tier-3 stubs.
     { match: /^person/i, handler: makePersonHandler({
-      store: personStore, account: person?.account, questions: person?.questions,
+      store: personStore,
+      account: own(person || {}, 'account') ? person.account
+        : !callerBoundary && person?.allowTrustedLan === true ? undefined : accountPersonMembership(),
+      allowTrustedLan: person?.allowTrustedLan,
+      questions: person?.questions,
       holidays: person?.holidays, now: person?.now, callerBoundary,
     }) },
     { match: /^collision/i, handler: makeCollisionHandler(collision || {}) },
@@ -495,7 +501,7 @@ export function createClassicEntrypoint({ extra = [], tls, publicUrl, publicOrig
         robotStore: robots,
         ifttt: { ...ifttt, store: iftttStore },
         nlp: nlp || { provider: nlpProviderFromEnv() },
-        person: { store: personStore, account: person?.account, questions: person?.questions, holidays: person?.holidays, now: person?.now },
+        person: { ...person, store: personStore },
         collision: collision || {},
         gqa: classicGqa,
         jot: { ...jot, store: jotStore, media: jotMedia, pushRegistry },
