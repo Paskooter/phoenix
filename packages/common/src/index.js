@@ -35,6 +35,13 @@ export {
 export { createService, sendText, sendJson, readJson, legacyJsonError } from './service.js';
 export { createDeploymentActivity } from './deploymentActivity.js';
 export {
+  DEFAULT_UPLOAD_STAGING_MAX_BYTES,
+  DEFAULT_UPLOAD_STAGING_MAX_UPLOADS,
+  UploadStagingThrottleError,
+  createUploadStagingBudget,
+  uploadStagingBudget,
+} from './uploadStaging.js';
+export {
   purgeNeedles, purgeCollections, backupBeforePurge, purgeStamp, purgeBackupDir, deletionBackupDays, pruneDeletionBackups,
   requireInternalPeer, adminPurgeRoutes,
 } from './recordPurge.js';
@@ -48,5 +55,6 @@ export {
   canonicalRequest,
   normalizeHeaders,
   signSigV4,
+  preflightSigV4,
   verifySigV4,
 } from './sigv4.js';

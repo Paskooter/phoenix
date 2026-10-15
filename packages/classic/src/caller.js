@@ -3,7 +3,11 @@ import { createReadStream } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { SIGV4_CLOCK_SKEW_MS, SIGV4_ERRORS, SigV4Error, verifySigV4 } from '@phoenix/common';
+import { finished } from 'node:stream/promises';
+import {
+  SIGV4_CLOCK_SKEW_MS, SIGV4_ERRORS, SigV4Error, preflightSigV4, verifySigV4,
+  UploadStagingThrottleError, uploadStagingBudget,
+} from '@phoenix/common';
 import { UploadTooLargeError, declaredContentLength, writeAtomicUpload } from './rawUpload.js';
 
 /** The request-local slot is not representable by a client-supplied HTTP header. */
@@ -72,6 +76,9 @@ function nowValue(now) {
 
 function errorFor(error) {
   if (error instanceof SigV4Error && SIGV4_ERRORS[error.code]) return SIGV4_ERRORS[error.code];
+  if (error instanceof UploadStagingThrottleError) {
+    return { code: error.code, statusCode: error.statusCode, message: error.message };
+  }
   if (error?.code === 'SIGNATURE_REPLAYED') {
     return { code: 'SIGNATURE_REPLAYED', statusCode: 401, message: 'Request signature has already been used' };
   }
@@ -100,7 +107,7 @@ function callerFromVerification(verification) {
 }
 
 /** Stage an unparsed entity so verification and downstream upload handling see identical bytes. */
-async function stageRequestBody(req, maxBytes) {
+async function stageRequestBody(req, maxBytes, stagingBudget) {
   if (req?.[STAGED_BODY] || req?._phoenixBodyDigest !== undefined || req?.rawBody !== undefined) return;
   if (!requestHasEntity(req) || typeof req?.pipe !== 'function') return;
   const declared = declaredContentLength(req);
@@ -108,26 +115,37 @@ async function stageRequestBody(req, maxBytes) {
     req.resume?.();
     throw new UploadTooLargeError(maxBytes);
   }
-  const directory = await mkdtemp(join(tmpdir(), `phoenix-classic-auth-${randomUUID()}-`));
-  const file = join(directory, 'body');
+  const reservation = stagingBudget.acquire(declared ?? 0);
+  let directory;
   const hash = createHash('sha256');
   try {
-    await writeAtomicUpload(req, file, { maxBytes, onChunk: (chunk) => hash.update(chunk) });
+    directory = await mkdtemp(join(tmpdir(), `phoenix-classic-auth-${randomUUID()}-`));
+    await writeAtomicUpload(req, join(directory, 'body'), { maxBytes, onChunk: (chunk) => {
+      reservation.consume(chunk.length);
+      hash.update(chunk);
+    } });
   } catch (error) {
-    await rm(directory, { recursive: true, force: true });
+    if (directory) await rm(directory, { recursive: true, force: true });
+    reservation.release();
     throw error;
   }
   req._phoenixBodyDigest = hash.digest('hex');
-  req._phoenixBodyStream = createReadStream(file);
+  let cleanup;
   req[STAGED_BODY] = {
     directory,
-    cleanup: async () => {
-      req._phoenixBodyStream?.destroy?.();
+    file: join(directory, 'body'),
+    cleanup: () => cleanup ||= (async () => {
+      const stream = req._phoenixBodyStream;
+      if (stream) {
+        stream.destroy();
+        await finished(stream).catch(() => {});
+      }
       await rm(directory, { recursive: true, force: true });
+      reservation.release();
       delete req._phoenixBodyStream;
       delete req._phoenixBodyDigest;
       delete req[STAGED_BODY];
-    },
+    })(),
   };
 }
 
@@ -150,6 +168,7 @@ export function createVerifiedClassicCaller({
   now,
   allowNativeClientPayloadHash = true,
   maxBodyBytes = DEFAULT_AUTH_BODY_MAX_BYTES,
+  stagingBudget = uploadStagingBudget,
   replayGuard = new ReplayGuard({ now: () => clockMillis(now) }),
 } = {}) {
   if (typeof resolveCredentials !== 'function') throw new TypeError('resolveCredentials must be a function');
@@ -161,13 +180,10 @@ export function createVerifiedClassicCaller({
     if (!req) throw new TypeError('verified caller requires a request');
     const existing = req[VERIFIED_CALLER];
     if (existing && existing[VERIFIED_CALLER] === true) return existing;
-    await stageRequestBody(req, limit);
-    const wire = verificationBody(req, body, bodyDigest ?? req._phoenixBodyDigest);
-    const verification = verifySigV4({
+    const options = {
       method: req.method || 'POST',
       path: req.originalUrl || req.url || '/',
       headers: req.headers || {},
-      ...wire,
       now: nowValue(now),
       resolveCredentials: (accessKeyId) => {
         const account = resolveCredentials(accessKeyId);
@@ -176,15 +192,29 @@ export function createVerifiedClassicCaller({
       allowNativeClientPayloadHash: typeof allowNativeClientPayloadHash === 'function'
         ? !!allowNativeClientPayloadHash({ req, body })
         : !!allowNativeClientPayloadHash,
-    });
-    const caller = callerFromVerification(verification);
-    const signature = signatureFromAuthorization(req.headers?.authorization);
-    if (signature && !replayGuard.accept(`${verification.accessKeyId}:${signature}`, clockMillis(now) + SIGV4_CLOCK_SKEW_MS)) {
-      throw new SigV4Error({ code: 'SIGNATURE_REPLAYED', statusCode: 401, message: 'Request signature has already been used' });
+    };
+    try {
+      preflightSigV4(options);
+      await stageRequestBody(req, limit, stagingBudget);
+      const wire = verificationBody(req, body, bodyDigest ?? req._phoenixBodyDigest);
+      const verification = verifySigV4({ ...options, ...wire, now: nowValue(now) });
+      const caller = callerFromVerification(verification);
+      const signature = signatureFromAuthorization(req.headers?.authorization);
+      if (signature && !replayGuard.accept(`${verification.accessKeyId}:${signature}`, clockMillis(now) + SIGV4_CLOCK_SKEW_MS)) {
+        throw new SigV4Error({ code: 'SIGNATURE_REPLAYED', statusCode: 401, message: 'Request signature has already been used' });
+      }
+      if (req[STAGED_BODY]) {
+        req._phoenixBodyStream = createReadStream(req[STAGED_BODY].file);
+        // Dispatch consumers handle read errors; cleanup must also be safe before consumption.
+        req._phoenixBodyStream.on('error', () => {});
+      }
+      Object.defineProperty(req, VERIFIED_CALLER, { value: caller, configurable: true });
+      req._phoenixVerifiedCaller = caller;
+      return caller;
+    } catch (error) {
+      await cleanupVerifiedClassicRequest(req);
+      throw error;
     }
-    Object.defineProperty(req, VERIFIED_CALLER, { value: caller, configurable: true });
-    req._phoenixVerifiedCaller = caller;
-    return caller;
   };
   boundary.maxBodyBytes = limit;
   boundary.errorFor = errorFor;

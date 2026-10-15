@@ -10,7 +10,7 @@ import http from 'node:http';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { syntheticAccount, writeSyntheticAccountStore } from './fixtures/signedClassic.js';
+import { syntheticAccount, writeSyntheticAccountStore, signRequest } from './fixtures/signedClassic.js';
 import { createClassicEntrypoint, createVerifiedClassicCaller } from '../src/index.js';
 
 const REFERENCE_400 = {
@@ -44,7 +44,10 @@ function declareOnly(port, target, contentLength) {
   return new Promise((resolve, reject) => {
     const req = http.request({
       host: '127.0.0.1', port, method: 'POST', path: '/',
-      headers: { 'content-type': 'application/octet-stream', 'x-amz-target': target, 'content-length': String(contentLength) },
+      headers: signRequest({
+        url: `http://127.0.0.1:${port}/`, credentials: syntheticAccount('synthetic-photo-owner'),
+        headers: { 'content-type': 'application/octet-stream', 'x-amz-target': target, 'content-length': String(contentLength) },
+      }),
     }, (res) => {
       let text = '';
       res.setEncoding('utf8');

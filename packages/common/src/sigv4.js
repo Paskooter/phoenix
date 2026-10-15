@@ -393,7 +393,21 @@ function equalText(left, right) {
  * resolved account so callers can use the cryptographically authenticated
  * identity without parsing a public header.
  */
-export function verifySigV4({
+export function verifySigV4(options = {}) {
+  return verifyRequest(options, false);
+}
+
+/**
+ * Check everything available in the headers before accepting a streamed entity. With an
+ * explicit payload hash this also verifies the HMAC. Older signers can omit that header;
+ * their body-dependent HMAC must still be checked by verifySigV4 after reading the entity.
+ * Preflight never returns a dispatch credential.
+ */
+export function preflightSigV4({ method, path, headers, now, resolveCredentials, allowNativeClientPayloadHash } = {}) {
+  verifyRequest({ method, path, headers, now, resolveCredentials, allowNativeClientPayloadHash }, true);
+}
+
+function verifyRequest({
   method = 'POST',
   path = '/',
   headers = {},
@@ -402,7 +416,7 @@ export function verifySigV4({
   now = new Date(),
   resolveCredentials,
   allowNativeClientPayloadHash = false,
-} = {}) {
+} = {}, headersOnly = false) {
   const normalized = normalizeHeaders(headers);
   const authorization = headerValue(normalized, 'authorization');
   // AuthController checks for the authorization header before entering its
@@ -429,19 +443,33 @@ export function verifySigV4({
   } catch (error) {
     fail('ACCOUNT_SERVICE_UNAVAILABLE', error);
   }
-  if (!credentials) fail('ACCESS_KEY_NOT_FOUND');
+  if (!credentials || (headersOnly && credentials.isDeleted === true)) fail('ACCESS_KEY_NOT_FOUND');
   if (!credentials.isActive) fail('ACCOUNT_NOT_ACTIVE');
   if (!credentials.secretAccessKey) fail('ACCESS_KEY_NOT_FOUND');
 
-  verifyReceivedBodyHash({
-    headers: normalized,
-    parsed,
-    body,
-    bodyDigest,
-    method,
-    path,
-    allowNativeClientPayloadHash,
-  });
+  if (headersOnly) {
+    // These constraints do not depend on body bytes and must match final verification.
+    const shape = `${SIGV4_ALGORITHM} Credential=${parsed.credential}/${credentialScope(datetime, parsed.region, parsed.service)}, SignedHeaders=${signedHeaderNames(normalized, parsed.signedHeaders).join(';')}, Signature=${parsed.signature}`;
+    if (!/^[a-f0-9]{64}$/.test(parsed.signature) || !equalText(shape, authorization)) fail('SIGNATURE_MISMATCH');
+    const explicit = headerValue(normalized, 'x-amz-content-sha256');
+    if (explicit === undefined) {
+      return { accessKeyId: parsed.credential, region: parsed.region, service: parsed.service, credentials };
+    }
+    if (!/^[a-f0-9]{64}$/.test(explicit)) {
+      // Keep the native streamed-media exception subject to its existing target/path policy.
+      verifyReceivedBodyHash({ headers: normalized, parsed, body: '', method, path, allowNativeClientPayloadHash });
+    }
+  } else {
+    verifyReceivedBodyHash({
+      headers: normalized,
+      parsed,
+      body,
+      bodyDigest,
+      method,
+      path,
+      allowNativeClientPayloadHash,
+    });
+  }
   const request = canonicalRequest({
     method,
     path,

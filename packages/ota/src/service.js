@@ -32,7 +32,10 @@
 import { createReadStream } from 'node:fs';
 import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
 import { pipeline } from 'node:stream/promises';
-import { createService, createDeploymentActivity, SIGV4_ERRORS, SigV4Error, verifySigV4 } from '@phoenix/common';
+import {
+  createService, createDeploymentActivity, SIGV4_ERRORS, SigV4Error, preflightSigV4, verifySigV4,
+  UploadStagingThrottleError, uploadStagingBudget,
+} from '@phoenix/common';
 import { parseTarget, sendAmz, sendAmzError, sendBoom, credentialsFrom } from './awsJson.js';
 import {
   AUTHORIZED_UNDER_ADMIN,
@@ -72,6 +75,7 @@ const CREATE_HEADER_SCHEMA = {
 };
 
 const OTA_MAX_UPLOAD_BYTES = 1_000_000_000;
+const UPLOAD_RESERVATION = Symbol('phoenix.ota.uploadReservation');
 const SIGV4_REPLAY_WINDOW_MS = 15 * 60 * 1000;
 const PACKAGE_URL_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -95,14 +99,18 @@ function declaredContentLength(req) {
   return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : null;
 }
 
-async function readBodyLimited(req, maxBytes) {
+function uploadTooLarge(maxBytes) {
+  const error = new Error(`Payload content length greater than maximum allowed: ${maxBytes}`);
+  error.statusCode = 413;
+  error.code = 'PAYLOAD_TOO_LARGE';
+  return error;
+}
+
+async function readBodyLimited(req, maxBytes, reservation) {
   const declared = declaredContentLength(req);
   if (declared !== null && declared > maxBytes) {
     req.resume?.();
-    const error = new Error(`Payload content length greater than maximum allowed: ${maxBytes}`);
-    error.statusCode = 413;
-    error.code = 'PAYLOAD_TOO_LARGE';
-    throw error;
+    throw uploadTooLarge(maxBytes);
   }
   const chunks = [];
   let total = 0;
@@ -110,11 +118,9 @@ async function readBodyLimited(req, maxBytes) {
     const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
     if (total + bytes.length > maxBytes) {
       req.resume?.();
-      const error = new Error(`Payload content length greater than maximum allowed: ${maxBytes}`);
-      error.statusCode = 413;
-      error.code = 'PAYLOAD_TOO_LARGE';
-      throw error;
+      throw uploadTooLarge(maxBytes);
     }
+    reservation?.consume(bytes.length);
     chunks.push(bytes);
     total += bytes.length;
   }
@@ -268,6 +274,7 @@ export function createOtaService({
   authenticate,
   requireAuth = (typeof resolveCredentials === 'function' || process.env.ETCO_ota_requireAuth === 'true'),
   maxUploadBytes = OTA_MAX_UPLOAD_BYTES,
+  stagingBudget = uploadStagingBudget,
   packageBearerSecret = process.env.ETCO_ota_packageBearerSecret || process.env.ETCO_server_hubTokenSecret || process.env.HUB_TOKEN_SECRET,
   internalPeerToken = process.env.ETCO_ota_internalPeerToken,
   replayGuard = new ReplayGuard(),
@@ -283,6 +290,10 @@ export function createOtaService({
   const uploadLimit = Number(maxUploadBytes);
   if (!Number.isSafeInteger(uploadLimit) || uploadLimit < 0) throw new TypeError('maxUploadBytes must be a non-negative safe integer');
   const packageSecret = packageBearerSecret || 'development-ota-package-secret';
+  const credentialResolver = typeof resolveCredentials === 'function' ? (accessKeyId) => {
+    const account = resolveCredentials(accessKeyId);
+    return account && account.isDeleted !== true ? account : null;
+  } : resolveCredentials;
   const baseFor = (req) => configuredOrigin || `http://${(req.headers && req.headers.host) || 'localhost'}`;
 
   function hostMatches(req) {
@@ -290,6 +301,20 @@ export function createOtaService({
     const expected = new URL(configuredOrigin);
     const actual = String(req?.headers?.host || '').toLowerCase();
     return actual === expected.host.toLowerCase();
+  }
+
+  function preflightRequest(req) {
+    if (!requireAuth || trustedClassicCaller(req, internalPeerToken)) return;
+    if (!hostMatches(req)) {
+      throw new SigV4Error({ code: 'SIGNATURE_MISMATCH', message: 'Request host does not match configured public origin', statusCode: 401 });
+    }
+    preflightSigV4({
+      method: req.method || 'POST',
+      path: req.originalUrl || req.url || '/',
+      headers: req.headers || {},
+      now: typeof now === 'function' ? now() : now,
+      resolveCredentials: credentialResolver,
+    });
   }
 
   async function authenticateRequest(req, body, op) {
@@ -310,7 +335,7 @@ export function createOtaService({
         headers: req.headers || {},
         body,
         now: typeof now === 'function' ? now() : now,
-        resolveCredentials,
+        resolveCredentials: credentialResolver,
       });
     }
     if (!verification || !verification.credentials) throw new SigV4Error(SIGV4_ERRORS.ACCOUNT_SERVICE_UNAVAILABLE);
@@ -354,19 +379,24 @@ export function createOtaService({
     }
 
     let wireBody = body && typeof body === 'object' ? JSON.stringify(body) : (body == null ? '' : body);
-    if (op === 'CreateUpdate') {
-      if (req._otaRawBody === undefined) req._otaRawBody = await readBodyLimited(req, uploadLimit);
-      wireBody = req._otaRawBody;
-    } else if (Buffer.isBuffer(req.rawBody)) {
-      wireBody = req.rawBody;
-    }
     let creds;
     try {
+      if (op === 'CreateUpdate') {
+        preflightRequest(req);
+        const declared = declaredContentLength(req);
+        if (declared !== null && declared > uploadLimit) throw uploadTooLarge(uploadLimit);
+        req[UPLOAD_RESERVATION] = stagingBudget.acquire(declared ?? 0);
+        req._otaRawBody = await readBodyLimited(req, uploadLimit, req[UPLOAD_RESERVATION]);
+        wireBody = req._otaRawBody;
+      } else if (Buffer.isBuffer(req.rawBody)) {
+        wireBody = req.rawBody;
+      }
       creds = await authenticateRequest(req, wireBody, op);
     } catch (error) {
       if (error?.statusCode === 413 || error?.code === 'PAYLOAD_TOO_LARGE') {
         return void sendBoom(res, 413, error.message);
       }
+      if (error instanceof UploadStagingThrottleError) return void sendAmzError(res, error.statusCode, error.code, error.message);
       if (error instanceof SigV4Error && SIGV4_ERRORS[error.code]) return void sendAmzError(res, error.statusCode || 401, error.code, error.message);
       if (error?.code === 'SIGNATURE_REPLAYED') return void sendAmzError(res, 401, error.code, error.message);
       log.error?.('ota authentication failed', { error: error?.message });
@@ -406,7 +436,7 @@ export function createOtaService({
           // The method body's own admin gate (update.handler.ts:45-47); the enclosing
           // parseCredentials({}) enforces nothing, so validation above runs first.
           if (!creds.isAdmin) return void sendAmzError(res, UPDATE_ONLY_ADMIN_CAN_CREATE.statusCode, UPDATE_ONLY_ADMIN_CAN_CREATE.code, UPDATE_ONLY_ADMIN_CAN_CREATE.message);
-            const data = req._otaRawBody || await readBodyLimited(req, uploadLimit);
+          const data = req._otaRawBody;
           let entry;
           try {
             entry = await catalog.createUpdate({
@@ -460,7 +490,12 @@ export function createOtaService({
     const end = deploymentActivity.begin('ota-upload');
     if (!end) return unavailable(context.res);
     try { return await dispatchOperation(context); }
-    finally { end(); }
+    finally {
+      delete context.req._otaRawBody;
+      context.req[UPLOAD_RESERVATION]?.release();
+      delete context.req[UPLOAD_RESERVATION];
+      end();
+    }
   };
   // CreateUpdate ships the package as the request entity, so its route must bypass the JSON
   // parser and hand the handler the raw stream (the source routed it to a stream handler).
