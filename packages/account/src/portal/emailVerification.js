@@ -1,5 +1,5 @@
-import { isIP } from 'node:net';
 import { sendJson } from '@phoenix/common';
+import { clientAddress } from './clientAddress.js';
 import { emailVerificationStatus, requestEmailVerification, confirmEmailVerification } from '../emailVerification.js';
 import { requireUser } from './session.js';
 
@@ -13,17 +13,6 @@ export function emailVerificationContext(options = {}) {
       || process.env.ETCO_account_portalUrl || process.env.PHOENIX_SITE_URL || '',
     now: options.emailVerificationNow || Date.now,
   };
-}
-
-function clientAddress(req) {
-  const peer = req?.socket?.remoteAddress || 'unknown';
-  // The public reverse proxy overwrites X-Real-IP. Never accept a caller's
-  // forwarding header when the connection is not from our loopback proxy.
-  if (['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(peer)) {
-    const forwarded = String(req?.headers?.['x-real-ip'] || '').trim();
-    if (isIP(forwarded)) return forwarded;
-  }
-  return peer;
 }
 
 /** Also bound requests across different addresses/tokens from the same client. */

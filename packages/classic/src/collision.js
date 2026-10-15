@@ -54,6 +54,12 @@ import { MISSING_AUTH_HEADER, accountIdFromRequest } from './person.js';
 
 export const COLLISION_DEFAULTS = { nbest: 2, minDistance: 1 };
 
+// Match accepts bounded names and candidate lists so per-request comparison work stays fixed.
+// These are Phoenix's supported input limits; the portal uses the same first-name length.
+// Accepted inputs retain the exact closest pair and distance, with over-limit inputs using the
+// existing ValidationException shape. Keep the exact matcher rather than a distance cut-off.
+export const COLLISION_LIMITS = { maxNameLength: 200, maxExistingNames: 128, maxExistingNameLength: 200 };
+
 export const COLLISION_ERRORS = {
   COLLISION_SERVICE_FAILED: { code: 'COLLISION_SERVICE_FAILED', statusCode: 409, message: 'Phonetic collision service failed' },
 };
@@ -186,11 +192,13 @@ export function makeCollisionHandler({ phonemize = graphemePhonemize, nbest = CO
     // Match carries @parseCredentials({}); the gateway requires a signed header (person.js notes).
     if (!accountIdFromRequest(req)) return void sendAmzError(res, MISSING_AUTH_HEADER);
     const payload = body || {};
-    if (typeof payload.name !== 'string') {
+    if (typeof payload.name !== 'string' || payload.name.length > COLLISION_LIMITS.maxNameLength) {
       return void sendAmzError(res, ValidationException, 'Invalid or missing name');
     }
     if (!Array.isArray(payload.existingNames)
-      || payload.existingNames.some((item) => typeof item !== 'string' || item.length === 0)) {
+      || payload.existingNames.length > COLLISION_LIMITS.maxExistingNames
+      || payload.existingNames.some((item) => typeof item !== 'string' || item.length === 0
+        || item.length > COLLISION_LIMITS.maxExistingNameLength)) {
       return void sendAmzError(res, ValidationException, 'Invalid or missing existingNames');
     }
     if (log) log.info('collision request', { op: name });

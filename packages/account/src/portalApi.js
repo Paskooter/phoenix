@@ -48,6 +48,7 @@ import {
 import { createSession, destroySession, getSession, sessionCookie, clearCookie } from './sessions.js';
 import { buildQrCodes } from './qrPayload.js';
 import { userFromSession as sessionUser, portalAccount } from './portal/session.js';
+import { clientAddress } from './portal/clientAddress.js';
 import { classicBaseUrl, classicCall } from './portal/classicClient.js';
 import { portalLoopRoutes, visibleLoops, linkVerifiedInvitations } from './portal/loops.js';
 import { portalProfileRoutes } from './portal/profile.js';
@@ -141,16 +142,31 @@ function withCookie(res, cookie, status, body) {
 }
 
 const portalAuthAttempts = new Map();
-const PORTAL_AUTH_WINDOW_MS = 15 * 60 * 1000;
-const PORTAL_AUTH_LIMIT = 10;
+export const PORTAL_AUTH_WINDOW_MS = 15 * 60 * 1000;
+export const PORTAL_AUTH_LIMIT = 10;
+// A separate, higher ceiling applies to the account subject across client-address buckets.
+export const PORTAL_AUTH_EMAIL_LIMIT = 30;
 
-function portalAuthKey(req, email) {
-  const address = req?.socket?.remoteAddress || req?.connection?.remoteAddress || 'unknown';
-  return `${address}:${String(email || '').trim().toLowerCase().slice(0, 320)}`;
+/** One attempt against one bucket; fixed window, the first attempt starts the clock. */
+function bumpPortalAuthBucket(key, limit, now) {
+  const row = portalAuthAttempts.get(key);
+  if (!row || now - row.started >= PORTAL_AUTH_WINDOW_MS) {
+    portalAuthAttempts.set(key, { started: now, count: 1 });
+    return { allowed: true };
+  }
+  row.count += 1;
+  return {
+    allowed: row.count <= limit,
+    retryAfterMs: Math.max(1, PORTAL_AUTH_WINDOW_MS - (now - row.started)),
+  };
 }
 
-function checkPortalAuthRate(req, email) {
-  const key = portalAuthKey(req, email);
+/**
+ * Record one attempt against the caller's own address — the client address from the trusted
+ * reverse proxy when the immediate peer is a configured proxy, the socket address otherwise — and
+ * against the shared subject. `key` is the address bucket; `subjectKey` is the ceiling bucket.
+ */
+function checkPortalAuthRate(req, subject) {
   const now = Date.now();
   if (portalAuthAttempts.size > 10000) {
     for (const [candidate, row] of portalAuthAttempts) {
@@ -158,21 +174,23 @@ function checkPortalAuthRate(req, email) {
       if (portalAuthAttempts.size <= 10000) break;
     }
   }
-  const row = portalAuthAttempts.get(key);
-  if (!row || now - row.started >= PORTAL_AUTH_WINDOW_MS) {
-    portalAuthAttempts.set(key, { started: now, count: 1 });
-    return { allowed: true, key };
-  }
-  row.count += 1;
+  const normalized = String(subject || '').trim().toLowerCase().slice(0, 320);
+  const key = `${clientAddress(req)}\u0000${normalized}`;
+  const subjectKey = `email\u0000${normalized}`;
+  const address = bumpPortalAuthBucket(key, PORTAL_AUTH_LIMIT, now);
+  const email = bumpPortalAuthBucket(subjectKey, PORTAL_AUTH_EMAIL_LIMIT, now);
   return {
-    allowed: row.count <= PORTAL_AUTH_LIMIT,
+    allowed: address.allowed && email.allowed,
     key,
-    retryAfterMs: Math.max(1, PORTAL_AUTH_WINDOW_MS - (now - row.started)),
+    subjectKey,
+    retryAfterMs: Math.max(address.retryAfterMs || 0, email.retryAfterMs || 0),
   };
 }
 
-function clearPortalAuthRate(key) {
-  portalAuthAttempts.delete(key);
+/** A completed auth clears the caller's own buckets for its subject. */
+function clearPortalAuthRate(rate) {
+  portalAuthAttempts.delete(rate.key);
+  portalAuthAttempts.delete(rate.subjectKey);
 }
 
 function tooManyPortalAuth(res, result) {
@@ -282,7 +300,7 @@ export function portalRoutes(store, options = {}) {
       } catch (err) {
         return sendJson(res, err.code === 'ACCOUNT_EXISTS' ? 409 : 500, { error: err.message });
       }
-      clearPortalAuthRate(rate.key);
+      clearPortalAuthRate(rate);
       let emailSent = false;
       if (verification.mail) {
         try {
@@ -322,7 +340,7 @@ export function portalRoutes(store, options = {}) {
       try {
         if (/^[a-f0-9]{64}$/.test(code)) confirmEmailVerification(store, code, { now: verification.now() });
         else activateByCode(store, code);
-        clearPortalAuthRate(rate.key);
+        clearPortalAuthRate(rate);
         return sendJson(res, 200, { ok: true });
       } catch (error) {
         return publicRecoveryError(res, error);
@@ -352,7 +370,7 @@ export function portalRoutes(store, options = {}) {
         // The shared identity routine enforces the stronger public Account
         // password policy and expires/consumes the code atomically.
         passwordReset(store, code, password, portal.identityProviders);
-        clearPortalAuthRate(rate.key);
+        clearPortalAuthRate(rate);
         return sendJson(res, 200, { ok: true });
       } catch (error) {
         return publicRecoveryError(res, error, 'The password-reset link is invalid, expired, or the password is not accepted');
@@ -368,7 +386,7 @@ export function portalRoutes(store, options = {}) {
         || !compareAccountPassword(password, account.password)) {
         return sendJson(res, 401, { error: 'invalid email or password' });
       }
-      clearPortalAuthRate(rate.key);
+      clearPortalAuthRate(rate);
       linkVerifiedInvitations(store, account, portal.loopUpdatedOutbox);
       const session = createSession(store, { kind: 'user', accountId: account._id });
       return withCookie(res, sessionCookie(session), 200, { account: portalAccount(account) });
@@ -538,7 +556,7 @@ export function portalRoutes(store, options = {}) {
         || !secretMatches(secretAccessKey, account.secretAccessKey)) {
         return sendJson(res, 401, { error: 'invalid credentials' });
       }
-      clearPortalAuthRate(rate.key);
+      clearPortalAuthRate(rate);
       account.lastSeen = Date.now();
       store.flush();
       const { token, expires } = createHubToken(account, secret);

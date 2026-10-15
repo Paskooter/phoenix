@@ -308,15 +308,21 @@ from the `/api/admin/` location and retain a tighter `phoenix_api` rate limit (f
 `burst=30 nodelay`). The sensitive operations remain under `/api/admin/` and retain their
 per-account, server-side `isAdmin` check.
 
-The application has no brute-force lockout of its own. The template therefore applies:
+The template adds independent edge rate limits alongside Account's console-auth throttle:
 
-- `phoenix_auth`: `10r/m`, `burst=5`, `nodelay` to account login, signup, and admin login;
+- `phoenix_auth`: `10r/m`, `burst=5`, `nodelay` to account login and signup;
 - `phoenix_api`: `60r/s`, `burst=120`, `nodelay` to the general `/api/` location.
 
 The buckets use `$binary_remote_addr`. If another proxy or CDN is placed in front, configure nginx's
 trusted real-IP handling deliberately before changing the key; do not blindly trust an arbitrary
 `X-Forwarded-For` header. Tune the limits only with a reason and preserve a tighter bucket for
 password endpoints.
+
+Account's own console-auth throttle applies the same principle in-process: it reads a forwarding
+header only when the immediate peer is in `PHOENIX_TRUSTED_PROXIES` (loopback by default) and
+otherwise keys on the socket address. For a trusted peer the right-most untrusted
+`X-Forwarded-For` entry is used, or `CF-Connecting-IP` when the deployment also sets
+`PHOENIX_TRUST_CF_CONNECTING_IP=1`; a separate, higher ceiling stays on the account itself.
 
 The template also rejects unknown HTTP `Host` values and unknown TLS SNI names. The HTTP redirect is
 to the configured canonical hostname, never to `$host`; this avoids turning an unrecognized Host

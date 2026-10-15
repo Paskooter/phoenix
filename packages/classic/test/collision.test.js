@@ -22,6 +22,8 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createClassicEntrypoint } from '../src/index.js';
 import { detectCollision, graphemePhonemize, levenshteinDistance } from '../src/collision.js';
+// The accepted-input bounds are read from the module itself so this file cannot drift from them.
+import * as collisionModule from '../src/collision.js';
 
 const ACCOUNT = '43ca532ad4090cfb80f2e7a5';
 
@@ -173,4 +175,150 @@ test('collision service failure is answered as 409 (the source Boom.wrap(_, 409)
 test('the default pronunciation model is the documented grapheme approximation', () => {
   assert.deepEqual(graphemePhonemize('Amir'), [['a', 'm', 'i', 'r']]);
   assert.deepEqual(graphemePhonemize(''), [[]]);
+});
+
+// --- accepted-input bounds (the served operation) -----------------------------------------------
+//
+// Match's supported name lengths and candidate count bound comparison work per request.
+// These tests require the existing validation shape for over-limit input and retain exact
+// answers for accepted inputs.
+
+const LIMITS = collisionModule.COLLISION_LIMITS;
+
+test('collision Match refuses a target name far beyond the supported length', async () => {
+  const r = await match({ name: 'a'.repeat(4096), existingNames: ['emir'] });
+  assert.equal(r.status, 400);
+  assert.equal(r.errType, 'ValidationException');
+});
+
+test('collision Match refuses more candidates than supported', async () => {
+  const names = Array.from({ length: 1024 }, (_, i) => `name-${i}`);
+  const r = await match({ name: 'amir', existingNames: names });
+  assert.equal(r.status, 400);
+  assert.equal(r.errType, 'ValidationException');
+});
+
+test('collision Match refuses a candidate name far beyond the supported length', async () => {
+  const r = await match({ name: 'amir', existingNames: ['e'.repeat(4096)] });
+  assert.equal(r.status, 400);
+  assert.equal(r.errType, 'ValidationException');
+});
+
+test('collision Match answers an over-limit request within a fixed small budget', async () => {
+  // A parseable over-limit fixture must receive the existing validation response promptly.
+  const request = {
+    name: 'a'.repeat(49000),
+    existingNames: ['b'.repeat(49000)],
+  };
+  assert.ok(Buffer.byteLength(JSON.stringify(request)) < 100 * 1024, 'fixture stays parseable by the shared JSON body cap');
+  const started = performance.now();
+  const r = await match(request);
+  const elapsed = performance.now() - started;
+  assert.equal(r.status, 400, `an over-limit request must be refused; it took ${Math.round(elapsed)}ms`);
+  assert.equal(r.errType, 'ValidationException');
+  assert.ok(elapsed < 1000, `refusal is a fixed small cost, not proportional to input size (took ${Math.round(elapsed)}ms)`);
+});
+
+test('collision Match accepts input at the bounds and still answers the exact match', async () => {
+  const target = 'x'.repeat(LIMITS.maxNameLength);
+  const others = Array.from({ length: LIMITS.maxExistingNames - 1 }, () => 'y'.repeat(LIMITS.maxExistingNameLength));
+  const started = performance.now();
+  const r = await match({ name: target, existingNames: [...others, target] });
+  const elapsed = performance.now() - started;
+  assert.equal(r.status, 200);
+  assert.deepEqual(r.body, { success: true, collision: true, closest_pair: target, distance: 0 });
+  assert.ok(elapsed < 2000, `bounds stay small enough to answer in a fixed budget (took ${Math.round(elapsed)}ms)`);
+});
+
+test('collision Match refuses input one step past the bounds', async () => {
+  const longName = await match({ name: 'a'.repeat(LIMITS.maxNameLength + 1), existingNames: ['emir'] });
+  assert.equal(longName.status, 400);
+  assert.equal(longName.errType, 'ValidationException');
+
+  const tooMany = Array.from({ length: LIMITS.maxExistingNames + 1 }, () => 'emir');
+  const count = await match({ name: 'amir', existingNames: tooMany });
+  assert.equal(count.status, 400);
+  assert.equal(count.errType, 'ValidationException');
+
+  const longItem = await match({ name: 'amir', existingNames: ['e'.repeat(LIMITS.maxExistingNameLength + 1)] });
+  assert.equal(longItem.status, 400);
+  assert.equal(longItem.errType, 'ValidationException');
+
+  // Exactly at the bounds is accepted (the previous test) — and an empty name stays valid.
+  const empty = await match({ name: '', existingNames: ['emir'] });
+  assert.equal(empty.status, 200);
+});
+
+// --- randomized equality for in-limit inputs -----------------------------------------------------
+//
+// The bounds must not change any accepted answer. This is an independent reference implementation
+// of the pinned semantics (grapheme tokens, full edit-distance matrix, first strict minimum wins,
+// short sequences need an exact piece match) checked against the served module on every random
+// case. A future matcher change that alters an in-limit answer fails here.
+
+function referenceTokens(word) {
+  return String(word ?? '').toLowerCase().replace(/[^a-z0-9]/g, '').split('');
+}
+
+function referenceEditDistance(a, b) {
+  const rows = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+  for (let j = 0; j <= b.length; j++) rows[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      rows[i][j] = Math.min(
+        rows[i - 1][j] + 1,
+        rows[i][j - 1] + 1,
+        rows[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1),
+      );
+    }
+  }
+  return rows[a.length][b.length];
+}
+
+function referenceDetect(names, target, minDistance = 1) {
+  const targetTokens = referenceTokens(target);
+  const inputTokens = names.map(referenceTokens);
+  if (inputTokens.length === 0 || targetTokens.length === 0) {
+    return { collision: false, closestPair: null, distance: null, targetPhonemes: '', inputPhonemes: '' };
+  }
+  let best = { distance: 1000, index: 0 };
+  for (let i = 0; i < inputTokens.length; i++) {
+    const distance = referenceEditDistance(targetTokens, inputTokens[i]);
+    if (distance < best.distance) best = { distance, index: i };
+  }
+  const threshold = (targetTokens.length <= 3 || inputTokens[best.index].length <= 3) ? 0 : minDistance;
+  return {
+    collision: best.distance <= threshold,
+    closestPair: names[best.index],
+    distance: best.distance,
+    targetPhonemes: targetTokens.join('-'),
+    inputPhonemes: inputTokens[best.index].join('-'),
+  };
+}
+
+test('detectCollision agrees with the reference on randomized in-limit inputs', () => {
+  // Deterministic PRNG (mulberry32) so a mismatch reproduces from the seed alone.
+  let seed = 0x5ec06d6;
+  const rand = () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = seed;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJ0123456789- .é_';
+  const word = (maxLength) => {
+    const length = 1 + Math.floor(rand() * maxLength);
+    let out = '';
+    for (let i = 0; i < length; i++) out += alphabet[Math.floor(rand() * alphabet.length)];
+    return out;
+  };
+  for (let trial = 0; trial < 200; trial++) {
+    const target = word(24);
+    const names = Array.from({ length: 1 + Math.floor(rand() * 8) }, () => word(24));
+    const minDistance = Math.floor(rand() * 3);
+    const served = detectCollision({ names, target, minDistance });
+    const expected = referenceDetect(names, target, minDistance);
+    assert.deepEqual(served, expected, `trial ${trial}: names=${JSON.stringify(names)} target=${JSON.stringify(target)} minDistance=${minDistance}`);
+  }
 });
