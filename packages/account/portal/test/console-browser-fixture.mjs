@@ -54,6 +54,16 @@ export async function openConsole({ viewport = VIEWPORTS.phone, colorScheme = 'd
       const loop = loops.find((item) => item.id === url.searchParams.get('loopId')) || loops[0];
       return json({ loop, connection: { connected: true }, getRobot: { payload: { timezone: 'America/Los_Angeles', remoteEnabled: true } } });
     }
+    if (url.pathname === '/api/robot/holidays' && route.request().method() === 'GET') return json({
+      holidays: [
+        { id: 'birthday-fixture', category: 'birthday', memberId: 'owner-0', date: '2026-11-02', isEnabled: true },
+        { id: 'new-year-fixture', category: 'public', name: 'New Year’s Day', date: '2027-01-01', isEnabled: true },
+      ],
+      custom: [{ id: 'custom-fixture', name: 'Adoption day', date: '2026-11-12', isEnabled: true }],
+    });
+    if (url.pathname === '/api/loop-key/status') return json({ canManageRecovery: true, backupExists: true });
+    if (url.pathname === '/api/loop-key/request') return route.fulfill({ status: 503,
+      contentType: 'application/json', body: JSON.stringify({ error: 'Bring Jibo online to unlock protected photos.' }) });
     if (url.pathname === '/api/media') return json({ media: [{
       path: `photo-${url.searchParams.get('loopId')}`, loopId: url.searchParams.get('loopId'),
       type: 'image', url: '/api/media/blob/photo', created: Date.parse(FIXTURE_NOW),

@@ -3735,9 +3735,9 @@ function renderAdd() {
       h('button', { type: 'button', class: 'btn', on: { click: () => chooseTarget(false) } }, 'I’m not sure')),
     h('p', { class: 'field-hint' }, '“No” and “I’m not sure” use the same safe setup check. Jibo needs to be in int-developer mode so the helper can reach him over SSH.')),
   next,
-  cloudName === 'jibo.io'
-    ? h('p', { class: 'field-hint' }, 'Need more context? Read the ', h('a', { class: 'link', href: '/guide' }, 'setup guide'), '.')
-    : null);
+  ...(cloudName === 'jibo.io'
+    ? [h('p', { class: 'field-hint' }, 'Need more context? Read the ', h('a', { class: 'link', href: '/guide' }, 'setup guide'), '.')]
+    : []));
   show(container);
 }
 

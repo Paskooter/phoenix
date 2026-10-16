@@ -132,10 +132,36 @@ test('phone drawer: hidden navigation is skipped, open navigation owns focus, Es
 });
 
 for (const [size, viewport] of Object.entries(VIEWPORTS)) {
+  test(`${size} Add a Jibo: optional guide copy never becomes a stray placeholder`, async (t) => {
+    const { page, navigate } = await open(t, { viewport });
+    await navigate('#/add');
+    await shot(page, `${size}-add-placeholder`);
+    const stray = await page.locator('#app > div').evaluate((node) => [...node.childNodes]
+      .filter((child) => child.nodeType === Node.TEXT_NODE).map((child) => child.textContent.trim()).filter(Boolean));
+    assert.deepEqual(stray, [], 'omitted hosted-only guide copy must not render the text null');
+  });
+  test(`${size}: the last sidebar destination scrolls clear of account and help cards`, async (t) => {
+    const { page, navigate } = await open(t, { viewport, admin: true });
+    await navigate('#/');
+    if (size === 'phone') await page.locator('#mobile-menu-btn').click();
+    const link = page.locator('#nav-admin a');
+    await link.scrollIntoViewIfNeeded();
+    await shot(page, `${size}-sidebar-last-action`);
+    const geometry = await link.evaluate((node) => {
+      const rect = node.getBoundingClientRect();
+      const clip = node.closest('nav').getBoundingClientRect();
+      return { top: rect.top, bottom: rect.bottom, clipTop: clip.top, clipBottom: clip.bottom,
+        hit: node.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2)) };
+    });
+    assert.equal(geometry.top >= geometry.clipTop - 1 && geometry.bottom <= geometry.clipBottom + 1 && geometry.hit,
+      true, `sidebar scroll must expose the final destination above its footer: ${JSON.stringify(geometry)}`);
+  });
   test(`${size}: every console destination fits and exposes names for its controls and images`, async (t) => {
     const { page, navigate } = await open(t, { viewport, admin: true });
     for (const [name, hash] of CONSOLE_PAGES) {
       await navigate(hash);
+      if (name === 'robot-holidays') assert.equal(await page.locator('.holiday-add').isVisible(), true, 'audit the populated holiday form, not only its error state');
+      if (name === 'robot-backup') assert.equal(await page.locator('.secure-passphrase-form').first().isVisible(), true, 'audit recovery controls, not only their unavailable state');
       const audit = await page.evaluate(() => {
         const visible = (node) => node.getClientRects().length && !node.closest('[hidden], [inert], [aria-hidden="true"]');
         const named = (node) => node.getAttribute('aria-label') || node.getAttribute('aria-labelledby')?.split(/\s+/).some((id) => document.getElementById(id)?.textContent.trim())
