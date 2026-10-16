@@ -2936,7 +2936,7 @@ async function renderRobot() {
   if (!list.length) {
     container.append(card('Add your first Jibo', {},
       h('p', { class: 'instruct' }, 'Start with the state your Jibo is in today.'),
-      h('p', { class: 'field-hint' }, 'First check whether Jibo has been pointed at this server. A robot on its setup screen may still be trying to reach the old cloud.'),
+      h('p', { class: 'field-hint' }, `First check whether Jibo has been pointed at this server. ${setupScreenCue()}`),
       h('div', { class: 'row', style: 'margin-top:1.25rem' },
         h('a', { class: 'btn btn-primary', href: '#/add' }, icon('plus', 15), 'Add a Jibo'))));
     return show(container);
@@ -3377,7 +3377,7 @@ function robotWifiPanel(state) {
     const holder = h('div', { class: 'qr-codes', on: { click: () => { frame = (frame + 1) % codes.length; paint(); } } });
     // Two frames side by side, or the only one when the payload fits in one.
     const paint = () => holder.replaceChildren(...codes.slice(0, 2).map((_, i) =>
-      h('div', { html: qrSvg(codes[(frame + i) % codes.length], 5) })));
+      h('div', { class: 'qr-frame', html: qrSvg(codes[(frame + i) % codes.length], 5) })));
     paint();
     const status = h('p', { class: 'field-hint qr-status' },
       h('span', { class: 'spinner', 'aria-hidden': 'true' }), 'Waiting for Jibo to scan…');
@@ -3391,6 +3391,7 @@ function robotWifiPanel(state) {
       holder,
       codes.length > 1 ? h('p', { class: 'field-hint', style: 'text-align:center' }, 'Tap the codes to advance the frames.') : null,
       status);
+    qrCard.classList.add('qr-card');
     host.append(qrCard);
 
     stopPoll();
@@ -3708,9 +3709,20 @@ async function renderClaim() {
 let pollTimer = null;
 function stopPoll() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }
 
+function setupServerName() {
+  // The canonical URL uses the instance's configured public site, even when
+  // the console is opened through a local or alternate hostname.
+  try { return new URL(document.querySelector('link[rel="canonical"]')?.href || location.href).hostname; }
+  catch { return location.hostname; }
+}
+
+function setupScreenCue() {
+  return `If Jibo’s screen says “Go to ${setupServerName()} to get started”, he is already connected to this server: choose Yes. If it says “Go to the Jibo app on your phone to get started”, choose No.`;
+}
+
 function renderAdd() {
   const container = page('Add a Jibo', 'Start with what you know; the SSH helper can detect the rest.');
-  const cloudName = /(^|\.)jibo\.io$/i.test(location.hostname) ? 'jibo.io' : 'this Phoenix server';
+  const cloudName = setupServerName();
   container.querySelector('.page-head').prepend(
     h('a', { class: 'link', href: '#/robot', style: 'display:inline-flex;align-items:center;gap:.35rem;margin-bottom:.75rem' },
       icon('back', 14), 'Back to robots'));
@@ -3729,6 +3741,7 @@ function renderAdd() {
   };
   container.append(card(`1. Has this Jibo already been connected to ${cloudName}?`, {},
     h('p', { class: 'instruct' }, 'A factory-reset Jibo may still need the setup command, even if he shows a setup screen.'),
+    h('p', { class: 'field-hint' }, setupScreenCue()),
     h('div', { class: 'row', style: 'margin-top:1.25rem' },
       h('button', { type: 'button', class: 'btn btn-primary', on: { click: () => chooseTarget(true) } }, 'Yes'),
       h('button', { type: 'button', class: 'btn', on: { click: () => chooseTarget(false) } }, 'No'),
@@ -3810,7 +3823,7 @@ async function renderAddNew() {
       // qrSvg() returns SVG *markup*. It must go in as markup: a plain string
       // child is appended as a text node, which is why the setup code used to
       // render as a wall of literal <svg> source instead of a scannable code.
-      h('div', { html: qrSvg(codes[(frame + i) % codes.length], 5) })));
+      h('div', { class: 'qr-frame', html: qrSvg(codes[(frame + i) % codes.length], 5) })));
     paint();
 
     const qrCard = card('Setup code', { sub: `${codes.length} frame${codes.length === 1 ? '' : 's'} · valid for 15 minutes` },
@@ -3818,6 +3831,7 @@ async function renderAddNew() {
       holder,
       codes.length > 1 ? h('p', { class: 'field-hint', style: 'text-align:center' }, 'Tap the codes to advance the frames.') : null,
       status);
+    qrCard.classList.add('qr-card');
     container.append(qrCard);
 
     stopPoll();

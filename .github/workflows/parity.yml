@@ -38,6 +38,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes ffmpeg
       - run: npm ci
+      - run: npx playwright install --with-deps chromium
       - run: npm run test:unit
       - run: python3 scripts/parity-coverage/inventory.test.py
       - run: python3 scripts/parity-coverage/a01_operation_map.py validate

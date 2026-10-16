@@ -1706,7 +1706,21 @@ button.ghost:hover { background: var(--panel-2); border-color: var(--accent-line
   background: #fff;
   cursor: pointer;
 }
-.qr-codes svg { width: min(260px, 40vw); height: auto; }
+.qr-codes svg { display: block; width: 100%; height: auto; }
+.qr-codes > .qr-frame { flex: 1 1 0; min-width: 0; max-width: 400px; }
+@media (max-width: 600px) {
+  .qr-card { overflow: visible; }
+  .qr-codes {
+    /* Fill the phone's content width, including the SVG's four-module white
+       quiet zone. Centre through the card padding, without page overflow. */
+    width: calc(100vw - 32px);
+    margin-inline: calc((100% - (100vw - 32px)) / 2);
+    padding: 0;
+    gap: 0;
+  }
+  .qr-codes > .qr-frame { max-width: none; }
+  .qr-codes > .qr-frame:nth-child(n + 2) { display: none; }
+}
 
 .instruct {
   font-size: var(--t-base);
