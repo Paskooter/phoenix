@@ -23,7 +23,7 @@ export async function openConsole({ viewport = VIEWPORTS.phone, colorScheme = 'd
   const browser = await chromium.launch({
     ...(process.env.CHROME_BIN ? { executablePath: process.env.CHROME_BIN } : {}),
     args: ['--no-sandbox', '--disable-dev-shm-usage', '--no-proxy-server'],
-  });
+  }).catch(async (error) => { await running.close(); throw error; });
   const context = await browser.newContext({ viewport, colorScheme, serviceWorkers: 'block', reducedMotion: 'reduce', hasTouch: viewport.width < 600 });
   // Model a browser without worker support as well as blocking registrations.
   // Playwright's block alone resolves register() but leaves ready pending,
