@@ -335,6 +335,12 @@ body.console {
 .icon-btn:hover { background: var(--panel-2); color: var(--fg); border-color: var(--border-soft); }
 .menu-btn { display: none; }
 .menu-btn-label { display: none; }
+.drawer-close { display: none; }
+@media (max-width: 900px) {
+  .drawer-close { display: inline-grid; position: absolute; top: .75rem; right: .75rem; width: 44px; height: 44px; }
+  .sidebar-brand { padding-right: 3rem; }
+  .sidebar-brand .tag { display: none; }
+}
 
 @media (max-width: 900px) {
   .topbar {
@@ -1352,12 +1358,10 @@ body.console {
   color: var(--accent);
   margin-bottom: .2rem;
 }
-/* Everything below a switched-off toggle dims, so the page shows what is
-   actually in effect rather than a wall of equally live controls. */
+/* Keep instructions readable when a section is off. app.js also makes these
+   children inert, so pointer and keyboard access agree without losing values. */
 .settings-form fieldset.group-off > *:not(legend):not(.switch) {
-  opacity: .42;
   pointer-events: none;
-  transition: opacity var(--step) var(--ease);
 }
 
 /* Sticky save bar so the button is reachable from anywhere in a long form. */
@@ -1609,11 +1613,18 @@ button.ghost:hover { background: var(--panel-2); border-color: var(--accent-line
   opacity: 0;
   transition: opacity var(--fast) var(--ease);
 }
-.media-tile:hover .chip, .media-tile .chip:has(input:checked) { opacity: 1; }
+.media-tile:hover .chip, .media-tile .chip:focus-within, .media-tile .chip:has(input:checked) { opacity: 1; }
 @media (hover: none) { .media-tile .chip { opacity: 1; } }
 
 .overlay {
   position: fixed;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  border: 0;
+  color: var(--fg);
   inset: 0;
   z-index: 200;
   display: grid;
@@ -3968,4 +3979,39 @@ pre.json {
   .voice-tape-lane-label { min-width: 0; text-align: left; }
   .voice-waterfall-track { min-height: 1.7rem; }
   .voice-asr-timings { grid-template-columns: 1fr; }
+}
+
+/* Standalone actions keep a finger-sized hit area, including at desktop widths
+   on touch laptops. Inline prose links and map attribution retain their text flow. */
+body.console :is(.btn, .icon-btn, .nav-item, .page-head > .link, .ov-link, .back-link, .chip, .swatch, .switch,
+  .ha-step-done, .map-tab, .subnav a, .subnav button, .adm-settings-nav a, .chip-btn, .seg button,
+  .check-row, .menu [role="menuitem"], summary, .ical-enabled,
+  input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) {
+  min-width: 44px;
+  min-height: 44px;
+}
+body.console .check-row { display: flex; align-items: center; gap: .5rem; }
+body.console .leaflet-control-zoom a {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+}
+
+/* Keep the brand hue for decoration; move small text toward the foreground so
+   it also reads on the tinted selected surface in the light theme. */
+body.console {
+  --faint: var(--muted);
+  --accent-readable: color-mix(in srgb, var(--accent) 80%, var(--fg));
+}
+body.console :is(.nav-item.active, .mobile-tab.active, .chip:has(input:checked),
+  .ha-step-mark, .ha-step-tag.is-time, .pill-accent, .link, .chip-btn.is-active, .restart-cmd .prompt, .log-ns-name) { color: var(--accent-readable); }
+body.console .map-tab.active .map-tab-coords { color: var(--fg-dim); }
+body.console .nav-item .badge { color: var(--fg-dim); }
+body.console .nav-item.active .badge { background: var(--accent-readable); color: var(--accent-ink); }
+body.console .notice .field-hint { color: inherit; }
+
+body.console :is(.chip, .ha-step-done):has(input:focus-visible),
+body.console .switch input:focus-visible + .track {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }

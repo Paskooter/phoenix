@@ -311,11 +311,18 @@ const toggle = (name, checked, label, hint) => {
     h('span', { class: 'switch-text' },
       h('span', {}, label),
       hint ? h('span', { class: 'switch-hint' }, hint) : null));
-  // Dim the rest of the group while the setting is off, so the page shows what
-  // is actually in effect.
+  // Keep a switched-off section visibly present but inactive, so saved choices
+  // remain available when the owner turns it back on.
   const sync = () => {
     const group = el.closest('fieldset');
-    if (group) group.classList.toggle('group-off', !input.checked);
+    if (group) {
+      group.classList.toggle('group-off', !input.checked);
+      // Inert preserves values in FormData while matching the pointer behavior
+      // for keyboard and assistive-technology users too.
+      for (const child of group.children) {
+        if (!child.matches('legend, .switch')) child.inert = !input.checked;
+      }
+    }
   };
   input.addEventListener('change', sync);
   queueMicrotask(sync);
@@ -3949,20 +3956,33 @@ async function renderGallery() {
     const download = h('a', { class: 'btn btn-sm', hidden: true }, icon('download', 14), 'Download');
     const close = () => {
       if (closed) return;
-      closed = true; overlay.remove(); removeEventListener('keydown', onKey);
+      closed = true; overlay.close(); overlay.remove(); removeEventListener('keydown', onKey);
       if (objectUrl) URL.revokeObjectURL(objectUrl);
       blob = null; privateViewCleanup.delete(close); opener?.focus?.();
     };
-    const onKey = (e) => { if (e.key === 'Escape') close(); };
-    const overlay = h('div', {
-      class: 'overlay', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Capture viewer', tabindex: '-1',
+    const onKey = (event) => {
+      if (event.key === 'Escape') close();
+      if (event.key !== 'Tab') return;
+      const stops = [...overlay.querySelectorAll('a[href], button:not([disabled]), video, audio')]
+        .filter((node) => node.getClientRects().length && !node.hidden);
+      const first = stops[0];
+      const last = stops.at(-1);
+      if (event.shiftKey && (document.activeElement === first || document.activeElement === overlay)) {
+        event.preventDefault(); last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault(); first?.focus();
+      }
+    };
+    const overlay = h('dialog', {
+      class: 'overlay', 'aria-label': 'Capture viewer', tabindex: '-1',
       on: { click: (e) => { if (e.target === overlay) close(); } },
     }, content, h('p', {}, `${m.loopName || 'Loop'} · ${m.type} · ${fmtDate(m.created)}`),
       h('div', { class: 'row' }, share, download, h('button', { type: 'button', class: 'btn btn-sm', on: { click: close } }, 'Close')));
     const unsubscribe = loopKeys.subscribe((id) => { if ((id === null || id === m.loopId) && !loopKeys.has(m.loopId) && m.isEncrypted) close(); });
     privateViewCleanup.add(close);
     privateViewCleanup.add(unsubscribe);
-    addEventListener('keydown', onKey); document.body.append(overlay); overlay.focus();
+    overlay.addEventListener('cancel', (event) => { event.preventDefault(); close(); });
+    addEventListener('keydown', onKey); document.body.append(overlay); overlay.showModal(); overlay.focus();
     void (async () => {
       try {
         const result = await loopKeys.mediaBlob(m);
@@ -5610,17 +5630,47 @@ function initChrome() {
   const menuBtn = document.getElementById('menu-btn');
   const mobileMenuBtn = document.getElementById('mobile-menu-btn');
   const menuControls = [menuBtn, mobileMenuBtn].filter(Boolean);
-  const setNavOpen = (open) => {
+  const sidebar = document.getElementById('sidebar');
+  const content = sidebar.nextElementSibling;
+  const phoneNav = matchMedia('(max-width: 900px)');
+  let navOpener = null;
+  const setNavOpen = (open, { restoreFocus = false } = {}) => {
+    open = open && phoneNav.matches;
+    const wasOpen = document.body.classList.contains('nav-open');
+    if (open && !wasOpen) navOpener = document.activeElement;
     document.body.classList.toggle('nav-open', open);
     for (const control of menuControls) control.setAttribute('aria-expanded', String(open));
     scrim.hidden = !open;
+    sidebar.inert = phoneNav.matches && !open;
+    content.inert = open;
+    if (open) {
+      sidebar.setAttribute('role', 'dialog');
+      sidebar.setAttribute('aria-modal', 'true');
+      sidebar.setAttribute('aria-label', 'Console destinations');
+      sidebar.querySelector('#nav [aria-current="page"], #nav a')?.focus();
+    } else {
+      sidebar.removeAttribute('role');
+      sidebar.removeAttribute('aria-modal');
+      sidebar.removeAttribute('aria-label');
+      if (wasOpen && restoreFocus) navOpener?.focus();
+    }
   };
-  const closeNav = () => {
-    setNavOpen(false);
-  };
+  const closeNav = () => setNavOpen(false, { restoreFocus: true });
+  setNavOpen(false);
+  phoneNav.addEventListener('change', () => setNavOpen(false));
+  sidebar.addEventListener('keydown', (event) => {
+    if (event.key !== 'Tab' || !document.body.classList.contains('nav-open')) return;
+    const stops = [...sidebar.querySelectorAll('a[href], button:not([disabled]), [tabindex="0"]')]
+      .filter((node) => node.getClientRects().length && !node.closest('[hidden]'));
+    const first = stops[0];
+    const last = stops.at(-1);
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+  });
   for (const control of menuControls) {
-    control.addEventListener('click', () => setNavOpen(!document.body.classList.contains('nav-open')));
+    control.addEventListener('click', () => setNavOpen(!document.body.classList.contains('nav-open'), { restoreFocus: true }));
   }
+  document.getElementById('drawer-close')?.addEventListener('click', closeNav);
   scrim.addEventListener('click', closeNav);
   document.getElementById('nav')?.addEventListener('click', (e) => {
     if (e.target.closest('a')) closeNav();
@@ -5630,20 +5680,41 @@ function initChrome() {
   // Account menu.
   const chipBtn = document.getElementById('account-chip');
   const menu = document.getElementById('account-menu');
+  const menuItems = () => [...menu.querySelectorAll('[role="menuitem"]')];
+  const openMenu = (last = false) => {
+    menu.hidden = false;
+    chipBtn.setAttribute('aria-expanded', 'true');
+    (last ? menuItems().at(-1) : menuItems()[0])?.focus();
+  };
   chipBtn?.addEventListener('click', (e) => {
     e.stopPropagation();
-    const open = menu.hidden;
-    menu.hidden = !open;
-    chipBtn.setAttribute('aria-expanded', String(open));
+    if (menu.hidden) openMenu(); else closeMenu();
   });
-  const closeMenu = () => {
+  chipBtn?.addEventListener('keydown', (event) => {
+    if (!['ArrowDown', 'ArrowUp'].includes(event.key)) return;
+    event.preventDefault();
+    openMenu(event.key === 'ArrowUp');
+  });
+  menu?.addEventListener('keydown', (event) => {
+    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const items = menuItems();
+    const current = items.indexOf(document.activeElement);
+    const next = event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1
+      : (current + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+    items[next]?.focus();
+  });
+  const closeMenu = ({ restoreFocus = true } = {}) => {
     if (!menu || menu.hidden) return;
     menu.hidden = true;
     chipBtn?.setAttribute('aria-expanded', 'false');
+    if (restoreFocus) chipBtn?.focus();
   };
   // Choosing an item (Account settings, Theme, …) is the end of the menu's job;
   // before this it stayed open over the page it had just navigated to.
-  menu?.addEventListener('click', (e) => { if (e.target.closest('[role="menuitem"]')) closeMenu(); });
+  menu?.addEventListener('click', (e) => {
+    if (e.target.closest('[role="menuitem"]')) { closeMenu(); closeNav(); }
+  });
   document.addEventListener('click', (e) => {
     if (menu && !menu.hidden && !menu.contains(e.target) && !chipBtn?.contains(e.target)) {
       menu.hidden = true;
@@ -5652,7 +5723,7 @@ function initChrome() {
   });
   addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
-    closeMenu();
+    if (!menu.hidden) { closeMenu(); return; }
     closeNav();
   });
 
@@ -6709,13 +6780,27 @@ async function renderAdminLogs() {
   const levels = [['', 'All'], ['error', 'Errors'], ['warn', 'Warnings'], ['info', 'Info'], ['debug', 'Debug']];
   const levelSeg = h('div', { class: 'seg', role: 'radiogroup', 'aria-label': 'Lowest level shown' },
     ...levels.map(([value, label]) => h('button', {
-      type: 'button', role: 'radio', 'aria-checked': String(value === state.level), class: value === state.level ? 'is-active' : '',
+      type: 'button', role: 'radio', 'aria-checked': String(value === state.level), tabindex: value === state.level ? '0' : '-1', class: value === state.level ? 'is-active' : '',
       'data-level': value, on: { click: () => {
         state.level = value;
-        for (const b of levelSeg.children) { b.classList.toggle('is-active', b.dataset.level === value); b.setAttribute('aria-checked', String(b.dataset.level === value)); }
+        for (const b of levelSeg.children) {
+          b.classList.toggle('is-active', b.dataset.level === value);
+          b.setAttribute('aria-checked', String(b.dataset.level === value));
+          b.tabIndex = b.dataset.level === value ? 0 : -1;
+        }
         applyFilter();
       } },
     }, label)));
+  levelSeg.addEventListener('keydown', (event) => {
+    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const buttons = [...levelSeg.children];
+    const current = buttons.indexOf(document.activeElement);
+    const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1
+      : (current + (['ArrowRight', 'ArrowDown'].includes(event.key) ? 1 : -1) + buttons.length) % buttons.length;
+    buttons[next].focus();
+    buttons[next].click();
+  });
   const nsInput = h('input', { type: 'search', class: 'adm-search', placeholder: 'Service, e.g. account', 'aria-label': 'Only lines from this service' });
   const findInput = h('input', { type: 'search', class: 'adm-search', placeholder: 'Find in lines', 'aria-label': 'Only lines containing' });
 
@@ -6887,11 +6972,14 @@ async function route() {
   }
 }
 
-addEventListener('hashchange', () => {
+addEventListener('hashchange', async () => {
   // A tab change in an installed app should start at the top of the next
   // destination, rather than preserve a deep scroll position from the last.
   scrollTo({ top: 0, left: 0, behavior: 'auto' });
-  route();
+  await route();
+  // Wait for the completed view, not its loading placeholder. A refresh within
+  // the same view must not steal focus from a form control.
+  if (!shell.hidden) app.focus({ preventScroll: true });
 });
 
 initChrome();
