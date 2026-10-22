@@ -81,9 +81,16 @@ export class NotificationHub {
     return token ? this.store.populateToken(token._id) : null;
   }
 
-  /** Source getStatus uses the persisted lastConnected timestamp. */
+  /**
+   * Presence is process-local: a persisted source marker expires after 24h
+   * without a heartbeat and can survive a crash. Only an OPEN socket proves
+   * a current connection; see H-notification-presence in docs/DIVERGENCES.md.
+   */
   isConnected(accountId) {
-    return this.store.getStatus({ accountId }).connected;
+    for (const [tokenId, ws] of this.sockets) {
+      if (this.tokenCache.get(tokenId)?.accountId === accountId && socketIsOpen(ws)) return true;
+    }
+    return false;
   }
 
   /**

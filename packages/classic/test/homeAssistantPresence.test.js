@@ -58,7 +58,7 @@ test('legacy online presence requires a real authenticated socket and grants no 
   // Simulate the old persisted connected marker surviving a crashed process.
   // The new presence read uses live OPEN sockets and cannot trust that marker.
   classic.hub.store.markConnected({ accountId: robot.id });
-  assert.equal(classic.hub.isConnected(robot.id), true);
+  assert.equal(classic.hub.isConnected(robot.id), false);
   assert.deepEqual(await adapter.status(identity), { online: false, busy: false, announcements_supported: false });
   assert.deepEqual(await adapter.announce({ identity, deadline: Date.now() + 1000 }),
     { outcome: 'error', code: 'robot_offline' });

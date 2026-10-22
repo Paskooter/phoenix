@@ -8,6 +8,9 @@ import { mkdtempSync, rmSync, mkdirSync, openSync, writeFileSync, closeSync } fr
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { Readable } from 'node:stream';
+import { once } from 'node:events';
+import { setTimeout as delay } from 'node:timers/promises';
+import WebSocket from 'ws';
 
 const dir = mkdtempSync(join(tmpdir(), 'phx-portal-classic-'));
 
@@ -112,20 +115,38 @@ test('signature travel: the portal uses the account credentials, never forges id
 });
 
 
-test('robot cards report notification-socket presence and persist the observation time', async () => {
+test('robot cards report notification-socket presence and persist the observation time', async (t) => {
   const offline = await call('GET', '/api/robots');
   const offlineRobot = offline.body.find((entry) => entry.friendlyId === robot.friendlyId);
   assert.equal(offline.status, 200);
   assert.deepEqual(offlineRobot.connection, { connected: false });
   assert.equal(offlineRobot.lastSeen, null);
 
-  classic.hub.newRobotToken(robot._id, 'portal-status-test');
+  const token = classic.hub.newRobotToken(robot._id, 'portal-status-test');
   classic.hub.store.markConnected({ accountId: robot._id });
+  const stale = await call('GET', '/api/robots');
+  assert.deepEqual(stale.body.find((entry) => entry.friendlyId === robot.friendlyId).connection,
+    { connected: false }, 'a persisted marker without a socket is not live presence');
+  const client = new WebSocket(`ws://127.0.0.1:${classicServer.address().port}/socket/${token.tokenKey}`);
+  t.after(async () => {
+    if (client.readyState === WebSocket.CLOSED) return;
+    client.terminate();
+    await once(client, 'close');
+  });
+  await once(client, 'open');
   const online = await call('GET', '/api/robots');
   const onlineRobot = online.body.find((entry) => entry.friendlyId === robot.friendlyId);
   assert.deepEqual(onlineRobot.connection, { connected: true });
   assert.ok(Number.isSafeInteger(onlineRobot.lastSeen));
   assert.equal(accountStore.accounts.get(robot._id).lastSeen, onlineRobot.lastSeen);
+  client.close();
+  await once(client, 'close');
+  for (let attempt = 0; attempt < 100 && classic.hub.sockets.size; attempt++) await delay(10);
+  assert.equal(classic.hub.sockets.size, 0);
+  const disconnected = await call('GET', '/api/robots');
+  const disconnectedRobot = disconnected.body.find((entry) => entry.friendlyId === robot.friendlyId);
+  assert.deepEqual(disconnectedRobot.connection, { connected: false });
+  assert.equal(disconnectedRobot.lastSeen, onlineRobot.lastSeen, 'disconnect preserves the last live observation');
 });
 
 test('gallery: list seeded media through Classic Media_20160725, serve its bytes, then delete', async () => {
