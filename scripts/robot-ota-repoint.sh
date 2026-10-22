@@ -723,7 +723,7 @@ if [ "$OPT_RESIZE" -eq 1 ]; then
 fi
 say "  1. back up and normalize ${#PRESENT[@]} client config file(s) to ${PUBLIC_SUFFIX},"
 say "     including third-party endpoints and credential-level overrides (keys preserved)"
-say "  2. ensure the public root is in ${TRUST_BUNDLE} and ${TRUST_DIR}/isrg-root-x1.pem;"
+say "  2. ensure the public root is in ${TRUST_BUNDLE} and its own PEM in ${TRUST_DIR};"
 say "     repair its OpenSSL 1.0.2 subject-hash link even when it is already in the bundle"
 say "     (existing hash entries are preserved; use the next free suffix on collision)"
 say "     remount / read-write for the write and back to read-only after"
@@ -863,6 +863,102 @@ if setup_text_out="$(rsh "node '$setup_text_remote' --dry-run --suffix '${PUBLIC
 else
   say "  setup screen text: left as it is (${setup_text_out#patch-oobe-setup-text: })"
 fi
+
+# Trust preflight.
+# Share the read-only validation with apply, so every predictable refusal is
+# reported before the prompt or any persistent change. Send the public PEM as
+# a shell-quoted literal: comparisons need no remote staging file or write.
+trust_root() {
+  local action="$1" hash pem
+  [ -f "$ROOT_PEM_SRC" ] && [ -r "$ROOT_PEM_SRC" ] \
+    || { printf '%s\n' 'no public root available locally (pass --region-ca <pem>)' >&2; return 1; }
+  hash="$(openssl x509 -in "$ROOT_PEM_SRC" -noout -subject_hash 2>/dev/null | tr -d '\r')"
+  [[ "$hash" =~ ^[0-9a-f]{8}$ ]] \
+    || { printf '%s\n' 'could not compute the public root subject hash' >&2; return 1; }
+  # Preserve trailing newlines, and quote even a custom --region-ca PEM safely.
+  pem="$(cat "$ROOT_PEM_SRC"; printf .)"
+  pem="${pem%.}"
+  pem="${pem//\'/\'\\\'\'}"
+  rsh "
+    set -eu
+    # Phoenix public root trust (preflight and apply).
+    if command -v cmp >/dev/null 2>&1; then :
+    elif command -v busybox >/dev/null 2>&1 && busybox --list | grep -qx cmp; then
+      cmp() { busybox cmp \"\$@\"; }
+    else
+      echo 'cmp is required to compare public roots safely' >&2; exit 1
+    fi
+    root_bytes() { printf '%s' '$pem'; }
+    same_root() {
+      [ -f \"\$1\" ] || return 1
+      root_bytes | cmp -s - \"\$1\"
+    }
+    [ -d '$TRUST_DIR' ] && [ ! -L '$TRUST_DIR' ] || {
+      echo 'refusing an unsafe public trust directory' >&2; exit 1;
+    }
+    NAME=isrg-root-x1.pem
+    ROOT='$TRUST_DIR/'\$NAME
+    FOREIGN=''
+    if [ -e \"\$ROOT\" ] || [ -L \"\$ROOT\" ]; then
+      if [ -L \"\$ROOT\" ] || ! same_root \"\$ROOT\"; then
+        NAME=phoenix-isrg-root-x1.pem
+        ROOT='$TRUST_DIR/'\$NAME
+        FOREIGN='; leave foreign isrg-root-x1.pem untouched'
+      fi
+    fi
+    ROOT_ACTION=install
+    if [ -e \"\$ROOT\" ] || [ -L \"\$ROOT\" ]; then
+      [ ! -L \"\$ROOT\" ] && same_root \"\$ROOT\" || {
+        echo 'refusing a different or unsafe Phoenix root PEM' >&2; exit 1;
+      }
+      ROOT_ACTION=reuse
+    fi
+    # Match c_rehash: preserve occupied entries, including dangling links.
+    n=0
+    LINK_ACTION=add
+    while :; do
+      LINK='$TRUST_DIR/$hash.'\$n
+      if [ -e \"\$LINK\" ] || [ -L \"\$LINK\" ]; then
+        if same_root \"\$LINK\"; then LINK_ACTION=reuse; break; fi
+        n=\$((n+1))
+        [ \"\$n\" -lt 100 ] || { echo 'too many occupied public root hash entries' >&2; exit 1; }
+      else
+        break
+      fi
+    done
+    BACKUP='$TRUST_BUNDLE.prerepoint-${STAMP}.bak'
+    if [ '$HAVE_ROOT' -eq 0 ]; then
+      [ -f '$TRUST_BUNDLE' ] && [ ! -L '$TRUST_BUNDLE' ] || {
+        echo 'refusing an unsafe trust bundle' >&2; exit 1;
+      }
+      if [ -e \"\$BACKUP\" ] || [ -L \"\$BACKUP\" ]; then
+        echo 'refusing to overwrite an existing trust bundle backup' >&2; exit 1
+      fi
+    fi
+    if [ '$action' = preflight ]; then
+      printf '%s %s; %s %s.%s; preserve existing hash entries%s\\n' \
+        \"\$ROOT_ACTION\" \"\$NAME\" \"\$LINK_ACTION\" '$hash' \"\$n\" \"\$FOREIGN\"
+      exit 0
+    fi
+    # All validation above runs again before this step's first write.
+    if [ \"\$ROOT_ACTION\" = install ]; then
+      (set -C; root_bytes > \"\$ROOT\")
+    fi
+    chmod 644 \"\$ROOT\"
+    if [ \"\$LINK_ACTION\" = add ]; then ln -s \"\$NAME\" \"\$LINK\"; fi
+    if [ '$HAVE_ROOT' -eq 0 ]; then
+      cp -a '$TRUST_BUNDLE' \"\$BACKUP\"
+      root_bytes >> '$TRUST_BUNDLE'
+      printf '  installed public root into %s\\n' '$TRUST_BUNDLE'
+    fi
+    printf '  public root ready: %s\\n' \"\$ROOT\"
+    printf '  public CApath ready: %s\\n' \"\$LINK\"
+  "
+}
+out="$(trust_root preflight 2>&1 | tr -d '\r')" \
+  || die "public root trust check failed; nothing was changed: ${out}"
+say "  public root trust: ${out}"
+# End trust preflight.
 
 if [ "$DRY" -eq 1 ]; then
   say ""
@@ -1017,56 +1113,13 @@ else
 fi
 
 # 7c. Trust root.
-# Compute the modern subject hash locally: Jibo's OpenSSL 1.0.2 reads this
-# CApath name, not -subject_hash_old. Repair it even if the bundle has the root.
-if [ ! -f "$ROOT_PEM_SRC" ]; then
-  die "no public root available locally (pass --region-ca <pem>); cannot repair CApath"
-fi
-HASH="$(openssl x509 -in "$ROOT_PEM_SRC" -noout -subject_hash 2>/dev/null | tr -d '\r')"
-[[ "$HASH" =~ ^[0-9a-f]{8}$ ]] || die "could not compute the subject hash from $ROOT_PEM_SRC"
-TMP_REMOTE="/tmp/.phoenix-isrg-root-${STAMP}-$$.pem"
-rput "$ROOT_PEM_SRC" "$TMP_REMOTE" || die "could not upload the root certificate"
-out="$(rsh "
-  set -eu
-  TMP_ROOT='$TMP_REMOTE'
-  trap 'rm -f \"\$TMP_ROOT\"' EXIT
-  ROOT='${TRUST_DIR}/isrg-root-x1.pem'
-  if [ -e \"\$ROOT\" ] || [ -L \"\$ROOT\" ]; then
-    [ -f \"\$ROOT\" ] && [ ! -L \"\$ROOT\" ] && cmp -s \"\$TMP_ROOT\" \"\$ROOT\" || {
-      echo 'refusing to replace a different or unsafe public root PEM' >&2; exit 1;
-    }
-  else
-    cp \"\$TMP_ROOT\" \"\$ROOT\"
-  fi
-  chmod 644 \"\$ROOT\"
-  # Match c_rehash: occupied entries, including dangling links, stay intact.
-  # Reuse an identical certificate; otherwise choose the next free suffix.
-  n=0
-  while :; do
-    LINK='${TRUST_DIR}/${HASH}.'\$n
-    if [ -e \"\$LINK\" ] || [ -L \"\$LINK\" ]; then
-      if [ -f \"\$LINK\" ] && cmp -s \"\$TMP_ROOT\" \"\$LINK\"; then break; fi
-      n=\$((n+1))
-      [ \"\$n\" -lt 100 ] || { echo 'too many occupied public root hash entries' >&2; exit 1; }
-    else
-      ln -s 'isrg-root-x1.pem' \"\$LINK\"
-      break
-    fi
-  done
-  if [ '$HAVE_ROOT' -eq 0 ]; then
-    BACKUP='$TRUST_BUNDLE.prerepoint-${STAMP}.bak'
-    if [ -e \"\$BACKUP\" ] || [ -L \"\$BACKUP\" ]; then
-      echo 'refusing to overwrite an existing trust bundle backup' >&2; exit 1
-    fi
-    cp -a '$TRUST_BUNDLE' \"\$BACKUP\"
-    cat \"\$TMP_ROOT\" >> '$TRUST_BUNDLE'
-    printf '  installed public root into %s\\n' '$TRUST_BUNDLE'
-  fi
-  printf '  public CApath ready: %s\\n' \"\$LINK\"
-" 2>&1 | tr -d '\r')" || die "failed to install the public root: $out"
+# Recheck the read-only plan before writing, guarding changes since preflight.
+out="$(trust_root apply 2>&1 | tr -d '\r')" || die "failed to install the public root: $out"
 printf '%s\n' "$out"
+ROOT_PATH="${out#*public root ready: }"
+ROOT_PATH="${ROOT_PATH%%$'\n'*}"
 ROOT_LINK="${out##*public CApath ready: }"
-APPLIED+=("${TRUST_DIR}/isrg-root-x1.pem" "$ROOT_LINK")
+APPLIED+=("$ROOT_PATH" "$ROOT_LINK")
 [ "$HAVE_ROOT" -eq 1 ] || APPLIED+=("${TRUST_BUNDLE}")
 
 # 7c-bis. OpenSSL's DEFAULT CAfile.

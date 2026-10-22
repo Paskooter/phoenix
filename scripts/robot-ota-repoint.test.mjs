@@ -149,7 +149,7 @@ test('OTA plan mode rejects repoint and dry-run flags before connecting to a rob
 });
 
 function preview({ credentials, mode, claim = false, shape = 'ok', region = 'stg-entrypoint', auth = 'key', robot = 'root@192.0.2.15',
-  firmware = '13', handler, normalizedHandler, credentialOverride = false, preflight = 'ok', hostKey = 'known', auto = true, extra = [], setupText = 'patched', destinationRegion = '' }) {
+  firmware = '13', handler, normalizedHandler, credentialOverride = false, preflight = 'ok', hostKey = 'known', auto = true, extra = [], setupText = 'patched', destinationRegion = '', trustPreflight = 'ok', dry = true }) {
   const fw = FIRMWARE[firmware];
   const dir = mkdtempSync(join(tmpdir(), 'phoenix-repoint-test-'));
   const ssh = join(dir, 'ssh');
@@ -191,6 +191,10 @@ if [[ "$cmd" == "node '/tmp/phoenix-cloud-config.abc123' --kind "* ]] && [ -n "$
   [[ "$cmd" == *"--region '$PHOENIX_TEST_DESTINATION'"* ]] || { echo 'wrong destination passed to config helper' >&2; exit 76; }
 fi
 case "$cmd" in
+  *'# Phoenix public root trust (preflight and apply).'* )
+    if [ "$PHOENIX_TEST_TRUST_PREFLIGHT" = ok ]; then
+      echo 'install isrg-root-x1.pem; add 4042bcee.0; preserve existing hash entries'
+    else echo 'refusing a different or unsafe Phoenix root PEM' >&2; exit 2; fi ;;
   true) exit 0 ;;
   hostname*) echo Aero-Root-Okra-Knit ;;
   jibo-version*) echo "$PHOENIX_TEST_RELEASE" ;;
@@ -243,7 +247,7 @@ echo "ssh-keygen $*" >> "$PHOENIX_TEST_LOG"; rm -f "$PHOENIX_TEST_STALE_KEY"
   if (hostKey === 'changed') writeFileSync(staleKey, '');
   try {
     return execFileSync('setsid', ['-w', 'bash', script, ...(robot ? ['--robot', robot] : []), ...(auto ? ['--auto'] : []),
-      ...(claim ? ['--claim-code', claimCode] : []), ...extra, '--dry-run'], {
+      ...(claim ? ['--claim-code', claimCode] : []), ...extra, ...(dry ? ['--dry-run'] : [])], {
       encoding: 'utf8',
       env: { ...process.env, PATH: `${dir}:${process.env.PATH}`,
         PHOENIX_TEST_CREDS: credentials ? 'yes' : 'no', PHOENIX_TEST_MODE: mode,
@@ -253,7 +257,7 @@ echo "ssh-keygen $*" >> "$PHOENIX_TEST_LOG"; rm -f "$PHOENIX_TEST_STALE_KEY"
         PHOENIX_TEST_RELEASE: fw.release, PHOENIX_TEST_NODE: fw.node, PHOENIX_TEST_BACKUP: fw.backup, PHOENIX_TEST_JETSTREAM: fw.jetstream, PHOENIX_TEST_SSM: fw.ssm,
         PHOENIX_TEST_HANDLER: handler ?? fw.handler, PHOENIX_TEST_FOUND: fw.found.join(' '),
         PHOENIX_TEST_NORMALIZED_HANDLER: normalizedHandler ?? '', PHOENIX_TEST_CREDENTIAL_OVERRIDE: credentialOverride ? 'yes' : 'no',
-        PHOENIX_TEST_PREFLIGHT: preflight, PHOENIX_TEST_STALE_KEY: staleKey, PHOENIX_TEST_SETUP_TEXT: setupText },
+        PHOENIX_TEST_TRUST_PREFLIGHT: trustPreflight, PHOENIX_TEST_PREFLIGHT: preflight, PHOENIX_TEST_STALE_KEY: staleKey, PHOENIX_TEST_SETUP_TEXT: setupText },
     });
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -265,7 +269,19 @@ test('the trust plan repairs the OpenSSL CApath even when the bundle already has
   assert.match(output, /ISRG Root X1 already present/);
   assert.match(output, /OpenSSL 1\.0\.2 subject-hash link.*even when.*bundle/);
   assert.match(output, /existing hash entries.*preserved/);
+  assert.ok(output.includes('  public root trust: install isrg-root-x1.pem; add 4042bcee.0; preserve existing hash entries\n'));
+  assert.ok(output.indexOf('  public root trust:') < output.indexOf('dry run — nothing was changed'));
 });
+
+for (const dry of [true, false]) {
+  test(`unsafe trust plan stops the console command before ${dry ? 'the dry-run exit' : 'apply with --yes'}`, () => {
+    assert.throws(() => preview({ credentials: false, mode: 'int-developer', trustPreflight: 'unsafe', dry, extra: ['--yes'] }), error => {
+      assert.match(error.stderr, /public root trust check failed; nothing was changed:.*unsafe Phoenix root PEM/);
+      assert.doesNotMatch(error.stdout, /dry run —|== Applying|Apply this to/);
+      return true;
+    });
+  });
+}
 
 test('setup terminal plans and help avoid prohibited owner-facing wording', () => {
   const banned = /\b(?:firmware|repoint(?:ed|ing)?|migrat(?:e[ds]?|ing|ion))\b|\bother server\b/i;
