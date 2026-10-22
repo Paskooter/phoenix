@@ -140,7 +140,7 @@ STOCK_CLIENT_V2_SHA256="81533de391dfba88fc40bedfc63ea30a77f8d032f9a8c23196db4cb3
 STOCK_CLIENT_V3_SHA256="c3511dbc55c8a9ec3ac74a675a1245306b55c67fab65a3ecfe896ed01689997a"
 ROOT_PEM_SOURCE_SHA256="22b557a27055b33606b6559f37703928d3e4ad79f110b407d04986e1843543d1"
 BACKUP_TLS_PATCHER_SHA256="0fee710b1dec524b8d4629deb19e8be9dc1013e161abed4180be3d2f2c28e2d8"
-OTA_TLS_PATCHER_SHA256="51b71ff2e02569f203998b7d82c6e3f2743030a48bbc3abc149a66c6563061f1"
+OTA_TLS_PATCHER_SHA256="6e8feefdea84bf40db4ba1770ebe961ce4bd7b1f46b6eadb09b9dca5c5198d54"
 SSM_WIFI_PATCHER_SHA256="29dce60e9bf9d5cec56688b576c36c0c4662ccb3a17bc2fb83df6a5d654421f6"
 SETUP_TEXT_PATCHER_SHA256="edcc2971b932a41da80f9af286a74ce41cc213ccc90af429bfdf7e2a2c8989a1"
 CONFIG_PATCHER_SHA256="103e333e630892d3b98bb27b75502e970d21ac796ffeafa1032cbbb864dbba04"
@@ -723,8 +723,10 @@ if [ "$OPT_RESIZE" -eq 1 ]; then
 fi
 say "  1. back up and normalize ${#PRESENT[@]} client config file(s) to ${PUBLIC_SUFFIX},"
 say "     including third-party endpoints and credential-level overrides (keys preserved)"
-say "  2. install the public root into ${TRUST_BUNDLE} (+ ${TRUST_DIR}/isrg-root-x1.pem and its"
-say "     subject-hash symlink), remounting / read-write for the write and back to read-only after"
+say "  2. ensure the public root is in ${TRUST_BUNDLE} and ${TRUST_DIR}/isrg-root-x1.pem;"
+say "     repair its OpenSSL 1.0.2 subject-hash link even when it is already in the bundle"
+say "     (existing hash entries are preserved; use the next free suffix on collision)"
+say "     remount / read-write for the write and back to read-only after"
 say "  3. install the CA-accepting client (2.x or 3.x build, matching each copy) + its CA into"
 say "     every client copy (this Node ignores the system trust store, so only this lets it verify TLS)"
 say "  4. link /etc/ssl/cert.pem -> ${TRUST_BUNDLE} (OpenSSL's default CAfile, which the"
@@ -1015,35 +1017,61 @@ else
 fi
 
 # 7c. Trust root.
-# openssl does NOT exist on the robot, so the subject-hash symlink name is computed
-# here, from the certificate, and shipped with the file.
-if [ "$HAVE_ROOT" -eq 0 ]; then
-  if [ ! -f "$ROOT_PEM_SRC" ]; then
-    say "  no ISRG Root X1 available locally (pass --region-ca <pem>); trust step SKIPPED."
-  else
-    HASH="$(openssl x509 -in "$ROOT_PEM_SRC" -noout -subject_hash_old 2>/dev/null | tr -d '\r')"
-    [ -n "$HASH" ] || die "could not compute the subject hash from $ROOT_PEM_SRC"
-    TMP_REMOTE="/tmp/.phoenix-isrg-root-${STAMP}-$$.pem"
-    rput "$ROOT_PEM_SRC" "$TMP_REMOTE" || die "could not upload the root certificate"
-    out="$(rsh "
-      set -e
-      cp -a '$TRUST_BUNDLE' '$TRUST_BUNDLE.prerepoint-${STAMP}.bak' 2>/dev/null || true
-      cat '$TMP_REMOTE' >> '$TRUST_BUNDLE'
-      cp -a '$TMP_REMOTE' '${TRUST_DIR}/isrg-root-x1.pem'
-      chmod 644 '${TRUST_DIR}/isrg-root-x1.pem'
-      ln -sf 'isrg-root-x1.pem' '${TRUST_DIR}/${HASH}.0'
-      rm -f '$TMP_REMOTE'
-      printf '  installed ISRG Root X1 into %s\n' '$TRUST_BUNDLE'
-      printf '  plus %s/isrg-root-x1.pem and %s/${HASH}.0\n' '${TRUST_DIR}' '${TRUST_DIR}'
-    " 2>&1 | tr -d '\r')" || die "failed to install the public root: $out"
-    printf '%s\n' "$out"
-    APPLIED+=("${TRUST_BUNDLE}")
-  fi
+# Compute the modern subject hash locally: Jibo's OpenSSL 1.0.2 reads this
+# CApath name, not -subject_hash_old. Repair it even if the bundle has the root.
+if [ ! -f "$ROOT_PEM_SRC" ]; then
+  die "no public root available locally (pass --region-ca <pem>); cannot repair CApath"
 fi
+HASH="$(openssl x509 -in "$ROOT_PEM_SRC" -noout -subject_hash 2>/dev/null | tr -d '\r')"
+[[ "$HASH" =~ ^[0-9a-f]{8}$ ]] || die "could not compute the subject hash from $ROOT_PEM_SRC"
+TMP_REMOTE="/tmp/.phoenix-isrg-root-${STAMP}-$$.pem"
+rput "$ROOT_PEM_SRC" "$TMP_REMOTE" || die "could not upload the root certificate"
+out="$(rsh "
+  set -eu
+  TMP_ROOT='$TMP_REMOTE'
+  trap 'rm -f \"\$TMP_ROOT\"' EXIT
+  ROOT='${TRUST_DIR}/isrg-root-x1.pem'
+  if [ -e \"\$ROOT\" ] || [ -L \"\$ROOT\" ]; then
+    [ -f \"\$ROOT\" ] && [ ! -L \"\$ROOT\" ] && cmp -s \"\$TMP_ROOT\" \"\$ROOT\" || {
+      echo 'refusing to replace a different or unsafe public root PEM' >&2; exit 1;
+    }
+  else
+    cp \"\$TMP_ROOT\" \"\$ROOT\"
+  fi
+  chmod 644 \"\$ROOT\"
+  # Match c_rehash: occupied entries, including dangling links, stay intact.
+  # Reuse an identical certificate; otherwise choose the next free suffix.
+  n=0
+  while :; do
+    LINK='${TRUST_DIR}/${HASH}.'\$n
+    if [ -e \"\$LINK\" ] || [ -L \"\$LINK\" ]; then
+      if [ -f \"\$LINK\" ] && cmp -s \"\$TMP_ROOT\" \"\$LINK\"; then break; fi
+      n=\$((n+1))
+      [ \"\$n\" -lt 100 ] || { echo 'too many occupied public root hash entries' >&2; exit 1; }
+    else
+      ln -s 'isrg-root-x1.pem' \"\$LINK\"
+      break
+    fi
+  done
+  if [ '$HAVE_ROOT' -eq 0 ]; then
+    BACKUP='$TRUST_BUNDLE.prerepoint-${STAMP}.bak'
+    if [ -e \"\$BACKUP\" ] || [ -L \"\$BACKUP\" ]; then
+      echo 'refusing to overwrite an existing trust bundle backup' >&2; exit 1
+    fi
+    cp -a '$TRUST_BUNDLE' \"\$BACKUP\"
+    cat \"\$TMP_ROOT\" >> '$TRUST_BUNDLE'
+    printf '  installed public root into %s\\n' '$TRUST_BUNDLE'
+  fi
+  printf '  public CApath ready: %s\\n' \"\$LINK\"
+" 2>&1 | tr -d '\r')" || die "failed to install the public root: $out"
+printf '%s\n' "$out"
+ROOT_LINK="${out##*public CApath ready: }"
+APPLIED+=("${TRUST_DIR}/isrg-root-x1.pem" "$ROOT_LINK")
+[ "$HAVE_ROOT" -eq 1 ] || APPLIED+=("${TRUST_BUNDLE}")
 
 # 7c-bis. OpenSSL's DEFAULT CAfile.
 #
-# This is deliberately OUTSIDE the `HAVE_ROOT` guard above: a robot can already
+# This is also independent of HAVE_ROOT: a robot can already
 # carry ISRG Root X1 in its bundle and STILL fail every verification, which is
 # exactly the state that made a fully repointed robot look like a dead server.
 #

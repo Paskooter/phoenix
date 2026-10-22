@@ -260,6 +260,13 @@ echo "ssh-keygen $*" >> "$PHOENIX_TEST_LOG"; rm -f "$PHOENIX_TEST_STALE_KEY"
   }
 }
 
+test('the trust plan repairs the OpenSSL CApath even when the bundle already has ISRG Root X1', () => {
+  const output = preview({ credentials: false, mode: 'int-developer' });
+  assert.match(output, /ISRG Root X1 already present/);
+  assert.match(output, /OpenSSL 1\.0\.2 subject-hash link.*even when.*bundle/);
+  assert.match(output, /existing hash entries.*preserved/);
+});
+
 test('setup terminal plans and help avoid prohibited owner-facing wording', () => {
   const banned = /\b(?:firmware|repoint(?:ed|ing)?|migrat(?:e[ds]?|ing|ion))\b|\bother server\b/i;
   const stripPaths = text => text.replace(/(?:https?:\/\/)?[\w.~-]*(?:\/[\w.@~-]+)+/g, '');

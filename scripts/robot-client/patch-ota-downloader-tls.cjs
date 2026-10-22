@@ -29,7 +29,8 @@ var REVIEWED = {
     'ce4253aabe016cc322401db15e5220bb89592ee18a04acc047e5cf1734ea6b14'
 };
 // Outputs of the previous version of this patch, which passed the CA bundle whole:
-// Node 4 reads only its first certificate. Upgrade them from the saved original.
+// Node 4 reads only its first certificate. The hosted image has these outputs
+// without backups, so invert only this exact earlier Phoenix-authored insertion.
 var PREVIOUS = {
   '1a01b446575bc5da145a41e969ea110af62f144d5651ed5b7ca5aee8bfef826a':
     '33f6db1496baa3abd506a2ba9dad9b5cdf7567341e3e292e42cb3ed6f016003c',
@@ -121,6 +122,41 @@ function patchSource(source, caPath) {
   return source.replace(ANCHOR, prelude);
 }
 
+// Exact insertion from d1731dc. Keep this separate from the current patch:
+// reconstruction must recover the byte-pinned original, not a similar program.
+function reconstructOriginal(source, originalHash) {
+  var insertion = [
+    '// This runs on Node 6.9.2, which predates NODE_EXTRA_CA_CERTS (added in 7.3) and',
+    '// ignores the system trust store entirely -- /etc/ssl/cert.pem does not help it.',
+    '// Against a publicly-trusted server certificate a bare https.get therefore fails',
+    '// with UNABLE_TO_GET_ISSUER_CERT_LOCALLY and the update download dies at 0 bytes,',
+    '// which the system manager reports only as "Failed to download update". Hand https',
+    '// an explicit CA, the same way the patched jibo-server-client does.',
+    'let _getOpts = argv.url;',
+    'if (argv.url.startsWith("https:")) {',
+    '    let _caPath = process.env.JIBO_EXTRA_CA_CERTS || "' + CA_PATH + '";',
+    '    try {',
+    '        let _url = require("url").parse(argv.url);',
+    '        _getOpts = { protocol: _url.protocol, hostname: _url.hostname, port: _url.port,',
+    '                     path: _url.path, ca: fs.readFileSync(_caPath) };',
+    '    } catch (e) { /* no CA available: fall back to the default roots */ }',
+    '}',
+    '',
+    'let req = http.get(_getOpts, function(res) {'
+  ].join('\n');
+  var text = source.toString('utf8');
+  exactlyOnce(text, insertion, 'earlier OTA downloader patch');
+  var original = utf8Buffer(text.replace(insertion, ANCHOR));
+  if (sha256(original) !== originalHash) throw new Error('reconstructed OTA downloader is not the reviewed original source');
+  return original;
+}
+
+// Unlike existsSync, lstat sees dangling symlinks, which must not be replaced.
+function backupExists(filename) {
+  try { fs.lstatSync(filename); return true; }
+  catch (error) { if (error.code === 'ENOENT') return false; throw error; }
+}
+
 function parseArgs(argv) {
   var result = { dryRun: false, json: false };
   argv.forEach(function(arg) {
@@ -146,12 +182,16 @@ function apply(options) {
   var originalHash = sourceHash;
   var backup = TARGET + '.phoenix-ota-tls.bak';
   if (PREVIOUS[sourceHash]) {
-    // Re-patch from the saved original, which must be the reviewed source.
+    // Prefer the saved original. Only known earlier output hashes may be
+    // reconstructed, and both the recovered original and new output are pinned.
     originalHash = PREVIOUS[sourceHash];
-    if (!fs.existsSync(backup)) throw new Error('OTA downloader carries an earlier patch but its original backup is missing');
-    regularFile(backup, 'OTA downloader backup');
-    source = fs.readFileSync(backup);
-    if (sha256(source) !== originalHash) throw new Error('OTA downloader backup is not the reviewed original source');
+    if (backupExists(backup)) {
+      regularFile(backup, 'OTA downloader backup');
+      source = fs.readFileSync(backup);
+      if (sha256(source) !== originalHash) throw new Error('OTA downloader backup is not the reviewed original source');
+    } else {
+      source = reconstructOriginal(source, originalHash);
+    }
     output = utf8Buffer(patchSource(source.toString('utf8'), CA_PATH));
     patchedSha256 = REVIEWED[originalHash];
     if (sha256(output) !== patchedSha256) throw new Error('generated OTA downloader patch does not match the reviewed pin');
@@ -182,7 +222,7 @@ function apply(options) {
   if (options.dryRun) return result;
 
   if (output) {
-    if (fs.existsSync(backup)) {
+    if (backupExists(backup)) {
       regularFile(backup, 'OTA downloader backup');
       if (sha256(fs.readFileSync(backup)) !== originalHash) {
         throw new Error('OTA downloader backup is not the reviewed original source');
