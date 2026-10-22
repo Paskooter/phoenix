@@ -207,10 +207,15 @@ function packageBearer(secret, url, now) {
   // is never used as a filesystem path.
   if (!id || id.length > 256 || !/^[0-9A-Za-z._-]+$/.test(id) || !/^\d+$/.test(expiryText)) return { id: null, reason: 'query-shape' };
   const expires = Number(expiryText);
-  if (!Number.isSafeInteger(expires) || expires <= now || String(expires) !== expiryText || !/^[a-f0-9]{64}$/i.test(signature)) return { id: null, reason: 'expired-or-invalid' };
+  if (!Number.isSafeInteger(expires) || String(expires) !== expiryText) return { id: null, reason: 'invalid-expiry', diagnostics: { id } };
+  if (!/^[a-f0-9]{64}$/i.test(signature)) return { id: null, reason: 'malformed-signature', diagnostics: { id, signatureLength: signature.length } };
   const expected = Buffer.from(packageSignature(secret, id, expires), 'hex');
   const supplied = Buffer.from(signature, 'hex');
-  if (expected.length !== supplied.length || !timingSafeEqual(expected, supplied)) return { id: null, reason: 'signature-mismatch' };
+  if (expected.length !== supplied.length || !timingSafeEqual(expected, supplied)) {
+    return { id: null, reason: 'signature-mismatch', diagnostics: { id, ...(expires <= now ? { expired: true } : {}) } };
+  }
+  // Expiry is in milliseconds. Only disclose an age after authenticating it.
+  if (expires <= now) return { id: null, reason: 'expired', diagnostics: { id, expiredForSeconds: Math.floor((now - expires) / 1000) } };
   return { id, reason: null };
 }
 
@@ -515,10 +520,9 @@ export function createOtaService({
         ? packageBearer(packageSecret, url, clockMillis(now))
         : { id, reason: null };
       if (requireAuth && bearer.id !== id) {
-        // Do not log the opaque bearer itself; its HMAC is a credential.  The
-        // reason is enough to distinguish an expired/replayed client URL from
-        // an edge or deployment-secret mismatch.
-        log.warn?.('ota package URL rejected', { reason: bearer.reason });
+        // Only bounded, validated scalars may accompany the reason. The HMAC,
+        // raw expiry, URL, and query string must never enter this log.
+        log.warn?.('ota package URL rejected', { reason: bearer.reason, ...bearer.diagnostics });
         res.writeHead(403, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' });
         return void res.end('forbidden');
       }
