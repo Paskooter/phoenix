@@ -35,7 +35,9 @@ Under **Publish a theme**, choose or drop one `.phtheme` file. The page checks i
 locally and shows **Check before publishing**: identity, version, target listing,
 appearance changes, image count and preview. Review the changes, then choose
 **Publish version …**. The server validates every image again, normalizes bytes,
-checks ownership/version/storage, creates a release ID and signs the descriptor.
+checks ownership/version/storage and creates an immutable pending submission. An
+operator reviews the exact version and hashes of the source and normalized
+material before signing and publication.
 No author signing key, cookie export or browser-console script is needed.
 
 The desk also accepts one ordinary ZIP containing `theme.json` beside `assets/`,
@@ -47,13 +49,17 @@ CLI pack when the browser cannot decode or pack the source ZIP. The CLI itself
 does not accept ZIP input.
 
 Publishing is distinct from visibility. Read back the returned app ID, version,
-release ID and signed hashes, then refresh **Your apps** and check the exact
-listing before using **List publicly**. An upload does not install anything on
-Jibo. A public listing does not apply a theme. Draft/unlisted/public visibility,
+submission ID and material hashes, then refresh **Your apps**. Wait for operator
+publication and check the exact listing before using **List publicly**. An upload
+does not install anything on Jibo. A public listing does not apply a theme. Draft/unlisted/public visibility,
 release integrity and per-Jibo approval are separate decisions.
 
-Approved publishers can publish releases without per-app preapproval. That does
-not make a signature a rights clearance, accessibility audit or hardware test.
+Publisher identity approval and exact-bundle approval are separate.
+Each new third-party version requires operator review.
+Pending, rejected and changes-requested submissions are not signed, listed or
+installable. Their versions and evidence remain immutable and count toward
+storage; corrected material needs a higher version and fresh review. A review or
+signature is not a rights clearance, accessibility audit or hardware test.
 Before listing, review the art, honest change summary, native status meanings,
 readability, licensing and recovery. Do not describe a palette-only theme as
 changing the eye or promise universal animation coverage. Do not infer hardware
@@ -80,8 +86,8 @@ in build tools or source control.
 | Upload idle / absolute deadline | 8 / 90 seconds |
 | Concurrent uploads per publisher | 2 |
 | Theme upload admissions per hour | 6, including invalid submissions |
-| Successful releases per hour | 6 |
-| Publisher stored release bytes | 33,554,432 bytes (32 MiB) |
+| Accepted submissions per hour | 6 |
+| Publisher stored release and submission bytes | 33,554,432 bytes (32 MiB) |
 | Publisher app identities/listings | 10 |
 | App identity creations per day | 12 |
 
@@ -104,7 +110,7 @@ refusals include a wrong app identity, reused/non-increasing version, listing-ki
 mismatch, unsupported API, low contrast, wrong image role/format, eye coverage,
 unsafe paths, upload rate, storage and size limits.
 
-A connection failure is not proof that nothing was published. Refresh **Your
+A connection failure is not proof that nothing was submitted. Refresh **Your
 apps** and look for the exact app ID/version before retrying; versions cannot be
 reused. Sign in again when asked, without pasting session details into reports.
 Do not hide a refusal by changing API numbers, renaming `.phtheme` to `.json`,

@@ -21,6 +21,15 @@ test('icon reference distinguishes accepted targets from visible replacement',op
   assert.match(guide,/`phoenix-tic-tac-toe`[\s\S]*not a renderer replacement target/);
   assert.match(guide,/trusted native app icon/);
 });
+test('theme publishing distinguishes pending exact-bundle review from publication',options,()=>{
+  const publishing=readFileSync(resolve(root,'docs/themes/PUBLISHING.md'),'utf8');
+  assert.match(publishing,/immutable pending submission/);
+  assert.match(publishing,/operator reviews the exact[\s\S]*source and normalized[\s\S]*before signing and publication/);
+  assert.match(publishing,/Each new third-party version requires operator review/);
+  assert.match(publishing,/Pending, rejected and changes-requested submissions are not signed/);
+  assert.match(publishing,/corrected material needs a higher version and fresh review/);
+  assert.doesNotMatch(publishing,/without per-app preapproval|creates a release ID and signs the descriptor/);
+});
 test('local theme documentation links and fragments resolve',options,()=>{
   const slug=s=>s.toLowerCase().replace(/<[^>]+>/g,'').replace(/[^\p{L}\p{N}_\-\s]/gu,'').replace(/ /g,'-');
   for(const file of files)for(const match of readFileSync(resolve(root,file),'utf8').matchAll(/\[[^\]]*\]\(([^)]+)\)/g)) {
