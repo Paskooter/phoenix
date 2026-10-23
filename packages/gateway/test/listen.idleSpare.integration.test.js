@@ -36,6 +36,16 @@ test('real spare closes 1000 with no ERROR; active, proactive and reconnect sock
   const state = () => JSON.parse(readFileSync(join(directory, 'deployment', 'hub.json')));
   const spare = await open('synthetic-idle-spare');
   const closed = once(spare.ws, 'close');
+  // Hold real client close completion for one event-loop turn. Admission expiry
+  // and a completed WebSocket handshake are separate lifecycle milestones.
+  const emitClose = spare.ws.emitClose;
+  const closePending = new Promise(resolve => {
+    t.mock.method(spare.ws, 'emitClose', function (...args) {
+      assert.equal(this.readyState, WebSocket.CLOSING);
+      resolve();
+      setImmediate(() => emitClose.apply(this, args));
+    });
+  });
   const active = await open('synthetic-active-spare-label');
   const proactive = await open('synthetic-proactive', '/v1/proactive');
   const sos = once(active.ws, 'message');
@@ -44,9 +54,9 @@ test('real spare closes 1000 with no ERROR; active, proactive and reconnect sock
   await sos;
   assert.equal(state().active.voice, 3);
   spare.ws.ping(); // WebSocket liveness is not a turn request.
-  await delay(idleMs + 150);
-  assert.equal(spare.ws.readyState, WebSocket.CLOSED, 'an unused real socket must not wait for the 60 s terminal deadline');
+  await closePending;
   const [code, reason] = await closed;
+  assert.equal(spare.ws.readyState, WebSocket.CLOSED, 'an unused real socket must not wait for the 60 s terminal deadline');
   assert.equal(code, 1000);
   assert.equal(reason.toString(), 'idle-spare');
   assert.deepEqual(spare.frames, []);
