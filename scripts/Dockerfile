@@ -1,4 +1,4 @@
-ARG PHOENIX_NODE_IMAGE=node:20-slim
+ARG PHOENIX_NODE_IMAGE=node:22.23.4-slim
 FROM ${PHOENIX_NODE_IMAGE}
 
 # OGG_OPUS is decoded through ffmpeg. FLAC is decoded by the declared WASM
