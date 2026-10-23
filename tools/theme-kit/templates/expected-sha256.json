@@ -1,0 +1,46 @@
+{
+  "paper": {
+    "schema": 2,
+    "runtime": "phoenix-menu-theme-v1",
+    "themeApi": 1,
+    "sha256": "69028ddb929a27fad24bf6f142758d6fba3b405bad151feff3878637e169b073",
+    "manifestSha256": "62f04b40a01fb47d60716bc3493a25af4116c1fb01a8c11e8fa15e1970b29435",
+    "bytes": 713,
+    "manifestBytes": 701,
+    "assetCount": 0,
+    "pixels": 0
+  },
+  "signals": {
+    "schema": 2,
+    "runtime": "phoenix-menu-theme-v1",
+    "themeApi": 1,
+    "sha256": "187243de619db97358cbf02b230aeac7d7a253c69526992b93848214e7206681",
+    "manifestSha256": "43ec5ebcf57f511e266b83ece5891da4f3187b3efa879b22c56585596f90a331",
+    "bytes": 53925,
+    "manifestBytes": 9737,
+    "assetCount": 41,
+    "pixels": 2686976
+  },
+  "terrace": {
+    "schema": 2,
+    "runtime": "phoenix-menu-theme-v1",
+    "themeApi": 4,
+    "sha256": "4206decdb863287ca940418ee1fa39617fa5061ad81902b9bfcd71e066dfdbcf",
+    "manifestSha256": "01301468af65da98f26afc11aa20c74d859bbe0300dc30cf14b0a31eb4e28bef",
+    "bytes": 13879,
+    "manifestBytes": 1905,
+    "assetCount": 1,
+    "pixels": 921600
+  },
+  "cut-paper": {
+    "schema": 2,
+    "runtime": "phoenix-menu-theme-v1",
+    "themeApi": 3,
+    "sha256": "1d5cf30eec479c19f4a673198972282efeb945dedcfc757d56e1471157a1cceb",
+    "manifestSha256": "401df9899e072f42aed63acfddd1edc1669861b738286cf18ff889408db0b390",
+    "bytes": 2266,
+    "manifestBytes": 1076,
+    "assetCount": 1,
+    "pixels": 65536
+  }
+}

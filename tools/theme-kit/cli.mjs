@@ -9,10 +9,10 @@ import theme from './themeFormat.cjs';
 import { explain } from './errors.mjs';
 import { scaffold } from './new.mjs';
 
-const usage = 'Usage: node tools/theme-kit/cli.mjs check <dir> | pack <dir> --out <dir> | new <name> --from ember|orbit [--author <name>]';
+const usage = 'Usage: node tools/theme-kit/cli.mjs check <dir> | pack <dir> --out <dir> | new <name> --from ember|orbit|paper|signals|terrace|cut-paper [--author <name>]';
 export function measurements(pack) {
   const p = pack.manifest.theme.palette;
-  return { schema: 2, runtime: theme.RUNTIME, sha256: pack.descriptor.sha256,
+  return { schema: 2, runtime: theme.RUNTIME, themeApi: pack.manifest.themeApi, sha256: pack.descriptor.sha256,
     manifestSha256: pack.descriptor.manifestSha256, bytes: pack.bytes.length,
     manifestBytes: pack.manifestBytes.length, assetCount: pack.manifest.assets.length,
     pixels: pack.manifest.assets.reduce((n, a) => n + a.width * a.height, 0),

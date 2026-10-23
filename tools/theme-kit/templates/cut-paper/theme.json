@@ -1,0 +1,49 @@
+{
+  "schema": 2,
+  "kind": "theme",
+  "runtime": "phoenix-menu-theme-v1",
+  "themeApi": 3,
+  "appId": "app-00000000-0000-4000-8000-000000000103",
+  "version": "1.0.0",
+  "minFirmware": "13.7.1",
+  "name": "Cut Paper",
+  "description": "Neutral abstract step bars replace native eye paint through its animated mesh. Native status tint, gaze and geometry stay in charge; special expressions stay native. This is asset replacement, not a fixed recolour.",
+  "releaseNotes": "Initial developer starter.",
+  "permissions": [
+    "menu-theme"
+  ],
+  "launchNames": [],
+  "theme": {
+    "layout": "native",
+    "palette": {
+      "background": "#101923",
+      "surface": "#203040",
+      "surfaceSecondary": "#182736",
+      "text": "#FFFFFF",
+      "mutedText": "#C6D6E6",
+      "accent": "#96EAD0"
+    },
+    "fonts": {
+      "titleFamily": "Proxima Nova Soft",
+      "labelFamily": "Proxima Nova",
+      "titleSize": 64,
+      "labelSize": 44
+    },
+    "background": {
+      "asset": null,
+      "opacity": 0
+    },
+    "overrides": [],
+    "eyeAsset": {
+      "texture": "step-paint",
+      "alpha": "replace"
+    }
+  },
+  "assets": [
+    {
+      "id": "step-paint",
+      "role": "eye-asset",
+      "path": "assets/step-paint.png"
+    }
+  ]
+}

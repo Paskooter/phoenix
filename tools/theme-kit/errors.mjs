@@ -2,6 +2,11 @@
 // Copyright (c) 2026, pasketti and the Phoenix project.
 // Keep machine-readable rejection codes while explaining author-facing bounds.
 export const messages = Object.freeze({
+  theme_extension_invalid: 'Check API-specific fields in docs/themes/REFERENCE.md: complete bounded menuLayout groups, eye/face object keys, role/dimension/byte limits and mutually exclusive fields. Eye paint is exactly 256 × 256 and at most 262,144 bytes; face-background is at most 1280 × 720 and 1,048,576 bytes.',
+  theme_menu_geometry_invalid: 'Use scrollMode paged or continuous and all bounded menuLayout fields; see docs/themes/REFERENCE.md.',
+  theme_eye_too_dark: 'Legacy eye.color needs relative luminance at least 0.15. New original designs should use eyeAsset, not stock-eye recolours.',
+  theme_eye_pixels_invalid: 'Legacy eye fields need RGB channels at least 160 and fully opaque alpha.',
+  theme_eye_asset_pixels_invalid: 'Eye paint requires RGBA, a transparent 4-pixel border and strong-alpha coverage of 10–80% (closed: 1–80%). Ordinary/closed paint must be neutral and bright; see docs/themes/REFERENCE.md.',
   theme_manifest_too_large: 'Source and canonical manifests must be at most 65,536 UTF-8 bytes.',
   theme_artifact_too_large: 'The complete normalized artifact must be at most 8,388,608 bytes.',
   theme_assets_invalid: 'assets must be an array of at most 64 entries.',
@@ -15,7 +20,7 @@ export const messages = Object.freeze({
   theme_background_invalid: 'background needs an asset ID or null and a finite opacity from 0 to 0.35.',
   theme_contrast_insufficient: 'text and mutedText need at least 4.5:1 on background, surface and surfaceSecondary; accent needs at least 3:1 on surface, including overrides.',
   theme_color_invalid: 'Palette colors must be six-digit #RRGGBB values, with all six palette fields present.',
-  theme_layout_invalid: 'layout must be native or slide; layouts are firmware-owned, not custom geometry.',
+  theme_layout_invalid: 'layout must be native or slide; API4 menuLayout is a separate bounded group.',
   theme_json_too_deep: 'JSON depth must not exceed 12.',
   theme_json_too_large: 'Each JSON array or object must have at most 64 members (including assets).',
   theme_json_invalid: 'Use valid UTF-8 JSON with finite safe numbers and no trailing content.',
@@ -23,7 +28,7 @@ export const messages = Object.freeze({
   theme_json_forbidden_key: 'JSON must not contain __proto__, prototype or constructor keys.',
   theme_author_path_invalid: 'Use regular local files, never symlinks: assets/<name>.png|jpg|jpeg or assets/icons/<name>.png|jpg|jpeg; lowercase name begins with a letter and is at most 40 letters/digits/hyphens. No traversal, URLs or absolute paths.',
   theme_author_asset_invalid: 'Source asset entries have exactly {id, role, path}.',
-  invalid_identity_or_runtime: 'Use schema 2, kind theme, runtime phoenix-menu-theme-v1, themeApi 1 and app- followed by a lowercase UUID; replace scaffold identity with the publisher-assigned app ID before submission.',
+  invalid_identity_or_runtime: 'Use schema 2, kind theme, runtime phoenix-menu-theme-v1, themeApi 1–4 matching the declared feature fields, and app- followed by a lowercase UUID; replace scaffold identity with the publisher-assigned app ID before submission.',
   invalid_version: 'version and minFirmware must be plain X.Y.Z without leading zeros, prerelease suffixes or unsafe integer components.',
   invalid_permissions: 'permissions must be exactly ["menu-theme"]. Themes cannot grant speech, camera or network access.',
   invalid_launch_names: 'launchNames must be []; themes are not runnable apps.',

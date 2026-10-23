@@ -1,0 +1,117 @@
+{
+  "schema": 2,
+  "kind": "theme",
+  "runtime": "phoenix-menu-theme-v1",
+  "themeApi": 4,
+  "appId": "app-00000000-0000-4000-8000-000000000102",
+  "version": "1.0.0",
+  "minFirmware": "13.7.1",
+  "name": "Terrace",
+  "description": "Per-menu label families, background and palette groups with bounded continuous geometry on ordinary menus. Main uses Soft labels; Clock uses Light labels and no background. Wi-Fi keeps native geometry.",
+  "releaseNotes": "Initial developer starter.",
+  "permissions": [
+    "menu-theme"
+  ],
+  "launchNames": [],
+  "theme": {
+    "layout": "native",
+    "palette": {
+      "background": "#101923",
+      "surface": "#203040",
+      "surfaceSecondary": "#182736",
+      "text": "#FFFFFF",
+      "mutedText": "#C6D6E6",
+      "accent": "#96EAD0"
+    },
+    "fonts": {
+      "titleFamily": "Proxima Nova Soft",
+      "labelFamily": "Proxima Nova",
+      "titleSize": 64,
+      "labelSize": 44
+    },
+    "background": {
+      "asset": "terraces",
+      "opacity": 0.22
+    },
+    "overrides": [
+      {
+        "menuKey": "@be/main-menu#main-menu",
+        "fonts": {
+          "titleFamily": "Proxima Nova Soft",
+          "labelFamily": "Proxima Nova Soft",
+          "titleSize": 64,
+          "labelSize": 44
+        }
+      },
+      {
+        "menuKey": "@be/clock#clockMenu",
+        "palette": {
+          "background": "#101923",
+          "surface": "#203040",
+          "surfaceSecondary": "#182736",
+          "text": "#FFFFFF",
+          "mutedText": "#C6D6E6",
+          "accent": "#E8C78C"
+        },
+        "fonts": {
+          "titleFamily": "Proxima Nova Soft",
+          "labelFamily": "Proxima Nova Light",
+          "titleSize": 64,
+          "labelSize": 44
+        },
+        "background": {
+          "asset": null,
+          "opacity": 0
+        }
+      },
+      {
+        "menuKey": "@be/exercise#exercise-menu",
+        "menuLayout": {
+          "scrollMode": "continuous",
+          "buttonSize": 64,
+          "buttonOffset": {
+            "x": 0,
+            "y": 0
+          },
+          "iconSize": 44,
+          "iconOffset": {
+            "x": 0,
+            "y": 12
+          },
+          "labelSize": 5,
+          "labelWidth": 96,
+          "labelOffset": {
+            "x": 0,
+            "y": -28
+          }
+        }
+      }
+    ],
+    "menuLayout": {
+      "scrollMode": "continuous",
+      "buttonSize": 36,
+      "buttonOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "iconSize": 44,
+      "iconOffset": {
+        "x": 0,
+        "y": 12
+      },
+      "labelSize": 10,
+      "labelWidth": 96,
+      "labelOffset": {
+        "x": 0,
+        "y": -28
+      }
+    }
+  },
+  "assets": [
+    {
+      "id": "terraces",
+      "role": "background",
+      "path": "assets/terraces.png"
+    }
+  ]
+}

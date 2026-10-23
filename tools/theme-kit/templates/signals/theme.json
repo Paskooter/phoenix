@@ -1,0 +1,442 @@
+{
+  "schema": 2,
+  "kind": "theme",
+  "runtime": "phoenix-menu-theme-v1",
+  "themeApi": 1,
+  "appId": "app-00000000-0000-4000-8000-000000000101",
+  "version": "1.0.0",
+  "minFirmware": "13.7.1",
+  "name": "Signals",
+  "description": "A complete accepted icon map with original abstract marks. Trusted native app icons and the accepted Tic-Tac-Toe target keep native paint. Refine visible marks to match their labels before publishing.",
+  "releaseNotes": "Initial developer starter.",
+  "permissions": [
+    "menu-theme"
+  ],
+  "launchNames": [],
+  "theme": {
+    "layout": "native",
+    "palette": {
+      "background": "#101923",
+      "surface": "#203040",
+      "surfaceSecondary": "#182736",
+      "text": "#FFFFFF",
+      "mutedText": "#C6D6E6",
+      "accent": "#96EAD0"
+    },
+    "fonts": {
+      "titleFamily": "Proxima Nova Soft",
+      "labelFamily": "Proxima Nova",
+      "titleSize": 64,
+      "labelSize": 44
+    },
+    "background": {
+      "asset": null,
+      "opacity": 0
+    },
+    "overrides": [
+      {
+        "menuKey": "@be/main-menu#main-menu",
+        "icons": [
+          {
+            "itemId": "introduction",
+            "asset": "mark-00"
+          },
+          {
+            "itemId": "thingsToDo",
+            "asset": "mark-01"
+          },
+          {
+            "itemId": "fun",
+            "asset": "mark-02"
+          },
+          {
+            "itemId": "clock",
+            "asset": "mark-03"
+          },
+          {
+            "itemId": "personalReport",
+            "asset": "mark-04"
+          },
+          {
+            "itemId": "radio",
+            "asset": "mark-05"
+          },
+          {
+            "itemId": "snapshot",
+            "asset": "mark-06"
+          },
+          {
+            "itemId": "gallery",
+            "asset": "mark-07"
+          },
+          {
+            "itemId": "photobooth",
+            "asset": "mark-08"
+          },
+          {
+            "itemId": "exercise",
+            "asset": "mark-09"
+          },
+          {
+            "itemId": "tutorial",
+            "asset": "mark-10"
+          },
+          {
+            "itemId": "settings",
+            "asset": "mark-11"
+          },
+          {
+            "itemId": "phoenix-agent",
+            "asset": "mark-12"
+          },
+          {
+            "itemId": "phoenix-spotify",
+            "asset": "mark-13"
+          },
+          {
+            "itemId": "phoenix-tic-tac-toe",
+            "asset": "mark-14"
+          }
+        ]
+      },
+      {
+        "menuKey": "@be/main-menu#fun-stuff",
+        "icons": [
+          {
+            "itemId": "circuitSaver",
+            "asset": "mark-15"
+          },
+          {
+            "itemId": "wordOfTheDay",
+            "asset": "mark-16"
+          },
+          {
+            "itemId": "joke",
+            "asset": "mark-17"
+          },
+          {
+            "itemId": "dance",
+            "asset": "mark-18"
+          },
+          {
+            "itemId": "surprise",
+            "asset": "mark-19"
+          }
+        ]
+      },
+      {
+        "menuKey": "@be/main-menu#personal-report",
+        "icons": [
+          {
+            "itemId": "fullReport",
+            "asset": "mark-20"
+          },
+          {
+            "itemId": "weather",
+            "asset": "mark-21"
+          },
+          {
+            "itemId": "calendar",
+            "asset": "mark-22"
+          },
+          {
+            "itemId": "commute",
+            "asset": "mark-23"
+          },
+          {
+            "itemId": "news",
+            "asset": "mark-24"
+          }
+        ]
+      },
+      {
+        "menuKey": "@be/clock#clockMenu",
+        "icons": [
+          {
+            "itemId": "time",
+            "asset": "mark-25"
+          },
+          {
+            "itemId": "date",
+            "asset": "mark-26"
+          },
+          {
+            "itemId": "timer",
+            "asset": "mark-27"
+          },
+          {
+            "itemId": "alarm",
+            "asset": "mark-28"
+          }
+        ]
+      },
+      {
+        "menuKey": "@be/create#createMenu",
+        "icons": [
+          {
+            "itemId": "photo",
+            "asset": "mark-29"
+          },
+          {
+            "itemId": "photobooth",
+            "asset": "mark-30"
+          }
+        ]
+      },
+      {
+        "menuKey": "@be/exercise#exercise-menu",
+        "icons": [
+          {
+            "itemId": "sunSalutation",
+            "asset": "mark-31"
+          },
+          {
+            "itemId": "basicWarrior",
+            "asset": "mark-32"
+          }
+        ]
+      },
+      {
+        "menuKey": "@be/settings#settingsMenu",
+        "icons": [
+          {
+            "itemId": "volume",
+            "asset": "mark-33"
+          },
+          {
+            "itemId": "wifi",
+            "asset": "mark-34"
+          },
+          {
+            "itemId": "battery",
+            "asset": "mark-35"
+          },
+          {
+            "itemId": "about",
+            "asset": "mark-36"
+          },
+          {
+            "itemId": "updates",
+            "asset": "mark-37"
+          },
+          {
+            "itemId": "homeAssistant",
+            "asset": "mark-38"
+          },
+          {
+            "itemId": "themes",
+            "asset": "mark-39"
+          }
+        ]
+      }
+    ],
+    "storeAppIcon": "store-mark"
+  },
+  "assets": [
+    {
+      "id": "mark-00",
+      "role": "icon",
+      "path": "assets/icons/mark-00.png"
+    },
+    {
+      "id": "mark-01",
+      "role": "icon",
+      "path": "assets/icons/mark-01.png"
+    },
+    {
+      "id": "mark-02",
+      "role": "icon",
+      "path": "assets/icons/mark-02.png"
+    },
+    {
+      "id": "mark-03",
+      "role": "icon",
+      "path": "assets/icons/mark-03.png"
+    },
+    {
+      "id": "mark-04",
+      "role": "icon",
+      "path": "assets/icons/mark-04.png"
+    },
+    {
+      "id": "mark-05",
+      "role": "icon",
+      "path": "assets/icons/mark-05.png"
+    },
+    {
+      "id": "mark-06",
+      "role": "icon",
+      "path": "assets/icons/mark-06.png"
+    },
+    {
+      "id": "mark-07",
+      "role": "icon",
+      "path": "assets/icons/mark-07.png"
+    },
+    {
+      "id": "mark-08",
+      "role": "icon",
+      "path": "assets/icons/mark-08.png"
+    },
+    {
+      "id": "mark-09",
+      "role": "icon",
+      "path": "assets/icons/mark-09.png"
+    },
+    {
+      "id": "mark-10",
+      "role": "icon",
+      "path": "assets/icons/mark-10.png"
+    },
+    {
+      "id": "mark-11",
+      "role": "icon",
+      "path": "assets/icons/mark-11.png"
+    },
+    {
+      "id": "mark-12",
+      "role": "icon",
+      "path": "assets/icons/mark-12.png"
+    },
+    {
+      "id": "mark-13",
+      "role": "icon",
+      "path": "assets/icons/mark-13.png"
+    },
+    {
+      "id": "mark-14",
+      "role": "icon",
+      "path": "assets/icons/mark-14.png"
+    },
+    {
+      "id": "mark-15",
+      "role": "icon",
+      "path": "assets/icons/mark-15.png"
+    },
+    {
+      "id": "mark-16",
+      "role": "icon",
+      "path": "assets/icons/mark-16.png"
+    },
+    {
+      "id": "mark-17",
+      "role": "icon",
+      "path": "assets/icons/mark-17.png"
+    },
+    {
+      "id": "mark-18",
+      "role": "icon",
+      "path": "assets/icons/mark-18.png"
+    },
+    {
+      "id": "mark-19",
+      "role": "icon",
+      "path": "assets/icons/mark-19.png"
+    },
+    {
+      "id": "mark-20",
+      "role": "icon",
+      "path": "assets/icons/mark-20.png"
+    },
+    {
+      "id": "mark-21",
+      "role": "icon",
+      "path": "assets/icons/mark-21.png"
+    },
+    {
+      "id": "mark-22",
+      "role": "icon",
+      "path": "assets/icons/mark-22.png"
+    },
+    {
+      "id": "mark-23",
+      "role": "icon",
+      "path": "assets/icons/mark-23.png"
+    },
+    {
+      "id": "mark-24",
+      "role": "icon",
+      "path": "assets/icons/mark-24.png"
+    },
+    {
+      "id": "mark-25",
+      "role": "icon",
+      "path": "assets/icons/mark-25.png"
+    },
+    {
+      "id": "mark-26",
+      "role": "icon",
+      "path": "assets/icons/mark-26.png"
+    },
+    {
+      "id": "mark-27",
+      "role": "icon",
+      "path": "assets/icons/mark-27.png"
+    },
+    {
+      "id": "mark-28",
+      "role": "icon",
+      "path": "assets/icons/mark-28.png"
+    },
+    {
+      "id": "mark-29",
+      "role": "icon",
+      "path": "assets/icons/mark-29.png"
+    },
+    {
+      "id": "mark-30",
+      "role": "icon",
+      "path": "assets/icons/mark-30.png"
+    },
+    {
+      "id": "mark-31",
+      "role": "icon",
+      "path": "assets/icons/mark-31.png"
+    },
+    {
+      "id": "mark-32",
+      "role": "icon",
+      "path": "assets/icons/mark-32.png"
+    },
+    {
+      "id": "mark-33",
+      "role": "icon",
+      "path": "assets/icons/mark-33.png"
+    },
+    {
+      "id": "mark-34",
+      "role": "icon",
+      "path": "assets/icons/mark-34.png"
+    },
+    {
+      "id": "mark-35",
+      "role": "icon",
+      "path": "assets/icons/mark-35.png"
+    },
+    {
+      "id": "mark-36",
+      "role": "icon",
+      "path": "assets/icons/mark-36.png"
+    },
+    {
+      "id": "mark-37",
+      "role": "icon",
+      "path": "assets/icons/mark-37.png"
+    },
+    {
+      "id": "mark-38",
+      "role": "icon",
+      "path": "assets/icons/mark-38.png"
+    },
+    {
+      "id": "mark-39",
+      "role": "icon",
+      "path": "assets/icons/mark-39.png"
+    },
+    {
+      "id": "store-mark",
+      "role": "icon",
+      "path": "assets/icons/store-mark.png"
+    }
+  ]
+}

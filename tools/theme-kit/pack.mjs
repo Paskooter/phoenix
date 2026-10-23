@@ -6,6 +6,7 @@ import { readFileSync, lstatSync, realpathSync } from 'node:fs';
 import { resolve, sep } from 'node:path';
 import theme from './themeFormat.cjs';
 import format from './format.cjs';
+import { validateManifest, validatePixels } from './extensions.mjs';
 
 export const ICON_TARGETS = Object.freeze({
   '@be/main-menu#main-menu': ['introduction','thingsToDo','fun','clock','personalReport','radio','snapshot','gallery','photobooth','exercise','tutorial','settings','phoenix-agent','phoenix-spotify','phoenix-tic-tac-toe'],
@@ -22,7 +23,7 @@ function authorPolicy(m) {
   for (const p of [m.theme.palette,...m.theme.overrides.filter(o=>o.palette).map(o=>o.palette)]) for(const background of ['surface','surfaceSecondary','background']) if(theme.contrast(p.mutedText,p[background])<4.5) reject('theme_contrast_insufficient');
   for (const o of m.theme.overrides) {
     if (!Object.hasOwn(ICON_TARGETS, o.menuKey)) reject('theme_target_not_allowed');
-    if (o.layout && ICON_TARGETS[o.menuKey].length === 0) reject('theme_layout_not_allowed');
+    if ((o.layout || o.menuLayout) && ICON_TARGETS[o.menuKey].length === 0) reject('theme_layout_not_allowed');
     for (const i of o.icons || []) if (!ICON_TARGETS[o.menuKey].includes(i.itemId)) reject('theme_icon_not_allowed');
   }
 }
@@ -58,6 +59,7 @@ function normalizePng(bytes, asset) {
     }
     decoded.copy(raw, y * (stride + 1) + 1, y * stride, (y + 1) * stride);
   }
+  validatePixels(asset, decoded, info.channels);
   const header = Buffer.alloc(13); header.writeUInt32BE(info.width); header.writeUInt32BE(info.height, 4); header[8] = 8; header[9] = info.channels === 4 ? 6 : 2;
   return Buffer.concat([signature, chunk('IHDR', header), chunk('IDAT', deflateSync(raw, { level: 9 })), chunk('IEND', Buffer.alloc(0))]);
 }
@@ -102,7 +104,7 @@ export async function packTheme(input, blobs) {
     const info = b.bytes.subarray(0,8).equals(signature) ? theme.inspectPng(b.bytes) : theme.inspectJpeg(b.bytes);
     return { id: b.id, role: b.role, mediaType: info.mediaType, sha256: theme.sha256(b.bytes), bytes: b.bytes.length, width: info.width, height: info.height };
   });
-  theme.validateManifest(m); authorPolicy(m); // dimensions/pixels before allocating decode output
+  validateManifest(m); authorPolicy(m); // dimensions/pixels before allocating decode output
   const clean = [];
   for (let i=0;i<sorted.length;i++) {
     const a=m.assets[i];
@@ -114,11 +116,11 @@ export async function packTheme(input, blobs) {
     }
   }
   m.assets = m.assets.map((a,i) => ({ ...a, mediaType: 'image/png', sha256: theme.sha256(clean[i]), bytes: clean[i].length }));
-  const validated = theme.validateManifest(m), header = Buffer.alloc(12); header.write(theme.MAGIC); header.writeUInt32BE(validated.bytes.length, 8);
+  const validated = validateManifest(m), header = Buffer.alloc(12); header.write(theme.MAGIC); header.writeUInt32BE(validated.bytes.length, 8);
   const bytes = Buffer.concat([header, validated.bytes, ...clean]);
   if (bytes.length > theme.LIMITS.artifactBytes) reject('theme_artifact_too_large');
   return { bytes, manifest: validated.manifest, manifestBytes: validated.bytes,
-    descriptor: { schema: 2, kind: 'theme', runtime: theme.RUNTIME, appId: m.appId, version: m.version, minFirmware: m.minFirmware, permissions: ['menu-theme'], launchNames: [], sha256: theme.sha256(bytes), bytes: bytes.length, manifestSha256: theme.sha256(validated.bytes), manifestBytes: validated.bytes.length, assetCount: m.assets.length, themeApi: 1 } };
+    descriptor: { schema: 2, kind: 'theme', runtime: theme.RUNTIME, appId: m.appId, version: m.version, minFirmware: m.minFirmware, permissions: ['menu-theme'], launchNames: [], sha256: theme.sha256(bytes), bytes: bytes.length, manifestSha256: theme.sha256(validated.bytes), manifestBytes: validated.bytes.length, assetCount: m.assets.length, themeApi: m.themeApi } };
 }
 /** Author-only paths are tightly bounded and never enter the manifest. */
 export async function packDirectory(directory) {

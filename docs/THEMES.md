@@ -1,23 +1,46 @@
-# Making Phoenix menu themes
+# Making Phoenix themes
+
+Build passive appearance packs for Jibo: ordinary menus, original eye paint and
+bounded layout choices. Start here, then use the detailed references:
+
+- [All API versions and extension fields](themes/REFERENCE.md)
+- [Every replaceable surface and native boundary](themes/SURFACES.md)
+- [Testing and accessibility checklist](themes/TESTING.md)
+- [Publishing, updates and review](themes/PUBLISHING.md)
 
 Ember and Orbit are open, original examples for making your own Jibo menu theme.
-The kit builds **unsigned data**, not a robot skill, firmware image or executable.
+Four additional runnable starters live in `tools/theme-kit/templates/`:
+
+| Starter | API | Demonstrates |
+| --- | --- | --- |
+| `paper` | 1 | Light palette, no images; native icon and geometry fallback |
+| `signals` | 1 | Complete accepted icon map and generic declarative Store tile icon; native app identities remain native |
+| `terrace` | 4 | Abstract background, per-menu fonts/palette, continuous bounded geometry |
+| `cut-paper` | 3 | Original neutral step-bar paint on the native animated eye mesh |
+
+The kit builds **unsigned data**, not a robot skill, software image or executable.
 You need Node.js 20 or newer. PNG authoring has no npm dependencies: the CLI uses
 only Node built-ins and the files in `tools/theme-kit/`. Python 3 with Pillow is
 needed only for JPEG input; the optional art generator also needs NumPy.
 
-A robot must advertise support for `phoenix-menu-theme-v1` and theme API 1 and
-satisfy your manifest's minimum firmware. A version number by itself is not proof
-of theme support. The examples preserve their original `minFirmware: "13.6.1"`
-metadata; this kit does not certify any firmware or physical robot.
+A robot must advertise `phoenix-menu-theme-v1`, your exact theme API and a
+compatible `minFirmware` floor. A version number alone is not proof of support.
+Ember/Orbit retain their original `minFirmware: "13.6.1"`; the new starters use
+`13.7.1`. Choose the lowest release you actually test with the required capability.
+Do not lower `themeApi` to bypass compatibility checks.
 
 ## What a theme can change
 
 - Six palette colors, a static background, bounded bundled-font choices/sizes.
-- Static icon replacements for the exact ordinary menu items listed below.
+- Static icon replacements for eligible ordinary menu items in the accepted map
+  below. Native app identities and the runtime exceptions remain native.
 - A firmware-owned layout: `native` (paged buttons) or `slide` (sliding cards).
   The owner can choose a layout per robot and enable reduced motion.
 - An optional store preview and generic icon for declarative Store app tiles.
+- Original eye paint assets on Jibo's native animated mesh (API 3); API 4 adds
+  closed/listening paint, a face background and bounded display scale.
+- Bounded button, icon and label sizing/offsets with paged or continuous scrolling
+  (API 4). Jibo clamps geometry to its native safe area; this is not a view editor.
 
 Full decoration is supported on the Main, Fun, Personal Report, Clock, Create,
 Exercise and ordinary Settings menus. Wi-Fi submenus accept palette, background
@@ -25,13 +48,17 @@ and fonts, not replacement icons or layout. Other ordinary menus may receive
 limited cosmetics according to firmware policy; a pack cannot expand coverage.
 Unsupported or specialized menus keep native controls/geometry.
 
-Themes **cannot** change actions, labels, menu order, touch targets, navigation,
-STOP/swipe-down behavior, speech, camera, network access or permissions. Safety
-rows (Wipe, Shutdown, Firewall), stateful network/battery indicators, confirmation
-colors, update/recovery screens and the Default/picker controls stay firmware-owned.
-Tutorial guided screens, Gallery custom views, idle/eye, chat, Web Panel, photos,
-clock faces, volume sliders, restore and setup screens are outside this menu API.
-**Eye themes are coming, but are not supported yet.** No release date is promised.
+Themes **cannot** change actions, labels, menu order, navigation, STOP/swipe-down
+behavior, speech, camera, network access or permissions. API 1–3 choose native
+layout presets, not authored target dimensions; API 4 adds only bounded geometry
+described in [the reference](themes/REFERENCE.md#bounded-menu-geometry-api-4).
+Safety rows (Wipe, Shutdown, Firewall) keep their button colours, icon identity,
+label wording and actions, but their label font/colour and eligible menu geometry
+can change. Stateful network/battery indicators, confirmation colours,
+update/recovery screens and the Default/picker controls stay native.
+Tutorial guided screens, Gallery custom views, chat, Web Panel, photos, clock
+faces, volume sliders, restore and setup screens are outside the menu API.
+Eye paint is a separate capability, not permission to replace these views.
 
 No JavaScript, actions, raw BE view configs, MIMs, timelines, downloaded fonts,
 CSS, HTML, shaders, sounds, SVG or external URLs are accepted. Backgrounds and
@@ -46,7 +73,12 @@ Run these commands from the Phoenix checkout:
 node tools/theme-kit/cli.mjs check themes/ember
 node tools/theme-kit/cli.mjs check themes/orbit
 node tools/theme-kit/cli.mjs new copper --from ember --author "Your name"
-# Or start with the sliding-card example:
+# Or use one of the capability-focused starters:
+node tools/theme-kit/cli.mjs new notebook --from paper --author "Your name"
+node tools/theme-kit/cli.mjs new wayfinding --from signals --author "Your name"
+node tools/theme-kit/cli.mjs new hillside --from terrace --author "Your name"
+node tools/theme-kit/cli.mjs new folded --from cut-paper --author "Your name"
+# Orbit starts with sliding cards:
 node tools/theme-kit/cli.mjs new starlight --from orbit --author "Your name"
 ```
 
@@ -84,7 +116,7 @@ All top-level fields below are required:
 | Field | Contract |
 | --- | --- |
 | `schema` / `kind` | Exactly `2` / `"theme"` |
-| `runtime` / `themeApi` | Exactly `"phoenix-menu-theme-v1"` / `1` |
+| `runtime` / `themeApi` | Runtime is exactly `"phoenix-menu-theme-v1"`; API is `1`, `2`, `3` or `4` according to the [extension fields](themes/REFERENCE.md#api-selection) |
 | `appId` | `app-` plus a lowercase UUID in `8-4-4-4-12` hex groups; must belong to the submitting publisher |
 | `version` | Plain `X.Y.Z`; components are nonnegative safe integers, no leading zeros or prerelease/build suffixes; published versions are immutable and must increase |
 | `minFirmware` | The same plain `X.Y.Z` grammar; select a supported theme-capable firmware floor |
@@ -97,6 +129,10 @@ All top-level fields below are required:
 | `assets` | At most 64 source entries, each exactly `{ "id", "role", "path" }` |
 
 ### The `theme` object
+
+This table describes the base object, required at every API. Optional `eye`,
+`eyeAsset`, `face` and `menuLayout` groups, including per-menu geometry, are fully
+specified in [the extension reference](themes/REFERENCE.md).
 
 | Field | Required? | Contract |
 | --- | --- | --- |
@@ -144,7 +180,7 @@ Allowed scopes:
 | `surface` | Primary button/card backing |
 | `surfaceSecondary` | Secondary button/card/label backing |
 | `text` | Ordinary labels and titles |
-| `mutedText` | Secondary text |
+| `mutedText` | Required contrast-checked token; not a separate ordinary-menu text paint slot in the current renderer |
 | `accent` | Focus/border accent, not semantic danger/status colors |
 
 Every token is exactly a six-digit hex color (`#` plus six hex digits), without
@@ -178,8 +214,9 @@ or a robot depiction; they are not hardware screenshots.
 | Assets | 64, with at most one background and one preview |
 | Each input and normalized image | 1,048,576 encoded bytes (1 MiB) |
 | Total pixels across all assets | 4,194,304 (up to 16 MiB decoded RGBA) |
-| Installed themes on a robot | 8, sharing the Store's overall inventory cap |
+| Installed themes on a robot | 8, sharing the Store's overall cap of 40 installed apps |
 | Robot theme disk allocation | 83,886,080 bytes (80 MiB), including candidate/retained predecessor; actual admission may be tighter |
+| Resident decoded theme textures | 16,777,216 bytes (16 MiB) across renderer candidates, separate from native caches; images can be deferred under pressure |
 
 Both examples contain 40 images (38 icons + background + preview) and declare
 3,930,368 pixels. Having room under the encoded-byte budget does not waive the
@@ -231,7 +268,7 @@ preserving exact `menuKey`/`itemId` targets. IDs are case-sensitive.
 | `settings` | Main `settings` | 256 × 256 |
 | `agent` | Main `phoenix-agent`, only if firmware already permits it | 256 × 256 |
 | `spotify` | Main trusted injected `phoenix-spotify` | 256 × 256 |
-| `tic-tac-toe` | Main trusted injected `phoenix-tic-tac-toe` | 256 × 256 |
+| `tic-tac-toe` | Accepted Main `phoenix-tic-tac-toe` mapping; native art retained (see below) | 256 × 256 |
 | `app` | `theme.storeAppIcon`, declarative Store app tiles only | 256 × 256 |
 | `circuit-saver` | Fun `circuitSaver` | 256 × 256 |
 | `word-of-day` | Fun `wordOfTheDay` | 256 × 256 |
@@ -256,6 +293,20 @@ preserving exact `menuKey`/`itemId` targets. IDs are case-sensitive.
 | `home-assistant` | Settings `homeAssistant` root tile | 256 × 256 |
 | `themes` | Settings firmware `themes` tile | 256 × 256 |
 
+### Accepted targets and visible replacements
+
+The table is the **accepted manifest map**, not a guarantee that every target
+is drawn from theme art. BE 13.7.1 accepts `phoenix-tic-tac-toe` in a pack, but it
+is not a renderer replacement target; that icon remains native. The Signals
+starter keeps this accepted mapping as a format example.
+
+A trusted native app icon takes precedence over theme art even when its menu
+item ID is in the table. This includes native-v2 tiles and settings entries.
+`storeAppIcon` applies only to eligible declarative Store tiles, not native apps.
+An accepted target that is absent from the current menu does not add an item.
+Verify actual visible icons on the intended software release before promising
+coverage; valid format and rendered coverage are different checks.
+
 ## Check, pack and regenerate
 
 ```sh
@@ -277,7 +328,8 @@ The stem comes from the source directory name (or `theme` if not a valid stem).
 Existing output files are never overwritten: use a fresh output directory or
 remove old outputs deliberately. Nonzero exit means rejection; diagnostics name
 the failing rule/limit. Neither command signs, contacts a store or installs on a
-robot. There is no unsigned sideload workflow.
+robot. Published themes use the Skill Store flow below. This kit has no SSH
+transport and cannot directly install its unsigned output on a robot.
 
 The packer sorts assets lexically by ID, decodes accepted images, and emits clean
 RGB/RGBA PNGs with filter 0 and compression level 9. It derives each image's hash,
@@ -340,36 +392,13 @@ deadlines are 8/90 seconds. Default publisher limits include two concurrent
 uploads, six admissions/releases per hour and 32 MiB storage; invalid uploads
 also consume admission budget. Policy may tighten these limits.
 
-**Publish UI compatibility:** some console builds still expose only a `.json`
-declarative-app picker. Do not rename `.phtheme` to `.json`. From your authenticated
-jibo.io Publish page, this browser-console helper offers a theme file picker and
-uses the separate supported endpoint (review the code before running it):
-
-```js
-const picker = document.createElement('input');
-picker.type = 'file';
-picker.accept = '.phtheme';
-picker.onchange = async () => {
-  const file = picker.files[0];
-  if (!file) return;
-  if (file.size > 8388608) throw new Error('Theme exceeds 8 MiB');
-  const response = await fetch('/api/skill-store/publisher/theme-releases', {
-    method: 'POST',
-    credentials: 'same-origin',
-    headers: { 'Content-Type': 'application/vnd.phoenix.menu-theme' },
-    body: file
-  });
-  const result = await response.json();
-  if (!response.ok) throw new Error(result.error || 'Theme upload failed');
-  console.log(result);
-};
-picker.click();
-```
-
-Use this only on the console origin; it does not bypass publisher approval,
-CSRF/origin checks, ownership, version or upload limits. No cookies, credentials
-or keys need to be copied into a script. A self-hosted console must itself support
-the theme endpoint; this public kit does not add a store service.
+Use **Publish a theme** on the Publish page. Choose or drop a `.phtheme`, review
+its identity, version and appearance summary, then use **Publish version …**.
+The page also accepts a ZIP of a source theme folder and packs it locally.
+Prefer the CLI-produced `.phtheme` for reproducible checks. Do not rename it to
+`.json`, and do not use the declarative app uploader. See
+[publishing and updates](themes/PUBLISHING.md) for the full release checklist,
+ZIP limits and refusal handling.
 
 The store repeats validation/normalization, creates the release ID, derives the
 final descriptor and signs it. Authors do **not** need signing keys and must not
@@ -384,23 +413,27 @@ hardware acceptance can remain `unverified`.
 ## Test on a robot and recover
 
 Install through the Store onto a compatible, owner-linked robot after reviewing
-the appearance consent: “Changes ordinary menu appearance on this Jibo. Does not
-change actions, speech, camera or network access.” **Install is not apply.** Select
+the appearance consent: “Changes ordinary menu appearance and, when declared, eye
+colour or texture on this Jibo. Does not change actions, speech, camera or network
+access.” **Install is not apply.** Select
 it explicitly in Settings → Themes or the console's per-robot Appearance panel.
 Treat Waiting as pending, not active: the console reflects robot-reported Applied,
 Reverted to Default, Failed or Conflict outcomes.
 
 Check Main/Fun/Personal Report/Clock/Create/Exercise/Settings, all icon roles,
 long labels, focus/readability, gestures and both layouts. Verify protected safety
-rows/status controls, Default recovery and ordinary app behavior stay unchanged.
+row semantics, status controls, Default recovery and ordinary app behavior.
+Safety row fonts and eligible layout may change; their labels/actions must not.
 The preview PNG and `check` cannot prove display clipping, GPU decoding or physical
 touch/voice behavior; test those on the intended hardware separately.
 
 Default is built into firmware and requires no theme download. An invalid or
 corrupt pack is rejected; unsupported/missing target overrides keep native
 appearance, and missing icons/backgrounds have bundled-icon/solid-backing
-fallbacks. A failed theme generation/trial returns to native Default rather than
-loading pack code. An unfinished trial on startup is rolled back. Default/picker
+fallbacks. Undo or trial timeout restores the previous selection. A candidate
+that fails before commit leaves the prior menu appearance in place and restores
+native eye paint; a committed renderer failure restores Default. An unfinished
+trial on startup is rolled back. Themes are never loaded as code. Default/picker
 recovery controls are outside the theme's control; use **Default theme** to turn
 off decoration, including offline. Updates install a new release but do not
 silently change active visuals. Removing an active theme or explicit ownership

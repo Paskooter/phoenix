@@ -1,0 +1,39 @@
+{
+  "schema": 2,
+  "kind": "theme",
+  "runtime": "phoenix-menu-theme-v1",
+  "themeApi": 1,
+  "appId": "app-00000000-0000-4000-8000-000000000100",
+  "version": "1.0.0",
+  "minFirmware": "13.7.1",
+  "name": "Paper",
+  "description": "A palette-only start. No images, no icon overrides, native menu geometry.",
+  "releaseNotes": "Initial developer starter.",
+  "permissions": [
+    "menu-theme"
+  ],
+  "launchNames": [],
+  "theme": {
+    "layout": "native",
+    "palette": {
+      "background": "#F6F1E7",
+      "surface": "#E6DFD1",
+      "surfaceSecondary": "#EEE8DC",
+      "text": "#191D24",
+      "mutedText": "#3A414B",
+      "accent": "#145B67"
+    },
+    "fonts": {
+      "titleFamily": "Proxima Nova Soft",
+      "labelFamily": "Proxima Nova",
+      "titleSize": 64,
+      "labelSize": 44
+    },
+    "background": {
+      "asset": null,
+      "opacity": 0
+    },
+    "overrides": []
+  },
+  "assets": []
+}
