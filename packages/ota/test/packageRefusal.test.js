@@ -4,6 +4,9 @@ import assert from 'node:assert/strict';
 import { createHmac } from 'node:crypto';
 import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import http from 'node:http';
+import fs from 'node:fs';
+import { syncBuiltinESMExports } from 'node:module';
+import { setImmediate } from 'node:timers/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { Catalog } from '../src/catalog.js';
@@ -16,6 +19,9 @@ const SECRET = 'synthetic-ota-diagnostic-test-key';
 const PAYLOAD = Buffer.from('synthetic OTA package bytes');
 let dir;
 let server;
+// Content-Length completion is earlier than the server's source EOF/pipeline
+// cleanup. Keep successful clients connected instead of aborting that work.
+const downloadAgent = new http.Agent({ keepAlive: true });
 
 function signed(expires = NOW + 60_000, id = ID) {
   const signature = createHmac('sha256', SECRET)
@@ -37,14 +43,15 @@ before(async () => {
 
 after(async () => {
   if (server) await new Promise(resolve => server.close(resolve));
+  downloadAgent.destroy();
   if (dir) await rm(dir, { recursive: true, force: true });
 });
 
-function download(url, host = HOST) {
+function download(url, host = HOST, agent = downloadAgent) {
   return new Promise((resolve, reject) => {
     const req = http.get({
       hostname: '127.0.0.1', port: server.address().port,
-      path: url.pathname + url.search, headers: { host }, agent: false,
+      path: url.pathname + url.search, headers: { host }, agent,
     }, res => {
       const chunks = [];
       res.on('data', chunk => chunks.push(chunk));
@@ -61,7 +68,8 @@ function download(url, host = HOST) {
 async function refused(t, url, expected, host = HOST) {
   const output = [];
   t.mock.method(process.stderr, 'write', chunk => { output.push(String(chunk)); return true; });
-  const response = await download(url, host);
+  // Refusals have no file stream; retain their exact Connection: close contract.
+  const response = await download(url, host, false);
   assert.equal(response.status, 403);
   assert.equal(response.statusMessage, 'Forbidden');
   assert.deepEqual(response.body, Buffer.from('forbidden'));
@@ -179,3 +187,36 @@ for (const variant of ['canonical', 'uppercase hex', 'equivalent percent encodin
     assert.equal(output.length, 0, 'a valid download must not emit a rejection or bearer');
   });
 }
+
+test('successful download stays quiet through delayed source EOF and pipeline cleanup', async t => {
+  const output = [];
+  t.mock.method(process.stderr, 'write', chunk => { output.push(String(chunk)); return true; });
+  const createReadStream = fs.createReadStream;
+  let sourceClosed;
+  const streamMock = t.mock.method(fs, 'createReadStream', (file, options) => {
+    const source = createReadStream(file, { ...options, fs: {
+      open: fs.open,
+      close: fs.close,
+      read(fd, ...args) {
+        const callback = args.pop();
+        return fs.read(fd, ...args, (...result) => {
+          // Content-Length can be consumed before the source reaches EOF.
+          // Delay only that real callback; do not synthesize bytes or logs.
+          if (!result[0] && result[1] === 0) setTimeout(() => callback(...result), 30);
+          else callback(...result);
+        });
+      },
+    } });
+    sourceClosed = new Promise(resolve => source.once('close', resolve));
+    return source;
+  });
+  syncBuiltinESMExports();
+  t.after(() => { streamMock.mock.restore(); syncBuiltinESMExports(); });
+  const response = await download(signed());
+  assert.equal(response.status, 200);
+  assert.deepEqual(response.body, PAYLOAD);
+  await sourceClosed;
+  // pipeline's promise settles after the source close event.
+  await setImmediate();
+  assert.equal(output.length, 0, 'a completed download must remain quiet through server cleanup');
+});
