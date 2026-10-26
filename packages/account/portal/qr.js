@@ -90,8 +90,13 @@ class BitBuf {
 // --- data layer --------------------------------------------------------------------
 
 function toUtf8Bytes(text) {
-  if (typeof TextEncoder !== 'undefined') return [...new TextEncoder().encode(text)];
-  return [...Buffer.from(text, 'utf8')];
+  const bytes = typeof TextEncoder !== 'undefined'
+    ? [...new TextEncoder().encode(text)] : [...Buffer.from(text, 'utf8')];
+  // Jibo's ZBar 0.10 tries Shift-JIS before UTF-8 for unmarked byte mode.
+  // Its qrdectxt.c explicitly recognizes and strips a UTF-8 BOM. ECI 26 is
+  // not supported there, so use the BOM on non-ASCII frames and include its
+  // three bytes in version/capacity selection. ASCII frames stay unchanged.
+  return bytes.some(byte => byte >= 0x80) ? [0xef, 0xbb, 0xbf, ...bytes] : bytes;
 }
 
 function pickVersion(byteLen) {
