@@ -265,7 +265,7 @@ export function staticRoutes({ sitemapEntries = () => [] } = {}) {
     // styles
     'theme.css', 'site.css', 'console.css',
     // scripts
-    'app.js', 'pwa.js', 'site.js', 'site-render.js', 'brand.js', 'qr.js', 'map.js',
+    'app.js', 'pwa.js', 'site.js', 'site-render.js', 'brand.js', 'qr.js', 'map.js', 'wifi-details.js',
     'loop-crypto.js', 'loop-keys.js',
     'email-verification.js', 'email-verify.js', 'verify-email.html',
     // vendored

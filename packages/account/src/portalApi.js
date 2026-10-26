@@ -47,6 +47,7 @@ import {
 } from './accountIdentity.js';
 import { createSession, destroySession, getSession, sessionCookie, clearCookie } from './sessions.js';
 import { buildQrCodes } from './qrPayload.js';
+import { wifiDetailsError } from '../portal/wifi-details.js';
 import { userFromSession as sessionUser, portalAccount } from './portal/session.js';
 import { clientAddress } from './portal/clientAddress.js';
 import { classicBaseUrl, classicCall } from './portal/classicClient.js';
@@ -469,8 +470,10 @@ export function portalRoutes(store, options = {}) {
     'POST /api/robots/setup': ({ req, res, body }) => {
       const account = userFromSession(store, req);
       if (!account) return sendJson(res, 401, { error: 'not logged in' });
-      const { ssid, password = '', static: staticConfig = null } = body || {};
-      if (!ssid) return sendJson(res, 400, { error: 'WiFi ssid is required' });
+      const { ssid, static: staticConfig = null } = body || {};
+      const password = body?.password ?? '';
+      const error = wifiDetailsError({ ssid, password, staticConfig });
+      if (error) return sendJson(res, 400, { error });
 
       const token = mintSetupToken(store, account._id, null);
       const { payload, codes } = buildQrCodes({ ssid, password, staticConfig, token: token._id });
@@ -492,12 +495,11 @@ export function portalRoutes(store, options = {}) {
       }
       const ssid = body?.ssid;
       const password = body?.password ?? '';
-      if (typeof ssid !== 'string' || Buffer.byteLength(ssid) < 1 || Buffer.byteLength(ssid) > 32
-        || typeof password !== 'string' || password.length > 63) {
-        return sendJson(res, 400, { error: 'Enter a Wi-Fi name and a password of at most 63 characters' });
-      }
+      const staticConfig = body?.static ?? null;
+      const error = wifiDetailsError({ ssid, password, staticConfig });
+      if (error) return sendJson(res, 400, { error });
       const token = mintSetupToken(store, account._id, loop._id);
-      const { codes } = buildQrCodes({ ssid, password, token: token._id });
+      const { codes } = buildQrCodes({ ssid, password, staticConfig, token: token._id });
       return { token: token._id, expires: token.created + ACCESS_TOKEN_LIFETIME_MS, qr: { codes } };
     },
 

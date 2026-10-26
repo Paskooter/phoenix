@@ -10,6 +10,7 @@
 // unchanged apart from the console's verified-mailbox invitation claim route.
 
 import { qrSvg } from '/qr.js';
+import { wifiDetailsError } from '/wifi-details.js';
 import { createLocationPicker } from '/map.js';
 import { getBrandSync, initBrand, initTheme, pick } from '/brand.js';
 import { createLoopKeyClient } from '/loop-keys.js';
@@ -3359,8 +3360,8 @@ function robotWifiPanel(state) {
       h('li', {}, h('strong', {}, 'Hold the code up to his eye. '),
         `${state.name} keeps his loop, people and history. He does not become a new robot.`)),
     h('div', { class: 'grid2' },
-      field('Network name (SSID)', h('input', { name: 'ssid', required: true, maxlength: 32, autocomplete: 'off', spellcheck: 'false' })),
-      field('Password', h('input', { name: 'password', type: 'password', maxlength: 63, autocomplete: 'off' }),
+      field('Network name (SSID)', h('input', { name: 'ssid', required: true, autocomplete: 'off', spellcheck: 'false' })),
+      field('Password', h('input', { name: 'password', type: 'password', autocomplete: 'off' }),
         'Leave empty for an open network.')),
     h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn btn-primary' }, 'Show Wi-Fi code')));
   const formCard = card('Move to a new network', {}, form);
@@ -3368,6 +3369,8 @@ function robotWifiPanel(state) {
 
   onSubmit(form, async () => {
     const fd = Object.fromEntries(new FormData(form));
+    const error = wifiDetailsError({ ssid: fd.ssid, password: fd.password });
+    if (error) { notify(error, 'error'); return; }
     const result = await api('POST', '/api/robots/wifi', { loopId: state.loopId, ssid: fd.ssid, password: fd.password });
     if (!result.ok) { notify(result.data.error || 'Could not create a Wi-Fi code', 'error'); return; }
     formCard.hidden = true;
@@ -3375,9 +3378,11 @@ function robotWifiPanel(state) {
     const codes = result.data.qr.codes;
     let frame = 0;
     const holder = h('div', { class: 'qr-codes', on: { click: () => { frame = (frame + 1) % codes.length; paint(); } } });
-    // Two frames side by side, or the only one when the payload fits in one.
-    const paint = () => holder.replaceChildren(...codes.slice(0, 2).map((_, i) =>
-      h('div', { class: 'qr-frame', html: qrSvg(codes[(frame + i) % codes.length], 5) })));
+    const progress = codes.length > 1 ? h('p', { class: 'field-hint', style: 'text-align:center' }) : null;
+    const paint = () => {
+      holder.replaceChildren(h('div', { class: 'qr-frame', html: qrSvg(codes[frame], 5) }));
+      if (progress) progress.textContent = `Code ${frame + 1} of ${codes.length}`;
+    };
     paint();
     const status = h('p', { class: 'field-hint qr-status' },
       h('span', { class: 'spinner', 'aria-hidden': 'true' }), 'Waiting for Jibo to scan…');
@@ -3389,7 +3394,8 @@ function robotWifiPanel(state) {
     const qrCard = card('Wi-Fi code', { sub: fd.ssid, actions: [startOver] },
       h('p', { class: 'instruct instruct-center' }, 'Hold this up to Jibo’s eye while his Wi-Fi screen is open.'),
       holder,
-      codes.length > 1 ? h('p', { class: 'field-hint', style: 'text-align:center' }, 'Tap the codes to advance the frames.') : null,
+      progress,
+      codes.length > 1 ? h('p', { class: 'field-hint', style: 'text-align:center' }, 'Show Jibo each code. Tap the code to show the next one.') : null,
       status);
     qrCard.classList.add('qr-card');
     host.append(qrCard);
@@ -3799,9 +3805,16 @@ async function renderAddNew() {
   onSubmit(form, async (e) => {
     e.preventDefault();
     const fd = Object.fromEntries(new FormData(form));
-    const staticConfig = (fd.ip || fd.netmask || fd.gateway)
+    const staticConfig = (fd.ip || fd.netmask || fd.gateway || fd.dns1 || fd.dns2)
       ? { ip: fd.ip, netmask: fd.netmask, gateway: fd.gateway, dns1: fd.dns1, dns2: fd.dns2 }
       : null;
+    const error = wifiDetailsError({ ssid: fd.ssid, password: fd.password, staticConfig });
+    if (error) {
+      errorLine.hidden = false;
+      errorLine.textContent = error;
+      return;
+    }
+    errorLine.hidden = true;
     const r = await api('POST', '/api/robots/setup', {
       ssid: fd.ssid, password: fd.password, static: staticConfig,
     });
@@ -3819,17 +3832,19 @@ async function renderAddNew() {
       h('span', { class: 'spinner', style: 'display:inline-block;vertical-align:-3px;margin-right:.5rem' }),
       'Waiting for the robot to scan…');
 
-    const paint = () => holder.replaceChildren(...codes.slice(0, 2).map((_, i) =>
-      // qrSvg() returns SVG *markup*. It must go in as markup: a plain string
-      // child is appended as a text node, which is why the setup code used to
-      // render as a wall of literal <svg> source instead of a scannable code.
-      h('div', { class: 'qr-frame', html: qrSvg(codes[(frame + i) % codes.length], 5) })));
+    const progress = codes.length > 1 ? h('p', { class: 'field-hint', style: 'text-align:center' }) : null;
+    const paint = () => {
+      // qrSvg returns markup, not a text-node child.
+      holder.replaceChildren(h('div', { class: 'qr-frame', html: qrSvg(codes[frame], 5) }));
+      if (progress) progress.textContent = `Code ${frame + 1} of ${codes.length}`;
+    };
     paint();
 
-    const qrCard = card('Setup code', { sub: `${codes.length} frame${codes.length === 1 ? '' : 's'} · valid for 15 minutes` },
+    const qrCard = card('Setup code', { sub: `${codes.length} code${codes.length === 1 ? '' : 's'} · valid for 15 minutes` },
       h('p', { class: 'instruct instruct-center' }, 'Open the robot’s setup screen and hold this up to its eye.'),
       holder,
-      codes.length > 1 ? h('p', { class: 'field-hint', style: 'text-align:center' }, 'Tap the codes to advance the frames.') : null,
+      progress,
+      codes.length > 1 ? h('p', { class: 'field-hint', style: 'text-align:center' }, 'Show Jibo each code. Tap the code to show the next one.') : null,
       status);
     qrCard.classList.add('qr-card');
     container.append(qrCard);

@@ -1719,7 +1719,6 @@ button.ghost:hover { background: var(--panel-2); border-color: var(--accent-line
     gap: 0;
   }
   .qr-codes > .qr-frame { max-width: none; }
-  .qr-codes > .qr-frame:nth-child(n + 2) { display: none; }
 }
 
 .instruct {
