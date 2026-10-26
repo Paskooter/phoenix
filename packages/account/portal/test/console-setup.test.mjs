@@ -63,7 +63,9 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 360, height: 740 }
         }),
       }));
       assert.equal(geometry.overflow, false, 'no horizontal page overflow');
-      assert.equal(geometry.frames.length, viewport.width < 600 ? 1 : 2, 'one frame on phones; two on desktop');
+      assert.equal(await page.locator('.qr-codes svg').count(), 1, 'only one code exists on every screen');
+      assert.equal(geometry.frames.length, 1, 'one visible code on every screen');
+      assert.equal(await page.getByText('Code 1 of 3', { exact: true }).count(), 1);
       for (const frame of geometry.frames) {
         assert.ok(Math.abs(frame.width - frame.height) < 1, JSON.stringify(frame));
         assert.ok(frame.width >= (viewport.width < 600 ? viewport.width - 32 : 300), JSON.stringify(frame));
@@ -74,6 +76,7 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 360, height: 740 }
       const original = await first.innerHTML();
       await first.click();
       assert.notEqual(await first.innerHTML(), original, 'tap advances the visible frame');
+      assert.equal(await page.getByText('Code 2 of 3', { exact: true }).count(), 1);
       await first.click();
       await first.click();
       assert.equal(await first.innerHTML(), original, 'every frame remains reachable and wraps');

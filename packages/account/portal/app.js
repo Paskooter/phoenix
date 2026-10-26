@@ -3351,7 +3351,7 @@ async function loadRobotHolidays(state, host) {
 
 function robotWifiPanel(state) {
   const host = h('div', { class: 'stack' });
-  const form = h('form', {},
+  const form = h('form', { novalidate: true },
     h('ol', { class: 'steps' },
       h('li', {}, h('strong', {}, 'Open Jibo’s Wi-Fi screen. '),
         'Use the menu on Jibo himself and wait until he asks to scan a code. The console cannot open that screen for you.'),
@@ -3782,7 +3782,7 @@ async function renderAddNew() {
     h('div', {}, 'This works only after Jibo has been connected to Phoenix. If you haven’t run the setup command yet, ',
       h('a', { href: '#/claim' }, 'connect him to Phoenix first'), '.')));
   const errorLine = h('p', { class: 'error', hidden: true });
-  const form = h('form', {},
+  const form = h('form', { novalidate: true },
     h('p', { class: 'field-hint' }, 'A Jibo already paired to this account keeps its loop, people, and history. A new Jibo gets a new loop.'),
     field('Home Wi-Fi name (SSID)', h('input', { name: 'ssid', required: true, autocomplete: 'off' })),
     field('Wi-Fi password', h('input', { name: 'password', type: 'password', autocomplete: 'off' })),

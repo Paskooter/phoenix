@@ -82,6 +82,12 @@ for (const mode of ['setup', 'wifi']) {
     assert.equal(await f.page.getByText(/Code \d of/).count(), 0);
     assert.equal(await f.page.getByText(/Tap the code/).count(), 0);
   });
+  test(`${mode}: blank network name shows the same actionable message on button submit`, async (t) => {
+    const f = await open(t, mode, 390); if (!f) return;
+    await f.page.getByRole('button', { name: mode === 'setup' ? 'Show setup code' : 'Show Wi-Fi code', exact: true }).click();
+    await f.page.getByText('Enter your Wi-Fi network name.', { exact: true }).waitFor({ timeout: 3000 });
+    assert.equal(f.calls(), 0);
+  });
   test(`${mode}: validates literal Wi-Fi values before a request and shows server errors`, async (t) => {
     const f = await open(t, mode, 390); if (!f) return;
     const cases = [
