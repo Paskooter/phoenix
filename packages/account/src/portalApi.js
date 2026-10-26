@@ -499,7 +499,7 @@ export function portalRoutes(store, options = {}) {
       const error = wifiDetailsError({ ssid, password, staticConfig });
       if (error) return sendJson(res, 400, { error });
       const token = mintSetupToken(store, account._id, loop._id);
-      const { codes } = buildQrCodes({ ssid, password, staticConfig, token: token._id });
+      const { codes } = buildQrCodes({ ssid, password, token: token._id });
       return { token: token._id, expires: token.created + ACCESS_TOKEN_LIFETIME_MS, qr: { codes } };
     },
 

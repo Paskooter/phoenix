@@ -82,7 +82,10 @@ for (const path of ['/api/robots/setup', '/api/robots/wifi']) {
     const result = f.call(body);
     assert.equal(result.status, 200);
     assert.equal(result.data.token, 'Fixture');
-    assert.deepEqual(result.data.qr.codes, buildQrCodes({ ssid: body.ssid, password: body.password, staticConfig: body.static, token: 'Fixture' }).codes);
+    // Reconnect has no static-network payload contract; validate supplied fields
+    // without adding a new encoding behavior to that existing endpoint.
+    const encodedStatic = path.endsWith('/setup') ? body.static : undefined;
+    assert.deepEqual(result.data.qr.codes, buildQrCodes({ ssid: body.ssid, password: body.password, staticConfig: encodedStatic, token: 'Fixture' }).codes);
   });
 }
 
