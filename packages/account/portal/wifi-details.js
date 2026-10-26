@@ -22,7 +22,7 @@ export function wifiDetailsError({ ssid, password = '', staticConfig = null }) {
   }
   if (staticConfig !== null && (typeof staticConfig !== 'object' || Array.isArray(staticConfig)
     || !['ip', 'netmask', 'gateway'].every((key) => isIPv4(staticConfig[key]))
-    || !['dns1', 'dns2'].every((key) => staticConfig[key] == null || staticConfig[key] === '' || isIPv4(staticConfig[key])))) {
+    || !['dns1', 'dns2'].every((key) => staticConfig[key] === undefined || staticConfig[key] === '' || isIPv4(staticConfig[key])))) {
     return 'Check the static network settings: IP address, subnet mask and gateway must be valid addresses.';
   }
   return null;

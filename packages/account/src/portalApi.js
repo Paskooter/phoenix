@@ -471,7 +471,7 @@ export function portalRoutes(store, options = {}) {
       const account = userFromSession(store, req);
       if (!account) return sendJson(res, 401, { error: 'not logged in' });
       const { ssid, static: staticConfig = null } = body || {};
-      const password = body?.password ?? '';
+      const password = body?.password === undefined ? '' : body.password;
       const error = wifiDetailsError({ ssid, password, staticConfig });
       if (error) return sendJson(res, 400, { error });
 
@@ -494,7 +494,7 @@ export function portalRoutes(store, options = {}) {
         return sendJson(res, 404, { error: 'Owned robot not found' });
       }
       const ssid = body?.ssid;
-      const password = body?.password ?? '';
+      const password = body?.password === undefined ? '' : body.password;
       const staticConfig = body?.static ?? null;
       const error = wifiDetailsError({ ssid, password, staticConfig });
       if (error) return sendJson(res, 400, { error });
