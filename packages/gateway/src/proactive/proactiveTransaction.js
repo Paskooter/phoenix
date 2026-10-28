@@ -149,7 +149,11 @@ export class ProactiveTransaction {
         );
       } catch (e) {
         if (!this._isActive()) return [];
-        this.log?.error?.('Error fetching settings. Continuing with selection, but settingsRules will fail.', { error: e.message });
+        this.log?.error?.('Error fetching settings. Continuing with selection, but settingsRules will fail.', {
+          error: e.message,
+          settingsStatus: e.statusCode,
+          settingsCode: e.code,
+        });
       }
     }
     if (!this._isActive()) return [];

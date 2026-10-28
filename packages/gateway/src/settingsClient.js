@@ -1,9 +1,10 @@
 // Settings service client — port of hub/utils/SettingsClient.ts.
 //
 // The proactive engine asks the settings service for the preferences of every skill
-// named by a proactive registration's settingsRules, in a single request. Identity rides
-// `x-amz-credentials` (the account service's AWS-JSON Settings face trusts it, like every
-// other LAN peer) and `x-amz-target` selects Settings_<version>.GetSettings. The response
+// named by a proactive registration's settingsRules, in a single request. The focused
+// person's account id rides in `x-amz-credentials`; the separate internal peer token
+// authenticates Hub, and Settings still checks that person's loop membership.
+// `x-amz-target` selects Settings_<version>.GetSettings. The response
 // is an array of { skillId, data }; SettingsRulesChecker consumes it as a Map keyed by
 // skillId.
 //
@@ -62,7 +63,18 @@ export class SettingsClient {
       // JSON.stringify drops an undefined transId, matching the source axios data object.
       body: JSON.stringify({ loopId, transId, skills, getView: false }),
     });
-    if (!res.ok) throw new Error(`settings GetSettings ${res.status}`);
+    if (!res.ok) {
+      const error = new Error(`settings GetSettings ${res.status}`);
+      error.statusCode = res.status;
+      // Retain only known machine causes, never a provider's message/body:
+      // those can contain account details or credentials. Selection still
+      // fails closed; a membership denial must not retry as another person.
+      const payload = await res.json().catch(() => null);
+      if (['LOOP_MEMBER_ONLY', 'LOOP_NOT_FOUND', 'UNKNOWN_DATA_SERVICE'].includes(payload?.code)) {
+        error.code = payload.code;
+      }
+      throw error;
+    }
 
     // transform from array of {skill, data} to Map<skill, data>
     return new Map((await res.json()).map((obj) => [obj.skillId, obj.data]));
