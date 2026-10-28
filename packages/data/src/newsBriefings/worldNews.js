@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { newsHttpUrl, plainNewsText, newsWordCount, classifyNewsContent, isOpinionNews } from '@phoenix/contracts';
+import { newsProviderDiagnostics } from './diagnostics.js';
 
 // Provider-specific requests stop here. The worker consumes normalized articles,
 // so a later LumenFeed adapter does not change generation, storage, or the skill.
@@ -49,20 +50,28 @@ export function worldNewsQuery(category, config, now) {
   return query;
 }
 
-export function normalizeWorldArticle(raw, { now, maxAgeMs }) {
-  if (!raw || typeof raw !== 'object') return null;
-  if (isOpinionNews(raw)) return null;
+export function normalizeWorldArticle(raw, options) {
+  return inspectWorldArticle(raw, options).article || null;
+}
+
+function inspectWorldArticle(raw, { now, maxAgeMs }) {
+  if (!raw || typeof raw !== 'object') return { reason: 'invalid' };
+  if (isOpinionNews(raw)) return { reason: 'opinion' };
   const url = newsHttpUrl(raw.url);
   const title = plainNewsText(raw.title, 240);
   const fullText = plainNewsText(raw.text);
   const date = String(raw.publish_date || '');
   const publishedMs = Date.parse(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(date) ? date.replace(' ', 'T') + 'Z' : date);
-  if (!url || !title || newsWordCount(fullText) < 80 || !Number.isFinite(publishedMs)
-      || publishedMs > now + 300000 || now - publishedMs > maxAgeMs) return null;
+  if (!url) return { reason: 'url' };
+  if (!title) return { reason: 'title' };
+  if (newsWordCount(fullText) < 80) return { reason: 'text' };
+  if (!Number.isFinite(publishedMs)) return { reason: 'date' };
+  if (publishedMs > now + 300000) return { reason: 'future' };
+  if (now - publishedMs > maxAgeMs) return { reason: 'stale' };
   const host = new URL(url).hostname.replace(/^www\./, '');
   const publisher = PUBLISHERS[host] || Object.entries(PUBLISHERS).find(([domain]) => host.endsWith('.' + domain))?.[1]
     || host.replace(/\./g, ' dot ').replace(/-/g, ' ');
-  if (publisher.length > 100) return null;
+  if (publisher.length > 100) return { reason: 'publisher' };
   // A bounded set of paragraph-sized passages is enough for a one-minute source
   // read while keeping token spend predictable. Original text remains available
   // to the worker's content filters before this prompt excerpt is made.
@@ -76,14 +85,14 @@ export function normalizeWorldArticle(raw, { now, maxAgeMs }) {
     selected += passage + ' ';
     paragraphs.push({ id: paragraphs.length + 1, text: passage.trim() });
   }
-  if (!paragraphs.length) return null;
-  return {
+  if (!paragraphs.length) return { reason: 'excerpt' };
+  return { article: {
     id: createHash('sha256').update(url).digest('hex'), title, url, publisher,
     publishedAt: new Date(publishedMs).toISOString(), fullText,
     flags: classifyNewsContent(String(raw.title || '') + ' ' + String(raw.text || '')),
     imageUrl: newsHttpUrl(raw.image), paragraphs,
     contentHash: createHash('sha256').update(title + '\n' + String(raw.text || '')).digest('hex'),
-  };
+  } };
 }
 
 export function createWorldNewsProvider(config, { fetchImpl = fetch } = {}) {
@@ -106,10 +115,18 @@ export function createWorldNewsProvider(config, { fetchImpl = fetch } = {}) {
       }
       const data = await boundedJson(response);
       if (!Array.isArray(data.news)) throw new Error('Invalid World News response');
-      return { articles: data.news.slice(0, config.candidatesPerCategory)
-        .filter(raw => raw && String(raw.source_country || '').toLowerCase() === 'us')
-        .map(raw => normalizeWorldArticle(raw, { now, maxAgeMs: config.maxAgeMs })).filter(Boolean),
-      quotaLeft: response.headers.get('x-api-quota-left') };
+      const candidates = data.news.slice(0, config.candidatesPerCategory);
+      const diagnostics = newsProviderDiagnostics({ received: data.news.length, considered: candidates.length });
+      const articles = [];
+      for (const raw of candidates) {
+        if (!raw || typeof raw !== 'object') { diagnostics.rejected.invalid++; continue; }
+        if (String(raw.source_country || '').toLowerCase() !== 'us') { diagnostics.rejected.country++; continue; }
+        const result = inspectWorldArticle(raw, { now, maxAgeMs: config.maxAgeMs });
+        if (result.article) articles.push(result.article);
+        else diagnostics.rejected[result.reason]++;
+      }
+      diagnostics.accepted = articles.length;
+      return { articles, diagnostics, quotaLeft: response.headers.get('x-api-quota-left') };
     },
   };
 }

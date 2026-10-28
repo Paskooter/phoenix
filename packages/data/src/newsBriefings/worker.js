@@ -8,6 +8,7 @@ import { CATEGORIES } from '../news.js';
 import { newsBriefingConfig } from './config.js';
 import { createWorldNewsProvider, NEWS_EDITION } from './worldNews.js';
 import { createBriefingGenerator } from './generate.js';
+import { newsProviderDiagnostics, newsRunDiagnostics, NEWS_FAILURE_REASONS } from './diagnostics.js';
 
 const HOUR = 3600000;
 const day = ms => new Date(ms).toISOString().slice(0, 10);
@@ -127,6 +128,7 @@ export function createNewsBriefingWorker({
       categories: Object.fromEntries(Object.entries(categories).map(([id, name]) => [name, {
         stories: items(id).length, generatedAt: state.categories[id]?.generatedAt || null,
         nextFetchAt: state.categories[id]?.nextFetchAt || null, lastError: state.categories[id]?.lastError || null,
+        lastRun: newsRunDiagnostics(state.categories[id]?.lastRun),
       }])),
     };
   }
@@ -157,27 +159,34 @@ export function createNewsBriefingWorker({
     const cat = state.categories[sourceID] ||= { items: [], nextFetchAt: 0 };
     let stage = 'provider';
     let failures = 0;
+    let run;
     try {
       if (budget().points + provider.requestPoints > config.dailyPoints) throw budgetError('Daily news request limit');
       if (nextProviderAt > now()) await delay(nextProviderAt - now(), undefined, { signal });
       signal.throwIfAborted();
       cat.lastAttempt = now();
+      run = cat.lastRun = newsRunDiagnostics({ startedAt: now() });
       // Reserve before HTTP, and retain reservations on uncertain failures.
       budget().points += provider.requestPoints;
       persist();
       nextProviderAt = now() + providerSpacingMs;
-      const { articles } = await provider.fetchCategory(category, { now: now(), signal });
+      const { articles, diagnostics } = await provider.fetchCategory(category, { now: now(), signal });
+      run.provider = newsProviderDiagnostics(diagnostics);
+      run.candidates = articles.length;
       const edition = [];
       const seen = new Set();
       stage = 'generation';
       for (const article of articles) {
         signal.throwIfAborted();
-        if (seen.has(article.id)) continue;
+        run.examined++;
+        if (seen.has(article.id)) { run.duplicates++; continue; }
         seen.add(article.id);
         const flags = article.flags || classifyNewsContent(article.title + ' ' + article.fullText);
         const key = [NEWS_PROMPT_VERSION, config.llm.model, article.id, article.contentHash].join(':');
         let cached = state.articles[key];
-        const excluded = flags.banned || isOpinionNews(article) || /\bcorrection:/i.test(article.title);
+        const exclusion = flags.banned ? 'banned' : isOpinionNews(article) ? 'opinion'
+          : /\bcorrection:/i.test(article.title) ? 'correction' : null;
+        const excluded = !!exclusion;
         const knownRevision = cached || Object.keys(state.articles)
           .some(prior => prior.endsWith(`:${article.id}:${article.contentHash}`));
         if (excluded || !knownRevision) {
@@ -186,7 +195,7 @@ export function createNewsBriefingWorker({
           // not delete factual snapshots when the paid budget is exhausted.
           dropArticle(article.id);
         }
-        if (excluded) continue;
+        if (excluded) { run.excluded[exclusion]++; continue; }
         if (!cached || cached.expiresAt <= now() || (cached.item && !fresh(cached.item))) {
           let reservation;
           const reserve = async (amount = 0.02) => {
@@ -207,11 +216,16 @@ export function createNewsBriefingWorker({
             reservation = null;
           };
           let draft;
-          try { draft = await generate(article, category, { signal, reserve, settle }); }
+          try {
+            run.generated++;
+            draft = await generate(article, category, { signal, reserve, settle });
+          }
           catch (error) {
             if (error.budget || signal.aborted || storageError || [401, 402, 403, 429].includes(error.status)) throw error;
             // An isolated invalid draft must not hold up the remaining categories.
             failures++;
+            const reason = NEWS_FAILURE_REASONS.includes(error.newsFailure) ? error.newsFailure : 'generation';
+            run.failures[reason]++;
             yield;
             continue;
           }
@@ -222,8 +236,11 @@ export function createNewsBriefingWorker({
           }) : null;
           cached = { item, expiresAt: Math.min(now(), Date.parse(article.publishedAt)) + config.maxAgeMs };
           state.articles[key] = cached;
-          if (!item) dropArticle(article.id);
+          if (!item) { run.modelSkipped++; dropArticle(article.id); }
           persist();
+        } else {
+          run.cached++;
+          if (!cached.item) run.cachedSkipped++;
         }
         // A new policy can reclassify an unchanged source as unusable. Do not
         // retain its older briefing simply because the article text is identical.
@@ -234,6 +251,7 @@ export function createNewsBriefingWorker({
           const item = structuredClone(cached.item);
           if (!['science', 'technology', 'entertainment', 'strange'].includes(category)) item.speech.tone = 'neutral';
           edition.push(item);
+          run.published = edition.length;
           // Publish immediately, retaining other fresh stories until this
           // edition finishes. The next robot request can use this snapshot
           // while the rest of the shared refresh is still in progress.
@@ -261,6 +279,7 @@ export function createNewsBriefingWorker({
       cat.nextFetchAt = state.blockedUntil > now() ? state.blockedUntil : now() + HOUR;
       log.warn?.('News briefing refresh deferred', { category, reason: cat.lastError });
     }
+    if (run) run.completedAt = now();
     if (!storageError) persist();
   }
 
