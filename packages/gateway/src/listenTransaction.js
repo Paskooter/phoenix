@@ -901,8 +901,12 @@ export class ListenTransaction {
     // identified; peoplePresent is not folded into launch identity.
     const personIDs = perception.speaker ? [perception.speaker] : ['UNKNOWN'];
     const sessionID = (skillResponse && skillResponse.data && skillResponse.data.skill && skillResponse.data.skill.session && skillResponse.data.skill.session.id) || newMsgId();
+    // Parser no-match results carry intent:null, but History's optional string
+    // rejects null. Active-skill follow-ups still need a launch record: omit an
+    // absent intent without inventing one or changing the NLU sent to the skill.
+    const intent = this.nluData?.intent ?? undefined;
     const startedAt = now();
-    this.components.historyClient.writeSkillLaunch({ robotID: general.robotID, sessionID, skillID, intent: this.nluData && this.nluData.intent, personIDs }, this.trace, { signal: this.abortController.signal })
+    this.components.historyClient.writeSkillLaunch({ robotID: general.robotID, sessionID, skillID, intent, personIDs }, this.trace, { signal: this.abortController.signal })
       .then((result) => this._span('history_launch', startedAt, result === null ? 'error' : 'ok'))
       .catch(() => this._span('history_launch', startedAt, 'error'));
   }
