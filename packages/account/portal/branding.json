@@ -3,7 +3,7 @@
   "name": "Phoenix",
   "wordmark": "Phoenix",
   "tagline": "Hello, again.",
-  "description": "A ground-up reimplementation of the cloud service that gave Jibo its voice \u2014 self-hosted, open, and running on hardware you own.",
+  "description": "An open-source server for Jibo\u2019s cloud service. Robot updates and Phoenix images include original Jibo robot software and skills, with Phoenix changes.",
   "logo": null,
   "accent": null,
   "accentWarm": null,
@@ -20,7 +20,7 @@
     "eyebrow": "Self-hosted robot cloud",
     "title": "Your Jibo stopped talking in 2019.",
     "titleAccent": "This is how it speaks again.",
-    "body": "When Jibo's cloud shut down, every robot lost the service that understood speech, chose an answer and moved its body in time with the words. Phoenix is a clean-room reimplementation of that service \u2014 speech recognition, natural-language understanding, skills and multimodal response \u2014 running entirely on your own hardware.",
+    "body": "When Jibo's cloud shut down, every robot lost the service that understood speech, chose an answer and moved its body in time with the words. The Phoenix server is an open-source reimplementation of that service \u2014 speech recognition, natural-language understanding, skills and multimodal response \u2014 running entirely on your own hardware.",
     "primaryCta": "Open the console",
     "secondaryCta": "See how it works",
     "note": "Free and non-commercial. No account on anyone else's server."
@@ -90,7 +90,7 @@
       {
         "icon": "open",
         "title": "Open and inspectable",
-        "body": "Node.js and ESM JavaScript with a single external dependency. No Jibo binaries ship \u2014 only plain-text data the robot already had."
+        "body": "The Phoenix server is open source, written in Node.js and ESM JavaScript. Robot updates and Phoenix images include original Jibo robot software and skills, with Phoenix changes."
       }
     ]
   },
@@ -156,7 +156,7 @@
       },
       {
         "q": "Does it ship any of the original software?",
-        "a": "No binaries, no proprietary code. The original service is used strictly as a behavioural reference. Only plain-text data the robot already carries \u2014 grammars, dialog files, word lists and manifests \u2014 is vendored."
+        "a": "Yes. Robot updates and Phoenix images include original Jibo robot software and skills, with Phoenix changes. The open-source server also includes original Jibo dialog content, grammars, word lists and manifests."
       },
       {
         "q": "Where does my data go?",
@@ -211,7 +211,7 @@
     "errorCta": "Ask on Phoenix Discord"
   },
   "footer": {
-    "blurb": "A clean-room reimplementation of the cloud service that gave a discontinued social robot its voice. Independent, non-commercial, and self-hosted.",
+    "blurb": "An independent, open-source server for Jibo\u2019s cloud service. Robot updates and Phoenix images include original Jibo robot software and skills, with Phoenix changes.",
     "columns": [
       {
         "title": "Product",

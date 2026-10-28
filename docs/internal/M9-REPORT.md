@@ -10,9 +10,9 @@ the conclusions and exclusions below are retained as project history.
 
 Phoenix is a ground-up JavaScript recreation of **pegasus**, the Jibo robot's cloud
 backend, built from the archived reference source, the atlas documentation, and the
-robot wire protocol — with **zero vendored Jibo binaries** (the NLU engine, MIM dialog
-engine, and all services are reimplemented; only plain-text data ships: grammars,
-MIMs, word lists, manifests).
+robot wire protocol. The NLU engine, MIM dialog engine, and services are reimplemented,
+with original Jibo resources including grammars, MIMs, word lists and manifests.
+For the current server and robot-download contents, see the [README](../../README.md).
 
 ## Verdict
 

@@ -27,8 +27,7 @@ END = "<!-- social:end -->"
 PAGES = {
     "index.html": {
         "title": "Phoenix — Hello, again.",
-        "desc": "A clean-room reimplementation of the cloud service that gave Jibo its "
-                "voice. Open source, self-hosted, and running on hardware you own.",
+        "desc": "An open-source server for Jibo’s cloud service. Robot updates and Phoenix images include original Jibo robot software and skills, with Phoenix changes.",
         "path": "/",
     },
     "terms.html": {

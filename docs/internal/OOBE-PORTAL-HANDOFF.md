@@ -218,7 +218,7 @@ The robot decodes each scanned QR as `"<codeId>/<totalCodes>\n<chunk>"`, concate
    parts and render each as a QR encoding the string `"<i>/<N>\n<part_i>"` (i = 1..N). For a single
    code: `"1/1\n" + scrambled`.
 4. Render with a small **pure-JS QR generator** vendored into the portal (consistent with Phoenix's
-   "vendor plain data, single external dep" ethos — don't pull a framework). The XOR scrambling is
+   small, framework-free portal design). The XOR scrambling is
    light obfuscation, not security; that's fine.
 
 > ⚠ Validate this against a *real* app-generated QR if you can get one — there's a second XOR helper

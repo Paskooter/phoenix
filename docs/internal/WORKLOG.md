@@ -568,7 +568,7 @@ Newest first. One line per verified increment (autonomous loop appends here).
 
 - 2026-06-09 — **NLU engine overhaul: full real grammars, `{% %}` actions, priority
   arbitration (76%→98% on a broad corpus).** Decided (with the user) to keep the NLU
-  pure-JS and ship NO Jibo binaries: the real `jibo-nlu` `parse` binary is used only as an
+  pure-JS: the real `jibo-nlu` `parse` binary is used only as an
   offline grading oracle (`packages/nlu/test/oracle/golden.jsonl`, captured from the 2018
   linux-x64 build over a 99-utterance corpus). Vendored the real grammar SOURCES (text) from
   the reference `rules_src` — chitchat (1045 rules), clock, hue-control, report, every

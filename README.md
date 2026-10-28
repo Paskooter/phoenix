@@ -8,9 +8,10 @@ from-scratch replacement for those services: the conversational backend (speech 
 language understanding → skills → response) and the robot's cloud REST API (accounts, pairing,
 firmware updates, notifications, media, backups). A physical Jibo talks to it today.
 
-No Jibo binaries ship here. Phoenix reimplements the protocols from the archived reference and
-vendors only plain-text data — grammars, dialog scripts, word lists, manifests — so the whole
-system runs on Node with nothing to download.
+The Phoenix server is open source. This repository includes original Jibo dialog content,
+grammars, word lists and manifests, plus an original client-code test fixture; see [NOTICE.md](NOTICE.md).
+Robot updates and Phoenix images include original Jibo robot software and skills, with Phoenix changes.
+Those downloads are separate from this server repository.
 
 | | |
 |---|---|
@@ -103,7 +104,7 @@ Three things worth knowing before pointing hardware at it:
   request body and reject signature replay. Keep the loopback `:9012` backend private anyway;
   the [deployment guide](docs/DEPLOYMENT.md) shows the required TLS edge, firewall, and rate
   limits.
-- **OTA packages are built locally, not shipped.** `scripts/build-ota-packages.sh` turns a stock
+- **OTA packages are distributed separately from this repository.** `scripts/build-ota-packages.sh` turns a stock
   firmware buildroot into OTA packages; they are large, machine-specific artifacts and are not in
   the repository.
 
