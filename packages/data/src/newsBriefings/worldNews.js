@@ -85,6 +85,13 @@ function inspectWorldArticle(raw, { now, maxAgeMs }) {
     selected += passage + ' ';
     paragraphs.push({ id: paragraphs.length + 1, text: passage.trim() });
   }
+  // A provider can flatten paragraph breaks without adding sentence punctuation.
+  // Keep a word-bounded source prefix rather than rejecting a long first passage.
+  // This remains an excerpt, not a completed sentence or generated factual padding.
+  if (!paragraphs.length) {
+    const boundary = fullText.lastIndexOf(' ', 8499);
+    if (boundary > 0) paragraphs.push({ id: 1, text: fullText.slice(0, boundary) });
+  }
   if (!paragraphs.length) return { reason: 'excerpt' };
   return { article: {
     id: createHash('sha256').update(url).digest('hex'), title, url, publisher,

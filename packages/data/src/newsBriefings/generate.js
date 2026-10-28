@@ -78,24 +78,28 @@ export function briefingRequest(article, category, config, repair) {
   };
 }
 
+const draftError = (newsFailure, message) => Object.assign(new Error(message), { newsFailure });
+
 export function parseBriefingDraft(content, article, category) {
-  const draft = JSON.parse(content);
+  let draft;
+  try { draft = JSON.parse(content); }
+  catch { throw draftError('draft-json', 'Invalid briefing JSON'); }
   if (!draft || typeof draft.usable !== 'boolean' || !Array.isArray(draft.sentences)
       || !['neutral', 'bright'].includes(draft.tone)
-      || Object.keys(draft).sort().join() !== 'sentences,tone,usable') throw new Error('Invalid briefing JSON');
+      || Object.keys(draft).sort().join() !== 'sentences,tone,usable') throw draftError('draft-shape', 'Invalid briefing JSON');
   if (!draft.usable) {
-    if (draft.sentences.length || draft.tone !== 'neutral') throw new Error('Invalid skipped briefing');
+    if (draft.sentences.length || draft.tone !== 'neutral') throw draftError('draft-shape', 'Invalid skipped briefing');
     return null;
   }
   const ids = new Set(article.paragraphs.map(p => p.id));
   for (const sentence of draft.sentences) {
     if (!sentence || Object.keys(sentence).sort().join() !== 'evidence,text'
         || typeof sentence.text !== 'string' || /\d/.test(sentence.text)) {
-      throw new Error('Invalid sentence shape or speech text; spell numbers out');
+      throw draftError('draft-sentence', 'Invalid sentence shape or speech text; spell numbers out');
     }
     if (!Array.isArray(sentence.evidence) || sentence.evidence.length < 1 || sentence.evidence.length > 8
         || sentence.evidence.some(id => !Number.isInteger(id) || !ids.has(id))) {
-      throw new Error(`Cite only supplied paragraph IDs: ${[...ids].join(', ')}`);
+      throw draftError('draft-evidence', `Cite only supplied paragraph IDs: ${[...ids].join(', ')}`);
     }
   }
   const speech = { tone: draft.tone, sentences: draft.sentences.map(s => s.text) };
@@ -104,12 +108,13 @@ export function parseBriefingDraft(content, article, category) {
     // omits it. It still counts toward every speech-length limit below.
     speech.sentences[0] = `${article.publisher} reports: ${speech.sentences[0]}`;
   }
-  validateNewsSpeech(speech);
+  try { validateNewsSpeech(speech); }
+  catch (error) { throw draftError('draft-speech', error.message); }
   const text = speech.sentences.join(' ');
   const flags = classifyNewsContent(article.fullText + ' ' + text);
   flags.adult ||= Boolean(article.flags?.adult);
   flags.banned ||= Boolean(article.flags?.banned);
-  if (flags.banned) throw new Error('Filtered news language');
+  if (flags.banned) throw draftError('draft-content', 'Filtered news language');
   if (flags.adult || !['science', 'technology', 'entertainment', 'strange'].includes(category)
       || /\b(flood|disaster|storm|crash|war|disease|cancer|lawsuit|injur\w*)\b/i.test(article.fullText)) {
     speech.tone = 'neutral';
@@ -134,18 +139,24 @@ export function createBriefingGenerator(config, { fetchImpl = fetch } = {}) {
       });
       if (!response.ok) {
         await response.body?.cancel();
-        throw Object.assign(new Error(`News model HTTP ${response.status}`), { status: response.status });
+        throw Object.assign(new Error(`News model HTTP ${response.status}`), { status: response.status, newsFailure: 'model-http' });
       }
       const result = await boundedJson(response, 65536);
       await settle(result.usage?.cost);
       const choice = result.choices?.[0];
-      if (choice?.finish_reason !== 'stop' || typeof choice.message?.content !== 'string') {
-        throw new Error('Incomplete news model response');
+      // Some compatible endpoints return text parts instead of one string. Join
+      // only explicit text parts; do not ignore refusals or other content types.
+      const rawContent = choice?.message?.content;
+      const content = Array.isArray(rawContent) && rawContent.length
+        && rawContent.every(part => part?.type === 'text' && typeof part.text === 'string')
+        ? rawContent.map(part => part.text).join('') : rawContent;
+      if (choice?.finish_reason !== 'stop' || typeof content !== 'string') {
+        throw draftError('model-incomplete', 'Incomplete news model response');
       }
-      try { return parseBriefingDraft(choice.message.content, article, category); }
+      try { return parseBriefingDraft(content, article, category); }
       catch (error) {
-        repair = { content: choice.message.content.slice(0, 5000), error: error.message };
-        if (attempt === 1) throw new Error('News draft failed validation after repair');
+        repair = { content: content.slice(0, 5000), error: error.message };
+        if (attempt === 1) throw draftError(error.newsFailure, 'News draft failed validation after repair');
       }
     }
   };

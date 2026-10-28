@@ -752,6 +752,38 @@ this listener. `GET /v1/news_briefings?sourceID=42206` returns the cached scienc
 edition; HTTP 503 means that category has no ready US briefing. GET and HEAD
 never trigger provider or model calls.
 
+Each category's `lastRun` is a count-only diagnostic for its most recent attempt
+(`startedAt`/`completedAt` are epoch milliseconds). Older cache files report
+`lastRun: null` until the next normally scheduled attempt; adding diagnostics
+never forces a refresh. Interpret it alongside current `stories`, `lastError`
+and `nextFetchAt`:
+
+- `provider.received: 0`: the US/category/date query returned no candidates.
+- `provider.accepted: 0` with nonzero `received`: inspect `provider.rejected`.
+  It records the first local rejection per considered candidate: country,
+  opinion label, URL/title/text, invalid/future/stale date, publisher or excerpt.
+  `considered` is bounded by the configured candidate count; it can be less than
+  `received`. There is no publisher-domain allowlist; the domain table supplies
+  spoken publisher names. Sources under eighty words are rejected.
+- `excluded` and `duplicates`: worker-side policy exclusions and repeated URLs.
+- `modelSkipped`/`cachedSkipped`: the model returned `usable=false`, or an
+  unchanged source reused a cached skip. These are not model/provider outages.
+- `failures`: allowlisted reasons for isolated generation failures, including
+  incomplete model responses and JSON/shape/sentence/evidence/speech/content
+  validation failures after the single permitted repair. `generation` covers
+  unclassified transport/response failures. Terminal quota/auth errors remain in
+  `lastError`; do not infer their absence from a zero isolated-failure count.
+- `published` counts this attempt's edition, not retained old snapshots;
+  `generated` counts generator invocations, not paid requests (a repair is a
+  second request). A null `completedAt` can mean an active or interrupted run.
+
+`No usable articles` alone cannot distinguish these stages. An empty completed
+cycle, including isolated draft failures, waits the normal refresh interval;
+a thrown category-level error normally retries after one hour. Inspect the next
+natural cycle rather than deleting cache state, changing keys or forcing calls.
+The offline replay is `node --test packages/data/test/news-empty-replay.test.js`;
+its sources and completions are explicitly synthetic, not live-cause evidence.
+
 Native deployments keep the cache and budget at
 `/var/lib/phoenix/news/briefings.json`; other deployments should persist
 `PHOENIX_DATA_DIR`, or set `PHOENIX_NEWS_BRIEFINGS_FILE`. Run one refresh worker
