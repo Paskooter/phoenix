@@ -52,7 +52,7 @@ test('S-06: every hub skill index and manifest file matches the pinned-source di
   assert.equal(actual.count, expected.count, 'skills dir file count');
   assert.equal(actual.aggregateSha256, expected.aggregateSha256, 'skills dir aggregate digest');
   assert.deepEqual(actual.files, expected.files, 'per-file hashes');
-  assert.equal(actual.count, 33, 'index + manifest inventory size');
+  assert.equal(actual.count, 34, 'index + source manifests + Phoenix-authored media adapter');
 });
 
 test('S-06: index/manifest provenance classified per file (identical, transformed, authored)', () => {

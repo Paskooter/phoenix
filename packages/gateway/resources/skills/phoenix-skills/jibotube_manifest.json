@@ -1,0 +1,10 @@
+{
+  "id": "@phoenix/jibotube",
+  "intents": [
+    {
+      "name": "phoenixPlayVideo",
+      "entities": [{ "name": "query", "value": "*" }]
+    }
+  ],
+  "onRobot": true
+}

@@ -22,9 +22,9 @@
   "phoenixFamilies": {
     "skillsDir": {
       "phoenix": "packages/gateway/resources/skills",
-      "source": "hub skill indexes + pegasus/be manifests",
-      "count": 33,
-      "aggregateSha256": "f6e15c20cc688d8f9bd517d1503f86647bca109fc48be08dd018f3eb8f519294",
+      "source": "hub skill indexes + pegasus/be manifests + Phoenix-authored media adapter",
+      "count": 34,
+      "aggregateSha256": "eb4d23ae5c3dad6224e5ae430384fc36de96fe7b711bef19de0db427ecd23290",
       "files": {
         "be-skills/circuit_saver_manifest.json": "72e8da260622d8a8c361a13b8aab134d000a2b2418d7ea6148973a9448b6afa2",
         "be-skills/clock_manifest.json": "f8a4d18a2ddf2329d8024f44382a983c915a4d2d225ab7ff165878b264728021",
@@ -51,14 +51,15 @@
         "pegasus-skills/example_skill_manifest.json": "d9953481dcdb3876f540ed6c7d5fd1f5bafb8733381b13f5af348a5d01570d8f",
         "pegasus-skills/report_skill_manifest.json": "6a492c450ae85434f341e352b3e29c62c005150a79ac787896a46add622824fc",
         "pegasus-skills/template_skill_manifest.json": "de6893133063253cb084a3218045ec8218aa57b95d10fdc45f7d437635c52a29",
+        "phoenix-skills/jibotube_manifest.json": "aaa935c69203f7e293c67d9ddca4f11443bb3f910c3383c9c0c1fc549f97d1fe",
         "skills-gqa-default.json": "dc662580535816f8b0d2f05c108f5d07b4d137f01be9eb9d2976f1f3350fe1a1",
         "skills-gqa-multi-provider.json": "8764d47bcd9f3756ecdf5cde5c2479cd77c847967faeaa9badf24b8187c4dca3",
         "skills-gqa-wikipedia.json": "d269038139356946742983bc6319a3d1621d007ca1e514116c0feb093f5ff8ca",
         "skills-local.json": "fdbcea33c683d88781ea104f1db03efe921011329259cca8553da1518b0f7629",
-        "skills-native.json": "7d37eda4de46535dac1e3ac54c943ef0cc9021d4a9470562c8a0adcfab27263a",
+        "skills-native.json": "74d86006ef22f875be79185af0165edcdb77909b2fc136b810408b3a8249f971",
         "skills-pegasus1.json": "c41ab0d33c181bf76c8b60794e63a795bac23e3cd5f109cbf58ceb08fa012693",
         "skills-pegasus2.json": "de4b4ef977c904a3737373db482803fb749a6377afca54f45c96271f97504e33",
-        "skills-phoenix.json": "ff818483ea4d30abf73307bcf1a19b4e5218fb0f1ecf487b7ae5c042472516d5"
+        "skills-phoenix.json": "6477ba6018f83b5ed0352f6ec991ec670ff93d996921b0e8d0ea47f899884e48"
       }
     }
   },

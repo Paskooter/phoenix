@@ -679,6 +679,7 @@ export class ListenTransaction {
         external: this.listenMessage.data.agents,
         loop: { users: loopUsers(context) },
         ...(home ? { home: true } : {}),
+        ...(this.listenMessage.data.hotphrase && context.data?.phoenix_jibotube === 1 ? { media: true } : {}),
       },
       this.trace,
       { signal: this.abortController.signal },
@@ -712,6 +713,9 @@ export class ListenTransaction {
     if (!this._isActive()) return;
     const t0 = now();
     let decision = this.homeCommand ? null : this.components.intentRouter.getSkillIDFromNLU(this.nluData) || null;
+    // Store apps are not present on every robot. Recheck even CLIENT_NLU:
+    // only a currently installed JiboTube advertises this context marker.
+    if (decision?.skillID === '@phoenix/jibotube' && context.data?.phoenix_jibotube !== 1) decision = null;
     // CLIENT_NLU and recognized Hue commands also pass the same opt-in gate.
     if (this.homeCommand || await this._selectHomeCommand(context, this.nluData, true, decision)) {
       this._span('route', t0, 'home_command');

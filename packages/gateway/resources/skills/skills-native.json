@@ -23,6 +23,9 @@
             "configPath": "be-skills/clock_manifest.json"
         },
         {
+            "configPath": "phoenix-skills/jibotube_manifest.json"
+        },
+        {
             "configPath": "be-skills/create_manifest.json"
         },
         {

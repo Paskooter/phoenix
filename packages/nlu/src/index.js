@@ -20,6 +20,7 @@ import { selectValidResult, isFallbackResultValid, isParserResultValid, resolveH
 import { parseRequestDetailedAsync } from './requestParser.js';
 import { getCompiledFstRuntime } from './compiledFstRuntime.js';
 import { decideCommand, getDecisionClient } from './decisionLayer.js';
+import { mediaPlayRequest } from './mediaPlay.js';
 
 /**
  * Parse an utterance into an NLUResult, mirroring the reference
@@ -156,6 +157,8 @@ export function start(port = Number(process.env.PORT) || DefaultPort.nlu) {
           error.statusCode = 400;
           throw error;
         }
+        const media = mediaPlayRequest(body.data);
+        if (media) return message(ResponseType.NLU, media);
         const parsed = await parseRequestDetailedAsync(body.data);
         // A live-era `external` request has its own Dialogflow attachment
         // contract, including its deliberately preserved error boundary.  It
