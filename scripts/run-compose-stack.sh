@@ -403,6 +403,7 @@ svc_classic() {
   exec env PORT="$(p 9012)" \
     NET_account="localhost:$(p 9011)" \
     NET_ota="localhost:$(p 9010)" \
+    ETCO_classic_accountReadyUrl="$ACCOUNT_URL" \
     ETCO_account_internalPeerToken="$ACCOUNT_INTERNAL_PEER_TOKEN" \
     ETCO_ota_internalPeerToken="$OTA_INTERNAL_PEER_TOKEN" \
     ETCO_gqa_attributionFile="$GQA_ATTRIBUTION_FILE" \

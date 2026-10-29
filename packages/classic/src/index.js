@@ -17,6 +17,7 @@ import {
   GQA_ATTRIBUTE_DEFAULT_FILE,
 } from '@phoenix/skills';
 import { createClassicRouter } from './router.js';
+import { waitForAccountReady, ACCOUNT_READY_TIMEOUT_MS } from './accountReadiness.js';
 import { LogStore, makeLogHandler, logHttpRoutes } from './log.js';
 import { makeRobotHandler, RobotStore } from './robot.js';
 import { NotificationHub, makeNotificationHandler, attachNotificationSocket } from './notification.js';
@@ -641,6 +642,15 @@ function accountStoreMtime(file) {
 }
 
 export async function start(port = Number(process.env.PORT) || DefaultPort.classic) {
+  // The native launcher opts in when it also manages Account. Spawn order is
+  // not readiness: Account can still be loading its stores when Classic binds.
+  // Await before constructing any listener/delivery timer; a timeout fails shut.
+  if (process.env.ETCO_classic_accountReadyUrl) {
+    logger('classic').info('waiting for Account readiness');
+    await waitForAccountReady(process.env.ETCO_classic_accountReadyUrl, {
+      timeoutMs: Number(process.env.ETCO_classic_accountReadyTimeoutMS || ACCOUNT_READY_TIMEOUT_MS),
+    });
+  }
   const resolveCredentials = await productionCredentialResolver();
   const callerBoundary = createVerifiedClassicCaller({
     resolveCredentials,

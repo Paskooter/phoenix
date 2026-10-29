@@ -139,6 +139,15 @@ omitted, Account falls back to development port `7017`; the portal shell still
 loads, but those authenticated pages fail because production Classic is on
 `9012` (or its configured offset).
 
+The native launcher withholds Classic's public listener until Account answers
+HTTP 200 on `/healthcheck`. Processes are spawned in order but initialize
+concurrently, so spawn order alone cannot protect an early `CreateHubToken`.
+This readiness wait is bounded to 30 seconds (`ETCO_classic_accountReadyTimeoutMS`
+can select 1–60000 ms); on expiry Classic exits without binding, rather than
+accepting requests it cannot forward. It also applies to a launcher-managed
+Classic restart. `ACCOUNT=0` keeps the independent-service profile without this
+wait. The gate does not retry token requests or change their authentication.
+
 For a native Internet deployment, use the immutable-release layout in
 [Native immutable releases](#native-immutable-releases) below. Its
 `PHOENIX_DATA_DIR` setting moves all mutable state outside the disposable
