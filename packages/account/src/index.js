@@ -42,6 +42,8 @@ import { WebPushService, webPushConfigFromEnv } from './webPush.js';
 import { HomeAssistantBroker } from './integrations/homeAssistant/broker.js';
 import { homeAssistantRoutes } from './integrations/homeAssistant/routes.js';
 import { createRobotAnnouncementAdapter } from './integrations/homeAssistant/robotAdapter.js';
+import { FreeChat } from './freeChat/broker.js';
+import { freeChatRoutes, freeChatConfigFromEnv } from './freeChat/routes.js';
 
 export { Store, getStore, resetStore } from './store.js';
 export * as model from './model.js';
@@ -325,6 +327,7 @@ function verifiedClassicPhotoCaller(store, req) {
 
 export function createAccountService({
   homeAssistantOptions = {},
+  freeChat = freeChatConfigFromEnv(),
   store = getStore(),
   settingsProviders,
   notificationPublisher,
@@ -428,7 +431,9 @@ export function createAccountService({
   const homeAssistant = new HomeAssistantBroker(store, {
     robotAdapter: createRobotAnnouncementAdapter(), ...homeAssistantOptions,
   });
+  const chat = new FreeChat(store, freeChat);
   const routes = {
+    ...freeChatRoutes(store, chat),
     // The direct Account photo ingress is intentionally session-bound. Public
     // photo URLs should point at Classic's signed proxy; an accidental
     // account-origin URL must not turn the object directory into a bearer API.
@@ -519,6 +524,7 @@ export function createAccountService({
   service.invitationProviders = effectiveInvitationProviders;
   service.identityProviders = effectiveIdentityProviders;
   service.homeAssistant = homeAssistant;
+  service.freeChat = chat;
   // Account-deletion backups age out even when nobody deletes an account for a
   // while. Where every service shares PHOENIX_DATA_DIR, this covers theirs too.
   const pruneBackups = () => {
@@ -535,6 +541,7 @@ export function createAccountService({
   });
   service.server.on('close', () => {
     homeAssistant.close();
+    chat.close();
     calendarRefresh.stop();
     clearInterval(pruneTimer);
   });
