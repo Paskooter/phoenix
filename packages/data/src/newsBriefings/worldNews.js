@@ -2,8 +2,8 @@ import { createHash } from 'node:crypto';
 import { newsHttpUrl, plainNewsText, newsWordCount, classifyNewsContent, isOpinionNews } from '@phoenix/contracts';
 import { newsProviderDiagnostics } from './diagnostics.js';
 
-// Provider-specific requests stop here. The worker consumes normalized articles,
-// so a later LumenFeed adapter does not change generation, storage, or the skill.
+// Both adapters feed the same normalized articles to generation and storage.
+// Bounded JSON reads and content inspection are shared with LumenFeed below.
 export const WORLD_NEWS_ENDPOINT = 'https://api.worldnewsapi.com/search-news';
 export const NEWS_EDITION = 'us-national-v1';
 const PUBLISHERS = {
@@ -54,7 +54,8 @@ export function normalizeWorldArticle(raw, options) {
   return inspectWorldArticle(raw, options).article || null;
 }
 
-function inspectWorldArticle(raw, { now, maxAgeMs }) {
+// Shared content validation after each adapter translates its wire fields.
+export function inspectWorldArticle(raw, { now, maxAgeMs }) {
   if (!raw || typeof raw !== 'object') return { reason: 'invalid' };
   if (isOpinionNews(raw)) return { reason: 'opinion' };
   const url = newsHttpUrl(raw.url);

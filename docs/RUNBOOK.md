@@ -717,19 +717,40 @@ Getting the robot connected is not the same as a fully working robot.
 
 ## Shared news briefings
 
-In **Admin → Settings → Personal report**, set **World News API key** and turn on
-**News briefings**, then apply the listed service restarts. The worker reuses the
+In **Admin → Settings → Personal report**, add a **LumenFeed API key** or
+**World News API key**, choose the matching **News provider**, and turn on
+**News briefings**. Each setting has its own **Save** button; the feature switch
+saves immediately. After saving, use **Restart now** in **Restart to apply your
+changes** and confirm the listed service restarts. The worker reuses the
 existing OpenRouter decision-layer key when no news-specific/shared model key is
 set. Keys stay server-side. The default model is
 `deepseek/deepseek-v4.1-flash`, and the default refresh interval is twelve hours.
 No robot OTA is required.
 
+To switch to a LumenFeed account, use **Add…** (or **Replace…**) beside
+**LumenFeed API key**, paste the key from the LumenFeed dashboard and **Save**.
+Beside **News provider**, use **Change…**, select **LumenFeed** and **Save**.
+Leave **News briefings** on, then apply the pending restarts once. You can leave
+the World News key saved; selecting LumenFeed never sends that key to LumenFeed.
+The console masks keys and records only that a secret was set or replaced.
+
+Environment equivalents are `LUMENFEED_API_KEY` and
+`PHOENIX_NEWS_PROVIDER=lumenfeed`. With `PHOENIX_NEWS_PROVIDER` unset or empty,
+a set LumenFeed key selects LumenFeed automatically; otherwise World News is
+used. An explicit `worldnews` selection always uses `WORLD_NEWS_API_KEY`.
+A missing key or provider error never switches providers or their credentials.
+
 The first refresh runs asynchronously after Lasso starts; it can take several
 minutes to prepare all eleven categories. The worker publishes each story as soon
 as it is ready and takes turns between categories, starting with general news.
-This is one shared **United States national edition**, with US publisher and
-US location-entity filters in every category. The legacy international category
-also uses the domestic selection. There are no per-robot location editions.
+This is one shared **United States national edition**. World News requests use
+US publisher and US location-entity filters. LumenFeed requests use its documented
+`country:=US` and `language:=en` filters, also checked on each returned article.
+LumenFeed describes country as likely origin or relevance, not a separate event
+location: it does not document an equivalent to World News's `LOC:USA` entity
+filter. Its US label alone cannot guarantee a domestic main event.
+The legacy international category
+also uses that provider's US selection. There are no per-robot location editions.
 Categories without ready briefings are skipped; worldwide RSS is not substituted.
 Opinion/editorial/op-ed/commentary labels in titles, URL sections and provider
 metadata are excluded before generation. Cached stories are filtered on reads
@@ -740,7 +761,7 @@ The summarizer must use impartial, factual language, attribute disputed claims,
 preserve uncertainty, remove loaded framing, and decline unsupported stories.
 It must not invent opposing claims or create artificial balance. These rules
 reduce editorial slant; one-source summaries cannot guarantee zero bias.
-Changing a key or model restarts Lasso and permits an immediate
+Changing the provider, its key or the model restarts Lasso and permits an immediate
 retry without resetting that day's spending ledger. The feature flag also
 restarts the personal report skill. Missing or rejected keys never stop Lasso's
 other services.
@@ -760,7 +781,7 @@ and `nextFetchAt`:
 
 - `provider.received: 0`: the US/category/date query returned no candidates.
 - `provider.accepted: 0` with nonzero `received`: inspect `provider.rejected`.
-  It records the first local rejection per considered candidate: country,
+  It records the first local rejection per considered candidate: country, language,
   opinion label, URL/title/text, invalid/future/stale date, publisher or excerpt.
   `considered` is bounded by the configured candidate count; it can be less than
   `received`. There is no publisher-domain allowlist; the domain table supplies
@@ -788,12 +809,47 @@ Native deployments keep the cache and budget at
 `/var/lib/phoenix/news/briefings.json`; other deployments should persist
 `PHOENIX_DATA_DIR`, or set `PHOENIX_NEWS_BRIEFINGS_FILE`. Run one refresh worker
 per state file. The twelve-hour schedule requests ten candidates per category,
-about 24.2 World News points per day before retries. The local cap is forty;
-provider quota shared with other applications can still run out. Model calls
+about 24.2 World News points or 22 LumenFeed requests per day before retries.
+`PHOENIX_NEWS_DAILY_POINTS` defaults to forty and caps the selected provider's
+points or requests using the same durable ledger; switching providers does not
+reset spending. Provider quota shared with other applications can still run out.
+Model calls
 reserve their maximum estimated cost before sending, reconcile returned costs,
 and retain the reservation when the outcome is uncertain. The default $0.15
 UTC daily cap is a ceiling, not expected usage. A custom non-OpenRouter model
 endpoint must independently enforce the same token-price limit.
+
+### LumenFeed API contract
+
+The [official Search Articles reference](https://lumenefeed.stoplight.io/docs/lumenfeed/1876padnrm45w-search-articles)
+documents `GET https://api.lumenfeed.com/api/v1/articles`, authentication in the
+`X-API-Key` header, `q`/`query_by`, `filter_by`, `sort_by=date_desc`, and one-based
+`page`/`per_page` (at most 100 results). The adapter requests only the first ten
+candidates, with `full_content=true`, a bounded thirty-six-hour publication
+window in Unix seconds and a two-megabyte response limit. It reads `data[]`,
+using `source_link`, `title`, `full_content_sanitized`, `published_at` (numeric
+seconds or milliseconds), `country`, `language`, `image_url` and `keywords`.
+Missing/short full text is rejected; `content_excerpt` and unsanitized HTML are
+not substitutes. The existing opinion, source-length, date, paragraph, content
+and speech gates remain in force.
+
+The public reference exposes opaque `topic_id` filters but no category-name/ID
+catalogue. The adapter therefore uses documented keyword search over title,
+excerpt and keywords (not author): `business`, `entertainment`, `health`,
+`politics`, `science`, `sports`, `technology`, and `quirky` for strange.
+General, national and the legacy international category use `q=*` within the
+same US/English/date filters. Keyword matches are not a verified topic taxonomy;
+coverage and relevance depend on the provider's current index.
+
+The [official pricing table](https://www.blog.lumenfeed.com/#pricing) lists the
+Developer plan at $4.99/month, 10,000 requests/month, one request/second and seven
+days of history. The worker keeps its existing 1.1-second request spacing.
+The API reference documents HTTP 401 for missing/invalid/inactive keys and HTTP
+429 for plan/period quota exhaustion, but no quota-remaining response headers.
+Both stop the current sweep; the existing worker pauses until the next UTC day,
+which does not imply that a monthly provider quota resets then. Other provider
+errors normally retry after one hour. Errors expose status only, never provider
+bodies or keys. Check current plan limits in the LumenFeed account dashboard.
 
 Back up the cache together with other durable state. A corrupt/unwritable file
 pauses paid refreshes; inspect the service log and restore

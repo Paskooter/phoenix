@@ -7,6 +7,7 @@ import { NEWS_BRIEFING_VERSION, NEWS_PROMPT_VERSION, classifyNewsContent, valida
 import { CATEGORIES } from '../news.js';
 import { newsBriefingConfig } from './config.js';
 import { createWorldNewsProvider, NEWS_EDITION } from './worldNews.js';
+import { createLumenFeedProvider } from './lumenFeed.js';
 import { createBriefingGenerator } from './generate.js';
 import { newsProviderDiagnostics, newsRunDiagnostics, NEWS_FAILURE_REASONS } from './diagnostics.js';
 
@@ -19,7 +20,8 @@ const CATEGORY_PRIORITY = ['general', 'national', 'international', 'technology',
 
 /** One background worker per Lasso process. Requests only read its snapshots. */
 export function createNewsBriefingWorker({
-  config = newsBriefingConfig(), provider = createWorldNewsProvider(config),
+  config = newsBriefingConfig(),
+  provider = config.provider === 'lumenfeed' ? createLumenFeedProvider(config) : createWorldNewsProvider(config),
   generate = createBriefingGenerator(config), now = Date.now, log = console,
   categories = CATEGORIES, providerSpacingMs = 1100,
 } = {}) {
@@ -29,7 +31,11 @@ export function createNewsBriefingWorker({
   let running = null;
   let timer;
   let nextProviderAt = 0;
+  // Keep the historical World News hash so installing an unused adapter does
+  // not spend on a refresh. Switching providers still invalidates the cadence,
+  // even if their configured keys happen to have identical bytes.
   const configurationId = createHash('sha256').update(JSON.stringify([
+    ...(config.provider === 'worldnews' ? [] : [config.provider]),
     config.apiKey, config.llm.url, config.llm.apiKey, config.llm.model, NEWS_PROMPT_VERSION,
   ])).digest('hex');
   const controller = new AbortController();
@@ -99,7 +105,7 @@ export function createNewsBriefingWorker({
     if (!config.enabled) return 'disabled';
     if (storageError) return 'storage-unavailable';
     if (config.provider !== provider.id) return 'unknown-provider';
-    if (!config.apiKey) return 'missing-world-news-key';
+    if (!config.apiKey) return config.provider === 'lumenfeed' ? 'missing-lumenfeed-key' : 'missing-world-news-key';
     if (!config.llm.configured || (config.openRouter && !config.llm.apiKey)) return 'missing-news-model-configuration';
     return null;
   }

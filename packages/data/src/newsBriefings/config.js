@@ -20,9 +20,10 @@ export function newsBriefingConfig(env = process.env) {
   // The existing deployment stores its OpenRouter key in the intent decision
   // setting. Reuse that only for OpenRouter, never send it to a custom endpoint.
   if (!llm.apiKey && openRouter) llm.apiKey = env.ETCO_parser_decisionApiKey || '';
+  const provider = env.PHOENIX_NEWS_PROVIDER || (env.LUMENFEED_API_KEY ? 'lumenfeed' : 'worldnews');
   return {
-    enabled: briefingsEnabled(env), provider: env.PHOENIX_NEWS_PROVIDER || 'worldnews',
-    apiKey: env.WORLD_NEWS_API_KEY || '', llm, openRouter,
+    enabled: briefingsEnabled(env), provider,
+    apiKey: (provider === 'lumenfeed' ? env.LUMENFEED_API_KEY : provider === 'worldnews' ? env.WORLD_NEWS_API_KEY : '') || '', llm, openRouter,
     file: env.PHOENIX_NEWS_BRIEFINGS_FILE || join(env.PHOENIX_DATA_DIR
       || fileURLToPath(new URL('../../data/', import.meta.url)), 'news/briefings.json'),
     intervalMs: number(env.PHOENIX_NEWS_REFRESH_HOURS, 12, 6, 24) * 3600000,

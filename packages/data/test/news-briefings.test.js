@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { newsWordCount, renderNewsBriefing, validateNewsBriefing } from '@phoenix/contracts';
 import { createDataService } from '../src/index.js';
+import { CATEGORIES } from '../src/news.js';
 import { newsBriefingConfig } from '../src/newsBriefings/config.js';
 import { createNewsBriefingWorker } from '../src/newsBriefings/worker.js';
 import { createBriefingGenerator, parseBriefingDraft } from '../src/newsBriefings/generate.js';
@@ -14,6 +15,13 @@ import { newsSpeech, newsDraft, worldArticle, newsTime } from '../../contracts/t
 const article = (overrides = {}) => normalizeWorldArticle({ ...worldArticle, ...overrides }, { now: newsTime, maxAgeMs: 36 * 3600000 });
 const env = { PHOENIX_NEWS_BRIEFINGS_ENABLED: 'true', WORLD_NEWS_API_KEY: 'fixture-world-key', ETCO_parser_decisionApiKey: 'fixture-router-key' };
 const log = { warn() {} };
+// Synthetic provider JSON; never read from the owner's account.
+const lumenArticle = {
+  title: worldArticle.title, source_link: worldArticle.url, language: 'en', country: 'US',
+  full_content_sanitized: worldArticle.text, published_at: Date.parse('2026-10-02T10:00:00Z') / 1000,
+  image_url: null, keywords: ['science'],
+};
+
 function fixture(t, overrides = {}) {
   const directory = mkdtempSync(join(tmpdir(), 'phoenix-news-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
@@ -65,6 +73,261 @@ test('World News queries all categories within a bounded date window; credential
   assert.equal(decimalSource.paragraphs.map(p => p.text).join(' '), decimalSource.fullText,
     'paragraph segmentation must retain decimals, abbreviations and every surrounding fact');
   await assert.rejects(() => boundedJson(new Response('x'.repeat(1025)), 1024), /too large/);
+});
+
+test('LumenFeed queries all eleven categories using documented filters and normalizes full content', async () => {
+  const { createLumenFeedProvider, lumenFeedQuery } = await import('../src/newsBriefings/lumenFeed.js');
+  const config = newsBriefingConfig({ ...env, LUMENFEED_API_KEY: 'fixture-lumen-key' });
+  const queries = {
+    general: '*', national: '*', international: '*', technology: 'technology', science: 'science',
+    business: 'business', health: 'health', sports: 'sports', politics: 'politics',
+    entertainment: 'entertainment', strange: 'quirky',
+  };
+  let calls = 0;
+  const provider = createLumenFeedProvider(config, { fetchImpl: async (url, options) => {
+    calls++;
+    assert.equal(url.origin + url.pathname, 'https://api.lumenfeed.com/api/v1/articles');
+    assert.equal(url.searchParams.get('full_content'), 'true');
+    assert.equal(url.searchParams.get('per_page'), '10');
+    assert.equal(url.searchParams.get('page'), '1');
+    assert.equal(url.searchParams.get('sort_by'), 'date_desc');
+    assert.equal(url.searchParams.get('query_by'), 'title,content_excerpt,keywords');
+    assert.equal(url.searchParams.get('filter_by'), `language:=en && country:=US && published_at:>${(newsTime - config.maxAgeMs) / 1000} && published_at:<=${newsTime / 1000}`);
+    assert.equal(options.headers['X-API-Key'], 'fixture-lumen-key');
+    assert.equal(options.headers.Accept, 'application/json');
+    assert.equal(options.redirect, 'error');
+    assert.ok(options.signal instanceof AbortSignal);
+    assert.ok(!url.href.includes('fixture-lumen-key'));
+    return Response.json({ meta: { total_hits: 1000 }, data: [lumenArticle] });
+  } });
+  assert.equal(provider.id, 'lumenfeed');
+  assert.equal(provider.requestPoints, 1, 'LumenFeed counts requests, not World News result points');
+  for (const [category, query] of Object.entries(queries)) {
+    assert.equal(lumenFeedQuery(category, config, newsTime).get('q'), query, category);
+    const result = await provider.fetchCategory(category, { now: newsTime });
+    assert.deepEqual(result.articles, [article()], category);
+    assert.equal(result.diagnostics.received, 1);
+    assert.equal(result.diagnostics.considered, 1);
+    assert.equal(result.diagnostics.accepted, 1);
+  }
+  assert.equal(calls, 11);
+  await assert.rejects(() => provider.fetchCategory('not-a-category', { now: newsTime }), /category/i);
+  assert.equal(calls, 11, 'unknown categories fail before HTTP');
+});
+
+test('LumenFeed rejects unusable sources before generation and counts each first rejection', async () => {
+  const { createLumenFeedProvider, normalizeLumenArticle } = await import('../src/newsBriefings/lumenFeed.js');
+  const config = newsBriefingConfig({ ...env, LUMENFEED_API_KEY: 'fixture-lumen-key' });
+  const cases = [
+    ['language', { ...lumenArticle, language: 'es' }],
+    ['language', { ...lumenArticle, language: null }],
+    ['opinion', { ...lumenArticle, keywords: ['science', 'opinion'] }],
+    ['opinion', { ...lumenArticle, title: 'Opinion: A new direction' }],
+    ['opinion', { ...lumenArticle, source_link: 'https://nasa.gov/opinion/fixture' }],
+    ['opinion', { ...lumenArticle, category: 'commentary' }],
+    ['invalid', null], ['invalid', []],
+    ['country', { ...lumenArticle, country: 'GB' }],
+    ['country', { ...lumenArticle, country: null }],
+    ['url', { ...lumenArticle, source_link: 'javascript:alert(1)' }],
+    ['title', { ...lumenArticle, title: '' }],
+    ['text', { ...lumenArticle, full_content_sanitized: 'Headline only.' }],
+    ['text', { ...lumenArticle, full_content_sanitized: null, content_excerpt: worldArticle.text, full_content_html: worldArticle.text }],
+    ['text', { ...lumenArticle, full_content_sanitized: worldArticle.text.split(' ') }],
+    ['date', { ...lumenArticle, published_at: '2026-10-02T10:00:00Z' }],
+    ['date', { ...lumenArticle, published_at: null }],
+    ['date', { ...lumenArticle, published_at: Number.MAX_SAFE_INTEGER }],
+    ['stale', { ...lumenArticle, published_at: newsTime - config.maxAgeMs - 1 }],
+    ['future', { ...lumenArticle, published_at: (newsTime + 300001) }],
+  ];
+  for (const [reason, raw] of cases) {
+    assert.equal(normalizeLumenArticle(raw, { now: newsTime, maxAgeMs: config.maxAgeMs }), null, reason);
+    const provider = createLumenFeedProvider(config, { fetchImpl: async () => Response.json({ data: [raw] }) });
+    const { articles, diagnostics } = await provider.fetchCategory('health', { now: newsTime });
+    assert.deepEqual(articles, []);
+    assert.equal(diagnostics.received, 1);
+    assert.equal(diagnostics.considered, 1);
+    assert.equal(diagnostics.accepted, 0);
+    assert.equal(diagnostics.rejected[reason], 1, reason);
+    assert.equal(Object.values(diagnostics.rejected).reduce((sum, count) => sum + count, 0), 1);
+  }
+});
+
+test('LumenFeed preserves timestamp, word-count, URL identity and bounded paragraph rules', async () => {
+  const { normalizeLumenArticle } = await import('../src/newsBriefings/lumenFeed.js');
+  const config = newsBriefingConfig(env);
+  const normalize = overrides => normalizeLumenArticle({ ...lumenArticle, ...overrides }, { now: newsTime, maxAgeMs: config.maxAgeMs });
+  assert.deepEqual(normalize({ published_at: lumenArticle.published_at * 1000 }), article());
+  assert.equal(normalize({ source_link: worldArticle.url + '?utm_source=fixture#fragment' }).id, article().id);
+  assert.equal(normalize({ full_content_sanitized: 'word '.repeat(79) }), null);
+  assert.ok(normalize({ full_content_sanitized: 'word '.repeat(80) }));
+  const decimal = normalize({ full_content_sanitized: 'The U.S. team measured a change of 11.94 degrees. ' + worldArticle.text });
+  assert.equal(decimal.paragraphs.map(p => p.text).join(' '), decimal.fullText);
+  const flattened = normalize({ full_content_sanitized: 'ordinary '.repeat(2000) });
+  assert.equal(flattened.paragraphs.length, 1);
+  assert.ok(flattened.paragraphs[0].text.length < 8500);
+  assert.ok(flattened.fullText.startsWith(flattened.paragraphs[0].text));
+  assert.equal(normalize({ full_content_sanitized: worldArticle.text + ' '.repeat(17000) + ' murder' }).flags.adult, true);
+  assert.equal(normalize({ image_url: 'javascript:alert(1)' }).imageUrl, null);
+});
+
+test('LumenFeed bounds result count and JSON bytes, rejects malformed replies and cancels HTTP errors without reading bodies', async () => {
+  const { createLumenFeedProvider } = await import('../src/newsBriefings/lumenFeed.js');
+  const config = newsBriefingConfig({ ...env, LUMENFEED_API_KEY: 'fixture-lumen-key' });
+  const result = await createLumenFeedProvider(config, { fetchImpl: async () => Response.json({ data: Array(11).fill(lumenArticle) }) })
+    .fetchCategory('technology', { now: newsTime });
+  assert.equal(result.articles.length, 10);
+  assert.equal(result.diagnostics.received, 11);
+  assert.equal(result.diagnostics.considered, 10);
+  for (const data of [null, {}, { data: null }, { data: {} }, { news: [] }]) {
+    await assert.rejects(() => createLumenFeedProvider(config, { fetchImpl: async () => Response.json(data) })
+      .fetchCategory('health', { now: newsTime }), /Invalid LumenFeed response/);
+  }
+  await assert.rejects(() => createLumenFeedProvider(config, { fetchImpl: async () => new Response('x'.repeat(2 * 1024 * 1024 + 1)) })
+    .fetchCategory('science', { now: newsTime }), /too large/);
+  await assert.rejects(() => createLumenFeedProvider(config, { fetchImpl: async () => new Response('{') })
+    .fetchCategory('science', { now: newsTime }), SyntaxError);
+  for (const status of [401, 403, 429, 500, 503]) {
+    let cancelled = false;
+    const provider = createLumenFeedProvider(config, { fetchImpl: async () => new Response(new ReadableStream({
+      cancel() { cancelled = true; },
+    }), { status }) });
+    await assert.rejects(() => provider.fetchCategory('health', { now: newsTime }), error => {
+      assert.equal(error.status, status);
+      assert.equal(error.message, `LumenFeed HTTP ${status}`);
+      return true;
+    });
+    assert.equal(cancelled, true, 'untrusted error bodies are cancelled, not parsed or logged');
+  }
+  const signal = AbortSignal.abort();
+  await assert.rejects(() => createLumenFeedProvider(config, { fetchImpl: async (_url, options) => {
+    options.signal.throwIfAborted();
+    assert.fail('aborted request reached the fixture response');
+  } }).fetchCategory('science', { now: newsTime, signal }), { name: 'AbortError' });
+});
+
+test('news selects the matching provider key, preferring LumenFeed only when no provider is pinned', () => {
+  const both = { ...env, LUMENFEED_API_KEY: 'fixture-lumen-key' };
+  assert.equal(newsBriefingConfig(env).provider, 'worldnews');
+  assert.equal(newsBriefingConfig(env).apiKey, env.WORLD_NEWS_API_KEY);
+  assert.equal(newsBriefingConfig(both).provider, 'lumenfeed');
+  assert.equal(newsBriefingConfig(both).apiKey, both.LUMENFEED_API_KEY);
+  assert.equal(newsBriefingConfig({ ...both, PHOENIX_NEWS_PROVIDER: '' }).provider, 'lumenfeed');
+  const pinned = newsBriefingConfig({ ...both, PHOENIX_NEWS_PROVIDER: 'worldnews' });
+  assert.equal(pinned.provider, 'worldnews');
+  assert.equal(pinned.apiKey, env.WORLD_NEWS_API_KEY);
+  const missing = newsBriefingConfig({ ...env, PHOENIX_NEWS_PROVIDER: 'lumenfeed' });
+  assert.equal(missing.provider, 'lumenfeed');
+  assert.equal(missing.apiKey, '');
+});
+
+test('the default worker selects LumenFeed, publishes all categories and persists diagnostics without extra read or restart calls', async t => {
+  const f = fixture(t);
+  const requests = [];
+  t.mock.method(globalThis, 'fetch', async (url, options) => {
+    assert.equal(url.origin, 'https://api.lumenfeed.com', 'all external traffic is intercepted and allowlisted');
+    assert.equal(options.headers['X-API-Key'], 'fixture-lumen-key');
+    requests.push(url.searchParams.get('q'));
+    return Response.json({ data: [lumenArticle, { ...lumenArticle, language: 'es' }, { ...lumenArticle, keywords: ['opinion'] }] });
+  });
+  const config = { ...newsBriefingConfig({ ...env, LUMENFEED_API_KEY: 'fixture-lumen-key' }), file: f.config.file };
+  const options = { ...f.options, config, provider: undefined, categories: CATEGORIES };
+  const worker = createNewsBriefingWorker(options);
+  t.after(() => worker.stop());
+  await worker.refresh();
+  assert.equal(worker.status().reason, null);
+  assert.equal(worker.status().provider, 'lumenfeed');
+  assert.equal(requests.length, 11);
+  assert.equal(f.calls.model, 1, 'identical article revisions share one generated draft across providers/categories');
+  for (const [id, category] of Object.entries(CATEGORIES)) {
+    assert.equal(worker.items(id).length, 1, category);
+    validateNewsBriefing(worker.items(id)[0]);
+    const run = worker.status().categories[category].lastRun;
+    assert.equal(run.provider.received, 3);
+    assert.equal(run.provider.accepted, 1);
+    assert.equal(run.provider.rejected.language, 1);
+    assert.equal(run.provider.rejected.opinion, 1);
+    assert.equal(run.published, 1);
+  }
+  assert.equal(worker.status().budget.points, 11);
+  const disk = readFileSync(config.file, 'utf8');
+  for (const secret of ['fixture-lumen-key', env.WORLD_NEWS_API_KEY, env.ETCO_parser_decisionApiKey, lumenArticle.full_content_sanitized]) {
+    assert.ok(!disk.includes(secret));
+  }
+  await worker.stop();
+  const restarted = createNewsBriefingWorker(options);
+  t.after(() => restarted.stop());
+  await restarted.refresh();
+  assert.deepEqual(restarted.status(), worker.status());
+  assert.equal(requests.length, 11, 'restart and snapshot reads preserve the refresh interval');
+});
+
+test('switching provider with the same key retries immediately without resetting spending or article reuse', async t => {
+  const f = fixture(t);
+  await f.worker.refresh();
+  await f.worker.stop();
+  const before = f.worker.status().budget;
+  let requests = 0;
+  t.mock.method(globalThis, 'fetch', async url => {
+    assert.equal(url.origin, 'https://api.lumenfeed.com');
+    requests++;
+    return Response.json({ data: [lumenArticle] });
+  });
+  const switched = createNewsBriefingWorker({ ...f.options,
+    config: { ...f.config, provider: 'lumenfeed' }, provider: undefined,
+  });
+  t.after(() => switched.stop());
+  await switched.refresh();
+  assert.equal(requests, 2);
+  assert.equal(switched.status().budget.points, before.points + 2);
+  assert.equal(switched.status().budget.llmCalls, before.llmCalls);
+  assert.equal(switched.items(42206).length, 1);
+  assert.equal(f.calls.model, 1, 'the same source revision can reuse its validated briefing');
+});
+
+test('LumenFeed missing keys and unknown providers fail closed without spending or a World News fallback', async t => {
+  const f = fixture(t);
+  t.mock.method(globalThis, 'fetch', async () => assert.fail('no network request is allowed'));
+  for (const [provider, reason] of [['lumenfeed', 'missing-lumenfeed-key'], ['typo', 'unknown-provider']]) {
+    const worker = createNewsBriefingWorker({ ...f.options,
+      config: { ...newsBriefingConfig({ ...env, PHOENIX_NEWS_PROVIDER: provider }), file: f.config.file },
+      provider: undefined,
+    });
+    t.after(() => worker.stop());
+    await worker.refresh();
+    assert.equal(worker.status().reason, reason);
+    assert.equal(worker.status().budget.points, 0);
+  }
+});
+
+test('LumenFeed auth and quota failures stop the sweep and keep reservations across restart', async t => {
+  for (const status of [401, 429]) {
+    const f = fixture(t);
+    let requests = 0;
+    const fetchMock = t.mock.method(globalThis, 'fetch', async url => {
+      assert.equal(url.origin, 'https://api.lumenfeed.com', 'there is no World News fallback');
+      requests++;
+      return new Response('fixture error body never persisted', { status });
+    });
+    const options = { ...f.options, config: { ...f.config, provider: 'lumenfeed' }, provider: undefined };
+    const worker = createNewsBriefingWorker(options);
+    t.after(() => worker.stop());
+    await worker.refresh();
+    const view = worker.status();
+    assert.equal(requests, 1);
+    assert.equal(view.budget.points, 1);
+    assert.equal(f.calls.model, 0);
+    assert.ok(view.blockedUntil > newsTime);
+    assert.equal(view.categories.technology.lastError, `News provider failed (HTTP ${status})`,
+      'technology precedes science in the worker priority order');
+    assert.ok(!readFileSync(f.config.file, 'utf8').includes('fixture error body'));
+    await worker.stop();
+    const restarted = createNewsBriefingWorker(options);
+    t.after(() => restarted.stop());
+    await restarted.refresh();
+    assert.equal(requests, 1);
+    assert.deepEqual(restarted.status().budget, view.budget);
+    fetchMock.mock.restore();
+  }
 });
 
 test('news pins its model independently and only reuses the decision key for OpenRouter', () => {
