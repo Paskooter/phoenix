@@ -180,7 +180,7 @@ export class FreeChat {
     const controller = new AbortController(); this.inFlight.set(key, controller);
     const cancel = () => controller.abort(); signal?.addEventListener('abort', cancel, { once: true });
     let timedOut = false;
-    const timer = setTimeout(() => { timedOut = true; controller.abort(); }, this.config.providerTimeoutMs);
+    let timer;
     const detail = body.detail ?? status.detail;
     try {
       const apiKey = this.providerKey(account);
@@ -188,6 +188,10 @@ export class FreeChat {
         if (controller.signal.aborted) fail('request_cancelled', 499);
         account = recheck(); if (!this.status(account).enabled) fail('chat_disabled', 403);
         if (!this.reserve(account, paid)) continue;
+        // Like the shared inference prototype, start the provider deadline
+        // after the first durable reservation, not while local fsync blocks.
+        // Reuse it across the free/overflow sequence; never reset on retry.
+        if (!timer) timer = setTimeout(() => { timedOut = true; controller.abort(); }, this.config.providerTimeoutMs);
         let response;
         try {
           response = await fetch(this.endpoint, { method: 'POST', redirect: 'error', signal: controller.signal,

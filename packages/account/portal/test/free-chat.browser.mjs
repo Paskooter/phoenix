@@ -22,7 +22,13 @@ test('Free AI chat has a default-on catalog entry and account toggle with short/
       await f.page.setViewportSize(size);
       await f.page.locator('[data-free-chat]').scrollIntoViewIfNeeded();
       assert.equal(await f.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
-      if (process.env.FREE_CHAT_SCREENSHOTS) await f.page.locator('[data-free-chat]').screenshot({ path: process.env.FREE_CHAT_SCREENSHOTS + '/console-' + label + '.png' });
+      if (process.env.FREE_CHAT_SCREENSHOTS) {
+        await f.page.screenshot({ path: process.env.FREE_CHAT_SCREENSHOTS + '/console-' + label + '-viewport.png' });
+        const height = await f.page.evaluate(() => document.documentElement.scrollHeight);
+        await f.page.setViewportSize({ width: size.width, height });
+        await f.page.locator('[data-free-chat]').screenshot({ path: process.env.FREE_CHAT_SCREENSHOTS + '/console-' + label + '.png' });
+        await f.page.setViewportSize(size);
+      }
     }
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }

@@ -50,15 +50,14 @@ export function freeChatRoutes(store, broker) {
   });
   const robot = handler => wrap(async ctx => {
     const { req } = ctx;
+    let headerAccount;
     const options = { method: req.method, path: req.originalUrl || req.url, headers: req.headers,
       allowNativeClientPayloadHash: true, resolveCredentials: accessKey => {
         const account = store.accountByAccessKeyId(accessKey);
-        return account?.friendlyId && account.isActive === true && !account.isDeleted ? account : null;
+        return account?.friendlyId && account.isActive === true && !account.isDeleted ? (headerAccount = account) : null;
       } };
-    try { preflightSigV4(options); } catch { throw new ChatError('invalid_auth', 401); }
-    const { body, bytes } = await readPrivateJson(req, broker.config.bodyTimeoutMs, true);
     let robotAccount;
-    try { robotAccount = verifySigV4({ ...options, body: bytes }).credentials; } catch { throw new ChatError('invalid_auth', 401); }
+    try { preflightSigV4(options); robotAccount = headerAccount; if (!robotAccount) throw new Error('missing'); } catch { throw new ChatError('invalid_auth', 401); }
     const robotId = robotAccount._id; const accessKey = robotAccount.accessKeyId; const secret = robotAccount.secretAccessKey;
     const resolve = () => {
       const current = store.accounts.get(robotId);
@@ -68,7 +67,14 @@ export function freeChatRoutes(store, broker) {
       if (loops.length !== 1) throw new ChatError('robot_not_linked', 403);
       return broker.current(String(loops[0].owner));
     };
+    // Snapshot the billing owner and authorization version BEFORE the async
+    // body wait. A transfer/reset in that interval must not charge a new owner.
     const account = resolve(); const version = account.sessionVersion ?? 0;
+    const { body, bytes } = await readPrivateJson(req, broker.config.bodyTimeoutMs, true);
+    try {
+      const verified = verifySigV4({ ...options, body: bytes }).credentials;
+      if (verified._id !== robotId) throw new Error('changed');
+    } catch { throw new ChatError('invalid_auth', 401); }
     const recheck = () => {
       const current = resolve();
       if (current._id !== account._id || (current.sessionVersion ?? 0) !== version) throw new ChatError('invalid_auth', 401);
@@ -94,6 +100,7 @@ export function freeChatRoutes(store, broker) {
 }
 
 export function freeChatConfigFromEnv(env = process.env) {
+  if (env.PHOENIX_FREE_CHAT_ENCRYPTION_KEY && !/^[a-fA-F0-9]{64}$/.test(env.PHOENIX_FREE_CHAT_ENCRYPTION_KEY)) throw new Error('free_chat_encryption_key_required');
   return { defaultEnabled: env.PHOENIX_FREE_CHAT_ENABLED !== 'false', ledgerFile: env.PHOENIX_FREE_CHAT_LEDGER,
     provider: { apiKey: env.PHOENIX_FREE_CHAT_API_KEY },
     encryptionKey: env.PHOENIX_FREE_CHAT_ENCRYPTION_KEY ? Buffer.from(env.PHOENIX_FREE_CHAT_ENCRYPTION_KEY, 'hex') : undefined };
