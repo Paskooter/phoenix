@@ -41,6 +41,7 @@ import {
 } from './voiceTraining.js';
 import { stubRegistrations } from './stubs.js';
 import { proxyMemberPhoto } from './photoProxy.js';
+import { freeChatProxyRoutes } from './freeChatProxy.js';
 import { PublicOriginError, configuredPublicOrigin } from './publicOrigin.js';
 import { homeAssistantPresenceRoutes } from './homeAssistantPresenceRoutes.js';
 import {
@@ -488,6 +489,7 @@ export function createClassicEntrypoint({ extra = [], tls, publicUrl, publicOrig
     jsonStrict: (req) => !isCreateHubTokenTarget(req) && !isNotificationTarget(req) && !isLoopTarget(req) && !isAccountTarget(req),
     routes: {
       ...homeAssistantPresenceRoutes(hub, { callerBoundary, peerToken: homeAssistantPresencePeerToken }),
+      ...freeChatProxyRoutes(() => netUrl('account', DefaultPort.account)),
       ...classicRoutes(hub, [...extra, { match: /^backup/i, handler: makeBackupHandler(backups, baseFor, { ownership: effectiveBackupOwnership, callerBoundary }) }], {
         notificationAccountResolver,
         callerBoundary,

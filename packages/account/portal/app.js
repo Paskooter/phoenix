@@ -15,6 +15,7 @@ import { createLocationPicker } from '/map.js';
 import { getBrandSync, initBrand, initTheme, pick } from '/brand.js';
 import { createLoopKeyClient } from '/loop-keys.js';
 import { createEmailVerificationUi } from '/email-verification.js';
+import { createFreeChatCard } from '/free-chat.js';
 import {
   browserPushState,
   disableBrowserPush,
@@ -2528,6 +2529,7 @@ async function renderProfile() {
 
   container.append(h('section', { class: 'card account-hero' }, h('div', { class: 'card-body' }, profilePhotoEditor(a))));
   container.append(emailVerificationUi.accountCard(a));
+  container.append(await createFreeChatCard({ api, h, toggle, field }));
 
   /* -- about you ---------------------------------------------------------- */
 

@@ -267,7 +267,7 @@ export function staticRoutes({ sitemapEntries = () => [] } = {}) {
     // scripts
     'app.js', 'pwa.js', 'site.js', 'site-render.js', 'brand.js', 'qr.js', 'map.js', 'wifi-details.js',
     'loop-crypto.js', 'loop-keys.js',
-    'email-verification.js', 'email-verify.js', 'verify-email.html',
+    'email-verification.js', 'email-verify.js', 'verify-email.html', 'free-chat.js',
     // vendored
     'vendor/leaflet.js', 'vendor/leaflet.css',
     // assets and metadata

@@ -192,6 +192,17 @@ export const GROUP_IDS = new Set(GROUPS.map((group) => group.id));
 
 /** @type {Setting[]} */
 export const SETTINGS = [
+  {
+    key: 'PHOENIX_FREE_CHAT_ENABLED', label: 'Free AI chat', group: 'answers', type: 'bool',
+    editable: true, restart: ['account'], default: 'true',
+    help: 'Default for AI chit-chat on Jibo’s eye. Each account can turn it off in Account to use classic answers. Separate from Agent Mode; no tools or web search. Requires the server’s private provider and usage setup.',
+  },
+  { key: 'PHOENIX_FREE_CHAT_API_KEY', label: 'Chat provider key', group: 'answers', type: 'secret',
+    default: null, help: 'Server-owned OpenRouter credential. Keep a dedicated provider-side limit. Not shared with Jibo or members.' },
+  { key: 'PHOENIX_FREE_CHAT_LEDGER', label: 'Chat usage file', group: 'answers', type: 'path',
+    default: null, help: 'Initialize once with scripts/init-free-chat-usage.mjs. Missing or damaged counters keep AI chat unavailable.' },
+  { key: 'PHOENIX_FREE_CHAT_ENCRYPTION_KEY', label: 'Chat encryption secret', group: 'answers', type: 'secret',
+    default: null, help: 'A server-owned 32-byte secret encoded as 64 hexadecimal characters, outside the release. Protects optional personal provider keys.' },
   /* ── Speech recognition ─────────────────────────────────────────────── */
   {
     key: 'PHOENIX_ASR_PROVIDER', label: 'Speech recognizer', group: 'speech', type: 'enum',

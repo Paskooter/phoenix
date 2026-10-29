@@ -1,6 +1,9 @@
 import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { createServer } from 'node:http';
+import { createServer, request as httpRequest } from 'node:http';
+import { spawnSync } from 'node:child_process';
+import { FreeChat } from '../src/freeChat/broker.js';
+import { InferenceLedger, initializeInferenceLedger } from '../src/agentInference/ledger.js';
 import { once } from 'node:events';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -56,7 +59,12 @@ async function fixture(t, overrides = {}) {
   const call = (path, method = 'GET', data, headers = {}) => fetch(base + path, { method, signal: AbortSignal.timeout(10000),
     headers: { 'content-type': 'application/json', ...headers }, ...(data === undefined ? {} : { body: JSON.stringify(data) }) });
   const cookie = { cookie: 'phx_session=' + session._id };
-  return { root, store, requests, config, cookie, call, get service() { return service; },
+  return { root, store, requests, config, cookie, call,
+    rawSigned(bytes) {
+      const path = '/api/free-chat/robot/complete'; const account = store.accounts.get('robot-one');
+      const headers = signSigV4({ method: 'POST', path, body: bytes, headers: { host: new URL(base).host, 'content-type': 'application/json' }, accessKeyId: account.accessKeyId, secretAccessKey: account.secretAccessKey, region: 'fixture' }).headers;
+      return fetch(base + path, { method: 'POST', headers, body: bytes });
+    }, get base() { return base; }, get service() { return service; },
     responder(fn) { responder = fn; }, advance(ms) { clock += ms; },
     async restart() { service.server.closeAllConnections(); await new Promise(r => service.server.close(r)); await start(); },
     robot(operation = 'complete', data = body, id = 'one') {
@@ -187,5 +195,94 @@ test('provider tool replies, invalid JSON, oversized output and timeout fail wit
   }
   f.advance(60000); f.service.freeChat.config.providerTimeoutMs = 100; f.responder(() => {});
   assert.equal((await f.robot()).status, 504);
+});
+
+test('real Classic ingress forwards signed robot chat privately to Account', async t => {
+  const f = await fixture(t);
+  const { createClassicEntrypoint } = await import('../../classic/src/index.js');
+  const previous = process.env.NET_account; process.env.NET_account = f.base;
+  const classic = createClassicEntrypoint({ notificationFile: join(f.root, 'notifications.json'),
+    backup: { dir: join(f.root, 'backup') }, log: { dir: join(f.root, 'log') },
+    gqa: { attributionFile: join(f.root, 'attribution.json') }, ifttt: { file: join(f.root, 'ifttt.json') } });
+  t.after(async () => { classic.server.closeAllConnections(); await new Promise(r => classic.server.close(r));
+    if (previous === undefined) delete process.env.NET_account; else process.env.NET_account = previous; });
+  await classic.listen(0, '127.0.0.1');
+  const base = 'http://127.0.0.1:' + classic.server.address().port;
+  const path = '/api/free-chat/robot/complete'; const bytes = JSON.stringify(body); const account = f.store.accounts.get('robot-one');
+  const headers = signSigV4({ method: 'POST', path, body: bytes, headers: { host: new URL(base).host, 'content-type': 'application/json' },
+    accessKeyId: account.accessKeyId, secretAccessKey: account.secretAccessKey, region: 'fixture' }).headers;
+  const response = await fetch(base + path, { method: 'POST', headers, body: bytes });
+  assert.equal(response.status, 200); assert.equal((await response.json()).mode, 'ai');
+  assert.equal((await fetch(base + path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: bytes })).status, 401);
+  assert.equal(f.requests.length, 1);
+});
+
+
+test('private malformed, oversized and slow input never spends or exposes speech in parser logs', async t => {
+  const f = await fixture(t, { bodyTimeoutMs: 100 });
+  assert.equal((await f.rawSigned('{"private-malformed-chat-sentinel":')).status, 400);
+  assert.equal((await f.rawSigned(JSON.stringify({ text: 'x'.repeat(17000) }))).status, 413);
+  const status = await new Promise((resolve, reject) => {
+    const path = '/api/free-chat/robot/complete', account = f.store.accounts.get('robot-one');
+    const headers = signSigV4({ method: 'POST', path, body: '{}', headers: { host: new URL(f.base).host, 'content-type': 'application/json' },
+      accessKeyId: account.accessKeyId, secretAccessKey: account.secretAccessKey, region: 'fixture' }).headers;
+    const req = httpRequest(f.base + path, { method: 'POST', headers }, res => { res.resume(); res.on('end', () => resolve(res.statusCode)); });
+    req.on('error', reject); req.write('{'); t.after(() => req.destroy());
+  });
+  assert.equal(status, 408); assert.equal(f.requests.length, 0);
+  assert.ok(!JSON.stringify(recentLogs()).includes('private-malformed-chat-sentinel'));
+});
+
+test('ownership transfer and account deactivation during a provider wait cannot deliver another owner answer', async t => {
+  const f = await fixture(t); let enter;
+  const arrived = new Promise(r => { enter = r; });
+  f.responder((_req, res) => enter(res));
+  const pending = f.robot(); const response = await arrived;
+  f.store.loops.get('loop-one').owner = 'two';
+  response.end(JSON.stringify({ choices: [{ message: { content: '{"text":"Late private answer","keepTalking":false}' }, finish_reason: 'stop' }] }));
+  assert.equal((await pending).status, 401);
+  f.store.accounts.get('two').isActive = false;
+  assert.equal((await f.robot()).status, 403);
+  assert.equal(f.requests.length, 1);
+});
+
+test('missing or corrupt ledger and a second writer fail closed without resetting counters', async t => {
+  const f = await fixture(t); const file = join(f.root, 'usage.json');
+  assert.throws(() => initializeInferenceLedger(file), /EEXIST/);
+  const child = spawnSync(process.execPath, ['--input-type=module', '-e',
+    `import {InferenceLedger} from ${JSON.stringify(new URL('../src/agentInference/ledger.js', import.meta.url).href)}; try { new InferenceLedger(process.argv[1]); process.exit(8); } catch(e) { if(e.code!=='EEXIST')process.exit(9); }`, file], { encoding: 'utf8', timeout: 10000 });
+  assert.equal(child.status, 0, child.stderr); f.service.freeChat.close();
+  const saved = readFileSync(file); writeFileSync(file, '{"version":1,"dayRequests":-1}');
+  assert.throws(() => new InferenceLedger(file), /inference_ledger_invalid/);
+  writeFileSync(file, saved); rmSync(file);
+  assert.throws(() => new InferenceLedger(file), /ENOENT/);
+});
+
+test('SIGKILL after real paid reservation preserves spending and leaves exclusive lock', async t => {
+  const f = await fixture(t, { lifetimeCapMicroUsd: 52685 }); f.service.freeChat.close();
+  const script = `import {FreeChat} from ${JSON.stringify(new URL('../src/freeChat/broker.js', import.meta.url).href)};
+    import {Store} from ${JSON.stringify(new URL('../src/store.js', import.meta.url).href)};
+    const options=JSON.parse(process.argv[1]); options.encryptionKey=Buffer.alloc(32,7); const store=new Store(process.argv[2]);
+    const broker=new FreeChat(store,options); broker.reserve(store.accounts.get('one'),true); process.kill(process.pid,'SIGKILL');`;
+  const child = spawnSync(process.execPath, ['--input-type=module', '-e', script,
+    JSON.stringify({ ...f.config, encryptionKey: undefined }), join(f.root, 'account.json')], { encoding: 'utf8', timeout: 10000 });
+  assert.equal(child.signal, 'SIGKILL', child.stderr);
+  assert.equal(JSON.parse(readFileSync(join(f.root, 'usage.json'))).lifetimeMicroUsd, 52685);
+  assert.throws(() => new FreeChat(f.store, f.config), /EEXIST/);
+  rmSync(join(f.root, 'usage.json.lock'), { recursive: true }); // exact reaped fixture writer only
+  await f.restart();
+  f.responder((_req, res) => { res.statusCode = 503; res.end(); });
+  assert.equal((await f.robot()).status, 503);
+  assert.equal(f.requests.length, 1, 'only a zero-price free attempt; no paid request after crash');
+});
+
+test('one in-flight owner request and global concurrency admission are bounded', async t => {
+  const f = await fixture(t, { globalConcurrency: 1 }); let enter;
+  const arrived = new Promise(r => { enter = r; });
+  f.responder((_req, res) => enter(res)); const pending = f.robot(); const response = await arrived;
+  assert.equal((await f.robot()).status, 429);
+  assert.equal((await f.robot('complete', body, 'two')).status, 503);
+  response.end(JSON.stringify({ choices: [{ message: { content: '{"text":"Bounded answer","keepTalking":false}' }, finish_reason: 'stop' }] }));
+  assert.equal((await pending).status, 200); assert.equal(f.requests.length, 1);
 });
 
