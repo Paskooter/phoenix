@@ -1,6 +1,5 @@
-// Phoenix media launch extension, separate from the frozen legacy grammar.
-// Only global launch requests from an installed player participate; skill
-// follow-ups and external agents retain their contracts. Queries stay data.
+// Title-based media commands require an installed player and global launch rules.
+// Skill follow-ups and external agents retain their contracts; queries stay data.
 const GLOBAL_RULES = new Set(['launch', 'globals/global_commands_launch', 'globals/gui_nav', 'globals/mim_repeat', 'globals/mim_thanks']);
 
 export function mediaPlayRequest(request) {

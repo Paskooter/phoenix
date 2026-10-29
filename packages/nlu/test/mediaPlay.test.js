@@ -36,7 +36,7 @@ test('the Hub only offers media routing for a robot that declares the installed 
     assert.equal(frame.final, true);
     assert.equal(frame.data.nlu.entities.query, 'Despacito');
     assert.equal(frame.data.asr.text, 'play Despacito');
-    // Optional cross-repository replay into the private app's archived SDK.
+    // Optional wire-fixture export for compatible media clients.
     if (process.env.JIBOTUBE_VOICE_LISTEN_OUT) writeFileSync(process.env.JIBOTUBE_VOICE_LISTEN_OUT, JSON.stringify(frame));
     for (const marker of [undefined, true, 0, 2, '1', {}, []]) {
       const frame = await hubTurn(null, marker, { intent: 'phoenixPlayVideo', entities: { query: 'Despacito' }, rules: ['launch'] });
