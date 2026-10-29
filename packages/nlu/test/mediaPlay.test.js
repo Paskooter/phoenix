@@ -12,7 +12,7 @@ import { ParserClient } from '../../gateway/src/parserClient.js';
 
 const RULES = ['launch', 'globals/global_commands_launch', 'globals/gui_nav', 'globals/mim_repeat', 'globals/mim_thanks'];
 
-async function hubTurn(parser, marker, inputNlu) {
+async function hubTurn(parser, marker, inputNlu, text = 'play Despacito') {
   const skills = await loadRegistry({ indexFile: 'skills-native.json', env: {} });
   const frames = [];
   const tx = new ListenTransaction({ _auth: { id: 'synthetic-account', friendlyId: 'synthetic-robot' } }, {
@@ -22,7 +22,7 @@ async function hubTurn(parser, marker, inputNlu) {
   }, { write(frame) { frames.push(frame); } }, { info() {}, debug() {}, warn() {}, error() {} });
   tx.handleMessage({ json: { type: 'LISTEN', data: { mode: inputNlu ? 'CLIENT_NLU' : 'CLIENT_ASR', hotphrase: true, rules: RULES } } });
   tx.handleMessage({ json: { type: 'CONTEXT', data: { general: { accountID: 'synthetic-account', robotID: 'synthetic-robot', release: '13.7.1' }, runtime: { loop: { users: [] } }, skill: {}, ...(marker === undefined ? {} : { phoenix_jibotube: marker }) } } });
-  tx.handleMessage({ json: inputNlu ? { type: 'CLIENT_NLU', data: inputNlu } : { type: 'CLIENT_ASR', data: { text: 'play Despacito' } } });
+  tx.handleMessage({ json: inputNlu ? { type: 'CLIENT_NLU', data: inputNlu } : { type: 'CLIENT_ASR', data: { text } } });
   await tx.done;
   return frames.find(frame => frame.type === 'LISTEN');
 }
@@ -43,6 +43,61 @@ test('the Hub only offers media routing for a robot that declares the installed 
       assert.equal(frame?.data.match, null, `unsupported marker ${JSON.stringify(marker)} must never launch a missing skill`);
     }
   } finally { await new Promise(resolve => server.close(resolve)); }
+});
+
+test('robots without the media capability retain the legacy parser and game route', async () => {
+  let decisions = 0;
+  setDecisionClientForTest({ enabled: true, config: { minProbability: 0.5, overrideProbability: 0.9 },
+    choose: async () => { decisions++; return { choice: 'game', probability: 1 }; } });
+  const server = await start(0);
+  try {
+    const parser = new ParserClient(`http://127.0.0.1:${server.address().port}`);
+    for (const marker of [undefined, true, 0, 2, '1', {}, []]) {
+      const frame = await hubTurn(parser, marker);
+      assert.equal(frame.data.nlu.intent, 'launchGame');
+      assert.equal(frame.data.match.skillID, '@be/circuit-saver');
+    }
+    assert.equal(decisions, 7, 'the old decision route still runs without the exact capability');
+    const frame = await hubTurn(parser, 1);
+    assert.equal(frame.data.match.skillID, '@phoenix/jibotube');
+    assert.equal(decisions, 7, 'the installed player bypasses generic decision review');
+  } finally {
+    setDecisionClientForTest(null);
+    await new Promise(resolve => server.close(resolve));
+  }
+});
+
+test('installed media routing preserves recognized game actions and the game-list answer', async () => {
+  let decisions = 0;
+  setDecisionClientForTest({ enabled: true, config: { minProbability: 0.5, overrideProbability: 0.9 },
+    choose: async () => { decisions++; return { choice: 'game', probability: 1 }; } });
+  const server = await start(0);
+  try {
+    const router = new IntentRouter(await loadRegistry({ indexFile: 'skills-native.json', env: {} }));
+    for (const [text, intent, mim] of [
+      ['play pong', 'requestPlayPong', 'RA_JBO_PlayPong'],
+      ['play ping pong', 'requestPlayPingPong', 'RA_JBO_PlayPingPong'],
+      ['roll the dice', 'requestRollTwoDice', 'RA_JBO_RollTwoDice'],
+      ['roll a die', 'requestRollOneDie', 'RA_JBO_RollOneDie'],
+      ['flip a coin', 'requestFlipCoin', 'RA_JBO_FlipCoin'],
+      ['what games can you play', 'whatThingDoesJiboHave', 'RI_JBO_WhatGames'],
+    ]) {
+      const response = await fetch(`http://127.0.0.1:${server.address().port}/v1/parse`, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ type: 'NLU', data: { text, rules: RULES, media: true } }),
+      });
+      assert.equal(response.status, 200);
+      const nlu = (await response.json()).data;
+      assert.equal(nlu.intent, intent, text);
+      const route = router.getSkillIDFromNLU(nlu);
+      assert.equal(route.skillID, 'chitchat-skill', text);
+      assert.equal(route.memo.mim, mim, text);
+    }
+    assert.equal(decisions, 0);
+  } finally {
+    setDecisionClientForTest(null);
+    await new Promise(resolve => server.close(resolve));
+  }
 });
 
 test('media titles preserve names, Unicode, qualifiers and explicit video requests without stealing games', () => {

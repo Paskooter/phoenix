@@ -21,6 +21,6 @@ export function mediaPlayRequest(request) {
   if (!explicit && (/^(?:(?:a|the|some)\s+)?(?:radio|news|music|song|songs|story|stories|joke|jokes|dance|dances)$/i.test(query)
       || /^(?:(?:a|the|some)\s+games?\b|games?(?:\s+(?:with me|please|called .+))?$|with\s|tic[ -]?tac[ -]?toe\b|circuit[ -]?saver\b|word of the day\b)/i.test(query)
       || /(?:^|\s)(?:games?|quiz|trivia)(?:\s+with me)?$/i.test(query)
-      || /^(?:chess|checkers|hangman|simon says|rock paper scissors|twenty questions|again|next|previous|pause|resume|it|that|something)(?:\s+(?:with me|again))?$/i.test(query))) return null;
+      || /^(?:pong|ping[ -]?pong|chess|checkers|hangman|simon says|rock paper scissors|twenty questions|again|next|previous|pause|resume|it|that|something)(?:\s+(?:with me|again))?$/i.test(query))) return null;
   return { intent: 'phoenixPlayVideo', entities: { query }, rules: ['launch'] };
 }
