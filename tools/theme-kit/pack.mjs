@@ -2,11 +2,12 @@
 // Copyright (c) 2026, pasketti and the Phoenix project.
 import { spawn } from 'node:child_process';
 import { inflateSync, deflateSync } from 'node:zlib';
-import { readFileSync, lstatSync, realpathSync } from 'node:fs';
+import { lstatSync, realpathSync, openSync, fstatSync, readSync, closeSync, constants } from 'node:fs';
 import { resolve, sep } from 'node:path';
 import theme from './themeFormat.cjs';
 import format from './format.cjs';
 import { validateManifest, validatePixels } from './extensions.mjs';
+import { rasterizeSvg, SVG_LIMITS } from './svg.mjs';
 
 export const ICON_TARGETS = Object.freeze({
   '@be/main-menu#main-menu': ['introduction','thingsToDo','fun','clock','personalReport','radio','snapshot','gallery','photobooth','exercise','tutorial','settings','phoenix-agent','phoenix-spotify','phoenix-tic-tac-toe'],
@@ -86,7 +87,7 @@ function decodeJpeg(bytes) {
     child.stdin.end(bytes);
   });
 }
-/** Local packing fully decodes accepted RGB/RGBA PNG and baseline RGB JPEG. */
+/** Local packing emits only PNG, including author-only static SVG icon input. */
 export async function packTheme(input, blobs) {
   function plainTree(v,depth=1) {
     if(depth>theme.LIMITS.depth) reject('theme_invalid');
@@ -100,15 +101,23 @@ export async function packTheme(input, blobs) {
   if (!Array.isArray(blobs) || blobs.length > theme.LIMITS.assets) reject('theme_invalid');
   const sorted = [...blobs].sort((a,b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
   m.assets = sorted.map(b => {
-    if (!Buffer.isBuffer(b.bytes) || b.bytes.length < 33 || b.bytes.length > theme.LIMITS.assetBytes) reject('theme_asset_too_large');
-    const info = b.bytes.subarray(0,8).equals(signature) ? theme.inspectPng(b.bytes) : theme.inspectJpeg(b.bytes);
+    const svg = b.mediaType === 'image/svg+xml';
+    if (!Buffer.isBuffer(b.bytes) || b.bytes.length < (svg ? 1 : 33) || b.bytes.length > (svg ? SVG_LIMITS.sourceBytes : theme.LIMITS.assetBytes)) reject('theme_asset_too_large');
+    if (svg && b.role !== 'icon') reject('theme_media_type_invalid');
+    // Preflight the fixed raster size and total pixel budget before any decoder
+    // runs. This provisional entry is replaced with normalized PNG hashes below.
+    const info = svg ? { mediaType: 'image/png', width: SVG_LIMITS.width, height: SVG_LIMITS.height }
+      : b.bytes.subarray(0,8).equals(signature) ? theme.inspectPng(b.bytes) : theme.inspectJpeg(b.bytes);
     return { id: b.id, role: b.role, mediaType: info.mediaType, sha256: theme.sha256(b.bytes), bytes: b.bytes.length, width: info.width, height: info.height };
   });
   validateManifest(m); authorPolicy(m); // dimensions/pixels before allocating decode output
   const clean = [];
   for (let i=0;i<sorted.length;i++) {
     const a=m.assets[i];
-    if(a.mediaType==='image/png') clean.push(normalizePng(sorted[i].bytes,a));
+    if (sorted[i].mediaType === 'image/svg+xml') {
+      const png = await rasterizeSvg(sorted[i].bytes);
+      clean.push(normalizePng(png, { ...a, sha256: theme.sha256(png), bytes: png.length }));
+    } else if(a.mediaType==='image/png') clean.push(normalizePng(sorted[i].bytes,a));
     else {
       theme.inspectImage(sorted[i].bytes,a);
       const png=await decodeJpeg(sorted[i].bytes), entry={...a,mediaType:'image/png',sha256:theme.sha256(png),bytes:png.length};
@@ -127,19 +136,32 @@ export async function packDirectory(directory) {
   const root = realpathSync(directory);
   if (lstatSync(resolve(directory)).isSymbolicLink()) reject('theme_author_path_invalid');
   function readLocal(path, max) {
-    if (!/^theme\.json$|^assets\/(?:icons\/)?[a-z][a-z0-9-]{0,39}\.(?:png|jpg|jpeg)$/.test(path)) reject('theme_author_path_invalid');
+    if (typeof path !== 'string' || !/^theme\.json$|^assets\/(?:icons\/)?[a-z][a-z0-9-]{0,39}\.(?:png|jpg|jpeg|svg)$/.test(path)) reject('theme_author_path_invalid');
     const parts = path.split('/'); let file = root;
     for (const part of parts) { file = resolve(file,part); if (lstatSync(file).isSymbolicLink()) reject('theme_author_path_invalid'); }
     const stat = lstatSync(file);
     if (!stat.isFile() || !realpathSync(file).startsWith(root+sep)) reject('theme_author_path_invalid');
-    if (stat.size > max) reject(path === 'theme.json' ? 'theme_manifest_too_large' : 'theme_asset_too_large');
-    return readFileSync(file);
+    const tooLarge = path === 'theme.json' ? 'theme_manifest_too_large' : 'theme_asset_too_large';
+    if (path.endsWith('.svg')) max = SVG_LIMITS.sourceBytes;
+    if (stat.size > max) reject(tooLarge);
+    const fd = openSync(file, constants.O_RDONLY | (constants.O_NOFOLLOW || 0));
+    try {
+      const opened = fstatSync(fd);
+      if (!opened.isFile()) reject('theme_author_path_invalid');
+      if (opened.size > max) reject(tooLarge);
+      // A source that grows after stat cannot cause an unbounded read.
+      const bytes = Buffer.alloc(max + 1); let length = 0, count;
+      while (length < bytes.length && (count = readSync(fd, bytes, length, bytes.length - length, null)) > 0) length += count;
+      if (length > max) reject(tooLarge);
+      return bytes.subarray(0, length);
+    } finally { closeSync(fd); }
   }
   const source = theme.parseStrict(readLocal('theme.json',theme.LIMITS.manifestBytes));
   if (!Array.isArray(source.assets) || source.assets.length > theme.LIMITS.assets) reject('theme_assets_invalid');
   const blobs = source.assets.map(a => {
     if (!a || typeof a !== 'object' || Array.isArray(a) || Object.keys(a).sort().join(',') !== 'id,path,role') reject('theme_author_asset_invalid');
-    return { id: a.id, role: a.role, bytes: readLocal(a.path,theme.LIMITS.assetBytes) };
+    const bytes = readLocal(a.path, theme.LIMITS.assetBytes);
+    return { id: a.id, role: a.role, bytes, ...(a.path.endsWith('.svg') ? { mediaType: 'image/svg+xml' } : {}) };
   });
   source.assets = []; return packTheme(source,blobs);
 }

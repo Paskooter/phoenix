@@ -5,5 +5,5 @@ Promise.all([
   import('./bounds.test.mjs'), import('./failures.test.mjs'),
   import('./new.test.mjs'), import('./theme-kit.test.mjs'),
   import('./extensions.test.mjs'), import('./templates.test.mjs'), import('./docs.test.mjs'),
-  import('./label-fit.test.mjs'),
+  import('./label-fit.test.mjs'), import('./svg.test.mjs'),
 ]).catch(error => { console.error(error); process.exitCode = 1; });

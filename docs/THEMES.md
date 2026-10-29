@@ -21,7 +21,9 @@ Four additional runnable starters live in `tools/theme-kit/templates/`:
 The kit builds **unsigned data**, not a robot skill, software image or executable.
 You need Node.js 20 or newer. PNG authoring has no npm dependencies: the CLI uses
 only Node built-ins and the files in `tools/theme-kit/`. Python 3 with Pillow is
-needed only for JPEG input; the optional art generator also needs NumPy.
+needed for JPEG input. Optional SVG icon conversion needs Python 3.10+ with
+CairoSVG/Pillow and Unix resource limits (see [SVG icon import](#static-svg-icon-import)).
+The optional art generator also needs NumPy.
 
 A robot must advertise `phoenix-menu-theme-v1`, your exact theme API and a
 compatible `minFirmware` floor. A version number alone is not proof of support.
@@ -61,8 +63,10 @@ faces, volume sliders, restore and setup screens are outside the menu API.
 Eye paint is a separate capability, not permission to replace these views.
 
 No JavaScript, actions, raw BE view configs, MIMs, timelines, downloaded fonts,
-CSS, HTML, shaders, sounds, SVG or external URLs are accepted. Backgrounds and
-icons are passive images; layout motion comes from firmware, never an asset.
+CSS, HTML, shaders, sounds, SVG or external URLs are accepted in **runtime packs**.
+The author tool can convert a bounded static SVG icon to PNG before packing;
+the server and robot still accept only the existing image formats. Backgrounds
+and icons are passive images; layout motion comes from firmware, never an asset.
 Do not depict Jibo's robot, shell, head, face or eye in the artwork.
 
 ## Start from Ember or Orbit
@@ -196,11 +200,12 @@ or accessibility certification.
 
 | Role | Recommended example size | Maximum width × height | Accepted author format |
 | --- | --- | --- | --- |
-| `icon` | 256 × 256, transparent padding | 256 × 256 | Static PNG |
+| `icon` | 256 × 256, transparent padding | 256 × 256 | Static PNG; static SVG converted locally to 256 × 256 PNG |
 | `background` | 1280 × 720 | 1280 × 720 | Static PNG or baseline RGB JPEG |
 | `preview` | 720 × 720 | 720 × 720 | Static PNG or baseline RGB JPEG |
 
-Smaller positive dimensions are valid. The examples ship exact recommended sizes;
+Smaller positive PNG dimensions are valid; SVG imports always produce 256 × 256.
+The examples ship exact recommended sizes;
 icons have centered drawings within **160 × 160** on a transparent RGBA canvas.
 This drawing/padding convention is checked by the example art generator, not by
 the general packer. Keep important background content away from clipped corners
@@ -230,20 +235,88 @@ letters/digits/hyphens. Author entries have no hashes or size metadata:
 {"id": "weather", "role": "icon", "path": "assets/icons/weather.png"}
 ```
 
-Paths are relative to the theme directory, either `assets/<name>.png|jpg|jpeg` or
-`assets/icons/<name>.png|jpg|jpeg`, with the same bounded lowercase name grammar.
+Paths are relative to the theme directory, either `assets/<name>.png|jpg|jpeg|svg` or
+`assets/icons/<name>.png|jpg|jpeg|svg`, with the same bounded lowercase name grammar.
+Only role `icon` can use `.svg`; it is an author input, not a packed media type.
 They must be regular files. No symlinks (including directory components), absolute
 paths, traversal or URLs. Every asset must be used by a correctly typed reference;
 unused images, missing references and duplicate IDs/scopes/items fail.
 
 PNG must be static, noninterlaced, 8-bit RGB or RGBA. Indexed/grayscale PNG, APNG,
-GIF, WebP, SVG, progressive/grayscale JPEG and arbitrary metadata are rejected.
+GIF, WebP, raw packed SVG, progressive/grayscale JPEG and arbitrary metadata are rejected.
 Allowed PNG chunks are IHDR, IDAT, IEND and sRGB/gAMA/cHRM/pHYs; export without
 text/EXIF chunks. JPEG permits baseline RGB with JFIF only, not comments/EXIF/ICC
 or other metadata. Renaming a file does not convert its format. CRCs, image
 structure and all PNG scanline filters are checked; malformed, truncated or
 trailing image/compressed-stream payloads fail. JPEG is decoded by a bounded
 Python/Pillow child with a 10-second deadline.
+
+### Static SVG icon import
+
+For an existing icon asset, change only its source path, for example:
+
+```json
+{"id": "weather", "role": "icon", "path": "assets/icons/weather.svg"}
+```
+
+`check` and `pack` convert the SVG in memory to **256 × 256 RGBA PNG**, preserving
+its viewBox aspect ratio and centering it on a transparent canvas. Existing PNG
+inputs keep their original dimensions and normalization. No SVG source, source
+path or new media type enters the `.phtheme`, signing descriptor or robot renderer.
+Use PNG/JPEG for backgrounds and previews; this import is only for role `icon`.
+
+The optional converter needs Python 3.10+, CairoSVG (tested with 2.9.1), its Cairo
+system library and Unix resource limits. CairoSVG includes Pillow and defusedxml.
+Dependencies must be visible to `python3 -I`; user-site-only installs are excluded.
+A virtual environment can keep these separate from the rest of your tools:
+
+```sh
+python3 -m venv .theme-python
+.theme-python/bin/python3 -m pip install CairoSVG==2.9.1
+PATH="$PWD/.theme-python/bin:$PATH" node tools/theme-kit/cli.mjs check copper
+PATH="$PWD/.theme-python/bin:$PATH" PHOENIX_THEME_SVG_REQUIRED=1 node --test tools/theme-kit/svg.test.mjs
+```
+
+PNG-only packing still uses Node built-ins. The optional SVG tests skip if the
+converter is absent unless `PHOENIX_THEME_SVG_REQUIRED=1` is set. Windows hosts
+without Unix resource limits refuse SVG conversion; export PNG there instead.
+A missing converter, malformed source, resource limit or timeout is a refusal,
+not a fallback to loading raw SVG.
+
+Supported SVG is an intentionally small static subset: paths, rectangles, circles,
+ellipses, lines, polylines/polygons, groups, defs, linear/radial gradients and clip
+paths, with explicit fill/stroke/opacity and bounded numeric transforms. Colours
+can use hex, named colours, `rgb(...)`/`rgba(...)`, `none` or `currentColor`.
+Only `url(#id)` references to a gradient or clip path in this same document are
+allowed. IDs must start with a letter and contain at most 40 letters, digits,
+underscores or hyphens. A leading UTF-8 XML declaration and comments are allowed.
+
+Scripts, event handlers, foreign namespaces/`foreignObject`, DTDs, all entity
+references (including numeric escapes), stylesheets, CSS/style/class attributes,
+processing instructions, text/fonts, raster images, animation, filters, masks,
+patterns, nested SVG and `<use>` are rejected. All `href`/`xlink:href` values are
+rejected, including local ones. External, relative, file and data URLs are never
+resolved. Export text as paths and CSS as presentation attributes, or convert to
+PNG yourself when the SVG needs unsupported features.
+
+| SVG-specific limit | Maximum / rule |
+| --- | --- |
+| Source | 262,144 uncompressed UTF-8 bytes; gzip/SVGZ is rejected without inflation |
+| Source width/height and viewBox width/height | Each 1–4,096; width × height at most 4,194,304; explicit pixel dimensions or a viewBox required; no percentages or physical units |
+| Elements / nesting / attributes per element | 2,048 / 32 / 32 |
+| Each attribute | 65,536 characters and 8,192 numeric values; finite numbers with absolute value at most 16,384 |
+| References | Existing in-document gradient/clip IDs only; cycles and reference depth above 32 rejected |
+| Converter | 5-second wall-clock deadline, 2-second CPU limit, 256 MiB address-space cap, 32 file descriptors |
+| Output | Exactly 256 × 256 RGBA PNG, at most 1,048,576 encoded bytes, then existing PNG/decoded-pixel validation |
+
+Each conversion is a separate isolated Python process with bounded stdin/stdout.
+The renderer receives sanitized bytes, never a source path. It has a deny-all URL
+fetcher and a Python I/O guard after trusted dependency imports; source-driven
+file/network reads and child processes are refused. Trusted Python/Cairo startup
+still loads its installed libraries. This is not a general SVG engine or an OS
+sandbox for arbitrary code. Every imported icon consumes 65,536 pixels from the
+existing total pixel budget before rendering; the asset-count, manifest, decoded
+PNG stream and complete-artifact limits remain unchanged.
 
 ## Full icon role table
 

@@ -38,7 +38,11 @@ changed by that command. The generator uses Node built-ins, not Python or npm.
 Keep `tools/theme-kit/` and `themes/` in the same relative layout. No package.json,
 npm install, server modules, service configuration, credentials or signing keys
 are needed. PNG check/pack use Node built-ins only. JPEG authoring additionally
-requires `python3` with Pillow. The separate Ember/Orbit art generator,
+requires `python3` with Pillow. Optional SVG icon input requires Python 3.10+
+with CairoSVG/Pillow, its Cairo system library and Unix resource limits; dependencies
+must be importable with `python3 -I` (use a virtual environment, not a user-site-only
+install). See [SVG icon import](../../docs/THEMES.md#static-svg-icon-import) for
+the supported static subset and bounds. The separate Ember/Orbit art generator,
 `themes/build-art.py`, requires Python 3/Pillow/NumPy; the additional starter
 generator `tools/theme-kit/build-templates.mjs` needs only Node. See
 [themes/README.md](../../themes/README.md). Code is BSD-3-Clause, under the
@@ -48,7 +52,8 @@ repository [LICENSE](../../LICENSE); preserve that license when copying the kit.
 
 - `cli.mjs`: check/pack/new command parsing and measurements/output.
 - `new.mjs`: template-copy scaffold, fresh ID and author credit.
-- `pack.mjs`: local source reading, semantic target policy and image normalization.
+- `pack.mjs`: bounded local source reading, semantic target policy and image normalization.
+- `svg.mjs` / `svg-render.py`: optional author-only static SVG icon conversion in a bounded child process.
 - `themeFormat.cjs`: strict JSON, author manifest validation, contrast and image inspection.
 - `extensions.mjs`: host validation for API 2–4 fields and decoded eye pixels.
 - `build-templates.mjs` / `templates/`: original abstract starter generation and runnable sources.
