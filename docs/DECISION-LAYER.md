@@ -35,7 +35,7 @@ skill is invented.
 | The grammar's parse | What happens |
 |---|---|
 | Not a global turn (a skill waiting for its own answer) | Nothing. |
-| A command on the list, or a question about a named person | Nothing. |
+| A command on the list, a HIGH grammar match for dice, coin tosses, Pong or Ping-Pong, a HIGH game-list question, or a question about a named person | Nothing. |
 | A miss, a non-HIGH parse, or a catch-all question rule | **Review:** a command or a knowledge question at `minProbability` (0.5) or above replaces it. |
 | Any other HIGH parse (chitchat, a screen command, a misheard fragment) | **Second opinion:** only a command at `overrideProbability` (0.9) or above replaces it. |
 

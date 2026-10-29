@@ -78,7 +78,14 @@ export const DECISION_COMMANDS = Object.freeze({
 
 export const DECISION_INSTRUCTIONS = 'A person just said this to Jibo, a social home robot. Which of these do they want?';
 const CRITERIA = Object.freeze(Object.fromEntries(Object.entries(DECISION_COMMANDS).map(([key, { description }]) => [key, description])));
-const COMMAND_INTENTS = new Set(Object.values(DECISION_COMMANDS).map(({ intent }) => intent).filter(Boolean));
+// Specific built-in game commands are not offered as model choices, but a
+// HIGH grammar match already identifies their response. Do not collapse them
+// into the generic `game` choice (which launches Circuit Saver).
+const COMMAND_INTENTS = new Set([
+  ...Object.values(DECISION_COMMANDS).map(({ intent }) => intent).filter(Boolean),
+  'requestRollOneDie', 'requestRollTwoDice', 'requestFlipCoin',
+  'requestPlayPong', 'requestPlayPingPong',
+]);
 
 // Grammar rules that catch any question of a shape and send it to the knowledge
 // search. Their parse is a guess about the kind of sentence, not a decision
@@ -235,6 +242,8 @@ export function decisionKind(parsed, rules, { home = false } = {}) {
   if (String(parsed.priority || '').toUpperCase() !== 'HIGH') return 'review';
   if (CATCH_ALL_INTENTS.has(nlu.intent)) return 'review';
   if (COMMAND_INTENTS.has(nlu.intent) || KNOWLEDGE_INTENTS.has(nlu.intent)) return null;
+  // Asking which games are available is not consent to start the generic game.
+  if (nlu.intent === 'whatThingDoesJiboHave' && nlu.entities?.JiboContent === 'Game') return null;
   return 'second-opinion';
 }
 
