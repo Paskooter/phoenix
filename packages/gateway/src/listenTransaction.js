@@ -909,8 +909,12 @@ export class ListenTransaction {
     // rejects null. Active-skill follow-ups still need a launch record: omit an
     // absent intent without inventing one or changing the NLU sent to the skill.
     const intent = this.nluData?.intent ?? undefined;
+    // JiboTube's native namespace is a Phoenix routing extension. History's
+    // archived skill-ID schema permits only @be/ or unscoped IDs; reserve this
+    // unscoped history alias without changing the match/NLU delivered to BE.
+    const historySkillID = skillID === '@phoenix/jibotube' ? 'phoenix-jibotube' : skillID;
     const startedAt = now();
-    this.components.historyClient.writeSkillLaunch({ robotID: general.robotID, sessionID, skillID, intent, personIDs }, this.trace, { signal: this.abortController.signal })
+    this.components.historyClient.writeSkillLaunch({ robotID: general.robotID, sessionID, skillID: historySkillID, intent, personIDs }, this.trace, { signal: this.abortController.signal })
       .then((result) => this._span('history_launch', startedAt, result === null ? 'error' : 'ok'))
       .catch(() => this._span('history_launch', startedAt, 'error'));
   }
