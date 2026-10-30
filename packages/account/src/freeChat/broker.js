@@ -170,6 +170,16 @@ export class FreeChat {
     this.ledger.save(); // Synchronous fsync/rename/directory fsync BEFORE dispatch; never refund.
     return true;
   }
+  // A free attempt that fails provider-side and overflows to the paid model
+  // must not consume one of the account's per-minute slots or daily requests:
+  // the turn is answered once by the paid reservation. Money reservations are
+  // still never refunded; only these zero-cost admission slots are released.
+  release(account) {
+    const row = this.row(account); if (!row) return;
+    if (row.minuteRequests > 0) row.minuteRequests--;
+    if (row.dayRequests > 0) row.dayRequests--;
+    this.ledger.save();
+  }
   async complete(account, body, recheck = () => this.current(account._id), signal) {
     account = recheck(); const request = validate(body); const status = this.status(account);
     if (!status.enabled) return { mode: 'classic' };
@@ -209,10 +219,10 @@ export class FreeChat {
                 data_collection: process.env.PHOENIX_FREE_CHAT_DATA_COLLECTION === 'deny' ? 'deny' : 'allow',
                 zdr: process.env.PHOENIX_FREE_CHAT_DATA_COLLECTION === 'deny',
                 max_price: { prompt: paid ? 0.05 : 0, completion: paid ? 0.50 : 0, request: 0, image: 0 } } }) });
-        } catch { if (!paid && !controller.signal.aborted) continue; fail('provider_unavailable', 503); }
+        } catch { if (!paid && !controller.signal.aborted) { this.release(account); continue; } fail('provider_unavailable', 503); }
         if (!response.ok) {
           const overflow = !paid && [404, 408, 429, 500, 502, 503, 504].includes(response.status);
-          await response.body?.cancel(); if (overflow) continue;
+          await response.body?.cancel(); if (overflow) { this.release(account); continue; }
           fail('provider_unavailable', 503);
         }
         const result = await responseJson(response, this.config.maxResponseBytes);

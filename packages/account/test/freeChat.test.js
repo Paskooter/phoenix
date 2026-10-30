@@ -5,7 +5,7 @@ import http from 'node:http';
 import https from 'node:https';
 import { syncBuiltinESMExports } from 'node:module';
 import { spawnSync } from 'node:child_process';
-import { FreeChat } from '../src/freeChat/broker.js';
+import { FreeChat, FREE_MODEL, OVERFLOW_MODEL } from '../src/freeChat/broker.js';
 import { InferenceLedger, initializeInferenceLedger } from '../src/agentInference/ledger.js';
 import { once } from 'node:events';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync, renameSync } from 'node:fs';
@@ -122,13 +122,44 @@ test('free exhaustion overflows only to pinned DeepSeek with reserved price ceil
   });
   const reply = await f.robot('complete', { ...body, detail: 'detailed' }); assert.equal(reply.status, 200);
   assert.equal((await reply.json()).keepTalking, true);
-  assert.deepEqual(f.requests.map(r => r.body.model), ['google/gemma-4-26b-a4b-it:free', 'deepseek/deepseek-v4.1-flash']);
+  assert.deepEqual(f.requests.map(r => r.body.model), [FREE_MODEL, OVERFLOW_MODEL]);
   const paid = f.requests[1].body;
   assert.deepEqual(paid.provider, { allow_fallbacks: false, require_parameters: true, data_collection: 'allow', zdr: false,
     max_price: { prompt: 0.05, completion: 0.5, request: 0, image: 0 } });
   assert.equal(paid.max_tokens, 512); assert.equal(paid.tools, undefined); assert.deepEqual(paid.plugins, []);
   const state = JSON.parse(readFileSync(join(f.root, 'usage.json')));
   assert.equal(state.dayMicroUsd, 52685); assert.equal(state.lifetimeMicroUsd, 52685);
+});
+
+test('a failed free attempt releases the account slot; the turn counts once, never twice', async t => {
+  const f = await fixture(t, { requestsPerMinute: 2 });
+  f.responder((_req, res, request) => {
+    if (request.body.model.endsWith(':free')) { res.statusCode = 429; res.end('Rate limited upstream'); }
+    else res.end(JSON.stringify({ choices: [{ message: { content: '{"text":"Overflow answer","keepTalking":false}' }, finish_reason: 'stop' }] }));
+  });
+  assert.equal((await f.robot()).status, 200);
+  assert.equal((await f.robot()).status, 200);
+  // Two successful turns through 2/min: both slots spent, a third turn this minute is refused.
+  assert.equal((await f.robot()).status, 429);
+  assert.deepEqual(f.requests.map(r => r.body.model), [FREE_MODEL, OVERFLOW_MODEL, FREE_MODEL, OVERFLOW_MODEL]);
+  const state = JSON.parse(readFileSync(join(f.root, 'usage.json')));
+  assert.equal(state.dayMicroUsd, 52685 * 2, 'only the paid legs reserve money');
+  const row = Object.values(state.accounts)[0];
+  assert.equal(row.dayRequests, 2); assert.equal(row.minuteRequests, 2, 'one slot per successful turn, not one per attempt');
+  // The global attempt counters stay conservative: free attempts are still counted, never refunded.
+  assert.equal(state.freeDayRequests, 2); assert.equal(state.minuteRequests, 4);
+});
+
+test('a fetch throw on the free leg overflows to the paid model without consuming the account slot', async t => {
+  const f = await fixture(t, { requestsPerMinute: 1 });
+  f.responder((_req, res, request) => {
+    if (request.body.model.endsWith(':free')) { res.destroy(); return; }
+    res.end(JSON.stringify({ choices: [{ message: { content: '{"text":"Fetch throw overflow","keepTalking":false}' }, finish_reason: 'stop' }] }));
+  });
+  assert.equal((await f.robot()).status, 200);
+  assert.deepEqual(f.requests.map(r => r.body.model), [FREE_MODEL, OVERFLOW_MODEL]);
+  const row = Object.values(JSON.parse(readFileSync(join(f.root, 'usage.json'))).accounts)[0];
+  assert.equal(row.dayRequests, 1); assert.equal(row.minuteRequests, 1, 'only the paid attempt holds the 1/min slot');
 });
 
 test('concurrent accounts cannot exceed global daily cap and free answers remain available at zero budget', async t => {
@@ -162,8 +193,11 @@ test('own key is encrypted, never returned, survives restart and bypasses only o
   });
   assert.equal((await f.robot()).status, 200);
   assert.equal(f.requests.at(-1).authorization, 'Bearer ' + key);
-  assert.equal((await f.robot('complete', body, 'two')).status, 429, 'never borrow the first owner key');
-  assert.equal(f.requests.at(-1).authorization, 'Bearer synthetic-owner-key');
+  // Account two has no sealed key and no daily quota spent (its failed free
+  // attempt releases the slot), so the owner budget gate - not the account
+  // daily gate - refuses the paid overflow.
+  assert.equal((await f.robot('complete', body, 'two')).status, 503, 'the owner budget gates the paid overflow');
+  assert.equal(f.requests.at(-1).authorization, 'Bearer synthetic-owner-key', 'never borrow the first owner key');
   assert.equal(JSON.parse(readFileSync(join(f.root, 'usage.json'))).lifetimeMicroUsd, 0);
   assert.equal((await f.call('/api/free-chat/key', 'PUT', { key: null }, f.cookie)).status, 200);
   assert.equal((await f.robot()).status, 429, 'removing key never resets shared quota');
