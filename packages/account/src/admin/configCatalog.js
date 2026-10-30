@@ -621,23 +621,24 @@ export const SETTINGS = [
     key: 'PHOENIX_NEWS_BRIEFINGS_ENABLED', label: 'News briefings', group: 'report',
     type: 'bool', editable: true, restart: ['lasso', 'report-skill'], default: 'false',
     help: 'Prepare shared, expressive news stories for Jibo, about twenty to thirty seconds each. '
-      + 'Refreshes twice daily. Needs a key for the selected news provider and an OpenRouter key. Categories without ready stories are skipped.',
+      + 'Refreshes twice daily. Uses an AI model for summaries; curated feeds need no news-provider key. Categories without ready stories are skipped.',
   },
   {
     key: 'PHOENIX_NEWS_PROVIDER', label: 'News provider', group: 'report',
     type: 'enum', editable: true, restart: ['lasso'], default: null,
     options: [
+      { value: 'curated', label: 'Curated publisher feeds', hint: 'Public English-language publisher feeds with no news subscription or API key. AI summaries still use the news model budget.' },
       { value: 'worldnews', label: 'World News API', hint: 'Use the World News API key, even when a LumenFeed key is also set.' },
       { value: 'lumenfeed', label: 'LumenFeed', hint: 'Use the LumenFeed account and key.' },
     ],
     help: 'When no provider is selected, uses LumenFeed if its key is set; otherwise World News API. '
-      + 'Choosing a provider uses only that provider’s key.',
+      + 'Curated needs no news-provider key. World News API and LumenFeed use their own keys, with curated feeds as a fallback on server errors.',
   },
   {
     key: 'LUMENFEED_API_KEY', label: 'LumenFeed API key', group: 'report',
     type: 'secret', editable: true, restart: ['lasso'], default: null,
     help: 'Article text for news briefings from your LumenFeed account. Get a key from the dashboard at lumenfeed.com. '
-      + 'Adding this key selects LumenFeed unless News provider is set to World News API.',
+      + 'Adding this key selects LumenFeed only when News provider is not set.',
   },
   {
     key: 'WORLD_NEWS_API_KEY', label: 'World News API key', group: 'report',
@@ -1201,7 +1202,7 @@ export function checkTogether(values) {
     const provider = values.PHOENIX_NEWS_PROVIDER || (has('LUMENFEED_API_KEY') ? 'lumenfeed' : 'worldnews');
     const key = provider === 'lumenfeed' ? 'LUMENFEED_API_KEY' : 'WORLD_NEWS_API_KEY';
     const label = provider === 'lumenfeed' ? 'LumenFeed' : 'World News';
-    if (!has(key)) warnings.push({ key, message: `News briefings need a ${label} key for the selected provider. Categories without ready stories are skipped until one is added.` });
+    if (provider !== 'curated' && !has(key)) warnings.push({ key, message: `News briefings need a ${label} key for the selected provider. Categories without ready stories are skipped until one is added.` });
   }
 
   // The account service refuses to start when SMTP is half-configured without a

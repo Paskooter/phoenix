@@ -717,8 +717,10 @@ Getting the robot connected is not the same as a fully working robot.
 
 ## Shared news briefings
 
-In **Admin → Settings → Personal report**, add a **LumenFeed API key** or
-**World News API key**, choose the matching **News provider**, and turn on
+In **Admin → Settings → Personal report**, choose **Curated publisher feeds**
+as the **News provider** for public feeds with no news-provider subscription or
+API key. Alternatively, add a **LumenFeed API key** or **World News API key**
+and choose its matching provider. Turn on
 **News briefings**. Each setting has its own **Save** button; the feature switch
 saves immediately. After saving, use **Restart now** in **Restart to apply your
 changes** and confirm the listed service restarts. The worker reuses the
@@ -738,20 +740,30 @@ Environment equivalents are `LUMENFEED_API_KEY` and
 `PHOENIX_NEWS_PROVIDER=lumenfeed`. With `PHOENIX_NEWS_PROVIDER` unset or empty,
 a set LumenFeed key selects LumenFeed automatically; otherwise World News is
 used. An explicit `worldnews` selection always uses `WORLD_NEWS_API_KEY`.
-A missing key or provider error never switches providers or their credentials.
+For public feeds, set `PHOENIX_NEWS_PROVIDER=curated`; any saved paid-provider
+keys are unused. AI summarization is unchanged and still uses the news model
+and its spending allowance: $0 for publisher feeds does not mean free inference.
+A missing or rejected API key never switches credentials. HTTP 5xx from a paid
+news provider switches the remaining sweep to curated feeds; the next scheduled
+sweep retries the selected provider. Failed request reservations remain charged.
+Curated itself tries its independent section feeds; it never enables a paid API
+as a fallback. An unavailable category retains only still-fresh cached stories.
 
 The first refresh runs asynchronously after Lasso starts; it can take several
 minutes to prepare all eleven categories. The worker publishes each story as soon
 as it is ready and takes turns between categories, starting with general news.
-This is one shared **United States national edition**. World News requests use
+The API providers retain one shared **United States national edition**. World News requests use
 US publisher and US location-entity filters. LumenFeed requests use its documented
 `country:=US` and `language:=en` filters, also checked on each returned article.
 LumenFeed describes country as likely origin or relevance, not a separate event
 location: it does not document an equivalent to World News's `LOC:USA` entity
 filter. Its US label alone cannot guarantee a domestic main event.
-The legacy international category
-also uses that provider's US selection. There are no per-robot location editions.
-Categories without ready briefings are skipped; worldwide RSS is not substituted.
+With these API providers, the legacy international category also uses their US
+selection. Curated instead selects English-language publisher editions and
+section feeds for all eleven topics, including world reporting in international.
+These feed sections do not guarantee that the main event happened in the US.
+There are no per-robot location editions. Categories without ready briefings are
+skipped; the old headline-only RSS relay is never substituted for AI briefings.
 Opinion/editorial/op-ed/commentary labels in titles, URL sections and provider
 metadata are excluded before generation. Cached stories are filtered on reads
 too, so an older opinion briefing cannot keep playing until the next refresh.
@@ -783,9 +795,12 @@ and `nextFetchAt`:
 - `provider.accepted: 0` with nonzero `received`: inspect `provider.rejected`.
   It records the first local rejection per considered candidate: country, language,
   opinion label, URL/title/text, invalid/future/stale date, publisher or excerpt.
-  `considered` is bounded by the configured candidate count; it can be less than
-  `received`. There is no publisher-domain allowlist; the domain table supplies
-  spoken publisher names. Sources under eighty words are rejected.
+  `considered` can be less than `received`. API adapters consider the configured
+  candidate count and reject sources under eighty words; their domain table
+  supplies spoken publisher names, not an allowlist. Curated instead considers
+  at most thirty items to fill up to ten accepted candidates, requires at least
+  120 clean words and restricts article URLs/redirects to each feed's publisher
+  domains. Its `rejected.fetch` counts isolated feed or article fetch failures.
 - `excluded` and `duplicates`: worker-side policy exclusions and repeated URLs.
 - `modelSkipped`/`cachedSkipped`: the model returned `usable=false`, or an
   unchanged source reused a cached skip. These are not model/provider outages.
@@ -810,6 +825,17 @@ Native deployments keep the cache and budget at
 `PHOENIX_DATA_DIR`, or set `PHOENIX_NEWS_BRIEFINGS_FILE`. Run one refresh worker
 per state file. The twelve-hour schedule requests ten candidates per category,
 about 24.2 World News points or 22 LumenFeed requests per day before retries.
+Curated uses zero paid-provider points. It accepts RSS/Atom full content or
+descriptions with at least 120 words; shorter items require article-page
+paragraph extraction. The normal shared article inspection and AI generator
+remain in the path. Transport requires public HTTPS, validates all DNS answers
+in the actual socket lookup, rechecks every redirect (at most three), and uses
+a ten-second total request deadline, one-megabyte feed and three-megabyte article
+limits, and a sixty-second category deadline. Scripts, navigation, promotions,
+hidden content and known paid-only pages are not source text. Feed availability
+and publisher terms can change; publicly reachable does not grant redistribution
+rights. Store only the generated short briefing and its attribution/link, not
+full articles. Review publisher terms before broader use.
 `PHOENIX_NEWS_DAILY_POINTS` defaults to forty and caps the selected provider's
 points or requests using the same durable ledger; switching providers does not
 reset spending. Provider quota shared with other applications can still run out.

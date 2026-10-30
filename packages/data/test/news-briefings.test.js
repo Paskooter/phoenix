@@ -3,6 +3,10 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, readFileSync, writeFileSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { EventEmitter } from 'node:events';
+import { Readable } from 'node:stream';
+import https from 'node:https';
+import dns from 'node:dns';
 import { newsWordCount, renderNewsBriefing, validateNewsBriefing } from '@phoenix/contracts';
 import { createDataService } from '../src/index.js';
 import { CATEGORIES } from '../src/news.js';
@@ -39,6 +43,362 @@ function fixture(t, overrides = {}) {
   t.after(() => worker.stop());
   return { config, clock, calls, worker, options, setArticles(value) { articles = value; } };
 }
+
+test('curated needs no publisher key and still reserves the existing AI generation budget', async t => {
+  const f = fixture(t, { provider: 'curated', apiKey: '', dailyPoints: 0 });
+  const worker = createNewsBriefingWorker({ ...f.options,
+    provider: { ...f.options.provider, id: 'curated', requestPoints: 0 },
+  });
+  t.after(() => worker.stop());
+  assert.equal(worker.status().reason, null);
+  await worker.refresh();
+  assert.equal(worker.items(42206).length, 1);
+  assert.equal(worker.status().budget.points, 0);
+  assert.equal(worker.status().budget.llmCalls, 1);
+});
+
+test('curated RSS and Atom carry real bodies, dates, alternate links and editorial tags into shared inspection', async () => {
+  const { parseCuratedFeed, extractArticleText, createCuratedFeedsProvider } = await import('../src/newsBriefings/curatedFeeds.js');
+  const body = [worldArticle.text, worldArticle.text].join(' ');
+  const content = `<p>${body}</p><aside>unrelated recommendation</aside><script>tracking()</script>`;
+  const rss = `<?xml version="1.0" encoding="UTF-8"?><!-- publisher feed --><rss><channel><language>en-US</language><item><title>A satellite &amp; coastal waters</title><link>${worldArticle.url}</link>
+    <pubDate>Fri, 02 Oct 2026 10:00:00 GMT</pubDate><description>Short teaser only.</description>
+    <content:encoded><![CDATA[${content}]]></content:encoded><category>Science</category></item></channel></rss>`;
+  const feed = parseCuratedFeed(rss);
+  assert.equal(feed.language, 'en-US');
+  assert.equal(feed.items[0].title, 'A satellite & coastal waters');
+  assert.equal(extractArticleText(feed.items[0].body), body);
+  assert.deepEqual(feed.items[0].tags, ['Science']);
+  const atom = `<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><entry><title>Atom story</title>
+    <link href="https://www.nasa.gov/feed" rel="self"/><link href="${worldArticle.url}" rel="alternate"/>
+    <updated>2026-10-02T11:00:00Z</updated><published>2026-10-02T10:00:00Z</published>
+    <content type="html">&lt;p&gt;${body}&lt;/p&gt;</content><category term="opinion"/></entry></feed>`;
+  const parsed = parseCuratedFeed(atom);
+  assert.equal(parsed.items[0].url, worldArticle.url);
+  assert.equal(parsed.items[0].publishedAt, '2026-10-02T10:00:00Z');
+  assert.deepEqual(parsed.items[0].tags, ['opinion']);
+  let requests = 0;
+  const provider = createCuratedFeedsProvider(newsBriefingConfig(env), {
+    feeds: { science: [{ url: 'https://www.nasa.gov/rss', hosts: ['nasa.gov'] }] },
+    get: async () => { requests++; return rss; },
+  });
+  const result = await provider.fetchCategory('science', { now: newsTime });
+  assert.equal(provider.requestPoints, 0);
+  assert.equal(result.articles[0].fullText, body, 'feed body, not its teaser, reaches existing inspection');
+  assert.equal(result.articles[0].publisher, 'NASA');
+  assert.equal(result.diagnostics.accepted, 1);
+  assert.equal(requests, 1, 'a complete RSS body needs no article-page fetch');
+  await assert.rejects(() => provider.fetchCategory('typo'), /category/i);
+  assert.throws(() => parseCuratedFeed('<html>not a feed</html>'), /feed/i);
+  assert.throws(() => parseCuratedFeed('<!DOCTYPE rss [<!ENTITY x SYSTEM "file:///etc/passwd">]><rss/>'), /feed/i);
+});
+
+// A synthetic HTTPS transport runs the real guarded DNS callback before responding.
+function publisherTransport(reply, lookedUp = []) {
+  return (url, options, respond) => {
+    const request = new EventEmitter();
+    request.destroy = error => { if (error) queueMicrotask(() => request.emit('error', error)); };
+    request.end = () => options.lookup(url.hostname, { all: true }, (error, addresses) => {
+      if (error) { request.emit('error', error); return; }
+      lookedUp.push(addresses);
+      const { body = '', status = 200, headers = {} } = reply(url, options);
+      const response = Readable.from([Buffer.from(body)]);
+      response.statusCode = status;
+      response.headers = { 'content-type': 'text/html', ...headers };
+      const destroy = response.destroy.bind(response);
+      response.destroy = () => { response.emit('aborted'); return destroy(); };
+      respond(response);
+    });
+    return request;
+  };
+}
+
+test('curated transport refuses unsafe URLs and all nonpublic DNS results before a connection', async () => {
+  const { createCuratedTextFetcher } = await import('../src/newsBriefings/curatedFeeds.js');
+  let requests = 0;
+  const get = createCuratedTextFetcher({ requestImpl: () => { requests++; assert.fail('unsafe URL reached transport'); } });
+  for (const url of ['http://nasa.gov/story', 'https://user:pass@nasa.gov/story', 'https://localhost/story',
+    'https://127.0.0.1/', 'https://2130706433/', 'https://[::1]/', 'https://nasa.gov:444/', 'https://news.local/story']) {
+    await assert.rejects(() => get(url), /unsafe/i, url);
+  }
+  await assert.rejects(() => get('https://evil.nasa.gov.attacker.com/', { hosts: ['nasa.gov'] }), /unsafe/i);
+  assert.equal(requests, 0);
+  for (const address of ['0.0.0.0', '10.0.0.1', '100.64.0.1', '127.0.0.1', '169.254.169.254', '172.16.0.1',
+    '192.168.0.1', '192.0.2.1', '198.18.0.1', '224.0.0.1', '::1', '::2', '::127.0.0.1', 'fec0::1', 'fc00::1', 'fe80::1', '::ffff:127.0.0.1', '2001:db8::1']) {
+    const fetchText = createCuratedTextFetcher({
+      lookupImpl: (_host, _options, callback) => callback(null, [{ address: '93.184.216.34', family: 4 }, { address, family: address.includes(':') ? 6 : 4 }]),
+      requestImpl: publisherTransport(() => assert.fail(`private DNS ${address} connected`)),
+    });
+    await assert.rejects(() => fetchText('https://nasa.gov/story'), /unsafe/i, address);
+  }
+  const addresses = [];
+  const safe = createCuratedTextFetcher({
+    lookupImpl: (_host, _options, callback) => callback(null, [{ address: '93.184.216.34', family: 4 }]),
+    requestImpl: publisherTransport((_url, options) => {
+      assert.equal(options.agent, false, 'no reused socket can bypass the guarded lookup');
+      assert.equal(options.headers['Accept-Encoding'], 'identity');
+      return { body: 'public publisher response' };
+    }, addresses),
+  });
+  assert.equal(await safe('https://www.nasa.gov/story', { hosts: ['nasa.gov'] }), 'public publisher response');
+  assert.deepEqual(addresses, [[{ address: '93.184.216.34', family: 4 }]], 'validated addresses are passed to the actual socket lookup');
+});
+
+test('curated transport bounds redirect hops, response bytes, content types and the entire request lifetime', async () => {
+  const { createCuratedTextFetcher, CURATED_LIMITS } = await import('../src/newsBriefings/curatedFeeds.js');
+  const lookupImpl = (_host, _options, callback) => callback(null, [{ address: '93.184.216.34', family: 4 }]);
+  const make = reply => createCuratedTextFetcher({ lookupImpl, requestImpl: publisherTransport(reply) });
+  await assert.rejects(() => make(() => ({ body: 'x'.repeat(33) }))('https://nasa.gov/story', { maxBytes: 32 }), /too large/i);
+  await assert.rejects(() => make(() => ({ headers: { 'content-length': '33' } }))('https://nasa.gov/story', { maxBytes: 32 }), /too large/i);
+  assert.equal(await make(() => ({ body: 'x'.repeat(32) }))('https://nasa.gov/story', { maxBytes: 32 }), 'x'.repeat(32));
+  await assert.rejects(() => make(() => ({ headers: { 'content-encoding': 'gzip' } }))('https://nasa.gov/story'), /encoding/i);
+  await assert.rejects(() => make(() => ({ headers: { 'content-type': 'image/jpeg' } }))('https://nasa.gov/story'), /content type/i);
+  await assert.rejects(() => make(() => ({ body: '<html>not RSS</html>' }))('https://nasa.gov/feed', { kind: 'feed' }), /content type/i);
+  for (const status of [403, 429, 503]) {
+    await assert.rejects(() => make(() => ({ status, body: 'untrusted upstream message' }))('https://nasa.gov/story'), error => error.status === status);
+  }
+  let requests = 0;
+  const redirectSignals = [];
+  const redirect = make((url, options) => {
+    requests++; redirectSignals.push(options.signal);
+    return url.pathname === '/first' ? { status: 302, headers: { location: '/second' } } : { body: 'article' };
+  });
+  assert.equal(await redirect('https://nasa.gov/first'), 'article');
+  assert.equal(requests, 2);
+  assert.equal(redirectSignals[0], redirectSignals[1], 'redirects share the same absolute deadline signal');
+  for (const location of ['http://nasa.gov/story', 'https://127.0.0.1/', 'https://attacker.com/story']) {
+    await assert.rejects(() => make(() => ({ status: 302, headers: { location } }))('https://nasa.gov/first', { hosts: ['nasa.gov'] }), /unsafe/i);
+  }
+  requests = 0;
+  await assert.rejects(() => make(() => { requests++; return { status: 302, headers: { location: '/forever' } }; })('https://nasa.gov/first'), /redirect/i);
+  assert.equal(requests, CURATED_LIMITS.redirects + 1, 'initial request plus bounded redirect hops, never an unbounded loop');
+  const stalled = createCuratedTextFetcher({ requestImpl: () => {
+    const request = new EventEmitter(); request.end = () => {}; request.destroy = () => {};
+    return request;
+  } });
+  await assert.rejects(() => stalled('https://nasa.gov/story', { timeoutMs: 20 }), /timeout/i);
+  await assert.rejects(() => stalled('https://nasa.gov/story', { signal: AbortSignal.abort() }), { name: 'AbortError' });
+});
+
+test('curated extracts article paragraphs, skips unsafe or stale links without fetching, and isolates bad sources', async () => {
+  const { createCuratedFeedsProvider, extractArticleText, CURATED_MIN_WORDS } = await import('../src/newsBriefings/curatedFeeds.js');
+  const body = [worldArticle.text, worldArticle.text].join(' ');
+  const html = `<html lang="en-US"><body><header><p>header boilerplate</p></header><main><nav>menu</nav><article>
+    <h1>Headline is not body text</h1><p>${body}</p><script>injected instructions</script><style>hidden text</style>
+    <aside><p>side story</p></aside><div class="newsletter"><p>Subscribe to this unrelated newsletter.</p></div>
+    <div aria-hidden="true"><p>Hidden recommendation.</p></div><footer><p>copyright</p></footer></article></main><p>outside unrelated story</p></body></html>`;
+  assert.equal(extractArticleText(html), body);
+  assert.equal(extractArticleText(`<html><body><div>${'menu '.repeat(150)}</div></body></html>`), '', 'page chrome without article paragraphs is not a source body');
+  const entry = (path, { date = '2026-10-02T10:00:00Z', title = 'Satellite report', content = 'A teaser.', tag = '' } = {}) =>
+    `<item><title>${title}</title><link>${path}</link><pubDate>${date}</pubDate><description><![CDATA[${content}]]></description><category>${tag}</category></item>`;
+  const rss = `<rss><channel><language>en</language>${[
+    entry('https://www.nasa.gov/stale', { date: '2026-09-01T10:00:00Z' }),
+    entry('https://www.nasa.gov/future', { date: '2026-10-04T10:00:00Z' }),
+    entry('https://www.nasa.gov/date', { date: 'missing' }),
+    entry('https://127.0.0.1/private'), entry('https://attacker.com/story'),
+    entry('https://www.nasa.gov/opinion', { tag: 'opinion' }),
+    entry('https://www.nasa.gov/broken'), entry('https://www.nasa.gov/too-short'),
+    entry('https://www.nasa.gov/spanish'), entry('https://www.nasa.gov/paywall'),
+    entry(worldArticle.url), entry(worldArticle.url),
+  ].join('')}</channel></rss>`;
+  const requests = [];
+  const provider = createCuratedFeedsProvider(newsBriefingConfig(env), {
+    feeds: { science: [{ url: 'https://www.nasa.gov/bad-rss', hosts: ['nasa.gov'] }, { url: 'https://www.nasa.gov/rss', hosts: ['nasa.gov'] }] },
+    get: async (url, options) => {
+      requests.push(String(url));
+      if (String(url).endsWith('/bad-rss') || String(url).endsWith('/broken')) throw Object.assign(new Error('untrusted error body'), { status: 503 });
+      if (String(url).endsWith('/rss')) return rss;
+      assert.deepEqual(options.hosts, ['nasa.gov']);
+      if (String(url).endsWith('/too-short')) return `<article><p>${'word '.repeat(CURATED_MIN_WORDS - 1)}</p></article>`;
+      if (String(url).endsWith('/spanish')) return html.replace('lang="en-US"', 'lang="es"');
+      if (String(url).endsWith('/paywall')) return html.replace('<body>', '<script type="application/ld+json">{"isAccessibleForFree":false}</script><body>');
+      assert.equal(String(url), worldArticle.url, 'ineligible source URLs must not be fetched');
+      return html;
+    },
+  });
+  const result = await provider.fetchCategory('science', { now: newsTime });
+  assert.equal(result.articles.length, 1);
+  assert.equal(result.articles[0].fullText, body);
+  assert.equal(result.diagnostics.rejected.fetch, 2, 'feed and article outages are counted, never exposed');
+  for (const [reason, count] of Object.entries({ stale: 1, future: 1, date: 1, url: 2, opinion: 1, text: 2, language: 1 })) {
+    assert.equal(result.diagnostics.rejected[reason], count, reason);
+  }
+  assert.equal(requests.filter(url => url === worldArticle.url).length, 1, 'duplicate links are fetched only once');
+  assert.ok(!JSON.stringify(result.diagnostics).includes('untrusted error body'));
+});
+
+test('curated category deadline bounds the whole source sweep and caller cancellation makes no request', async () => {
+  const { createCuratedFeedsProvider } = await import('../src/newsBriefings/curatedFeeds.js');
+  let calls = 0;
+  const provider = createCuratedFeedsProvider(newsBriefingConfig(env), {
+    categoryTimeoutMs: 20, feeds: { science: [{ url: 'https://nasa.gov/rss', hosts: ['nasa.gov'] }] },
+    get: (_url, { signal }) => new Promise((_resolve, reject) => {
+      calls++;
+      signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+    }),
+  });
+  const controller = new AbortController();
+  const containment = setTimeout(() => controller.abort(new Error('outer containment only')), 200);
+  try {
+    await assert.rejects(() => provider.fetchCategory('science', { now: newsTime, signal: controller.signal }), /Curated category timeout/);
+  } finally { clearTimeout(containment); }
+  assert.equal(calls, 1);
+  await assert.rejects(() => provider.fetchCategory('science', { signal: AbortSignal.abort() }), { name: 'AbortError' });
+  assert.equal(calls, 1);
+});
+
+test('curated default wiring sends full extracted paragraphs through the unchanged AI generator for all eleven categories', async t => {
+  const { CURATED_FEEDS, CURATED_MIN_WORDS } = await import('../src/newsBriefings/curatedFeeds.js');
+  assert.deepEqual(Object.keys(CURATED_FEEDS).sort(), Object.values(CATEGORIES).sort());
+  const sources = new Map();
+  for (const [category, feeds] of Object.entries(CURATED_FEEDS)) {
+    assert.ok(feeds.length >= 2 && feeds.length <= 3, category);
+    for (const source of feeds) { assert.equal(new URL(source.url).protocol, 'https:'); sources.set(source.url, source); }
+  }
+  const body = [worldArticle.text, worldArticle.text].join(' ');
+  const modelCategories = [];
+  const publisherRequests = [];
+  t.mock.method(dns, 'lookup', (_host, _options, callback) => callback(null, [{ address: '93.184.216.34', family: 4 }]));
+  t.mock.method(https, 'request', publisherTransport((url, options) => {
+    publisherRequests.push(url.href);
+    assert.ok(!JSON.stringify(options.headers).includes('fixture-world-key'));
+    const source = sources.get(url.href);
+    if (source) return { headers: { 'content-type': 'application/rss+xml' }, body: `<rss><channel><language>en-US</language><item>
+      <title>${worldArticle.title}</title><link>https://${source.hosts[0]}/fixture-${encodeURIComponent(url.pathname)}</link>
+      <pubDate>2026-10-02T10:00:00Z</pubDate><description>Short teaser.</description></item></channel></rss>` };
+    return { body: `<html lang="en"><article><p>${body}</p></article></html>` };
+  }));
+  t.mock.method(globalThis, 'fetch', async (url, options) => {
+    assert.equal(new URL(url).origin, 'https://openrouter.ai', 'only the existing generator uses the model transport');
+    const request = JSON.parse(options.body);
+    const input = JSON.parse(request.messages[1].content);
+    assert.ok(newsWordCount(input.paragraphs.map(p => p.text).join(' ')) >= CURATED_MIN_WORDS);
+    assert.equal(input.paragraphs.map(p => p.text).join(' '), body, 'the model receives the article, not the RSS teaser');
+    assert.equal(request.response_format.json_schema.strict, true);
+    modelCategories.push(input.category);
+    const draft = structuredClone(newsDraft);
+    draft.sentences[0].text = draft.sentences[0].text.replace('NASA', input.publisher);
+    return Response.json({ choices: [{ finish_reason: 'stop', message: { content: JSON.stringify(draft) } }], usage: { cost: 0.001 } });
+  });
+  const f = fixture(t);
+  const config = { ...newsBriefingConfig({ ...env, PHOENIX_NEWS_PROVIDER: 'curated', WORLD_NEWS_API_KEY: '' }),
+    file: f.config.file, storiesPerCategory: 1, candidatesPerCategory: 1, dailyPoints: 0 };
+  const worker = createNewsBriefingWorker({ ...f.options, config, provider: undefined, generate: undefined, categories: CATEGORIES });
+  t.after(() => worker.stop());
+  assert.equal(worker.status().reason, null);
+  await worker.refresh();
+  for (const [id, category] of Object.entries(CATEGORIES)) {
+    assert.equal(worker.items(id).length, 1, category);
+    validateNewsBriefing(worker.items(id)[0]);
+    assert.equal(worker.status().categories[category].lastRun.provider.accepted, 1);
+  }
+  assert.deepEqual([...new Set(modelCategories)].sort(), Object.values(CATEGORIES).sort());
+  assert.equal(worker.status().budget.points, 0);
+  assert.equal(worker.status().budget.llmCalls, 11);
+  assert.ok(publisherRequests.length >= 33, 'real default wiring requested section feeds and full article pages');
+});
+
+test('provider HTTP 5xx switches the rest of the sweep to curated without resetting spend or bypassing AI', async t => {
+  const f = fixture(t);
+  let primary = 0; let fallback = 0;
+  let failing = true;
+  const options = { ...f.options,
+    provider: { ...f.options.provider, fetchCategory: async () => { primary++; if (failing) throw Object.assign(new Error('untrusted upstream message'), { status: 503 }); return { articles: [article()] }; } },
+    fallbackProvider: { id: 'curated', requestPoints: 0, fetchCategory: async () => { fallback++; return { articles: [article()] }; } },
+  };
+  const worker = createNewsBriefingWorker(options);
+  t.after(() => worker.stop());
+  await worker.refresh();
+  assert.equal(primary, 1, 'a failing paid provider is not retried for every category in one sweep');
+  assert.equal(fallback, 2);
+  assert.equal(worker.status().budget.points, 1.1, 'the uncertain primary request reservation survives free fallback');
+  assert.equal(f.calls.model, 1, 'fallback still uses the existing generator and revision cache');
+  assert.equal(worker.items(42206).length, 1);
+  assert.equal(worker.items(42208).length, 1);
+  await worker.stop();
+  failing = false;
+  f.clock.time += 12 * 3600000;
+  const retry = createNewsBriefingWorker(options);
+  t.after(() => retry.stop());
+  await retry.refresh();
+  assert.equal(primary, 3, 'the next scheduled sweep tries the selected primary again');
+  assert.equal(fallback, 2);
+  assert.ok(!readFileSync(f.config.file, 'utf8').includes('untrusted upstream message'));
+});
+
+test('curated can use an explicitly supplied fallback on empty feeds while auth failures and cancellation never fail over', async t => {
+  const f = fixture(t);
+  for (const [status, shouldFallback] of [[500, true], [599, true], [401, false], [402, false], [403, false], [429, false]]) {
+    let fallback = 0;
+    const worker = createNewsBriefingWorker({ ...f.options,
+      provider: { ...f.options.provider, fetchCategory: async () => { throw Object.assign(new Error('provider unavailable'), { status }); } },
+      fallbackProvider: { id: 'curated', requestPoints: 0, fetchCategory: async () => { fallback++; return { articles: [article()] }; } },
+      config: { ...f.config, file: f.config.file + status },
+    });
+    t.after(() => worker.stop());
+    await worker.refresh();
+    assert.equal(fallback, shouldFallback ? 2 : 0, String(status));
+    assert.equal(worker.items(42206).length, shouldFallback ? 1 : 0);
+  }
+  let calls = 0;
+  const worker = createNewsBriefingWorker({ ...f.options, config: { ...f.config, provider: 'curated', apiKey: '', file: f.config.file + 'empty' },
+    provider: { id: 'curated', requestPoints: 0, fetchCategory: async () => ({ articles: [] }) },
+    fallbackProvider: { id: 'worldnews', requestPoints: 1.1, fetchCategory: async () => { calls++; return { articles: [article()] }; } },
+  });
+  t.after(() => worker.stop());
+  await worker.refresh();
+  assert.equal(calls, 2);
+  assert.equal(worker.status().budget.points, 2.2, 'an explicitly supplied paid fallback also reserves its own cost');
+  assert.equal(worker.items(42206).length, 1);
+  let started;
+  const pending = new Promise(resolve => { started = resolve; });
+  const cancelled = createNewsBriefingWorker({ ...f.options,
+    config: { ...f.config, file: f.config.file + 'cancelled' },
+    provider: { ...f.options.provider, fetchCategory: (_category, { signal }) => {
+      started();
+      return new Promise((_resolve, reject) => signal.addEventListener('abort', () =>
+        reject(Object.assign(new Error('cancelled provider'), { status: 503 })), { once: true }));
+    } },
+    fallbackProvider: { id: 'curated', requestPoints: 0, fetchCategory: async () => assert.fail('cancelled refresh must not fail over') },
+  });
+  const refreshing = cancelled.refresh();
+  await pending;
+  await cancelled.stop();
+  await refreshing;
+});
+
+test('LumenFeed 503 automatically uses the default curated adapter with no paid key in publisher requests', async t => {
+  const { CURATED_FEEDS } = await import('../src/newsBriefings/curatedFeeds.js');
+  const sources = new Map(Object.values(CURATED_FEEDS).flat().map(source => [source.url, source]));
+  const body = [worldArticle.text, worldArticle.text].join(' ');
+  let paid = 0; let publicRequests = 0;
+  t.mock.method(globalThis, 'fetch', async (url, options) => {
+    assert.equal(url.origin, 'https://api.lumenfeed.com');
+    assert.equal(options.headers['X-API-Key'], 'fixture-lumen');
+    paid++;
+    return new Response('upstream unavailable', { status: 503 });
+  });
+  t.mock.method(dns, 'lookup', (_host, _options, callback) => callback(null, [{ address: '93.184.216.34', family: 4 }]));
+  t.mock.method(https, 'request', publisherTransport((url, options) => {
+    publicRequests++;
+    assert.ok(!JSON.stringify(options.headers).includes('fixture-lumen'));
+    const source = sources.get(url.href);
+    assert.ok(source, 'full RSS content needs no page request');
+    return { headers: { 'content-type': 'application/rss+xml' }, body: `<rss><channel><language>en-US</language><item>
+      <title>${worldArticle.title}</title><link>https://${source.hosts[0]}/fixture-${encodeURIComponent(url.pathname)}</link>
+      <pubDate>2026-10-02T10:00:00Z</pubDate><content:encoded><![CDATA[<p>${body}</p>]]></content:encoded></item></channel></rss>` };
+  }));
+  const f = fixture(t);
+  const config = { ...newsBriefingConfig({ ...env, PHOENIX_NEWS_PROVIDER: 'lumenfeed', LUMENFEED_API_KEY: 'fixture-lumen' }), file: f.config.file };
+  const worker = createNewsBriefingWorker({ ...f.options, config, provider: undefined });
+  t.after(() => worker.stop());
+  await worker.refresh();
+  assert.equal(paid, 1);
+  assert.equal(publicRequests, 4);
+  assert.equal(worker.status().budget.points, 1);
+  assert.ok(f.calls.model >= 2);
+  for (const id of Object.keys(f.options.categories)) assert.ok(worker.items(id).length >= 1);
+});
 
 test('World News queries all categories within a bounded date window; credentials only in headers', async () => {
   const config = newsBriefingConfig(env);

@@ -1,5 +1,5 @@
 // Counts only: never persist or expose provider bodies, model drafts, URLs or errors.
-export const NEWS_REJECTION_REASONS = ['invalid', 'country', 'language', 'opinion', 'url', 'title', 'text', 'date', 'future', 'stale', 'publisher', 'excerpt'];
+export const NEWS_REJECTION_REASONS = ['invalid', 'country', 'language', 'opinion', 'url', 'title', 'text', 'date', 'future', 'stale', 'publisher', 'excerpt', 'fetch'];
 export const NEWS_FAILURE_REASONS = ['generation', 'model-http', 'model-incomplete', 'draft-json', 'draft-shape', 'draft-sentence', 'draft-evidence', 'draft-speech', 'draft-content'];
 const count = value => Number.isSafeInteger(value) && value >= 0 ? value : 0;
 const counts = (keys, value) => Object.fromEntries(keys.map(key => [key, count(value?.[key])]));

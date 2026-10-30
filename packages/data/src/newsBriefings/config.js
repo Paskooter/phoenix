@@ -23,6 +23,8 @@ export function newsBriefingConfig(env = process.env) {
   const provider = env.PHOENIX_NEWS_PROVIDER || (env.LUMENFEED_API_KEY ? 'lumenfeed' : 'worldnews');
   return {
     enabled: briefingsEnabled(env), provider,
+    // Curated uses public publisher feeds, never either paid provider's key.
+    fallbackProvider: ['worldnews', 'lumenfeed'].includes(provider) ? 'curated' : null,
     apiKey: (provider === 'lumenfeed' ? env.LUMENFEED_API_KEY : provider === 'worldnews' ? env.WORLD_NEWS_API_KEY : '') || '', llm, openRouter,
     file: env.PHOENIX_NEWS_BRIEFINGS_FILE || join(env.PHOENIX_DATA_DIR
       || fileURLToPath(new URL('../../data/', import.meta.url)), 'news/briefings.json'),

@@ -8,6 +8,7 @@ import { CATEGORIES } from '../news.js';
 import { newsBriefingConfig } from './config.js';
 import { createWorldNewsProvider, NEWS_EDITION } from './worldNews.js';
 import { createLumenFeedProvider } from './lumenFeed.js';
+import { createCuratedFeedsProvider } from './curatedFeeds.js';
 import { createBriefingGenerator } from './generate.js';
 import { newsProviderDiagnostics, newsRunDiagnostics, NEWS_FAILURE_REASONS } from './diagnostics.js';
 
@@ -21,7 +22,9 @@ const CATEGORY_PRIORITY = ['general', 'national', 'international', 'technology',
 /** One background worker per Lasso process. Requests only read its snapshots. */
 export function createNewsBriefingWorker({
   config = newsBriefingConfig(),
-  provider = config.provider === 'lumenfeed' ? createLumenFeedProvider(config) : createWorldNewsProvider(config),
+  provider = config.provider === 'curated' ? createCuratedFeedsProvider(config)
+    : config.provider === 'lumenfeed' ? createLumenFeedProvider(config) : createWorldNewsProvider(config),
+  fallbackProvider = config.fallbackProvider === 'curated' ? createCuratedFeedsProvider(config) : null,
   generate = createBriefingGenerator(config), now = Date.now, log = console,
   categories = CATEGORIES, providerSpacingMs = 1100,
 } = {}) {
@@ -31,6 +34,7 @@ export function createNewsBriefingWorker({
   let running = null;
   let timer;
   let nextProviderAt = 0;
+  let activeProvider = provider;
   // Keep the historical World News hash so installing an unused adapter does
   // not spend on a refresh. Switching providers still invalidates the cadence,
   // even if their configured keys happen to have identical bytes.
@@ -105,7 +109,7 @@ export function createNewsBriefingWorker({
     if (!config.enabled) return 'disabled';
     if (storageError) return 'storage-unavailable';
     if (config.provider !== provider.id) return 'unknown-provider';
-    if (!config.apiKey) return config.provider === 'lumenfeed' ? 'missing-lumenfeed-key' : 'missing-world-news-key';
+    if (config.provider !== 'curated' && !config.apiKey) return config.provider === 'lumenfeed' ? 'missing-lumenfeed-key' : 'missing-world-news-key';
     if (!config.llm.configured || (config.openRouter && !config.llm.apiKey)) return 'missing-news-model-configuration';
     return null;
   }
@@ -142,6 +146,7 @@ export function createNewsBriefingWorker({
   async function update() {
     load();
     if (readyReason() || signal.aborted || state.blockedUntil > now()) return;
+    activeProvider = provider; // Retry the selected provider once on the next scheduled sweep.
     // Prune old source revisions, including skipped/unusable articles.
     state.articles = Object.fromEntries(Object.entries(state.articles)
       .filter(([, entry]) => entry.expiresAt > now()).slice(-220));
@@ -167,16 +172,31 @@ export function createNewsBriefingWorker({
     let failures = 0;
     let run;
     try {
-      if (budget().points + provider.requestPoints > config.dailyPoints) throw budgetError('Daily news request limit');
-      if (nextProviderAt > now()) await delay(nextProviderAt - now(), undefined, { signal });
-      signal.throwIfAborted();
       cat.lastAttempt = now();
       run = cat.lastRun = newsRunDiagnostics({ startedAt: now() });
-      // Reserve before HTTP, and retain reservations on uncertain failures.
-      budget().points += provider.requestPoints;
-      persist();
-      nextProviderAt = now() + providerSpacingMs;
-      const { articles, diagnostics } = await provider.fetchCategory(category, { now: now(), signal });
+      const fetchFrom = async source => {
+        if (budget().points + source.requestPoints > config.dailyPoints) throw budgetError('Daily news request limit');
+        if (nextProviderAt > now()) await delay(nextProviderAt - now(), undefined, { signal });
+        signal.throwIfAborted();
+        // Reserve before HTTP; failed/uncertain primary reservations survive fallback.
+        budget().points += source.requestPoints;
+        persist();
+        nextProviderAt = now() + providerSpacingMs;
+        return source.fetchCategory(category, { now: now(), signal });
+      };
+      let result;
+      try { result = await fetchFrom(activeProvider); }
+      catch (error) {
+        if (signal.aborted || error.status < 500 || error.status > 599 || !error.status
+            || !fallbackProvider || activeProvider === fallbackProvider) throw error;
+        activeProvider = fallbackProvider;
+        result = await fetchFrom(activeProvider);
+      }
+      if (!result.articles.length && activeProvider.id === 'curated' && fallbackProvider && activeProvider !== fallbackProvider) {
+        activeProvider = fallbackProvider;
+        result = await fetchFrom(activeProvider);
+      }
+      const { articles, diagnostics } = result;
       run.provider = newsProviderDiagnostics(diagnostics);
       run.candidates = articles.length;
       const edition = [];

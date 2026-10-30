@@ -36,8 +36,8 @@ test('Personal report exposes an editable secret LumenFeed key and an explicit p
   assert.equal(provider.default, null, 'an unset setting must preserve automatic key-based selection');
   assert.ok(isEditable(provider.key));
   assert.deepEqual(servicesFor([provider.key]), ['lasso']);
-  assert.deepEqual(provider.options.map(option => option.value), ['worldnews', 'lumenfeed']);
-  for (const value of ['', 'worldnews', 'lumenfeed']) assert.equal(validate(provider.key, value), null);
+  assert.deepEqual(provider.options.map(option => option.value), ['curated', 'worldnews', 'lumenfeed']);
+  for (const value of ['', 'curated', 'worldnews', 'lumenfeed']) assert.equal(validate(provider.key, value), null);
   assert.ok(validate(provider.key, 'unknown'));
   assert.ok(validate(key.key, 'fixture\nkey'));
 });
@@ -64,6 +64,41 @@ test('news-key warnings follow the same explicit or automatic provider choice as
     }
   }
   assert.deepEqual(checkTogether({ PHOENIX_NEWS_BRIEFINGS_ENABLED: 'false', PHOENIX_NEWS_PROVIDER: 'lumenfeed' }).warnings, []);
+});
+
+test('curated console choice saves, reloads and reaches the launcher without a news-provider key warning', t => {
+  const directory = mkdtempSync(join(tmpdir(), 'phoenix-curated-config-'));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const file = join(directory, 'settings.json');
+  const serverFile = join(directory, 'server.env');
+  writeFileSync(serverFile, '');
+  writeFileSync(join(directory, 'services.json'), JSON.stringify({ version: 1,
+    services: { lasso: { state: 'running', revision: 0 }, 'report-skill': { state: 'running', revision: 0 } },
+  }));
+  const options = {
+    env: { PHOENIX_CONSOLE_SETTINGS_FILE: file, PHOENIX_ENV_FILE: serverFile },
+    requireAdmin: () => true, currentAccount: () => null,
+    control: () => ({ available: true, dir: directory, pid: 1 }),
+    sendJson: (_res, status, body) => assert.fail(`Unexpected ${status}: ${JSON.stringify(body)}`),
+    restart: () => assert.fail('saving settings must not restart a service'),
+  };
+  const routes = adminSettingsRoutes({ file: join(directory, 'store.json') }, options);
+  const result = routes['PUT /api/admin/settings']({ req: {}, res: {}, body: { changes: {
+    PHOENIX_NEWS_PROVIDER: 'curated', PHOENIX_NEWS_BRIEFINGS_ENABLED: 'true',
+  } } });
+  assert.deepEqual(new Set(result.restart), new Set(['lasso', 'report-skill']));
+  const reloaded = adminSettingsRoutes({ file: join(directory, 'store.json') }, options);
+  const view = reloaded['GET /api/admin/settings']({ req: {}, res: {} });
+  assert.equal(view.settings.find(s => s.key === 'PHOENIX_NEWS_PROVIDER').value, 'curated');
+  assert.ok(!view.warnings.some(w => ['WORLD_NEWS_API_KEY', 'LUMENFEED_API_KEY'].includes(w.key)));
+  const exported = execFileSync(process.execPath, [new URL('../../../scripts/console-settings-env.mjs', import.meta.url).pathname, file], { encoding: 'utf8' });
+  const values = Object.fromEntries(exported.split('\0').filter(Boolean).map(pair => {
+    const separator = pair.indexOf('=');
+    return [pair.slice(0, separator), pair.slice(separator + 1)];
+  }));
+  assert.equal(newsBriefingConfig(values).provider, 'curated');
+  assert.equal(newsBriefingConfig(values).apiKey, '');
+  assert.equal(newsBriefingConfig(values).fallbackProvider, null, 'curated never silently spends on a paid publisher API');
 });
 
 test('console save and readback keep the key private and the real launcher export selects LumenFeed', t => {
