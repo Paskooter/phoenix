@@ -201,7 +201,13 @@ export class FreeChat {
               messages: [{ role: 'system', content: 'You are Jibo, a friendly conversational robot. Only talk: no tools, browsing, search, actions, or claims of live access. Never claim to have done things. Reply as JSON with text (plain spoken words, no markup) and keepTalking (boolean, true only when a reply is needed). ' + (detail === 'detailed' ? 'Give at most six short sentences.' : 'Give one or two short sentences.') },
                 ...request.history, { role: 'user', content: request.text }],
               response_format: { type: 'json_object' },
-              provider: { allow_fallbacks: false, require_parameters: true, data_collection: 'deny', zdr: true,
+              // Owner policy 2026-10-30: permissive data retention on OpenRouter.
+              // data_collection:'deny' + zdr filtered providers and reduced free-model
+              // availability; the owner explicitly prefers availability over provider
+              // data collection limits here. Retained as env overrides if ever needed.
+              provider: { allow_fallbacks: false, require_parameters: true,
+                data_collection: process.env.PHOENIX_FREE_CHAT_DATA_COLLECTION === 'deny' ? 'deny' : 'allow',
+                zdr: process.env.PHOENIX_FREE_CHAT_DATA_COLLECTION === 'deny',
                 max_price: { prompt: paid ? 0.05 : 0, completion: paid ? 0.50 : 0, request: 0, image: 0 } } }) });
         } catch { if (!paid && !controller.signal.aborted) continue; fail('provider_unavailable', 503); }
         if (!response.ok) {

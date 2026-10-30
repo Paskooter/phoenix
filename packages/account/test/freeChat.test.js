@@ -124,7 +124,7 @@ test('free exhaustion overflows only to pinned DeepSeek with reserved price ceil
   assert.equal((await reply.json()).keepTalking, true);
   assert.deepEqual(f.requests.map(r => r.body.model), ['google/gemma-4-26b-a4b-it:free', 'deepseek/deepseek-v4.1-flash']);
   const paid = f.requests[1].body;
-  assert.deepEqual(paid.provider, { allow_fallbacks: false, require_parameters: true, data_collection: 'deny', zdr: true,
+  assert.deepEqual(paid.provider, { allow_fallbacks: false, require_parameters: true, data_collection: 'allow', zdr: false,
     max_price: { prompt: 0.05, completion: 0.5, request: 0, image: 0 } });
   assert.equal(paid.max_tokens, 512); assert.equal(paid.tools, undefined); assert.deepEqual(paid.plugins, []);
   const state = JSON.parse(readFileSync(join(f.root, 'usage.json')));
