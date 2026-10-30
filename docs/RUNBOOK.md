@@ -831,8 +831,9 @@ paragraph extraction. The normal shared article inspection and AI generator
 remain in the path. Transport requires public HTTPS, validates all DNS answers
 in the actual socket lookup, rechecks every redirect (at most three), and uses
 a ten-second total request deadline, one-megabyte feed and three-megabyte article
-limits, and a sixty-second category deadline. Scripts, navigation, promotions,
-hidden content and known paid-only pages are not source text. Feed availability
+limits, and a sixty-second category deadline. Fully inspected candidates survive
+that deadline; caller cancellation still stops the operation. Scripts, navigation,
+promotions, hidden content and known paid-only pages are not source text. Feed availability
 and publisher terms can change; publicly reachable does not grant redistribution
 rights. Store only the generated short briefing and its attribution/link, not
 full articles. Review publisher terms before broader use.

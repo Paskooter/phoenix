@@ -19,14 +19,14 @@ const feed = (url, ...hosts) => Object.freeze({ url, hosts: Object.freeze(hosts)
 // Category-specific sources also act as independent fallbacks; never fill a missing topic
 // with an unrelated top-stories feed. No subscription or paid news API is required.
 export const CURATED_FEEDS = Object.freeze(Object.fromEntries(Object.entries({
-  general: [feed('https://www.cbsnews.com/latest/rss/main', 'cbsnews.com'), feed('https://feeds.npr.org/1001/rss.xml', 'npr.org'), feed('https://www.pbs.org/newshour/feeds/rss/headlines', 'pbs.org')],
-  national: [feed('https://www.cbsnews.com/latest/rss/us', 'cbsnews.com'), feed('https://feeds.npr.org/1003/rss.xml', 'npr.org')],
-  international: [feed('https://www.cbsnews.com/latest/rss/world', 'cbsnews.com'), feed('https://feeds.npr.org/1004/rss.xml', 'npr.org')],
-  business: [feed('https://www.cnbc.com/id/10001147/device/rss/rss.html', 'cnbc.com'), feed('https://www.cbsnews.com/latest/rss/moneywatch', 'cbsnews.com'), feed('https://feeds.npr.org/1006/rss.xml', 'npr.org')],
+  general: [feed('https://www.cbsnews.com/latest/rss/main', 'cbsnews.com'), feed('https://www.pbs.org/newshour/feeds/rss/headlines', 'pbs.org')],
+  national: [feed('https://www.cbsnews.com/latest/rss/us', 'cbsnews.com'), feed('https://www.pbs.org/newshour/feeds/rss/nation', 'pbs.org')],
+  international: [feed('https://www.cbsnews.com/latest/rss/world', 'cbsnews.com'), feed('https://www.pbs.org/newshour/feeds/rss/world', 'pbs.org')],
+  business: [feed('https://www.cnbc.com/id/10001147/device/rss/rss.html', 'cnbc.com'), feed('https://www.cbsnews.com/latest/rss/moneywatch', 'cbsnews.com')],
   entertainment: [feed('https://variety.com/feed/', 'variety.com'), feed('https://www.hollywoodreporter.com/feed/', 'hollywoodreporter.com')],
   health: [feed('https://medicalxpress.com/rss-feed/', 'medicalxpress.com'), feed('https://www.sciencedaily.com/rss/health_medicine.xml', 'sciencedaily.com'), feed('https://www.cbsnews.com/latest/rss/health', 'cbsnews.com')],
   strange: [feed('https://rss.upi.com/news/odd_news.rss', 'upi.com'), feed('https://www.huffpost.com/section/weird-news/feed', 'huffpost.com')],
-  politics: [feed('https://www.cbsnews.com/latest/rss/politics', 'cbsnews.com'), feed('https://feeds.npr.org/1014/rss.xml', 'npr.org'), feed('https://www.pbs.org/newshour/feeds/rss/politics', 'pbs.org')],
+  politics: [feed('https://www.cbsnews.com/latest/rss/politics', 'cbsnews.com'), feed('https://www.pbs.org/newshour/feeds/rss/politics', 'pbs.org')],
   science: [feed('https://www.sciencedaily.com/rss/top.xml', 'sciencedaily.com'), feed('https://feeds.arstechnica.com/arstechnica/science', 'arstechnica.com')],
   sports: [feed('https://www.espn.com/espn/rss/news', 'espn.com'), feed('https://www.cbssports.com/rss/headlines/', 'cbssports.com')],
   technology: [feed('https://arstechnica.com/feed/', 'arstechnica.com'), feed('https://www.cbsnews.com/latest/rss/technology', 'cbsnews.com')],
@@ -199,10 +199,10 @@ export function extractArticleText(html) {
 export function createCuratedFeedsProvider(config, {
   feeds = CURATED_FEEDS, get = createCuratedTextFetcher(), categoryTimeoutMs = CURATED_LIMITS.categoryTimeoutMs,
 } = {}) {
-  async function fetchCategory(category, { now, signal }) {
+  async function fetchCategory(category, { now, signal, progress }) {
     if (!Object.hasOwn(feeds, category)) throw new Error('Invalid news category');
     signal?.throwIfAborted();
-    const diagnostics = newsProviderDiagnostics({});
+    const { diagnostics, articles } = progress;
     const candidates = [];
     let fetched = 0;
     let lastError;
@@ -220,7 +220,6 @@ export function createCuratedFeedsProvider(config, {
       }
     }
     if (!fetched) throw Object.assign(new Error('Curated feeds unavailable'), { status: lastError?.status });
-    const articles = [];
     const seen = new Set();
     const limit = Math.min(CURATED_LIMITS.candidates, config.candidatesPerCategory * 3);
     for (const item of candidates.sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt))) {
@@ -270,8 +269,16 @@ export function createCuratedFeedsProvider(config, {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(new Error('Curated category timeout')), Math.min(categoryTimeoutMs, CURATED_LIMITS.categoryTimeoutMs));
       const boundedSignal = signal ? AbortSignal.any([signal, controller.signal]) : controller.signal;
-      try { return await fetchCategory(category, { now, signal: boundedSignal }); }
-      finally { clearTimeout(timer); }
+      const progress = { articles: [], diagnostics: newsProviderDiagnostics({}) };
+      try { return await fetchCategory(category, { now, signal: boundedSignal, progress }); }
+      catch (error) {
+        // A slow optional candidate must not erase sources already fully inspected.
+        // Shutdown/caller cancellation still aborts the whole operation.
+        if (!controller.signal.aborted || signal?.aborted || !progress.articles.length) throw error;
+        progress.diagnostics.accepted = progress.articles.length;
+        progress.diagnostics.rejected.fetch++;
+        return progress;
+      } finally { clearTimeout(timer); }
     },
   };
 }

@@ -227,6 +227,32 @@ test('curated extracts article paragraphs, skips unsafe or stale links without f
   assert.ok(!JSON.stringify(result.diagnostics).includes('untrusted error body'));
 });
 
+test('curated preserves already inspected articles at its category deadline but never on caller cancellation', async () => {
+  const { createCuratedFeedsProvider } = await import('../src/newsBriefings/curatedFeeds.js');
+  const body = [worldArticle.text, worldArticle.text].join(' ');
+  const rss = `<rss><channel><language>en</language><item><title>Ready article</title><link>${worldArticle.url}</link>
+    <pubDate>2026-10-02T10:00:00Z</pubDate><description><![CDATA[<p>${body}</p>]]></description></item>
+    <item><title>Stalled article</title><link>https://nasa.gov/stalled</link><pubDate>2026-10-02T09:00:00Z</pubDate><description>Teaser.</description></item></channel></rss>`;
+  const feeds = { science: [{ url: 'https://nasa.gov/rss', hosts: ['nasa.gov'] }] };
+  const get = async (url, { signal }) => {
+    if (url.endsWith('/rss')) return rss;
+    return new Promise((_resolve, reject) => signal.addEventListener('abort', () => reject(signal.reason), { once: true }));
+  };
+  const provider = createCuratedFeedsProvider(newsBriefingConfig(env), { feeds, get, categoryTimeoutMs: 20 });
+  const result = await provider.fetchCategory('science', { now: newsTime });
+  assert.equal(result.articles.length, 1, 'a slow optional candidate must not discard a ready full-text source');
+  assert.equal(result.diagnostics.accepted, 1);
+  assert.equal(result.diagnostics.rejected.fetch, 1);
+  const controller = new AbortController();
+  const cancelled = createCuratedFeedsProvider(newsBriefingConfig(env), { feeds, get: async (url, options) => {
+    if (url.endsWith('/rss')) return rss;
+    const pending = get(url, options);
+    controller.abort();
+    return pending;
+  } });
+  await assert.rejects(() => cancelled.fetchCategory('science', { now: newsTime, signal: controller.signal }), { name: 'AbortError' });
+});
+
 test('curated category deadline bounds the whole source sweep and caller cancellation makes no request', async () => {
   const { createCuratedFeedsProvider } = await import('../src/newsBriefings/curatedFeeds.js');
   let calls = 0;
