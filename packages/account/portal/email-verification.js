@@ -22,15 +22,24 @@ export function createEmailVerificationUi({ api, h, icon, notify, getAccount, re
     timer = null;
   }
 
+  // A control may be painted before its caller inserts it: the Account page
+  // builds the card and awaits more data before showing it. Keep such controls
+  // and forget them only once they have been on the page and were removed.
+  const shown = new WeakSet();
+  function stillWanted(node) {
+    if (node.isConnected) { shown.add(node); return true; }
+    return !shown.has(node);
+  }
+
   function paintControls() {
     const seconds = Math.max(0, Math.ceil((retryUntil - Date.now()) / 1000));
     for (const button of buttons) {
-      if (!button.isConnected) { buttons.delete(button); continue; }
+      if (!stillWanted(button)) { buttons.delete(button); continue; }
       button.disabled = busy || !status?.available || seconds > 0;
       button.textContent = busy ? 'Sending…' : seconds > 0 ? `Resend in ${seconds}s` : 'Send verification email';
     }
     for (const hint of hints) {
-      if (!hint.isConnected) { hints.delete(hint); continue; }
+      if (!stillWanted(hint)) { hints.delete(hint); continue; }
       hint.textContent = status?.available === false
         ? 'Verification emails are currently unavailable. Please try again later.'
         : 'Check your inbox and spam folder. Links expire after 24 hours.';
@@ -80,7 +89,6 @@ export function createEmailVerificationUi({ api, h, icon, notify, getAccount, re
       on: { click: resend },
     }, 'Send verification email');
     buttons.add(button);
-    // Run after the caller inserts the card into the page.
     queueMicrotask(paintControls);
     return button;
   }

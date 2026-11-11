@@ -103,6 +103,9 @@ try {
   await page.click('#email-verification-banner a');
   await visible(page, '[data-email-verification]');
   assert.equal(await page.$eval('[data-email-status]', (el) => el.textContent.trim()), 'Not verified');
+  // The Account card is shown after an await; its button must still follow the
+  // shared cooldown rather than stay disabled from its initial render.
+  await page.waitForFunction(() => document.querySelector('[data-email-verification] [data-verification-resend]')?.textContent.startsWith('Resend in'), null, { timeout: 5000 });
   assert.equal(await page.$eval('[data-email-verification] [data-verification-resend]', (el) => el.disabled), true);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'mobile layout fits the screen');
   if (out) {
@@ -114,7 +117,7 @@ try {
   const oldLink = tokenUrl(sent[1]);
   now += 61000;
   await page.reload({ waitUntil: 'networkidle' });
-  await page.waitForFunction(() => !document.querySelector('[data-email-verification] [data-verification-resend]')?.disabled);
+  await page.waitForFunction(() => !document.querySelector('[data-email-verification] [data-verification-resend]')?.disabled, null, { timeout: 5000 });
   await page.click('[data-email-verification] [data-verification-resend]');
   await page.waitForFunction(() => document.querySelector('[data-email-verification] [data-verification-resend]')?.textContent.startsWith('Resend in'));
   assert.equal(sent.length, 3);
