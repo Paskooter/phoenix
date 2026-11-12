@@ -15,7 +15,7 @@
 // behaviour; linked adults keep theirs on their own account.
 
 import { isMemberStatus, MEMBER_STATUS } from './model.js';
-import { dataToFriendly, defaultSettingsData, friendlyToData } from './settingsData.js';
+import { commuteTypeToWire, dataToFriendly, defaultSettingsData, friendlyToData } from './settingsData.js';
 import { subscriptionsFromData, validTimeZone } from './icalSubscriptions.js';
 
 export const LOCAL_MEMBER_SETTINGS_PREFIX = 'loopmember:';
@@ -234,10 +234,12 @@ export function applyLocalReportEdit(settings, base) {
 
 /**
  * The report-skill GetSettings `data` for a local adult: the stored wire
- * values, provider links forced off, and cached iCal events without the
- * private feed address — the same projection a linked speaker receives.
+ * values (commuteType renumbered into the wire enum), provider links forced
+ * off, and cached iCal events without the private feed address — the same
+ * projection a linked speaker receives.
  */
-export function localReportSettingsData(data) {
+export function localReportSettingsData(stored) {
+  const data = commuteTypeToWire(stored);
   const out = {};
   for (const [key, value] of Object.entries(data || {})) {
     if (key === 'icalSubscriptions') continue;

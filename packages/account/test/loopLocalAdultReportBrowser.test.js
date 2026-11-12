@@ -54,9 +54,10 @@ async function startHousehold() {
   };
   const owner = account('report-owner@example.invalid', 'Morgan');
   const linked = account('report-linked@example.invalid', 'Riley');
+  const linkedKid = account('report-linked-kid@example.invalid', 'Jamie');
   const { loop } = createLoop(store, { owner, robotId: 'adult-report-browser-robot' });
   loop.name = 'Maple House';
-  const ids = { local: newId(), child: newId(), linked: newId() };
+  const ids = { local: newId(), child: newId(), linked: newId(), linkedChild: newId() };
   const person = (id, fields) => ({ _id: id, enrolled: { face: true, voice: true }, created: Date.UTC(2026, 0, 5), ...fields });
   loop.members.push(
     person(ids.local, {
@@ -65,6 +66,7 @@ async function startHousehold() {
     }),
     person(ids.child, { status: 'accepted', memberProperties: { firstName: 'Kit', lastName: 'Fixture', email: null, isChild: true } }),
     person(ids.linked, { accountId: linked._id, status: 'accepted' }),
+    person(ids.linkedChild, { accountId: linkedKid._id, status: 'accepted', memberProperties: { isChild: true } }),
   );
   const sessions = { owner: createSession(store, { kind: 'user', accountId: owner._id })._id };
   store.flush();
@@ -196,5 +198,45 @@ for (const [label, viewport, timezoneId] of [
     assert.equal(await row(page, ids.child).locator('.person-report').count(), 0);
     assert.equal(house.store.settings.has(`loopmember:${house.loop._id}:${ids.child}`), false);
     await shot(page, `${label}-3-child-panel`, row(page, ids.child));
+  });
+}
+
+for (const [label, viewport] of [['phone', VIEWPORTS.phone], ['desktop', VIEWPORTS.desktop]]) {
+  test(`${label}: the Unlink dialog says what happens to their personal report, and it is true`, async (t) => {
+    const opened = await open(t, { viewport, timezoneId: 'America/New_York' });
+    if (!opened) return;
+    const { page, house, load } = opened;
+    const { ids } = house;
+    const dialog = page.locator('dialog.modal');
+
+    // An adult with an account: the owner takes over their report choices.
+    await manage(page, ids.linked);
+    assert.equal(await row(page, ids.linked).getByRole('button', { name: 'Edit personal report' }).count(), 0);
+    await row(page, ids.linked).getByRole('button', { name: 'Unlink account' }).click();
+    await dialog.waitFor();
+    const adultText = (await dialog.locator('p').innerText()).trim();
+    assert.equal(adultText, 'Riley Example stays in the loop. Jibo stops using the report choices saved on their account. '
+      + 'You can choose what goes in their personal report here instead.');
+    assert.doesNotMatch(await dialog.innerText(), /stop giving them their personal report/);
+    await shot(page, `${label}-4-unlink-adult-dialog`, dialog);
+    await dialog.getByRole('button', { name: 'Unlink' }).click();
+    await page.getByText('Account unlinked').waitFor();
+
+    // What the dialog promised: the owner can now set their report here.
+    await load();
+    await manage(page, ids.linked);
+    await row(page, ids.linked).getByRole('button', { name: 'Edit personal report' }).waitFor();
+    await row(page, ids.linked).locator('.person-report').getByText('Riley doesn’t sign in, so you choose').waitFor();
+    await shot(page, `${label}-5-after-unlink-report-section`, row(page, ids.linked).locator('.person-report'));
+
+    // A child keeps the standard report; the dialog says so and offers no editor.
+    await manage(page, ids.linkedChild);
+    await row(page, ids.linkedChild).getByRole('button', { name: 'Unlink account' }).click();
+    await dialog.waitFor();
+    assert.equal((await dialog.locator('p').innerText()).trim(), 'Jamie Example stays in the loop. '
+      + 'Jibo stops using the report choices saved on their account and gives them the standard report.');
+    await shot(page, `${label}-6-unlink-child-dialog`, dialog);
+    await dialog.getByRole('button', { name: 'Cancel' }).click();
+    await dialog.waitFor({ state: 'detached' });
   });
 }

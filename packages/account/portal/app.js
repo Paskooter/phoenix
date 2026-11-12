@@ -1241,9 +1241,12 @@ async function renderLoop({ keep = false } = {}) {
   function linkedAccountSection(person) {
     const unlink = h('button', { type: 'button', class: 'btn btn-sm' }, 'Unlink account');
     unlink.addEventListener('click', async () => {
+      const child = person.m.memberProperties?.isChild === true;
       const yes = await confirmDialog({
         title: `Unlink ${person.firstName}’s account?`,
-        body: `${person.name} stays in the loop, but Jibo will stop giving them their personal report until an account is linked again.`,
+        body: child
+          ? `${person.name} stays in the loop. Jibo stops using the report choices saved on their account and gives them the standard report.`
+          : `${person.name} stays in the loop. Jibo stops using the report choices saved on their account. You can choose what goes in their personal report here instead.`,
         confirmLabel: 'Unlink',
       });
       if (!yes) return;

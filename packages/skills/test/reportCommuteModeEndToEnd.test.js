@@ -163,6 +163,20 @@ const PEOPLE = {
       return (await console_('GET', '/api/settings', undefined, 'linked')).body.settings.commute.mode;
     },
   },
+  'an adult without a login (owner, Loop → Manage)': {
+    speaker: () => ids.local,
+    record: () => store.settings.get(`loopmember:${loop._id}:${ids.local}`)?.data,
+    async save(mode) {
+      return console_('PUT', '/api/loop/members/report', {
+        loopId: loop._id, id: ids.local,
+        settings: { commute: { active: true, mode, time: { hour: 9, min: 0 }, home: HOME, work: WORK } },
+      }, 'owner');
+    },
+    async readBack() {
+      const res = await console_('GET', `/api/loop/members/report?loopId=${encodeURIComponent(loop._id)}&id=${encodeURIComponent(ids.local)}`, undefined, 'owner');
+      return res.body.settings.commute.mode;
+    },
+  },
 };
 
 for (const [who, person] of Object.entries(PEOPLE)) {
