@@ -995,6 +995,9 @@ server {
     proxy_read_timeout 120s;
     proxy_send_timeout 120s;
 
+    # GET /health for outside uptime monitors (see "Public health check" below).
+    include /etc/nginx/snippets/phoenix-health.conf;
+
     # The account REST face and session cookie.
     location /api/ {
         limit_req zone=phoenix_api burst=120 nodelay;
@@ -1316,6 +1319,43 @@ sudo systemctl reload nginx
 
 nginx and Certbot are not installed in the authoring environment. No nginx
 syntax check, reload, ACME issuance, or public reverse-proxy hop is claimed.
+
+### Public health check for uptime monitors
+
+`GET https://<portal>/health` is the address to give an outside uptime monitor.
+The account service answers `200 {"status":"ok"}` with `Cache-Control:
+no-store`; the body never carries host names, versions, counts or account
+data. Robot-facing names keep `/healthcheck` blocked at the edge as before.
+
+A planned restart does not read as an outage. `scripts/activate-native-release.sh`
+(the restart step of `scripts/deploy-native-release.sh`, also used for a
+same-current reload) runs `scripts/planned-restart-window.sh open` just before
+`systemctl restart` and `close` once the new release passes its health checks.
+While the account service cannot answer, nginx then serves
+`200 {"status":"ok","restarting":true}` from that window, and
+`503 {"status":"down"}` at any other time. The window is a set of files named
+after 10-second slots of the clock in `/run/phoenix-restart`
+(`PHOENIX_RESTART_WINDOW_DIR`); nginx only reads the file for the current slot,
+so the window ends by itself 60-70 seconds after the restart began, even if
+the deploy dies before closing it. A crash, or a restart that takes longer than
+that, is reported down. Restarts made from the console or by hand do not open a
+window.
+
+The window needs two nginx files next to the site configuration:
+
+**Operator step — not run here:**
+
+```sh
+sudo install -m 0644 deploy/nginx/phoenix-health-http.conf /etc/nginx/conf.d/phoenix-health-http.conf
+sudo install -m 0644 deploy/nginx/phoenix-health.conf /etc/nginx/snippets/phoenix-health.conf
+# add `include snippets/phoenix-health.conf;` to the portal's HTTPS server block
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+Where the portal's catch-all location already proxies to the account service,
+`/health` answers without these files, but a restart then shows as a short
+outage. The window files are harmless while nginx does not read them.
 
 ## 11. Start the complete Compose stack and supervise it
 

@@ -434,6 +434,16 @@ export function createAccountService({
   const chat = new FreeChat(store, freeChat);
   const routes = {
     ...freeChatRoutes(store, chat),
+    // Public health check for outside uptime monitors (https://<site>/health).
+    // It answers only that the site is serving: no host names, versions,
+    // counts or account data. During a planned restart nginx answers it from a
+    // short, self-expiring window instead (deploy/nginx/phoenix-health.conf).
+    // The internal /healthcheck probe stays the plain-text one the deploy and
+    // console use.
+    'GET /health': ({ res }) => {
+      res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' });
+      res.end('{"status":"ok"}');
+    },
     // The direct Account photo ingress is intentionally session-bound. Public
     // photo URLs should point at Classic's signed proxy; an accidental
     // account-origin URL must not turn the object directory into a bearer API.

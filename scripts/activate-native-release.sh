@@ -18,6 +18,11 @@ node "$SCRIPT_DIR/deployment-quiescence.mjs" "${LEASE_ARGS[@]}"
 HEALTH_ATTEMPTS="${PHOENIX_HEALTHCHECK_ATTEMPTS:-90}"
 [[ "$HEALTH_ATTEMPTS" =~ ^[1-9][0-9]*$ ]] || { echo "Invalid healthcheck attempts" >&2; exit 2; }
 
+# A planned restart keeps the public /health check answering for about a
+# minute (deploy/nginx/phoenix-health.conf). The window ends by itself, so a
+# release that never comes back is still reported down. Never fatal.
+restart_window() { bash "$SCRIPT_DIR/planned-restart-window.sh" "$1" || true; }
+
 NEXT_LINK="${CURRENT_LINK}.next.$$"
 cleanup_next() { [[ -L "$NEXT_LINK" ]] && unlink "$NEXT_LINK" || true; }
 trap cleanup_next EXIT
@@ -35,12 +40,14 @@ rollback() {
   if [[ -n "$PREVIOUS" ]]; then
     ln -s "$PREVIOUS" "$NEXT_LINK"
     mv -Tf "$NEXT_LINK" "$CURRENT_LINK"
+    restart_window open
     systemctl restart "$SERVICE" || true
   else
     unlink "$CURRENT_LINK" || true
   fi
 }
 
+restart_window open
 if ! systemctl restart "$SERVICE"; then
   rollback
   exit 1
@@ -72,6 +79,7 @@ if [[ "$healthy" != 1 ]]; then
   exit 1
 fi
 
+restart_window close
 trap - EXIT
 echo "release deploy: active $COMMIT"
 echo "release deploy: previous ${PREVIOUS:-none}"
