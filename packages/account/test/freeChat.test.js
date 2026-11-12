@@ -131,6 +131,20 @@ test('free exhaustion overflows only to pinned DeepSeek with reserved price ceil
   assert.equal(state.dayMicroUsd, 52685); assert.equal(state.lifetimeMicroUsd, 52685);
 });
 
+test('administrator-picked chat models are used, with the same price ceilings', async t => {
+  const f = await fixture(t, { models: { free: 'fixture/picked-free-model:free', overflow: 'fixture/picked-paid-model' } });
+  f.responder((_req, res, request) => {
+    if (request.body.model.endsWith(':free')) { res.statusCode = 429; res.end('Synthetic busy'); }
+    else res.end(JSON.stringify({ choices: [{ message: { content: '{"text":"Picked model answer","keepTalking":false}' }, finish_reason: 'stop' }] }));
+  });
+  assert.equal((await f.robot()).status, 200);
+  assert.deepEqual(f.requests.map(r => r.body.model), ['fixture/picked-free-model:free', 'fixture/picked-paid-model']);
+  assert.deepEqual(f.requests.map(r => r.body.provider.max_price),
+    [{ prompt: 0, completion: 0, request: 0, image: 0 }, { prompt: 0.05, completion: 0.5, request: 0, image: 0 }]);
+  const { freeChatModels } = await import('../src/freeChat/broker.js');
+  assert.deepEqual(freeChatModels({ free: 'has a space', overflow: '' }), { free: FREE_MODEL, overflow: OVERFLOW_MODEL });
+});
+
 test('a failed free attempt releases the account slot; the turn counts once, never twice', async t => {
   const f = await fixture(t, { requestsPerMinute: 2 });
   f.responder((_req, res, request) => {

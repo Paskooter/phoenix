@@ -206,7 +206,7 @@ test('removing a saved value falls back to the server’s', async () => {
   assert.equal(model.value, 'fixture/model-a');
   assert.deepEqual(model.pending, ['parser', 'answer-skill'], 'they still hold the removed value');
   const history = res.body.history[0];
-  assert.deepEqual(history.changes, [{ key: 'LLM_MODEL', label: 'Model', action: 'removed' }]);
+  assert.deepEqual(history.changes, [{ key: 'LLM_MODEL', label: 'Endpoint model', action: 'removed' }]);
 });
 
 test('restart requests name real services and reach the launcher', async () => {

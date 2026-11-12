@@ -72,6 +72,15 @@ test('the layer is off unless an engine and a key are both configured', () => {
   assert.equal(createDecisionClient({ enabled: true, apiKey: 'secret' }).config.apiKey, '[configured]');
 });
 
+test('the one OpenRouter key wins over the layer’s older key, and goes only to OpenRouter', () => {
+  const both = decisionConfig({ ETCO_parser_decisionEngine: 'jev', OPENROUTER_API_KEY: 'fixture-one-key', ETCO_parser_decisionApiKey: 'fixture-older-key' });
+  assert.equal(both.apiKey, 'fixture-one-key');
+  assert.equal(decisionConfig({ ETCO_parser_decisionEngine: 'jev', ETCO_parser_decisionApiKey: 'fixture-older-key' }).apiKey, 'fixture-older-key');
+  const elsewhere = decisionConfig({ ETCO_parser_decisionEngine: 'jev', OPENROUTER_API_KEY: 'fixture-one-key', ETCO_parser_decisionUrl: 'https://decisions.example.invalid/v1' });
+  assert.equal(elsewhere.apiKey, '');
+  assert.equal(elsewhere.enabled, false);
+});
+
 test('a miss, a non-HIGH parse or a catch-all question is reviewed; a command is never second-guessed', async () => {
   assert.equal(decisionKind(await parse('blorp fizzle wump'), GLOBAL_RULES), 'review');
   assert.equal(decisionKind(await parse('how late is it'), GLOBAL_RULES), 'review'); // LOW generalHowQuestions
