@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
-import { isOpenRouterUrl, openRouterKey, resolveLlmProvider, sharedKeyForOpenRouter } from '@phoenix/contracts';
+import { isOpenRouterHost, isOpenRouterUrl, openRouterKey, resolveLlmProvider, sharedKeyForOpenRouter } from '@phoenix/contracts';
 
 const number = (value, fallback, min, max) => value !== undefined && value !== '' && Number.isFinite(Number(value))
   ? Math.min(max, Math.max(min, Number(value))) : fallback;
@@ -17,8 +17,6 @@ export function newsBriefingConfig(env = process.env) {
   }, defaultTimeoutMs: 30000 });
   // Only https://openrouter.ai counts: no key goes to OpenRouter over plain http.
   const openRouter = isOpenRouterUrl(llm.url);
-  let host = '';
-  try { host = new URL(llm.url).hostname.replace(/^www\./, '').toLowerCase(); } catch { /* invalid config stays unready */ }
   // On OpenRouter, news uses Phoenix's one OpenRouter key. Older servers kept a
   // news key, or only the decision layer's key: those are the fallbacks, in that
   // order, then the shared endpoint's key if that endpoint is OpenRouter too.
@@ -26,7 +24,7 @@ export function newsBriefingConfig(env = process.env) {
   // key is never sent to OpenRouter.
   if (openRouter) {
     llm.apiKey = openRouterKey(env, 'ETCO_news_llmApiKey', 'ETCO_parser_decisionApiKey') || sharedKeyForOpenRouter(env);
-  } else if (host === 'openrouter.ai') {
+  } else if (isOpenRouterHost(llm.url)) {
     llm.apiKey = '';
   }
   const provider = env.PHOENIX_NEWS_PROVIDER || (env.LUMENFEED_API_KEY ? 'lumenfeed' : 'worldnews');

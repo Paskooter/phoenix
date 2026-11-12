@@ -24,7 +24,7 @@
 // once (openRouterMigration.js).
 
 import { logger } from '@phoenix/common';
-import { OPENROUTER_API_URL, isOpenRouterUrl } from '@phoenix/contracts';
+import { OPENROUTER_API_URL, isOpenRouterHost } from '@phoenix/contracts';
 import {
   BY_KEY, GROUPS, SERVICES, SERVICE_IDS, SETTINGS, checkTogether, servicesFor, validate,
 } from './configCatalog.js';
@@ -70,6 +70,17 @@ export function effectiveValues(state, server) {
     if (value !== null) out[spec.key] = value;
   }
   return out;
+}
+
+/**
+ * The values settings are checked together against: every setting, plus the
+ * server's PHOENIX_LLM_URL, which the services read before LLM_URL to decide
+ * whose key PHOENIX_LLM_API_KEY is (see sharedLlmEndpoint in @phoenix/contracts).
+ */
+function valuesToCheck(state, server) {
+  const values = effectiveValues(state, server);
+  const shared = serverValue(server, 'PHOENIX_LLM_URL', false);
+  return shared === null ? values : { ...values, PHOENIX_LLM_URL: shared };
 }
 
 /** Services still running without a change saved here: started before it, or not running. */
@@ -271,7 +282,7 @@ export function adminSettingsRoutes(store, {
     const { state, error } = readConsoleSettings(settingsFile());
     const server = readServerValues(env);
     const launcher = readLauncherState(control);
-    const { warnings } = checkTogether(effectiveValues(state, server));
+    const { warnings } = checkTogether(valuesToCheck(state, server));
     return {
       control: controlView(control),
       revision: state.revision,
@@ -328,7 +339,7 @@ export function adminSettingsRoutes(store, {
       const next = applyConsoleChanges(state, accepted, { actor: label, now: now() });
 
       // Settings that only fail together, checked as the services would see them.
-      const together = checkTogether(effectiveValues(next.state, readServerValues(env)));
+      const together = checkTogether(valuesToCheck(next.state, readServerValues(env)));
       if (Object.keys(together.errors).length) {
         return sendJson(res, 400, { error: 'Some values need fixing.', errors: together.errors });
       }
@@ -363,7 +374,7 @@ export function adminSettingsRoutes(store, {
         if (validate('LLM_URL', endpoint)) return sendJson(res, 400, { error: 'That endpoint isn’t a web address.' });
         // A custom endpoint's own key goes only to the endpoint it was saved for.
         // OpenRouter lists its models without one, and its key never goes elsewhere.
-        if (!isOpenRouterUrl(endpoint) && endpoint === values.LLM_URL) apiKey = values.PHOENIX_LLM_API_KEY || '';
+        if (!isOpenRouterHost(endpoint) && endpoint === values.LLM_URL) apiKey = values.PHOENIX_LLM_API_KEY || '';
       }
       const listed = await listModels(endpoint, { apiKey, fetchImpl, cache: modelCache, now });
       if (!listed.ok) return { available: false, endpoint: endpointLabel(endpoint), message: listed.message };

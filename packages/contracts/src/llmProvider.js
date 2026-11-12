@@ -36,14 +36,15 @@
 // The key is the one exception to "scope beats shared": when the endpoint is
 // OpenRouter, Phoenix's one OpenRouter key (openRouter.js) is used and the older
 // keys are only a fallback. The OpenRouter key is never sent anywhere else, so
-// pointing a service at a custom endpoint cannot leak it.
+// pointing a service at a custom endpoint cannot leak it. An openrouter.ai URL
+// that is not https gets no key at all.
 //
 // `scope` is the existing service prefix: `parser` for NLU, `answer` for the
 // answer skill. Those names are kept exactly so existing deployments keep
 // working.
 
 /** Providers that need extra headers to attribute or route a request. */
-import { isOpenRouterUrl, openRouterKey, sharedKeyForOpenRouter } from './openRouter.js';
+import { isOpenRouterHost, isOpenRouterUrl, openRouterKey, sharedKeyForOpenRouter } from './openRouter.js';
 
 const KNOWN_HOST_HEADERS = Object.freeze({
   'openrouter.ai': Object.freeze({
@@ -106,9 +107,10 @@ export function resolveLlmProvider(scope, { env = process.env, defaultModel = ''
 
   const url = firstNonEmpty(scoped('Url'), env.PHOENIX_LLM_URL);
   const model = firstNonEmpty(scoped('Model'), env.PHOENIX_LLM_MODEL, defaultModel);
+  // OpenRouter over plain http gets no key at all.
   const apiKey = isOpenRouterUrl(url)
     ? firstNonEmpty(openRouterKey(env), scoped('ApiKey'), sharedKeyForOpenRouter(env))
-    : firstNonEmpty(scoped('ApiKey'), env.PHOENIX_LLM_API_KEY);
+    : isOpenRouterHost(url) ? '' : firstNonEmpty(scoped('ApiKey'), env.PHOENIX_LLM_API_KEY);
 
   const timeoutMs = parseNumber(scoped('TimeoutMs') ?? env.PHOENIX_LLM_TIMEOUT_MS) ?? defaultTimeoutMs;
   const temperature = parseNumber(scoped('Temperature') ?? env.PHOENIX_LLM_TEMPERATURE);

@@ -40,7 +40,7 @@
 // for the evaluation behind the commands, wording and thresholds.
 
 import { logger } from '@phoenix/common';
-import { isOpenRouterUrl, openRouterKey } from '@phoenix/contracts';
+import { isOpenRouterHost, isOpenRouterUrl, openRouterKey } from '@phoenix/contracts';
 import { parseRequestDetailedAsync } from './requestParser.js';
 
 const log = logger('nlu.decision');
@@ -139,10 +139,11 @@ export function decisionConfig(env = process.env) {
   const engine = String(env.ETCO_parser_decisionEngine || '').trim().toLowerCase() === 'jev' ? 'jev' : 'off';
   const url = String(env.ETCO_parser_decisionUrl || DEFAULT_URL).trim();
   // Phoenix's one OpenRouter key, else the layer's own older key. A
-  // non-OpenRouter decision URL only ever gets the layer's own key.
+  // non-OpenRouter decision URL only ever gets the layer's own key, and
+  // OpenRouter over plain http gets none.
   const apiKey = isOpenRouterUrl(url)
     ? openRouterKey(env, 'ETCO_parser_decisionApiKey')
-    : String(env.ETCO_parser_decisionApiKey || '').trim();
+    : isOpenRouterHost(url) ? '' : String(env.ETCO_parser_decisionApiKey || '').trim();
   return {
     enabled: engine === 'jev' && Boolean(apiKey) && /^https?:\/\//.test(url),
     engine,

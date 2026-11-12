@@ -20,7 +20,7 @@
 // it was copied from.
 
 import { logger } from '@phoenix/common';
-import { LEGACY_OPENROUTER_KEYS, OPENROUTER_KEY_SETTING, isOpenRouterUrl } from '@phoenix/contracts';
+import { LEGACY_OPENROUTER_KEYS, OPENROUTER_KEY_SETTING, isOpenRouterUrl, sharedLlmEndpoint } from '@phoenix/contracts';
 import { applyConsoleChanges, readConsoleSettings, writeConsoleSettings } from './consoleSettings.js';
 
 const log = logger('account.admin');
@@ -55,7 +55,8 @@ export function planOpenRouterMigration(state, server) {
     if (present(fromServer(key))) return { value: fromServer(key).trim(), from: key, where: 'server' };
   }
   // A shared model key used with OpenRouter as the endpoint was an OpenRouter key too.
-  const endpoint = saved('LLM_URL') ?? fromServer('LLM_URL');
+  // The endpoint is read as the services read it: the server's PHOENIX_LLM_URL first.
+  const endpoint = sharedLlmEndpoint({ PHOENIX_LLM_URL: fromServer('PHOENIX_LLM_URL'), LLM_URL: saved('LLM_URL') ?? fromServer('LLM_URL') });
   if (isOpenRouterUrl(endpoint)) {
     if (present(saved('PHOENIX_LLM_API_KEY'))) return { value: saved('PHOENIX_LLM_API_KEY').trim(), from: 'PHOENIX_LLM_API_KEY', where: 'console' };
     if (present(fromServer('PHOENIX_LLM_API_KEY'))) return { value: fromServer('PHOENIX_LLM_API_KEY').trim(), from: 'PHOENIX_LLM_API_KEY', where: 'server' };

@@ -24,7 +24,7 @@
 // Adding a setting: add it to the group it belongs to. The console renders
 // whatever this file declares.
 
-import { isOpenRouterUrl } from '@phoenix/contracts';
+import { isOpenRouterUrl, sharedKeyForOpenRouter } from '@phoenix/contracts';
 
 /**
  * The services the native launcher runs (scripts/run-compose-stack.sh), by the
@@ -1309,7 +1309,7 @@ export function checkTogether(values) {
   }
   if (values.PHOENIX_NEWS_BRIEFINGS_ENABLED === 'true'
     && !keyFor('ETCO_news_llmApiKey', 'ETCO_parser_decisionApiKey')
-    && !(isOpenRouterEndpoint(values.LLM_URL) && has('PHOENIX_LLM_API_KEY'))) {
+    && !sharedKeyForOpenRouter(values)) {
     openRouterFeatures.push('news briefings');
   }
   if (isOpenRouterEndpoint(values.LLM_URL) && !keyFor('PHOENIX_LLM_API_KEY')) openRouterFeatures.push('the endpoint');

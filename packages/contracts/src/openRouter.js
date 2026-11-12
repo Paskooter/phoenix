@@ -41,15 +41,36 @@ export function isOpenRouterUrl(url) {
 }
 
 /**
+ * True for any URL on openrouter.ai, whatever its protocol. Use it to keep keys
+ * away: a plain-http OpenRouter URL gets no key at all, neither the OpenRouter
+ * key nor a custom endpoint's.
+ */
+export function isOpenRouterHost(url) {
+  try {
+    return new URL(String(url || '')).hostname.replace(/^www\./, '').toLowerCase() === 'openrouter.ai';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The shared endpoint PHOENIX_LLM_API_KEY belongs to: PHOENIX_LLM_URL, else
+ * LLM_URL as the console names it. The services and the console both read it here.
+ * @param {Record<string,string|undefined>} env
+ */
+export function sharedLlmEndpoint(env = process.env) {
+  return trimmed(env?.PHOENIX_LLM_URL) || trimmed(env?.LLM_URL);
+}
+
+/**
  * The shared endpoint's key (PHOENIX_LLM_API_KEY), when it may stand in for an
- * OpenRouter key: only when the shared endpoint (PHOENIX_LLM_URL, or LLM_URL as
- * the console names it) is OpenRouter itself, as older servers set it up.
- * Otherwise that key belongs to a custom endpoint and never goes to OpenRouter.
+ * OpenRouter key: only when the shared endpoint is OpenRouter itself, as older
+ * servers set it up. Otherwise that key belongs to a custom endpoint and never
+ * goes to OpenRouter.
  * @param {Record<string,string|undefined>} env
  */
 export function sharedKeyForOpenRouter(env = process.env) {
-  const endpoint = trimmed(env?.PHOENIX_LLM_URL) || trimmed(env?.LLM_URL);
-  return isOpenRouterUrl(endpoint) ? trimmed(env?.PHOENIX_LLM_API_KEY) : '';
+  return isOpenRouterUrl(sharedLlmEndpoint(env)) ? trimmed(env?.PHOENIX_LLM_API_KEY) : '';
 }
 
 /**
