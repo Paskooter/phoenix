@@ -1,8 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
+import { existsSync, mkdtempSync, readdirSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { setTimeout as sleep } from 'node:timers/promises';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const checker = join(here, 'check-test-tmp-leaks.mjs');
@@ -29,4 +32,23 @@ test('the checker fails and lists what a test left in TMPDIR', () => {
   const run = runChecker(fixture('leaks.probe.mjs'));
   assert.equal(run.status, 1, run.stdout + run.stderr);
   assert.match(run.stderr, /1 temporary entry was left behind:\n {2}left-behind\.txt/);
+});
+
+test('the checker removes its directory when it is interrupted', async (t) => {
+  const outer = mkdtempSync(join(tmpdir(), 'tmp-leak-check-outer-'));
+  t.after(() => rmSync(outer, { recursive: true, force: true }));
+  const { NODE_TEST_CONTEXT, ...env } = process.env;
+  const child = spawn(process.execPath, [checker, fixture('waits.probe.mjs')], {
+    env: { ...env, TMPDIR: outer },
+    stdio: 'ignore',
+  });
+  const exited = new Promise((resolve) => child.on('close', (code) => resolve(code)));
+  const started = () => readdirSync(outer).some((name) => existsSync(join(outer, name, 'tmp', 'started')));
+  for (let waited = 0; !started(); waited += 50) {
+    assert.ok(waited < 15_000, 'the probe test never started');
+    await sleep(50);
+  }
+  child.kill('SIGTERM');
+  assert.equal(await exited, 143);
+  assert.deepEqual(readdirSync(outer), []);
 });
