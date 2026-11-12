@@ -6,7 +6,7 @@
 #       --pubkey phoenix-ota-YYYYMMDD.pub.pem \
 #       [--official-base jibo-be-11.0.1.tar.gz] [--ids id1,id2]
 #
-# 1. Every selected `be` row's package goes through scripts/be_ota_integrity.py against the
+# 1. Every selected BE row's (subsystem `@be/be` or `be`) package goes through scripts/be_ota_integrity.py against the
 #    hash-pinned official 11.0.1 archive (--official-base is then required). Any failure stops
 #    the kit before anything is signed.
 # 2. scripts/sign-ota-release.mjs signs the selected rows into a NEW manifest (--out), binding
@@ -52,7 +52,7 @@ trap 'rm -rf "$WORK"' EXIT
 RECEIPT_ARGS=()
 n=0
 while IFS=$'\t' read -r id subsystem version file; do
-  [ "$subsystem" = "be" ] || continue
+  case "$subsystem" in be|@be/be) ;; *) continue ;; esac   # production BE rows are "@be/be"
   [ -n "$OFFICIAL_BASE" ] || die "row $id is a be package: --official-base (complete official 11.0.1 archive) is required"
   n=$((n + 1))
   receipt="$WORK/gate-$n.json"

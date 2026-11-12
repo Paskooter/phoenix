@@ -42,7 +42,7 @@ relay must pass the header through unchanged.
   | `format` | `phoenix-ota-release/1` |
   | `keyId` | must equal the outer `keyId`; selects the pinned public key |
   | `id` | catalog update ID (`_id` on the wire) |
-  | `subsystem` | `os`, `services`, `be`, `oobe-config`, … |
+  | `subsystem` | `os`, `services`, `@be/be` (the BE skill), `oobe-config`, … |
   | `fromVersion` | the **manifest** value: `"*"` means any installed version. The wire `fromVersion` echoes the robot's own version for `"*"` rows, so do not compare it with this. |
   | `toVersion` | the version this package installs: **the anti-downgrade field** |
   | `filter` | the OTA channel the row was published in (`""`, `fcs`, `eau`, a ring filter) |
@@ -74,7 +74,7 @@ steps 1-4 is `verifyRow` in `packages/ota/src/releaseSignature.js` (reasons: `un
 ## Signing a release (publish kit)
 
 Sign after the package is final and, for BE, after `scripts/be_ota_integrity.py` passes. The
-kit runs the gate itself and refuses to sign a `be` row without it:
+kit runs the gate itself and refuses to sign a BE row (`@be/be`, or the short form `be`) without it:
 
 ```sh
 scripts/ota-release-kit.sh --manifest manifest.json --data-dir <ota data dir> \

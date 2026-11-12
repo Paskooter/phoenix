@@ -208,6 +208,23 @@ test('the kit never signs a be package without a passing be_ota_integrity.py gat
   assert.equal(v.code, 0, v.stdout);
 });
 
+test('a production-shaped "@be/be" row gets the same integrity gate as "be"', async () => {
+  const prodManifest = path.join(dir, 'manifest-prod-be.json');
+  await writeFile(prodManifest, JSON.stringify({ updates: [{ ...ROWS[2], id: 'be-13.9.1-stable', subsystem: '@be/be' }] }));
+  const out = path.join(dir, 'prod-be-signed.json');
+  const noBase = await kit(['--manifest', prodManifest, '--data-dir', dataDir, '--out', out,
+    '--key', privFile, '--key-id', KEY_ID, '--pubkey', pubFile]);
+  assert.notEqual(noBase.code, 0);
+  assert.match(noBase.stderr, /row be-13\.9\.1-stable is a be package: --official-base .* is required/);
+  assert.equal(existsSync(out), false);
+
+  const direct = await node(['sign', '--manifest', prodManifest, '--data-dir', dataDir, '--out', out,
+    '--key', privFile, '--key-id', KEY_ID]);
+  assert.equal(direct.code, 1);
+  assert.match(direct.stderr, /be-13\.9\.1-stable: refusing to sign a be package without a passing/);
+  assert.equal(existsSync(out), false);
+});
+
 test('signing refuses weak keys, overwriting, and rows whose recorded digest is stale', async () => {
   const small = await node(['sign', '--manifest', manifestFile, '--data-dir', dataDir, '--out', path.join(dir, 'x.json'),
     '--key', smallPrivFile, '--key-id', KEY_ID, '--ids', 'os-13.0.9']);

@@ -29,6 +29,12 @@ import {
 
 const OFFICIAL_BE_FILES = 21590; // scripts/be_ota_integrity.py: complete official 11.0.1 archive
 const GATE_KEYS = ['addedFiles', 'candidateFiles', 'officialFiles', 'sha256', 'unresolvedMains'];
+// The BE skill's subsystem: production manifests use the package name "@be/be"; "be" is the short form.
+const BE_SUBSYSTEMS = new Set(['be', '@be/be']);
+
+export function isBeRow(row) {
+  return BE_SUBSYSTEMS.has(row && row.subsystem);
+}
 
 class UsageError extends Error {}
 
@@ -155,7 +161,7 @@ async function cmdSign(opts) {
   for (const row of rows) {
     const digests = await digestFile(packagePath(dataDir, row));
     checkRecordedDigests(row, digests);
-    if (row.subsystem === 'be') requireGate(row, digests, receipts);
+    if (isBeRow(row)) requireGate(row, digests, receipts);
     work.push({ row, digests });
   }
   for (const { row, digests } of work) {
