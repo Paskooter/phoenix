@@ -1,4 +1,6 @@
-// Parakeet first, Google when Parakeet cannot answer.
+// Parakeet first, a fallback recognizer when Parakeet cannot answer. The
+// fallback is Google, or an ordered chain such as OpenRouter then Google
+// (fallbackChain.js); "Google" below stands for whichever it is.
 //
 // The decision is made at three points of a turn, and audio is never lost at
 // any of them because ParakeetASRSession keeps every accepted PCM byte of the
@@ -83,7 +85,7 @@ export class ParakeetHealth {
     this.since = this.now();
     this.reason = reason;
     this.successes = 0;
-    this.log?.warn?.('[asr] Parakeet is not answering; new turns use Google until it recovers', {
+    this.log?.warn?.('[asr] Parakeet is not answering; new turns use the fallback recognizer until it recovers', {
       reason, recheckMs: this.intervalMs,
     });
     this._schedule();
@@ -298,11 +300,11 @@ export class FailoverSocket extends RecognizerSocket {
         this.switched = true;
         const why = reason || (this.readyState === CONNECTING ? 'parakeet-unreachable' : 'parakeet-stream-failed');
         this.switchReason = why;
-        this.log?.warn?.('[asr] Parakeet stream failed; this window continues on Google', {
+        this.log?.warn?.('[asr] Parakeet stream failed; this window continues on the fallback recognizer', {
           ...asrFailureFields(err, { provider: 'parakeet' }), reason: why, replayMs: Math.round(this.pcmBytes / 32), afterEos: this.eosSent,
         });
         try { this.onSwitch?.(why); } catch { /* reporting only */ }
-        this._attach(next, 'google');
+        this._attach(next, 'secondary');
         // Detach ownership before teardown: close/error can be synchronous.
         quietly(socket);
         return;
@@ -349,7 +351,7 @@ export class FailoverSocket extends RecognizerSocket {
  * The per-session failover transport.
  * @param {object} options
  * @param {object} options.primary    createParakeetTransport(...)
- * @param {object|null} options.secondary  createGoogleTransport(...), or null when Google is not configured
+ * @param {object|null} options.secondary  createGoogleTransport(...) or createFallbackChain(...), or null when no fallback is configured
  * @param {ParakeetHealth} options.health
  */
 export function createFailoverTransport({ primary, secondary = null, health, timeouts = {}, log = null }) {
@@ -359,7 +361,7 @@ export function createFailoverTransport({ primary, secondary = null, health, tim
   let cancelled = false;
   const secondaryReady = (seconds) => !!secondary && secondary.available(seconds);
   const useSecondary = (reason) => {
-    active = 'google';
+    active = 'secondary';
     failover = failover || reason;
   };
 
@@ -388,7 +390,7 @@ export function createFailoverTransport({ primary, secondary = null, health, tim
     },
 
     openStream() {
-      if (active === 'google') return secondary.openStream();
+      if (active === 'secondary') return secondary.openStream();
       return new FailoverSocket({
         openPrimary: () => primary.openStream(),
         openSecondary: secondary ? () => (secondaryReady() ? secondary.openStream() : null) : null,
@@ -410,7 +412,7 @@ export function createFailoverTransport({ primary, secondary = null, health, tim
 
     async recognizeWav(wav) {
       if (cancelled) throw new Error('ASR recognition aborted');
-      if (active === 'google') return secondary.recognizeWav(wav);
+      if (active === 'secondary') return secondary.recognizeWav(wav);
       try {
         return await primary.recognizeWav(wav);
       } catch (err) {
@@ -422,13 +424,13 @@ export function createFailoverTransport({ primary, secondary = null, health, tim
         const seconds = Math.ceil(Math.max(0, wav.length - 44) / 32000);
         if (!secondaryReady(seconds)) throw err;
         useSecondary('parakeet-batch-failed');
-        log?.warn?.('[asr] Parakeet recognition failed; recognizing this window with Google', asrFailureFields(err, { provider: 'parakeet', failover }));
+        log?.warn?.('[asr] Parakeet recognition failed; recognizing this window with the fallback recognizer', asrFailureFields(err, { provider: 'parakeet', failover }));
         return secondary.recognizeWav(wav);
       }
     },
 
     describe() {
-      if (active !== 'google') return { provider: 'parakeet' };
+      if (active !== 'secondary') return { provider: 'parakeet' };
       return { ...(secondary?.describe?.() || { provider: 'google' }), ...(failover ? { failover } : {}) };
     },
     cancel() {

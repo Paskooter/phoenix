@@ -13,7 +13,8 @@
 // Phoenix's recognizer choice (docs/ASR-GOOGLE-FALLBACK.md) is
 // PHOENIX_ASR_PROVIDER: unset or "parakeet" builds the Parakeet session exactly
 // as before, without touching the router; "auto" (Parakeet, Google while
-// Parakeet cannot answer) and "google" go through asrRouter.js. The reference
+// Parakeet cannot answer), "google", "openrouter" and "custom" go through
+// asrRouter.js. The reference
 // seam above (ETCO_server_asrProvider=google, original GoogleASRSession over a
 // mock recognizer) keeps precedence so the parity lanes are unchanged.
 
@@ -30,7 +31,9 @@ export function setASRProvider(provider) { injectedProvider = provider || null; 
 
 export function asrProviderName() {
   if (injectedProvider) return 'unknown';
-  return process.env.ETCO_server_asrProvider === 'google' || asrMode(process.env.PHOENIX_ASR_PROVIDER) === 'google' ? 'google' : 'parakeet';
+  if (process.env.ETCO_server_asrProvider === 'google') return 'google';
+  const mode = asrMode(process.env.PHOENIX_ASR_PROVIDER);
+  return ['google', 'openrouter', 'custom'].includes(mode) ? mode : 'parakeet';
 }
 
 function defaultProvider(config, log) {

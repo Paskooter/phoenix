@@ -17,11 +17,12 @@ const RETAIN_MS = Math.max(60_000, Math.min(24 * 60 * 60 * 1000, Number(process.
 const MAX_QUERY_LIMIT = 100;
 const STAGES = new Set(['context_wait', 'asr', 'nlu', 'route', 'skill', 'skill_redirect', 'history_launch', 'history_speech', 'response_ready', 'http_request']);
 const OUTCOMES = new Set(['ok', 'matched', 'unmatched', 'remote_error', 'timeout', 'error', 'cancelled', 'abandoned', 'idle_spare', 'listen', 'skill', 'redirect']);
-const ASR_PROVIDERS = new Set(['parakeet', 'google', 'unknown']);
+const ASR_PROVIDERS = new Set(['parakeet', 'google', 'openrouter', 'custom', 'unknown']);
 const ASR_ERROR_CODES = new Set(['ASR_UNKNOWN', 'TIMEOUT_ASR', 'ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND', 'EHOSTUNREACH', 'EPIPE', 'ERR_INVALID_URL',
   'ERR_AUDIO_FORMAT', 'ERR_AUDIO_DECODE', 'ERR_GOOGLE_AUDIO_LIMIT', 'ERR_GOOGLE_RESPONSE_FORMAT', 'ERR_PARAKEET_RESPONSE_TOO_LARGE', 'ERR_PARAKEET_INVALID_RESPONSE', 'ERR_PARAKEET_TIMEOUT',
   'ERR_PARAKEET_RESPONSE_ABORTED', 'ERR_ASR_STREAM_CLOSED', 'ERR_ASR_STREAM_TIMEOUT',
-  'GOOGLE_STT_BUDGET', 'GOOGLE_STT_CLIENT_MISSING', 'GOOGLE_STT_BUSY', 'GOOGLE_STT_TOO_LONG', 'GOOGLE_STT_TIMEOUT', 'GOOGLE_STT_UNAVAILABLE', 'GOOGLE_STT_CANCELLED', 'GOOGLE_STT_ERROR']);
+  'GOOGLE_STT_BUDGET', 'GOOGLE_STT_CLIENT_MISSING', 'GOOGLE_STT_BUSY', 'GOOGLE_STT_TOO_LONG', 'GOOGLE_STT_TIMEOUT', 'GOOGLE_STT_UNAVAILABLE', 'GOOGLE_STT_CANCELLED', 'GOOGLE_STT_ERROR',
+  'OPENAI_STT_BUDGET', 'OPENAI_STT_TOO_LONG', 'OPENAI_STT_TIMEOUT', 'OPENAI_STT_UNAVAILABLE', 'OPENAI_STT_CANCELLED', 'OPENAI_STT_INVALID_RESPONSE', 'OPENAI_STT_ERROR']);
 const ASR_FAILOVERS = new Set(['parakeet-down', 'parakeet-unreachable', 'parakeet-batch-failed', 'parakeet-stream-failed', 'parakeet-open-timeout', 'parakeet-slow']);
 const CLOSE_STAGES = new Set([...STAGES, 'wait_listen', 'client_asr', 'client_nlu', 'unknown']);
 const CLOSE_REASONS = new Set(['normal-close', 'going-away', 'abnormal-close', 'protocol-error', 'policy-violation', 'message-too-big', 'transport-error', 'other-close']);
