@@ -64,7 +64,7 @@ Engineering defaults (not a promised provider allocation):
 | All attempts globally per UTC minute | 60 |
 | Free owner pool | 900/day, 20/minute |
 | In-flight requests | one/account, two globally |
-| Global daily spending admission cap | **$5**, one exported constant |
+| Global daily spending admission cap | **$1**, one exported constant |
 | Account daily spending admission cap | $0.50 |
 | Non-resetting lifetime spending fuse | $150 |
 | Short / detailed output allowance | 160 / 512 tokens |
@@ -85,7 +85,7 @@ never automatically remove/reclaim it or initialize new state at boot.
 For each paid attempt reserve the entire pinned 1,048,576-token context at
 $0.05/M input plus 512 output at $0.50/M, rounded up to **52,685 micro-USD**.
 The provider request enforces those same ceilings. This deliberately underuses
-the budget: the $5 daily limit admits at most 94 paid attempts, even if actual
+the budget: the $1 daily limit admits at most 18 paid attempts, even if actual
 replies cost less. This admission bound assumes the provider context/price
 contract; taxes, other key consumers, provider contract violations and privileged
 ledger rollback are outside it. Use a dedicated capped provider key as well.

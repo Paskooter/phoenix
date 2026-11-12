@@ -3,7 +3,7 @@ import { InferenceLedger, emptyCounters } from '../agentInference/ledger.js';
 
 // USD budgets are admission ceilings, not prices or member tiers. Reuse the
 // inference prototype's full-context reservation and never refund uncertainty.
-export const GLOBAL_DAILY_CAP_MICRO_USD = 5_000_000;
+export const GLOBAL_DAILY_CAP_MICRO_USD = 1_000_000;
 export const FREE_MODEL = 'google/gemma-4-26b-a4b-it:free';
 export const OVERFLOW_MODEL = 'deepseek/deepseek-v4.1-flash';
 // An administrator picks both models (Settings -> Language model). The price
