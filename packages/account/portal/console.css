@@ -935,7 +935,6 @@ body.console {
   .loop-tabs button { min-height: 40px; }
 }
 .robot-avatar.robot-avatar-xs { --size: 20px; }
-.robot-avatar-xs .robot-avatar-eye { box-shadow: none; }
 
 /* The loop, told from its Jibo: avatar, name, who is in it. */
 .loop-hero {
@@ -1740,7 +1739,7 @@ button.ghost:hover { background: var(--panel-2); border-color: var(--accent-line
 .robot-color-gold { --robot-color: #d6a438; }
 .robot-color-slate { --robot-color: #718098; }
 
-/* Jibo's face is one round eye; the avatar is that eye on the robot's color. */
+/* A robot's initials on its color. Never a drawing of Jibo (no head, face or eye). */
 .robot-avatar {
   --size: 44px;
   position: relative;
@@ -1754,14 +1753,14 @@ button.ghost:hover { background: var(--panel-2); border-color: var(--accent-line
     radial-gradient(circle at 32% 26%, rgba(255, 255, 255, .28), transparent 58%),
     var(--robot-color, #4b85db);
   box-shadow: inset 0 -2px 6px rgba(0, 0, 0, .18), 0 4px 14px -6px var(--robot-color, #4b85db);
+  color: #fff;
+  font-size: max(9px, calc(var(--size) * .36));
+  font-weight: 700;
+  letter-spacing: .02em;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .28);
+  user-select: none;
   transition: background var(--step) var(--ease), box-shadow var(--step) var(--ease);
-}
-.robot-avatar-eye {
-  width: 40%;
-  height: 40%;
-  border-radius: 50%;
-  background: radial-gradient(circle at 40% 36%, #fff 0 45%, #e9f1ff 70%, #cfdcf2 100%);
-  box-shadow: 0 0 calc(var(--size) * .18) rgba(255, 255, 255, .75);
 }
 .robot-avatar-lg { --size: 64px; }
 
@@ -2050,7 +2049,8 @@ pre.json {
 .ha-bridge { display: inline-flex; align-items: center; gap: .45rem; flex: none; }
 .ha-bridge-robots { display: flex; flex: none; }
 .ha-bridge-robots > .robot-avatar + .robot-avatar {
-  margin-inline-start: calc(var(--size) * -.4);
+  /* Overlap less than a bare disc would, so each robot's initials stay readable. */
+  margin-inline-start: calc(var(--size) * -.28);
   box-shadow: 0 0 0 3px var(--panel), inset 0 -2px 6px rgba(0, 0, 0, .18);
 }
 /* The link itself: a row of dots that runs from Jibo to Home Assistant while

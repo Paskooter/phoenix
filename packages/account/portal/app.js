@@ -601,7 +601,7 @@ async function renderHome() {
         const view = h('button', { type: 'button', class: 'btn btn-sm btn-primary', on: { click: () => openLoop(loop.id) } },
           'View invitation');
         return h('div', { class: 'ov-invite' },
-          robotAvatar(loop.avatarColor, 'md'),
+          robotAvatar(loop.avatarColor, 'md', loop.name),
           h('div', { class: 'ov-invite-text' },
             h('b', {}, `${owner?.name || 'Someone'} invited you to ${loop.name || 'their loop'}`),
             h('span', {}, `${joined} ${joined === 1 ? 'person is' : 'people are'} in it. Join to see this Jibo’s gallery and inbox.`)),
@@ -644,7 +644,7 @@ async function renderHome() {
       href: robot.canManage ? `#/robot/${encodeURIComponent(robot.loopId)}` : '#/robot',
       title: robot.friendlyId,
     },
-    robotAvatar(robot.avatarColor, 'md'),
+    robotAvatar(robot.avatarColor, 'md', robotName(robot)),
     h('span', { class: 'jibo-tile-text' },
       h('b', { text: robotName(robot) }),
       h('span', { text: robot.canManage ? 'Yours' : 'Shared with you' })),
@@ -1421,7 +1421,7 @@ function loopTabs(context) {
         class: current ? 'active' : '',
         'aria-current': current ? 'page' : undefined,
         on: { click: () => { if (!current) { rememberActiveLoop(loop.id); route(); } } },
-      }, robotAvatar(loop.avatarColor, 'xs'), h('span', { text: loop.name || 'Unnamed loop' }),
+      }, robotAvatar(loop.avatarColor, 'xs', loop.name), h('span', { text: loop.name || 'Unnamed loop' }),
       invitation ? h('span', { class: 'pill pill-warn loop-tab-pill' }, 'Invited') : null);
     }));
 }
@@ -1435,7 +1435,7 @@ function loopHero(loop, people, { isOwner, owner, color }) {
   ].join(' · ');
   return h('section', { class: `card loop-hero robot-color-${color}` },
     h('div', { class: 'loop-hero-main' },
-      robotAvatar(color, 'lg'),
+      robotAvatar(color, 'lg', loop.name),
       h('div', { class: 'loop-hero-text' },
         h('h2', { text: loop.name || 'Unnamed loop' }),
         h('div', { class: 'loop-hero-meta' },
@@ -1479,7 +1479,7 @@ function invitationCard(loop, people, owner, color) {
     ? `${inviter} and ${others.length} ${others.length === 1 ? 'other person are' : 'others are'} already in it.`
     : `${inviter} is in it so far.`;
   return h('section', { class: `card loop-invite robot-color-${color}` },
-    robotAvatar(color, 'lg'),
+    robotAvatar(color, 'lg', loop.name),
     h('p', { class: 'loop-invite-eyebrow' }, 'Invitation'),
     h('h2', {}, `Join ${loop.name}?`),
     h('p', { class: 'loop-invite-text' },
@@ -2860,11 +2860,14 @@ const ROBOT_COLORS = [
 const robotColorOf = (value) => (ROBOT_COLORS.some(([key]) => key === value) ? value : 'blue');
 const robotName = (robot) => meaningfulText(robot?.loopName) || robot?.friendlyId || 'Jibo';
 
-/** Jibo's one round eye on a disc of the robot's console color. */
-const robotAvatar = (color, size = 'md') => h('span', {
+/**
+ * A robot's initials on a disc of its console color. Never a drawing of Jibo
+ * (no head, face or eye): the project shows real photos of Jibo or none.
+ */
+const robotAvatar = (color, size = 'md', name = 'Jibo') => h('span', {
   class: `robot-avatar robot-avatar-${size} robot-color-${robotColorOf(color)}`,
   'aria-hidden': 'true',
-}, h('span', { class: 'robot-avatar-eye' }));
+}, initialsOf(name || 'Jibo'));
 
 /** The read-only facts a robot reports about itself, skipping anything it left unset. */
 function robotFacts(d) {
@@ -2977,7 +2980,7 @@ function robotCard(robot) {
 
   return h('section', { class: 'card robot-card' },
     h('div', { class: 'robot-card-head' },
-      robotAvatar(robot.avatarColor),
+      robotAvatar(robot.avatarColor, 'md', robotName(robot)),
       h('div', { class: 'robot-card-title' },
         h('h3', { text: robotName(robot) }),
         h('span', { class: 'robot-id', text: robot.friendlyId })),
@@ -3035,7 +3038,7 @@ async function renderRobotSettings(loopId, initialTab = 'general') {
   };
 
   const container = page(state.name, '');
-  const heroAvatar = robotAvatar(state.color, 'lg');
+  const heroAvatar = robotAvatar(state.color, 'lg', state.name);
   const heroTitle = h('h2', { text: state.name });
   container.querySelector('.page-head').replaceWith(h('div', { class: 'page-head robot-hero' },
     backLink(),
@@ -3061,6 +3064,7 @@ async function renderRobotSettings(loopId, initialTab = 'general') {
     rename(name) {
       state.name = name;
       heroTitle.textContent = name;
+      heroAvatar.textContent = initialsOf(name);
       pageTitle.textContent = name;
       document.title = `${name} — Phoenix`;
     },
@@ -5124,7 +5128,7 @@ async function renderAdminRobots() {
 
   const robotRow = (r) => h('li', { class: 'adm-row', 'data-search': `${r.name || ''} ${r.friendlyId} ${r.owner?.name || ''} ${r.owner?.email || ''}`.toLowerCase(),
     'data-online': String(r.online) },
-  robotAvatar(r.color, 'sm'),
+  robotAvatar(r.color, 'sm', r.name || r.friendlyId),
   h('div', { class: 'adm-row-main' },
     h('strong', { text: r.name || r.friendlyId }),
     h('span', { class: 'adm-row-sub' },
@@ -5136,7 +5140,7 @@ async function renderAdminRobots() {
     icon('trash', 14), h('span', { class: 'hide-sm', text: 'Remove…' })));
 
   const loopRow = (l) => h('li', { class: 'adm-row', 'data-search': `${l.name || ''} ${l.robot || ''} ${l.owner?.name || ''} ${l.owner?.email || ''}`.toLowerCase() },
-    robotAvatar(l.color, 'sm'),
+    robotAvatar(l.color, 'sm', l.name),
     h('div', { class: 'adm-row-main' },
       h('strong', { text: l.name || 'Unnamed loop' }),
       h('span', { class: 'adm-row-sub' },
@@ -5843,13 +5847,13 @@ const haTile = (size = 'md') => h('span', { class: `ha-tile ha-tile-${size}`, 'a
 function haBridge(robots, state, size = 'md') {
   const shown = robots.length ? robots.slice(0, 3) : [{}];
   return h('span', { class: `ha-bridge ha-bridge-${size} is-${state}`, 'aria-hidden': 'true' },
-    h('span', { class: 'ha-bridge-robots' }, shown.map((robot) => robotAvatar(robot.avatarColor, size))),
+    h('span', { class: 'ha-bridge-robots' }, shown.map((robot) => robotAvatar(robot.avatarColor, size, robotName(robot)))),
     h('span', { class: 'ha-bridge-line' }),
     haTile(size));
 }
 
 const haRobotChip = (robot) => h('span', { class: 'ha-robot', title: robot.friendlyId },
-  robotAvatar(robot.avatarColor, 'xs'), h('span', { text: robotName(robot) }));
+  robotAvatar(robot.avatarColor, 'xs', robotName(robot)), h('span', { text: robotName(robot) }));
 
 function haInstallationFacts(installation) {
   const connected = installation.connected === true;
@@ -6147,7 +6151,7 @@ function haGuideCard(accountId) {
   return {
     el,
     setRobots(robots) {
-      if (robots.length) heroRobots.replaceChildren(...robots.slice(0, 3).map((robot) => robotAvatar(robot.avatarColor, 'lg')));
+      if (robots.length) heroRobots.replaceChildren(...robots.slice(0, 3).map((robot) => robotAvatar(robot.avatarColor, 'lg', robotName(robot))));
     },
   };
 }
@@ -6181,7 +6185,7 @@ function haHowCard() {
       haNote('alert', 'If Jibo can’t confirm a result', 'It may have worked anyway. Check the device before asking again.')),
     haOut(HA_LINKS.help, 'Troubleshooting', 'ov-link'));
   el.classList.add('ha-how');
-  return { el, setRobot(robot) { if (robot) jibo.replaceChildren(robotAvatar(robot.avatarColor)); } };
+  return { el, setRobot(robot) { if (robot) jibo.replaceChildren(robotAvatar(robot.avatarColor, 'md', robotName(robot))); } };
 }
 
 /** Everything after pairing is managed in Home Assistant itself. */
