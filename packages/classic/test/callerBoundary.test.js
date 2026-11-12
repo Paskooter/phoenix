@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, rm, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createClassicEntrypoint, createVerifiedClassicCaller, MediaStore } from '../src/index.js';
+import { createClassicEntrypoint, createVerifiedClassicCaller, KeyStore, MediaStore } from '../src/index.js';
 import { signSigV4 } from '@phoenix/common';
 
 const NOW = new Date('2026-09-10T12:00:00.000Z');
@@ -113,6 +113,8 @@ before(async () => {
     backup: { dir: join(mediaDir, 'backups'), bearerSecret: 'caller-boundary-test' },
     keyMembership: { memberIds: async () => [OWNER.id] },
     keyBinaryDir: join(mediaDir, 'key-binaries'),
+    keyStore: new KeyStore(join(mediaDir, 'keys.json')),
+    notificationFile: join(mediaDir, 'notifications.json'),
     backupOwnership: { loopRobotId: async (loopId) => loopId === LOOP ? OWNER.id : null },
   }).listen(0);
   port = server.address().port;

@@ -69,7 +69,7 @@ before(async () => {
   process.env.ETCO_classic_keyFile = join(dir, 'keys.json');
   process.env.ETCO_classic_keyBinaryDir = join(dir, 'binaries');
   store = new KeyStore(process.env.ETCO_classic_keyFile);
-  server = await createClassicEntrypoint({ keyStore: store }).listen(0);
+  server = await createClassicEntrypoint({ keyStore: store, notificationFile: join(dir, 'notifications.json') }).listen(0);
   port = server.address().port;
 });
 after(() => {
@@ -527,7 +527,7 @@ test('membership: end-to-end against a real Account service (GET /loopMembers + 
     restorePeerToken = setEnv({ ETCO_account_internalPeerToken: SYNTHETIC_PEER_TOKEN });
 
     // DEFAULT membership seam — no injection, the real accountMembership HTTP client.
-    classic = await createClassicEntrypoint().listen(0);
+    classic = await createClassicEntrypoint({ notificationFile: join(dir2, 'notifications.json') }).listen(0);
     const cb = `http://localhost:${classic.address().port}/`;
     const post = async (target, body, key) => {
       const res = await fetch(cb, {
@@ -614,8 +614,13 @@ test('KeyStore reloads every collection from the same file', () => {
 
 // ---- helpers ---------------------------------------------------------------
 
+let membershipServices = 0;
 async function withMembership(membership, fn) {
-  const svc = await createClassicEntrypoint({ keyMembership: membership }).listen(0);
+  membershipServices += 1;
+  const svc = await createClassicEntrypoint({
+    keyMembership: membership,
+    notificationFile: join(dir, `notifications-membership-${membershipServices}.json`),
+  }).listen(0);
   const p = svc.address().port;
   try {
     return await fn({

@@ -61,6 +61,7 @@ async function boot({ withResolver = true, mint, keyFile, accountByAccessKeyId =
   const options = {
     keyMembership: membershipFor([ACCOUNT, SIBLING_ACCOUNT]),
     keyStore: store,
+    notificationFile: join(dir, `notifications-${servers.length}.json`),
     key: {
       accountResolver: withResolver
         ? accessKeyAccountResolver((akid) => accountByAccessKeyId[akid])

@@ -16,6 +16,8 @@
 
 import http from 'node:http';
 import { spawn } from 'node:child_process';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -147,10 +149,15 @@ export async function freePort() {
 export async function startClassicChild({ accountDataFile, env = {}, ready, port }) {
   const childPort = port || await freePort();
   const base = `http://127.0.0.1:${childPort}`;
+  // The child's default stores (per-pid notification file, staged request bodies) live
+  // under its TMPDIR, and a SIGKILL skips their cleanup. Give each child its own TMPDIR
+  // and remove it once the child has exited, so no run leaves them in the shared one.
+  const childTmp = mkdtempSync(join(tmpdir(), 'phoenix-classic-child-'));
   const child = spawn(process.execPath, [CLASSIC_ENTRY], {
     cwd: ROOT,
     env: {
       ...process.env,
+      TMPDIR: childTmp,
       PORT: String(childPort),
       PHOENIX_BIND_HOST: '127.0.0.1',
       ETCO_classic_accountDataFile: accountDataFile,
@@ -162,11 +169,12 @@ export async function startClassicChild({ accountDataFile, env = {}, ready, port
   let stderr = '';
   child.stdout.resume();
   child.stderr.on('data', (chunk) => { stderr += chunk; });
+  const removeChildTmp = () => rmSync(childTmp, { recursive: true, force: true });
   const stop = () => new Promise((resolve) => {
     if (child.exitCode !== null || child.signalCode !== null) return resolve();
     child.once('close', resolve);
     child.kill('SIGKILL');
-  });
+  }).then(removeChildTmp);
   for (let attempt = 0; attempt < 150; attempt += 1) {
     try {
       if (await ready(base)) return { base, port: childPort, child, stop };

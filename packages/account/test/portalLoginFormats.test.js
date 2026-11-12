@@ -11,17 +11,28 @@
 // compareAccountPassword is the source-shaped comparison and already handled
 // both. These tests pin the login, change-password and change-email routes to it.
 
-import test from 'node:test';
+import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync } from 'node:fs';
+import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Store, createAccountService } from '../src/index.js';
 import { hashAccountPassword } from '../src/accountIdentity.js';
 import { hashPassword, createOwnerAccount } from '../src/model.js';
 
+// Remove every temporary directory this file makes once its tests finish.
+const tempDirs = [];
+function makeTempDir(prefix) {
+  const directory = mkdtempSync(join(tmpdir(), prefix));
+  tempDirs.push(directory);
+  return directory;
+}
+after(() => {
+  for (const directory of tempDirs) rmSync(directory, { recursive: true, force: true });
+});
+
 function service() {
-  const dir = mkdtempSync(join(tmpdir(), 'portal-login-'));
+  const dir = makeTempDir('portal-login-');
   const store = new Store(join(dir, 'account.json'));
   const svc = createAccountService({ store });
   return { store, svc };

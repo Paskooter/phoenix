@@ -36,14 +36,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
-import { tmpdir } from 'node:os';
 import https from 'node:https';
 import { WebSocket } from 'ws';
 import { signSigV4 } from '@phoenix/common';
 import { createClassicEntrypoint, createVerifiedNotificationAccountResolver } from '../src/index.js';
 import { ensureTlsCertificates, regionsFrom } from '../../../scripts/ensure-tls-certs.mjs';
+import { makeTempDir } from './fixtures/tempDir.js';
 
 const hasOpenssl = (() => {
   try { execFileSync('openssl', ['version'], { stdio: 'ignore' }); return true; } catch { return false; }
@@ -59,7 +59,7 @@ const ACCOUNTS = {
   'A10-PROD-B': { _id: 'a10-prod-b', id: 'a10-prod-b', accessKeyId: 'A10-PROD-B', secretAccessKey: 'prod-b-secret', isActive: true, isDeleted: false },
 };
 
-const tempDir = () => mkdtempSync(join(tmpdir(), 'phoenix-a10-prod-'));
+const tempDir = () => makeTempDir('phoenix-a10-prod-');
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 function waitFor(predicate, timeoutMs = 4000) {
   const started = Date.now();

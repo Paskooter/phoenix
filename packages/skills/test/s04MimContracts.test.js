@@ -260,12 +260,13 @@ test('templates resolve PromptData members and ESML passes through unescaped', (
   assert.equal(escapeForEsml(''), '');
 });
 
-test('loadMims resolves paths, defaults a missing mim_id to the filename and rejects bad paths', async () => {
+test('loadMims resolves paths, defaults a missing mim_id to the filename and rejects bad paths', async (t) => {
   // utils/Utils.ts:29-56 — `.mim` extension gate, existence gate, parse gate, filename fallback.
-  const { mkdtempSync, writeFileSync } = await import('node:fs');
+  const { mkdtempSync, rmSync, writeFileSync } = await import('node:fs');
   const { tmpdir } = await import('node:os');
   const { join } = await import('node:path');
   const dir = mkdtempSync(join(tmpdir(), 's04-mim-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
   const named = join(dir, 'MyPrompt.mim');
   writeFileSync(named, JSON.stringify({ mim_type: 'announcement', prompts: [] }));
   const bad = join(dir, 'notamim.json');

@@ -21,8 +21,16 @@ function sha256(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
 }
 
+// Remove every private directory once this file's tests finish.
+const privateDirectories = [];
+test.after(() => {
+  for (const directory of privateDirectories) fs.rmSync(directory, { recursive: true, force: true });
+});
+
 function privateDirectory() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'phoenix-s13-provenance-test-'));
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'phoenix-s13-provenance-test-'));
+  privateDirectories.push(directory);
+  return directory;
 }
 
 function fakeSsh(directory, remote) {

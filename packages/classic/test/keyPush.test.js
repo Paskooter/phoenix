@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { createClassicEntrypoint } from '../src/index.js';
+import { createClassicEntrypoint, DeviceRegistry } from '../src/index.js';
 
 let server; let port; let keyDir; let prevKeyFile;
 async function amz(target, body, accessKeyId) {
@@ -26,7 +26,11 @@ before(async () => {
   keyDir = mkdtempSync(join(tmpdir(), 'phx-key-h4-'));
   prevKeyFile = process.env.ETCO_classic_keyFile;
   process.env.ETCO_classic_keyFile = join(keyDir, 'keys.json');
-  server = await createClassicEntrypoint().listen(0);
+  // Push registrations and notifications default to shared $TMPDIR files; keep them here too.
+  server = await createClassicEntrypoint({
+    notificationFile: join(keyDir, 'notifications.json'),
+    jot: { pushRegistry: new DeviceRegistry(join(keyDir, 'push.json')) },
+  }).listen(0);
   port = server.address().port;
 });
 after(() => {

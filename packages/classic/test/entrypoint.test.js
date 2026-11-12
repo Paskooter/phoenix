@@ -5,7 +5,14 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { createHash } from 'node:crypto';
-import { createClassicEntrypoint } from '../src/index.js';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { createClassicEntrypoint, KeyStore } from '../src/index.js';
+
+// The entrypoint's stores default to shared $TMPDIR paths; keep this file's in one
+// directory that is removed afterwards.
+const dataDir = mkdtempSync(join(tmpdir(), 'phoenix-classic-entrypoint-'));
 
 let server; let base; let upstreams = {}; let upstreamHits = [];
 
@@ -30,10 +37,18 @@ before(async () => {
   process.env.NET_account = `localhost:${mock.address().port}`;
   process.env.NET_ota = `localhost:${mock.address().port}`;
 
-  server = await createClassicEntrypoint().listen(0);
+  server = await createClassicEntrypoint({
+    log: { dir: join(dataDir, 'logs') },
+    notificationFile: join(dataDir, 'notifications.json'),
+    keyStore: new KeyStore(join(dataDir, 'keys.json')),
+    ifttt: { file: join(dataDir, 'ifttt.json') },
+  }).listen(0);
   base = server.address().port;
 });
-after(() => { server.close(); upstreams.mock.close(); delete process.env.NET_account; delete process.env.NET_ota; });
+after(() => {
+  server.close(); upstreams.mock.close(); delete process.env.NET_account; delete process.env.NET_ota;
+  rmSync(dataDir, { recursive: true, force: true });
+});
 
 test('log PutEvents: 200 synchronous ack with the source result; robot never gets a 500', async () => {
   const r = await amz('Log_20150309.PutEvents', { trackingId: 't', deviceId: 'd', events: [{ message: 'hello' }] }, base);

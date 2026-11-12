@@ -8,11 +8,10 @@
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync } from 'node:fs';
 import { readFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createClassicEntrypoint } from '../src/index.js';
+import { makeTempDir } from './fixtures/tempDir.js';
 
 let server; let port; let logStore; let logDir;
 const base = () => `http://localhost:${port}`;
@@ -31,7 +30,7 @@ async function amz(target, body, { headers = {}, method = 'POST' } = {}) {
 const clientCode = (r) => r.body?.__type || r.body?.code || r.body?.error || r.errType || 'UnknownError';
 
 before(async () => {
-  logDir = mkdtempSync(join(tmpdir(), 'phx-log-test-'));
+  logDir = makeTempDir('phx-log-test-');
   process.env.ETCO_classic_logDir = logDir;
   const entry = await createClassicEntrypoint().listen(0);
   server = entry.server || entry;
@@ -140,7 +139,7 @@ test('PutEventsAsync validation: kind/HEALTH+LOG enum and required serial -> 422
 });
 
 test('PutEventsAsync / PutBinary throttle: probability=0 -> 429 REQUEST_THROTTLED (exact srv-log-ws error)', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'phx-log-throttle-'));
+  const dir = makeTempDir('phx-log-throttle-');
   process.env.ETCO_classic_logDir = dir;
   process.env.ETCO_log_probability = '0';
   const throttled = await createClassicEntrypoint().listen(0);
@@ -415,7 +414,7 @@ test('A12f: SetLevel friendlyIds rejects the empty string like Joi.string()', as
 // Defect 3: the store indexes in memory, so a fresh process 404s on a key whose object file
 // is still on disk. The file is the source of truth; the index must be rebuilt from it.
 test('defect 3: GET /log/blob survives a process restart (index rebuilt from the object file)', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'phx-log-restart-'));
+  const dir = makeTempDir('phx-log-restart-');
   const prev = process.env.ETCO_classic_logDir;
   process.env.ETCO_classic_logDir = dir;
   const key = 'log-binary/acct-1/trk-restart/blob-1';
@@ -454,7 +453,7 @@ test('defect 3: GET /log/blob survives a process restart (index rebuilt from the
 // End-to-end through a REAL restart: PutAsrBinary handshake -> PUT the handshake uploadUrl
 // -> the process dies -> a brand-new process serves the SAME key from the object file.
 test('binary/ASR upload path is durable: handshake -> PUT -> restart -> GET', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'phx-log-asr-restart-'));
+  const dir = makeTempDir('phx-log-asr-restart-');
   const prev = process.env.ETCO_classic_logDir;
   process.env.ETCO_classic_logDir = dir;
   const bytes = Buffer.from('asr-audio-after-restart-\x00\xff\x01', 'binary');

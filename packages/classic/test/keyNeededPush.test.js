@@ -20,11 +20,11 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { join } from 'node:path';
-import { mkdtempSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { rmSync } from 'node:fs';
 import { WebSocket } from 'ws';
 import { createClassicEntrypoint } from '../src/index.js';
 import { makeKeyHandler, KeyStore } from '../src/key.js';
+import { makeTempDir } from './fixtures/tempDir.js';
 
 const LOOP = 'loop-keyneeded';
 const ROBOT = 'acct-robot';
@@ -93,7 +93,7 @@ const mintToken = async (base, accountId) => {
 };
 
 before(async () => {
-  dataDir = mkdtempSync(join(tmpdir(), 'phoenix-key-needed-'));
+  dataDir = makeTempDir('phoenix-key-needed-');
   prevKeyFile = process.env.ETCO_classic_keyFile;
   process.env.ETCO_classic_keyFile = join(dataDir, 'keys.json');
   ep = createClassicEntrypoint({
@@ -142,7 +142,7 @@ test('CreateRequest wakes the loop robot with KeyNeeded and never the requester'
 test('an unresolvable loop fans KeyNeeded out to every sibling except the requester', async () => {
   // `membership.loop` returning undefined is the source's own "could not resolve" path; the
   // sibling list is still known, so the fan-out is the source's SNS semantics (all siblings).
-  const dir = mkdtempSync(join(tmpdir(), 'phoenix-key-needed-lan-'));
+  const dir = makeTempDir('phoenix-key-needed-lan-');
   const lan = createClassicEntrypoint({
     notificationFile: join(dir, 'notifications.json'),
     notificationPollIntervalMs: 20,
@@ -195,7 +195,7 @@ test('with no injected membership the wake-up resolves the loop through the Acco
     return res.end('{}');
   });
   const prevNet = process.env.NET_account;
-  const dir = mkdtempSync(join(tmpdir(), 'phoenix-key-needed-peer-'));
+  const dir = makeTempDir('phoenix-key-needed-peer-');
   const peerEp = createClassicEntrypoint({
     notificationFile: join(dir, 'notifications.json'),
     notificationPollIntervalMs: 20,

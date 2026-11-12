@@ -6,7 +6,6 @@ import { connect } from 'node:net';
 import {
   chmodSync,
   mkdirSync,
-  mkdtempSync,
   readFileSync,
   renameSync,
   rmSync,
@@ -15,13 +14,13 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { join } from 'node:path';
-import { tmpdir } from 'node:os';
 import { attachNotificationSocket, NotificationHub, NotificationStore } from '../src/notification.js';
+import { makeTempDir } from './fixtures/tempDir.js';
 
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 
 function tempFile() {
-  const directory = mkdtempSync(join(tmpdir(), 'phoenix-notification-failure-'));
+  const directory = makeTempDir('phoenix-notification-failure-');
   return { directory, file: join(directory, 'private', 'nested', 'notifications.json') };
 }
 

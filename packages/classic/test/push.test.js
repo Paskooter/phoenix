@@ -10,11 +10,11 @@
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { createClassicEntrypoint } from '../src/index.js';
 import { DeviceRegistry, makePushHandler, FixturePushProvider } from '../src/push.js';
+import { makeTempDir } from './fixtures/tempDir.js';
 
 let server; let port;
 let dir;
@@ -37,7 +37,7 @@ function amz(target, body, accessKeyId) {
 const device = (name, pushToken, type) => ({ name, pushToken, type });
 
 before(async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'phoenix-push-test-'));
+  const dir = makeTempDir('phoenix-push-test-');
   const registry = new DeviceRegistry(join(dir, 'devices.json'));
   const entry = createClassicEntrypoint({
     extra: [{ match: /^push/i, handler: makePushHandler(registry) }],
@@ -123,7 +123,7 @@ test('push: unknown operation is rejected', async () => {
 // ---- durable registration ------------------------------------------------------
 
 test('push: registrations persist across registry instances (atomic file store)', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'phoenix-push-durable-'));
+  const dir = makeTempDir('phoenix-push-durable-');
   const file = join(dir, 'devices.json');
   const first = new DeviceRegistry(file);
   first.createDevice('acct-P', { name: 'persist', pushToken: 'tok-p', type: 'android' });
@@ -135,7 +135,7 @@ test('push: registrations persist across registry instances (atomic file store)'
 });
 
 test('push: a failed durability write rejects the mutation and rolls back (no partial registration)', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'phoenix-push-fail-'));
+  const dir = makeTempDir('phoenix-push-fail-');
   const file = join(dir, 'devices.json');
   const registry = new DeviceRegistry(file, {
     persistence: {
@@ -151,7 +151,7 @@ test('push: a failed durability write rejects the mutation and rolls back (no pa
 // ---- delivery behind a replaceable provider -----------------------------------
 
 test('push: sendNotification delivers to every active device through the fixture provider', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'phoenix-push-deliver-'));
+  const dir = makeTempDir('phoenix-push-deliver-');
   const registry = new DeviceRegistry(join(dir, 'devices.json'));
   registry.createDevice('acct-M', { name: 'ios-dev', pushToken: 'apns-1', type: 'ios' });
   registry.createDevice('acct-M', { name: 'and-dev', pushToken: 'fcm-1', type: 'android' });
@@ -170,7 +170,7 @@ test('push: sendNotification delivers to every active device through the fixture
 });
 
 test('push: provider failure is contained and does not stop other deliveries', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'phoenix-push-faildeliver-'));
+  const dir = makeTempDir('phoenix-push-faildeliver-');
   const registry = new DeviceRegistry(join(dir, 'devices.json'));
   registry.createDevice('acct-N', { name: 'a', pushToken: 'ta', type: 'ios' });
   registry.createDevice('acct-N', { name: 'b', pushToken: 'tb', type: 'android' });
@@ -185,7 +185,7 @@ test('push: provider failure is contained and does not stop other deliveries', a
 });
 
 test('push: a provider-reported invalid token removes the device (downstream effect)', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'phoenix-push-invalid-'));
+  const dir = makeTempDir('phoenix-push-invalid-');
   const registry = new DeviceRegistry(join(dir, 'devices.json'));
   registry.createDevice('acct-M', { name: 'stale', pushToken: 'dead-tok', type: 'android' });
   registry.createDevice('acct-M', { name: 'keeper', pushToken: 'live-tok', type: 'ios' });
@@ -196,7 +196,7 @@ test('push: a provider-reported invalid token removes the device (downstream eff
 });
 
 test('push: removeDeviceByToken pulls the token from every account', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'phoenix-push-token-'));
+  const dir = makeTempDir('phoenix-push-token-');
   const registry = new DeviceRegistry(join(dir, 'devices.json'));
   registry.createDevice('acct-A', { name: 'a1', pushToken: 'dup', type: 'ios' });
   registry.createDevice('acct-B', { name: 'b1', pushToken: 'dup', type: 'ios' });

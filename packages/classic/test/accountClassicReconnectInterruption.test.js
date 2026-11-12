@@ -3,9 +3,8 @@
 // rows, LoopCreated/LoopUpdated delivery counts, and the next valid request.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { rmSync } from 'node:fs';
 import { join } from 'node:path';
-import { tmpdir } from 'node:os';
 import { WebSocket } from 'ws';
 import { signSigV4 } from '@phoenix/common';
 import {
@@ -20,6 +19,7 @@ import {
   createClassicEntrypoint,
   createVerifiedNotificationAccountResolver,
 } from '../src/index.js';
+import { makeTempDir } from './fixtures/tempDir.js';
 
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 
@@ -125,7 +125,7 @@ async function issueToken(classicBase, robot) {
 }
 
 test('socket reconnect during Account→Classic publication delivers one LoopUpdated and the next UpdateLoop', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'phx-a04-reconnect-socket-'));
+  const directory = makeTempDir('phx-a04-reconnect-socket-');
   const accountFile = join(directory, 'account.json');
   const notificationFile = join(directory, 'notifications.json');
   const eventFile = join(directory, 'events.json');
@@ -221,7 +221,7 @@ test('socket reconnect during Account→Classic publication delivers one LoopUpd
 });
 
 test('Classic restart while the publisher is severed recovers one LoopUpdated and no LoopCreated duplicate', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'phx-a04-reconnect-publisher-'));
+  const directory = makeTempDir('phx-a04-reconnect-publisher-');
   const accountFile = join(directory, 'account.json');
   const notificationFile = join(directory, 'notifications.json');
   const eventFile = join(directory, 'events.json');
@@ -335,7 +335,7 @@ test('Classic restart while the publisher is severed recovers one LoopUpdated an
 });
 
 test('a Classic persist that outruns outbox acknowledgement is delivered at least once on recover', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'phx-a04-reconnect-duplicate-'));
+  const directory = makeTempDir('phx-a04-reconnect-duplicate-');
   const accountFile = join(directory, 'account.json');
   const notificationFile = join(directory, 'notifications.json');
   const store = new Store(accountFile);
@@ -422,7 +422,7 @@ test('a Classic persist that outruns outbox acknowledgement is delivered at leas
 });
 
 test('CreateLoop across a Classic reconnect recovers LoopUpdated once and LoopCreated from the event outbox', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'phx-a04-reconnect-create-'));
+  const directory = makeTempDir('phx-a04-reconnect-create-');
   const accountFile = join(directory, 'account.json');
   const notificationFile = join(directory, 'notifications.json');
   const eventFile = join(directory, 'events.json');

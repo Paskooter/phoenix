@@ -2,14 +2,25 @@
 // value comes from. It never writes it (consoleSettings.js keeps what the console
 // saves); these pin how it is read.
 
-import test from 'node:test';
+import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { readEnvFile, envFilePath } from '../src/admin/envFile.js';
 import * as envFile from '../src/admin/envFile.js';
+
+// Remove every temporary directory this file makes once its tests finish.
+const tempDirs = [];
+function makeTempDir(prefix) {
+  const directory = mkdtempSync(join(tmpdir(), prefix));
+  tempDirs.push(directory);
+  return directory;
+}
+after(() => {
+  for (const directory of tempDirs) rmSync(directory, { recursive: true, force: true });
+});
 
 const SAMPLE = `# Phoenix configuration — copy to \`.env\` and edit.
 # Loaded automatically by every Phoenix service.
@@ -27,7 +38,7 @@ ETCO_gqa_wikiUserAgent="Fixture/1.0 (https://example.test; ops@example.test)"
 `;
 
 function fixture(text = SAMPLE) {
-  const dir = mkdtempSync(join(tmpdir(), 'phx-env-'));
+  const dir = makeTempDir('phx-env-');
   const path = join(dir, '.env');
   writeFileSync(path, text);
   return path;
@@ -58,7 +69,7 @@ test('prose containing an equals sign is not mistaken for an assignment', () => 
 });
 
 test('a missing file reads as empty, and the path follows PHOENIX_ENV_FILE', () => {
-  const missing = join(mkdtempSync(join(tmpdir(), 'phx-env-')), 'absent.env');
+  const missing = join(makeTempDir('phx-env-'), 'absent.env');
   assert.deepEqual(readEnvFile(missing).values, {});
   assert.equal(readEnvFile(missing).exists, false);
   const path = fixture();

@@ -2,12 +2,12 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import { join } from 'node:path';
-import { mkdtempSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { rmSync } from 'node:fs';
 import { WebSocket } from 'ws';
 import { createClassicEntrypoint } from '../src/index.js';
 import { NotificationHub, NotificationStore } from '../src/notification.js';
 import { NOTIFICATION_TTL_MS, NOTIFICATIONS_LIMIT } from '../src/notificationStore.js';
+import { makeTempDir } from './fixtures/tempDir.js';
 
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 
@@ -58,7 +58,7 @@ function fakeSocket({ fail = false, throwOnSend = false } = {}) {
 }
 
 function tempFile() {
-  const directory = mkdtempSync(join(tmpdir(), 'phoenix-notification-durable-'));
+  const directory = makeTempDir('phoenix-notification-durable-');
   return { directory, file: join(directory, 'notifications.json') };
 }
 

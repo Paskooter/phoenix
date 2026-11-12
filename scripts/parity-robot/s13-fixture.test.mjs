@@ -1,7 +1,7 @@
-import { test } from 'node:test';
+import { after, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { chmodSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import http from 'node:http';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -83,8 +83,15 @@ function documentFor() {
   };
 }
 
+// Remove every fixture directory once this file's tests finish.
+const fixtureDirectories = [];
+after(() => {
+  for (const directory of fixtureDirectories) rmSync(directory, { recursive: true, force: true });
+});
+
 function fixtureFile(document = documentFor()) {
   const directory = mkdtempSync(join(tmpdir(), 'phoenix-s13-fixture-'));
+  fixtureDirectories.push(directory);
   const file = join(directory, 'fixture.json');
   writeFileSync(file, `${JSON.stringify(document, null, 2)}\n`, { mode: 0o600 });
   chmodSync(file, 0o600);

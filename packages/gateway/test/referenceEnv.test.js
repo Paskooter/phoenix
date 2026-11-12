@@ -7,16 +7,27 @@
 //   packages/hub/src/skill-list/SkillListGetHttpRequestsHandler.ts  /skills routes + settings filter
 //   packages/hub/src/cli/start.ts                       port expression + "Starting hub with config: "
 //   packages/utils/src/config/EnvVars.ts                readEnvVars precedence/required
-import test from 'node:test';
+import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:net';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 import { loadConfig, hubSetupConfig, HUB_ENV_DEFAULTS } from '../src/config.js';
+
+// Remove every temporary directory this file makes once its tests finish.
+const tempDirs = [];
+function makeTempDir(prefix) {
+  const directory = mkdtempSync(join(tmpdir(), prefix));
+  tempDirs.push(directory);
+  return directory;
+}
+after(() => {
+  for (const directory of tempDirs) rmSync(directory, { recursive: true, force: true });
+});
 
 const PKG_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SKILLS_DIR = join(PKG_ROOT, 'resources', 'skills');
@@ -134,7 +145,7 @@ test('startup setup log redacts each skill exactly like the source cli', async (
 });
 
 test('gateway runs under the reference environment: source CLI port, registry and setup log', async (t) => {
-  const dir = mkdtempSync(join(tmpdir(), 'phoenix-c03-env-'));
+  const dir = makeTempDir('phoenix-c03-env-');
   const emptyEnvFile = join(dir, 'empty.env');
   writeFileSync(emptyEnvFile, '');
   const port = await freePort();
@@ -210,7 +221,7 @@ test('gateway runs under the reference environment: source CLI port, registry an
 });
 
 test('gateway executable honours the source argv port and help, not only PORT', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'phoenix-c03-cli-'));
+  const dir = makeTempDir('phoenix-c03-cli-');
   const emptyEnvFile = join(dir, 'empty.env');
   writeFileSync(emptyEnvFile, '');
   const port = await freePort();

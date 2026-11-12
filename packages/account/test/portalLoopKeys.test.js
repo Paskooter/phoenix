@@ -31,6 +31,7 @@ test('authenticated browser key exchange/first backup enforce membership, reques
   const priorClassic = process.env.NET_classic;
   try {
     classic = await createClassicEntrypoint({ publicUrl: 'http://classic.fixture', keyStore,
+      notificationFile: join(dir, 'notifications.json'),
       keyMembership: membership,
       media: { store: mediaStore, loops: { members: membership.memberIds,
         accountLoops: async (id) => loop.members.some((m) => m.accountId === id) ? [loop._id] : [],

@@ -74,6 +74,9 @@ before(async () => {
     person: { store: personStore },
     jot: { store: jotStore, pushRegistry },
     voiceTraining: { store: vtStore },
+    // Keep every Classic store in this test's directory, not the shared $TMPDIR defaults.
+    notificationFile: join(dir, 'notifications.json'),
+    ifttt: { file: join(dir, 'ifttt.json') },
   });
   classicServer = await classic.listen(0);
   const classicPort = classicServer.address().port;

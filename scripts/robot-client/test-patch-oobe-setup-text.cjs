@@ -64,6 +64,19 @@ var script = path.join(__dirname, 'patch-oobe-setup-text.cjs');
 // The modern harness supplies an isolated directory when using factory Node 4,
 // whose filesystem API predates mkdtempSync. This is test-only, not robot code.
 var root = process.env.PHOENIX_TEST_OOBE_ROOT || fs.mkdtempSync(path.join(os.tmpdir(), 'oobe-text-'));
+// A harness-supplied root belongs to the harness; one made here is removed on exit,
+// pass or fail. Plain ES5 so the factory Node can still load this file.
+function removeTree(target) {
+  var stat;
+  try { stat = fs.lstatSync(target); } catch (e) { return; }
+  if (stat.isDirectory()) {
+    fs.readdirSync(target).forEach(function (name) { removeTree(path.join(target, name)); });
+    fs.rmdirSync(target);
+  } else {
+    fs.unlinkSync(target);
+  }
+}
+if (!process.env.PHOENIX_TEST_OOBE_ROOT) process.on('exit', function () { removeTree(root); });
 assert.ok(/^not-needed/.test(childProcess.execFileSync(process.execPath, [script, '--root', root, '--dry-run'], { encoding: 'utf8' })));
 fs.mkdirSync(path.join(root, 'assets'));
 fs.mkdirSync(path.join(root, 'assets', 'oobe'));

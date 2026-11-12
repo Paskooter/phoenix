@@ -6,13 +6,13 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { rmSync } from 'node:fs';
 import { join } from 'node:path';
-import { tmpdir } from 'node:os';
 import { WebSocket } from 'ws';
 import { signSigV4 } from '@phoenix/common';
 import { Store, createAccountService } from '@phoenix/account';
 import { createClassicEntrypoint, createVerifiedNotificationAccountResolver } from '../src/index.js';
+import { makeTempDir } from './fixtures/tempDir.js';
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const tick = () => new Promise((resolve) => setImmediate(resolve));
@@ -116,7 +116,7 @@ function closeServer(server) {
 }
 
 test('signed notification validation, shared Account outbox, account isolation, and restart recovery', async () => {
-  const directory = mkdtempSync(join(tmpdir(), 'phoenix-a10-integration-'));
+  const directory = makeTempDir('phoenix-a10-integration-');
   const accountFile = join(directory, 'account.json');
   const notificationFile = join(directory, 'notifications.json');
   const store = new Store(accountFile);

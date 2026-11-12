@@ -176,18 +176,21 @@ test('a failing push provider does not abort the remaining members', async () =>
 
 test('a real CreateMessage through the classic service pushes to the loop and still records the event', async () => {
   const { createClassicEntrypoint, JotStore, DeviceRegistry } = await import('../src/index.js');
-  const { mkdtempSync } = await import('node:fs');
+  const { mkdtempSync, rmSync } = await import('node:fs');
   const { tmpdir } = await import('node:os');
   const { join } = await import('node:path');
 
   const dir = mkdtempSync(join(tmpdir(), 'jot-push-e2e-'));
-  const store = new JotStore(join(dir, 'jot.json'));
+  // JotStore takes an options object; a bare path was ignored and fell back to the
+  // shared $TMPDIR/phoenix-jot.json default.
+  const store = new JotStore({ file: join(dir, 'jot.json') });
   const pushRegistry = new DeviceRegistry(join(dir, 'devices.json'));
   pushRegistry.createDevice(TAGGED, { name: 'tagged-phone', pushToken: 'tok-a', type: 'ios' });
   pushRegistry.createDevice(QUIET, { name: 'quiet-phone', pushToken: 'tok-b', type: 'ios' });
 
   const sent = [];
   const entry = createClassicEntrypoint({
+    notificationFile: join(dir, 'notifications.json'),
     jot: {
       store,
       pushRegistry,
@@ -227,5 +230,6 @@ test('a real CreateMessage through the classic service pushes to the loop and st
     assert.ok(events.length === 0 || events.every((k) => typeof k === 'string'));
   } finally {
     await new Promise((r) => server.close(r));
+    rmSync(dir, { recursive: true, force: true });
   }
 });

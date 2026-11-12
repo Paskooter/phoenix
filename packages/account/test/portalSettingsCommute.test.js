@@ -8,17 +8,28 @@
 // two-hour window where the displays appear. The API already carried
 // commute.time; only the UI was missing it.
 
-import test from 'node:test';
+import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync } from 'node:fs';
+import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Store, createAccountService } from '../src/index.js';
 import { createOwnerAccount } from '../src/model.js';
 import { createSession, sessionCookie } from '../src/sessions.js';
 
+// Remove every temporary directory this file makes once its tests finish.
+const tempDirs = [];
+function makeTempDir(prefix) {
+  const directory = mkdtempSync(join(tmpdir(), prefix));
+  tempDirs.push(directory);
+  return directory;
+}
+after(() => {
+  for (const directory of tempDirs) rmSync(directory, { recursive: true, force: true });
+});
+
 async function portal() {
-  const dir = mkdtempSync(join(tmpdir(), 'commute-settings-'));
+  const dir = makeTempDir('commute-settings-');
   const store = new Store(join(dir, 'account.json'));
   const account = createOwnerAccount(store, { email: 'c@example.com', password: 'password123', firstName: 'C' });
   const svc = createAccountService({ store });

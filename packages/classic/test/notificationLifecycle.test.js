@@ -15,10 +15,10 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { join } from 'node:path';
-import { mkdtempSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { rmSync } from 'node:fs';
 import { WebSocket } from 'ws';
 import { createClassicEntrypoint } from '../src/index.js';
+import { makeTempDir } from './fixtures/tempDir.js';
 
 let ep; let server; let httpBase; let wsBase;
 let dataDir;
@@ -93,7 +93,7 @@ function waitFor(predicate, timeoutMs = 5000) {
 }
 
 before(async () => {
-  dataDir = mkdtempSync(join(tmpdir(), 'phoenix-notification-lifecycle-'));
+  dataDir = makeTempDir('phoenix-notification-lifecycle-');
   ep = createClassicEntrypoint({
     notificationFile: join(dataDir, 'notifications.json'),
     notificationPollIntervalMs: 20,
