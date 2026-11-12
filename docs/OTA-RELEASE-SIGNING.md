@@ -6,9 +6,11 @@ package that is unsigned, signed by a key it does not pin, changed after signing
 what it already runs. A server, including a self-hosted one that relays jibo.io's releases, can
 pass a release on or hold it back, but it cannot change one or roll a robot back.
 
-This is the server half. Robots enforce nothing until the image gate ships. Stock firmware never
-sees the new field: the robot's `@jibo/jibo-server-client` JSON parser keeps only the members
-modelled in the `Update` shape (`lib/json/parser.js`, `translateStructure`).
+The robot half is the signature gate the official image builder bakes into the OTA downloader
+(see "Robot gate" below). Robots without it (stock firmware, older Phoenix images) enforce
+nothing. Stock firmware never sees the new field: the robot's `@jibo/jibo-server-client` JSON
+parser keeps only the members modelled in the `Update` shape (`lib/json/parser.js`,
+`translateStructure`).
 
 ## Format `phoenix-ota-release/1`
 
@@ -103,3 +105,38 @@ goes into the robot image.
 
 `node scripts/sign-ota-release.mjs verify --manifest <m> --data-dir <d> --pubkey <keyId>=<pub.pem>`
 checks an existing manifest the same way.
+
+## Robot gate (official image)
+
+`deploy/robot-patches/bake_jibo_io_native_image.py` patches the robot's OTA downloader
+(`@jibo/jibo-ota-updater/src/download-update.js`, run by the system manager for every package)
+with the checks above. Build the official image with the public key(s) pinned:
+
+```sh
+python3 deploy/robot-patches/bake_jibo_io_native_image.py ... \
+  --ota-release-pubkey phoenix-ota-YYYYMMDD=phoenix-ota-YYYYMMDD.pub.pem
+```
+
+Pin the current key and, once it exists, the next one (at most two). The builder refuses a
+private key, a key under 3072 bits and an image without a pinned key; `--no-ota-signature-gate`
+builds an ungated image for private tests only and the manifest records it
+(`ota_signature_gate.enabled: false`).
+
+How the downloader applies the checks:
+
+- It reads the signature from the `x-phoenix-ota-signature` header of the package download,
+  because the system manager hands it only `--id --url --destination --shasum`.
+- The statement is bound to what the system manager will install: signed `id` equals `--id`,
+  signed `sha1` equals `--shasum` (the record's `shaHash`), and `--destination` ends in
+  `/<toVersion>-<subsystem>.tar`, the cache name the system manager builds from the record. A
+  record therefore cannot relabel a signed package as another subsystem or version.
+- The installed version comes from the system manager's own sources: `jibo-version` (os),
+  `jibo-service-version` (services), and `/opt/jibo/Jibo/Skills/<subsystem>/package.json`
+  (skills; a skill that is not installed counts as `0.0.0`).
+- Everything is checked before a byte is written; the length and SHA-256 are checked again at
+  the end. A refusal deletes the partial file, exits 1 (the system manager reports a failed
+  download) and logs one syslog line: `Phoenix OTA gate refused update <id>: <reason>`.
+
+Consequences for publishing to a gated robot: every row it may install must be signed,
+including ring and test rows and admin uploads, and a version it already runs (or an older
+one) is never installed again, even under a new update ID.

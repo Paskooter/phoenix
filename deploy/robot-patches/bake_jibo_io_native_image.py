@@ -596,36 +596,367 @@ if (argv.url.startsWith("https:")) {
 let req = http.get(_getOpts, function(res) {'''
 
 
-def patch_ota_downloader(rootfs: Path) -> dict[str, Any]:
-    """Give the OTA downloader an explicit CA.
+# The reviewed stock downloader from jibo-ota-updater 1.4.1 in the 13.0.x images (the same pin
+# scripts/robot-client/patch-ota-downloader-tls.cjs uses). The patch below edits it at fixed
+# anchors, so an unreviewed downloader must stop the build instead of being edited blind.
+OTA_DOWNLOADER_STOCK_SHA256 = "33f6db1496baa3abd506a2ba9dad9b5cdf7567341e3e292e42cb3ed6f016003c"
 
-    Without this a freshly flashed robot reaches the server, is correctly offered an
+# ---------------------------------------------------------------------------------------------
+# OTA signature gate (format phoenix-ota-release/1, docs/OTA-RELEASE-SIGNING.md).
+#
+# The official image refuses a package unless a release key pinned here signed it, the bytes
+# match the signed SHA-256 and length, and the signed toVersion is newer than what the robot
+# runs. A server, including a self-hosted one relaying jibo.io's releases, can pass a release on
+# or hold it back but cannot change one or roll a robot back.
+#
+# The gate lives in the downloader because every update goes through it (system manager
+# downloads and apply_common.js retries) before anything is unpacked or run as root. The
+# downloader only gets --id, --url, --destination and --shasum, so it reads the signature from
+# the package response header the Phoenix OTA service sends (x-phoenix-ota-signature) and binds
+# it to the update it was asked to fetch:
+#   * signed id == --id and signed sha1 == --shasum (the record the system manager holds);
+#   * --destination ends in /<toVersion>-<subsystem>.tar, the cache name the system manager
+#     and apply_common.js build from the record, so a record cannot relabel a signed package
+#     as another subsystem or version;
+#   * the installed version comes from the same sources as the system manager's
+#     UpdateManager::getVersion (jibo-version, jibo-service-version, skill package.json).
+# ---------------------------------------------------------------------------------------------
+OTA_GATE_MARK_BEGIN = "// >>> phoenix-ota-signature-gate >>>"
+OTA_GATE_MARK_END = "// <<< phoenix-ota-signature-gate <<<"
+OTA_GATE_FORMAT = "phoenix-ota-release/1"
+OTA_GATE_HEADER = "x-phoenix-ota-signature"
+OTA_GATE_MIN_RSA_BITS = 3072
+OTA_GATE_MAX_KEYS = 2  # the current release key and the next one, so rotation needs no flag day
+OTA_GATE_KEY_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}")
+OTA_GATE_DEFAULT_SOURCES = {
+    # Exactly the commands and patterns libJiboSystemManager.so uses for version_check os/services.
+    "versionCommands": {
+        "os": {"command": "/usr/bin/jibo-version", "pattern": r"^Jibo Release Version: Release-(\d+\.\d+\.\d+)"},
+        "services": {"command": "/usr/local/bin/jibo-service-version", "pattern": r"^Jibo Service Version: Release-(\d+\.\d+\.\d+)"},
+    },
+    # version_check "skill": <skills root>/<subsystem>/package.json "version".
+    "skillsRoot": "/opt/jibo/Jibo/Skills",
+}
+
+OTA_GATE_DEFINITIONS = r"""// >>> phoenix-ota-signature-gate >>>
+// Phoenix official image: refuse any update package that is not signed by a pinned Phoenix
+// release key (format phoenix-ota-release/1), whose bytes differ from what was signed, or that
+// is not newer than what this robot runs. A server can pass a signed release on or hold it back;
+// it cannot change one or roll the robot back. Every refusal is logged as
+// "Phoenix OTA gate refused update <id>: <reason>".
+const _PHOENIX_OTA_GATE = __PHOENIX_OTA_GATE_CONFIG__;
+let _phoenixOtaStatement = null;
+let _phoenixOtaSha256 = crypto.createHash("sha256");
+
+function _phoenixOtaRefuse(reason) {
+    progress.status = "failed";
+    progress.reason = "phoenix-ota-gate: " + reason;
+    writeProgress(true);
+    syslog.error("Phoenix OTA gate refused update %s: %s", String(argv.id), reason);
+    try { fs.unlinkSync(argv.destination); } catch (e) { /* nothing written yet */ }
+    process.exit(1);
+}
+
+// Same order as packages/ota/src/catalog.js cmpVersion: numeric dotted segments, and a SemVer
+// pre-release (13.7.0-dev.2) sorts below its release (13.7.0).
+function _phoenixOtaCmpVersion(a, b) {
+    function split(v) {
+        let m = /^((?:0|[1-9][0-9]*)(?:\.(?:0|[1-9][0-9]*))*)-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)$/.exec(v);
+        return m ? [m[1], m[2].split(".")] : [v, null];
+    }
+    function dotted(x, y) {
+        let px = x.split("."), py = y.split(".");
+        for (let i = 0; i < Math.max(px.length, py.length); i++) {
+            let sx = i < px.length ? px[i] : "0", sy = i < py.length ? py[i] : "0";
+            let nx = Number(sx), ny = Number(sy);
+            if (Number.isInteger(nx) && Number.isInteger(ny)) {
+                if (nx !== ny) return nx - ny;
+            } else if (sx !== sy) {
+                return sx < sy ? -1 : 1;
+            }
+        }
+        return 0;
+    }
+    function pre(x, y) {
+        for (let i = 0; i < Math.max(x.length, y.length); i++) {
+            if (i >= x.length) return -1;
+            if (i >= y.length) return 1;
+            let dx = /^[0-9]+$/.test(x[i]), dy = /^[0-9]+$/.test(y[i]);
+            if (dx && dy) {
+                let d = Number(x[i]) - Number(y[i]);
+                if (d !== 0) return d;
+            } else if (dx !== dy) {
+                return dx ? -1 : 1;
+            } else if (x[i] !== y[i]) {
+                return x[i] < y[i] ? -1 : 1;
+            }
+        }
+        return 0;
+    }
+    let sa = split(String(a)), sb = split(String(b));
+    let core = dotted(sa[0], sb[0]);
+    if (core !== 0 || (sa[1] === null && sb[1] === null)) return core;
+    if (sa[1] === null) return 1;
+    if (sb[1] === null) return -1;
+    return pre(sa[1], sb[1]);
+}
+
+// The version the system manager reports for this subsystem (UpdateManager::getVersion).
+function _phoenixOtaInstalledVersion(subsystem) {
+    let source = Object.prototype.hasOwnProperty.call(_PHOENIX_OTA_GATE.versionCommands, subsystem)
+        ? _PHOENIX_OTA_GATE.versionCommands[subsystem] : null;
+    if (source) {
+        let out = require("child_process").execFileSync(source.command, [],
+            { encoding: "utf8", timeout: 10000, stdio: ["ignore", "pipe", "ignore"] });
+        let m = new RegExp(source.pattern, "m").exec(out);
+        if (!m) throw new Error(source.command + " printed no version");
+        return m[1];
+    }
+    if (!/^(@[A-Za-z0-9][A-Za-z0-9._-]*\/)?[A-Za-z0-9][A-Za-z0-9._-]*$/.test(subsystem)) {
+        throw new Error("unsafe subsystem name");
+    }
+    let text;
+    try {
+        text = fs.readFileSync(_PHOENIX_OTA_GATE.skillsRoot + "/" + subsystem + "/package.json", "utf8");
+    } catch (e) {
+        if (e.code === "ENOENT") return "0.0.0";  // not installed: any signed version is newer
+        throw e;
+    }
+    let version = JSON.parse(text).version;
+    if (typeof version !== "string" || !version) throw new Error("installed package.json has no version");
+    return version;
+}
+
+// Called once the server answered 200, before a single byte is written.
+function _phoenixOtaAdmit(res) {
+    let header = res.headers[_PHOENIX_OTA_GATE.header];
+    if (!header) return _phoenixOtaRefuse("unsigned package (no " + _PHOENIX_OTA_GATE.header + " header)");
+    let sig = null;
+    try { sig = JSON.parse(Buffer.from(String(header), "base64").toString("utf8")); } catch (e) { sig = null; }
+    if (!sig || typeof sig !== "object") return _phoenixOtaRefuse("malformed signature header");
+    if (sig.format !== _PHOENIX_OTA_GATE.format || sig.alg !== "RSA-SHA256") {
+        return _phoenixOtaRefuse("unknown signature format " + JSON.stringify(String(sig.format)));
+    }
+    if (typeof sig.keyId !== "string" || typeof sig.payload !== "string" || typeof sig.signature !== "string") {
+        return _phoenixOtaRefuse("malformed signature");
+    }
+    if (!Object.prototype.hasOwnProperty.call(_PHOENIX_OTA_GATE.keys, sig.keyId)) {
+        return _phoenixOtaRefuse("signed by a key this robot does not trust (" + JSON.stringify(sig.keyId) + ")");
+    }
+    let valid = false;
+    try {
+        valid = crypto.createVerify("RSA-SHA256").update(Buffer.from(sig.payload, "utf8"))
+            .verify(_PHOENIX_OTA_GATE.keys[sig.keyId], sig.signature, "base64");
+    } catch (e) { valid = false; }
+    if (!valid) return _phoenixOtaRefuse("bad signature (key " + sig.keyId + "): the release was changed after signing");
+    let st = null;
+    try { st = JSON.parse(sig.payload); } catch (e) { st = null; }
+    if (!st || st.format !== _PHOENIX_OTA_GATE.format || st.keyId !== sig.keyId) {
+        return _phoenixOtaRefuse("signed statement does not match its signature envelope");
+    }
+    if (typeof st.subsystem !== "string" || typeof st.toVersion !== "string" || typeof st.fromVersion !== "string"
+        || !/^[0-9a-f]{64}$/.test(st.sha256) || !/^[0-9a-f]{40}$/.test(st.sha1)
+        || !Number.isSafeInteger(st.length) || st.length < 0) {
+        return _phoenixOtaRefuse("signed statement is malformed");
+    }
+    if (st.id !== String(argv.id)) {
+        return _phoenixOtaRefuse("signature is for update " + JSON.stringify(st.id) + ", not this one");
+    }
+    if (st.sha1 !== String(argv.shasum).toLowerCase()) {
+        return _phoenixOtaRefuse("offered checksum differs from the signed sha1");
+    }
+    let cacheName = "/" + st.toVersion + "-" + st.subsystem + ".tar";
+    let destination = String(argv.destination);
+    if (destination.length < cacheName.length || destination.slice(-cacheName.length) !== cacheName) {
+        return _phoenixOtaRefuse("offered as " + JSON.stringify(destination) + " but signed as "
+            + st.subsystem + " " + st.toVersion);
+    }
+    let served = res.headers["content-length"];
+    if (served !== undefined && String(served) !== String(st.length)) {
+        return _phoenixOtaRefuse("served length " + served + " differs from the signed length " + st.length);
+    }
+    let installed;
+    try { installed = _phoenixOtaInstalledVersion(st.subsystem); } catch (e) {
+        return _phoenixOtaRefuse("cannot read the installed " + st.subsystem + " version: " + e.message);
+    }
+    if (_phoenixOtaCmpVersion(st.toVersion, installed) <= 0) {
+        return _phoenixOtaRefuse("older or same version: " + st.subsystem + " " + st.toVersion
+            + " is not newer than the installed " + installed);
+    }
+    if (st.fromVersion !== "*" && st.fromVersion !== installed) {
+        return _phoenixOtaRefuse("signed to update " + st.subsystem + " " + st.fromVersion
+            + ", but this robot runs " + installed);
+    }
+    _phoenixOtaStatement = st;
+    syslog.info("Phoenix OTA gate: update %s is signed by %s (%s %s -> %s); checking the download",
+        st.id, sig.keyId, st.subsystem, installed, st.toVersion);
+    return true;
+}
+
+// Called for every chunk, before it is written: never write more than was signed.
+function _phoenixOtaChunk(chunk) {
+    _phoenixOtaSha256.update(chunk);
+    if (progress.received + chunk.length > _phoenixOtaStatement.length) {
+        _phoenixOtaRefuse("served more bytes than the signed length " + _phoenixOtaStatement.length);
+    }
+}
+
+// Called at the end of the transfer, before the stock SHA-1 check.
+function _phoenixOtaFinish() {
+    if (progress.received !== _phoenixOtaStatement.length) {
+        return _phoenixOtaRefuse("received " + progress.received + " bytes; the signed length is "
+            + _phoenixOtaStatement.length);
+    }
+    if (_phoenixOtaSha256.digest("hex") !== _phoenixOtaStatement.sha256) {
+        return _phoenixOtaRefuse("package bytes differ from the signed sha256");
+    }
+    syslog.info("Phoenix OTA gate admitted update %s (%s %s, sha256 %s)", _phoenixOtaStatement.id,
+        _phoenixOtaStatement.subsystem, _phoenixOtaStatement.toVersion, _phoenixOtaStatement.sha256);
+}
+// <<< phoenix-ota-signature-gate <<<
+
+"""
+
+# Fixed anchors in the reviewed stock downloader, each replaced exactly once.
+OTA_GATE_ANCHORS = (
+    (
+        '    progress.length = parseInt(res.headers["content-length"]);\n',
+        '    _phoenixOtaAdmit(res);  // phoenix-ota-signature-gate\n'
+        '    progress.length = parseInt(res.headers["content-length"]);\n',
+    ),
+    (
+        '        hash.update(chunk, "binary");\n',
+        '        _phoenixOtaChunk(chunk);  // phoenix-ota-signature-gate\n'
+        '        hash.update(chunk, "binary");\n',
+    ),
+    (
+        '        let csum = hash.digest("hex");\n',
+        '        _phoenixOtaFinish();  // phoenix-ota-signature-gate\n'
+        '        let csum = hash.digest("hex");\n',
+    ),
+)
+
+
+def ota_gate_config(keys: dict[str, str], sources: dict[str, Any] | None = None) -> dict[str, Any]:
+    """The configuration baked into the gated downloader: pinned keys plus version sources."""
+    if not keys:
+        fail("the OTA signature gate needs at least one pinned release key")
+    if len(keys) > OTA_GATE_MAX_KEYS:
+        fail(f"pin at most {OTA_GATE_MAX_KEYS} OTA release keys (current and next)")
+    for key_id, pem in keys.items():
+        if not OTA_GATE_KEY_ID.fullmatch(key_id):
+            fail(f"invalid OTA release key id: {key_id!r}")
+        if "PRIVATE" in pem or not pem.startswith("-----BEGIN PUBLIC KEY-----"):
+            fail(f"OTA release key {key_id} must be an SPKI public key PEM")
+    config = copy.deepcopy(sources if sources is not None else OTA_GATE_DEFAULT_SOURCES)
+    config.update({"format": OTA_GATE_FORMAT, "header": OTA_GATE_HEADER, "keys": dict(sorted(keys.items()))})
+    return config
+
+
+def load_ota_release_pubkeys(specs: list[str]) -> dict[str, str]:
+    """Parse repeated KEYID=PATH arguments; each must be an RSA public key of >= 3072 bits."""
+    keys: dict[str, str] = {}
+    for spec in specs:
+        key_id, sep, path_text = spec.partition("=")
+        if not sep or not OTA_GATE_KEY_ID.fullmatch(key_id):
+            fail(f"--ota-release-pubkey must be KEYID=PATH with a safe key id: {spec!r}")
+        if key_id in keys:
+            fail(f"duplicate OTA release key id: {key_id}")
+        path = Path(path_text)
+        require_file(path, f"OTA release public key {key_id}")
+        if "PRIVATE" in path.read_text(encoding="ascii", errors="replace"):
+            fail(f"{path} contains a private key; only the public key goes into the image")
+        text = run(["openssl", "pkey", "-pubin", "-in", str(path), "-noout", "-text"]).stdout or ""
+        bits = re.search(r"Public-Key: \((\d+) bit\)", text)
+        if "Modulus" not in text or not bits or int(bits.group(1)) < OTA_GATE_MIN_RSA_BITS:
+            fail(f"OTA release key {key_id} must be RSA with at least {OTA_GATE_MIN_RSA_BITS} bits")
+        # Normalise to exactly one SPKI PEM block: no comments or other blocks reach the image.
+        normalised = run(["openssl", "pkey", "-pubin", "-in", str(path), "-pubout"]).stdout or ""
+        if not normalised.startswith("-----BEGIN PUBLIC KEY-----"):
+            fail(f"could not normalise OTA release key {key_id}")
+        keys[key_id] = normalised
+    if keys:
+        ota_gate_config(keys)  # validates count and shape
+    return keys
+
+
+def render_ota_downloader(source: str, gate: dict[str, Any] | None) -> str:
+    """Return the patched downloader for a stock downloader.
+
+    Always adds the explicit public CA (OTA_DOWNLOADER_PATCH). With `gate` it also adds the
+    signature gate. Pure text transform: patch_ota_downloader pins the stock hash around it.
+    """
+    if OTA_GATE_MARK_BEGIN in source or OTA_DOWNLOADER_PATCH in source:
+        fail("OTA downloader is already patched; render from the stock downloader")
+    if source.count(OTA_DOWNLOADER_ANCHOR) != 1:
+        fail(f"OTA downloader anchor found {source.count(OTA_DOWNLOADER_ANCHOR)} times")
+    patched = source
+    if gate is not None:
+        for anchor, replacement in OTA_GATE_ANCHORS:
+            if patched.count(anchor) != 1:
+                fail(f"OTA downloader gate anchor found {patched.count(anchor)} times: {anchor.strip()}")
+            patched = patched.replace(anchor, replacement)
+        definitions = OTA_GATE_DEFINITIONS.replace(
+            "__PHOENIX_OTA_GATE_CONFIG__", json.dumps(gate, sort_keys=True, ensure_ascii=True)
+        )
+        patched = patched.replace(OTA_DOWNLOADER_ANCHOR, definitions + OTA_DOWNLOADER_ANCHOR)
+    return patched.replace(OTA_DOWNLOADER_ANCHOR, OTA_DOWNLOADER_PATCH)
+
+
+def stock_ota_downloader(source: str) -> str:
+    """The reviewed stock downloader, recovered from this builder's earlier CA-only output."""
+    if OTA_GATE_MARK_BEGIN in source:
+        fail("OTA downloader already carries a signature gate; build from a stock rootfs")
+    if source.count(OTA_DOWNLOADER_PATCH) == 1:
+        source = source.replace(OTA_DOWNLOADER_PATCH, OTA_DOWNLOADER_ANCHOR)
+    digest = sha256_bytes(source.encode("utf-8"))
+    if digest != OTA_DOWNLOADER_STOCK_SHA256:
+        fail(f"unexpected OTA downloader source hash: {digest}")
+    return source
+
+
+def patch_ota_downloader(rootfs: Path, gate_keys: dict[str, str] | None) -> dict[str, Any]:
+    """Give the OTA downloader an explicit CA and, for the official image, the signature gate.
+
+    Without the CA a freshly flashed robot reaches the server, is correctly offered an
     update, and then cannot fetch it: the downloader is a separate Node 6 script from
     the jibo-server-client, so the CA-accepting client patch does not cover it, and
     Node 6 ignores both NODE_EXTRA_CA_CERTS and the system trust store.
+
+    SystemManager execs this file through /usr/bin/jibo-download-update, so it must stay
+    mode 0755 (a prior builder revision set 0644 and every OTA download failed).
     """
     with tempfile.TemporaryDirectory(prefix="jibo-io-ota-dl-") as td:
         local = Path(td) / "download-update.js"
         debugfs_dump(rootfs, OTA_DOWNLOADER_PATH, local)
-        text = local.read_text(encoding="utf-8")
-        if "JIBO_EXTRA_CA_CERTS" in text:
-            # A prior builder revision accidentally used CLIENT_READABLE here.
-            # SystemManager execs this file through /usr/bin/jibo-download-update;
-            # mode 0644 makes every OTA download fail before opening the URL.
-            replace_preserving_inode(rootfs, OTA_DOWNLOADER_PATH, local, mode=CLIENT_EXECUTABLE)
-            return {"path": OTA_DOWNLOADER_PATH, "patched": False, "reason": "already patched", "mode": "0755"}
-        if text.count(OTA_DOWNLOADER_ANCHOR) != 1:
-            fail(f"OTA downloader anchor found {text.count(OTA_DOWNLOADER_ANCHOR)} times in {OTA_DOWNLOADER_PATH}")
-        patched = text.replace(OTA_DOWNLOADER_ANCHOR, OTA_DOWNLOADER_PATCH)
+        before = local.read_text(encoding="utf-8")
+        stock = stock_ota_downloader(before)
+        gate = ota_gate_config(gate_keys) if gate_keys else None
+        patched = render_ota_downloader(stock, gate)
         local.write_text(patched, encoding="utf-8")
         replace_preserving_inode(rootfs, OTA_DOWNLOADER_PATH, local, mode=CLIENT_EXECUTABLE)
-        return {
+        result: dict[str, Any] = {
             "path": OTA_DOWNLOADER_PATH,
             "patched": True,
             "mode": "0755",
-            "bytes_before": len(text.encode("utf-8")),
+            "stock_sha256": OTA_DOWNLOADER_STOCK_SHA256,
+            "input_sha256": sha256_bytes(before.encode("utf-8")),
+            "patched_sha256": sha256_bytes(patched.encode("utf-8")),
             "bytes_after": len(patched.encode("utf-8")),
+            "signature_gate": {"enabled": False},
         }
+        if gate_keys:
+            result["signature_gate"] = {
+                "enabled": True,
+                "format": OTA_GATE_FORMAT,
+                "header": OTA_GATE_HEADER,
+                "anti_downgrade": "signed toVersion must be newer than the installed version",
+                "keys": [
+                    {"key_id": key_id, "spki_pem_sha256": sha256_bytes(pem.encode("ascii"))}
+                    for key_id, pem in sorted(gate_keys.items())
+                ],
+            }
+        return result
 
 
 # These two helpers are shipped by system-manager on the services partition
@@ -897,6 +1228,20 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--hub-host", default=DEFAULT_HUB_HOST)
     parser.add_argument("--hub-port", type=int, default=DEFAULT_HUB_PORT)
     parser.add_argument("--entrypoint-host", default=DEFAULT_ENTRYPOINT_HOST)
+    parser.add_argument(
+        "--ota-release-pubkey",
+        action="append",
+        default=[],
+        metavar="KEYID=PATH",
+        help="pin a Phoenix OTA release public key (SPKI PEM, RSA >= 3072 bits) in the downloader's "
+        "signature gate; give the current and, when one exists, the next key (at most 2)",
+    )
+    parser.add_argument(
+        "--no-ota-signature-gate",
+        action="store_true",
+        help="build WITHOUT the OTA signature gate (the robot then installs any package its server "
+        "offers); only for private test images, recorded in the manifest",
+    )
     parser.add_argument("--execute", action="store_true")
     return parser.parse_args()
 
@@ -919,6 +1264,12 @@ def validate_args(args: argparse.Namespace) -> None:
     if args.public_url.rstrip("/") != DEFAULT_PUBLIC_URL:
         fail("this reviewed candidate is pinned to https://api.jibo.io")
     release_marker(args.ota_version)
+    if args.no_ota_signature_gate and args.ota_release_pubkey:
+        fail("--no-ota-signature-gate and --ota-release-pubkey are mutually exclusive")
+    if not args.no_ota_signature_gate and not args.ota_release_pubkey:
+        fail("the official image pins its OTA release key: pass --ota-release-pubkey KEYID=PATH "
+             "(or --no-ota-signature-gate for a private test image)")
+    args.ota_release_keys = load_ota_release_pubkeys(args.ota_release_pubkey)
 
 
 def main() -> int:
@@ -933,6 +1284,10 @@ def main() -> int:
         print(f"  public URL:   {args.public_url}")
         print(f"  hub override: {args.hub_host}:{args.hub_port}")
         print(f"  entrypoint:   {args.entrypoint_host}:443")
+        if args.ota_release_keys:
+            print(f"  OTA gate:     signed updates only, anti-downgrade; keys {', '.join(sorted(args.ota_release_keys))}")
+        else:
+            print("  OTA gate:     DISABLED (--no-ota-signature-gate): private test image only")
         print("  native token: https://{region}.jibo.io:443/")
         print("  native socket: wss://{region}-socket.jibo.io:443/{token}")
         print("  hosts intercept: none")
@@ -1007,7 +1362,7 @@ def main() -> int:
     asr_config = patch_asr_config(services)
     ssl_shim = install_ssl_shim(services, args.ssl_shim)
     trust = add_trust_root(rootfs, args.root_ca)
-    ota_downloader = patch_ota_downloader(rootfs)
+    ota_downloader = patch_ota_downloader(rootfs, args.ota_release_keys or None)
     system_backup_tls = patch_system_backup_tls(services)
     root_release_marker = patch_release_marker(rootfs, "rootfs", args.ota_version)
     services_release_marker = patch_release_marker(services, "services", args.ota_version)
@@ -1041,6 +1396,7 @@ def main() -> int:
         "trust": trust,
         "ssl_shim": ssl_shim,
         "ota_downloader": ota_downloader,
+        "ota_signature_gate": ota_downloader["signature_gate"],
         "system_backup_tls": system_backup_tls,
         "release_markers": [root_release_marker, services_release_marker],
         "native_binary_patches": [native_patch, asr_patch],
