@@ -17,6 +17,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { resolveLlmProvider } from '@phoenix/contracts';
 import { adminSettingsRoutes } from '../src/admin/settingsRoutes.js';
+import { checkTogether } from '../src/admin/configCatalog.js';
 import { readEnvFile } from '../src/admin/envFile.js';
 import { freeChatConfigFromEnv } from '../src/freeChat/routes.js';
 import { decisionConfig } from '../../nlu/src/decisionLayer.js';
@@ -241,4 +242,29 @@ test('model pickers list what the chosen endpoint offers, and keys go only where
 
   routes['GET /api/admin/settings/models']({ req: {}, res: {}, url: new URL('http://x/api/admin/settings/models?key=OPENROUTER_API_KEY') });
   assert.equal(s.failures.at(-1).status, 400, 'only model settings list models');
+});
+
+test('a custom endpoint’s key reaches OpenRouter only when that endpoint is OpenRouter itself', () => {
+  // A self-hosted server with a keyed LM Studio, news on, and no OpenRouter key.
+  const custom = { PHOENIX_NEWS_BRIEFINGS_ENABLED: 'true', LLM_URL: 'http://192.0.2.10:1234/v1',
+    PHOENIX_LLM_URL: 'http://192.0.2.10:1234/v1', PHOENIX_LLM_API_KEY: CUSTOM_KEY };
+  assert.equal(newsBriefingConfig(custom).llm.apiKey, '', 'news on OpenRouter must not get the LM Studio key');
+  assert.equal(resolveLlmProvider('answer', { env: { ...custom, ETCO_answer_llmUrl: 'https://openrouter.ai/api/v1' } }).apiKey, '',
+    'a service pointed at OpenRouter must not get the LM Studio key');
+  assert.ok(checkTogether(custom).warnings.some((w) => w.key === 'OPENROUTER_API_KEY' && /news briefings/i.test(w.message)),
+    'the console says news has no OpenRouter key');
+  // An older server whose shared endpoint is OpenRouter kept its OpenRouter key there: that still works.
+  const older = { PHOENIX_NEWS_BRIEFINGS_ENABLED: 'true', LLM_URL: 'https://openrouter.ai/api/v1',
+    PHOENIX_LLM_URL: 'https://openrouter.ai/api/v1', PHOENIX_LLM_API_KEY: CUSTOM_KEY };
+  assert.equal(newsBriefingConfig(older).llm.apiKey, CUSTOM_KEY);
+  assert.equal(resolveLlmProvider('answer', { env: older }).apiKey, CUSTOM_KEY);
+  assert.ok(!checkTogether(older).warnings.some((w) => w.key === 'OPENROUTER_API_KEY'));
+});
+
+test('the one key never goes to OpenRouter over plain http', () => {
+  const config = newsBriefingConfig({ PHOENIX_NEWS_BRIEFINGS_ENABLED: 'true', OPENROUTER_API_KEY: JEV_KEY,
+    ETCO_news_llmUrl: 'http://openrouter.ai/api/v1' });
+  assert.notEqual(config.llm.apiKey, JEV_KEY);
+  assert.equal(config.llm.apiKey, '');
+  assert.equal(config.openRouter, false);
 });

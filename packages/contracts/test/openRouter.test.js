@@ -22,6 +22,6 @@ test('the OpenRouter key goes to OpenRouter endpoints and never to a custom one'
   assert.equal(resolveLlmProvider('answer', { env: { ...env, ETCO_answer_llmUrl: 'https://openrouter.ai/api/v1' } }).apiKey, 'fixture-one-key');
   assert.equal(resolveLlmProvider('answer', { env: { ...env, ETCO_answer_llmUrl: 'http://192.0.2.1:1234/v1' } }).apiKey, 'fixture-custom-key');
   assert.equal(resolveLlmProvider('answer', { env: { OPENROUTER_API_KEY: 'fixture-one-key', ETCO_answer_llmUrl: 'http://192.0.2.1:1234/v1' } }).apiKey, '');
-  assert.equal(resolveLlmProvider('answer', { env: { PHOENIX_LLM_API_KEY: 'fixture-custom-key', ETCO_answer_llmUrl: 'https://openrouter.ai/api/v1' } }).apiKey,
-    'fixture-custom-key', 'an older shared key used with OpenRouter keeps working until the one key is set');
+  assert.equal(resolveLlmProvider('answer', { env: { PHOENIX_LLM_API_KEY: 'fixture-custom-key', PHOENIX_LLM_URL: 'https://openrouter.ai/api/v1' } }).apiKey,
+    'fixture-custom-key', 'an older shared key used with an OpenRouter endpoint keeps working until the one key is set');
 });
