@@ -141,7 +141,9 @@ test('the hub leaves the socket open after the terminal frame (no close-after-fi
   // 2 s close-after-final timer and its 3 min max-duration timer can never fire.
   // The captured original agrees: hub-listen-launch records
   // connectionOpenAfterFinal true at 50 ms with clientCloseAfterFinal true.
-  await wait(2500);
+  // Wait by the clock the check below reads. Timers run on a monotonic clock, so a
+  // bare wait(2500) can return when Date.now() has moved only 2499 ms.
+  while (Date.now() - finalAt < 2500) await wait(2500 - (Date.now() - finalAt));
   assert.equal(state.closedAt, null, 'the hub must not close the socket 2 s after the terminal frame');
   assert.equal(ws.readyState, WebSocket.OPEN);
   assert.equal(Date.now() - finalAt >= 2500, true);
