@@ -9,13 +9,18 @@
 // Exit 0: tests passed and nothing was left. Exit 1: leftovers (listed). Any other
 // non-zero exit is the test run's own status.
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readdirSync, rmSync } from 'node:fs';
+import { chmodSync, mkdirSync, mkdtempSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const root = mkdtempSync(join(tmpdir(), 'phoenix-tmp-leak-check-'));
 const testTmp = join(root, 'tmp');
-mkdirSync(testTmp);
+// Private to this user, like mkdtemp: code that refuses group- or world-writable
+// storage (for example secure stores that walk their parent directories) must see
+// the same permissions here as in a real per-user temp directory. umask can only
+// remove bits, so chmod after mkdir to get exactly 0700 whatever the umask is.
+mkdirSync(testTmp, { mode: 0o700 });
+chmodSync(testTmp, 0o700);
 let status;
 try {
   const run = spawnSync(process.execPath, ['--test', ...process.argv.slice(2)], {
