@@ -7,6 +7,8 @@
  *
  * This is deliberately hash-guarded. It only accepts a reviewed stock downloader
  * or the exact output this patch generates from it, never an arbitrary lookalike.
+ * The official Phoenix image's downloader, which also checks update signatures,
+ * already has the CA and is recognised and left unchanged (see GATE_* below).
  * Stock downloaders differ between factory images only in progress reporting;
  * the patched request is identical in each.
  */
@@ -41,6 +43,54 @@ var PATCHED = Object.keys(REVIEWED).map(function(original) { return REVIEWED[ori
 var EXECUTABLE_MODE = 0o755;
 var MARKER = 'JIBO_EXTRA_CA_CERTS';
 var ANCHOR = 'let req = http.get(argv.url, function(res) {';
+// The CA insertion from d1731dc. The official Phoenix image still bakes exactly this one.
+var EARLIER_INSERTION = [
+  '// This runs on Node 6.9.2, which predates NODE_EXTRA_CA_CERTS (added in 7.3) and',
+  '// ignores the system trust store entirely -- /etc/ssl/cert.pem does not help it.',
+  '// Against a publicly-trusted server certificate a bare https.get therefore fails',
+  '// with UNABLE_TO_GET_ISSUER_CERT_LOCALLY and the update download dies at 0 bytes,',
+  '// which the system manager reports only as "Failed to download update". Hand https',
+  '// an explicit CA, the same way the patched jibo-server-client does.',
+  'let _getOpts = argv.url;',
+  'if (argv.url.startsWith("https:")) {',
+  '    let _caPath = process.env.JIBO_EXTRA_CA_CERTS || "' + CA_PATH + '";',
+  '    try {',
+  '        let _url = require("url").parse(argv.url);',
+  '        _getOpts = { protocol: _url.protocol, hostname: _url.hostname, port: _url.port,',
+  '                     path: _url.path, ca: fs.readFileSync(_caPath) };',
+  '    } catch (e) { /* no CA available: fall back to the default roots */ }',
+  '}',
+  '',
+  'let req = http.get(_getOpts, function(res) {'
+].join('\n');
+
+// The official Phoenix image (deploy/robot-patches/bake_jibo_io_native_image.py) bakes a
+// downloader that installs only updates signed by a pinned Phoenix key and newer than what the
+// robot runs (docs/OTA-RELEASE-SIGNING.md). It already has the explicit CA, and swapping it for
+// the CA-only patch would remove that check, so it is recognised and never rewritten:
+//   * one check block (the builder's OTA_GATE_DEFINITIONS, pinned by hash with its one
+//     configuration line set aside) directly before the CA insertion above;
+//   * its three hook lines, each directly before the stock line it guards;
+//   * without the block and hooks, the file is exactly the builder's CA-only output (GATED_BASE).
+// Only the configuration line (pinned public keys, version sources) differs between builds.
+var GATE_BEGIN = '// >>> phoenix-ota-signature-gate >>>';
+var GATE_END = '// <<< phoenix-ota-signature-gate <<<\n\n';
+var GATE_CONFIG_PREFIX = '\nconst _PHOENIX_OTA_GATE = ';
+var GATE_CONFIG_PLACEHOLDER = '__PHOENIX_OTA_GATE_CONFIG__';
+var GATE_TEMPLATE_SHA256 = '25445fdb460c929aa9600378d81413f3259da175fb87a6c7db97dbf7f68fedab';
+var GATE_FORMAT = 'phoenix-ota-release/1';
+var GATE_HEADER = 'x-phoenix-ota-signature';
+var GATE_MAX_KEYS = 2;
+var GATE_HOOKS = [
+  ['    _phoenixOtaAdmit(res);  // phoenix-ota-signature-gate\n',
+    '    progress.length = parseInt(res.headers["content-length"]);\n'],
+  ['        _phoenixOtaChunk(chunk);  // phoenix-ota-signature-gate\n',
+    '        hash.update(chunk, "binary");\n'],
+  ['        _phoenixOtaFinish();  // phoenix-ota-signature-gate\n',
+    '        let csum = hash.digest("hex");\n']
+];
+// The builder's CA-only output for the reviewed 1.4.1 stock downloader (also a PREVIOUS key).
+var GATED_BASE = ['1a01b446575bc5da145a41e969ea110af62f144d5651ed5b7ca5aee8bfef826a'];
 
 // Node 4.1 (factory RTM2/RTM3 images) predates Buffer.from(string): the name
 // resolves to TypedArray.from, which treats the encoding as a map function.
@@ -125,30 +175,68 @@ function patchSource(source, caPath) {
 // Exact insertion from d1731dc. Keep this separate from the current patch:
 // reconstruction must recover the byte-pinned original, not a similar program.
 function reconstructOriginal(source, originalHash) {
-  var insertion = [
-    '// This runs on Node 6.9.2, which predates NODE_EXTRA_CA_CERTS (added in 7.3) and',
-    '// ignores the system trust store entirely -- /etc/ssl/cert.pem does not help it.',
-    '// Against a publicly-trusted server certificate a bare https.get therefore fails',
-    '// with UNABLE_TO_GET_ISSUER_CERT_LOCALLY and the update download dies at 0 bytes,',
-    '// which the system manager reports only as "Failed to download update". Hand https',
-    '// an explicit CA, the same way the patched jibo-server-client does.',
-    'let _getOpts = argv.url;',
-    'if (argv.url.startsWith("https:")) {',
-    '    let _caPath = process.env.JIBO_EXTRA_CA_CERTS || "' + CA_PATH + '";',
-    '    try {',
-    '        let _url = require("url").parse(argv.url);',
-    '        _getOpts = { protocol: _url.protocol, hostname: _url.hostname, port: _url.port,',
-    '                     path: _url.path, ca: fs.readFileSync(_caPath) };',
-    '    } catch (e) { /* no CA available: fall back to the default roots */ }',
-    '}',
-    '',
-    'let req = http.get(_getOpts, function(res) {'
-  ].join('\n');
   var text = source.toString('utf8');
-  exactlyOnce(text, insertion, 'earlier OTA downloader patch');
-  var original = utf8Buffer(text.replace(insertion, ANCHOR));
+  exactlyOnce(text, EARLIER_INSERTION, 'earlier OTA downloader patch');
+  var original = utf8Buffer(text.replace(EARLIER_INSERTION, ANCHOR));
   if (sha256(original) !== originalHash) throw new Error('reconstructed OTA downloader is not the reviewed original source');
   return original;
+}
+
+function countOf(text, needle) {
+  var count = 0;
+  for (var at = text.indexOf(needle); at >= 0; at = text.indexOf(needle, at + needle.length)) count++;
+  return count;
+}
+
+function hasGateMarker(text) {
+  return text.indexOf('phoenix-ota-signature-gate') >= 0 || text.indexOf('_phoenixOta') >= 0;
+}
+
+// Pinned public keys in the right format; anything else is not an official-image check.
+function validGateConfig(json) {
+  var config;
+  try { config = JSON.parse(json); } catch (e) { return false; }
+  if (!config || typeof config !== 'object' || Array.isArray(config)) return false;
+  if (config.format !== GATE_FORMAT || config.header !== GATE_HEADER) return false;
+  var keys = config.keys;
+  if (!keys || typeof keys !== 'object' || Array.isArray(keys)) return false;
+  var ids = Object.keys(keys);
+  if (ids.length < 1 || ids.length > GATE_MAX_KEYS) return false;
+  return ids.every(function(id) {
+    var pem = keys[id];
+    return /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/.test(id) && typeof pem === 'string'
+      && pem.indexOf('-----BEGIN PUBLIC KEY-----') === 0 && pem.indexOf('PRIVATE') < 0;
+  });
+}
+
+// True for the official image's signature-checking downloader (see GATE_* above); throws for
+// anything else that carries the check's marker, so it can never fall through to a rewrite.
+function isSignatureGated(text) {
+  if (!hasGateMarker(text)) return false;
+  var refuse = function() {
+    throw new Error('OTA downloader carries a Phoenix update signature check this helper does not recognise; it was left unchanged');
+  };
+  if (countOf(text, GATE_BEGIN) !== 1 || countOf(text, GATE_END) !== 1) refuse();
+  var begin = text.indexOf(GATE_BEGIN);
+  var end = text.indexOf(GATE_END) + GATE_END.length;
+  if (end <= begin) refuse();
+  var block = text.slice(begin, end);
+  if (text.slice(end, end + EARLIER_INSERTION.length) !== EARLIER_INSERTION) refuse();
+  if (countOf(block, GATE_CONFIG_PREFIX) !== 1) refuse();
+  var configStart = block.indexOf(GATE_CONFIG_PREFIX) + GATE_CONFIG_PREFIX.length;
+  var configEnd = block.indexOf(';\n', configStart);
+  if (configEnd < 0) refuse();
+  var configText = block.slice(configStart, configEnd);
+  if (configText.indexOf('\n') >= 0 || !validGateConfig(configText)) refuse();
+  var template = block.slice(0, configStart) + GATE_CONFIG_PLACEHOLDER + block.slice(configEnd);
+  if (sha256(utf8Buffer(template)) !== GATE_TEMPLATE_SHA256) refuse();
+  var rest = text.slice(0, begin) + text.slice(end);
+  GATE_HOOKS.forEach(function(hook) {
+    if (countOf(rest, hook[0]) !== 1 || countOf(rest, hook[0] + hook[1]) !== 1) refuse();
+    rest = rest.replace(hook[0] + hook[1], hook[1]);
+  });
+  if (hasGateMarker(rest) || GATED_BASE.indexOf(sha256(utf8Buffer(rest))) < 0) refuse();
+  return true;
 }
 
 // Unlike existsSync, lstat sees dangling symlinks, which must not be replaced.
@@ -181,7 +269,11 @@ function apply(options) {
   var patchedSha256 = sourceHash;
   var originalHash = sourceHash;
   var backup = TARGET + '.phoenix-ota-tls.bak';
-  if (PREVIOUS[sourceHash]) {
+  if (isSignatureGated(source.toString('utf8'))) {
+    // The official image's downloader: it has the CA already and keeps its signature check.
+    // Nothing is written; only a lost executable mode is restored below.
+    state = 'signature-gated';
+  } else if (PREVIOUS[sourceHash]) {
     // Prefer the saved original. Only known earlier output hashes may be
     // reconstructed, and both the recovered original and new output are pinned.
     originalHash = PREVIOUS[sourceHash];
@@ -253,4 +345,7 @@ if (require.main === module) {
   try { main(); } catch (error) { process.stderr.write('patch-ota-downloader-tls: ' + error.message + '\n'); process.exit(2); }
 }
 
-module.exports = { patchSource: patchSource, sha256: sha256 };
+module.exports = {
+  patchSource: patchSource, sha256: sha256,
+  GATE_TEMPLATE_SHA256: GATE_TEMPLATE_SHA256, GATED_BASE: GATED_BASE.slice()
+};

@@ -140,3 +140,15 @@ How the downloader applies the checks:
 Consequences for publishing to a gated robot: every row it may install must be signed,
 including ring and test rows and admin uploads, and a version it already runs (or an older
 one) is never installed again, even under a new update ID.
+
+The console's setup command (`scripts/robot-ota-repoint.sh`) works with a gated robot and never
+removes the check:
+
+- Its downloader TLS helper (`scripts/robot-client/patch-ota-downloader-tls.cjs`) recognises the
+  gated downloader and leaves it byte for byte as it is (state `signature-gated`; a lost 0755
+  mode is restored). It accepts only the builder's exact check (`OTA_GATE_DEFINITIONS`, pinned
+  by hash apart from its one configuration line of public keys) around the builder's CA-only
+  output. Any other file carrying the check's marker stops setup before a change.
+- A gated robot refuses the full refresh, which re-sends the versions it already runs. Setup
+  skips that step with one line and finishes the rest; `--ota-only` and `--ota-plan` stop with
+  one line instead. The robot's own update check installs newer signed releases.

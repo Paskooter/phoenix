@@ -638,6 +638,9 @@ OTA_GATE_DEFAULT_SOURCES = {
     "skillsRoot": "/opt/jibo/Jibo/Skills",
 }
 
+# scripts/robot-client/patch-ota-downloader-tls.cjs (the console setup helper) pins this exact
+# text by hash (GATE_TEMPLATE_SHA256) so it can leave a gated downloader alone; a change here
+# needs the same change there (scripts/robot-client/ota-downloader-gated.test.mjs fails until then).
 OTA_GATE_DEFINITIONS = r"""// >>> phoenix-ota-signature-gate >>>
 // Phoenix official image: refuse any update package that is not signed by a pinned Phoenix
 // release key (format phoenix-ota-release/1), whose bytes differ from what was signed, or that

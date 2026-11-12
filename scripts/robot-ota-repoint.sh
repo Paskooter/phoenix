@@ -140,7 +140,7 @@ STOCK_CLIENT_V2_SHA256="81533de391dfba88fc40bedfc63ea30a77f8d032f9a8c23196db4cb3
 STOCK_CLIENT_V3_SHA256="c3511dbc55c8a9ec3ac74a675a1245306b55c67fab65a3ecfe896ed01689997a"
 ROOT_PEM_SOURCE_SHA256="22b557a27055b33606b6559f37703928d3e4ad79f110b407d04986e1843543d1"
 BACKUP_TLS_PATCHER_SHA256="0fee710b1dec524b8d4629deb19e8be9dc1013e161abed4180be3d2f2c28e2d8"
-OTA_TLS_PATCHER_SHA256="6e8feefdea84bf40db4ba1770ebe961ce4bd7b1f46b6eadb09b9dca5c5198d54"
+OTA_TLS_PATCHER_SHA256="7202efddc7c5003d77eb918468758ec0872411deea65a6e493b727238e878c66"
 SSM_WIFI_PATCHER_SHA256="29dce60e9bf9d5cec56688b576c36c0c4662ccb3a17bc2fb83df6a5d654421f6"
 SETUP_TEXT_PATCHER_SHA256="edcc2971b932a41da80f9af286a74ce41cc213ccc90af429bfdf7e2a2c8989a1"
 CONFIG_PATCHER_SHA256="103e333e630892d3b98bb27b75502e970d21ac796ffeafa1032cbbb864dbba04"
@@ -421,6 +421,8 @@ set_paired_mode_normal_if_ready() {
 }
 
 run_native_ota() {
+  [ "${OTA_SIGNED_ONLY:-0}" -eq 0 ] \
+    || die "this Jibo installs only signed updates newer than his own, so a full refresh would be refused; he gets new updates by himself"
   ensure_ota_trigger
   local remote plan_output plan_hash count
   remote="$(rsh 'mktemp /tmp/phoenix-trigger-ota.XXXXXX' 2>/dev/null | tr -d '\r')"
@@ -514,6 +516,18 @@ if [ "$OOBE" -eq 1 ]; then
   [ "$HAS_CREDS" -eq 0 ] || die "--oobe requires no active robot credentials; use the already-set-up connection path"
 else
   [ "$HAS_CREDS" -eq 1 ] || die "robot has no active credentials; use --oobe if it is on the setup screen"
+fi
+# The official Phoenix image's downloader installs only updates signed by Phoenix and newer than
+# what Jibo runs (docs/OTA-RELEASE-SIGNING.md). A full refresh re-sends the versions he already
+# has, which that check refuses one by one, so it is skipped there and the rest of setup goes on;
+# Jibo's own update check brings newer releases. The check itself is never touched.
+OTA_SIGNED_ONLY=0
+if rsh "grep -qF -- '>>> phoenix-ota-signature-gate >>>' /usr/lib/node_modules/@jibo/jibo-ota-updater/src/download-update.js" >/dev/null 2>&1; then
+  OTA_SIGNED_ONLY=1
+fi
+if [ "$OTA_SIGNED_ONLY" -eq 1 ] && [ "$START_OTA" -eq 1 ]; then
+  START_OTA=0
+  say "  updates   : full refresh skipped; this Jibo installs only signed updates newer than his own, and he gets those by himself"
 fi
 if [ -z "$REGION" ]; then
   if [ "$OOBE" -eq 1 ]; then
@@ -837,6 +851,7 @@ preflight_patcher() {
     already-patched) out="already patched" ;;
     upgraded) out="carries an earlier patch; will be upgraded from its saved original" ;;
     mode-repaired) out="already patched; its executable mode will be restored" ;;
+    signature-gated) out="carries Phoenix's update signature check; left unchanged" ;;
     *jibo-system-*)
       # One "<helper>: original|patched" line per helper.
       out="$(printf '%s\n' "$out" | sed -e 's/: original$/: reviewed stock version/' -e 's/: patched$/: already patched/' | paste -sd ';' - | sed 's/;/; /g')" ;;
@@ -1464,6 +1479,9 @@ else
       say "  Account ownership was not changed. If not yet linked, sign in and rerun"
       say "  with a one-time --claim-code. If already linked, run --ota-only --yes"
       say "  when ready. OTA was not started, so SSH remains available."
+    elif [ "$OTA_SIGNED_ONLY" -eq 1 ]; then
+      say "  Next: reboot or let the robot check for the currently published jibo.io OTA"
+      say "  packages; he installs each signed update that is newer than his own."
     else
       say "  Next: reboot or let the robot check for the currently published jibo.io OTA"
       say "  packages. If BE is absent after a USB flash, run this script again with"

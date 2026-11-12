@@ -149,7 +149,7 @@ test('OTA plan mode rejects repoint and dry-run flags before connecting to a rob
 });
 
 function preview({ credentials, mode, claim = false, shape = 'ok', region = 'stg-entrypoint', auth = 'key', robot = 'root@192.0.2.15',
-  firmware = '13', handler, normalizedHandler, credentialOverride = false, preflight = 'ok', hostKey = 'known', auto = true, extra = [], setupText = 'patched', destinationRegion = '', trustPreflight = 'ok', dry = true }) {
+  firmware = '13', handler, normalizedHandler, credentialOverride = false, preflight = 'ok', hostKey = 'known', auto = true, extra = [], setupText = 'patched', destinationRegion = '', trustPreflight = 'ok', dry = true, otaGate = false }) {
   const fw = FIRMWARE[firmware];
   const dir = mkdtempSync(join(tmpdir(), 'phoenix-repoint-test-'));
   const ssh = join(dir, 'ssh');
@@ -191,6 +191,7 @@ if [[ "$cmd" == "node '/tmp/phoenix-cloud-config.abc123' --kind "* ]] && [ -n "$
   [[ "$cmd" == *"--region '$PHOENIX_TEST_DESTINATION'"* ]] || { echo 'wrong destination passed to config helper' >&2; exit 76; }
 fi
 case "$cmd" in
+  *'phoenix-ota-signature-gate'*'download-update.js'*) test "$PHOENIX_TEST_OTA_GATE" = yes ;;
   *'# Phoenix public root trust (preflight and apply).'* )
     if [ "$PHOENIX_TEST_TRUST_PREFLIGHT" = ok ]; then
       echo 'install isrg-root-x1.pem; add 4042bcee.0; preserve existing hash entries'
@@ -221,6 +222,7 @@ case "$cmd" in
     if [ "$PHOENIX_TEST_SSM" = google ]; then echo 'not-needed (checks google.com)'; else echo patched; fi ;;
   "node '/tmp/phoenix-preflight.abc123' --dry-run"*)
     if [ "$PHOENIX_TEST_PREFLIGHT" = ok ]; then echo patched
+    elif [ "$PHOENIX_TEST_PREFLIGHT" = gated ]; then echo signature-gated
     else echo 'patch-ota-downloader-tls: OTA downloader has an unsupported source hash: 0123' >&2; exit 2; fi ;;
   jibo-getmode*) echo "$PHOENIX_TEST_MODE" ;;
   'test -s /var/jibo/credentials.json') test "$PHOENIX_TEST_CREDS" = yes ;;
@@ -257,7 +259,8 @@ echo "ssh-keygen $*" >> "$PHOENIX_TEST_LOG"; rm -f "$PHOENIX_TEST_STALE_KEY"
         PHOENIX_TEST_RELEASE: fw.release, PHOENIX_TEST_NODE: fw.node, PHOENIX_TEST_BACKUP: fw.backup, PHOENIX_TEST_JETSTREAM: fw.jetstream, PHOENIX_TEST_SSM: fw.ssm,
         PHOENIX_TEST_HANDLER: handler ?? fw.handler, PHOENIX_TEST_FOUND: fw.found.join(' '),
         PHOENIX_TEST_NORMALIZED_HANDLER: normalizedHandler ?? '', PHOENIX_TEST_CREDENTIAL_OVERRIDE: credentialOverride ? 'yes' : 'no',
-        PHOENIX_TEST_TRUST_PREFLIGHT: trustPreflight, PHOENIX_TEST_PREFLIGHT: preflight, PHOENIX_TEST_STALE_KEY: staleKey, PHOENIX_TEST_SETUP_TEXT: setupText },
+        PHOENIX_TEST_TRUST_PREFLIGHT: trustPreflight, PHOENIX_TEST_PREFLIGHT: preflight, PHOENIX_TEST_STALE_KEY: staleKey, PHOENIX_TEST_SETUP_TEXT: setupText,
+        PHOENIX_TEST_OTA_GATE: otaGate ? 'yes' : 'no' },
     });
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -477,3 +480,38 @@ test('an unreviewed OTA downloader stops at the compatibility check, before any 
     return true;
   });
 });
+
+// The official Phoenix image's downloader installs only signed updates newer than what Jibo
+// runs. A full refresh re-sends the same versions, so it is skipped there (the rest of setup
+// still runs) and refused when it is the only thing asked for. Never by removing the check.
+const SIGNED_ONLY_SKIP = '  updates   : full refresh skipped; this Jibo installs only signed updates newer than his own, and he gets those by himself';
+const SIGNED_ONLY_REFUSAL = 'ERROR: this Jibo installs only signed updates newer than his own, so a full refresh would be refused; he gets new updates by himself';
+
+for (const auto of [true, false]) {
+  test(`a Jibo that takes only signed newer updates skips the full refresh and finishes setup (${auto ? '--auto' : 'console command'})`, () => {
+    const out = preview({ credentials: true, mode: 'int-developer', claim: true, auto, otaGate: true, preflight: 'gated' });
+    assert.equal(out.split('\n').filter(line => line === SIGNED_ONLY_SKIP).length, 1, out);
+    assert.doesNotMatch(out, /0\.0\.1|all four current OS, services, OOBE and BE packages|full OTA refresh replaces/);
+    assert.match(out, /OTA downloader: carries Phoenix's update signature check; left unchanged/);
+    assert.match(out, /If BE is installed, the saved next-boot mode becomes normal\./);
+    assert.match(out, /dry run — nothing was changed/);
+  });
+}
+
+test('without the signature check the same robot still gets the full refresh', () => {
+  const out = preview({ credentials: true, mode: 'int-developer', claim: true });
+  assert.doesNotMatch(out, /full refresh skipped/);
+  assert.match(out, /10\. temporarily report 0\.0\.1 only to OTA discovery, then download and install/);
+});
+
+for (const flag of ['--ota-only', '--ota-plan']) {
+  test(`${flag} on a Jibo that takes only signed newer updates is refused with one plain line`, () => {
+    assert.throws(() => preview({ credentials: true, mode: 'normal', auto: false, otaGate: true, dry: false,
+      extra: flag === '--ota-only' ? [flag, '--yes'] : [flag] }), (error) => {
+      assert.equal(error.status, 1);
+      assert.equal(String(error.stderr), SIGNED_ONLY_REFUSAL + '\n');
+      assert.doesNotMatch(String(error.stdout), /Full refresh|PHOENIX_OTA_|0\.0\.1/);
+      return true;
+    });
+  });
+}
