@@ -1,6 +1,6 @@
 # Signed OTA releases
 
-Official Phoenix OTA rows carry a detached signature made with an **offline** Phoenix release
+Official Phoenix OTA rows carry a detached signature made with the Phoenix release
 key. The catalog passes it to robots unchanged. A robot image with the signature gate refuses a
 package that is unsigned, signed by a key it does not pin, changed after signing, or older than
 what it already runs. A server, including a self-hosted one that relays jibo.io's releases, can
@@ -81,44 +81,50 @@ kit runs the gate itself and refuses to sign a BE row (`@be/be`, or the short fo
 ```sh
 scripts/ota-release-kit.sh --manifest manifest.json --data-dir <ota data dir> \
   --out manifest.signed.json --ids <new row ids> \
-  --key /media/offline/phoenix-ota-YYYYMMDD.pem --key-id phoenix-ota-YYYYMMDD \
-  --pubkey phoenix-ota-YYYYMMDD.pub.pem \
+  --key <release private key> \
   --official-base ../jibo-be/.release-inputs/jibo-be-11.0.1.tar.gz
 ```
 
-It writes a new manifest (never overwrites), then verifies it with the public key. Sign every
+`--key-id` defaults to the pinned current key and `--pubkey` to its pinned public half (below);
+the kit refuses to sign under a pinned key id with any other private key, before writing
+anything. It writes a new manifest (never overwrites), then verifies it with the public key. Sign every
 row the release adds, one per filter, because the ID and filter are signed. Re-sign after any
 change to a row or rebuild of its package: the catalog logs `release signature does not match
 this package` and serves such a row unsigned. The output then goes through the normal reviewed
 catalog change and `scripts/deploy-native-release.sh`; the kit publishes nothing.
 
-The release key is created once by the owner on an offline machine and never copied to a
-server, CI or Git:
+### Release keys
+
+The public halves are pinned in `deploy/ota-release-keys` (README there): `phoenix-ota-20261112`
+is the **current** key that signs releases and `phoenix-ota-20261112b` the **next** key, pinned
+now so a rotation needs no flag day. `release-keys.json` hash-pins both files; the release tools
+and the image builder refuse the set if a file changes, a third key appears or a key is under
+3072 bits. `node scripts/sign-ota-release.mjs pinned` lists it.
+
+The private keys (RSA 3072) are generated on the release machine, kept outside Git with mode
+0600, and backed up encrypted; they are never copied to a server, CI or a repository. A new key
+is made the same way:
 
 ```sh
-openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -aes-256-cbc -out phoenix-ota-YYYYMMDD.pem
-openssl pkey -in phoenix-ota-YYYYMMDD.pem -pubout -out phoenix-ota-YYYYMMDD.pub.pem
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -out private.pem
+openssl pkey -in private.pem -pubout -out phoenix-ota-YYYYMMDD.pub.pem
 ```
 
 An encrypted key reads its passphrase from `PHOENIX_OTA_KEY_PASSPHRASE`. Only the `.pub.pem`
 goes into the robot image.
 
-`node scripts/sign-ota-release.mjs verify --manifest <m> --data-dir <d> --pubkey <keyId>=<pub.pem>`
-checks an existing manifest the same way.
+`node scripts/sign-ota-release.mjs verify --manifest <m> --data-dir <d>` checks an existing
+manifest against the pinned keys (`--pubkey <keyId>=<pub.pem>` checks against another key).
 
 ## Robot gate (official image)
 
 `deploy/robot-patches/bake_jibo_io_native_image.py` patches the robot's OTA downloader
 (`@jibo/jibo-ota-updater/src/download-update.js`, run by the system manager for every package)
-with the checks above. Build the official image with the public key(s) pinned:
-
-```sh
-python3 deploy/robot-patches/bake_jibo_io_native_image.py ... \
-  --ota-release-pubkey phoenix-ota-YYYYMMDD=phoenix-ota-YYYYMMDD.pub.pem
-```
-
-Pin the current key and, once it exists, the next one (at most two). The builder refuses a
-private key, a key under 3072 bits and an image without a pinned key; `--no-ota-signature-gate`
+with the checks above. The official image pins the current and next keys from
+`deploy/ota-release-keys` by default (the plan prints `keys phoenix-ota-20261112,
+phoenix-ota-20261112b (pinned in deploy/ota-release-keys)`). `--ota-release-pubkey KEYID=PATH`
+(at most two) pins other keys instead, for test images. The builder refuses an altered pinned
+set, a private key and a key under 3072 bits; `--no-ota-signature-gate`
 builds an ungated image for private tests only and the manifest records it
 (`ota_signature_gate.enabled: false`).
 

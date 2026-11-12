@@ -19,7 +19,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from typing import Any
+from typing import Any, NoReturn
 
 BASE_RELEASE = "Release-13.0.0-20190225"
 # OTA eligibility is derived from these two binaries, not the package filename.
@@ -883,6 +883,69 @@ def load_ota_release_pubkeys(specs: list[str]) -> dict[str, str]:
     return keys
 
 
+# The official image pins the reviewed Phoenix release keys in deploy/ota-release-keys (the current
+# key and the next one). scripts/ota-release-keys.mjs applies the same rules on the signing side.
+OTA_RELEASE_KEYS_DIR = Path(__file__).resolve().parent.parent / "ota-release-keys"
+
+
+def load_pinned_ota_release_keys(directory: Path | None = None) -> dict[str, str]:
+    """The pinned key set: exactly one current key, at most one next key, every file hash-pinned."""
+    if directory is None:
+        # The override exists for tests of the refusals; official builds use the reviewed directory.
+        directory = Path(os.environ.get("PHOENIX_OTA_RELEASE_KEYS_DIR") or OTA_RELEASE_KEYS_DIR)
+
+    def bad(message: str) -> NoReturn:
+        fail(f"pinned OTA release keys ({directory}): {message}")
+        raise AssertionError("unreachable")
+
+    try:
+        doc = json.loads((directory / "release-keys.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        bad(f"cannot read release-keys.json: {exc}")
+    if not isinstance(doc, dict) or doc.get("format") != OTA_GATE_FORMAT or not isinstance(doc.get("keys"), list):
+        bad(f"release-keys.json is not a {OTA_GATE_FORMAT} key list")
+    entries = doc["keys"]
+    if not 1 <= len(entries) <= OTA_GATE_MAX_KEYS:
+        bad(f"expected the current key and at most one next key, got {len(entries)}")
+    roles = [entry.get("role") if isinstance(entry, dict) else None for entry in entries]
+    if roles.count("current") != 1 or any(role not in ("current", "next") for role in roles):
+        bad('exactly one key must have role "current"; the other may only be "next"')
+    specs: list[str] = []
+    spki_digests: dict[str, str] = {}
+    for entry in entries:
+        key_id, name = entry.get("keyId"), entry.get("file")
+        if not isinstance(key_id, str) or not OTA_GATE_KEY_ID.fullmatch(key_id) or key_id in spki_digests:
+            bad(f"invalid or duplicate key id {key_id!r}")
+        if not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,80}\.pub\.pem", name):
+            bad(f"{key_id}: file must be a plain *.pub.pem name")
+        path = directory / name
+        try:
+            data = path.read_bytes()
+        except OSError as exc:
+            bad(f"{key_id}: cannot read {name}: {exc}")
+        if sha256_bytes(data) != entry.get("pemSha256"):
+            bad(f"{key_id}: {name} does not match its pemSha256")
+        if b"PRIVATE" in data:
+            bad(f"{key_id}: {name} must be exactly one SPKI public key PEM")
+        bits = run(["openssl", "pkey", "-pubin", "-in", str(path), "-noout", "-text"], check=False)
+        found = re.search(r"Public-Key: \((\d+) bit\)", bits.stdout or "")
+        if bits.returncode != 0 or "Modulus" not in (bits.stdout or "") or found is None \
+                or int(found.group(1)) < OTA_GATE_MIN_RSA_BITS:
+            bad(f"{key_id}: must be RSA with at least {OTA_GATE_MIN_RSA_BITS} bits")
+        assert found is not None
+        if int(found.group(1)) != entry.get("bits"):
+            bad(f"{key_id}: listed as {entry.get('bits')} bits, file has {found.group(1)}")
+        der = subprocess.run(["openssl", "pkey", "-pubin", "-in", str(path), "-outform", "DER"],
+                             capture_output=True, check=False)
+        if der.returncode != 0 or sha256_bytes(der.stdout) != entry.get("spkiDerSha256"):
+            bad(f"{key_id}: SPKI does not match its spkiDerSha256")
+        spki_digests[key_id] = entry["spkiDerSha256"]
+        specs.append(f"{key_id}={path}")
+    if len(set(spki_digests.values())) != len(spki_digests):
+        bad("current and next must be different keys")
+    return load_ota_release_pubkeys(specs)
+
+
 def render_ota_downloader(source: str, gate: dict[str, Any] | None) -> str:
     """Return the patched downloader for a stock downloader.
 
@@ -1236,8 +1299,8 @@ def parse_args() -> argparse.Namespace:
         action="append",
         default=[],
         metavar="KEYID=PATH",
-        help="pin a Phoenix OTA release public key (SPKI PEM, RSA >= 3072 bits) in the downloader's "
-        "signature gate; give the current and, when one exists, the next key (at most 2)",
+        help="pin this Phoenix OTA release public key (SPKI PEM, RSA >= 3072 bits) in the downloader's "
+        "signature gate instead of the reviewed pair in deploy/ota-release-keys (at most 2)",
     )
     parser.add_argument(
         "--no-ota-signature-gate",
@@ -1269,10 +1332,14 @@ def validate_args(args: argparse.Namespace) -> None:
     release_marker(args.ota_version)
     if args.no_ota_signature_gate and args.ota_release_pubkey:
         fail("--no-ota-signature-gate and --ota-release-pubkey are mutually exclusive")
-    if not args.no_ota_signature_gate and not args.ota_release_pubkey:
-        fail("the official image pins its OTA release key: pass --ota-release-pubkey KEYID=PATH "
-             "(or --no-ota-signature-gate for a private test image)")
-    args.ota_release_keys = load_ota_release_pubkeys(args.ota_release_pubkey)
+    # The official image pins the reviewed release keys (deploy/ota-release-keys) unless keys are
+    # given explicitly; --no-ota-signature-gate is the only way to build without the gate.
+    args.ota_release_keys_source = "explicit" if args.ota_release_pubkey else (
+        None if args.no_ota_signature_gate else "pinned")
+    if args.ota_release_keys_source == "pinned":
+        args.ota_release_keys = load_pinned_ota_release_keys()
+    else:
+        args.ota_release_keys = load_ota_release_pubkeys(args.ota_release_pubkey)
 
 
 def main() -> int:
@@ -1288,7 +1355,10 @@ def main() -> int:
         print(f"  hub override: {args.hub_host}:{args.hub_port}")
         print(f"  entrypoint:   {args.entrypoint_host}:443")
         if args.ota_release_keys:
-            print(f"  OTA gate:     signed updates only, anti-downgrade; keys {', '.join(sorted(args.ota_release_keys))}")
+            source = ("pinned in deploy/ota-release-keys" if args.ota_release_keys_source == "pinned"
+                      else "given with --ota-release-pubkey")
+            print(f"  OTA gate:     signed updates only, anti-downgrade; keys {', '.join(sorted(args.ota_release_keys))}"
+                  f" ({source})")
         else:
             print("  OTA gate:     DISABLED (--no-ota-signature-gate): private test image only")
         print("  native token: https://{region}.jibo.io:443/")
