@@ -2,6 +2,7 @@
 // the real disposable Account service serves the portal and report settings.
 import { chromium } from 'playwright';
 import { startCalendarConsole, FIXTURE_NOW } from '../../test/fixtures/calendar-console-fixture.mjs';
+import { launchChromium } from '../../test/fixtures/chromium-launch.mjs';
 
 export const VIEWPORTS = {
   phone: { width: 390, height: 844 },
@@ -20,7 +21,7 @@ export const CONSOLE_PAGES = [
 export async function openConsole({ viewport = VIEWPORTS.phone, colorScheme = 'dark', admin = false } = {}) {
   const running = await startCalendarConsole();
   if (admin) running.store.accountByEmail('calendar-owner@example.invalid').isAdmin = true;
-  const browser = await chromium.launch({
+  const browser = await launchChromium(chromium, {
     ...(process.env.CHROME_BIN ? { executablePath: process.env.CHROME_BIN } : {}),
     args: ['--no-sandbox', '--disable-dev-shm-usage', '--no-proxy-server'],
   }).catch(async (error) => { await running.close(); throw error; });

@@ -8,6 +8,7 @@ import { join } from 'node:path';
 import {
   FEEDS, FIXTURE_DEVICE_TIME_ZONE, FIXTURE_NOW, LONG_TITLE, startCalendarConsole,
 } from './fixtures/calendar-console-fixture.mjs';
+import { launchChromium } from './fixtures/chromium-launch.mjs';
 
 const VIEWPORTS = { desktop: { width: 1440, height: 900 }, phone: { width: 390, height: 844 } };
 // Every glyph the console draws comes from its own line-icon set.
@@ -22,7 +23,7 @@ before(async () => {
   for (const executablePath of [process.env.CHROME_BIN, undefined]) {
     if (executablePath === '' || (executablePath && !existsSync(executablePath))) continue;
     try {
-      browser = await playwright.chromium.launch({
+      browser = await launchChromium(playwright.chromium, {
         ...(executablePath ? { executablePath } : {}),
         args: ['--no-sandbox', '--disable-dev-shm-usage', '--no-proxy-server'],
       });

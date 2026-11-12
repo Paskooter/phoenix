@@ -2,6 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { startCalendarConsole } from './fixtures/calendar-console-fixture.mjs';
+import { launchChromium } from './fixtures/chromium-launch.mjs';
 
 let browser, skip = 'Playwright is not installed';
 before(async () => {
@@ -9,7 +10,7 @@ before(async () => {
   try { playwright = await import('playwright'); } catch { return; }
   for (const executablePath of [process.env.CHROME_BIN, undefined]) {
     if (executablePath === '' || (executablePath && !existsSync(executablePath))) continue;
-    try { browser = await playwright.chromium.launch({ ...(executablePath ? { executablePath } : {}), args: ['--no-sandbox', '--disable-dev-shm-usage', '--no-proxy-server'] }); break; }
+    try { browser = await launchChromium(playwright.chromium, { ...(executablePath ? { executablePath } : {}), args: ['--no-sandbox', '--disable-dev-shm-usage', '--no-proxy-server'] }); break; }
     catch (error) { skip = error.message.split('\n')[0]; }
   }
 });
