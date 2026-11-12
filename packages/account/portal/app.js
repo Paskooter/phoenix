@@ -4656,21 +4656,9 @@ async function renderAdminOverview() {
     }
     const activityCard = card('Voice activity', { actions: [h('a', { class: 'ov-link', href: '#/admin/voice-turns' }, 'Details', icon('arrow', 13))] }, activity);
 
-    const asr = d.asr;
-    const usage = asr?.google?.usage;
-    const minutes = (seconds) => Number.isFinite(seconds) ? (seconds / 60).toFixed(1) : 'unknown';
-    const recognizerLabel = { parakeet: 'Parakeet', auto: 'Parakeet with Google fallback', google: 'Google' };
     const speechCard = card('Speech recognition', {
       actions: [h('a', { class: 'ov-link', href: '#/admin/settings?group=speech' }, 'Settings', icon('arrow', 13))],
-    }, h('p', { text: asr ? recognizerLabel[asr.mode] : 'Status is unavailable from the voice gateway.' }),
-    asr?.parakeet ? h('p', { class: 'field-hint', text: `Parakeet: ${asr.parakeet.state || 'unknown'}` }) : null,
-    usage ? h('dl', { class: 'adm-facts' },
-      h('div', {}, h('dt', { text: 'Google this month' }), h('dd', { text: `${minutes(usage.usedSeconds)} / ${minutes(usage.limitSeconds)} min` })),
-      h('div', {}, h('dt', { text: 'Google today' }), h('dd', { text: `${minutes(usage.dayUsedSeconds)} min` })),
-      h('div', {}, h('dt', { text: 'Reserved audio' }), h('dd', { text: `${minutes(usage.reservedSeconds)} min` }))) : null,
-    asr?.mode !== 'parakeet' && asr?.google ? h('p', { class: 'field-hint',
-      text: asr.google.unavailable || usage?.problem ? 'Google is unavailable. Review speech settings and the server log.'
-        : usage?.exhausted ? 'Google has reached its usage limit.' : 'Google audio is counted conservatively in Pacific calendar periods.' }) : null);
+    }, ...speechStatusParts(d.asr));
 
     /* people, robots, loops */
     const countRow = (href, iconName, label, value, note) => h('a', { class: 'adm-count', href },
@@ -4713,6 +4701,96 @@ async function renderAdminOverview() {
   }, 20_000);
 }
 
+/* -- Speech recognition status (overview) --------------------------------- */
+
+const RECOGNIZER_LABELS = { parakeet: 'Parakeet', auto: 'Parakeet with fallback', google: 'Google',
+  openrouter: 'OpenRouter', custom: 'Your own speech server' };
+const FALLBACK_NAMES = { openrouter: 'OpenRouter', custom: 'your speech server', google: 'Google' };
+/** Why OpenRouter or your own speech server is off, in a few words (asrStatusRoutes.js STT_PROBLEMS). */
+const STT_OFF_REASONS = {
+  'no-key': 'no OpenRouter key', 'no-url': 'no address set', 'invalid-url': 'its address isn’t valid',
+  disabled: 'its budget is zero', 'invalid-budget': 'its budget isn’t valid', 'not-openrouter': 'its address isn’t OpenRouter',
+  'no-usage-file': 'its usage file isn’t created yet', 'usage-file-missing': 'its usage file isn’t created yet',
+  'monthly-limit': 'this month’s budget is used', 'monthly-minutes': 'this month’s minutes are used',
+  'daily-limit': 'today’s budget is used', credentials: 'its key was refused', payment: 'the account needs credit',
+  configuration: 'the request was refused; check the model', 'rate-limited': 'paused: too many requests',
+  'too-many-reservations': 'paused: too many requests at once',
+};
+const sttOffReason = (reason) => STT_OFF_REASONS[reason]
+  || (/^usage-/.test(reason) ? 'its usage file can’t be trusted; see the server log' : 'paused after an error; see the server log');
+
+/** $0.073, $2.00: cents, or tenths of a cent below a dollar. */
+function fmtMicroUsd(micro) {
+  if (!Number.isFinite(micro)) return 'unknown';
+  const usd = micro / 1e6;
+  if (usd > 0 && usd < 0.001) return 'under $0.001';
+  return `$${usd > 0 && usd < 1 ? usd.toFixed(3).replace(/0$/, '') : usd.toFixed(2)}`;
+}
+
+/** Whether the voice gateway would use a recognizer (adminRoutes.js asrUses). */
+function speechUses(asr, provider) {
+  if (!asr) return false;
+  if (asr.mode === provider) return true;
+  if (asr.mode !== 'auto') return false;
+  return Array.isArray(asr.fallbackOrder) ? asr.fallbackOrder.includes(provider) : provider === 'google';
+}
+
+/** The overview's Speech recognition card: which recognizer answers, and what it has cost lately. */
+function speechStatusParts(asr) {
+  if (!asr) return [h('p', { text: 'Status is unavailable from the voice gateway.' })];
+  const minutes = (seconds) => Number.isFinite(seconds) ? (seconds / 60).toFixed(1) : 'unknown';
+  const parts = [h('p', { class: 'adm-speech-mode' }, h('strong', { text: RECOGNIZER_LABELS[asr.mode] || asr.mode }))];
+  if (asr.parakeet) parts.push(h('p', { class: 'field-hint', text: `Parakeet: ${asr.parakeet.state || 'unknown'}` }));
+  if (asr.mode === 'auto' && Array.isArray(asr.fallbackOrder)) {
+    const names = asr.fallbackOrder.map((name) => FALLBACK_NAMES[name]).filter(Boolean);
+    if (names.length) {
+      const list = names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')}, then ${names.at(-1)}`;
+      parts.push(h('p', { class: 'field-hint', text: `When Parakeet can’t answer: ${list}.` }));
+    }
+  }
+  const facts = [];
+  const fact = (label, value) => facts.push(h('div', {}, h('dt', { text: label }), h('dd', { text: value })));
+  const providers = [['openrouter', 'OpenRouter'], ['custom', 'Your speech server']]
+    .filter(([provider]) => asr[provider] && speechUses(asr, provider));
+  for (const [provider, name] of providers) {
+    const p = asr[provider];
+    const off = p.unavailable || p.usage?.problem || null;
+    const state = off ? `off: ${sttOffReason(off)}.` : p.usage?.exhausted ? 'limit reached.' : 'ready';
+    parts.push(h('p', { class: `field-hint adm-speech-provider${off ? ' is-off' : ''}` }, `${name}: ${state}`,
+      !off && p.model ? [' using ', h('code', { text: p.model }), '.'] : (!off && !p.usage?.exhausted ? '.' : null)));
+    const u = p.usage;
+    if (!u || u.problem) continue;
+    // Name the provider in each tile only when two of them have tiles.
+    const label = (text) => (providers.length > 1 ? `${provider === 'custom' ? 'Your server' : name}: ${text.toLowerCase()}` : text);
+    if (u.limitMicroUsd > 0) {
+      fact(label('Cost this month'), `${fmtMicroUsd(u.usedMicroUsd)} of ${fmtMicroUsd(u.limitMicroUsd)}`);
+      fact(label('Cost today'), fmtMicroUsd(u.dayUsedMicroUsd));
+    }
+    if (Number.isFinite(u.requests)) fact(label('Requests this month'), u.requests.toLocaleString('en-US'));
+    if (u.limitSeconds > 0) fact(label('Audio this month'), `${minutes(u.usedSeconds)} of ${minutes(u.limitSeconds)} min`);
+    else if (Number.isFinite(u.usedSeconds)) fact(label('Audio this month'), `${minutes(u.usedSeconds)} min`);
+  }
+  const google = asr.google;
+  const usage = google?.usage;
+  if (google && speechUses(asr, 'google')) {
+    if (usage) {
+      fact('Google this month', `${minutes(usage.usedSeconds)} / ${minutes(usage.limitSeconds)} min`);
+      fact('Google today', `${minutes(usage.dayUsedSeconds)} min`);
+      fact('Reserved audio', `${minutes(usage.reservedSeconds)} min`);
+    }
+  }
+  if (facts.length) parts.push(h('dl', { class: 'adm-facts' }, ...facts));
+  if (google && speechUses(asr, 'google')) {
+    parts.push(h('p', { class: 'field-hint',
+      text: google.unavailable || usage?.problem ? 'Google is unavailable. Review speech settings and the server log.'
+        : usage?.exhausted ? 'Google has reached its usage limit.' : 'Google audio is counted conservatively in Pacific calendar periods.' }));
+  }
+  if (speechUses(asr, 'openrouter') && asr.openrouter?.usage && !asr.openrouter.usage.problem) {
+    parts.push(h('p', { class: 'field-hint', text: 'OpenRouter costs are what OpenRouter reported, counted in UTC calendar months.' }));
+  }
+  return parts;
+}
+
 /* -- Settings ---------------------------------------------------------------- */
 
 const adminSettingsUi = { open: null, search: '', advanced: new Set(), serverOpen: false };
@@ -4741,6 +4819,23 @@ function settingDisplayValue(s) {
   const mono = ['url', 'host', 'string', 'email', 'path', 'model'].includes(s.type);
   return h('span', { class: `setting-value${mono ? ' is-mono' : ''}${s.source === 'default' ? ' is-default' : ''}`, title: String(effective) },
     `${effective}${s.type === 'number' ? unit : ''}`);
+}
+
+/** Where a model setting's list comes from, in words (configCatalog.js `models`). */
+const MODEL_SOURCES = {
+  openrouter: { loading: 'Loading OpenRouter’s models…', where: 'OpenRouter', whose: 'OpenRouter’s', noun: 'model',
+    typeHint: 'Type to search, or enter any name by hand.' },
+  endpoint: { loading: 'Asking the endpoint for its models…', where: 'The endpoint', whose: 'the endpoint’s', noun: 'model',
+    typeHint: 'Type to search, or enter any name by hand.' },
+  'openrouter-transcription': { loading: 'Loading OpenRouter’s speech models…', where: 'OpenRouter', whose: 'OpenRouter’s',
+    noun: 'speech model', typeHint: 'Type to search. The name is checked with OpenRouter when you save.', listedOnly: true },
+  'custom-transcription': { loading: 'Asking your speech server for its models…', where: 'Your speech server',
+    whose: 'your speech server’s', noun: 'model', typeHint: 'Type to search, or enter any name by hand.' },
+};
+
+/** $0.06, $0.012, $0.96, $1.20: three decimals below ten cents, so cheap models stay apart. */
+function fmtUsdPerHour(usd) {
+  return `$${usd > 0 && usd < 0.1 ? usd.toFixed(3).replace(/0$/, '') : usd.toFixed(2)}`;
 }
 
 function settingSourceTag(s, serverFile) {
@@ -4783,6 +4878,8 @@ async function renderAdminSettings(params) {
     data = result.data;
     ui.open = null;
     const restart = result.data.restart || [];
+    // Something the server couldn't check, shown beside the setting it is about.
+    if (result.data.notices?.length) data.warnings = [...result.data.notices, ...(data.warnings || [])];
     if (!result.data.saved?.length) notify('No change — that was already the value.');
     else if (restart.length) {
       const phrase = servicesPhrase(restart, serviceLabel, data.running || []);
@@ -4893,8 +4990,8 @@ async function renderAdminSettings(params) {
       autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', role: 'combobox',
       'aria-autocomplete': 'list', 'aria-expanded': 'false', 'aria-controls': listId, 'aria-label': s.label,
     });
-    const status = h('p', { class: 'field-hint model-picker-status', role: 'status',
-      text: s.models === 'openrouter' ? 'Loading OpenRouter’s models…' : 'Asking the endpoint for its models…' });
+    const source = MODEL_SOURCES[s.models] || MODEL_SOURCES.endpoint;
+    const status = h('p', { class: 'field-hint model-picker-status', role: 'status', text: source.loading });
     const list = h('ul', { class: 'model-picker-list', role: 'listbox', id: listId, hidden: true });
     let models = null;
     let shown = [];
@@ -4924,22 +5021,24 @@ async function renderAdminSettings(params) {
       h('span', { class: 'model-option-meta' },
         m.name && m.name !== m.id ? h('span', { class: 'model-option-name', text: m.name }) : null,
         m.context ? h('span', { text: `${Math.round(m.context / 1000)}k context` }) : null,
+        Number.isFinite(m.usdPerHour) ? h('span', { text: `${fmtUsdPerHour(m.usdPerHour)} per hour of audio` })
+          : source.listedOnly ? h('span', { text: 'priced by tokens' }) : null,
         m.free ? h('span', { class: 'pill pill-free', text: 'Free' }) : null))));
       list.hidden = !shown.length;
       input.setAttribute('aria-expanded', String(!list.hidden));
       if (active >= 0) input.setAttribute('aria-activedescendant', `${listId}-${active}`);
       else input.removeAttribute('aria-activedescendant');
       list.querySelector('.is-active')?.scrollIntoView({ block: 'nearest' });
-      const where = s.models === 'openrouter' ? 'OpenRouter' : 'The endpoint';
       // The saved model may be one the endpoint does not list (OpenRouter's decision models aren't).
       const saved = String(s.value ?? (s.source === 'default' ? s.default ?? '' : ''));
       const unlisted = !!saved && current === saved && !models.some((m) => m.id === saved);
       status.textContent = unlisted
-        ? `${current} isn’t in ${s.models === 'openrouter' ? 'OpenRouter’s' : 'the endpoint’s'} list of ${models.length.toLocaleString('en-US')} models. It stays as it is unless you choose another.`
+        ? `${current} isn’t in ${source.whose} list of ${models.length.toLocaleString('en-US')} models. It stays as it is unless you choose another.`
         : !matches.length
-        ? `No listed model matches. You can still save “${typed}” by hand.`
+        ? (source.listedOnly ? `No speech model ${source.where} lists matches “${typed}”. Choose one from the list.`
+          : `No listed model matches. You can still save “${typed}” by hand.`)
         : exact || !terms.length
-          ? `${where} offers ${models.length.toLocaleString('en-US')} model${models.length === 1 ? '' : 's'}${s.modelFilter === 'free' ? ' that cost nothing' : ''}. Type to search, or enter any name by hand.`
+          ? `${source.where} offers ${models.length.toLocaleString('en-US')} ${source.noun}${models.length === 1 ? '' : 's'}${s.modelFilter === 'free' ? ' that cost nothing' : ''}. ${source.typeHint}`
           : `${matches.length.toLocaleString('en-US')} of ${models.length.toLocaleString('en-US')} models match${matches.length > shown.length ? `; showing the first ${shown.length}` : ''}.`;
     }
     input.addEventListener('input', () => { active = -1; showError(''); render(); });

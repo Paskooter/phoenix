@@ -86,6 +86,7 @@ export class TranscriptionUsageMeter {
     this.log = log;
     this.fs = fsImpl;
     this.error = null;
+    this.loaded = false;
     this.state = emptyState(periodKeys(this.now(), this.timeZone));
     this._load();
   }
@@ -95,6 +96,14 @@ export class TranscriptionUsageMeter {
     let raw;
     try { raw = this.fs.readFileSync(this.file, 'utf8'); }
     catch (err) {
+      // A file never created is the normal state of a server that hasn't set this up:
+      // worth a note, not an error. The console's overview says how to create it. A
+      // file that disappears after it was read is an error.
+      if (err?.code === 'ENOENT' && !this.loaded) {
+        this.error = 'usage-file-missing';
+        this.log?.info?.(`${this.label} speech usage file has not been created; it stays off until it is`);
+        return;
+      }
       this.error = err?.code === 'ENOENT' ? 'usage-file-missing' : 'usage-file-unreadable';
       this.log?.error?.(`${this.label} speech usage file cannot be read; it stays off`, { code: err?.code || 'EIO' });
       return;
@@ -125,6 +134,7 @@ export class TranscriptionUsageMeter {
         month: saved.month, monthMicroUsd: saved.monthMicroUsd, monthSeconds: saved.monthSeconds,
         day: saved.day, dayMicroUsd: saved.dayMicroUsd, requests: saved.requests, warned: saved.warned, pending,
       };
+      this.loaded = true;
     } catch {
       this.error = 'usage-file-invalid';
       this.log?.error?.(`${this.label} speech usage file is invalid; it stays off until it is reconciled`);

@@ -3186,6 +3186,8 @@ pre.json {
 .adm-legend { display: flex; flex-wrap: wrap; gap: .3rem .9rem; list-style: none; margin: 0; padding: 0; font-size: var(--t-xs); color: var(--muted); }
 .adm-legend li { display: inline-flex; align-items: center; gap: .35rem; }
 .adm-legend li::before { content: ""; width: 8px; height: 8px; border-radius: 50%; }
+.adm-speech-provider code { font-size: var(--t-xs); overflow-wrap: anywhere; }
+.adm-speech-provider.is-off { color: var(--warn); }
 .adm-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; margin: 0; }
 .adm-facts > div { padding: .6rem .7rem; border-radius: var(--radius-xs); background: var(--panel-2); }
 .adm-facts dt { font-size: var(--t-xs); color: var(--muted); }
@@ -3444,6 +3446,12 @@ pre.json {
 .model-option-meta { display: inline-flex; align-items: baseline; gap: .5rem; flex: none; font-size: var(--t-xs); color: var(--muted); }
 .model-option-name { max-width: 16rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .model-option .pill-free { font-size: 10px; padding: 0 .4rem; color: var(--accent-readable, var(--accent)); }
+/* On a phone the name and price go under the model id, or the id is squeezed to one letter a line. */
+@media (max-width: 600px) {
+  .model-option { flex-direction: column; align-items: flex-start; gap: .15rem; }
+  .model-option-meta { flex-wrap: wrap; gap: .1rem .5rem; }
+  .model-option-name { max-width: 100%; }
+}
 
 .adm-server { display: grid; gap: 1rem; }
 .adm-server-intro {

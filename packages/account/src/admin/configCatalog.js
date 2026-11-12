@@ -191,8 +191,11 @@ export const GROUP_IDS = new Set(GROUPS.map((group) => group.id));
  * @property {string}  [placeholder]
  * @property {number}  [min] @property {number} [max] @property {boolean} [integer]
  * @property {string}  [unit]      shown after a number: 'ms', 'days'
- * @property {string}  [models]    for type 'model': where its choices come from, 'openrouter'
- *                                 or 'endpoint' (the Language models endpoint, LLM_URL)
+ * @property {string}  [models]    for type 'model': where its choices come from: 'openrouter',
+ *                                 'endpoint' (the Language models endpoint, LLM_URL),
+ *                                 'openrouter-transcription' (OpenRouter's speech-to-text models; a
+ *                                 choice is checked against that list when it is saved) or
+ *                                 'custom-transcription' (the speech server at PHOENIX_CUSTOM_STT_URL)
  * @property {string}  [modelFilter] 'free': offer only models that cost nothing
  * @property {string}  [replacedBy] an older setting another one replaced. The console only
  *                                 shows it, and may remove a value saved here; the services
@@ -216,11 +219,75 @@ export const SETTINGS = [
     editable: true, restart: ['hub'], default: 'parakeet',
     options: [
       { value: 'parakeet', label: 'Parakeet', hint: 'Use the self-hosted recognizer.' },
-      { value: 'auto', label: 'Parakeet with Google fallback', hint: 'Send audio to Google when Parakeet cannot answer, within the usage limits.' },
+      { value: 'auto', label: 'Parakeet with fallback', hint: 'When Parakeet can’t answer, use the fallbacks below in order, within their limits.' },
       { value: 'google', label: 'Google', hint: 'Use Google and leave the GPU free, within the usage limits.' },
+      { value: 'openrouter', label: 'OpenRouter', hint: 'Send each recording to a speech model on OpenRouter, with the OpenRouter key, within the monthly budget.' },
+      { value: 'custom', label: 'Your own speech server', hint: 'Any server with an OpenAI-style /v1/audio/transcriptions address.' },
     ],
-    help: 'Google sends recordings and recognition hints to Google Cloud. Set up its project and credentials '
-      + 'on the server first. A saved choice takes effect when the voice gateway restarts.',
+    help: 'Google receives recordings and recognition hints. OpenRouter and your own server receive recordings '
+      + 'only: they don’t support hints, so Jibo’s expected words aren’t sent. A saved choice takes effect '
+      + 'when the voice gateway restarts.',
+  },
+  {
+    key: 'PHOENIX_ASR_FALLBACK_ORDER', label: 'Fallback order', group: 'speech', type: 'enum',
+    editable: true, restart: ['hub'], default: 'openrouter,google',
+    options: [
+      { value: 'openrouter,google', label: 'OpenRouter, then Google' },
+      { value: 'google,openrouter', label: 'Google, then OpenRouter' },
+      { value: 'openrouter', label: 'OpenRouter only' },
+      { value: 'google', label: 'Google only' },
+      { value: 'custom,openrouter,google', label: 'Your server, then OpenRouter, then Google' },
+      { value: 'custom,google', label: 'Your server, then Google' },
+      { value: 'custom', label: 'Your server only' },
+    ],
+    help: 'Used with “Parakeet with fallback”: who answers while Parakeet can’t. A fallback that isn’t set up '
+      + 'is skipped.',
+  },
+  {
+    key: 'PHOENIX_OPENROUTER_STT_MODEL', label: 'OpenRouter speech model', group: 'speech', type: 'model',
+    models: 'openrouter-transcription', editable: true, restart: ['hub'], default: 'nvidia/parakeet-tdt-0.6b-v3',
+    help: 'Uses the OpenRouter key under Language models. Checked against OpenRouter’s list of speech-to-text '
+      + 'models when you save. Parakeet TDT is the same family as the self-hosted recognizer and costs about '
+      + '$0.06 per hour of audio.',
+  },
+  {
+    key: 'PHOENIX_OPENROUTER_STT_MONTHLY_USD', label: 'OpenRouter speech monthly budget', group: 'speech',
+    type: 'number', editable: true, restart: ['hub'], default: '2', min: 0, max: 1000, unit: 'USD',
+    help: 'Speech recognition through OpenRouter stops for the rest of the month (UTC) once it has cost this '
+      + 'much. Set 0 to turn it off. Also set a limit on the key in your OpenRouter account.',
+  },
+  {
+    key: 'PHOENIX_OPENROUTER_STT_DAILY_USD', label: 'OpenRouter speech daily budget', group: 'speech',
+    type: 'number', editable: true, restart: ['hub'], default: null, min: 0, max: 1000, unit: 'USD', advanced: true,
+    help: 'Stops one day using the whole month. Unset means one tenth of the monthly budget. Set 0 for no daily limit.',
+  },
+  {
+    key: 'PHOENIX_OPENROUTER_STT_USAGE_FILE', label: 'OpenRouter speech usage file', group: 'speech', type: 'path',
+    default: null, advanced: true,
+    help: 'Counts what OpenRouter speech recognition has cost. Defaults to PHOENIX_DATA_DIR/asr/openrouter-stt-usage.json. '
+      + 'Create it once with scripts/init-openai-stt-usage.mjs; until then OpenRouter speech stays off.',
+  },
+  {
+    key: 'PHOENIX_CUSTOM_STT_URL', label: 'Your speech server', group: 'speech', type: 'url',
+    editable: true, restart: ['hub'], default: null, placeholder: 'http://localhost:8000',
+    help: 'The address of a speech server of your own that takes OpenAI-style uploads (POST /v1/audio/transcriptions), '
+      + 'such as NVIDIA NIM, Speaches or LiteLLM. The OpenRouter key is never sent here.',
+  },
+  {
+    key: 'PHOENIX_CUSTOM_STT_API_KEY', label: 'Your speech server’s key', group: 'speech', type: 'secret',
+    editable: true, restart: ['hub'], default: null,
+    help: 'Sent only to your speech server, as a bearer token. Leave it empty if the server needs none.',
+  },
+  {
+    key: 'PHOENIX_CUSTOM_STT_MODEL', label: 'Your speech server’s model', group: 'speech', type: 'model',
+    models: 'custom-transcription', editable: true, restart: ['hub'], default: null,
+    help: 'The model name to ask your server for. Leave it empty if the server has only one.',
+  },
+  {
+    key: 'PHOENIX_CUSTOM_STT_MONTHLY_MINUTES', label: 'Your speech server’s monthly limit', group: 'speech',
+    type: 'number', editable: true, restart: ['hub'], default: null, min: 0, max: 100000, unit: 'minutes', advanced: true,
+    help: 'For a server that charges. Unset or 0 means no limit. A limit needs a usage file on the server, created '
+      + 'once with scripts/init-openai-stt-usage.mjs (PHOENIX_DATA_DIR/asr/custom-stt-usage.json).',
   },
   {
     key: 'PHOENIX_GOOGLE_STT_PROJECT', label: 'Google Cloud project', group: 'speech', type: 'string',
@@ -575,11 +642,12 @@ export const SETTINGS = [
     group: 'model',
     type: 'secret',
     editable: true,
-    restart: ['account', 'parser', 'answer-skill', 'lasso'],
+    restart: ['account', 'parser', 'answer-skill', 'lasso', 'hub'],
     default: null,
     help: 'The one key every AI feature uses: Free AI chat, the decision layer (Jev), news briefings, '
-      + 'and the endpoint below when it is OpenRouter. Each feature picks its model here. It is sent only '
-      + 'to openrouter.ai. Give it a spending limit in your OpenRouter account.',
+      + 'speech recognition through OpenRouter, and the endpoint below when it is OpenRouter. Each feature '
+      + 'picks its model: here, or under Speech recognition. It is sent only to openrouter.ai. Give it a '
+      + 'spending limit in your OpenRouter account.',
   },
   {
     key: 'PHOENIX_FREE_CHAT_MODEL',
@@ -1188,6 +1256,15 @@ export const SETTINGS = [
   },
 ];
 
+/** True for any address on openrouter.ai, whatever its path or scheme. */
+export function isOpenRouterHost(value) {
+  try {
+    return new URL(String(value)).hostname.replace(/^www\./, '').replace(/\.$/, '').toLowerCase() === 'openrouter.ai';
+  } catch {
+    return false;
+  }
+}
+
 /** True when an endpoint is OpenRouter's, so it uses the one OpenRouter key. */
 export const isOpenRouterEndpoint = isOpenRouterUrl;
 
@@ -1264,7 +1341,13 @@ export function checkTogether(values) {
   const errors = {};
   const warnings = [];
   const has = (key) => String(values[key] ?? '').trim() !== '';
-  if (['auto', 'google'].includes(values.PHOENIX_ASR_PROVIDER)) {
+  const speechMode = values.PHOENIX_ASR_PROVIDER || 'parakeet';
+  const fallbacks = String(values.PHOENIX_ASR_FALLBACK_ORDER || 'openrouter,google').split(',');
+  // Auto mode skips a fallback that isn't set up, so a provider it would only skip is not worth a
+  // warning unless someone chose the order. Google keeps its old warning in auto mode.
+  const speechUses = (provider, { chosenOrder = true } = {}) => speechMode === provider
+    || (speechMode === 'auto' && (!chosenOrder || has('PHOENIX_ASR_FALLBACK_ORDER')) && fallbacks.includes(provider));
+  if (speechUses('google', { chosenOrder: false })) {
     if (!has('PHOENIX_GOOGLE_STT_PROJECT')
       || (!has('PHOENIX_GOOGLE_STT_CREDENTIALS_FILE') && !has('GOOGLE_APPLICATION_CREDENTIALS'))) {
       warnings.push({ key: 'PHOENIX_ASR_PROVIDER', message: 'Google needs a Cloud project and a credentials file installed on the server. It stays off until both are configured.' });
@@ -1279,8 +1362,24 @@ export function checkTogether(values) {
   const speechModel = values.PHOENIX_GOOGLE_STT_MODEL || 'chirp_3';
   const speechLocation = values.PHOENIX_GOOGLE_STT_LOCATION || 'us';
   const speechLocations = speechModel === 'chirp_2' ? ['us-central1', 'europe-west4', 'asia-southeast1'] : ['us', 'eu'];
-  if (['auto', 'google'].includes(values.PHOENIX_ASR_PROVIDER) && !speechLocations.includes(speechLocation)) {
+  if (speechUses('google', { chosenOrder: false }) && !speechLocations.includes(speechLocation)) {
     errors.PHOENIX_GOOGLE_STT_LOCATION = 'choose a location supported by the selected Google model';
+  }
+
+  // OpenRouter and a speech server of your own (OpenAI-compatible transcription).
+  if (has('PHOENIX_CUSTOM_STT_URL') && isOpenRouterHost(values.PHOENIX_CUSTOM_STT_URL)) {
+    errors.PHOENIX_CUSTOM_STT_URL = 'is OpenRouter, which has its own choice: pick OpenRouter as the speech recognizer instead';
+  }
+  if (speechUses('custom') && !has('PHOENIX_CUSTOM_STT_URL')) {
+    warnings.push({ key: 'PHOENIX_CUSTOM_STT_URL', message: 'Speech recognition is set to use your own server, but its address isn’t set, so it stays off.' });
+  }
+  if (speechUses('openrouter') && values.PHOENIX_OPENROUTER_STT_MONTHLY_USD !== undefined
+    && Number(values.PHOENIX_OPENROUTER_STT_MONTHLY_USD) === 0) {
+    warnings.push({ key: 'PHOENIX_OPENROUTER_STT_MONTHLY_USD', message: 'The monthly budget is zero, so OpenRouter speech recognition is off.' });
+  }
+  if (/whisper/i.test(values.PHOENIX_OPENROUTER_STT_MODEL || '')) {
+    warnings.push({ key: 'PHOENIX_OPENROUTER_STT_MODEL', message: 'Whisper models can write words when nobody spoke, and '
+      + 'some OpenRouter providers bill every request as at least 10 seconds. Parakeet TDT avoids both.' });
   }
   if (values.PHOENIX_NEWS_BRIEFINGS_ENABLED === 'true') {
     const provider = values.PHOENIX_NEWS_PROVIDER || (has('LUMENFEED_API_KEY') ? 'lumenfeed' : 'worldnews');
@@ -1313,6 +1412,11 @@ export function checkTogether(values) {
     openRouterFeatures.push('news briefings');
   }
   if (isOpenRouterEndpoint(values.LLM_URL) && !keyFor('PHOENIX_LLM_API_KEY')) openRouterFeatures.push('the endpoint');
+  // Speech recognition has no older key of its own (asrRouter.js openRouterSettingsFromEnv).
+  if (speechUses('openrouter') && !has('OPENROUTER_API_KEY')
+    && !(isOpenRouterEndpoint(values.LLM_URL) && has('PHOENIX_LLM_API_KEY'))) {
+    openRouterFeatures.push('speech recognition through OpenRouter');
+  }
   if (openRouterFeatures.length) {
     const list = openRouterFeatures.length === 1 ? openRouterFeatures[0]
       : `${openRouterFeatures.slice(0, -1).join(', ')} and ${openRouterFeatures.at(-1)}`;

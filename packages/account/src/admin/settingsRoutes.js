@@ -10,6 +10,11 @@
 //                                      endpoint (GET <endpoint>/models). Unavailable is not an
 //                                      error: the console then asks for the name by hand.
 //
+// The OpenRouter speech model is also checked when it is saved, against OpenRouter's
+// list of speech-to-text models: a name it doesn't list is refused, so a typo can't
+// turn speech recognition off later. When the list can't be fetched, the name is
+// saved as typed and the answer says so (`notices`).
+//
 // A setting's value comes from, in order: what was saved here (consoleSettings.js),
 // the server's environment file, or the built-in default. Saving here never edits
 // the environment file. A saved change takes effect when the services that read it
@@ -24,9 +29,9 @@
 // once (openRouterMigration.js).
 
 import { logger } from '@phoenix/common';
-import { OPENROUTER_API_URL, isOpenRouterHost } from '@phoenix/contracts';
+import { OPENROUTER_API_URL } from '@phoenix/contracts';
 import {
-  BY_KEY, GROUPS, SERVICES, SERVICE_IDS, SETTINGS, checkTogether, servicesFor, validate,
+  BY_KEY, GROUPS, SERVICES, SERVICE_IDS, SETTINGS, checkTogether, isOpenRouterHost, servicesFor, validate,
 } from './configCatalog.js';
 import {
   applyConsoleChanges, consoleSettingsFile, readConsoleSettings, writeConsoleSettings,
@@ -177,6 +182,14 @@ const MODEL_LIST_MAX_BYTES = 16 * 1024 * 1024;
 const MODEL_LIST_MAX = 3000;
 const MODEL_LIST_CACHE_MS = 10 * 60_000;
 const modelCache = new Map();
+/** OpenRouter lists its speech-to-text models only when asked for this output. */
+export const OPENROUTER_TRANSCRIPTION_QUERY = 'output_modalities=transcription';
+/**
+ * Phoenix holds back $1.00 per hour of audio before each request and enforces the
+ * monthly budget with it (gateway openAiCompatibleTransport.js), so a dearer model
+ * would spend past the budget before it is counted.
+ */
+export const MAX_TRANSCRIPTION_USD_PER_HOUR = 1;
 
 /** Where a list came from, for the console: scheme, host and path only. */
 function endpointLabel(endpoint) {
@@ -210,7 +223,7 @@ async function boundedJson(response, maxBytes) {
 const isZero = (value) => value !== undefined && value !== null && value !== '' && Number(value) === 0;
 
 /** One model as the console shows it. Accepts OpenAI's shape, and OpenRouter's richer one. */
-function modelEntry(raw) {
+function modelEntry(raw, { audio = false } = {}) {
   if (!raw || typeof raw !== 'object' || typeof raw.id !== 'string') return null;
   const id = raw.id.trim();
   if (!/^[\x21-\x7e]{1,200}$/.test(id)) return null;
@@ -219,6 +232,11 @@ function modelEntry(raw) {
   if (typeof raw.name === 'string' && raw.name.trim() && raw.name.length <= 200) out.name = raw.name.trim();
   if (Number.isSafeInteger(raw.context_length) && raw.context_length > 0) out.context = raw.context_length;
   out.free = id.endsWith(':free') || !!(pricing && isZero(pricing.prompt) && isZero(pricing.completion));
+  // A speech model priced per second of audio (no reply-token price): dollars per hour.
+  if (audio && pricing && !(Number(pricing.completion) > 0)) {
+    const perSecond = Number(pricing.prompt);
+    if (pricing.prompt !== '' && Number.isFinite(perSecond) && perSecond >= 0) out.usdPerHour = Math.round(perSecond * 3600 * 1e4) / 1e4;
+  }
   return out;
 }
 
@@ -226,8 +244,10 @@ function modelEntry(raw) {
  * GET <endpoint>/models, bounded in time and size, never following a redirect.
  * @returns {Promise<{ok: true, models: object[]} | {ok: false, message: string}>}
  */
-export async function listModels(endpoint, { apiKey = '', fetchImpl = fetch, cache = null, now = Date.now } = {}) {
-  const target = `${String(endpoint).replace(/\/+$/, '')}/models`;
+export async function listModels(endpoint, {
+  apiKey = '', fetchImpl = fetch, cache = null, now = Date.now, query = '', audio = false,
+} = {}) {
+  const target = `${String(endpoint).replace(/\/+$/, '')}/models${query ? `?${query}` : ''}`;
   const cacheKey = `${target}\n${apiKey ? 'key' : 'none'}`;
   const hit = cache?.get(cacheKey);
   if (hit && now() - hit.at < MODEL_LIST_CACHE_MS) return { ok: true, models: hit.models };
@@ -250,7 +270,7 @@ export async function listModels(endpoint, { apiKey = '', fetchImpl = fetch, cac
     const seen = new Set();
     const models = [];
     for (const raw of rows.slice(0, MODEL_LIST_MAX)) {
-      const entry = modelEntry(raw);
+      const entry = modelEntry(raw, { audio });
       if (!entry || seen.has(entry.id)) continue;
       seen.add(entry.id);
       models.push(entry);
@@ -268,11 +288,52 @@ export async function listModels(endpoint, { apiKey = '', fetchImpl = fetch, cac
   }
 }
 
+/** OpenRouter's speech-to-text models, priced per hour of audio where it can be told. */
+function listTranscriptionModels({ fetchImpl, cache, now }) {
+  return listModels(OPENROUTER_API_URL, { fetchImpl, cache, now, query: OPENROUTER_TRANSCRIPTION_QUERY, audio: true });
+}
+
+/**
+ * The model list address of a speech server of your own, from the address its
+ * recordings go to (gateway customTranscriptionsUrl): <base>/v1/models.
+ */
+export function customSpeechModelsBase(value) {
+  let url;
+  try { url = new URL(String(value || '').trim()); } catch { return null; }
+  if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) return null;
+  url.hash = '';
+  url.search = '';
+  let path = url.pathname.replace(/\/+$/, '').replace(/\/audio\/transcriptions$/, '');
+  if (!/\/v1$/.test(path)) path = `${path}/v1`;
+  url.pathname = path;
+  return url.href.replace(/\/+$/, '');
+}
+
+/**
+ * Is this OpenRouter speech model one Phoenix can use? Null when it is, an error
+ * when OpenRouter's list says it isn't, or a notice when the list can't be had.
+ */
+export async function checkTranscriptionModel(model, { fetchImpl = fetch, cache = null, now = Date.now } = {}) {
+  const listed = await listTranscriptionModels({ fetchImpl, cache, now });
+  if (!listed.ok) {
+    return { notice: 'OpenRouter’s list of speech models couldn’t be checked just now, so the model was saved as typed. '
+      + 'If speech recognition through OpenRouter fails, check the name.' };
+  }
+  const entry = listed.models.find((m) => m.id === model);
+  if (!entry) return { error: 'isn’t one of OpenRouter’s speech-to-text models; choose one from the list' };
+  if (entry.usdPerHour !== undefined && entry.usdPerHour > MAX_TRANSCRIPTION_USD_PER_HOUR) {
+    return { error: `costs about $${entry.usdPerHour.toLocaleString('en-US')} per hour of audio, more than the $1 per hour `
+      + 'the monthly budget can hold back for it; choose a cheaper model' };
+  }
+  return null;
+}
+
 export function adminSettingsRoutes(store, {
   requireAdmin, sendJson, currentAccount, env = process.env, now = Date.now, fetchImpl = fetch,
   control: controlFor = () => launcherControl(env),
   restart = requestRestart,
   migrate = true,
+  modelListCache = modelCache,
 }) {
   const settingsFile = () => consoleSettingsFile({ env, storeFile: store.file });
   if (migrate) migrateOpenRouterKey({ file: settingsFile(), server: readServerValues(env), now: now() });
@@ -297,6 +358,57 @@ export function adminSettingsRoutes(store, {
     };
   };
 
+  /** Validate and save a set of changes, all or nothing. */
+  const saveChanges = ({ req, res, control, changes, remoteErrors = {}, notices = [] }) => {
+    const errors = {};
+    const accepted = {};
+    for (const [key, raw] of Object.entries(changes)) {
+      const spec = BY_KEY.get(key);
+      if (!spec) { errors[key] = 'isn’t a setting this server knows'; continue; }
+      if (!spec.editable) { errors[key] = 'is part of how this server is installed, so it can’t be changed here'; continue; }
+      const value = normalizeValue(raw);
+      if (value === undefined) { errors[key] = 'must be text'; continue; }
+      if (spec.replacedBy && value !== null) {
+        errors[key] = `is replaced by the ${BY_KEY.get(spec.replacedBy)?.label || spec.replacedBy}; set that instead`;
+        continue;
+      }
+      const problem = value === null ? null : validate(key, value);
+      if (problem) { errors[key] = problem; continue; }
+      accepted[key] = value;
+    }
+    for (const [key, message] of Object.entries(remoteErrors)) if (!errors[key]) errors[key] = message;
+    // All or nothing: half a saved change is harder to reason about than none.
+    if (Object.keys(errors).length) return sendJson(res, 400, { error: 'Some values need fixing.', errors });
+
+    const file = settingsFile();
+    const { state, error } = readConsoleSettings(file);
+    if (error) return sendJson(res, 500, { error: 'Saved settings could not be read, so nothing was saved.' });
+    const actor = currentAccount(store, req);
+    const label = actor?.email || actor?.firstName || null;
+    const next = applyConsoleChanges(state, accepted, { actor: label, now: now() });
+
+    // Settings that only fail together, checked as the services would see them.
+    const together = checkTogether(valuesToCheck(next.state, readServerValues(env)));
+    if (Object.keys(together.errors).length) {
+      return sendJson(res, 400, { error: 'Some values need fixing.', errors: together.errors });
+    }
+    if (next.changed.length) {
+      try {
+        writeConsoleSettings(file, next.state);
+      } catch {
+        return sendJson(res, 500, { error: 'The settings could not be saved on the server.' });
+      }
+      log.info('settings saved', { revision: next.state.revision, keys: next.changed.join(','), by: label || 'unknown' });
+    }
+    const launcher = readLauncherState(control);
+    return {
+      ...settingsView(),
+      saved: next.changed,
+      restart: servicesFor(next.changed).filter((id) => launcher?.services[id]),
+      ...(notices.length ? { notices } : {}),
+    };
+  };
+
   return {
     'GET /api/admin/settings': ({ req, res }) => {
       if (!requireAdmin(store, req, res)) return undefined;
@@ -312,51 +424,24 @@ export function adminSettingsRoutes(store, {
       const changes = body && typeof body.changes === 'object' && !Array.isArray(body.changes) ? body.changes : null;
       if (!changes || !Object.keys(changes).length) return sendJson(res, 400, { error: 'Nothing to save.' });
 
-      const errors = {};
-      const accepted = {};
-      for (const [key, raw] of Object.entries(changes)) {
+      // An OpenRouter speech model is checked against OpenRouter's list first. Only then is
+      // anything read or written, so this wait can't lose a change saved meanwhile.
+      const speechModels = Object.entries(changes).filter(([key, raw]) => {
         const spec = BY_KEY.get(key);
-        if (!spec) { errors[key] = 'isn’t a setting this server knows'; continue; }
-        if (!spec.editable) { errors[key] = 'is part of how this server is installed, so it can’t be changed here'; continue; }
         const value = normalizeValue(raw);
-        if (value === undefined) { errors[key] = 'must be text'; continue; }
-        if (spec.replacedBy && value !== null) {
-          errors[key] = `is replaced by the ${BY_KEY.get(spec.replacedBy)?.label || spec.replacedBy}; set that instead`;
-          continue;
+        return spec?.models === 'openrouter-transcription' && spec.editable && typeof value === 'string' && !validate(key, value);
+      });
+      if (!speechModels.length) return saveChanges({ req, res, control, changes });
+      return (async () => {
+        const remoteErrors = {};
+        const notices = [];
+        for (const [key, raw] of speechModels) {
+          const checked = await checkTranscriptionModel(normalizeValue(raw), { fetchImpl, cache: modelListCache, now });
+          if (checked?.error) remoteErrors[key] = checked.error;
+          if (checked?.notice) notices.push({ key, message: checked.notice });
         }
-        const problem = value === null ? null : validate(key, value);
-        if (problem) { errors[key] = problem; continue; }
-        accepted[key] = value;
-      }
-      // All or nothing: half a saved change is harder to reason about than none.
-      if (Object.keys(errors).length) return sendJson(res, 400, { error: 'Some values need fixing.', errors });
-
-      const file = settingsFile();
-      const { state, error } = readConsoleSettings(file);
-      if (error) return sendJson(res, 500, { error: 'Saved settings could not be read, so nothing was saved.' });
-      const actor = currentAccount(store, req);
-      const label = actor?.email || actor?.firstName || null;
-      const next = applyConsoleChanges(state, accepted, { actor: label, now: now() });
-
-      // Settings that only fail together, checked as the services would see them.
-      const together = checkTogether(valuesToCheck(next.state, readServerValues(env)));
-      if (Object.keys(together.errors).length) {
-        return sendJson(res, 400, { error: 'Some values need fixing.', errors: together.errors });
-      }
-      if (next.changed.length) {
-        try {
-          writeConsoleSettings(file, next.state);
-        } catch {
-          return sendJson(res, 500, { error: 'The settings could not be saved on the server.' });
-        }
-        log.info('settings saved', { revision: next.state.revision, keys: next.changed.join(','), by: label || 'unknown' });
-      }
-      const launcher = readLauncherState(control);
-      return {
-        ...settingsView(),
-        saved: next.changed,
-        restart: servicesFor(next.changed).filter((id) => launcher?.services[id]),
-      };
+        return saveChanges({ req, res, control, changes, remoteErrors, notices });
+      })();
     },
 
     'GET /api/admin/settings/models': async ({ req, res, url }) => {
@@ -365,6 +450,21 @@ export function adminSettingsRoutes(store, {
       if (!spec || spec.type !== 'model') return sendJson(res, 400, { error: 'Name a model setting.' });
       const { state } = readConsoleSettings(settingsFile());
       const values = effectiveValues(state, readServerValues(env));
+      if (spec.models === 'openrouter-transcription') {
+        const listed = await listTranscriptionModels({ fetchImpl, cache: modelListCache, now });
+        if (!listed.ok) return { available: false, endpoint: endpointLabel(OPENROUTER_API_URL), message: listed.message };
+        return { available: true, endpoint: endpointLabel(OPENROUTER_API_URL), models: listed.models };
+      }
+      if (spec.models === 'custom-transcription') {
+        // Only the saved address, and its own key: never a typed address, never the OpenRouter key.
+        const saved = values.PHOENIX_CUSTOM_STT_URL || '';
+        if (!saved) return { available: false, message: 'Set your speech server’s address first, then its models are listed here.' };
+        const base = validate('PHOENIX_CUSTOM_STT_URL', saved) || isOpenRouterHost(saved) ? null : customSpeechModelsBase(saved);
+        if (!base) return { available: false, message: 'Your speech server’s address isn’t valid.' };
+        const listed = await listModels(base, { apiKey: values.PHOENIX_CUSTOM_STT_API_KEY || '', fetchImpl, cache: modelListCache, now });
+        if (!listed.ok) return { available: false, endpoint: endpointLabel(base), message: listed.message };
+        return { available: true, endpoint: endpointLabel(base), models: listed.models };
+      }
       let endpoint = OPENROUTER_API_URL;
       let apiKey = '';
       if (spec.models === 'endpoint') {
@@ -376,7 +476,7 @@ export function adminSettingsRoutes(store, {
         // OpenRouter lists its models without one, and its key never goes elsewhere.
         if (!isOpenRouterHost(endpoint) && endpoint === values.LLM_URL) apiKey = values.PHOENIX_LLM_API_KEY || '';
       }
-      const listed = await listModels(endpoint, { apiKey, fetchImpl, cache: modelCache, now });
+      const listed = await listModels(endpoint, { apiKey, fetchImpl, cache: modelListCache, now });
       if (!listed.ok) return { available: false, endpoint: endpointLabel(endpoint), message: listed.message };
       const models = spec.modelFilter === 'free' ? listed.models.filter((m) => m.free) : listed.models;
       return { available: true, endpoint: endpointLabel(endpoint), models };

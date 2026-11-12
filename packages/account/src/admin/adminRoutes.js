@@ -109,8 +109,69 @@ async function voiceSummary(env, fetchImpl) {
   };
 }
 
+/** Whether the voice gateway would use a recognizer: chosen, or a fallback in automatic mode. */
+export function asrUses(asr, provider) {
+  if (!asr) return false;
+  if (asr.mode === provider) return true;
+  if (asr.mode !== 'auto') return false;
+  // A voice gateway from before the fallback order always fell back to Google.
+  if (!Array.isArray(asr.fallbackOrder)) return provider === 'google';
+  return asr.fallbackOrder.includes(provider);
+}
+
+const STT_NAMES = { openrouter: 'OpenRouter speech recognition', custom: 'Your speech server' };
+/** Reasons a fallback merely isn't set up: worth nothing in automatic mode. */
+const STT_NOT_SET_UP = new Set(['no-key', 'no-url', 'disabled']);
+
+/** Why OpenRouter or your own speech server can't answer, in words; null when it can. */
+export function sttProblemText(reason) {
+  switch (reason) {
+    case null: case undefined: return null;
+    case 'no-key': return 'There is no OpenRouter key. Add one under Language models.';
+    case 'no-url': return 'Its address isn’t set.';
+    case 'invalid-url': return 'Its address isn’t a valid web address.';
+    case 'disabled': return 'Its monthly budget is zero.';
+    case 'invalid-budget': return 'Its budget setting isn’t a number Phoenix can use.';
+    case 'no-usage-file': case 'usage-file-missing':
+      return 'Its usage file hasn’t been created on the server yet, so its spending can’t be counted. '
+        + 'Create it once with scripts/init-openai-stt-usage.mjs.';
+    case 'usage-file-unreadable': case 'usage-file-invalid': case 'usage-file-unwritable': case 'usage-file-busy':
+    case 'usage-clock-backwards':
+      return 'Its usage file can’t be trusted right now, so it stays off. The server log says why.';
+    case 'monthly-limit': case 'monthly-minutes': return 'It has used this month’s budget.';
+    case 'daily-limit': return 'It has used today’s budget.';
+    case 'credentials': return 'The key was refused. Check it, then restart the voice gateway.';
+    case 'payment': return 'OpenRouter says the account needs credit.';
+    case 'configuration': return 'The request was refused. Check the model name.';
+    case 'rate-limited': return 'It was asked too often and is paused for a moment.';
+    default: return 'It failed just now and is paused for a moment. The server log says why.';
+  }
+}
+
+function sttAttention(asr, provider) {
+  if (!asrUses(asr, provider)) return null;
+  const status = asr[provider];
+  if (!status) return null;
+  const reason = status.unavailable || status.usage?.problem || null;
+  const chosen = asr.mode === provider;
+  if (reason) {
+    // In automatic mode a fallback nobody set up is simply skipped.
+    if (!chosen && STT_NOT_SET_UP.has(reason)) return null;
+    // A fallback whose usage file was never created was never on: worth knowing, not a fault.
+    const neverOn = reason === 'usage-file-missing' || reason === 'no-usage-file';
+    return { level: chosen ? 'error' : neverOn ? 'info' : 'warn',
+      title: `${STT_NAMES[provider]} is off${chosen ? ', so Jibo can’t understand anyone' : ''}`,
+      body: sttProblemText(reason) };
+  }
+  if (status.usage?.exhausted) {
+    return { level: chosen ? 'error' : 'warn', title: `${STT_NAMES[provider]} has reached its limit`,
+      body: status.usage.exhausted === 'day' ? 'It starts again tomorrow (UTC).' : 'It starts again next month (UTC).' };
+  }
+  return null;
+}
+
 /** Things an administrator should know about, most serious first. */
-function attentionItems({ status, control, settingsError, pendingByService, effective, adminCount, disk, serverFile, launcherStartedAt, asr }) {
+export function attentionItems({ status, control, settingsError, pendingByService, effective, adminCount, disk, serverFile, launcherStartedAt, asr }) {
   const items = [];
   const label = (id) => SERVICES[id]?.label || id;
 
@@ -172,12 +233,12 @@ function attentionItems({ status, control, settingsError, pendingByService, effe
     });
   }
 
-  if (!effective.PARAKEET_URL && effective.PHOENIX_ASR_PROVIDER !== 'google') {
+  if (!effective.PARAKEET_URL && !['google', 'openrouter', 'custom'].includes(effective.PHOENIX_ASR_PROVIDER)) {
     items.push({ level: 'warn', title: 'Speech recognition isn’t set up',
       body: 'Without a recognition server, Jibo hears “Hey Jibo” but not the question.',
       action: { label: 'Set it up', href: '#/admin/settings?group=speech' } });
   }
-  if (asr?.mode !== 'parakeet' && asr?.google) {
+  if (asrUses(asr, 'google') && asr.google) {
     if (asr.google.unavailable || asr.google.usage?.problem) {
       items.push({ level: 'warn', title: 'Google speech is unavailable',
         body: 'Google recognition is disabled, needs configuration, or cannot trust its usage ledger. Review the speech settings and server logs.',
@@ -187,6 +248,10 @@ function attentionItems({ status, control, settingsError, pendingByService, effe
         body: 'Google recognition stops at the daily or monthly limit. Parakeet can still answer in automatic mode.',
         action: { label: 'Review speech settings', href: '#/admin/settings?group=speech' } });
     }
+  }
+  for (const provider of ['openrouter', 'custom']) {
+    const item = sttAttention(asr, provider);
+    if (item) items.push({ ...item, action: { label: 'Review speech settings', href: '#/admin/settings?group=speech' } });
   }
   if (!effective.ETCO_account_mailSmtpHost) {
     items.push({ level: 'warn', title: 'Email isn’t set up',
