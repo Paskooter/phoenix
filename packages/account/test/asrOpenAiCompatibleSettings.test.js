@@ -259,6 +259,22 @@ test('settings that only fail together: OpenRouter as your own server, a missing
   assert.equal(message({ PHOENIX_ASR_PROVIDER: 'auto', PHOENIX_ASR_FALLBACK_ORDER: 'custom' }, 'PHOENIX_ASR_PROVIDER'), undefined);
 });
 
+test('the missing-key warning for OpenRouter speech reads the shared endpoint as the voice gateway does', () => {
+  // The services read PHOENIX_LLM_URL before LLM_URL to decide whose key PHOENIX_LLM_API_KEY is.
+  const warned = (values) => (checkTogether(values).warnings.find((w) => w.key === 'OPENROUTER_API_KEY')?.message || '')
+    .includes('Speech recognition');
+  const gatewayHasKey = (values) => !!asrSettingsFromEnv(values).openrouter.apiKey();
+  const sharedKey = 'fixture-shared-endpoint-key-0003';
+  const customFirst = { PHOENIX_ASR_PROVIDER: 'openrouter', PHOENIX_LLM_API_KEY: sharedKey,
+    PHOENIX_LLM_URL: 'http://localhost:1234/v1', LLM_URL: 'https://openrouter.ai/api/v1' };
+  assert.equal(gatewayHasKey(customFirst), false, 'the custom endpoint’s key never reaches OpenRouter');
+  assert.equal(warned(customFirst), true, 'so the console says speech recognition has no key');
+  const openRouterShared = { PHOENIX_ASR_PROVIDER: 'openrouter', PHOENIX_LLM_API_KEY: sharedKey,
+    PHOENIX_LLM_URL: 'https://openrouter.ai/api/v1' };
+  assert.equal(gatewayHasKey(openRouterShared), true, 'an older server’s OpenRouter endpoint key still works');
+  assert.equal(warned(openRouterShared), false, 'so the console doesn’t warn');
+});
+
 /** A voice gateway's status in OpenRouter mode, with things the console must never show. */
 const openRouterStatus = (overrides = {}) => ({
   mode: 'openrouter', parakeet: null, transcript: 'hidden words',
