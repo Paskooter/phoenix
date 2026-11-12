@@ -1412,9 +1412,9 @@ export function checkTogether(values) {
     openRouterFeatures.push('news briefings');
   }
   if (isOpenRouterEndpoint(values.LLM_URL) && !keyFor('PHOENIX_LLM_API_KEY')) openRouterFeatures.push('the endpoint');
-  // Speech recognition has no older key of its own (asrRouter.js openRouterSettingsFromEnv).
-  if (speechUses('openrouter') && !has('OPENROUTER_API_KEY')
-    && !(isOpenRouterEndpoint(values.LLM_URL) && has('PHOENIX_LLM_API_KEY'))) {
+  // Speech recognition has no older key of its own (asrRouter.js openRouterSettingsFromEnv):
+  // only the shared endpoint's, and only when that endpoint is OpenRouter.
+  if (speechUses('openrouter') && !has('OPENROUTER_API_KEY') && !sharedKeyForOpenRouter(values)) {
     openRouterFeatures.push('speech recognition through OpenRouter');
   }
   if (openRouterFeatures.length) {
