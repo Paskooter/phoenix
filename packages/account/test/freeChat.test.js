@@ -192,6 +192,26 @@ test('concurrent accounts cannot exceed global daily cap and free answers remain
   f.advance(60000); const freeAgain = await f.robot(); assert.equal(freeAgain.status, 200, JSON.stringify(await freeAgain.json()));
 });
 
+test('by default the paid overflow stops at $1 a day: 18 reserved attempts, never a 19th', async t => {
+  // The overflow shares one dedicated OpenRouter key with other features, so its
+  // default daily ceiling stays small: 18 x 52,685 micro-USD fits under $1, 19 do not.
+  const f = await fixture(t);
+  f.responder((_req, res, request) => {
+    if (request.body.model.endsWith(':free')) { res.statusCode = 429; res.end('Synthetic private error'); }
+    else res.end(JSON.stringify({ choices: [{ message: { content: '{"text":"Paid mock answer","keepTalking":false}' }, finish_reason: 'stop' }] }));
+  });
+  const day = new Date(f.config.now()).toISOString().slice(0, 10);
+  const spent = 17 * 52685;
+  writeFileSync(join(f.root, 'usage.json'), JSON.stringify({ ...counters(), day, dayRequests: 17, dayMicroUsd: spent,
+    version: 1, lifetimeMicroUsd: spent, accounts: {} }));
+  await f.restart();
+  assert.equal((await f.robot()).status, 200, 'the 18th paid attempt of the day is admitted');
+  assert.equal(JSON.parse(readFileSync(join(f.root, 'usage.json'))).dayMicroUsd, 18 * 52685);
+  f.advance(60000);
+  assert.equal((await f.robot()).status, 503, 'the 19th would pass $1, so it is refused');
+  assert.equal(f.requests.filter(r => !r.body.model.endsWith(':free')).length, 1, 'only one paid request was sent');
+});
+
 test('own key is encrypted, never returned, survives restart and bypasses only owner allowance', async t => {
   const f = await fixture(t, { accountDailyRequests: 1, dailyCapMicroUsd: 0, lifetimeCapMicroUsd: 0 });
   assert.equal((await f.robot()).status, 200); assert.equal((await f.robot()).status, 429);
