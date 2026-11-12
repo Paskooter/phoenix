@@ -268,3 +268,50 @@ test('the one key never goes to OpenRouter over plain http', () => {
   assert.equal(config.llm.apiKey, '');
   assert.equal(config.openRouter, false);
 });
+
+test('the console reads the shared endpoint the way the services do: PHOENIX_LLM_URL first', (t) => {
+  // The file sets a custom shared endpoint (PHOENIX_LLM_URL) with its own key, while the
+  // console's Endpoint (LLM_URL) is OpenRouter. The services treat that key as the custom
+  // endpoint's, so news gets no OpenRouter key: the console must say so, and must not move
+  // that key into the OpenRouter key.
+  const s = server(t, { envLines: ['PHOENIX_NEWS_BRIEFINGS_ENABLED=true', 'PHOENIX_NEWS_PROVIDER=curated',
+    'LLM_URL=https://openrouter.ai/api/v1', 'PHOENIX_LLM_URL=http://192.0.2.10:1234/v1', `PHOENIX_LLM_API_KEY=${CUSTOM_KEY}`] });
+  const view = s.routes()['GET /api/admin/settings']({ req: {}, res: {} });
+  assert.equal(newsBriefingConfig(s.launched()).llm.apiKey, '', 'the services send news no key');
+  assert.notEqual(view.settings.find((setting) => setting.key === 'OPENROUTER_API_KEY').isSet, true,
+    'the custom endpoint’s key is not moved into the OpenRouter key');
+  assert.ok(view.warnings.some((w) => w.key === 'OPENROUTER_API_KEY' && /news briefings/i.test(w.message)),
+    'the console says news has no OpenRouter key');
+
+  // The other way round, the services do send that key to OpenRouter, so there is nothing to warn about.
+  const other = server(t, { envLines: ['PHOENIX_NEWS_BRIEFINGS_ENABLED=true', 'PHOENIX_NEWS_PROVIDER=curated',
+    'LLM_URL=http://192.0.2.10:1234/v1', 'PHOENIX_LLM_URL=https://openrouter.ai/api/v1', `PHOENIX_LLM_API_KEY=${CUSTOM_KEY}`] });
+  const otherView = other.routes({ migrate: false })['GET /api/admin/settings']({ req: {}, res: {} });
+  assert.equal(newsBriefingConfig(other.launched()).llm.apiKey, CUSTOM_KEY);
+  assert.ok(!otherView.warnings.some((w) => w.key === 'OPENROUTER_API_KEY' && /news briefings/i.test(w.message)));
+});
+
+test('no key goes to openrouter.ai over plain http, not even a custom endpoint’s', async (t) => {
+  const plain = 'http://openrouter.ai/api/v1';
+  assert.equal(resolveLlmProvider('answer', { env: { ETCO_answer_llmUrl: plain, PHOENIX_LLM_API_KEY: CUSTOM_KEY } }).apiKey, '',
+    'a service pointed at plain-http OpenRouter gets no key');
+  assert.equal(resolveLlmProvider('answer', { env: { ETCO_answer_llmUrl: 'http://WWW.OpenRouter.ai/api/v1',
+    ETCO_answer_llmApiKey: OLD_DECISION_KEY, OPENROUTER_API_KEY: JEV_KEY } }).apiKey, '');
+  assert.equal(decisionConfig({ ETCO_parser_decisionEngine: 'jev', ETCO_parser_decisionUrl: 'http://openrouter.ai/api/alpha/decisions',
+    ETCO_parser_decisionApiKey: OLD_DECISION_KEY }).apiKey, '', 'the decision layer sends no key over plain http');
+  // A custom endpoint still gets its own key.
+  assert.equal(resolveLlmProvider('answer', { env: { ETCO_answer_llmUrl: 'http://192.0.2.10:1234/v1', PHOENIX_LLM_API_KEY: CUSTOM_KEY } }).apiKey,
+    CUSTOM_KEY);
+
+  // Listing models at a plain-http OpenRouter endpoint sends no key either.
+  const s = server(t, { envLines: [`LLM_URL=${plain}`, `PHOENIX_LLM_API_KEY=${CUSTOM_KEY}`] });
+  const requests = [];
+  const fetchImpl = async (url, init) => {
+    requests.push({ url: String(url), authorization: init.headers.authorization ?? null });
+    return new Response(JSON.stringify({ data: [{ id: 'vendor/model' }] }), { status: 200, headers: { 'content-type': 'application/json' } });
+  };
+  const listed = await s.routes({ fetchImpl, migrate: false })['GET /api/admin/settings/models']({ req: {}, res: {},
+    url: new URL('http://x/api/admin/settings/models?key=LLM_MODEL') });
+  assert.equal(listed.available, true);
+  assert.deepEqual(requests, [{ url: `${plain}/models`, authorization: null }]);
+});
