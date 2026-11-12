@@ -257,6 +257,16 @@ const NUMERIC = new RegExp([
   String.raw`(?<phone>(?<!\d)(?:\+?1[\s.-]?)?(?:\(\d{3}\)\s?|\d{3}[\s.-])\d{3}[\s.-]\d{4}(?!\d)|(?<![\d-])\d{3}-\d{4}(?![\d-]))`,
   // clock times: 7:30, 12:05, 1:30:15
   String.raw`(?<![\d.,:])(?<hh>\d{1,2}):(?<mm>\d{2})(?::(?<ss>\d{2}))?(?![\d:])`,
+  // clock times some recognizers write with a dot ("7.30" for "seven thirty").
+  // Only read as a time, never a decimal, when the context says so: right
+  // after "at/for/until/till" ("set an alarm for 7.30"), or right before
+  // am/pm ("7.30 pm"). MM must be exactly two digits, 00-59 (a real decimal's
+  // fractional part rarely lands in that shape, and even when it does -- e.g.
+  // "2.50" -- it still needs one of these two contexts to be read as a time).
+  // Two named groups because a JS regex cannot reuse one capture name across
+  // top-level alternatives on this engine.
+  String.raw`(?<=\b(?:[Aa]t|[Ff]or|[Uu]ntil|[Tt]ill)\s)(?<![\d.,:])(?<dotHHa>\d{1,2})\.(?<dotMMa>[0-5]\d)(?!\d)`,
+  String.raw`(?<![\d.,:])(?<dotHHb>\d{1,2})\.(?<dotMMb>[0-5]\d)(?!\d)(?=\s?[AaPp]\.?\s?[Mm]\.?\b)`,
   // ordinals: 1st, 22nd, 4th
   String.raw`(?<![\d.,])(?<ord>\d+)(?:st|nd|rd|th)\b`,
   // decades and plurals: 90s, '90s, 1990s, 100s
@@ -299,6 +309,12 @@ export function verbalizeNumbers(text) {
     if (groups.hh !== undefined) {
       const ahead = input.slice(offset + match.length);
       return pad(timeWords(groups.hh, groups.mm, groups.ss, MERIDIEM_AHEAD.test(ahead)));
+    }
+    if (groups.dotHHa !== undefined || groups.dotHHb !== undefined) {
+      const hh = groups.dotHHa ?? groups.dotHHb;
+      const mm = groups.dotMMa ?? groups.dotMMb;
+      const ahead = input.slice(offset + match.length);
+      return pad(timeWords(hh, mm, undefined, MERIDIEM_AHEAD.test(ahead)));
     }
     if (groups.ord) return pad(ordinalWords(groups.ord));
     if (groups.decade) return pad(decadeWords(groups.decade));

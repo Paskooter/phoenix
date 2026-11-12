@@ -168,8 +168,13 @@ test('the OpenRouter speech model is checked against OpenRouter’s list when it
   }
   const accepted = await s.put({ PHOENIX_OPENROUTER_STT_MODEL: 'openai/gpt-4o-mini-transcribe' });
   assert.deepEqual(accepted.saved, ['PHOENIX_OPENROUTER_STT_MODEL'], 'a listed, token-priced model is accepted');
+  assert.match(accepted.warnings.find((w) => w.key === 'PHOENIX_OPENROUTER_STT_MODEL').message, /not currently working through OpenRouter/,
+    'gpt-4o-mini-transcribe is marked as broken on OpenRouter (provider 429 on every call, seen 2026-11-12)');
   const whisper = await s.put({ PHOENIX_OPENROUTER_STT_MODEL: 'openai/whisper-large-v3-turbo' });
   assert.match(whisper.warnings.find((w) => w.key === 'PHOENIX_OPENROUTER_STT_MODEL').message, /at least 10 seconds/);
+  const qwen = await s.put({ PHOENIX_OPENROUTER_STT_MODEL: 'qwen/qwen3-asr-0.6b' });
+  assert.match(qwen.warnings.find((w) => w.key === 'PHOENIX_OPENROUTER_STT_MODEL').message, /"The\."/,
+    'qwen3-asr gets a warning like Whisper\'s: it writes "The." when nobody spoke');
 
   // OpenRouter is asked for its speech-to-text list, without any key, never following a redirect.
   assert.ok(s.requests.length >= 1);

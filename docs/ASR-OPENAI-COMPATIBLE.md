@@ -66,9 +66,9 @@ OpenRouter's usage file.
 
 | Model | Cost per hour of audio | Notes |
 |---|---|---|
-| `nvidia/parakeet-tdt-0.6b-v3` (default) | about $0.06 | The same family as Phoenix's own Parakeet, and like it, not known for writing words when nobody spoke. |
-| `qwen/qwen3-asr-0.6b` | about $0.012 | A cheaper alternative. |
-| `openai/gpt-4o-mini-transcribe` | priced per token, not per second | OpenRouter shows no hourly price for it. |
+| `nvidia/parakeet-tdt-0.6b-v3` (default) | about $0.06 | The same family as Phoenix's own Parakeet, and like it, not known for writing words when nobody spoke. Recommended. |
+| `qwen/qwen3-asr-0.6b` | about $0.012 | **Not recommended:** in a live test it wrote `"The."` on every clip with no speech (silence and background noise alike). Phoenix treats a real empty answer as "listen again", so Jibo would act on "the" instead of listening again. The console warns when it is chosen. |
+| `openai/gpt-4o-mini-transcribe` | priced per token, not per second | **Not currently working through OpenRouter:** every request was refused with "too many requests" from the provider in a live test on 2026-11-12 (none were billed). The console warns when it is chosen; re-test before relying on it. |
 | Whisper models | from about $0.012 | Not recommended: they can write words when nobody spoke, and some of the companies behind them bill every recording as at least 10 seconds. The console warns when one is chosen. |
 
 Prices are from OpenRouter's list on 2026-11-12 and change; the model list in the console shows

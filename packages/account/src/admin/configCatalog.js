@@ -1381,6 +1381,16 @@ export function checkTogether(values) {
     warnings.push({ key: 'PHOENIX_OPENROUTER_STT_MODEL', message: 'Whisper models can write words when nobody spoke, and '
       + 'some OpenRouter providers bill every request as at least 10 seconds. Parakeet TDT avoids both.' });
   }
+  if (/qwen3-asr/i.test(values.PHOENIX_OPENROUTER_STT_MODEL || '')) {
+    warnings.push({ key: 'PHOENIX_OPENROUTER_STT_MODEL', message: 'Qwen3 ASR writes "The." when nobody spoke (seen on silence and on '
+      + 'background noise in a live test). Phoenix treats a real empty answer as "listen again", so this model makes Jibo act on '
+      + '"the" instead. Parakeet TDT avoids this.' });
+  }
+  if (/^openai\/gpt-4o-mini-transcribe$/i.test(values.PHOENIX_OPENROUTER_STT_MODEL || '')) {
+    warnings.push({ key: 'PHOENIX_OPENROUTER_STT_MODEL', message: 'This model is not currently working through OpenRouter: every request has been refused with '
+      + '"too many requests" from the provider since at least Nov 12, 2026. Phoenix pauses and falls back correctly, but no '
+      + 'request succeeds while that holds.' });
+  }
   if (values.PHOENIX_NEWS_BRIEFINGS_ENABLED === 'true') {
     const provider = values.PHOENIX_NEWS_PROVIDER || (has('LUMENFEED_API_KEY') ? 'lumenfeed' : 'worldnews');
     const key = provider === 'lumenfeed' ? 'LUMENFEED_API_KEY' : 'WORLD_NEWS_API_KEY';

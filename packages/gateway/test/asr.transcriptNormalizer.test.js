@@ -157,6 +157,26 @@ test('clock times and am/pm', (t) => table(t, [
   ['I am happy', 'i am happy'],
 ]));
 
+// Some OpenRouter/custom-endpoint recognizers (nvidia/parakeet-tdt-0.6b-v3 in
+// the live test, card t_3f969888) transcribe a spoken time with a dot instead
+// of a colon: "set an alarm for seven thirty" -> "Set an alarm for 7.30.".
+// Read as a time in exactly the contexts a time shows up; a real decimal in
+// any other context must still come out as a decimal.
+test('a dotted time ("7.30") reaches the alarm/timer intent as a clock time, not a decimal', (t) => table(t, [
+  ['Set an alarm for 7.30', 'set an alarm for seven thirty'],
+  ['Set an alarm for 7.30.', 'set an alarm for seven thirty'],
+  ['set a timer for 12.05', 'set a timer for twelve oh five'],
+  ['wake me at 6.45 a.m.', 'wake me at six forty five am'],
+  ['remind me until 9.00 pm', 'remind me until nine pm'],
+  ['7.30pm', 'seven thirty pm'],
+  ['7.30 a.m.', 'seven thirty am'],
+  // no alarm/timer context and no am/pm: still a decimal.
+  ['the answer is 7.30', 'the answer is seven point three zero'],
+  ['the ratio is 12.05', 'the ratio is twelve point zero five'],
+  ['2.5 percent', 'two point five percent'],
+  ['version 7.30', 'version seven point three zero'],
+]));
+
 test('am/pm output is accepted by both downstream consumers', () => {
   // packages/gateway/src/homeAssistantRoute.js CLOCK_TIME accepts am|pm|a.m.|p.m.
   // but not "a m"; the clock grammar accepts am and a m. "am" satisfies both.
