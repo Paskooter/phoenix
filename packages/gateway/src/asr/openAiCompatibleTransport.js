@@ -32,7 +32,7 @@
 // (never an empty success); errors are reported through onFailure, which the
 // router uses to log them and pause the provider.
 
-import { isOpenRouterUrl } from '@phoenix/contracts';
+import { isOpenRouterHost, isOpenRouterUrl } from '@phoenix/contracts';
 import { normalizeGoogleTranscript } from './transcriptNormalizer.js';
 import { pcmFromWav } from './googleTransport.js';
 import { BatchRecognizerSocket } from './batchSocket.js';
@@ -73,7 +73,7 @@ export function customTranscriptionsUrl(value) {
   let url;
   try { url = new URL(String(value || '').trim()); } catch { return null; }
   if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) return null;
-  if (url.hostname.replace(/^www\./, '').toLowerCase() === 'openrouter.ai' || isOpenRouterUrl(url.href)) return null;
+  if (isOpenRouterHost(url.href)) return null;
   url.hash = '';
   const path = url.pathname.replace(/\/+$/, '');
   if (/\/audio\/transcriptions$/.test(path)) url.pathname = path;

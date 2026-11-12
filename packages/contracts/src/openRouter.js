@@ -41,13 +41,15 @@ export function isOpenRouterUrl(url) {
 }
 
 /**
- * True for any URL on openrouter.ai, whatever its protocol. Use it to keep keys
- * away: a plain-http OpenRouter URL gets no key at all, neither the OpenRouter
- * key nor a custom endpoint's.
+ * True for any URL on openrouter.ai, whatever its protocol, port or case, and
+ * also when the host is written as a fully qualified name with a trailing dot
+ * (`openrouter.ai.`), which is the same host. Use it to keep keys away: a
+ * plain-http OpenRouter URL gets no key at all, neither the OpenRouter key nor
+ * a custom endpoint's. The console uses this same check.
  */
 export function isOpenRouterHost(url) {
   try {
-    return new URL(String(url || '')).hostname.replace(/^www\./, '').toLowerCase() === 'openrouter.ai';
+    return new URL(String(url || '')).hostname.toLowerCase().replace(/\.+$/, '').replace(/^www\./, '') === 'openrouter.ai';
   } catch {
     return false;
   }

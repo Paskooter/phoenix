@@ -24,7 +24,7 @@
 // Adding a setting: add it to the group it belongs to. The console renders
 // whatever this file declares.
 
-import { isOpenRouterUrl, sharedKeyForOpenRouter } from '@phoenix/contracts';
+import { isOpenRouterHost, isOpenRouterUrl, sharedKeyForOpenRouter } from '@phoenix/contracts';
 
 /**
  * The services the native launcher runs (scripts/run-compose-stack.sh), by the
@@ -1256,14 +1256,8 @@ export const SETTINGS = [
   },
 ];
 
-/** True for any address on openrouter.ai, whatever its path or scheme. */
-export function isOpenRouterHost(value) {
-  try {
-    return new URL(String(value)).hostname.replace(/^www\./, '').replace(/\.$/, '').toLowerCase() === 'openrouter.ai';
-  } catch {
-    return false;
-  }
-}
+/** True for any address on openrouter.ai, whatever its path or scheme: the services' own check. */
+export { isOpenRouterHost };
 
 /** True when an endpoint is OpenRouter's, so it uses the one OpenRouter key. */
 export const isOpenRouterEndpoint = isOpenRouterUrl;
