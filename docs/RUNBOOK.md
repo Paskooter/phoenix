@@ -458,7 +458,9 @@ python3 scripts/be_ota_integrity.py \
 For BE 13.1.2, the packer must report 21,604 tracked files, and the independent
 gate must report 21,590 official files, 21,604 candidate files, 14 additions, and
 zero unresolved package mains. The historical BE 13.0.2 package has 21,603
-files and 13 additions. Do not publish if any gate fails. Publish the new
+files and 13 additions. Do not publish if any gate fails. Official rows are then signed
+with the offline release key through `scripts/ota-release-kit.sh`, which reruns this gate
+first; see [OTA-RELEASE-SIGNING.md](OTA-RELEASE-SIGNING.md). Publish the new
 package with a **new** catalog ID in all three filters (`""`, `fcs`, `eau`)
 and exact OS/services dependencies aligned to 13.0.7. Confirm the replacement
 in all three filters before withdrawing the prior approved offer. Deploy

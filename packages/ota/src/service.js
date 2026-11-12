@@ -37,6 +37,7 @@ import {
   UploadStagingThrottleError, uploadStagingBudget,
 } from '@phoenix/common';
 import { parseTarget, sendAmz, sendAmzError, sendBoom, credentialsFrom } from './awsJson.js';
+import { SIGNATURE_HEADER } from './releaseSignature.js';
 import {
   AUTHORIZED_UNDER_ADMIN,
   UPDATE_BELONGS_OTHER_ACCOUNT,
@@ -537,6 +538,10 @@ export function createOtaService({
         'content-type': 'application/octet-stream',
         'content-length': entry.length,
         'cache-control': 'private, no-store',
+        // The release signature also rides on the bytes themselves. The robot's JSON client
+        // keeps only modelled Update members, and its downloader is handed a URL, so a gate in
+        // the downloader can read it here: base64 of the same phoenixSignature JSON object.
+        ...(entry.signature ? { [SIGNATURE_HEADER]: Buffer.from(JSON.stringify(entry.signature), 'utf8').toString('base64') } : {}),
       });
       try {
         await pipeline(createReadStream(entry._file), res);

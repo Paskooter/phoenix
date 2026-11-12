@@ -21,6 +21,7 @@ import { createReadStream } from 'node:fs';
 import { mkdir, readFile, stat, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { UPDATE_ALREADY_EXISTS, UpdateError } from './errors.js';
+import { SIGNATURE_FIELD, checkBinding } from './releaseSignature.js';
 
 // jiborobot/srv-update-ws src/controllers/update.ctrl.ts:11-12
 export const DEFAULT_SUBSYSTEM = 'main';
@@ -90,13 +91,15 @@ function cmpPre(a, b) {
   return 0;
 }
 
-function sha1File(file) {
+/** SHA-1 (what the robot's jibo-download-update checks) and SHA-256 (what a release signs). */
+function digestFile(file) {
   return new Promise((resolve, reject) => {
-    const h = createHash('sha1');
+    const h1 = createHash('sha1');
+    const h256 = createHash('sha256');
     const s = createReadStream(file);
-    s.on('data', (c) => h.update(c));
+    s.on('data', (c) => { h1.update(c); h256.update(c); });
     s.on('error', reject);
-    s.on('end', () => resolve(h.digest('hex')));
+    s.on('end', () => resolve({ sha1: h1.digest('hex'), sha256: h256.digest('hex') }));
   });
 }
 
@@ -149,7 +152,7 @@ export class Catalog {
       this.log.warn?.('ota: package file missing — entry unavailable until built', { id: e.id, file });
       return null;
     }
-    const sha1 = await sha1File(file);
+    const { sha1, sha256 } = await digestFile(file);
     const entry = {
       id: e.id,
       subsystem: e.subsystem,
@@ -163,12 +166,26 @@ export class Catalog {
       _file: file,
       length,
       sha1,
+      sha256,
     };
     if (e.sha1 && e.sha1 !== sha1) {
       this.log.warn?.('ota: manifest sha1 mismatch — using computed value', { id: e.id, manifest: e.sha1, computed: sha1 });
     }
+    // An official release row carries the detached signature made by scripts/sign-ota-release.mjs.
+    // The catalog holds no keys and does no crypto: it passes the signature through unchanged so
+    // the robot verifies it against its pinned keys. It does refuse to serve a signature whose
+    // signed statement cannot match this record or these bytes (rebuilt package, edited row), so
+    // the mistake shows up here instead of as an unexplained refusal on every robot.
+    if (e[SIGNATURE_FIELD] !== undefined) {
+      const bound = checkBinding(e[SIGNATURE_FIELD], entry, { length, sha256, sha1 });
+      if (bound.ok) {
+        entry.signature = e[SIGNATURE_FIELD];
+      } else {
+        this.log.warn?.('ota: release signature does not match this package — serving it unsigned', { id: e.id, reason: bound.reason });
+      }
+    }
     this.entries.push(entry);
-    this.log.info?.('ota: package ready', { id: entry.id, subsystem: entry.subsystem, toVersion: entry.toVersion, length, sha1 });
+    this.log.info?.('ota: package ready', { id: entry.id, subsystem: entry.subsystem, toVersion: entry.toVersion, length, sha1, signed: entry.signature ? entry.signature.keyId : false });
     return entry;
   }
 
@@ -338,6 +355,7 @@ export class Catalog {
       _file: file,
       length: buf.length,
       sha1: createHash('sha1').update(buf).digest('hex'),
+      sha256: createHash('sha256').update(buf).digest('hex'),
     };
     this.entries.push(entry);
     this.log.info?.('ota: update created', { id, subsystem: sub, fromVersion, toVersion, filter: flt, length: entry.length, accountId });
@@ -380,6 +398,10 @@ export class Catalog {
       // shape declares `filter`, so the client would otherwise see undefined instead of "".
       filter: e.filter || DEFAULT_FILTER,
       dependencies: e.dependencies,
+      // Phoenix extension: the official release signature, verbatim. Its signed statement holds
+      // the manifest fromVersion ("*"), toVersion (the anti-downgrade field), sha256 and length.
+      // Unsigned rows (old manifests, admin uploads) omit the member entirely.
+      ...(e.signature ? { [SIGNATURE_FIELD]: e.signature } : {}),
     };
   }
 }
