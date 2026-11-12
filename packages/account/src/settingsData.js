@@ -2,8 +2,40 @@
 // {key:{value}|{hour,min}|{lat,lng}|{credentialExists}}) the report-skill's SettingsClient reads
 // via `convertSettingsToPrefs` — and a friendly {weather,news,commute,calendar} representation
 // the portal editor uses. Defaults mirror SettingsClient.getDefaultPrefs (weather+news on).
+// One exception to "stored = wire": commuteType's number, explained below.
 
+// commuteType has two numberings, and stored records keep the first one:
+//   - Stored (this file, the console's editors): an index into COMMUTE_MODES.
+//     Every record the console has ever saved means walking = 1, transit = 3.
+//   - Wire (what Settings answers and accepts): the source
+//     personalreport.googlemaps.CommuteMode enum, which is also the
+//     report-skill manifest's choice ids (0 Drive, 1 Public transport, 2 Bike,
+//     3 Walk). The report skill reads this order.
+// Driving (0) and bicycling (2) agree; walking and transit do not. Settings
+// converts at its boundary (commuteTypeToWire / commuteTypeFromWire) so saved
+// records keep their meaning and the report skill stays the source port.
 const COMMUTE_MODES = ['driving', 'walking', 'bicycling', 'transit'];
+export const WIRE_COMMUTE_MODES = Object.freeze(['driving', 'transit', 'bicycling', 'walking']);
+
+function renumberCommuteType(data, from, to) {
+  const value = data?.commuteType?.value;
+  // Missing or out-of-range values pass through untouched, so the report
+  // treats them exactly as it did before.
+  if (!Number.isInteger(value) || value < 0 || value >= from.length) return data;
+  const next = to.indexOf(from[value]);
+  if (next === value) return data;
+  return { ...data, commuteType: { ...data.commuteType, value: next } };
+}
+
+/** Stored settings data -> the wire data Settings answers with (commuteType renumbered). */
+export function commuteTypeToWire(data) {
+  return renumberCommuteType(data, COMMUTE_MODES, WIRE_COMMUTE_MODES);
+}
+
+/** Wire settings data from an UpdateSettings caller -> stored numbering. */
+export function commuteTypeFromWire(data) {
+  return renumberCommuteType(data, WIRE_COMMUTE_MODES, COMMUTE_MODES);
+}
 
 const NEWS_CATS = ['technology', 'sports', 'business', 'science', 'entertainment', 'strange',
   'health', 'international', 'national', 'politics'];

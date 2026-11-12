@@ -12,7 +12,7 @@ import https from 'node:https';
 import { parse as legacyUrlParse, resolve as legacyUrlResolve } from 'node:url';
 import { logger } from '@phoenix/common';
 
-import { getSettingsData, setSettingsData } from './settingsData.js';
+import { commuteTypeFromWire, commuteTypeToWire, getSettingsData, setSettingsData } from './settingsData.js';
 import { isAcceptedStatus } from './model.js';
 
 const REPORT_SKILL = 'report-skill';
@@ -1088,7 +1088,8 @@ function localPerson(store) {
   };
   return {
     async getAccountProperties(context, keys) {
-      const data = getSettingsData(store, context.userId);
+      // Stored commuteType uses the console's numbering; answer in the wire enum.
+      const data = commuteTypeToWire(getSettingsData(store, context.userId));
       return Object.fromEntries(keys.map((key) => [key, data[key]]).filter(([, value]) => value !== undefined));
     },
     async getLoopProperties(context, keys) {
@@ -1096,7 +1097,8 @@ function localPerson(store) {
       return Object.fromEntries(keys.map((key) => [key, data[key]]).filter(([, value]) => value !== undefined));
     },
     async setAccountProperty(context, key, value) {
-      const data = { ...getSettingsData(store, context.userId), [key]: value };
+      const stored = commuteTypeFromWire({ [key]: value })[key];
+      const data = { ...getSettingsData(store, context.userId), [key]: stored };
       setSettingsData(store, context.userId, data);
     },
     async setLoopProperty(context, key, value) {

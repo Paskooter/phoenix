@@ -13,7 +13,7 @@
 // per-user personal report.
 
 import { createService, sendJson } from '@phoenix/common';
-import { getSettingsData, setSettingsData, dataToFriendly, friendlyToData } from './settingsData.js';
+import { commuteTypeFromWire, commuteTypeToWire, getSettingsData, setSettingsData, dataToFriendly, friendlyToData } from './settingsData.js';
 import { isAcceptedStatus } from './model.js';
 import { getSession } from './sessions.js';
 import { createSettingsProviders, isPersonRequestFatal } from './settingsProviders.js';
@@ -498,8 +498,10 @@ export function settingsAwsDispatch(store, {
       const incoming = Array.isArray(body.data)
         ? (body.data.find((s) => s.skillId === REPORT_SKILL) || {}).data
         : body.data;
-      const data = setSettingsData(store, accountId, incoming || getSettingsData(store, accountId));
-      amz(res, 200, { data: [{ skillId: REPORT_SKILL, data }] });
+      // The caller speaks the wire commuteType enum; the store keeps the console's numbering.
+      const stored = incoming ? commuteTypeFromWire(incoming) : getSettingsData(store, accountId);
+      const data = setSettingsData(store, accountId, stored);
+      amz(res, 200, { data: [{ skillId: REPORT_SKILL, data: commuteTypeToWire(data) }] });
       return true;
     }
     case 'deletesettings': {
