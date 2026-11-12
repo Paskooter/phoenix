@@ -1015,6 +1015,21 @@ const REPORT_OAUTH_ROWS = Object.freeze({
   'google:workCalendar:readonly': { title: 'Google Calendar', icon: 'googleCalendarIcon' },
   'outlook:workCalendar:readonly': { title: 'Outlook Calendar', icon: 'outlookCalendarIcon' },
 });
+// The manifest's two numeric rows are `choice` rows, not switches (same manifest, sha256 above;
+// also the recorded Hub manifest in docs/parity/evidence/2026-09-05/reference/transactions.json).
+// Declaring them `switch` made the mobile app draw an on/off switch and made the source
+// UpdateSettings validator coerce 0/1 to booleans and refuse 2 and 3, so the original app could
+// never pick Bike or Walk. Choice ids are the wire values; commuteType's are the source
+// CommuteMode enum (Settings renumbers to the stored console index at its boundary).
+const REPORT_CHOICE_ROWS = Object.freeze({
+  weather: [{ id: 0, value: 'Fahrenheit' }, { id: 1, value: 'Celsius' }],
+  commuteType: [
+    { id: 0, value: 'Drive', icon: 'ic_drive' },
+    { id: 1, value: 'Public transport', icon: 'ic_transport' },
+    { id: 2, value: 'Bike', icon: 'ic_bike' },
+    { id: 3, value: 'Walk', icon: 'ic_walk' },
+  ],
+});
 
 function localView(data) {
   const source = data || {};
@@ -1044,6 +1059,14 @@ function localView(data) {
     const valueDefinition = { target: 'person', key };
     if (Object.prototype.hasOwnProperty.call(LOCAL_PERSON_DEFAULTS, key)) {
       valueDefinition.default = LOCAL_PERSON_DEFAULTS[key];
+    }
+    if (Object.prototype.hasOwnProperty.call(REPORT_CHOICE_ROWS, key)) {
+      return {
+        type: 'choice',
+        index,
+        valueDefinition,
+        choices: REPORT_CHOICE_ROWS[key].map((choice) => ({ ...choice })),
+      };
     }
     const row = REPORT_VIEW_ROWS[key] || {};
     const node = { type: 'switch', index };
