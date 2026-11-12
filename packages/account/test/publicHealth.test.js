@@ -1,13 +1,13 @@
 // Public health check for outside uptime monitors: GET /health on the site.
 //
-// nginx forwards it to this service, and answers it from a short planned-restart
-// window while the service is being restarted (deploy/nginx/phoenix-health.conf).
+// nginx forwards it to this service and answers 503 whenever the service cannot,
+// planned restarts included (deploy/nginx/phoenix-health.conf).
 // The body must stay small and free of private data: no host names, versions,
 // counts, accounts or household details.
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -45,4 +45,11 @@ test('the existing /healthcheck probe used by the deploy script is unchanged', a
   const res = await fetch(`${base}/healthcheck`);
   assert.equal(res.status, 200);
   assert.equal(await res.text(), 'ok');
+});
+
+test('nginx reports /health down whenever the service cannot answer, planned restarts included', () => {
+  const conf = readFileSync(new URL('../../../deploy/nginx/phoenix-health.conf', import.meta.url), 'utf8');
+  assert.match(conf, /error_page 502 503 504 = @phoenix_health_down;/);
+  assert.match(conf, /return 503 '\{"status":"down"\}\\n';/);
+  assert.doesNotMatch(conf, /try_files|restarting/, 'robots get no answer during a restart, so /health must not say ok');
 });
