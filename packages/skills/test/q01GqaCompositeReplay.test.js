@@ -14,8 +14,14 @@ import {
 // actual HTTP adapters and route boundary for every provider outcome.
 
 const FIXED_NOW = 1_700_000_000_000;
-const FIRST_GROUP_TIMEOUT = 25;
-const WOLFRAM_GROUP_TIMEOUT = 160;
+// A group ends as soon as its providers answer (success) or all come back
+// empty or failed, so these default deadlines only bound a broken run. They
+// used to be 25 ms and 160 ms, which a cold first request on a busy CI runner
+// can miss: the group then timed out before Bing answered, the reply did not
+// come from Bing and `timings.bing` was absent. Tests that need a deadline to
+// expire pass their own `timeouts`.
+const FIRST_GROUP_TIMEOUT = 5_000;
+const WOLFRAM_GROUP_TIMEOUT = 5_000;
 const BOTH_USEFUL_GROUP_TIMEOUT = 1_000;
 const LATE_FIRST_GROUP_TIMEOUT = 250;
 const LATE_WOLFRAM_GROUP_TIMEOUT = 1_200;
