@@ -662,8 +662,9 @@ export const SETTINGS = [
     editable: true,
     restart: ['parser', 'answer-skill', 'lasso'],
     default: null,
-    help: 'Sent as a bearer token to an endpoint of your own, never to OpenRouter. Leave it empty for a '
-      + 'local model that needs none.',
+    help: 'Sent as a bearer token to an endpoint of your own. It goes to OpenRouter only when the endpoint '
+      + 'is OpenRouter itself, as older servers set it up; the OpenRouter key above is the one to use there. '
+      + 'Leave it empty for a local model that needs none.',
   },
   // The per-feature OpenRouter keys the one key replaced. The console moved a key
   // saved in any of them to the OpenRouter key once (openRouterMigration.js). The
@@ -1307,7 +1308,8 @@ export function checkTogether(values) {
     openRouterFeatures.push('Free AI chat');
   }
   if (values.PHOENIX_NEWS_BRIEFINGS_ENABLED === 'true'
-    && !keyFor('ETCO_news_llmApiKey', 'ETCO_parser_decisionApiKey', 'PHOENIX_LLM_API_KEY')) {
+    && !keyFor('ETCO_news_llmApiKey', 'ETCO_parser_decisionApiKey')
+    && !(isOpenRouterEndpoint(values.LLM_URL) && has('PHOENIX_LLM_API_KEY'))) {
     openRouterFeatures.push('news briefings');
   }
   if (isOpenRouterEndpoint(values.LLM_URL) && !keyFor('PHOENIX_LLM_API_KEY')) openRouterFeatures.push('the endpoint');

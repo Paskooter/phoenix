@@ -27,7 +27,8 @@
 //   ETCO_<scope>_llmUrl        ->  PHOENIX_LLM_URL
 //   ETCO_<scope>_llmModel      ->  PHOENIX_LLM_MODEL
 //   ETCO_<scope>_llmApiKey     ->  PHOENIX_LLM_API_KEY          (a custom endpoint)
-//   OPENROUTER_API_KEY  ->  ETCO_<scope>_llmApiKey  ->  PHOENIX_LLM_API_KEY  (openrouter.ai)
+//   OPENROUTER_API_KEY  ->  ETCO_<scope>_llmApiKey  ->  PHOENIX_LLM_API_KEY  (https://openrouter.ai;
+//                           the last only when PHOENIX_LLM_URL is OpenRouter too)
 //   ETCO_<scope>_llmTimeoutMs  ->  PHOENIX_LLM_TIMEOUT_MS
 //   ETCO_<scope>_llmTemperature->  PHOENIX_LLM_TEMPERATURE
 //   ETCO_<scope>_llmHeaders    ->  PHOENIX_LLM_HEADERS      (JSON object)
@@ -42,7 +43,7 @@
 // working.
 
 /** Providers that need extra headers to attribute or route a request. */
-import { isOpenRouterUrl, openRouterKey } from './openRouter.js';
+import { isOpenRouterUrl, openRouterKey, sharedKeyForOpenRouter } from './openRouter.js';
 
 const KNOWN_HOST_HEADERS = Object.freeze({
   'openrouter.ai': Object.freeze({
@@ -106,7 +107,7 @@ export function resolveLlmProvider(scope, { env = process.env, defaultModel = ''
   const url = firstNonEmpty(scoped('Url'), env.PHOENIX_LLM_URL);
   const model = firstNonEmpty(scoped('Model'), env.PHOENIX_LLM_MODEL, defaultModel);
   const apiKey = isOpenRouterUrl(url)
-    ? firstNonEmpty(openRouterKey(env), scoped('ApiKey'), env.PHOENIX_LLM_API_KEY)
+    ? firstNonEmpty(openRouterKey(env), scoped('ApiKey'), sharedKeyForOpenRouter(env))
     : firstNonEmpty(scoped('ApiKey'), env.PHOENIX_LLM_API_KEY);
 
   const timeoutMs = parseNumber(scoped('TimeoutMs') ?? env.PHOENIX_LLM_TIMEOUT_MS) ?? defaultTimeoutMs;

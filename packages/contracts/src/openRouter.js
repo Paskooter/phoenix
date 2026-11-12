@@ -10,8 +10,9 @@
 // administrator (or the console's one-time move, see
 // packages/account/src/admin/openRouterMigration.js) sets the one key.
 //
-// The OpenRouter key is only ever sent to openrouter.ai. A custom endpoint gets
-// its own key (PHOENIX_LLM_API_KEY), never this one.
+// The OpenRouter key is only ever sent to https://openrouter.ai. A custom
+// endpoint gets its own key (PHOENIX_LLM_API_KEY), never this one, and that key
+// goes to OpenRouter only when the shared endpoint is OpenRouter itself.
 
 export const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1';
 export const OPENROUTER_KEY_SETTING = 'OPENROUTER_API_KEY';
@@ -37,6 +38,18 @@ export function isOpenRouterUrl(url) {
   } catch {
     return false;
   }
+}
+
+/**
+ * The shared endpoint's key (PHOENIX_LLM_API_KEY), when it may stand in for an
+ * OpenRouter key: only when the shared endpoint (PHOENIX_LLM_URL, or LLM_URL as
+ * the console names it) is OpenRouter itself, as older servers set it up.
+ * Otherwise that key belongs to a custom endpoint and never goes to OpenRouter.
+ * @param {Record<string,string|undefined>} env
+ */
+export function sharedKeyForOpenRouter(env = process.env) {
+  const endpoint = trimmed(env?.PHOENIX_LLM_URL) || trimmed(env?.LLM_URL);
+  return isOpenRouterUrl(endpoint) ? trimmed(env?.PHOENIX_LLM_API_KEY) : '';
 }
 
 /**
