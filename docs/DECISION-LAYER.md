@@ -126,7 +126,7 @@ gives no probability to gate the second-opinion overrides with. Jev cost about
 $0.00004 per decision (886 input tokens; output is free). Reproduce with:
 
 ```bash
-ETCO_parser_decisionEngine=jev ETCO_parser_decisionApiKey=<openrouter key> \
+ETCO_parser_decisionEngine=jev OPENROUTER_API_KEY=<openrouter key> \
   node scripts/decision-layer-eval.mjs --split dev --show [--home]
 ```
 
@@ -138,9 +138,10 @@ only, then run the held-out split once.
 | Setting | Default | |
 |---|---|---|
 | `ETCO_parser_decisionEngine` | off | `jev` turns the layer on (with a key). |
-| `ETCO_parser_decisionApiKey` | `OPENROUTER_API_KEY` | An OpenRouter key. |
+| `OPENROUTER_API_KEY` | none | Phoenix's one OpenRouter key, shared by every AI feature (Settings → Language models). |
+| `ETCO_parser_decisionApiKey` | none | The layer's older key, used only while `OPENROUTER_API_KEY` is not set. |
 | `ETCO_parser_decisionUrl` | OpenRouter's decisions endpoint | |
-| `ETCO_parser_decisionModel` | `typesafe/jev-1.13` | Pinned; re-evaluate before changing. |
+| `ETCO_parser_decisionModel` | `typesafe/jev-1.13` | Pinned; re-evaluate before changing. Chosen under Settings → Language models. |
 | `ETCO_parser_decisionTimeoutMs` | 800 | A slower answer keeps the grammar's parse. |
 | `ETCO_parser_decisionMinProbability` | 0.5 | For reviewed parses. |
 | `ETCO_parser_decisionOverrideProbability` | 0.9 | For second opinions on a HIGH parse. |

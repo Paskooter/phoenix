@@ -24,6 +24,8 @@
 // Adding a setting: add it to the group it belongs to. The console renders
 // whatever this file declares.
 
+import { isOpenRouterUrl } from '@phoenix/contracts';
+
 /**
  * The services the native launcher runs (scripts/run-compose-stack.sh), by the
  * names it gives them. These are what the console can restart.
@@ -115,8 +117,9 @@ export const GROUPS = [
   },
   {
     id: 'model',
-    label: 'Language model',
-    blurb: 'An OpenAI-compatible model, for the services set to use one.',
+    label: 'Language models',
+    blurb: 'One OpenRouter key for every AI feature, the model each one uses, and an optional '
+      + 'OpenAI-compatible endpoint of your own.',
     icon: 'chip',
     editable: true,
   },
@@ -178,7 +181,7 @@ export const GROUP_IDS = new Set(GROUPS.map((group) => group.id));
  * @property {string}   key        the environment variable
  * @property {string}   label      short human name
  * @property {string}   group      one of GROUPS[].id
- * @property {string}   type       string|secret|bool|number|url|host|email|enum|path
+ * @property {string}   type       string|secret|bool|number|url|host|email|enum|path|model
  * @property {boolean} [editable]  true when the console may change it (its group must be editable)
  * @property {string[]} [restart]  launcher services that read it (editable settings only)
  * @property {string?} [default]   the built-in value, as shown, or null when there is none to show
@@ -188,6 +191,12 @@ export const GROUP_IDS = new Set(GROUPS.map((group) => group.id));
  * @property {string}  [placeholder]
  * @property {number}  [min] @property {number} [max] @property {boolean} [integer]
  * @property {string}  [unit]      shown after a number: 'ms', 'days'
+ * @property {string}  [models]    for type 'model': where its choices come from, 'openrouter'
+ *                                 or 'endpoint' (the Language models endpoint, LLM_URL)
+ * @property {string}  [modelFilter] 'free': offer only models that cost nothing
+ * @property {string}  [replacedBy] an older setting another one replaced. The console only
+ *                                 shows it, and may remove a value saved here; the services
+ *                                 use it only while the replacement is not set.
  */
 
 /** @type {Setting[]} */
@@ -197,8 +206,6 @@ export const SETTINGS = [
     editable: true, restart: ['account'], default: 'true',
     help: 'Default for AI chit-chat on Jibo’s eye. Each account can turn it off in Account to use classic answers. Separate from Agent Mode; no tools or web search. Requires the server’s private provider and usage setup.',
   },
-  { key: 'PHOENIX_FREE_CHAT_API_KEY', label: 'Chat provider key', group: 'answers', type: 'secret',
-    default: null, help: 'Server-owned OpenRouter credential. Keep a dedicated provider-side limit. Not shared with Jibo or members.' },
   { key: 'PHOENIX_FREE_CHAT_LEDGER', label: 'Chat usage file', group: 'answers', type: 'path',
     default: null, help: 'Initialize once with scripts/init-free-chat-usage.mjs. Missing or damaged counters keep AI chat unavailable.' },
   { key: 'PHOENIX_FREE_CHAT_ENCRYPTION_KEY', label: 'Chat encryption secret', group: 'answers', type: 'secret',
@@ -335,30 +342,9 @@ export const SETTINGS = [
         hint: 'Recognizes other ways of saying a command, like “what day is it today”.' },
     ],
     help: 'Reviews what Jibo’s grammar made of each request and maps other phrasings onto his '
-      + 'commands. It sends the text of reviewed requests to OpenRouter and TypeSafe, so the privacy '
-      + 'policy has to say so first. See docs/DECISION-LAYER.md.',
-  },
-  {
-    key: 'ETCO_parser_decisionApiKey',
-    label: 'Decision layer key',
-    group: 'understanding',
-    type: 'secret',
-    editable: true,
-    restart: ['parser', 'lasso'],
-    default: null,
-    help: 'An OpenRouter key for the decision layer. Without one the layer stays off.',
-  },
-  {
-    key: 'ETCO_parser_decisionModel',
-    label: 'Decision model',
-    group: 'understanding',
-    type: 'string',
-    editable: true,
-    advanced: true,
-    restart: ['parser'],
-    default: 'typesafe/jev-1.13',
-    help: 'Pinned to the model the decision layer was evaluated with. Re-run the evaluation '
-      + '(scripts/decision-layer-eval.mjs) before changing it.',
+      + 'commands. It uses the OpenRouter key and the decision model under Language models. It sends '
+      + 'the text of reviewed requests to OpenRouter and TypeSafe, so the privacy policy has to say so '
+      + 'first. See docs/DECISION-LAYER.md.',
   },
   {
     key: 'ETCO_parser_decisionTimeoutMs',
@@ -582,7 +568,68 @@ export const SETTINGS = [
     help: 'The instant-answer API Phoenix asks alongside Wikipedia.',
   },
 
-  /* ── Language model ─────────────────────────────────────────────────── */
+  /* ── Language models ────────────────────────────────────────────────── */
+  {
+    key: 'OPENROUTER_API_KEY',
+    label: 'OpenRouter key',
+    group: 'model',
+    type: 'secret',
+    editable: true,
+    restart: ['account', 'parser', 'answer-skill', 'lasso'],
+    default: null,
+    help: 'The one key every AI feature uses: Free AI chat, the decision layer (Jev), news briefings, '
+      + 'and the endpoint below when it is OpenRouter. Each feature picks its model here. It is sent only '
+      + 'to openrouter.ai. Give it a spending limit in your OpenRouter account.',
+  },
+  {
+    key: 'PHOENIX_FREE_CHAT_MODEL',
+    label: 'Free AI chat model',
+    group: 'model',
+    type: 'model',
+    models: 'openrouter',
+    modelFilter: 'free',
+    editable: true,
+    restart: ['account'],
+    default: 'google/gemma-4-26b-a4b-it:free',
+    help: 'Tried first for each chat turn. It must be free: requests to it are capped at no cost, so a '
+      + 'paid model here always falls through to the overflow model.',
+  },
+  {
+    key: 'PHOENIX_FREE_CHAT_OVERFLOW_MODEL',
+    label: 'Free AI chat overflow model',
+    group: 'model',
+    type: 'model',
+    models: 'openrouter',
+    editable: true,
+    restart: ['account'],
+    default: 'deepseek/deepseek-v4.1-flash',
+    help: 'Answers when the free model is busy or unavailable, within the chat’s daily spending limits. '
+      + 'Requests are capped at $0.05 per million prompt tokens and $0.50 per million reply tokens.',
+  },
+  {
+    key: 'ETCO_parser_decisionModel',
+    label: 'Decision model (Jev)',
+    group: 'model',
+    type: 'model',
+    models: 'openrouter',
+    editable: true,
+    restart: ['parser'],
+    default: 'typesafe/jev-1.13',
+    help: 'The decision layer’s model. Pinned to the one it was evaluated with. Re-run the evaluation '
+      + '(scripts/decision-layer-eval.mjs) before changing it.',
+  },
+  {
+    key: 'ETCO_news_llmModel',
+    label: 'News model',
+    group: 'model',
+    type: 'model',
+    models: 'openrouter',
+    editable: true,
+    restart: ['lasso'],
+    default: 'deepseek/deepseek-v4.1-flash',
+    help: 'Writes news briefings. It must support structured JSON output. Generation enforces a low '
+      + 'token-price ceiling and the daily budget under Personal report.',
+  },
   {
     key: 'LLM_URL',
     label: 'Endpoint',
@@ -592,14 +639,16 @@ export const SETTINGS = [
     restart: ['parser', 'answer-skill'],
     default: null,
     placeholder: 'https://openrouter.ai/api/v1',
-    help: 'An OpenAI-compatible API: OpenRouter, LM Studio, Ollama, vLLM. Used by Answers when it is set '
-      + 'to ask the language model, and by Understanding as a last resort.',
+    presets: [{ value: 'https://openrouter.ai/api/v1', label: 'OpenRouter', hint: 'Uses the OpenRouter key above.' }],
+    help: 'OpenRouter, or any OpenAI-compatible API of your own: LM Studio, Ollama, vLLM. Used by Answers '
+      + 'when it is set to ask the language model, and by Understanding as a last resort.',
   },
   {
     key: 'LLM_MODEL',
-    label: 'Model',
+    label: 'Endpoint model',
     group: 'model',
-    type: 'string',
+    type: 'model',
+    models: 'endpoint',
     editable: true,
     restart: ['parser', 'answer-skill'],
     default: 'google/gemma-4-e4b',
@@ -607,13 +656,52 @@ export const SETTINGS = [
   },
   {
     key: 'PHOENIX_LLM_API_KEY',
-    label: 'API key',
+    label: 'Custom endpoint key',
     group: 'model',
     type: 'secret',
     editable: true,
     restart: ['parser', 'answer-skill', 'lasso'],
     default: null,
-    help: 'Sent as a bearer token. Leave it empty for a local model that needs none.',
+    help: 'Sent as a bearer token to an endpoint of your own, never to OpenRouter. Leave it empty for a '
+      + 'local model that needs none.',
+  },
+  // The per-feature OpenRouter keys the one key replaced. The console moved a key
+  // saved in any of them to the OpenRouter key once (openRouterMigration.js). The
+  // services still read them, only while the OpenRouter key is not set.
+  {
+    key: 'ETCO_parser_decisionApiKey',
+    label: 'Old decision layer key',
+    group: 'model',
+    type: 'secret',
+    editable: true,
+    replacedBy: 'OPENROUTER_API_KEY',
+    advanced: true,
+    restart: ['parser', 'lasso'],
+    default: null,
+    help: 'From before the one OpenRouter key. Phoenix uses it only while the OpenRouter key is not set.',
+  },
+  {
+    key: 'ETCO_news_llmApiKey',
+    label: 'Old news model key',
+    group: 'model',
+    type: 'secret',
+    editable: true,
+    replacedBy: 'OPENROUTER_API_KEY',
+    advanced: true,
+    restart: ['lasso'],
+    default: null,
+    help: 'From before the one OpenRouter key. Phoenix uses it only while the OpenRouter key is not set.',
+  },
+  {
+    key: 'PHOENIX_FREE_CHAT_API_KEY',
+    label: 'Old chat provider key',
+    group: 'model',
+    type: 'secret',
+    replacedBy: 'OPENROUTER_API_KEY',
+    advanced: true,
+    default: null,
+    help: 'From before the one OpenRouter key. Phoenix uses it only while the OpenRouter key is not set. '
+      + 'It is in the server’s environment file, so it can only be removed there.',
   },
 
   /* ── Personal report ────────────────────────────────────────────────── */
@@ -654,16 +742,6 @@ export const SETTINGS = [
     key: 'PHOENIX_NEWS_DAILY_LLM_USD', label: 'News model daily budget', group: 'report',
     type: 'number', editable: true, restart: ['lasso'], default: '0.15', min: 0, max: 5, unit: 'USD',
     help: 'Daily spending allowance for generating news, with reservations before each request. Zero pauses generation.',
-  },
-  {
-    key: 'ETCO_news_llmModel', label: 'News model', group: 'report',
-    type: 'string', editable: true, advanced: true, restart: ['lasso'], default: 'deepseek/deepseek-v4.1-flash',
-    help: 'An OpenRouter model supporting structured JSON output. Generation enforces a low token-price ceiling.',
-  },
-  {
-    key: 'ETCO_news_llmApiKey', label: 'News model key', group: 'report',
-    type: 'secret', editable: true, advanced: true, restart: ['lasso'], default: null,
-    help: 'Optional OpenRouter key just for news. Otherwise reuses the shared model key or the decision layer key.',
   },
   {
     key: 'TOMTOM_API_KEY',
@@ -1109,6 +1187,9 @@ export const SETTINGS = [
   },
 ];
 
+/** True when an endpoint is OpenRouter's, so it uses the one OpenRouter key. */
+export const isOpenRouterEndpoint = isOpenRouterUrl;
+
 /** Settings by key, for validation and lookup. */
 export const BY_KEY = new Map(SETTINGS.map((s) => [s.key, s]));
 
@@ -1161,6 +1242,8 @@ export function validate(key, value) {
       return HOST.test(v) || IPV4.test(v) ? null : 'must be a host name like smtp.example.com';
     case 'email':
       return EMAIL.test(v) ? null : 'must be an email address like phoenix@example.com';
+    case 'model':
+      return /^[\x21-\x7e]{1,200}$/.test(v) ? null : 'must be a model name like vendor/model, without spaces';
     case 'enum': {
       const allowed = (spec.options || []).map((o) => o.value);
       return allowed.includes(v) ? null : 'is not one of the choices';
@@ -1214,9 +1297,25 @@ export function checkTogether(values) {
     errors.ETCO_account_mailSmtpHost = 'is needed once any other mail server setting is set';
   }
 
-  if (values.ETCO_parser_decisionEngine === 'jev' && !has('ETCO_parser_decisionApiKey') && !has('OPENROUTER_API_KEY')) {
-    warnings.push({ key: 'ETCO_parser_decisionApiKey',
-      message: 'The decision layer is on but has no key, so it stays off.' });
+  // Every OpenRouter feature that is on but has no key, said once, on the key.
+  const openRouterFeatures = [];
+  const keyFor = (...older) => has('OPENROUTER_API_KEY') || older.some(has);
+  if (values.ETCO_parser_decisionEngine === 'jev' && !keyFor('ETCO_parser_decisionApiKey')) {
+    openRouterFeatures.push('the decision layer');
+  }
+  if (values.PHOENIX_FREE_CHAT_ENABLED !== 'false' && has('PHOENIX_FREE_CHAT_LEDGER') && !keyFor('PHOENIX_FREE_CHAT_API_KEY')) {
+    openRouterFeatures.push('Free AI chat');
+  }
+  if (values.PHOENIX_NEWS_BRIEFINGS_ENABLED === 'true'
+    && !keyFor('ETCO_news_llmApiKey', 'ETCO_parser_decisionApiKey', 'PHOENIX_LLM_API_KEY')) {
+    openRouterFeatures.push('news briefings');
+  }
+  if (isOpenRouterEndpoint(values.LLM_URL) && !keyFor('PHOENIX_LLM_API_KEY')) openRouterFeatures.push('the endpoint');
+  if (openRouterFeatures.length) {
+    const list = openRouterFeatures.length === 1 ? openRouterFeatures[0]
+      : `${openRouterFeatures.slice(0, -1).join(', ')} and ${openRouterFeatures.at(-1)}`;
+    warnings.push({ key: 'OPENROUTER_API_KEY',
+      message: `${list[0].toUpperCase()}${list.slice(1)} ${openRouterFeatures.length === 1 ? 'is' : 'are'} on but there is no OpenRouter key, so ${openRouterFeatures.length === 1 ? 'it stays' : 'they stay'} off.` });
   }
   if (values.ETCO_parser_layaEnabled === 'true' && (!has('ETCO_parser_layaUrl') || !has('ETCO_parser_layaToken'))) {
     warnings.push({ key: 'ETCO_parser_layaEnabled',

@@ -6,6 +6,14 @@ import { InferenceLedger, emptyCounters } from '../agentInference/ledger.js';
 export const GLOBAL_DAILY_CAP_MICRO_USD = 5_000_000;
 export const FREE_MODEL = 'google/gemma-4-26b-a4b-it:free';
 export const OVERFLOW_MODEL = 'deepseek/deepseek-v4.1-flash';
+// An administrator picks both models (Settings -> Language model). The price
+// ceilings below stay in force whatever is picked: the free attempt may cost
+// nothing, and the overflow is capped per token.
+const MODEL_ID = /^[\x21-\x7e]{1,200}$/;
+export function freeChatModels(models = {}) {
+  const pick = (value, fallback) => (typeof value === 'string' && MODEL_ID.test(value.trim()) ? value.trim() : fallback);
+  return Object.freeze({ free: pick(models.free, FREE_MODEL), overflow: pick(models.overflow, OVERFLOW_MODEL) });
+}
 export const LIMITS = Object.freeze({ accountDailyRequests: 50, requestsPerMinute: 4,
   globalDailyRequests: 5000, globalRequestsPerMinute: 60, freeDailyRequests: 900, freeRequestsPerMinute: 20,
   accountDailyCapMicroUsd: 500_000, dailyCapMicroUsd: GLOBAL_DAILY_CAP_MICRO_USD,
@@ -47,6 +55,7 @@ export class FreeChat {
     this.store = store; this.config = { ...LIMITS, ...options };
     this.now = options.now || Date.now; this.inFlight = new Map(); this.addresses = new Map();
     this.defaultEnabled = options.defaultEnabled !== false;
+    this.models = freeChatModels(options.models);
     // Account preference is ON even before an operator provisions inference.
     // Missing provisioning never creates/resets counters or spends money.
     this.ready = !!(options.ledgerFile && options.provider?.apiKey && options.encryptionKey);
@@ -206,7 +215,7 @@ export class FreeChat {
         try {
           response = await fetch(this.endpoint, { method: 'POST', redirect: 'error', signal: controller.signal,
             headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
-            body: JSON.stringify({ model: paid ? OVERFLOW_MODEL : FREE_MODEL, stream: false,
+            body: JSON.stringify({ model: paid ? this.models.overflow : this.models.free, stream: false,
               max_tokens: detail === 'detailed' ? 512 : 160, plugins: [],
               messages: [{ role: 'system', content: 'You are Jibo, a friendly conversational robot. Only talk: no tools, browsing, search, actions, or claims of live access. Never claim to have done things. Reply as JSON with text (plain spoken words, no markup) and keepTalking (boolean, true only when a reply is needed). ' + (detail === 'detailed' ? 'Give at most six short sentences.' : 'Give one or two short sentences.') },
                 ...request.history, { role: 'user', content: request.text }],

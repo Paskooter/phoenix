@@ -26,16 +26,24 @@
 //
 //   ETCO_<scope>_llmUrl        ->  PHOENIX_LLM_URL
 //   ETCO_<scope>_llmModel      ->  PHOENIX_LLM_MODEL
-//   ETCO_<scope>_llmApiKey     ->  PHOENIX_LLM_API_KEY  ->  OPENROUTER_API_KEY
+//   ETCO_<scope>_llmApiKey     ->  PHOENIX_LLM_API_KEY          (a custom endpoint)
+//   OPENROUTER_API_KEY  ->  ETCO_<scope>_llmApiKey  ->  PHOENIX_LLM_API_KEY  (openrouter.ai)
 //   ETCO_<scope>_llmTimeoutMs  ->  PHOENIX_LLM_TIMEOUT_MS
 //   ETCO_<scope>_llmTemperature->  PHOENIX_LLM_TEMPERATURE
 //   ETCO_<scope>_llmHeaders    ->  PHOENIX_LLM_HEADERS      (JSON object)
+//
+// The key is the one exception to "scope beats shared": when the endpoint is
+// OpenRouter, Phoenix's one OpenRouter key (openRouter.js) is used and the older
+// keys are only a fallback. The OpenRouter key is never sent anywhere else, so
+// pointing a service at a custom endpoint cannot leak it.
 //
 // `scope` is the existing service prefix: `parser` for NLU, `answer` for the
 // answer skill. Those names are kept exactly so existing deployments keep
 // working.
 
 /** Providers that need extra headers to attribute or route a request. */
+import { isOpenRouterUrl, openRouterKey } from './openRouter.js';
+
 const KNOWN_HOST_HEADERS = Object.freeze({
   'openrouter.ai': Object.freeze({
     'HTTP-Referer': 'https://pvindex.org/phoenix',
@@ -97,7 +105,9 @@ export function resolveLlmProvider(scope, { env = process.env, defaultModel = ''
 
   const url = firstNonEmpty(scoped('Url'), env.PHOENIX_LLM_URL);
   const model = firstNonEmpty(scoped('Model'), env.PHOENIX_LLM_MODEL, defaultModel);
-  const apiKey = firstNonEmpty(scoped('ApiKey'), env.PHOENIX_LLM_API_KEY, env.OPENROUTER_API_KEY);
+  const apiKey = isOpenRouterUrl(url)
+    ? firstNonEmpty(openRouterKey(env), scoped('ApiKey'), env.PHOENIX_LLM_API_KEY)
+    : firstNonEmpty(scoped('ApiKey'), env.PHOENIX_LLM_API_KEY);
 
   const timeoutMs = parseNumber(scoped('TimeoutMs') ?? env.PHOENIX_LLM_TIMEOUT_MS) ?? defaultTimeoutMs;
   const temperature = parseNumber(scoped('Temperature') ?? env.PHOENIX_LLM_TEMPERATURE);

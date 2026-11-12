@@ -8,6 +8,7 @@ export * from './validate.js';
 export { schemas } from './messages.js';
 export * as messages from './messages.js';
 export * from './llmProvider.js';
+export * from './openRouter.js';
 export * from './newsContent.js';
 export * from './newsBriefing.js';
 export * from './newsEditorial.js';

@@ -3411,6 +3411,39 @@ pre.json {
 .setting-error { margin: 0; font-size: var(--t-xs); }
 .choice-grid.choice-grid-wide { grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); }
 .setting-editor .choice { padding: .7rem .85rem; }
+.setting-input[hidden] { display: none; }
+.setting-input input[role=combobox] { font-family: var(--font-mono); font-size: var(--t-sm); }
+
+/* A model setting: search what its endpoint offers, or type any name. */
+.model-picker { gap: .5rem; }
+.model-picker-status { margin: 0; font-size: var(--t-xs); color: var(--muted); }
+.model-picker-list {
+  list-style: none;
+  margin: 0;
+  padding: .25rem;
+  max-height: 16rem;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel-2);
+}
+.model-picker-list[hidden] { display: none; }
+.model-option {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: .4rem .6rem;
+  border-radius: calc(var(--radius) - 6px);
+  cursor: pointer;
+}
+.model-option:hover, .model-option.is-active { background: var(--accent-soft); }
+.model-option.is-current .model-option-id { color: var(--accent-readable, var(--accent)); font-weight: 650; }
+.model-option.is-current .model-option-id::after { content: ' ✓'; }
+.model-option-id { font-family: var(--font-mono); font-size: var(--t-xs); overflow-wrap: anywhere; }
+.model-option-meta { display: inline-flex; align-items: baseline; gap: .5rem; flex: none; font-size: var(--t-xs); color: var(--muted); }
+.model-option-name { max-width: 16rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.model-option .pill-free { font-size: 10px; padding: 0 .4rem; color: var(--accent-readable, var(--accent)); }
 
 .adm-server { display: grid; gap: 1rem; }
 .adm-server-intro {

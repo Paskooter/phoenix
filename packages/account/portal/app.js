@@ -4736,7 +4736,9 @@ function settingDisplayValue(s) {
   if (effective === null || effective === undefined || effective === '') {
     return h('span', { class: 'setting-value is-empty', text: s.type === 'number' && s.placeholder === 'Built-in' ? 'Built-in' : 'Not set' });
   }
-  const mono = ['url', 'host', 'string', 'email', 'path'].includes(s.type);
+  const preset = (s.presets || []).find((p) => p.value === effective);
+  if (preset) return h('span', { class: `setting-value${s.source === 'default' ? ' is-default' : ''}`, title: String(effective), text: preset.label });
+  const mono = ['url', 'host', 'string', 'email', 'path', 'model'].includes(s.type);
   return h('span', { class: `setting-value${mono ? ' is-mono' : ''}${s.source === 'default' ? ' is-default' : ''}`, title: String(effective) },
     `${effective}${s.type === 'number' ? unit : ''}`);
 }
@@ -4770,7 +4772,8 @@ async function renderAdminSettings(params) {
   const serviceLabel = (id) => data.services?.[id]?.label || id;
   const byGroup = () => {
     const map = new Map(data.groups.map((g) => [g.id, []]));
-    for (const s of data.settings) map.get(s.group)?.push(s);
+    // An older setting another replaced is only worth showing while it holds a value.
+    for (const s of data.settings) if (!(s.replacedBy && !s.isSet)) map.get(s.group)?.push(s);
     return map;
   };
 
@@ -4833,6 +4836,9 @@ async function renderAdminSettings(params) {
       return form;
     }
 
+    if (s.type === 'model') return modelEditor(s, { error, showError, fallback, fallbackLabel });
+    if (s.type === 'url' && s.presets?.length) return endpointEditor(s, { error, showError, fallback });
+
     const secret = s.type === 'secret';
     const input = h('input', {
       name: 'value',
@@ -4865,6 +4871,143 @@ async function renderAdminSettings(params) {
     return form;
   }
 
+  /** Save a typed value, showing what is wrong beside it. */
+  async function saveTyped(s, value, showError, fallbackLabel) {
+    if (!value) { showError(s.source === 'console' ? `Leave it empty with “${fallbackLabel}”.` : 'Type a value, or cancel.'); return; }
+    const out = await save(s.key, value);
+    if (!out.ok) {
+      const message = out.data?.errors?.[s.key];
+      showError(message ? `This ${message}.` : (Object.values(out.data?.errors || {})[0] || out.data?.error || 'Could not save.'));
+    }
+  }
+
+  /**
+   * A model setting: a searchable list of the models its endpoint offers
+   * (GET <endpoint>/models, asked through the server), and the name can always
+   * be typed by hand, for an endpoint that cannot list them.
+   */
+  function modelEditor(s, { error, showError, fallback, fallbackLabel }) {
+    const listId = `models-${s.key}`;
+    const input = h('input', {
+      name: 'value', type: 'text', value: s.value ?? '', placeholder: s.default ? String(s.default) : 'vendor/model',
+      autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', role: 'combobox',
+      'aria-autocomplete': 'list', 'aria-expanded': 'false', 'aria-controls': listId, 'aria-label': s.label,
+    });
+    const status = h('p', { class: 'field-hint model-picker-status', role: 'status',
+      text: s.models === 'openrouter' ? 'Loading OpenRouter’s models…' : 'Asking the endpoint for its models…' });
+    const list = h('ul', { class: 'model-picker-list', role: 'listbox', id: listId, hidden: true });
+    let models = null;
+    let shown = [];
+    let active = -1;
+    const choose = (id) => { input.value = id; active = -1; showError(''); render(); input.focus(); };
+    function render() {
+      if (!models) return;
+      const typed = input.value.trim();
+      // With nothing typed the setting keeps its default, which is the current model.
+      const current = typed || (s.source === 'default' ? String(s.default || '') : '');
+      const terms = typed.toLowerCase().split(/\s+/).filter(Boolean);
+      const exact = models.some((m) => m.id === typed);
+      let matches = exact ? models : models.filter((m) => {
+        const text = `${m.id} ${m.name || ''}`.toLowerCase();
+        return terms.every((term) => text.includes(term));
+      });
+      // The current model comes first, so opening the list shows it.
+      if (exact || !terms.length) matches = [...matches.filter((m) => m.id === current), ...matches.filter((m) => m.id !== current)];
+      shown = matches.slice(0, 80);
+      if (active >= shown.length) active = shown.length - 1;
+      list.replaceChildren(...shown.map((m, i) => h('li', {
+        role: 'option', id: `${listId}-${i}`, 'aria-selected': String(m.id === current),
+        class: `model-option${i === active ? ' is-active' : ''}${m.id === current ? ' is-current' : ''}`,
+        on: { mousedown: (event) => { event.preventDefault(); choose(m.id); } },
+      },
+      h('span', { class: 'model-option-id', text: m.id }),
+      h('span', { class: 'model-option-meta' },
+        m.name && m.name !== m.id ? h('span', { class: 'model-option-name', text: m.name }) : null,
+        m.context ? h('span', { text: `${Math.round(m.context / 1000)}k context` }) : null,
+        m.free ? h('span', { class: 'pill pill-free', text: 'Free' }) : null))));
+      list.hidden = !shown.length;
+      input.setAttribute('aria-expanded', String(!list.hidden));
+      if (active >= 0) input.setAttribute('aria-activedescendant', `${listId}-${active}`);
+      else input.removeAttribute('aria-activedescendant');
+      list.querySelector('.is-active')?.scrollIntoView({ block: 'nearest' });
+      const where = s.models === 'openrouter' ? 'OpenRouter' : 'The endpoint';
+      // The saved model may be one the endpoint does not list (OpenRouter's decision models aren't).
+      const saved = String(s.value ?? (s.source === 'default' ? s.default ?? '' : ''));
+      const unlisted = !!saved && current === saved && !models.some((m) => m.id === saved);
+      status.textContent = unlisted
+        ? `${current} isn’t in ${s.models === 'openrouter' ? 'OpenRouter’s' : 'the endpoint’s'} list of ${models.length.toLocaleString('en-US')} models. It stays as it is unless you choose another.`
+        : !matches.length
+        ? `No listed model matches. You can still save “${typed}” by hand.`
+        : exact || !terms.length
+          ? `${where} offers ${models.length.toLocaleString('en-US')} model${models.length === 1 ? '' : 's'}${s.modelFilter === 'free' ? ' that cost nothing' : ''}. Type to search, or enter any name by hand.`
+          : `${matches.length.toLocaleString('en-US')} of ${models.length.toLocaleString('en-US')} models match${matches.length > shown.length ? `; showing the first ${shown.length}` : ''}.`;
+    }
+    input.addEventListener('input', () => { active = -1; showError(''); render(); });
+    input.addEventListener('keydown', (event) => {
+      if (!shown.length) return;
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        active = event.key === 'ArrowDown' ? Math.min(shown.length - 1, active + 1) : Math.max(0, active - 1);
+        render();
+      } else if (event.key === 'Enter' && active >= 0) {
+        event.preventDefault();
+        choose(shown[active].id);
+      }
+    });
+    void api('GET', `/api/admin/settings/models?key=${encodeURIComponent(s.key)}`).then((res) => {
+      if (!res.ok || !res.data?.available) {
+        status.textContent = `${res.data?.message || res.data?.error || 'The models couldn’t be listed.'} Type the model name instead.`;
+        return;
+      }
+      models = res.data.models;
+      render();
+    });
+    const form = h('form', { class: 'line-form setting-editor model-picker' },
+      h('div', { class: 'setting-input' }, input), status, list, error,
+      h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn btn-sm btn-primary' }, 'Save'), fallback));
+    onSubmit(form, async (event) => {
+      event.preventDefault();
+      await saveTyped(s, input.value.trim(), showError, fallbackLabel);
+    });
+    return form;
+  }
+
+  /** An endpoint with named choices (OpenRouter) or an address of your own. */
+  function endpointEditor(s, { error, showError, fallback }) {
+    const current = s.value ?? '';
+    const preset = s.presets.find((p) => p.value === current);
+    const custom = h('input', {
+      name: 'value', type: 'url', value: preset ? '' : current, placeholder: 'http://localhost:1234/v1',
+      autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', 'aria-label': 'Custom endpoint address',
+    });
+    const customRow = h('div', { class: 'setting-input', hidden: !!preset || !current }, custom);
+    const options = [...s.presets.map((p) => ({ ...p, id: p.value })),
+      { id: 'custom', label: 'Custom endpoint', hint: 'An OpenAI-compatible API of your own. It uses the custom endpoint key below.' }];
+    const picked = preset ? preset.value : current ? 'custom' : null;
+    let form;
+    const choices = options.map((o) => h('label', { class: `choice${o.id === picked ? ' is-selected' : ''}` },
+      h('input', { type: 'radio', name: `setting-${s.key}`, value: o.id, checked: o.id === picked, on: { change: () => {
+        for (const label of form.querySelectorAll('.choice')) label.classList.toggle('is-selected', label.querySelector('input').checked);
+        customRow.hidden = o.id !== 'custom';
+        if (o.id === 'custom') custom.focus();
+        showError('');
+      } } }),
+      h('span', { class: 'choice-text' }, h('b', { text: o.label }), o.hint ? h('span', { text: o.hint }) : null)));
+    form = h('form', { class: 'line-form setting-editor' },
+      h('div', { class: 'choice-grid' }, ...choices), customRow, error,
+      h('div', { class: 'row' }, h('button', { type: 'submit', class: 'btn btn-sm btn-primary' }, 'Save'), fallback));
+    custom.addEventListener('input', () => showError(''));
+    onSubmit(form, async (event) => {
+      event.preventDefault();
+      const choice = form.querySelector('input[type=radio]:checked')?.value;
+      if (!choice) { showError('Choose OpenRouter or a custom endpoint.'); return; }
+      const value = choice === 'custom' ? custom.value.trim() : choice;
+      if (!value) { showError('Type the endpoint’s address.'); return; }
+      await saveTyped(s, value, showError, '');
+    });
+    return form;
+  }
+
   function settingLine(s) {
     const editable = s.editable && data.control.available;
     const editing = ui.open === s.key;
@@ -4892,7 +5035,23 @@ async function renderAdminSettings(params) {
     }
 
     const notes = [];
-    if (s.overrides) {
+    if (s.replacedBy) {
+      const replacement = data.settings.find((x) => x.key === s.replacedBy);
+      if (s.isSet) {
+        notes.push(h('span', { class: 'setting-note' }, !replacement?.isSet
+          ? `Still in use until the ${replacement?.label || 'replacement'} is set.`
+          : s.removable ? `Not in use: the ${replacement.label} is set. Removing this copy doesn’t change that key.`
+            : `Not in use: the ${replacement.label} is set.`));
+      }
+      if (s.removable && data.control.available) {
+        action = h('button', { type: 'button', class: 'btn btn-sm btn-quiet', on: { click: async (event) => {
+          event.currentTarget.disabled = true;
+          const out = await save(s.key, null);
+          if (!out.ok) notify(out.data?.errors?.[s.key] || out.data?.error || 'Could not remove that.', 'error');
+        } } }, 'Remove');
+      }
+    }
+    if (s.overrides && !s.replacedBy) {
       notes.push(h('span', { class: 'setting-note' }, 'Replaces the server’s value',
         s.serverValue ? h('span', {}, ' (', h('code', { text: s.serverValue }), ')') : null, '.'));
     }
@@ -4999,7 +5158,8 @@ async function renderAdminSettings(params) {
         h('strong', { text: change.label }), ' ',
         change.action === 'changed' ? `changed from ${show2(change.key, change.from)} to ${show2(change.key, change.to)}`
           : change.action === 'set' && change.to !== undefined ? `set to ${show2(change.key, change.to)}`
-            : verb[change.action] || change.action),
+            : change.movedFrom ? `${verb[change.action] || change.action}, moved from ${change.movedFrom}`
+              : verb[change.action] || change.action),
       h('span', { class: 'adm-history-who', text: [entry.by, fmtSince(entry.at)].filter(Boolean).join(' · ') }))));
     const c = card('Recent changes', {}, h('ul', { class: 'adm-history', role: 'list' }, ...rows));
     c.classList.add('adm-history-card');

@@ -1,5 +1,6 @@
 import { preflightSigV4, verifySigV4, sendJson } from '@phoenix/common';
 import { userFromSession } from '../portal/session.js';
+import { openRouterKey } from '@phoenix/contracts';
 import { ChatError } from './broker.js';
 
 // Private parsing avoids shared-parser syntax errors that can quote speech/keys.
@@ -102,6 +103,8 @@ export function freeChatRoutes(store, broker) {
 export function freeChatConfigFromEnv(env = process.env) {
   if (env.PHOENIX_FREE_CHAT_ENCRYPTION_KEY && !/^[a-fA-F0-9]{64}$/.test(env.PHOENIX_FREE_CHAT_ENCRYPTION_KEY)) throw new Error('free_chat_encryption_key_required');
   return { defaultEnabled: env.PHOENIX_FREE_CHAT_ENABLED !== 'false', ledgerFile: env.PHOENIX_FREE_CHAT_LEDGER,
-    provider: { apiKey: env.PHOENIX_FREE_CHAT_API_KEY },
+    // Phoenix's one OpenRouter key; the chat's own older key is the fallback.
+    provider: { apiKey: openRouterKey(env, 'PHOENIX_FREE_CHAT_API_KEY') || undefined },
+    models: { free: env.PHOENIX_FREE_CHAT_MODEL, overflow: env.PHOENIX_FREE_CHAT_OVERFLOW_MODEL },
     encryptionKey: env.PHOENIX_FREE_CHAT_ENCRYPTION_KEY ? Buffer.from(env.PHOENIX_FREE_CHAT_ENCRYPTION_KEY, 'hex') : undefined };
 }

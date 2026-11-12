@@ -5,6 +5,10 @@
 //   PUT  /api/admin/settings          { changes: { KEY: value | null } } — save, all or nothing
 //   GET  /api/admin/services          the services the launcher runs, each health-checked now
 //   POST /api/admin/services/restart  { services: [id…] | 'all' } — restart them
+//   GET  /api/admin/settings/models?key=KEY[&url=…]
+//                                      the models a model setting can choose from, listed by its
+//                                      endpoint (GET <endpoint>/models). Unavailable is not an
+//                                      error: the console then asks for the name by hand.
 //
 // A setting's value comes from, in order: what was saved here (consoleSettings.js),
 // the server's environment file, or the built-in default. Saving here never edits
@@ -14,8 +18,13 @@
 //
 // Secrets never leave the server: the browser learns only whether one is set,
 // and for a long one its last four characters, so two keys can be told apart.
+//
+// Every AI feature shares one OpenRouter key (OPENROUTER_API_KEY). When this
+// service starts it moves a key saved under an older per-feature setting there,
+// once (openRouterMigration.js).
 
 import { logger } from '@phoenix/common';
+import { OPENROUTER_API_URL, isOpenRouterUrl } from '@phoenix/contracts';
 import {
   BY_KEY, GROUPS, SERVICES, SERVICE_IDS, SETTINGS, checkTogether, servicesFor, validate,
 } from './configCatalog.js';
@@ -24,6 +33,7 @@ import {
 } from './consoleSettings.js';
 import { envFilePath, readEnvFile } from './envFile.js';
 import { controlView, launcherControl, readLauncherState, requestRestart, servicesStatus } from './launcherControl.js';
+import { migrateOpenRouterKey } from './openRouterMigration.js';
 
 const log = logger('account.admin');
 
@@ -59,8 +69,6 @@ export function effectiveValues(state, server) {
     const value = entry && entry.value !== null ? entry.value : serverValue(server, spec.key, !!entry);
     if (value !== null) out[spec.key] = value;
   }
-  // Read by the services but not a setting of its own here.
-  if (server.env.OPENROUTER_API_KEY) out.OPENROUTER_API_KEY = server.env.OPENROUTER_API_KEY;
   return out;
 }
 
@@ -86,7 +94,8 @@ function describe(spec, state, server, launcher) {
     group: spec.group,
     type: spec.type,
     help: spec.help,
-    editable: !!spec.editable,
+    // An older setting another one replaced can be removed here, not set.
+    editable: !!spec.editable && !spec.replacedBy,
     advanced: !!spec.advanced,
     default: spec.default ?? null,
     options: spec.options,
@@ -95,6 +104,11 @@ function describe(spec, state, server, launcher) {
     max: spec.max,
     integer: !!spec.integer,
     unit: spec.unit,
+    models: spec.models,
+    modelFilter: spec.modelFilter,
+    presets: spec.presets,
+    replacedBy: spec.replacedBy,
+    removable: !!(spec.replacedBy && spec.editable && saved !== null),
     restart: spec.restart || [],
     source: saved !== null ? 'console' : fromServer !== null ? 'server' : 'default',
     isSet: value !== null,
@@ -128,6 +142,10 @@ function historyView(item) {
         out.to = change.to ?? null;
       }
       if (spec && spec.type !== 'secret' && change.action === 'set') out.to = change.to ?? null;
+      // A setting's name, never a value.
+      if (typeof change.movedFrom === 'string' && BY_KEY.has(change.movedFrom)) {
+        out.movedFrom = BY_KEY.get(change.movedFrom).label;
+      }
       return out;
     }),
   };
@@ -141,12 +159,112 @@ function normalizeValue(raw) {
   return undefined;
 }
 
+/* -- model lists --------------------------------------------------------- */
+
+const MODEL_LIST_TIMEOUT_MS = 8000;
+const MODEL_LIST_MAX_BYTES = 16 * 1024 * 1024;
+const MODEL_LIST_MAX = 3000;
+const MODEL_LIST_CACHE_MS = 10 * 60_000;
+const modelCache = new Map();
+
+/** Where a list came from, for the console: scheme, host and path only. */
+function endpointLabel(endpoint) {
+  try {
+    const u = new URL(endpoint);
+    return `${u.protocol}//${u.host}${u.pathname.replace(/\/+$/, '')}`;
+  } catch {
+    return null;
+  }
+}
+
+async function boundedJson(response, maxBytes) {
+  const reader = response.body?.getReader();
+  if (!reader) return null;
+  const chunks = [];
+  let size = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > maxBytes) return null;
+      chunks.push(Buffer.from(value));
+    }
+  } finally {
+    await reader.cancel().catch(() => {});
+  }
+  try { return JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { return null; }
+}
+
+const isZero = (value) => value !== undefined && value !== null && value !== '' && Number(value) === 0;
+
+/** One model as the console shows it. Accepts OpenAI's shape, and OpenRouter's richer one. */
+function modelEntry(raw) {
+  if (!raw || typeof raw !== 'object' || typeof raw.id !== 'string') return null;
+  const id = raw.id.trim();
+  if (!/^[\x21-\x7e]{1,200}$/.test(id)) return null;
+  const pricing = raw.pricing && typeof raw.pricing === 'object' ? raw.pricing : null;
+  const out = { id };
+  if (typeof raw.name === 'string' && raw.name.trim() && raw.name.length <= 200) out.name = raw.name.trim();
+  if (Number.isSafeInteger(raw.context_length) && raw.context_length > 0) out.context = raw.context_length;
+  out.free = id.endsWith(':free') || !!(pricing && isZero(pricing.prompt) && isZero(pricing.completion));
+  return out;
+}
+
+/**
+ * GET <endpoint>/models, bounded in time and size, never following a redirect.
+ * @returns {Promise<{ok: true, models: object[]} | {ok: false, message: string}>}
+ */
+export async function listModels(endpoint, { apiKey = '', fetchImpl = fetch, cache = null, now = Date.now } = {}) {
+  const target = `${String(endpoint).replace(/\/+$/, '')}/models`;
+  const cacheKey = `${target}\n${apiKey ? 'key' : 'none'}`;
+  const hit = cache?.get(cacheKey);
+  if (hit && now() - hit.at < MODEL_LIST_CACHE_MS) return { ok: true, models: hit.models };
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), MODEL_LIST_TIMEOUT_MS);
+  try {
+    const response = await fetchImpl(target, {
+      method: 'GET',
+      redirect: 'error',
+      signal: controller.signal,
+      headers: { accept: 'application/json', ...(apiKey ? { authorization: `Bearer ${apiKey}` } : {}) },
+    });
+    if (!response.ok) {
+      await response.body?.cancel().catch(() => {});
+      return { ok: false, message: `The endpoint answered ${response.status} when asked for its models.` };
+    }
+    const body = await boundedJson(response, MODEL_LIST_MAX_BYTES);
+    const rows = Array.isArray(body) ? body : Array.isArray(body?.data) ? body.data : Array.isArray(body?.models) ? body.models : null;
+    if (!rows) return { ok: false, message: 'The endpoint didn’t return a list of models.' };
+    const seen = new Set();
+    const models = [];
+    for (const raw of rows.slice(0, MODEL_LIST_MAX)) {
+      const entry = modelEntry(raw);
+      if (!entry || seen.has(entry.id)) continue;
+      seen.add(entry.id);
+      models.push(entry);
+    }
+    if (!models.length) return { ok: false, message: 'The endpoint listed no models.' };
+    // OpenRouter's "~vendor/…-latest" aliases sort beside their vendor's models.
+    models.sort((a, b) => a.id.replace(/^~/, '').localeCompare(b.id.replace(/^~/, '')) || a.id.localeCompare(b.id));
+    cache?.set(cacheKey, { at: now(), models });
+    return { ok: true, models };
+  } catch {
+    return { ok: false, message: controller.signal.aborted
+      ? 'The endpoint took too long to list its models.' : 'The endpoint couldn’t be reached to list its models.' };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export function adminSettingsRoutes(store, {
   requireAdmin, sendJson, currentAccount, env = process.env, now = Date.now, fetchImpl = fetch,
   control: controlFor = () => launcherControl(env),
   restart = requestRestart,
+  migrate = true,
 }) {
   const settingsFile = () => consoleSettingsFile({ env, storeFile: store.file });
+  if (migrate) migrateOpenRouterKey({ file: settingsFile(), server: readServerValues(env), now: now() });
 
   const settingsView = () => {
     const control = controlFor();
@@ -191,6 +309,10 @@ export function adminSettingsRoutes(store, {
         if (!spec.editable) { errors[key] = 'is part of how this server is installed, so it can’t be changed here'; continue; }
         const value = normalizeValue(raw);
         if (value === undefined) { errors[key] = 'must be text'; continue; }
+        if (spec.replacedBy && value !== null) {
+          errors[key] = `is replaced by the ${BY_KEY.get(spec.replacedBy)?.label || spec.replacedBy}; set that instead`;
+          continue;
+        }
         const problem = value === null ? null : validate(key, value);
         if (problem) { errors[key] = problem; continue; }
         accepted[key] = value;
@@ -224,6 +346,29 @@ export function adminSettingsRoutes(store, {
         saved: next.changed,
         restart: servicesFor(next.changed).filter((id) => launcher?.services[id]),
       };
+    },
+
+    'GET /api/admin/settings/models': async ({ req, res, url }) => {
+      if (!requireAdmin(store, req, res)) return undefined;
+      const spec = BY_KEY.get(url.searchParams.get('key') || '');
+      if (!spec || spec.type !== 'model') return sendJson(res, 400, { error: 'Name a model setting.' });
+      const { state } = readConsoleSettings(settingsFile());
+      const values = effectiveValues(state, readServerValues(env));
+      let endpoint = OPENROUTER_API_URL;
+      let apiKey = '';
+      if (spec.models === 'endpoint') {
+        const asked = url.searchParams.get('url');
+        endpoint = asked || values.LLM_URL || '';
+        if (!endpoint) return { available: false, message: 'Set the endpoint first, then its models are listed here.' };
+        if (validate('LLM_URL', endpoint)) return sendJson(res, 400, { error: 'That endpoint isn’t a web address.' });
+        // A custom endpoint's own key goes only to the endpoint it was saved for.
+        // OpenRouter lists its models without one, and its key never goes elsewhere.
+        if (!isOpenRouterUrl(endpoint) && endpoint === values.LLM_URL) apiKey = values.PHOENIX_LLM_API_KEY || '';
+      }
+      const listed = await listModels(endpoint, { apiKey, fetchImpl, cache: modelCache, now });
+      if (!listed.ok) return { available: false, endpoint: endpointLabel(endpoint), message: listed.message };
+      const models = spec.modelFilter === 'free' ? listed.models.filter((m) => m.free) : listed.models;
+      return { available: true, endpoint: endpointLabel(endpoint), models };
     },
 
     'GET /api/admin/services': async ({ req, res }) => {

@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
-import { resolveLlmProvider } from '@phoenix/contracts';
+import { openRouterKey, resolveLlmProvider } from '@phoenix/contracts';
 
 const number = (value, fallback, min, max) => value !== undefined && value !== '' && Number.isFinite(Number(value))
   ? Math.min(max, Math.max(min, Number(value))) : fallback;
@@ -17,9 +17,12 @@ export function newsBriefingConfig(env = process.env) {
   }, defaultTimeoutMs: 30000 });
   let openRouter = false;
   try { openRouter = new URL(llm.url).hostname === 'openrouter.ai'; } catch { /* invalid config stays unready */ }
-  // The existing deployment stores its OpenRouter key in the intent decision
-  // setting. Reuse that only for OpenRouter, never send it to a custom endpoint.
-  if (!llm.apiKey && openRouter) llm.apiKey = env.ETCO_parser_decisionApiKey || '';
+  // On OpenRouter, news uses Phoenix's one OpenRouter key. Older servers kept a
+  // news key, or only the decision layer's key: those are the fallbacks, in that
+  // order. None of them is ever sent to a custom endpoint.
+  if (openRouter) {
+    llm.apiKey = openRouterKey(env, 'ETCO_news_llmApiKey', 'ETCO_parser_decisionApiKey', 'PHOENIX_LLM_API_KEY');
+  }
   const provider = env.PHOENIX_NEWS_PROVIDER || (env.LUMENFEED_API_KEY ? 'lumenfeed' : 'worldnews');
   return {
     enabled: briefingsEnabled(env), provider,

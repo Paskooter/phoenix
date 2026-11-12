@@ -4,7 +4,7 @@
 // a live engine. It needs a configured engine, and it sends each case's text to
 // that engine (OpenRouter/TypeSafe for Jev):
 //
-//   ETCO_parser_decisionEngine=jev ETCO_parser_decisionApiKey=<openrouter key> \
+//   ETCO_parser_decisionEngine=jev OPENROUTER_API_KEY=<openrouter key> \
 //     node scripts/decision-layer-eval.mjs [--split dev|holdout|all] [--home] [--show]
 //
 // --home scores a robot whose owner linked Home Assistant: each turn takes the
@@ -32,7 +32,7 @@ const SELECTION = { enabled: true, capabilities: ['room_context', 'state_queries
 
 const client = createDecisionClient();
 if (!client.enabled) {
-  console.error('Set ETCO_parser_decisionEngine=jev and ETCO_parser_decisionApiKey (an OpenRouter key) first.');
+  console.error('Set ETCO_parser_decisionEngine=jev and OPENROUTER_API_KEY (an OpenRouter key) first.');
   process.exit(2);
 }
 

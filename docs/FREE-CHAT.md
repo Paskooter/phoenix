@@ -101,7 +101,7 @@ plaintext. Removing/replacing it cancels pending work and never resets counters.
 The personal key bypasses the shared account/day and owner-dollar allowance,
 not safety limits (20 attempts/minute/account, global concurrency/minute,
 bounded body/output/session). Phoenix never falls back to the owner's key if a
-personal key fails. Free first/DeepSeek overflow and privacy ceilings stay fixed.
+personal key fails. The free-first/paid-overflow order, price and privacy ceilings stay fixed.
 
 Only OpenRouter's OpenAI-compatible API is implemented. Arbitrary compatible
 origins are deliberately not accepted from members: supporting another provider
@@ -113,7 +113,13 @@ this text-only skill into an agent or a generic proxy.
 
 - `PHOENIX_FREE_CHAT_ENABLED=true` is the default preference, shown in configCatalog.
   An account's explicit ON/OFF choice wins. Account and robot switches use the same data.
-- Provision `PHOENIX_FREE_CHAT_API_KEY`, `PHOENIX_FREE_CHAT_ENCRYPTION_KEY` (64 hex
+- The chat uses Phoenix's one OpenRouter key, `OPENROUTER_API_KEY` (Settings → Language
+  models), shared with the decision layer and news briefings. The older
+  `PHOENIX_FREE_CHAT_API_KEY` is read only while that is not set. The operator picks the
+  free model (`PHOENIX_FREE_CHAT_MODEL`, default `google/gemma-4-26b-a4b-it:free`; it
+  must be free, because the first attempt is capped at zero cost) and the paid overflow
+  model (`PHOENIX_FREE_CHAT_OVERFLOW_MODEL`, default `deepseek/deepseek-v4.1-flash`).
+- Provision `PHOENIX_FREE_CHAT_ENCRYPTION_KEY` (64 hex
   characters encoding 32 random bytes), and `PHOENIX_FREE_CHAT_LEDGER` outside the release.
   The catalog displays private server settings read-only; no secret is editable
   through a member form except that member's own provider key.
