@@ -15,6 +15,7 @@ import { portalRoutes } from './portalApi.js';
 import { robotFaceRoutes } from './robotFace.js';
 import { settingsPeerRoutes, settingsPortalRoutes } from './settingsFace.js';
 import { calendarPortalRoutes } from './calendarRoutes.js';
+import { localReportPortalRoutes } from './portal/localReports.js';
 import { IcalRefreshService } from './icalRefresh.js';
 import { backupPeerRoutes } from './backupPeerRoutes.js';
 import { keyPeerRoutes } from './keyPeerRoutes.js';
@@ -497,6 +498,11 @@ export function createAccountService({
       fetchOptions: calendarFetchOptions,
       onSubscriptionsChanged: () => calendarRefresh.changed(),
     }), // owner-scoped iCal subscriptions and cached events
+    ...localReportPortalRoutes(store, {
+      fetcher: calendarFetcher,
+      fetchOptions: calendarFetchOptions,
+      onSubscriptionsChanged: () => calendarRefresh.changed(),
+    }), // the owner manages the report of an adult in the loop without a login
     ...robotFaceRoutes(store, {
       settingsProviders: effectiveSettingsProviders,
       loopUpdatedOutbox,

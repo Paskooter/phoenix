@@ -16,7 +16,8 @@ import { createService, sendJson } from '@phoenix/common';
 import { commuteTypeFromWire, commuteTypeToWire, getSettingsData, setSettingsData, dataToFriendly, friendlyToData } from './settingsData.js';
 import { isAcceptedStatus } from './model.js';
 import { getSession } from './sessions.js';
-import { createSettingsProviders, isPersonRequestFatal } from './settingsProviders.js';
+import { createSettingsProviders, isPersonRequestFatal, localSettingsView } from './settingsProviders.js';
+import { localReportSettingsData, readLocalReportData, resolveLocalReportSubject } from './localMemberReports.js';
 import { getStore } from './store.js';
 import { SETTINGS_PUBLIC_CONTENT_TYPE } from './settingsTransport.js';
 import querystring from 'node:querystring';
@@ -457,6 +458,63 @@ function dispatchWithProviders(res, req, body, providers, store = null) {
     });
 }
 
+// -- adults without a login ----------------------------------------------------
+//
+// Phoenix extension, internal peer only. The report skill names a speaker who
+// has no account by `loopMemberId` (with the loopId it already sends) instead
+// of an x-amz-credentials account. The member is resolved strictly inside
+// that loop and must be a live, accountless adult; anything else gets the
+// same refusal as a caller outside the loop. Signed robot/app callers and
+// requests that carry an account identity never take this path.
+
+function localMemberBody(body) {
+  const value = validationValue(body);
+  return value && typeof value === 'object' && !Array.isArray(value)
+    && Object.prototype.hasOwnProperty.call(value, 'loopMemberId') ? value : null;
+}
+
+/** Whether this Settings request is the internal local-member form. */
+export function isLocalMemberSettingsRequest(req, body) {
+  if (req?.headers?.authorization || req?.headers?.['x-amz-credentials'] !== undefined) return false;
+  if (req?._phoenixVerifiedCredentials) return false;
+  return !!localMemberBody(body) && internalPeerAuthenticated(req);
+}
+
+/**
+ * Answer GetSettings/GetDataForSettings for an adult without a login.
+ * @returns true when handled; false when this is not a local-member request.
+ */
+export function settingsLocalMemberDispatch(store, { req, res, body, op }) {
+  const operation = String(op || '').toLowerCase();
+  if (operation !== 'getsettings' && operation !== 'getdataforsettings') return false;
+  if (!isLocalMemberSettingsRequest(req, body)) return false;
+  const validation = validateGetRequest(body, operation === 'getdataforsettings');
+  if (validation) {
+    validationError(res, validation.field, validation.detail, true);
+    return true;
+  }
+  const request = localMemberBody(body);
+  if (typeof request.loopMemberId !== 'string' || !request.loopMemberId) {
+    validationError(res, 'loopMemberId', 'must be a non-empty string', true);
+    return true;
+  }
+  const subject = resolveLocalReportSubject(store, request.loopId, request.loopMemberId);
+  if (!subject) {
+    sourceError(res, 403, 'Forbidden', 'Only loop member can query loop properties', 'LOOP_MEMBER_ONLY', true);
+    return true;
+  }
+  const options = sourceOptions(request);
+  if (options.skills && options.skills.indexOf(REPORT_SKILL) < 0) {
+    sourceJson(res, 200, []);
+    return true;
+  }
+  const data = localReportSettingsData(readLocalReportData(store, subject));
+  const result = { skillId: REPORT_SKILL, data };
+  if (options.getView !== false) result.view = localSettingsView(data);
+  sourceJson(res, 200, [result]);
+  return true;
+}
+
 /**
  * AWS-JSON dispatch for the Settings_* prefix — called from robotFace's POST / router.
  * @returns true if it handled the op (so the caller stops), false to fall through.
@@ -542,6 +600,7 @@ export function settingsInternalDispatch(store, {
     sourceError(res, 415, 'Unsupported Media Type', 'Unsupported Media Type', undefined, true);
     return true;
   }
+  if (settingsLocalMemberDispatch(store, { req, res, body, op: methodName })) return true;
   if (methodName === 'updateSettings' || methodName === 'deleteSettings') {
     const validation = validateMutationRequest(body);
     if (validation) {

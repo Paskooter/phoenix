@@ -31,6 +31,7 @@ import {
 } from '@phoenix/common';
 import { compareAccountPassword } from '../accountIdentity.js';
 import { saveLoop } from '../loopMembership.js';
+import { localMemberSettingsKeysForLoop } from '../localMemberReports.js';
 import { clearCookie } from '../sessions.js';
 import { SIDE_COLLECTIONS, defaultBackupRoot, defaultPeers, purgePeers } from '../admin/removalRoutes.js';
 import { requireUser } from './session.js';
@@ -177,6 +178,7 @@ function applyPlan(store, plan, loopUpdatedOutbox) {
   for (const loop of plan.owned) {
     for (const member of loop.members || []) photos.push(member.memberProperties?.photoUrl);
     store.settings.delete(`loop:${loop._id}`);
+    for (const key of localMemberSettingsKeysForLoop(store, loop._id)) store.settings.delete(key);
     store.loops.delete(String(loop._id));
   }
   // Other people's loops lose the departing people and robots, and each loop's

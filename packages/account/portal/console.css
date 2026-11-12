@@ -1085,6 +1085,15 @@ body.console {
 }
 .person-form-actions { grid-column: 1 / -1; }
 .person-panel-foot { padding-top: .9rem; border-top: 1px solid var(--hairline); }
+/* Loop → Manage → Personal report, for an adult without a login. */
+.person-report-form { max-width: 44rem; }
+.person-report-feeds { display: grid; gap: .75rem; }
+.person-report-feed {
+  display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+  padding: .55rem 0; border-bottom: 1px solid var(--hairline);
+}
+.person-report-feed-main { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .6rem; min-width: 0; }
+.person-report-feed-main .field-hint { flex-basis: 100%; }
 .person-panel-foot .btn-quiet { margin-inline-start: -.7rem; }
 .btn-quiet.btn-danger-quiet { color: var(--error); }
 .btn-quiet.btn-danger-quiet:hover { background: var(--error-soft); color: var(--error); }

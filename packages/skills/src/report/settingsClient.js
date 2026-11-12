@@ -46,7 +46,13 @@ export class SettingsClient {
 
     let settings;
     try {
-      const res = await SettingsClient.getSettings(accountId, loopId, transId);
+      // Phoenix: an adult in the loop without a login has no accountId. The
+      // loop owner manages their report in the console, and Settings resolves
+      // them by this loop's ID plus their member ID. Anyone with an account
+      // keeps the source request unchanged.
+      const res = accountId
+        ? await SettingsClient.getSettings(accountId, loopId, transId)
+        : await SettingsClient.getLocalMemberSettings(looperID, loopId, transId);
       const prSettings = res && res.find((skill) => skill.skillId === 'report-skill');
       settings = prSettings && prSettings.data;
     } catch (err) {
@@ -75,6 +81,26 @@ export class SettingsClient {
         headers: res.headers,
         data,
       };
+      throw error;
+    }
+    return data;
+  }
+
+  /**
+   * Phoenix extension for a speaker without an account: the same GetSettings
+   * request, naming the loop member instead of forwarding an account
+   * identity. Only the token-authenticated internal Settings hop accepts it.
+   */
+  static async getLocalMemberSettings(memberId, loopId, transId) {
+    if (!memberId || !loopId) {
+      throw new Error(`Missing creds for Settings request. Got memberID: ${!!memberId} | loopID: ${!!loopId}`);
+    }
+    const body = JSON.stringify({ loopId, transId, getView: false, skills: 'report-skill', loopMemberId: memberId });
+    const res = await requestSettings(reportPeerURL(getReportEnv().NET_settings), body, null);
+    const data = transformSettingsResponse(res.body);
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      const error = new Error(`Request failed with status code ${res.statusCode}`);
+      error.response = { status: res.statusCode, headers: res.headers, data };
       throw error;
     }
     return data;
@@ -204,7 +230,8 @@ function requestSettings(peer, body, accountId, redirectCount = 0, method = 'POS
     ...(hasBody ? { 'Content-Type': 'application/json;charset=utf-8' } : {}),
     // Once a redirect crosses origin, do not reintroduce the caller credential
     // (or the internal peer token below) on a later same-origin hop.
-    ...(forwardIdentityHeaders ? { 'x-amz-credentials': JSON.stringify({ id: accountId }) } : {}),
+    // A local-member request (no account) names the member in its body instead.
+    ...(forwardIdentityHeaders && accountId !== null ? { 'x-amz-credentials': JSON.stringify({ id: accountId }) } : {}),
     'x-amz-target': `Settings_${SETTINGS_API_VERSION}.GetSettings`,
     'User-Agent': SETTINGS_USER_AGENT,
     ...(hasBody ? { 'Content-Length': Buffer.byteLength(body) } : {}),

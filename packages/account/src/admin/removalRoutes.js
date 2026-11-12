@@ -24,6 +24,7 @@ import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { logger, net, purgeBackupDir, purgeCollections, purgeNeedles, requireInternalPeer } from '@phoenix/common';
 import { classicBaseUrl } from '../portal/classicClient.js';
+import { localMemberSettingsKeysForLoop } from '../localMemberReports.js';
 
 // Account-store collections that can reference a robot or loop. `accounts` and `loops`
 // are handled explicitly; `settings` only by robot and loop keys, so an owner's
@@ -93,6 +94,7 @@ function accountStorePlan(store, target, { apply = false } = {}) {
   const settingsKeys = [
     ...(robotId ? [robotId, `lasso:${robotId}`] : []),
     ...[...loopIds].map((id) => `loop:${id}`),
+    ...[...loopIds].flatMap((id) => localMemberSettingsKeysForLoop(store, id)),
   ].filter((key) => store.settings?.has(key));
   if (settingsKeys.length) {
     removed.settings = settingsKeys.length;

@@ -65,6 +65,11 @@ async function household(t) {
   store.settings.set(String(leaver._id), { _id: String(leaver._id), data: { report: 'theirs' } });
   store.settings.set(`lasso:${leaver._id}`, { _id: `lasso:${leaver._id}`, data: {} });
   store.settings.set(String(stayer._id), { _id: String(stayer._id), data: { report: 'kept' } });
+  // Owner-managed report choices for someone without a login, in each loop.
+  for (const owned of [amber, birch]) {
+    const key = `loopmember:${owned.loop._id}:guest-member-fixture`;
+    store.settings.set(key, { _id: key, data: { report: 'local' } });
+  }
   for (const account of [leaver, stayer]) {
     store.emailVerifications.set(account._id, {
       _id: account._id, email: account.email, tokenHash: 'a'.repeat(64),
@@ -196,6 +201,8 @@ test('deleting an account removes it, its loops and robot, and only its own reco
     assert.equal(store.settings.has(ids.L), false);
     assert.equal(store.settings.has(`lasso:${ids.L}`), false);
     assert.ok(store.settings.has(ids.S));
+    assert.equal(store.settings.has(`loopmember:${ids.amberId}:guest-member-fixture`), false, 'the deleted loop takes its local report choices');
+    assert.ok(store.settings.has(`loopmember:${ids.birchId}:guest-member-fixture`), 'another owner’s loop keeps theirs');
     assert.equal(store.emailVerifications.has(ids.L), false);
     assert.equal(store.emailVerifications.get(ids.S)?.email, 'stayer@fixture.test');
     assert.equal([...store.sessions.values()].some((session) => String(session.accountId) === ids.L), false);

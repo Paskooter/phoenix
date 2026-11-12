@@ -1031,6 +1031,11 @@ const REPORT_CHOICE_ROWS = Object.freeze({
   ],
 });
 
+/** The synthesized report-skill view, also used for an adult without a login. */
+export function localSettingsView(data) {
+  return localView(data);
+}
+
 function localView(data) {
   const source = data || {};
   const entries = Object.entries(source);

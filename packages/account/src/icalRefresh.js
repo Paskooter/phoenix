@@ -11,6 +11,7 @@ import {
   verifySubscription,
 } from './icalSubscriptions.js';
 import { getSettingsData } from './settingsData.js';
+import { isLiveLocalMemberSettingsKey } from './localMemberReports.js';
 
 export const ICAL_REFRESH_INTERVAL_MS = 24 * 60 * 60 * 1000;
 export const ICAL_SCAN_INTERVAL_MS = 60 * 60 * 1000;
@@ -42,11 +43,19 @@ export class IcalRefreshService {
     this.generation = 0;
   }
 
+  // A settings record that may own feeds: a live account, or an adult in a
+  // loop without a login (`loopmember:<loopId>:<memberId>`, managed by the
+  // loop owner). A removed person or deleted account stops refreshing.
+  _isLiveSubject(key) {
+    if (isLiveLocalMemberSettingsKey(this.store, key)) return true;
+    const account = this.store.accounts.get(key);
+    return !!account && account.isDeleted !== true;
+  }
+
   _accountsWithSubscriptions() {
     const accounts = [];
     for (const [accountId] of this.store.settings) {
-      const account = this.store.accounts.get(accountId);
-      if (!account || account.isDeleted === true) continue;
+      if (!this._isLiveSubject(accountId)) continue;
       const subscriptions = listSubscriptions(this.store, accountId);
       if (subscriptions.some((item) => item.enabled && item.url)) accounts.push(accountId);
     }
@@ -135,8 +144,7 @@ export class IcalRefreshService {
     let failed = 0;
     for (const { accountId, id } of due) {
       if (generation !== this.generation) break;
-      const account = this.store.accounts.get(accountId);
-      if (!account || account.isDeleted === true) continue;
+      if (!this._isLiveSubject(accountId)) continue;
       const before = listSubscriptions(this.store, accountId).find((item) => item.id === id);
       const timeZone = accountTimeZone(getSettingsData(this.store, accountId));
       if (!this._isDue(before, timeZone, this.now())) continue;
@@ -151,11 +159,10 @@ export class IcalRefreshService {
       if (generation !== this.generation) break;
       const current = listSubscriptions(this.store, accountId);
       const latest = current.find((item) => item.id === id);
-      const latestAccount = this.store.accounts.get(accountId);
       if (!latest || !latest.enabled || latest.url !== before.url
         || JSON.stringify(latest.verification) !== beforeVerification
         || accountTimeZone(getSettingsData(this.store, accountId)) !== timeZone
-        || !latestAccount || latestAccount.isDeleted === true) continue;
+        || !this._isLiveSubject(accountId)) continue;
       saveSubscriptions(this.store, accountId, current.map((item) => item.id === id
         ? { ...checked, label: item.label } : item));
       refreshed += 1;

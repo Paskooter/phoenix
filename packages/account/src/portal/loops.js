@@ -22,6 +22,7 @@ import {
   updateNickname,
   updatePhoneticName,
 } from '../loopMembership.js';
+import { canManageLocalReport, deleteLocalMemberSettings } from '../localMemberReports.js';
 import { requireUser } from './session.js';
 import { isEmailVerified } from '../emailVerification.js';
 
@@ -94,7 +95,7 @@ function linkedAccount(store, member, { includeEmail = false } = {}) {
   return out;
 }
 
-function memberView(store, member, { includeSensitive = false } = {}) {
+function memberView(store, member, { includeSensitive = false, canManageReport = false } = {}) {
   const out = {
     id: member._id,
     accountId: member.accountId ?? null,
@@ -111,6 +112,9 @@ function memberView(store, member, { includeSensitive = false } = {}) {
       lastName: member.memberProperties?.lastName || null,
     },
     account: linkedAccount(store, member, { includeEmail: includeSensitive }),
+    // An adult without a login has no Account page: the owner manages their
+    // personal report (Loop → Manage). Never true for a linked adult or a child.
+    canManageReport,
   };
   return out;
 }
@@ -120,7 +124,10 @@ function loopView(store, loop, viewerAccountId = null) {
   const robot = loop.robot ? store.accounts.get(loop.robot) : null;
   const members = (loop.members || [])
     .filter((member) => !['removed', 'declined'].includes(String(member.status || '').toLowerCase()))
-    .map((member) => memberView(store, member, { includeSensitive }));
+    .map((member) => memberView(store, member, {
+      includeSensitive,
+      canManageReport: canManageLocalReport(loop, member, viewerAccountId),
+    }));
   const out = {
     id: loop._id,
     name: loop.name,
@@ -340,6 +347,8 @@ export function portalLoopRoutes(store, options = {}) {
         if (error instanceof LoopError) return fail(res, error);
         throw error;
       }
+      // Someone who left takes their owner-managed report settings with them.
+      deleteLocalMemberSettings(store, loopId, id);
       return { loop: loopView(store, activeLoop(store, loopId), account._id) };
     },
 
@@ -427,6 +436,9 @@ export function portalLoopRoutes(store, options = {}) {
         member.status = 'accepted';
       }
       saveLoop(store, loop, loopUpdatedOutbox);
+      // From now on they manage their report on their own account; the copy
+      // the owner kept for them while they had no login goes.
+      deleteLocalMemberSettings(store, loop._id, member._id);
       return { loop: loopView(store, loop, account._id) };
     },
 

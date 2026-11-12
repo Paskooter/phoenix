@@ -31,7 +31,7 @@ import {
   findOrCreateRobotAccount, mintSetupToken, findToken, deleteToken, newId,
   populateLoop, ensureLoopMemberIds,
 } from './model.js';
-import { settingsAwsDispatch } from './settingsFace.js';
+import { settingsAwsDispatch, settingsLocalMemberDispatch } from './settingsFace.js';
 import { LoopUpdatedOutbox } from './loopUpdatedOutbox.js';
 import { handleLoopMembership, removeRobotFromLoops, saveLoop } from './loopMembership.js';
 import { dispatchLoopCreated } from './loopCreation.js';
@@ -347,6 +347,10 @@ export function robotFaceRoutes(store, { settingsProviders = null, loopUpdatedOu
       // settings by changing one JSON header.  Settings robot requests are
       // signed just like the other account faces; only the verified account is
       // forwarded to the compatibility dispatcher.
+      // An adult without a login has no account to forward. The report skill
+      // names them by loop + member ID on the token-authenticated internal
+      // hop instead; see settingsLocalMemberDispatch.
+      if (settingsLocalMemberDispatch(store, { req, res, body, op })) return;
       const caller = settingsCaller(store, req, res, body);
       if (!caller) return;
       return settingsAwsDispatch(store, { req, res, body, op, prefix, log, providers: settingsProviders });

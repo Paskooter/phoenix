@@ -827,6 +827,8 @@ function loopPeople(loop) {
         face: !!m.enrolled?.face,
         voice: !!m.enrolled?.voice,
         created: m.created,
+        // An adult without a login: the owner chooses what their report includes.
+        canManageReport: m.canManageReport === true,
       };
     })
     .sort((a, b) => (Number(b.isOwner) - Number(a.isOwner)) || (Number(b.isMe) - Number(a.isMe))
@@ -1058,6 +1060,7 @@ async function renderLoop({ keep = false } = {}) {
     });
     sections.push(h('div', { class: 'person-section' },
       h('h4', { class: 'setting-group-title' }, person.isMe ? 'What Jibo calls you' : 'What Jibo calls them'), nameForm));
+    if (person.canManageReport) sections.push(reportSection(person));
 
     // Their account or invitation.
     if (person.invited) {
@@ -1096,6 +1099,143 @@ async function renderLoop({ keep = false } = {}) {
         person.isMe ? 'You own this loop. To hand it to someone else, use Transfer ownership below.' : 'The owner of this loop.'));
     }
     return h('div', { class: 'person-panel', id: panelId }, ...sections);
+  }
+
+  // An adult without a login has no Personal report page of their own, so the
+  // owner chooses what Jibo includes in theirs: the same Calendar, Commute and
+  // News switches as Account → Personal report. Linked adults choose on their
+  // own account, and children always get Jibo's standard report, so neither
+  // ever gets this section. It loads only when opened.
+  function reportSection(person) {
+    const body = h('div', { class: 'person-report-body' });
+    const opener = h('button', { type: 'button', class: 'btn btn-sm', 'aria-expanded': 'false' },
+      icon('sliders', 14), 'Edit personal report');
+    opener.addEventListener('click', () => load());
+    body.append(opener);
+
+    async function load() {
+      opener.disabled = true;
+      const res = await api('GET', `/api/loop/members/report?loopId=${encodeURIComponent(active.id)}&id=${encodeURIComponent(person.id)}`);
+      opener.disabled = false;
+      if (!res.ok) { notify(res.data.error || 'Could not load their report settings', 'error'); return; }
+      paint(res.data.settings);
+    }
+
+    function paint(s) {
+      const form = h('form', { class: 'settings-form person-report-form' });
+      const news = h('fieldset', {},
+        h('legend', {}, 'News'),
+        toggle('news', s.news.active, 'Read the news', 'Pick the categories Jibo should cover.'),
+        h('div', { class: 'chips' },
+          Object.entries(s.news.categories).map(([cat, on]) => chip(`news_${cat}`, on, prettyLabel(cat)))));
+
+      const picker = createLocationPicker({
+        places: [
+          { key: 'home', label: 'Home', point: s.commute.home || {} },
+          { key: 'work', label: 'Work', point: s.commute.work || {} },
+        ],
+      });
+      const pad = (n) => String(n).padStart(2, '0');
+      const commute = h('fieldset', {},
+        h('legend', {}, 'Commute'),
+        toggle('commute', s.commute.active, 'Give commute directions', 'How long it takes to get from home to work.'),
+        h('div', { class: 'grid2' },
+          field('Travel mode', h('select', { name: 'mode' },
+            [['driving', 'Driving'], ['walking', 'Walking'], ['bicycling', 'Cycling'], ['transit', 'Public transit']]
+              .map(([value, label]) => h('option', { value, selected: s.commute.mode === value }, label)))),
+          field('Usual departure time', h('input', {
+            type: 'time', name: 'departure', value: `${pad(s.commute.time?.hour ?? 9)}:${pad(s.commute.time?.min ?? 0)}`,
+          }))),
+        picker.element);
+
+      const calendar = h('fieldset', { class: 'person-report-calendar' },
+        h('legend', {}, 'Calendar'),
+        toggle('calendar', s.calendar.active, 'Read their calendar', 'Use verified iCal subscriptions in their report.'),
+        field('Time zone', h('input', {
+          type: 'text', name: 'calendarTimeZone', value: s.calendar.timeZone || browserTimeZone(null),
+          placeholder: 'America/New_York', spellcheck: 'false', autocomplete: 'off',
+        }), 'Their events are read in this IANA time zone.'),
+        calendarList(s.subscriptions || []));
+
+      const save = h('button', { type: 'submit', class: 'btn btn-sm btn-primary' }, 'Save report');
+      const close = h('button', { type: 'button', class: 'btn btn-sm btn-quiet', on: { click: () => body.replaceChildren(opener) } }, 'Close');
+      form.append(news, commute, calendar,
+        h('div', { class: 'person-form-actions' }, close, save));
+      onSubmit(form, async (event) => {
+        event.preventDefault();
+        const fd = Object.fromEntries(new FormData(form));
+        const categories = {};
+        for (const cat of Object.keys(s.news.categories)) categories[cat] = !!fd[`news_${cat}`];
+        const departure = typeof fd.departure === 'string' && /^\d{1,2}:\d{2}$/.test(fd.departure)
+          ? { time: { hour: Number(fd.departure.split(':')[0]), min: Number(fd.departure.split(':')[1]) } } : {};
+        const zone = String(fd.calendarTimeZone || '').trim();
+        const settings = {
+          news: { active: !!fd.news, categories },
+          commute: { active: !!fd.commute, mode: fd.mode, ...picker.value(), ...departure },
+          calendar: { active: !!fd.calendar, ...(zone ? { timeZone: zone } : {}) },
+        };
+        save.disabled = true;
+        const res = await api('PUT', '/api/loop/members/report', { loopId: active.id, id: person.id, settings });
+        save.disabled = false;
+        if (!res.ok) { notify(res.data.error || 'Could not save their report', 'error'); return; }
+        notify(`Saved ${person.firstName}’s report`);
+        paint(res.data.settings);
+      });
+      body.replaceChildren(form);
+    }
+
+    // Feed addresses stay on the server; the owner sees the name, host and status.
+    function calendarList(subscriptions) {
+      const rows = subscriptions.map((item) => {
+        const state = calendarStatus(item);
+        const remove = h('button', { type: 'button', class: 'btn btn-sm btn-quiet btn-danger-quiet' }, 'Remove');
+        remove.addEventListener('click', async () => {
+          const yes = await confirmDialog({ title: 'Remove this calendar?', body: `Jibo stops reading ${item.label} in ${person.firstName}’s report.`, confirmLabel: 'Remove' });
+          if (!yes) return;
+          remove.disabled = true;
+          const res = await api('POST', '/api/loop/members/report/calendars/remove', { loopId: active.id, id: person.id, subscriptionId: item.id });
+          remove.disabled = false;
+          if (!res.ok) { notify(res.data.error || 'Could not remove the calendar', 'error'); return; }
+          notify('Calendar removed');
+          paint(res.data.settings);
+        });
+        return h('div', { class: 'person-report-feed', 'data-id': item.id },
+          h('div', { class: 'person-report-feed-main' },
+            h('strong', { text: item.label }),
+            h('span', { class: `status-badge ${state.className}` }, state.label),
+            h('span', { class: 'field-hint', text: [item.host, `${item.verification?.eventCount || 0} upcoming`].filter(Boolean).join(' · ') })),
+          remove);
+      });
+      const label = h('input', { type: 'text', maxlength: 120, placeholder: 'e.g. Work', autocomplete: 'off', 'aria-label': 'Calendar name' });
+      const url = h('input', { type: 'url', inputmode: 'url', placeholder: 'https://calendar.example.com/feed.ics', autocomplete: 'off', 'aria-label': 'iCal subscription URL' });
+      const add = h('button', { type: 'button', class: 'btn btn-sm' }, icon('plus', 14), 'Add calendar');
+      add.addEventListener('click', async () => {
+        const address = url.value.trim();
+        if (!address) { notify('Paste a calendar link first', 'error'); return; }
+        add.disabled = true;
+        const res = await api('POST', '/api/loop/members/report/calendars', {
+          loopId: active.id, id: person.id, url: address, label: label.value.trim() || undefined,
+        });
+        add.disabled = false;
+        if (!res.ok) { notify(res.data.error || 'Could not add the calendar', 'error'); return; }
+        notify('Calendar saved');
+        paint(res.data.settings);
+      });
+      return h('div', { class: 'person-report-feeds' },
+        ...rows,
+        h('div', { class: 'grid2' },
+          field('Calendar name', label),
+          field('iCal subscription URL', url, 'Read-only http, https or webcal link. Phoenix checks it now and refreshes it daily.')),
+        h('div', { class: 'row' }, add));
+    }
+
+    return h('div', { class: 'person-section person-report' },
+      h('h4', { class: 'setting-group-title' }, 'Personal report'),
+      h('p', { class: 'person-section-text' },
+        `${person.firstName} doesn’t sign in, so you choose what Jibo includes when they ask for their report.`),
+      person.birthday == null ? h('p', { class: 'field-hint' },
+        `Jibo uses these only for people he knows are 13 or older. Add ${person.firstName}’s birthday above first.`) : null,
+      body);
   }
 
   function linkedAccountSection(person) {
@@ -1158,7 +1298,9 @@ async function renderLoop({ keep = false } = {}) {
     });
     return [
       h('p', { class: 'person-section-text' },
-        'No account. Jibo still knows them, but can’t give them a personal report. If they have an account on this site, link it:'),
+        person.canManageReport
+          ? 'No account. Jibo gives them the personal report you set above. If they have an account on this site, link it and they choose for themselves:'
+          : 'No account. Jibo still knows them, but can’t give them a personal report. If they have an account on this site, link it:'),
       form,
       results,
     ];
