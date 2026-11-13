@@ -91,17 +91,20 @@ export function developerPages({ projectDir = PROJECT } = {}) {
  */
 function sourceDates(projectDir, sources) {
   const dates = new Map();
-  try {
-    const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')));
-    const log = execFileSync('git', ['-C', projectDir, 'log', '--no-renames', '--format=%x00%cI', '--name-only', '--relative', '--', ...sources],
-      { encoding: 'utf8', env, timeout: 5000, maxBuffer: 8 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] });
-    for (const commit of log.split('\0').slice(1)) {
-      const [date, ...files] = commit.split('\n').map(line => line.trim()).filter(Boolean);
+  const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')));
+  const deadline = Date.now() + 5000;
+  for (const file of new Set(sources)) {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) break;
+    try {
+      // Stop at the first change to this file. Walking the full repository
+      // history can time out even after Git has printed every date we need.
+      const date = execFileSync('git', ['-C', projectDir, 'log', '-1', '--no-renames', '--format=%cI', '--', file],
+        { encoding: 'utf8', env, timeout: remaining, maxBuffer: 4096, stdio: ['ignore', 'pipe', 'ignore'] }).trim();
       const time = Date.parse(date);
-      if (!Number.isFinite(time)) continue;
-      for (const file of files) if (!dates.has(file)) dates.set(file, new Date(time).toISOString());
-    }
-  } catch { /* Not a Git checkout, or Git is unavailable. */ }
+      if (Number.isFinite(time)) dates.set(file, new Date(time).toISOString());
+    } catch { /* No history, unavailable Git, or the shared lookup budget expired. */ }
+  }
   return dates;
 }
 
