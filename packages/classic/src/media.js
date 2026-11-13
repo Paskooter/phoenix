@@ -219,6 +219,60 @@ export const MEDIA_ERRORS = {
 // rejects the call when isAdmin is falsy.
 export const AUTHORIZED_UNDER_ADMIN = { code: 'AUTHORIZED_UNDER_ADMIN', statusCode: 401, message: 'Must be authorized under admin account' };
 
+const MEDIA_LOG_TARGETS = [
+  'Media_20160725.Create', 'Media_20160725.List', 'Media_20160725.Get', 'Media_20160725.Remove',
+  'Media_20160725.RemoveAllMediaFromLoop', 'MediaAdmin_20160725.RemoveAllMediaFromLoop',
+];
+const MEDIA_LOG_OPERATIONS = MEDIA_LOG_TARGETS.map(target => target.split('.')[1]);
+const MEDIA_LOG_MESSAGES = new Set([
+  'classic request', 'classic: no service for target', 'media request',
+  'media account lookup failed', 'media request failed', 'media request rejected',
+  'request failed', 'handler threw', 'request rejected',
+]);
+const MEDIA_LOG_VALUES = {
+  target: new Set(MEDIA_LOG_TARGETS),
+  op: new Set([...MEDIA_LOG_OPERATIONS, ...MEDIA_LOG_OPERATIONS.map(op => op.toLowerCase())]),
+  operation: new Set([
+    ...MEDIA_LOG_TARGETS, ...MEDIA_LOG_OPERATIONS.map(op => op.toLowerCase()),
+    'members', 'accountLoops', 'ownedLoops',
+  ]),
+  event: new Set(['media_account_lookup_failed', 'media_request_failed']),
+  reason: new Set(['loop_not_found', 'http_error', 'timeout', 'invalid_json', 'transport_error', 'invalid_response']),
+  errorCode: new Set([...Object.keys(MEDIA_ERRORS), 'InternalFailure']),
+  cause: new Set(['ENOSPC', 'EIO', 'EROFS', 'EACCES', 'ENOENT']),
+  type: new Set(MEDIA_TYPES),
+  matched: new Set(['in-process', 'proxy', 'NONE']),
+  method: new Set(['POST']),
+  route: new Set(['/', '(unmatched)']),
+};
+
+/** A fresh, identity-independent correlation shared with common's HTTP failure log. */
+export function mediaRequestLogger(req) {
+  // The route timer already holds this object: scrub it in place so a caller's
+  // turn/transaction header cannot reappear in a later common timing record.
+  const trace = req._phoenixTrace || {};
+  for (const field of Object.keys(trace)) delete trace[field];
+  trace.transId = randomUUID();
+  req._phoenixTrace = trace;
+  const log = logger('classic', trace); // Never inherit caller trace/loggingConfig.
+  const emit = level => (message, fields) => {
+    if (!MEDIA_LOG_MESSAGES.has(message)) return;
+    const safe = {};
+    for (const [field, values] of Object.entries(MEDIA_LOG_VALUES)) {
+      if (values.has(fields?.[field])) safe[field] = fields[field];
+    }
+    if (Number.isInteger(fields?.status) && fields.status >= 100 && fields.status <= 599) safe.status = fields.status;
+    if (typeof fields?.authenticated === 'boolean') safe.authenticated = fields.authenticated;
+    log[level](message, safe);
+  };
+  // Project both handler/peer records and the common finish/error records. Even
+  // a syntactically valid target can contain an identifier; regex bounds alone
+  // are not an allowlist. Never pass bodies, URLs, exception text or stacks on.
+  req._phoenixLog = Object.fromEntries(['error', 'warn', 'info', 'debug'].map(level => [level, emit(level)]));
+  req._phoenixLog.transId = trace.transId;
+  return req._phoenixLog;
+}
+
 function fail(code) { const err = new Error(code); Object.assign(err, MEDIA_ERRORS[code]); throw err; }
 
 function sendMediaFailure(res, error, log, operation, details = {}) {
