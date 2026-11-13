@@ -21,6 +21,7 @@ export const DEFAULTS = Object.freeze({
 });
 const COMMON = ['robot', 'be-root', 'node', 'state-root'];
 const FLAGS = ['list', 'keep-data', 'erase-data'];
+const RESPONSE_BYTES = 16384, MAX_LIST_RESPONSE_BYTES = 1048576;
 const UUID = '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}';
 function fail(code) { throw Object.assign(new Error(code), {code}); }
 export function quote(value) { return "'" + value.replace(/'/g, "'\\''") + "'"; }
@@ -69,18 +70,24 @@ function openPack(file, limit) {
     return {fd, name, initial, bytes:position, sha256:hash.digest('hex')};
   } catch (error) { closeSync(fd); throw error; }
 }
-function remote(options, args, pack, dependencies) {
+function remote(options, args, pack, dependencies, responseLimit = RESPONSE_BYTES) {
   return new Promise((resolveResult, reject) => {
     const command = [options.node, posix.join(options['be-root'], 'phoenix-test-cli.js'), ...args, '--state-root', options['state-root'], '--json'].map(quote).join(' ');
     const child = (dependencies.spawn || spawnProcess)('ssh', ['-T', '-l', 'root', '--', options.robot, command], {stdio:['pipe', 'pipe', 'pipe'], shell:false});
-    let output = '', errorText = '', done = false, stream, transferError;
+    const output = [];
+    let outputBytes = 0, errorText = '', done = false, stream, transferError;
     const timeout = setTimeout(() => finish(Object.assign(new Error('ssh_timeout'), {code:'ssh_timeout'})), 95000);
     function finish(error, result) {
       if (done) return; done = true; clearTimeout(timeout);
       if (error) { if (stream) stream.destroy(); child.kill(); reject(error); } else resolveResult(result);
     }
     child.on('error', error => finish(Object.assign(new Error('ssh_unavailable'), {code:'ssh_unavailable', cause:error})));
-    child.stdout.on('data', data => { output += data.toString('utf8'); if (Buffer.byteLength(output) > 16384) finish(Object.assign(new Error('robot_response_too_large'), {code:'robot_response_too_large'})); });
+    child.stdout.on('data', data => {
+      if (done) return;
+      outputBytes += data.length;
+      if (outputBytes > responseLimit) finish(Object.assign(new Error('robot_response_too_large'), {code:'robot_response_too_large'}));
+      else output.push(data);
+    });
     child.stderr.on('data', data => { if (errorText.length < 4096) errorText += data.toString('utf8'); if (dependencies.stderr) dependencies.stderr.write(data); });
     child.stdin.on('error', error => finish(Object.assign(new Error('ssh_stream_failed'), {code:'ssh_stream_failed', cause:error})));
     child.on('close', code => {
@@ -88,7 +95,7 @@ function remote(options, args, pack, dependencies) {
       try {
         if (transferError) throw transferError;
         let response;
-        try { response = JSON.parse(output); } catch (_) { fail(code === 127 || /No such file|not found/.test(errorText) ? 'unsupported_firmware' : 'ssh_or_robot_failed'); }
+        try { response = JSON.parse(Buffer.concat(output).toString('utf8')); } catch (_) { fail(code === 127 || /No such file|not found/.test(errorText) ? 'unsupported_firmware' : 'ssh_or_robot_failed'); }
         if (!response || typeof response.ok !== 'boolean') fail('invalid_robot_response');
         if (!response.ok) fail(typeof response.error === 'string' && /^[a-z0-9_]{1,100}$/.test(response.error) ? response.error : 'robot_request_failed');
         if (code !== 0) fail('ssh_or_robot_failed');
@@ -122,6 +129,14 @@ export async function run(argv, dependencies = {}) {
   if (info.beRoot !== options['be-root'] || info.stateRoot !== options['state-root'] || info.runtimeNode !== options.node) fail('robot_path_mismatch');
   if (command === 'info') return info;
   if (command === 'project' && !info.localKinds.includes(options.kind)) fail('unsupported_kind');
+  // Only the complete status-list array may use the advertised aggregate cap.
+  // Older firmware and every other operation keep the legacy frame budget.
+  let responseLimit = RESPONSE_BYTES;
+  if (command === 'status' && options.list && info.limits && Object.hasOwn(info.limits, 'localListResponseBytes')) {
+    const max = info.limits.localListResponseBytes;
+    if (!Number.isSafeInteger(max) || max < RESPONSE_BYTES || max > MAX_LIST_RESPONSE_BYTES) fail('invalid_robot_limits');
+    responseLimit = max;
+  }
   let pack;
   try {
     const args = [command === 'project' ? 'create-project' : command];
@@ -141,7 +156,7 @@ export async function run(argv, dependencies = {}) {
       }
       args.push('--stdin', '--bytes', String(pack.bytes), '--sha256', pack.sha256);
     }
-    return await remote(options, args, pack, dependencies);
+    return await remote(options, args, pack, dependencies, responseLimit);
   } finally { if (pack) { try { closeSync(pack.fd); } catch (error) { if (error.code !== 'EBADF') throw error; } } }
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
