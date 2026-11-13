@@ -33,7 +33,7 @@ import { createReadStream } from 'node:fs';
 import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
 import { pipeline } from 'node:stream/promises';
 import {
-  createService, createDeploymentActivity, SIGV4_ERRORS, SigV4Error, preflightSigV4, verifySigV4,
+  createService, createDeploymentActivity, logger, SIGV4_ERRORS, SigV4Error, preflightSigV4, verifySigV4,
   UploadStagingThrottleError, uploadStagingBudget,
 } from '@phoenix/common';
 import { parseTarget, sendAmz, sendAmzError, sendBoom, credentialsFrom } from './awsJson.js';
@@ -83,6 +83,7 @@ const ROBOT_REF_DOMAIN = 'phoenix-ota-robot-ref-v1';
 const ROBOT_REF_UNKNOWN = 'unknown';
 const LOG_SUBSYSTEMS = new Set(['os', 'services', 'main', 'be', '@be/be', 'jibo-diagnostics']);
 const LOG_FILTERS = new Set(['', 'fcs', 'eau']);
+const LOG_STREAM_ERROR_CODES = new Set(['ERR_STREAM_PREMATURE_CLOSE', 'ECONNRESET', 'EPIPE', 'ENOENT', 'EACCES', 'EIO', 'EISDIR']);
 
 function canonicalPublicOrigin(value, name = 'publicBaseUrl') {
   if (typeof value !== 'string' || value.trim() === '') throw new TypeError(`${name} is required`);
@@ -355,6 +356,10 @@ export function createOtaService({
   const uploadLimit = Number(maxUploadBytes);
   if (!Number.isSafeInteger(uploadLimit) || uploadLimit < 0) throw new TypeError('maxUploadBytes must be a non-negative safe integer');
   const packageSecret = packageBearerSecret || 'development-ota-package-secret';
+  // These diagnostics accept only explicit safe fields. The request logger
+  // inherits raw caller correlation IDs, including plausible UUIDs; do not use
+  // it here or change the shared trace/header behavior for other log events.
+  const diagnosticLog = logger('ota');
   const robotRefOf = (caller) => robotLogRef(caller, packageSecret);
   const credentialResolver = typeof resolveCredentials === 'function' ? (accessKeyId) => {
     const account = resolveCredentials(accessKeyId);
@@ -486,14 +491,14 @@ export function createOtaService({
           const matches = op === 'ListUpdates'
             ? catalog.listUpdates({ subsystem: query.subsystem, filter })
             : catalog.listUpdatesFrom({ fromVersion: query.fromVersion, subsystem: query.subsystem, filter });
-          log.info?.('update query', { op, robotRef, ...queryLogFields(query, filter), returned: matches.length, available: catalog.entries.length });
+          diagnosticLog.info('update query', { op, robotRef, ...queryLogFields(query, filter), returned: matches.length, available: catalog.entries.length });
             return void sendAmz(res, 200, matches.map((e) => catalog.toUpdate(e, { baseUrl, fromVersion: query.fromVersion, packageUrl: urlForEntry })));
         }
 
         case 'GetUpdateFrom': {
           const filter = await catalog.effectiveFilter(query.filter, creds.friendlyId);
           const best = catalog.getUpdateFrom({ fromVersion: query.fromVersion, subsystem: query.subsystem, filter });
-          log.info?.('update query', { op, robotRef, ...queryLogFields(query, filter), returned: best ? 1 : 0, available: catalog.entries.length });
+          diagnosticLog.info('update query', { op, robotRef, ...queryLogFields(query, filter), returned: best ? 1 : 0, available: catalog.entries.length });
           // The robot's system-manager (UpdateManager::checkForUpdates) treats ANY error code
           // other than exactly "UPDATE_NOT_FOUND" as fatal and aborts the whole multi-subsystem
           // check — so a subsystem we don't stock (e.g. @be/be, which sorts first) must return
@@ -611,10 +616,12 @@ export function createOtaService({
       });
       try {
         await pipeline(createReadStream(entry._file), res);
-        log.info?.('ota package download', { id, robotRef, bytes: entry.length, durationMs: Math.max(0, clockMillis(now) - started) });
+        diagnosticLog.info('ota package download', { id, robotRef, bytes: entry.length, durationMs: Math.max(0, clockMillis(now) - started) });
       } catch (err) {
         // Client hung up mid-download, or read error after headers were sent — nothing to do but log.
-        log.warn?.('ota package stream interrupted', { id, robotRef, error: err.message });
+        // Messages may contain private filesystem paths or arbitrary text.
+        const errorCode = err?.code;
+        diagnosticLog.warn('ota package stream interrupted', { id, robotRef, error: LOG_STREAM_ERROR_CODES.has(errorCode) ? errorCode : 'STREAM_ERROR' });
       } finally { end(); }
     },
   };

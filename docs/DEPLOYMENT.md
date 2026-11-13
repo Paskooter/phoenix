@@ -2115,6 +2115,12 @@ selection or package bytes. It identifies the robot the URL was issued to;
 it is not proof of the downloader's identity. With the deployment's secret,
 `robotLogRef` exported by `@phoenix/ota` computes a given robot's reference.
 
+These three OTA diagnostic events omit caller correlation IDs (including
+transaction and turn IDs). Interrupted downloads record only an allowlisted
+stream/read error code, or `STREAM_ERROR`, never the raw error message or file
+path. This privacy boundary does not cover the unchanged shared request,
+error, or voice-span logs.
+
 ### 15.6 Cloudflare edge checks (operator-only)
 
 These checks apply only when an owned hostname is orange-clouded. They were not
