@@ -356,27 +356,37 @@ each('a malformed signature header is refused', async (v) => {
   assertRefused(r, rel.row.id, /malformed signature header/);
 });
 
-// ---- builder command line: the official image cannot be built without a pinned key ----------
+// ---- builder command line: the official image always pins release keys ---------------------
 
-function bakerPlan(extra) {
+function bakerPlanArgs(extra) {
   const d = fs.mkdtempSync(path.join(dir, 'plan-'));
   for (const n of ['rootfs.ext4', 'services.ext4', 'skills.ext4', 'var.ext4']) write(path.join(d, 'images', n), '');
   for (const n of ['skills.ext4', 'client.js', 'root.pem']) write(path.join(d, n), '');
-  return spawnSync('python3', [BAKER, '--legacy-images', path.join(d, 'images'), '--skills-base', path.join(d, 'skills.ext4'),
-    '--output', path.join(d, 'out'), '--client-source', path.join(d, 'client.js'), '--root-ca', path.join(d, 'root.pem'), ...extra],
-  { encoding: 'utf8' });
+  return [BAKER, '--legacy-images', path.join(d, 'images'), '--skills-base', path.join(d, 'skills.ext4'),
+    '--output', path.join(d, 'out'), '--client-source', path.join(d, 'client.js'), '--root-ca', path.join(d, 'root.pem'), ...extra];
 }
 
-test('builder: refuses to plan an official image without a pinned release key', () => {
+function bakerPlan(extra) {
+  return spawnSync('python3', bakerPlanArgs(extra), { encoding: 'utf8' });
+}
+
+test('builder: an official image pins the reviewed release keys by default, and refuses an altered set', () => {
   const r = bakerPlan([]);
-  assert.equal(r.status, 2);
-  assert.match(r.stderr, /pins its OTA release key: pass --ota-release-pubkey/);
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.stdout, /OTA gate: {5}signed updates only, anti-downgrade; keys phoenix-ota-20261112, phoenix-ota-20261112b \(pinned in deploy\/ota-release-keys\)/);
+
+  const altered = fs.mkdtempSync(path.join(dir, 'pinned-'));
+  fs.cpSync(path.join(HERE, '..', 'ota-release-keys'), altered, { recursive: true });
+  fs.copyFileSync(path.join(dir, 'trusted.pub.pem'), path.join(altered, 'phoenix-ota-20261112.pub.pem'));
+  const refused = spawnSync('python3', bakerPlanArgs([]), { encoding: 'utf8', env: { ...process.env, PHOENIX_OTA_RELEASE_KEYS_DIR: altered } });
+  assert.equal(refused.status, 2);
+  assert.match(refused.stderr, /pinned OTA release keys .*phoenix-ota-20261112\.pub\.pem does not match its pemSha256/);
 });
 
 test('builder: plans the gate with a 3072-bit public key and refuses private or small keys', () => {
   const ok = bakerPlan(['--ota-release-pubkey', `${KEY_ID}=${path.join(dir, 'trusted.pub.pem')}`]);
   assert.equal(ok.status, 0, ok.stderr);
-  assert.match(ok.stdout, /OTA gate: {5}signed updates only, anti-downgrade; keys phoenix-ota-test/);
+  assert.match(ok.stdout, /OTA gate: {5}signed updates only, anti-downgrade; keys phoenix-ota-test \(given with --ota-release-pubkey\)/);
 
   const priv = path.join(dir, 'private.pem');
   write(priv, trustedPriv.export({ type: 'pkcs8', format: 'pem' }), 0o600);

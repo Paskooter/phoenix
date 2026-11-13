@@ -11,14 +11,19 @@
 //                                            --key private.pem --key-id phoenix-ota-YYYYMMDD
 //                                            [--ids a,b] [--gate-receipt be-gate.json ...]
 //   node scripts/sign-ota-release.mjs verify --manifest M --data-dir D
-//                                            --pubkey phoenix-ota-YYYYMMDD=public.pem ...
+//                                            [--pubkey phoenix-ota-YYYYMMDD=public.pem ...]
 //                                            [--ids a,b]
+//   node scripts/sign-ota-release.mjs pinned
 //
 // An encrypted private key reads its passphrase from PHOENIX_OTA_KEY_PASSPHRASE. `sign` never
 // overwrites: OUT must not exist. Signature format: packages/ota/src/releaseSignature.js and
 // docs/OTA-RELEASE-SIGNING.md.
+//
+// Pinned keys (deploy/ota-release-keys, scripts/ota-release-keys.mjs): `sign` refuses a key id
+// the official image pins unless the private key is that pinned key; `verify` without --pubkey
+// checks against the pinned set; `pinned` lists it.
 
-import { createHash } from 'node:crypto';
+import { createHash, createPublicKey } from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import { readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -26,6 +31,7 @@ import { fileURLToPath } from 'node:url';
 import {
   SIGNATURE_FIELD, loadPrivateKey, loadPublicKey, signRow, verifyRow,
 } from '../packages/ota/src/releaseSignature.js';
+import { loadPinnedReleaseKeys } from './ota-release-keys.mjs';
 
 const OFFICIAL_BE_FILES = 21590; // scripts/be_ota_integrity.py: complete official 11.0.1 archive
 const GATE_KEYS = ['addedFiles', 'candidateFiles', 'officialFiles', 'sha256', 'unresolvedMains'];
@@ -151,6 +157,14 @@ async function cmdSign(opts) {
   const keyStat = await stat(keyFile);
   if (keyStat.mode & 0o077) process.stderr.write(`warning: ${keyFile} is readable by other users\n`);
   const privateKey = loadPrivateKey(await readFile(keyFile, 'utf8'), process.env.PHOENIX_OTA_KEY_PASSPHRASE);
+  // A key id the official image pins may only be used with that very key.
+  const pinned = loadPinnedReleaseKeys().keys.find((k) => k.keyId === keyId);
+  if (pinned) {
+    const spki = createHash('sha256').update(createPublicKey(privateKey).export({ type: 'spki', format: 'der' })).digest('hex');
+    if (spki !== pinned.spkiDerSha256) {
+      throw new Error(`${keyFile} does not match the pinned public key for ${keyId}; nothing was signed`);
+    }
+  }
   const receipts = await loadGateReceipts(opts._multi['gate-receipt']);
 
   const manifest = await loadManifest(manifestFile);
@@ -176,8 +190,11 @@ async function cmdVerify(opts) {
   const manifest = await loadManifest(need(opts, 'manifest'));
   const dataDir = need(opts, 'data-dir');
   const specs = opts._multi.pubkey || [];
-  if (!specs.length) throw new UsageError('--pubkey keyId=public.pem is required');
   const keys = {};
+  if (!specs.length) {
+    // Default: exactly what the official robot image trusts.
+    for (const k of loadPinnedReleaseKeys().keys) keys[k.keyId] = loadPublicKey(k.pem);
+  }
   for (const spec of specs) {
     const eq = spec.indexOf('=');
     if (eq < 1) throw new UsageError(`--pubkey must be keyId=path (got ${spec})`);
@@ -200,12 +217,19 @@ async function cmdVerify(opts) {
   if (failed) process.exitCode = 1;
 }
 
+function cmdPinned() {
+  const set = loadPinnedReleaseKeys();
+  const keys = set.keys.map(({ keyId, role, path: file, spkiDerSha256 }) => ({ keyId, role, path: file, spkiDerSha256 }));
+  process.stdout.write(`${JSON.stringify({ dir: set.dir, current: set.current, next: set.next, keys }, null, 2)}\n`);
+}
+
 export async function main(argv = process.argv.slice(2)) {
   const { command, opts } = parseArgs(argv);
   if (command === 'rows') return cmdRows(opts);
   if (command === 'sign') return cmdSign(opts);
   if (command === 'verify') return cmdVerify(opts);
-  throw new UsageError('usage: sign-ota-release.mjs rows|sign|verify [options] (see the header of this file)');
+  if (command === 'pinned') return cmdPinned();
+  throw new UsageError('usage: sign-ota-release.mjs rows|sign|verify|pinned [options] (see the header of this file)');
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

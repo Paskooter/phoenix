@@ -1,0 +1,23 @@
+{
+  "format": "phoenix-ota-release/1",
+  "keys": [
+    {
+      "keyId": "phoenix-ota-20261112",
+      "role": "current",
+      "file": "phoenix-ota-20261112.pub.pem",
+      "alg": "RSA-SHA256",
+      "bits": 3072,
+      "pemSha256": "e571c91990581054630f8c3f73b8059cd49c14a45fcf81900e5a6545963dac36",
+      "spkiDerSha256": "c46cdf736ca2d00e8627d69cf16ca31498f4928c105bd73271a1db96e3fc2917"
+    },
+    {
+      "keyId": "phoenix-ota-20261112b",
+      "role": "next",
+      "file": "phoenix-ota-20261112b.pub.pem",
+      "alg": "RSA-SHA256",
+      "bits": 3072,
+      "pemSha256": "68c69d7d7f64804a9587eee6f1cfff826f7121bfc7cfafdd89bd3b2542aa7a82",
+      "spkiDerSha256": "afd76565a14d0ac73d5ae97bf43d29dbcaaa2cc4abc2cc7d8016d24b53ab3b3b"
+    }
+  ]
+}

@@ -2,9 +2,12 @@
 # ota-release-kit.sh — the publish-kit step for official OTA rows: integrity gate, sign, verify.
 #
 #   scripts/ota-release-kit.sh --manifest IN.json --data-dir DIR --out SIGNED.json \
-#       --key /media/offline/phoenix-ota-YYYYMMDD.pem --key-id phoenix-ota-YYYYMMDD \
-#       --pubkey phoenix-ota-YYYYMMDD.pub.pem \
+#       --key <release private key> [--key-id phoenix-ota-YYYYMMDD] [--pubkey public.pem] \
 #       [--official-base jibo-be-11.0.1.tar.gz] [--ids id1,id2]
+#
+# --key-id defaults to the pinned current release key (deploy/ota-release-keys) and --pubkey to
+# the pinned public half of --key-id; a key id that is not pinned needs an explicit --pubkey.
+# Signing under a pinned key id with any other private key is refused before anything is written.
 #
 # 1. Every selected BE row's (subsystem `@be/be` or `be`) package goes through scripts/be_ota_integrity.py against the
 #    hash-pinned official 11.0.1 archive (--official-base is then required). Any failure stops
@@ -36,12 +39,31 @@ while [ $# -gt 0 ]; do
     *) die "unknown argument: $1" ;;
   esac
 done
-for v in MANIFEST DATA_DIR OUT KEY KEY_ID PUBKEY; do
+for v in MANIFEST DATA_DIR OUT KEY; do
   [ -n "${!v}" ] || die "--$(echo "$v" | tr 'A-Z_' 'a-z-') is required"
 done
 [ ! -e "$OUT" ] || die "$OUT already exists"
 
 SIGN=(node "$REPO_ROOT/scripts/sign-ota-release.mjs")
+
+# Pinned defaults: the keys the official robot image trusts.
+if [ -z "$KEY_ID" ] || [ -z "$PUBKEY" ]; then
+  PINNED="$("${SIGN[@]}" pinned)" || die "cannot load the pinned release keys; nothing was signed"
+  pinned_field() { printf '%s' "$PINNED" | node -e '
+    const set = JSON.parse(require("fs").readFileSync(0, "utf8"));
+    const [what, id] = process.argv.slice(1);
+    if (what === "current") process.stdout.write(set.current);
+    else { const k = set.keys.find((x) => x.keyId === id); if (k) process.stdout.write(k.path); }' "$@"; }
+  if [ -z "$KEY_ID" ]; then
+    KEY_ID="$(pinned_field current)"
+    printf 'ota-release-kit: signing with the pinned current key %s\n' "$KEY_ID" >&2
+  fi
+  if [ -z "$PUBKEY" ]; then
+    PUBKEY="$(pinned_field path "$KEY_ID")"
+    [ -n "$PUBKEY" ] || die "--pubkey is required: key id $KEY_ID is not pinned in deploy/ota-release-keys"
+  fi
+fi
+
 ID_ARGS=()
 [ -z "$IDS" ] || ID_ARGS=(--ids "$IDS")
 
