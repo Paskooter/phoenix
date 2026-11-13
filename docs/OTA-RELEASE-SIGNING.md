@@ -105,10 +105,19 @@ The private keys (RSA 3072) are generated on the release machine, kept outside G
 0600, and backed up encrypted; they are never copied to a server, CI or a repository. A new key
 is made the same way:
 
+In a private directory outside every checkout (directory mode 0700):
+
 ```sh
+umask 077
+# Refuse an existing filename: resuming a release must not silently replace its key.
+test ! -e private.pem && test ! -e phoenix-ota-YYYYMMDD.pub.pem || exit 1
 openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -out private.pem
 openssl pkey -in private.pem -pubout -out phoenix-ota-YYYYMMDD.pub.pem
 ```
+
+Keep an AES-encrypted backup on separate storage, with its passphrase stored separately from
+that backup (both files mode 0600). Verify a local decryption round trip without printing the
+private key or passphrase. Do not put either in a command argument, log or release artifact.
 
 An encrypted key reads its passphrase from `PHOENIX_OTA_KEY_PASSPHRASE`. Only the `.pub.pem`
 goes into the robot image.

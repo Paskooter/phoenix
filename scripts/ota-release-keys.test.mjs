@@ -151,6 +151,36 @@ test('the kit defaults to the pinned current key and refuses a different private
   assert.equal(existsSync(out), false);
 });
 
+test('the kit and default verifier accept both pinned fixture slots without the real private keys', async () => {
+  const pinnedDir = await mkdtemp(path.join(dir, 'fixture-keys-'));
+  const next = await writeKey('fixture-next');
+  const fixtureKeys = [['fixture-current', 'current', throwaway], ['fixture-next', 'next', next]];
+  const entries = [];
+  for (const [keyId, role, key] of fixtureKeys) {
+    const pem = await readFile(key.pub);
+    const publicKey = createPublicKey(pem);
+    const file = `${keyId}.pub.pem`;
+    await writeFile(path.join(pinnedDir, file), pem);
+    entries.push({ keyId, role, file, alg: 'RSA-SHA256', bits: 3072,
+      pemSha256: sha256(pem), spkiDerSha256: sha256(publicKey.export({ type: 'spki', format: 'der' })) });
+  }
+  await writeFile(path.join(pinnedDir, 'release-keys.json'), JSON.stringify({ format: 'phoenix-ota-release/1', keys: entries }));
+  const env = { PHOENIX_OTA_RELEASE_KEYS_DIR: pinnedDir };
+  for (const [keyId, role, key] of fixtureKeys) {
+    const out = path.join(dir, `${keyId}.signed.json`);
+    const args = [KIT, '--manifest', manifestFile, '--data-dir', dataDir, '--out', out, '--key', key.priv];
+    if (role === 'next') args.push('--key-id', keyId);
+    const signed = await exec('bash', args, env);
+    assert.equal(signed.code, 0, signed.stderr);
+    const verified = await sign(['verify', '--manifest', out, '--data-dir', dataDir], env);
+    assert.equal(verified.code, 0, verified.stdout + verified.stderr);
+    const result = JSON.parse(verified.stdout);
+    assert.equal(result.verified, 1);
+    assert.equal(result.failed, 0);
+    assert.equal(result.results[0].keyId, keyId);
+  }
+});
+
 test('a pinned set that is altered, too large or holds a private key is refused by both loaders', async () => {
   const variants = {
     'swapped key file': async (d) => { await cp(throwaway.pub, path.join(d, `${CURRENT}.pub.pem`)); },
