@@ -2,6 +2,9 @@
 
 [Theme guide](../THEMES.md) · [API fields](REFERENCE.md) · [Testing](TESTING.md) · [Publishing](PUBLISHING.md)
 
+**Who this is for:** theme authors deciding what a pack can change, and owners
+who want to know what a theme can never touch.
+
 Themes decorate existing surfaces. They do not add skills, create menu entries,
 change labels or reorder actions. These boundaries preserve recognisable status
 and safety controls, reachable touch targets and a recovery path independent of

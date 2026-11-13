@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { renderBrandedHtml } from './brandRender.js';
 import { landingStructuredData, sitemapEntry } from './seo.js';
+import { developerRoutes } from './developerPortal.js';
 
 const SOURCE_DIR = dirname(fileURLToPath(import.meta.url));
 const PORTAL_DIR = join(SOURCE_DIR, '../portal');
@@ -79,21 +80,34 @@ const SUBSTITUTED = new Set(['.html', '.xml', '.webmanifest', '.txt']);
  * instance's branding rendered into HTML pages (see brandRender.js), so what
  * leaves the server is the instance's page rather than the project default.
  */
-function prepare(buffer, ext, branding) {
+function prepare(buffer, ext, branding, developersEnabled = false) {
   if (!SUBSTITUTED.has(ext)) return buffer;
   const substituted = applyPlaceholders(buffer);
   if (ext !== '.html' || !branding) return substituted;
   const brand = branding();
-  return Buffer.from(landingStructuredData(renderBrandedHtml(substituted.toString('utf8'), brand), brand, siteUrl()));
+  let html = landingStructuredData(renderBrandedHtml(substituted.toString('utf8'), brand), brand, siteUrl());
+  if (developersEnabled) {
+    const link = '<a href="/developers">Developers</a>';
+    const addLink = (scope, footer = false) => {
+      if (/href="\/developers"/.test(scope)) return scope.replace(/<a ([^<>]*href="\/developers"[^<>]*)>/g,
+        (_, attrs) => `<a ${attrs.replace(/\s+hidden(?=[\s>]|$)/g, '')}>`);
+      if (!footer) return scope.replace('</nav>', `${link}</nav>`);
+      return scope.includes('</ul>') ? scope.replace('</ul>', `<li>${link}</li></ul>`)
+        : scope.replace('<div class="footer-meta">', `<div class="footer-meta">${link}`);
+    };
+    html = html.replace(/<nav class="(?:site-nav|mobile-nav)"[^>]*>[\s\S]*?<\/nav>/g, scope => addLink(scope))
+      .replace(/<footer\b[^>]*>[\s\S]*?<\/footer>/g, scope => addLink(scope, true));
+  }
+  return Buffer.from(html);
 }
 
-function serve(file, type, branding) {
+function serve(file, type, branding, developersEnabled = false) {
   const path = join(PORTAL_DIR, file);
   const contentType = type || MIME[extname(file)] || 'application/octet-stream';
   let cached = null;
   return ({ res }) => {
     if (cached === null) {
-      cached = existsSync(path) ? prepare(readFileSync(path), extname(file), branding) : false;
+      cached = existsSync(path) ? prepare(readFileSync(path), extname(file), branding, developersEnabled) : false;
     }
     if (cached === false) { res.writeHead(404, { 'content-type': 'text/plain' }); return void res.end('not found'); }
     res.writeHead(200, {
@@ -115,12 +129,12 @@ function serve(file, type, branding) {
  * substituted exactly as for built-in pages, so an operator page gets the same
  * `%SITE_URL%` treatment.
  */
-function serveExternal(absolutePath, type, extraHeaders = {}, branding = null) {
+function serveExternal(absolutePath, type, extraHeaders = {}, branding = null, developersEnabled = false) {
   const contentType = type || MIME[extname(absolutePath)] || 'application/octet-stream';
   let cached = null;
   return ({ res }) => {
     if (cached === null) {
-      cached = existsSync(absolutePath) ? prepare(readFileSync(absolutePath), extname(absolutePath), branding) : false;
+      cached = existsSync(absolutePath) ? prepare(readFileSync(absolutePath), extname(absolutePath), branding, developersEnabled) : false;
     }
     if (cached === false) { res.writeHead(404, { 'content-type': 'text/plain' }); return void res.end('not found'); }
     res.writeHead(200, {
@@ -253,7 +267,7 @@ export function portalNotFound() {
 }
 
 /** Explicit GET routes for every portal asset and page. */
-export function staticRoutes({ sitemapEntries = () => [] } = {}) {
+export function staticRoutes({ sitemapEntries = () => [], developerProjectDir } = {}) {
   // Vendored third-party assets keep their own directory so it stays obvious
   // what is ours. Leaflet is served from here rather than a CDN: the portal
   // runs on a LAN beside the robot and must not depend on an outside host to
@@ -277,7 +291,8 @@ export function staticRoutes({ sitemapEntries = () => [] } = {}) {
   // One merged branding per route table, shared by /branding.json and every
   // page rendered with it, so the two can never disagree.
   const branding = lazyBranding();
-  const page = (file) => serve(file, undefined, branding);
+  const developersEnabled = process.env.PHOENIX_SKILL_STORE_ENABLED === 'true';
+  const page = (file) => serve(file, undefined, branding, developersEnabled);
 
   const routes = {
     // The public site.
@@ -346,6 +361,19 @@ export function staticRoutes({ sitemapEntries = () => [] } = {}) {
 
   for (const f of files) routes[`GET /${f}`] = extname(f) === '.html' ? page(f) : serve(f);
 
+  // The Hub is optional. Its source can be integrated independently of the
+  // hosted Store console; registering documentation must not import that UI.
+  let developerEntries = () => [];
+  if (developersEnabled) {
+    for (const f of ['developers.css', 'developers.js']) routes[`GET /${f}`] = serve(f);
+    const developers = developerRoutes({
+      prepare: buffer => prepare(buffer, '.html', branding), projectDir: developerProjectDir,
+      origin: siteUrl, brandName: () => (typeof branding().name === 'string' && branding().name) || 'Phoenix',
+    });
+    Object.assign(routes, developers.routes);
+    developerEntries = developers.entries;
+  }
+
   // Operator pages: extra HTML an instance serves that the project does not ship.
   //
   // A public instance needs content the generic project cannot carry -- a setup guide
@@ -360,14 +388,14 @@ export function staticRoutes({ sitemapEntries = () => [] } = {}) {
     for (const entry of readdirSync(pagesDir)) {
       if (!entry.endsWith('.html')) continue;
       const name = entry.slice(0, -'.html'.length);
-      const handler = serveExternal(join(pagesDir, entry), undefined, {}, branding);
+      const handler = serveExternal(join(pagesDir, entry), undefined, {}, branding, developersEnabled);
       routes[`GET /${name}`] = handler;
       routes[`GET /${entry}`] = handler;
       if (name === 'index') routes['GET /'] = handler;
       else if (name !== '404') operatorPages.push(name);
     }
   }
-  routes['GET /sitemap.xml'] = serveSitemap(operatorPages.sort(), sitemapEntries);
+  routes['GET /sitemap.xml'] = serveSitemap(operatorPages.sort(), () => [...developerEntries(), ...sitemapEntries()]);
   const securityFile = process.env.PHOENIX_SECURITY_FILE;
   routes['GET /.well-known/security.txt'] = securityFile
     ? serveExternal(securityFile, MIME['.txt']) : serve('security.txt');

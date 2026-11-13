@@ -2,6 +2,9 @@
 
 [Theme guide](../THEMES.md) · [Surfaces](SURFACES.md) · [Testing](TESTING.md) · [Publishing](PUBLISHING.md)
 
+**Who this is for:** theme authors targeting theme API 2, 3 or 4: eye paint,
+face states and menu geometry.
+
 The [base manifest reference](../THEMES.md#author-manifest-themejson) defines every
 required identity, text, asset, palette, font and menu override field. Those fields
 remain required in APIs 2–4. This page defines every additional field. Unknown

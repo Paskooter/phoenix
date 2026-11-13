@@ -2,12 +2,15 @@
 
 [Theme guide](../THEMES.md) · [API fields](REFERENCE.md) · [Surfaces](SURFACES.md) · [Testing](TESTING.md)
 
+**Who this is for:** approved publishers uploading a theme version, or an update
+to one. Not approved yet? Read the [publishing guide](../developers/publishing.md).
+
 ## Before you upload
 
 1. Scaffold a copy; do not edit Ember or Orbit in place. Replace author
    placeholders, description, release notes and the unregistered local app ID.
-2. Sign in at <https://jibo.io/apps#publisher>, open **Publish**, and obtain
-   publisher approval. Use **Create an app identity** for this theme. The ID must
+2. Sign in to the Skill Store, open **Publish** (the publisher dashboard), and
+   obtain publisher approval. Use **Create an app identity** for this theme. The ID must
    belong to the account that submits it. An existing app listing cannot switch
    between a theme and a declarative app.
 3. Keep the assigned `appId` stable for updates. Set a new increasing plain
@@ -29,7 +32,7 @@ canonical inspection aid, **not** a substitute upload. A `.preview.png` appears
 only if the manifest references a preview image. README, AUTHOR and LICENSE files
 are not packed; ship attribution/licence notices alongside redistributed packs.
 
-## Publish desk
+## In the publisher dashboard
 
 Under **Publish a theme**, choose or drop one `.phtheme` file. The page checks it
 locally and shows **Check before publishing**: identity, version, target listing,

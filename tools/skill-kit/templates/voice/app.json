@@ -1,0 +1,26 @@
+{
+  "appId": "app-10000000-0000-4000-8000-000000000001",
+  "name": "@local/hello-example",
+  "version": "1.0.0",
+  "minFirmware": "13.7.1",
+  "hostAbi": 1,
+  "entry": "entry.js",
+  "permissions": [
+    "display",
+    "speech",
+    "listen",
+    "network"
+  ],
+  "optionalPermissions": [],
+  "launchNames": [
+    "voice demo"
+  ],
+  "skills": [
+    "@local/hello-example"
+  ],
+  "plugins": [],
+  "menuEntries": [
+    "Voice demo"
+  ],
+  "incomingPorts": []
+}
