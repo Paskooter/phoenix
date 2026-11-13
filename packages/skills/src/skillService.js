@@ -38,7 +38,7 @@ export function skillRoute(skillId, handler, {
   requestSchema = schemas.skillRequest,
   responseSchema = schemas.skillResponse,
 } = {}) {
-  return async ({ body, trace, log, req }) => {
+  return async ({ body, trace, log, req, diagnostics }) => {
     if (validateRequest) {
       const requestValidation = validate(requestSchema, body);
       if (!requestValidation.valid) {
@@ -72,17 +72,10 @@ export function skillRoute(skillId, handler, {
       }
       return response;
     } catch (err) {
-      // BaseSkill logs the original thrown value, then uses the shared
-      // getErrorMessage helper for the wire-visible error message.
-      //
-      // An Error has no enumerable own properties, so a structured logger
-      // serialises it as `{}` and the line carries nothing at all -- which is
-      // what it did while diagnosing an all-Phoenix substitution run. Log the
-      // message and stack, as the rest of the codebase does, and keep the
-      // original value's shape for a non-Error throw.
-      log.error('skill handler threw', err instanceof Error
-        ? { error: err.message, stack: err.stack }
-        : { error: err });
+      // Diagnose the local boundary, not the request/provider text in a thrown
+      // value. Direct non-HTTP calls have no established shared error class.
+      if (diagnostics) diagnostics.log.error('skill handler threw', diagnostics.fields(err));
+      else log.error('skill handler threw', { stage: 'handler', errorClass: 'unknown' });
       return errorResponse(skillId, getErrorMessage(err));
     }
   };
@@ -110,7 +103,7 @@ export function createSkillsService({ name = 'skills', skills, defaultId, valida
   if (def) routes['POST /v1/main'] = typeof def.route === 'function'
     ? def.route
     : skillRoute(def.id, def.handler, routeOptions);
-  return createService({ name, routes });
+  return createService({ name, routes, failureDiagnostics: true });
 }
 
 /** Back-compat single-skill host. */

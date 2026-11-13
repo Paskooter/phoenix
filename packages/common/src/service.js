@@ -5,7 +5,7 @@
 
 import http from 'node:http';
 import https from 'node:https';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import express from 'express';
 import bodyParser from 'body-parser';
 import { newMsgId, now, ResponseType } from '@phoenix/contracts';
@@ -14,6 +14,29 @@ import { logger } from './log.js';
 import { logVoiceTurnSpan } from './voiceTurnObservability.js';
 
 const JSON_CONTENT_TYPES = ['application/json', 'application/x-amz-json-1.1'];
+
+const FAILURE_STAGES = new Set(['pre_handler', 'body_parser', 'handler']);
+const PARSER_ERROR_CLASSES = new Set([
+  'entity.parse.failed', 'entity.too.large', 'entity.verify.failed',
+  'request.aborted', 'request.size.invalid', 'stream.encoding.set',
+  'stream.not.readable', 'encoding.unsupported', 'charset.unsupported',
+  'parameters.too.many',
+]);
+
+// Classification is deliberately independent of messages, stacks, provider
+// codes and error names. A hostile thrown value must not break diagnostics.
+function failureFields(stage, error) {
+  let errorClass = 'unknown';
+  try {
+    const type = error && Object.getOwnPropertyDescriptor(error, 'type')?.value;
+    if (stage === 'body_parser' && PARSER_ERROR_CLASSES.has(type)) errorClass = type;
+    else if (error instanceof TypeError) errorClass = 'type_error';
+    else if (error instanceof SyntaxError) errorClass = 'syntax_error';
+    else if (error instanceof RangeError) errorClass = 'range_error';
+    else if (error instanceof Error) errorClass = 'error';
+  } catch { /* No established class, including for hostile Proxy traps. */ }
+  return { stage: FAILURE_STAGES.has(stage) ? stage : 'unknown', errorClass };
+}
 
 // body-parser gives verify the exact post-inflation bytes before decoding. Keep
 // them on the request so a signed AWS-JSON proxy can forward the original
@@ -30,6 +53,7 @@ function captureRawBody(req, _res, buffer) {
  *   jsonStrict?: boolean | ((req: import('node:http').IncomingMessage) => boolean),
  *   tls?: import('node:https').ServerOptions,
  *   healthcheckBody?: string | ((req: import('node:http').IncomingMessage) => string),
+ *   failureDiagnostics?: boolean,
  * }} opts
  */
 export function createService({
@@ -41,6 +65,7 @@ export function createService({
   // BaseService's shared health response is `ok`. A source service may opt into
   // its own literal while leaving every other service on that common value.
   healthcheckBody = 'ok',
+  failureDiagnostics = false,
 } = {}) {
   const log = logger(name);
   const app = express();
@@ -48,6 +73,21 @@ export function createService({
   const strictJson = bodyParser.json({ type: JSON_CONTENT_TYPES, verify: captureRawBody, strict: true });
   const looseJson = bodyParser.json({ type: JSON_CONTENT_TYPES, verify: captureRawBody, strict: false });
   const scopedJsonParsers = new WeakMap();
+  const diagnostics = new WeakMap();
+
+  function setStage(req, stage) {
+    const diagnostic = diagnostics.get(req);
+    if (diagnostic) diagnostic.stage = stage;
+  }
+
+  function parseBody(parser, req, res, next) {
+    if (!diagnostics.has(req)) return parser(req, res, next);
+    setStage(req, 'body_parser');
+    return parser(req, res, error => {
+      if (!error) setStage(req, 'unknown');
+      next(error);
+    });
+  }
 
   function scopedJsonTypeKey(types) {
     if (typeof types === 'function') return types;
@@ -61,8 +101,25 @@ export function createService({
     const trace = readTrace(req);
     req._phoenixTrace = trace;
     req._phoenixLog = logger(name, trace);
+    if (failureDiagnostics) {
+      // Log correlation belongs to this HTTP request, never to an identity or
+      // caller-supplied header (even a UUID-shaped one). Wire traces are intact.
+      const diagnostic = { stage: 'unknown', route: '(unmatched)', log: logger(name, { transId: randomUUID() }) };
+      diagnostic.fields = error => failureFields(diagnostic.stage, error);
+      diagnostics.set(req, diagnostic);
+    }
     res.once('finish', () => {
       if (res.statusCode < 500 || req._phoenixErrorLogged) return;
+      const diagnostic = diagnostics.get(req);
+      if (diagnostic) {
+        diagnostic.log.error('request failed', {
+          status: res.statusCode,
+          method: http.METHODS.includes(req.method) ? req.method : 'unknown',
+          route: diagnostic.route,
+          ...diagnostic.fields(),
+        });
+        return;
+      }
       const target = req.headers['x-amz-target'];
       req._phoenixLog.error('request failed', {
         status: res.statusCode, method: req.method,
@@ -78,8 +135,12 @@ export function createService({
   // upload handlers are an explicit Phoenix extension and must retain the
   // request stream for their own consumer, so they bypass both parsers.
   app.use((req, res, next) => {
-    if (bypassBodyParsing(routes, req)) return next();
-    return urlencoded(req, res, next);
+    setStage(req, 'pre_handler');
+    if (bypassBodyParsing(routes, req)) {
+      setStage(req, 'unknown');
+      return next();
+    }
+    return parseBody(urlencoded, req, res, next);
   });
 
   // Express's default routing is case-insensitive and ignores a trailing slash.
@@ -93,6 +154,8 @@ export function createService({
   // `healthcheckBody` that returns {statusCode, body} selects the source status;
   // every existing service keeps returning its plain string.
   app.get('/healthcheck', async (req, res) => {
+    const diagnostic = diagnostics.get(req);
+    if (diagnostic) diagnostic.route = '/healthcheck';
     const value = typeof healthcheckBody === 'function' ? await healthcheckBody(req) : healthcheckBody;
     if (value && typeof value === 'object' && typeof value.statusCode === 'number') {
       return res.status(value.statusCode).send(value.body);
@@ -102,7 +165,11 @@ export function createService({
 
   // This is intentionally after healthcheck and before application handlers.
   app.use((req, res, next) => {
-    if (bypassBodyParsing(routes, req)) return next();
+    setStage(req, 'pre_handler');
+    if (bypassBodyParsing(routes, req)) {
+      setStage(req, 'unknown');
+      return next();
+    }
     const route = findRoute(routes, req);
     // A source-compatible adapter may opt into body-parser's loose JSON
     // decoding for its own endpoint.  This is deliberately route-scoped: all
@@ -144,9 +211,9 @@ export function createService({
         parser = bodyParser.json(options);
         parsersByLimit.set(parserKey, parser);
       }
-      return parser(req, res, next);
+      return parseBody(parser, req, res, next);
     }
-    return (strict ? strictJson : looseJson)(req, res, next);
+    return parseBody(strict ? strictJson : looseJson, req, res, next);
   });
 
   const routeRouter = express.Router();
@@ -157,7 +224,7 @@ export function createService({
     const path = key.slice(separator + 1).trim();
     const register = routeRouter[method];
     if (typeof register !== 'function') continue;
-    register.call(routeRouter, path, routeMiddleware(name, handler));
+    register.call(routeRouter, path, routeMiddleware(name, handler, diagnostics, path));
   }
   app.use(routeRouter);
 
@@ -171,11 +238,12 @@ export function createService({
 
   app.use((error, req, res, next) => {
     const reqLog = req._phoenixLog || logger(name, readTrace(req));
+    const diagnostic = diagnostics.get(req);
     const status = Number.isInteger(error?.statusCode)
       ? error.statusCode
       : Number.isInteger(error?.status) ? error.status : 500;
-    reqLog[status >= 500 ? 'error' : 'warn'](status >= 500 ? 'handler threw' : 'request rejected',
-      { status, error: error?.safeLogMessage || error?.message });
+    (diagnostic?.log || reqLog)[status >= 500 ? 'error' : 'warn'](status >= 500 ? 'handler threw' : 'request rejected',
+      diagnostic ? { status, ...diagnostic.fields(error) } : { status, error: error?.safeLogMessage || error?.message });
     req._phoenixErrorLogged = status >= 500;
     if (res.headersSent) return next(error);
     // A source adapter may need to preserve a framework-native parser error
@@ -224,8 +292,16 @@ export function createService({
   };
 }
 
-function routeMiddleware(name, handler) {
+function routeMiddleware(name, handler, diagnostics, path) {
+  // Only a bounded template from this service's registered routes, never a
+  // request URL, parameter, query, or mutable Express request.route value.
+  const diagnosticRoute = path.length <= 128 && /^[A-Za-z0-9_/:.*+?()-]+$/.test(path) ? path : '(other)';
   return (req, res, next) => {
+    const diagnostic = diagnostics.get(req);
+    if (diagnostic) {
+      diagnostic.stage = 'pre_handler';
+      diagnostic.route = diagnosticRoute;
+    }
     const trace = req._phoenixTrace || readTrace(req);
     const reqLog = req._phoenixLog || logger(name, trace);
     const spanStartedAt = Date.now();
@@ -243,7 +319,10 @@ function routeMiddleware(name, handler) {
     const body = (usesRawBody(handler, req) || usesRawRequest(handler, req))
       ? null : (emptyEntity || req.body === undefined ? bodyDefault : req.body);
     Promise.resolve()
-      .then(() => handler({ req, res, url, body, trace, log: reqLog }))
+      .then(() => {
+        if (diagnostic) diagnostic.stage = 'handler';
+        return handler({ req, res, url, body, trace, log: reqLog, ...(diagnostic ? { diagnostics: diagnostic } : {}) });
+      })
       .then((result) => {
         if (!res.writableEnded) sendJson(res, 200, result);
       })
