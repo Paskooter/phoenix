@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "kind": "native",
+  "name": "hello",
+  "files": [
+    "app.json",
+    "entry.js",
+    "hello.js"
+  ]
+}
