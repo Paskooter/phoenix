@@ -21,6 +21,7 @@ import { parseRequestDetailedAsync } from './requestParser.js';
 import { getCompiledFstRuntime } from './compiledFstRuntime.js';
 import { decideCommand, getDecisionClient } from './decisionLayer.js';
 import { mediaPlayRequest } from './mediaPlay.js';
+import { observeParserRoute } from './parserBoundary.js';
 
 /**
  * Parse an utterance into an NLUResult, mirroring the reference
@@ -146,7 +147,7 @@ export function start(port = Number(process.env.PORT) || DefaultPort.nlu) {
   const svc = createService({
     name: 'nlu',
     routes: {
-      'POST /v1/parse': async ({ body, res }) => {
+      'POST /v1/parse': observeParserRoute(async ({ body, res }) => {
         // Reference ParseRequestHandler.ts:28-30 — 400 on a malformed request
         // (data.text must be a string), not a silent coercion to ''.
         if (!body || !body.data || typeof body.data.text !== 'string') {
@@ -172,7 +173,7 @@ export function start(port = Number(process.env.PORT) || DefaultPort.nlu) {
           () => parserFallback(body.data),
         );
         return message(ResponseType.NLU, nlu); // { type:'NLU', msgID, ts, data: NLUResult }
-      },
+      }),
       // Reference StateRequestHandler: GET /state -> ServiceStateData. Phoenix's
       // grammar engine is in-process (no robust-parser subprocess) and Dialogflow
       // is dead-era, so those report their steady-state equivalents.
