@@ -2,6 +2,9 @@
 
 [Theme guide](../THEMES.md) · [API fields](REFERENCE.md) · [Surfaces](SURFACES.md) · [Publishing](PUBLISHING.md)
 
+**Who this is for:** theme authors checking a pack on a computer and on their own
+Jibo before listing it.
+
 ## Fast local loop
 
 Use Node.js 20 or newer. PNG check/pack and the starter generator use Node built-ins

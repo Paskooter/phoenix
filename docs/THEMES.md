@@ -1,5 +1,8 @@
 # Making Phoenix themes
 
+**Who this is for:** theme authors who want every manifest field, asset rule and
+limit in one place. New to themes? [Start a theme](developers/themes.md) first.
+
 Build passive appearance packs for Jibo: ordinary menus, original eye paint and
 bounded layout choices. Start here, then use the detailed references:
 
@@ -438,10 +441,11 @@ See [themes/README.md](../themes/README.md) for dependency/regeneration guidance
 Adapt a copy of the generator for your derivative, not the original pack paths.
 Review all art on its intended surfaces; a valid pack can still be hard to read.
 
-## Submit through jibo.io Publish
+## Submit to the Skill Store
 
-1. Sign in to jibo.io and open **Publish** in the apps console. Apply for publisher
-   approval if needed; approval is required to upload.
+1. Sign in and open **Publish** in the Skill Store: the publisher dashboard. Apply
+   for publisher approval if needed; approval is required to upload. The
+   [publishing guide](developers/publishing.md) walks through every step.
 2. Use **Create an app identity** for this theme. Copy the returned `app-…` ID into
    your derivative manifest. Use a new identity, not an already-published
    declarative app: an existing app cannot silently change listing kind.
@@ -473,12 +477,16 @@ Prefer the CLI-produced `.phtheme` for reproducible checks. Do not rename it to
 [publishing and updates](themes/PUBLISHING.md) for the full release checklist,
 ZIP limits and refusal handling.
 
-The store repeats validation/normalization, creates the release ID, derives the
-final descriptor and signs it. Authors do **not** need signing keys and must not
-hand-author signatures. A successful response returns a signed release wrapper;
-verify its app ID/version and refresh your listing before changing visibility.
-Publisher approval/community review is not proof that every theme is safe, has
-rights clearance or renders correctly on all robots. Automated format/size/
+The store repeats validation/normalization and keeps the result as an immutable
+pending submission, not a release. A successful response returns that
+submission: check its app ID, version and state. An operator reviews the exact
+source and normalized bytes; only an approved submission is signed and
+published, and the store creates the release ID and signature at that point.
+Authors do **not** need signing keys and must not hand-author signatures.
+Refresh your listing before changing visibility. See
+[how review works](BUNDLE-REVIEW.md).
+Publisher approval and operator review are not proof that every theme is safe,
+has rights clearance or renders correctly on all robots. Automated format/size/
 contrast checks do not substitute for content review or hardware acceptance.
 A signature authenticates origin/integrity, not a hardware certification badge;
 hardware acceptance can remain `unverified`.

@@ -7,6 +7,13 @@ Allow: /privacy
 Allow: /security
 Allow: /apps
 Allow: /guide
+# The Developers area, its search index, styles, script and template previews.
+# /developers/console only forwards to the signed-in publisher dashboard. It
+# comes first for first-match parsers; Google/Bing choose the longer rule.
+Disallow: /developers/console
+Allow: /developers
+Allow: /theme.css
+Allow: /assets/
 Allow: /apple-touch-icon.png
 Disallow: /app$
 # Compatibility for prefix-only parsers: the earlier /apps allow wins there;

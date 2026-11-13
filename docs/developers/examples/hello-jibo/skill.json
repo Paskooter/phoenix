@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "runtime": "phoenix-declarative-v1",
+  "appId": "app-00000000-0000-4000-8000-000000000000",
+  "version": "1.0.0",
+  "name": "Hello Jibo",
+  "description": "A small touchscreen greeting with optional speech.",
+  "minFirmware": "13.5.3",
+  "permissions": [
+    "display",
+    "speech"
+  ],
+  "launchNames": [
+    "hello friend"
+  ],
+  "examples": [
+    "Open Hello Jibo, then tap Say hello."
+  ],
+  "releaseNotes": "First version.",
+  "startPage": "welcome",
+  "pages": [
+    {
+      "id": "welcome",
+      "title": "Hello Jibo",
+      "text": "A little hello, made by you.",
+      "buttons": [
+        {
+          "label": "Say hello",
+          "action": {
+            "type": "speak",
+            "text": "Hello, friend. Thanks for trying my first skill."
+          }
+        },
+        {
+          "label": "More",
+          "action": {
+            "type": "show",
+            "page": "about"
+          }
+        },
+        {
+          "label": "Close",
+          "action": {
+            "type": "close"
+          }
+        }
+      ]
+    },
+    {
+      "id": "about",
+      "title": "Make it yours",
+      "text": "Change this text in skill.json, then check and pack again.",
+      "buttons": [
+        {
+          "label": "Back",
+          "action": {
+            "type": "show",
+            "page": "welcome"
+          }
+        }
+      ]
+    }
+  ]
+}
