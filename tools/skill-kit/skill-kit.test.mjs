@@ -73,8 +73,8 @@ function fakeRemote(calls,terminal='installed') {return async args=>{
   if(args[0]==='info')return {localKinds:['native']};
   if(args[0]==='project')return {projectId,appId,kind:args[args.indexOf('--kind')+1],name:'hello'};
   if(args[0]==='check')return {sha256:'checked'};
-  if(args[0]==='queue'||args[0]==='remove')return {requestId:uuid,state:'pending_robot_approval'};
-  if(args[0]==='status')return {requestId:uuid,state:terminal};
+  if(args[0]==='queue'||args[0]==='remove')return {requestId:uuid,kind:'native',state:'pending_robot_approval'};
+  if(args[0]==='status')return {requestId:uuid,kind:'native',state:terminal,...(terminal==='installed'?{runtimeState:'running'}:{})};
   throw Error('unexpected command');
 };}
 test('install allocates once, checks, packs with allocated identity, queues and reads terminal request',()=>fixture(async base=>{

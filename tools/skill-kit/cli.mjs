@@ -69,12 +69,15 @@ function save(file,state) {
 async function poll(initial,remote,o,deps,print,button='Install full-access test') {
   if(!initial||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(initial.requestId||''))fail('invalid_robot_response');
   const now=deps.now||Date.now,sleep=deps.sleep||delay,deadline=now()+Number(o.timeout||600)*1000;
+  const installing=button==='Install full-access test';
   let result=initial,last='',prompted=false;
   for(;;) {
     const state=result.state||result.status;
-    const waitingNative=result.kind==='native'&&['installed','resumed'].includes(state)&&result.runtimeState==='pending_restart';
-    const progress=waitingNative?result.runtimeState:state;
-    if(button==='Install full-access test'&&state==='queued'&&result.blockedReason==='test_builds_disabled') {
+    const accepted=installing&&['installed','resumed'].includes(state),native=accepted&&result.kind==='native';
+    const waitingNative=native&&['installed','pending_restart'].includes(result.runtimeState);
+    const runtimeFailure=native&&['disabled','paused','failed','revoked','recovery_required'].includes(result.runtimeState);
+    const progress=native?result.runtimeState||state:state;
+    if(installing&&state==='queued'&&result.blockedReason==='test_builds_disabled') {
       // The owner may switch Allow off after preflight. Do not cancel durable work.
       const cancel=['node','tools/skill-kit/ssh.mjs','cancel',...connection(o),'--request',result.requestId]
         .map(arg=>/^[a-zA-Z0-9_./:@=-]+$/.test(arg)?arg:"'"+arg.replaceAll("'","'\\''")+"'").join(' ');
@@ -85,16 +88,23 @@ async function poll(initial,remote,o,deps,print,button='Install full-access test
     if(progress!==last) {print(`Request ${result.requestId}: ${progress}${result.blockedReason?' ('+result.blockedReason+')':''}`);last=progress;}
     // The robot commits the approval before its native restart/health trial.
     // Follow the same durable request across that trial rather than reporting
-    // success for accepted bytes which have never run.
-    if(['installed','resumed','removed'].includes(state)&&!waitingNative)return result;
-    if(['failed','canceled','declined','expired'].includes(state)) {
-      const code=result.blockedReason||result.errorCode||'test_request_'+state,name=result.collisionName;
-      const ownerMessage=state==='failed'&&['test_native_collision','test_identity_collision'].includes(code)
+    // success for accepted bytes which have never run. Historical approval can
+    // also stay installed/resumed after a later recheck disables or pauses it.
+    if(installing?native&&result.runtimeState==='running':state==='removed')return result;
+    if(runtimeFailure||['failed','canceled','declined','expired'].includes(state)) {
+      const code=result.blockedReason||result.errorCode||(runtimeFailure?'test_native_'+result.runtimeState:'test_request_'+state),name=result.collisionName;
+      let ownerMessage=(runtimeFailure||state==='failed')&&['test_native_collision','test_identity_collision'].includes(code)
         &&typeof name==='string'&&name.trim()&&name.length<=120&&!/[\p{C}\p{Zl}\p{Zp}]/u.test(name)
         ? `Remove “${name}” first, then try again.` : undefined;
-      throw Object.assign(new Error(code),{code,requestId:result.requestId,ownerMessage,terminalState:state});
+      if(runtimeFailure)ownerMessage=`Jibo reports this test build as ${result.runtimeState}; it is not running. Its files and request stay on Jibo.\n`
+        +(code==='test_builds_disabled'?ALLOW_INSTRUCTION:ownerMessage||'Check Settings > Developer testing > Test builds, then run the command again.');
+      // A runtime refusal is not a new request refusal: retain its approval and
+      // client identity so a retry cannot allocate another physical approval.
+      throw Object.assign(new Error(code),{code,requestId:result.requestId,ownerMessage,...(runtimeFailure?{}:{terminalState:state})});
     }
-    if(!waitingNative&&!['queued','pending_robot_approval','staging','waiting','restarting','pending_restart','restart_pending'].includes(state))fail('unknown_robot_state');
+    if(!waitingNative&&!['queued','pending_robot_approval','staging','waiting','restarting','pending_restart','restart_pending'].includes(state))
+      throw Object.assign(new Error('unknown_robot_state'),{code:'unknown_robot_state',requestId:result.requestId,
+        ownerMessage:installing?'Jibo has not confirmed that this test build is running. Check Settings > Developer testing > Test builds, then run the command again.':undefined});
     if(now()>=deadline)throw Object.assign(new Error('approval_timeout'),{code:'approval_timeout',requestId:result.requestId});
     await sleep(Math.min(3000,Math.max(1,deadline-now())));
     try {

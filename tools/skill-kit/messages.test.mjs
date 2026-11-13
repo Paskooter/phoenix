@@ -22,13 +22,13 @@ cp.spawn=(command,args)=>{
  if(op==='info')result={protocol:1,managerReady:true,beRoot:'/opt/jibo/Jibo/Skills/@be/be',runtimeNode:'/usr/bin/node',stateRoot:'/opt/home/jibo-skill/.local/share/phoenix/test-builds',localKinds:['native'],allowTestBuilds:f.allow!==false,...(f.schemas?{nativeContainerSchemas:f.schemas}:{}),limits:{maxArtifactBytes:33603596}};
  if(op==='create-project')result={projectId:'local-project-${id}',appId:'app-${id}',kind:'native'};
  if(op==='check')result={checked:true};
- if(op==='queue'||op==='remove')result={requestId:'${id}',...(f.initial||f.status)};
- if(op==='status')result={requestId:'${id}',...f.status};
+ if(op==='queue'||op==='remove')result={requestId:'${id}',kind:'native',...(f.initial||f.status)};
+ if(op==='status')result={requestId:'${id}',kind:'native',...f.status};
  c.stdout.end(JSON.stringify({ok:true,result}));setImmediate(()=>c.emit('close',0));
  });return c;
 };require('node:module').syncBuiltinESMExports();`);
   const invoke=(fixture={},args=['install',dir])=>{
-   const r=spawnSync(process.execPath,['--require',preload,new URL('./cli.mjs',import.meta.url).pathname,...args,'--robot','robot.example','--timeout','1'],{encoding:'utf8',timeout:10000,env:{...process.env,SKILL_MESSAGE_FIXTURE:JSON.stringify({log,status:{state:'installed'},...fixture})}});
+   const r=spawnSync(process.execPath,['--require',preload,new URL('./cli.mjs',import.meta.url).pathname,...args,'--robot','robot.example','--timeout','1'],{encoding:'utf8',timeout:10000,env:{...process.env,SKILL_MESSAGE_FIXTURE:JSON.stringify({log,status:{state:'installed',runtimeState:'running'},...fixture})}});
    assert.ifError(r.error);return r;
   };
   const calls=()=>existsSync(log)?readFileSync(log,'utf8').trim().split('\n').map(JSON.parse):[];
@@ -79,4 +79,17 @@ for(const existing of [false,true])test(`declared icon older-firmware CLI refusa
 test('unrelated robot failure cannot supply an owner-facing collision message',()=>cliFixture(({invoke})=>{
  const r=invoke({status:{state:'failed',blockedReason:'test_other_failure',collisionName:'Installed Store Sample',message:'UNTRUSTED ROBOT ERROR'}});
  assert.equal(r.status,1);assert.ok(!r.stderr.includes('Remove “'));assert.ok(!r.stderr.includes('UNTRUSTED ROBOT ERROR'));
+}));
+
+for(const state of ['installed','resumed'])for(const runtimeState of ['disabled','paused'])test(`executable CLI ${state}/${runtimeState} exits nonzero with useful guidance and no success JSON`,()=>cliFixture(({invoke,calls})=>{
+ const paused=runtimeState==='paused',code=paused?'test_builds_disabled':'test_native_collision';
+ const r=invoke({status:{state,runtimeState,errorCode:code,collisionName:'Installed Store Sample',message:'UNTRUSTED ROBOT ERROR'}});
+ assert.equal(r.status,1,r.stdout);assert.equal(r.stdout,'');
+ assert.match(r.stderr,/not running/);assert.ok(!r.stderr.includes('Tap Install'));
+ const guidance=paused?allowInstruction:'Remove “Installed Store Sample” first, then try again.';
+ assert.ok(r.stderr.includes(guidance),r.stderr);
+ assert.ok(r.stderr.indexOf(guidance)<r.stderr.indexOf('Skill request failed: '+code),r.stderr);
+ assert.ok(r.stderr.includes(`Skill request failed: ${code} (request ${id})`));
+ assert.ok(!r.stderr.includes('UNTRUSTED ROBOT ERROR'));
+ assert.deepEqual(calls(),['info','info','create-project','info','check','info','queue']);
 }));

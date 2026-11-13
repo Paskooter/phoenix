@@ -24,7 +24,7 @@ for(const existing of [false,true])test(`install refuses a Jibo that does not ad
    const operation=args.at(-1).match(/phoenix-test-cli\.js' '([^']+)'/)[1];calls.push(operation);
    const c=new EventEmitter();c.stdin=new PassThrough();c.stdout=new PassThrough();c.stderr=new PassThrough();c.kill=()=>{};
    c.stdin.on('finish',()=>{
-    const result=operation==='info'?{protocol:1,managerReady:true,beRoot:DEFAULTS['be-root'],runtimeNode:DEFAULTS.node,stateRoot:DEFAULTS['state-root'],localKinds:['theme']}:{requestId:id,state:'installed'};
+    const result=operation==='info'?{protocol:1,managerReady:true,beRoot:DEFAULTS['be-root'],runtimeNode:DEFAULTS.node,stateRoot:DEFAULTS['state-root'],localKinds:['theme']}:{requestId:id,kind:'native',state:'installed',runtimeState:'running'};
     c.stdout.end(JSON.stringify({ok:true,result}));setImmediate(()=>c.emit('close',0));
    });return c;
   }
@@ -46,15 +46,15 @@ test('complete install uses the real SSH wrapper with a fake child, streams allo
     let result;
     if(operation==='info')result={protocol:1,managerReady:true,beRoot:DEFAULTS['be-root'],runtimeNode:DEFAULTS.node,stateRoot:DEFAULTS['state-root'],localKinds:['native'],limits:{maxArtifactBytes:33603596}};
     if(operation==='create-project')result={projectId:'local-project-'+id,appId,kind:'native',name:'hello'};
-    if(operation==='check'||operation==='queue'){const bytes=Buffer.concat(chunks);assert.equal(inspectPack(bytes,'native').appId,appId);assert.ok(remote.includes("'--sha256'"));result=operation==='check'?{checked:true}:{requestId:id,state:'pending_restart'};}
+    if(operation==='check'||operation==='queue'){const bytes=Buffer.concat(chunks);assert.equal(inspectPack(bytes,'native').appId,appId);assert.ok(remote.includes("'--sha256'"));result=operation==='check'?{checked:true}:{requestId:id,kind:'native',state:'installed',runtimeState:'pending_restart'};}
     if(operation==='status') {
      if(!interrupted){interrupted=true;c.stderr.end('connection closed during restart');setImmediate(()=>c.emit('close',255));return;}
-     result={requestId:id,state:'installed'};
+     result={requestId:id,kind:'native',state:'installed',runtimeState:'running'};
     }
     c.stdout.end(JSON.stringify({ok:true,result}));setImmediate(()=>c.emit('close',0));
    });return c;
   }
   const result=await run(['install',dir,'--robot','robot.example'],{spawn,sleep:async()=>{}});
-  assert.equal(result.state,'installed');assert.deepEqual(calls,['info','info','create-project','info','check','info','queue','info','status','info','status']);
+  assert.equal(result.state,'installed');assert.equal(result.runtimeState,'running');assert.deepEqual(calls,['info','info','create-project','info','check','info','queue','info','status','info','status']);
  }finally{rmSync(base,{recursive:true,force:true});}
 });
