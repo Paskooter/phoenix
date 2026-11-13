@@ -3,11 +3,16 @@ once at startup and every 60 seconds, records HTTP status and byte count in memo
 that bounded summary at http://127.0.0.1:8897/status on Jibo. It does not save response bodies,
 credentials or household data. There is no Home tile. Like every skill, it runs with full access.
 
+Your project is already created. From the skill kit folder (the unzipped download
+or a Phoenix checkout), run:
+
 ```sh
-node tools/skill-kit/cli.mjs new my-network --template network-service
-node tools/skill-kit/cli.mjs check my-network --syntax-node "$NODE_6_5"
-node tools/skill-kit/cli.mjs pack my-network --out my-network/out
+node tools/skill-kit/cli.mjs check {{project}}
+node tools/skill-kit/cli.mjs pack {{project}} --out {{project}}/out
 ```
+
+For the exact robot parser add `--syntax-node "$NODE_6_5"` to check and pack;
+NODE_6_5 is an optional trusted local Node 6.5.0 executable.
 
 Turn on Allow test builds on Jibo, run install, review permissions and physically tap
 Install full-access test. Read the status endpoint from your own existing SSH shell on Jibo.

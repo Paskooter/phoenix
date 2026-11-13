@@ -4,11 +4,16 @@ Silence, rejection and cancellation are not treated as answers. Swipe down or to
 Like every skill, it runs with full access. No recordings or transcripts are saved by this starter.
 Speech recognition uses Jibo's configured voice service and needs its normal connection.
 
+Your project is already created. From the skill kit folder (the unzipped download
+or a Phoenix checkout), run:
+
 ```sh
-node tools/skill-kit/cli.mjs new my-voice --template voice
-node tools/skill-kit/cli.mjs check my-voice --syntax-node "$NODE_6_5"
-node tools/skill-kit/cli.mjs pack my-voice --out my-voice/out
+node tools/skill-kit/cli.mjs check {{project}}
+node tools/skill-kit/cli.mjs pack {{project}} --out {{project}}/out
 ```
+
+For the exact robot parser add `--syntax-node "$NODE_6_5"` to check and pack;
+NODE_6_5 is an optional trusted local Node 6.5.0 executable.
 
 Turn on Allow test builds on Jibo, run install, review permissions and physically tap
 Install full-access test. When it is running, open Home by touch and choose

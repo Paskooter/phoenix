@@ -26,6 +26,33 @@ for(const template of ['hello','touch-ui','voice','network-service']) {
     } finally {rmSync(base,{recursive:true,force:true});}
   });
 }
+for(const template of ['hello','touch-ui','voice','network-service']) {
+  test(`generated README commands work for a custom ${template} project`,()=>{
+    const base=mkdtempSync(join(tmpdir(),'skill-readme-'));
+    try {
+      const name='synthetic-'+template;
+      const made=spawnSync(process.execPath,[cli,'new',name,'--template',template],{cwd:base,encoding:'utf8',timeout:30000});
+      assert.equal(made.status,0,made.stderr);
+      const app=JSON.parse(readFileSync(join(base,name,'app.json')));
+      const readme=readFileSync(join(base,name,'README.md'),'utf8');
+      const commands=readme.split('\n').filter(line=>/^node tools\/skill-kit\/cli\.mjs (?:check|pack) /.test(line));
+      assert.equal(commands.length,2,'README gives one check and one pack command');
+      for(const command of commands) {
+        assert.equal(command.split(/\s+/)[3],name,'README command must target the generated project');
+        // Resolve only the kit's location; use the README's project, flags and output unchanged.
+        const run=spawnSync(process.execPath,[cli,...command.split(/\s+/).slice(2)],{cwd:base,encoding:'utf8',timeout:30000});
+        assert.equal(run.status,0,command+'\n'+run.stderr);
+        assert.equal(JSON.parse(run.stdout).result.appId,app.appId,'command uses this project, not another sample');
+      }
+      assert.doesNotMatch(readme,/^node tools\/skill-kit\/cli\.mjs new /m,'project is already created');
+      assert.doesNotMatch(readme,/\{\{project\}\}/,'no unexpanded project placeholder');
+      const packed=join(base,name,'out',name+'-1.0.0.phnative');
+      const checked=spawnSync(process.execPath,[cli,'check',packed],{cwd:base,encoding:'utf8',timeout:30000});
+      assert.equal(checked.status,0,checked.stderr);
+      assert.equal(JSON.parse(checked.stdout).result.appId,app.appId);
+    } finally {rmSync(base,{recursive:true,force:true});}
+  });
+}
 test('template selector rejects unknown or ambiguous options',()=>{
   for(const args of [['new','sample','--template','missing'],['new','sample','--template','declarative'],['new','sample','--template','voice','--kind','native'],['new','sample','--kind','declarative'],['new','sample','--from','hello']])assert.throws(()=>argumentsFor(args));
 });

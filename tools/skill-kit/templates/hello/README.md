@@ -4,12 +4,12 @@ Like every skill, it runs inside Jibo's own software with full access. It writes
 no saved data and opens no network listener. Edit entry.js and hello.js; list
 every shipped file in skill.json. Use Node 6-compatible CommonJS.
 
-From the skill kit folder (the unzipped download or a Phoenix checkout), run:
+Your project is already created. From the skill kit folder (the unzipped download
+or a Phoenix checkout), run:
 
 ```sh
-node tools/skill-kit/cli.mjs new my-hello
-node tools/skill-kit/cli.mjs check my-hello
-node tools/skill-kit/cli.mjs pack my-hello --out my-hello/out
+node tools/skill-kit/cli.mjs check {{project}}
+node tools/skill-kit/cli.mjs pack {{project}} --out {{project}}/out
 ```
 
 For the exact robot parser add `--syntax-node "$NODE_6_5"` to check and pack.

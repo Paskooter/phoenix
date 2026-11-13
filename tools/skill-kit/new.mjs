@@ -18,7 +18,7 @@ export function scaffold(name,template='hello',cwd=process.cwd()) {
   for(const file of config.files.filter(f=>f!=='app.json'))copyFileSync(fileURLToPath(new URL(file,root)),join(dir,file));
   json('skill.json',config);
   writeFileSync(join(dir,'.gitignore'),'.skill-kit/\nout/\n');
-  const readme=readFileSync(new URL('README.md',root),'utf8');
+  const readme=readFileSync(new URL('README.md',root),'utf8').replaceAll('{{project}}',name);
   writeFileSync(join(dir,'README.md'),'# '+name+'\n\n'+readme);
   return {directory:dir,kind:'native',appId,template};
 }
