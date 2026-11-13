@@ -15,6 +15,7 @@ import { sendJson } from '@phoenix/common';
 import { DefaultPort } from '@phoenix/contracts';
 import { parseTarget, sendAmzError, UnknownOperation, AMZ_JSON } from './awsJson.js';
 import { cleanupVerifiedClassicRequest, sendVerifiedCallerError } from './caller.js';
+import { mediaRequestLogger } from './media.js';
 import { declaredContentLength } from './rawUpload.js';
 
 // The OAuth-client admin and LPS services own no in-process store; they proxy to the
@@ -64,6 +65,7 @@ export function createClassicRouter(registrations, { callerBoundary } = {}) {
 
   const dispatch = async ({ req, res, body, log }) => {
     const { target, prefix, op } = parseTarget(req);
+    if (/^media/i.test(target)) log = mediaRequestLogger(req);
     let caller;
     if (callerBoundary && !isUnsignedOobeRequest(req, target)) {
       try {
