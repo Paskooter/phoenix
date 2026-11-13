@@ -15,13 +15,15 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { resolveLlmProvider } from '@phoenix/contracts';
+import { isOpenRouterHost, llmRequestHeaders, resolveLlmProvider } from '@phoenix/contracts';
 import { adminSettingsRoutes } from '../src/admin/settingsRoutes.js';
-import { checkTogether } from '../src/admin/configCatalog.js';
+import { checkTogether, isOpenRouterHost as consoleIsOpenRouterHost } from '../src/admin/configCatalog.js';
 import { readEnvFile } from '../src/admin/envFile.js';
 import { freeChatConfigFromEnv } from '../src/freeChat/routes.js';
 import { decisionConfig } from '../../nlu/src/decisionLayer.js';
 import { newsBriefingConfig } from '../../data/src/newsBriefings/config.js';
+import { asrSettingsFromEnv } from '../../gateway/src/asr/asrRouter.js';
+import { customTranscriptionsUrl } from '../../gateway/src/asr/openAiCompatibleTransport.js';
 
 // Invented values only: never a real key.
 const JEV_KEY = 'fixture-openrouter-jev-dedicated-key-0001';
@@ -314,4 +316,93 @@ test('no key goes to openrouter.ai over plain http, not even a custom endpointâ€
     url: new URL('http://x/api/admin/settings/models?key=LLM_MODEL') });
   assert.equal(listed.available, true);
   assert.deepEqual(requests, [{ url: `${plain}/models`, authorization: null }]);
+});
+
+// Each caller runs independently: a failing helper must not mask another key path.
+const TRAILING_DOT_OPENROUTER_URLS = [
+  'http://openrouter.ai./api/v1',
+  'https://openrouter.ai./api/v1',
+  'http://OpenRouter.AI./api/v1',
+  'http://openrouter.ai.:80/api/v1',
+  'https://OPENROUTER.ai.:443/api/v1',
+  'http://www.OpenRouter.ai.:8080/api/v1',
+  'https://WWW.OpenRouter.AI.:8443/api/v1',
+];
+
+test('LLM callers send no key to trailing-dot OpenRouter URLs, including mixed case and ports', () => {
+  for (const url of TRAILING_DOT_OPENROUTER_URLS) {
+    for (const scope of ['answer', 'parser']) {
+      for (const env of [
+        { [`ETCO_${scope}_llmUrl`]: url, [`ETCO_${scope}_llmApiKey`]: CUSTOM_KEY,
+          PHOENIX_LLM_API_KEY: CUSTOM_KEY, OPENROUTER_API_KEY: JEV_KEY },
+        { PHOENIX_LLM_URL: url, PHOENIX_LLM_API_KEY: CUSTOM_KEY, OPENROUTER_API_KEY: JEV_KEY },
+      ]) {
+        const provider = resolveLlmProvider(scope, { env });
+        assert.equal(provider.apiKey, '', `${scope}: ${url}`);
+        assert.equal(llmRequestHeaders(provider).authorization, undefined, `${scope}: ${url}`);
+      }
+    }
+  }
+});
+
+test('the decision layer sends no key to trailing-dot OpenRouter URLs, including mixed case and ports', () => {
+  for (const url of TRAILING_DOT_OPENROUTER_URLS) {
+    const decision = decisionConfig({ ETCO_parser_decisionEngine: 'jev', ETCO_parser_decisionUrl: url,
+      ETCO_parser_decisionApiKey: CUSTOM_KEY, OPENROUTER_API_KEY: JEV_KEY });
+    assert.equal(decision.apiKey, '', url);
+    assert.equal(decision.enabled, false, url);
+  }
+});
+
+test('news sends no key to trailing-dot OpenRouter URLs, including mixed case and ports', () => {
+  for (const url of TRAILING_DOT_OPENROUTER_URLS) {
+    const news = newsBriefingConfig({ PHOENIX_NEWS_BRIEFINGS_ENABLED: 'true', ETCO_news_llmUrl: url,
+      ETCO_news_llmApiKey: CUSTOM_KEY, PHOENIX_LLM_API_KEY: CUSTOM_KEY, OPENROUTER_API_KEY: JEV_KEY });
+    assert.equal(news.llm.apiKey, '', url);
+    assert.equal(news.openRouter, false, 'the credential-send allowlist stays strict');
+    assert.equal(llmRequestHeaders(news.llm).authorization, undefined, url);
+  }
+});
+
+test('custom speech recognition rejects trailing-dot OpenRouter URLs, including mixed case and ports', () => {
+  for (const url of TRAILING_DOT_OPENROUTER_URLS) {
+    assert.equal(customTranscriptionsUrl(url), null, url);
+    const settings = asrSettingsFromEnv({ PHOENIX_CUSTOM_STT_URL: url, PHOENIX_CUSTOM_STT_API_KEY: CUSTOM_KEY });
+    assert.equal(settings.custom.endpoint, null, url);
+    assert.equal(settings.custom.configurationProblem, 'invalid-url', url);
+  }
+});
+
+test('the console reuses the contracts host check', () => {
+  assert.equal(consoleIsOpenRouterHost, isOpenRouterHost);
+});
+
+test('the console sends no key when listing models at trailing-dot OpenRouter URLs', async (t) => {
+  for (const endpoint of TRAILING_DOT_OPENROUTER_URLS) {
+    await t.test(endpoint, async (t) => {
+      const s = server(t, { envLines: [`LLM_URL=${endpoint}`, `PHOENIX_LLM_API_KEY=${CUSTOM_KEY}`, `OPENROUTER_API_KEY=${JEV_KEY}`] });
+      const requests = [];
+      const fetchImpl = async (url, init) => {
+        requests.push({ url: String(url), authorization: init.headers.authorization ?? null });
+        return new Response(JSON.stringify({ data: [{ id: 'vendor/model' }] }), { status: 200, headers: { 'content-type': 'application/json' } });
+      };
+      const listed = await s.routes({ fetchImpl, migrate: false })['GET /api/admin/settings/models']({ req: {}, res: {},
+        url: new URL('http://x/api/admin/settings/models?key=LLM_MODEL') });
+      assert.equal(listed.available, true);
+      assert.deepEqual(requests, [{ url: `${endpoint}/models`, authorization: null }]);
+    });
+  }
+});
+
+test('the console refuses custom speech model listing at trailing-dot OpenRouter URLs without fetching', async (t) => {
+  for (const endpoint of TRAILING_DOT_OPENROUTER_URLS) {
+    await t.test(endpoint, async (t) => {
+      const s = server(t, { envLines: [`PHOENIX_CUSTOM_STT_URL=${endpoint}`, `PHOENIX_CUSTOM_STT_API_KEY=${CUSTOM_KEY}`] });
+      const listed = await s.routes({ migrate: false, fetchImpl: () => assert.fail('no OpenRouter request through the custom speech picker') })[
+        'GET /api/admin/settings/models']({ req: {}, res: {},
+        url: new URL('http://x/api/admin/settings/models?key=PHOENIX_CUSTOM_STT_MODEL') });
+      assert.equal(listed.available, false);
+      assert.ok(checkTogether({ PHOENIX_CUSTOM_STT_URL: endpoint }).errors.PHOENIX_CUSTOM_STT_URL);
+    });
+  }
 });
