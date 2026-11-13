@@ -2099,6 +2099,22 @@ Expected: the robot receives the matching Update JSON and the OTA log records an
 update query. A real conversation test should then use the hub override and the
 private-ASR endpoint. These robot checks require hardware and were not run here.
 
+To follow one robot through the OTA log, use the `robotRef` field. The
+`update query` line and the `ota package download` (or
+`ota package stream interrupted`) line for the URL that check issued carry the
+same `robotRef`: 12 hex digits of a keyed hash of the robot's friendlyId (or of
+the account id for a non-robot caller). It never contains the robot's name,
+serial, account or email, and stays the same across checks and restarts while
+the package-bearer secret is unchanged. Each new URL carries optional signed
+`trace` metadata bound to its existing package bearer, solely to preserve the
+log reference across restarts; the same package-bearer secret is required to
+verify it. Old URLs without this metadata, or URLs with invalid or duplicate
+metadata, still download normally when their bearer is valid, but log
+`robotRef: "unknown"`. This metadata changes neither authorization nor update
+selection or package bytes. It identifies the robot the URL was issued to;
+it is not proof of the downloader's identity. With the deployment's secret,
+`robotLogRef` exported by `@phoenix/ota` computes a given robot's reference.
+
 ### 15.6 Cloudflare edge checks (operator-only)
 
 These checks apply only when an owned hostname is orange-clouded. They were not

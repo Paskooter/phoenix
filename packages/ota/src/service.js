@@ -79,6 +79,10 @@ const OTA_MAX_UPLOAD_BYTES = 1_000_000_000;
 const UPLOAD_RESERVATION = Symbol('phoenix.ota.uploadReservation');
 const SIGV4_REPLAY_WINDOW_MS = 15 * 60 * 1000;
 const PACKAGE_URL_TTL_MS = 24 * 60 * 60 * 1000;
+const ROBOT_REF_DOMAIN = 'phoenix-ota-robot-ref-v1';
+const ROBOT_REF_UNKNOWN = 'unknown';
+const LOG_SUBSYSTEMS = new Set(['os', 'services', 'main', 'be', '@be/be', 'jibo-diagnostics']);
+const LOG_FILTERS = new Set(['', 'fcs', 'eau']);
 
 function canonicalPublicOrigin(value, name = 'publicBaseUrl') {
   if (typeof value !== 'string' || value.trim() === '') throw new TypeError(`${name} is required`);
@@ -131,6 +135,61 @@ async function readBodyLimited(req, maxBytes, reservation) {
 function accountIdOf(credentials) {
   const id = credentials?.id ?? credentials?._id ?? credentials?.accountId;
   return id === undefined || id === null || String(id).length === 0 ? null : String(id);
+}
+
+/**
+ * A short anonymous reference to the calling robot, for OTA log lines only.
+ *
+ * It is a keyed hash (HMAC-SHA-256, truncated to 12 hex digits) of the robot's
+ * friendlyId, or of the account id for a caller that is not a robot. The key is
+ * derived from the deployment's package-bearer secret, so the reference is stable
+ * for one robot across checks, downloads and restarts, differs between robots, and
+ * cannot be turned back into a name by hashing a list of candidate names without
+ * that secret. An operator holding the secret can compute a given robot's reference
+ * with this function to follow it into other logs.
+ */
+export function robotLogRef(caller, secret) {
+  const friendlyId = typeof caller?.friendlyId === 'string' && caller.friendlyId ? caller.friendlyId : null;
+  const accountId = friendlyId ? null : accountIdOf(caller);
+  if (!friendlyId && !accountId) return ROBOT_REF_UNKNOWN;
+  const key = createHmac('sha256', String(secret)).update(ROBOT_REF_DOMAIN).digest();
+  const subject = friendlyId ? `robot\n${friendlyId}` : `account\n${accountId}`;
+  return createHmac('sha256', key).update(subject).digest('hex').slice(0, 12);
+}
+
+function packageTraceSignature(secret, signature, robotRef) {
+  return createHmac('sha256', secret)
+    .update(['phoenix-ota-log-trace-v1', signature.toLowerCase(), robotRef].join('\n')).digest('hex');
+}
+
+/**
+ * The downloader carries no caller credentials. Optional signed log metadata
+ * travels with its existing bearer URL instead: this survives restarts and
+ * simultaneous checks, without caching or persisting any robot identity. It
+ * describes the robot the URL was issued to, not a new authentication boundary.
+ * Call only after the existing bearer check. Missing/invalid metadata changes
+ * logging to "unknown", NEVER whether or what the caller can download.
+ */
+function packageRobotRef(secret, url, bearer) {
+  const traces = url.searchParams.getAll('trace');
+  if (!bearer.signature || traces.length !== 1) return ROBOT_REF_UNKNOWN;
+  const parsed = /^([a-f0-9]{12})\.([a-f0-9]{64})$/i.exec(traces[0]);
+  if (!parsed) return ROBOT_REF_UNKNOWN;
+  const robotRef = parsed[1].toLowerCase();
+  const expected = Buffer.from(packageTraceSignature(secret, bearer.signature, robotRef), 'hex');
+  return timingSafeEqual(expected, Buffer.from(parsed[2], 'hex')) ? robotRef : ROBOT_REF_UNKNOWN;
+}
+
+// Target filters can contain serials/names. Request fields are arbitrary strings,
+// too: project only known public channel/subsystem names and numeric versions.
+// This is a log projection; never feed these values back into catalog matching.
+function queryLogFields(query, filter) {
+  const version = query.fromVersion;
+  return {
+    subsystem: query.subsystem === undefined || LOG_SUBSYSTEMS.has(query.subsystem) ? query.subsystem : '[custom]',
+    fromVersion: version === undefined || /^\d{1,4}(?:\.\d{1,4}){1,3}(?:-(?:dev|alpha|beta|rc)\.\d{1,4})?$/.test(version) ? version : '[redacted]',
+    filter: filter === undefined || LOG_FILTERS.has(filter) ? filter : '[custom]',
+  };
 }
 
 function clockMillis(now) {
@@ -217,7 +276,7 @@ function packageBearer(secret, url, now) {
   }
   // Expiry is in milliseconds. Only disclose an age after authenticating it.
   if (expires <= now) return { id: null, reason: 'expired', diagnostics: { id, expiredForSeconds: Math.floor((now - expires) / 1000) } };
-  return { id, reason: null };
+  return { id, reason: null, signature };
 }
 
 class ReplayGuard {
@@ -296,6 +355,7 @@ export function createOtaService({
   const uploadLimit = Number(maxUploadBytes);
   if (!Number.isSafeInteger(uploadLimit) || uploadLimit < 0) throw new TypeError('maxUploadBytes must be a non-negative safe integer');
   const packageSecret = packageBearerSecret || 'development-ota-package-secret';
+  const robotRefOf = (caller) => robotLogRef(caller, packageSecret);
   const credentialResolver = typeof resolveCredentials === 'function' ? (accessKeyId) => {
     const account = resolveCredentials(accessKeyId);
     return account && account.isDeleted !== true ? account : null;
@@ -356,7 +416,7 @@ export function createOtaService({
     return caller;
   }
 
-  const packageUrl = (entry, requestBase) => {
+  const packageUrl = (entry, requestBase, robotRef = ROBOT_REF_UNKNOWN) => {
     // In the legacy standalone mode the URL must retain the request's ephemeral/test port. In
     // authenticated mode `requestBase` is always the configured canonical origin, so Host can
     // never influence a public download destination.
@@ -364,7 +424,9 @@ export function createOtaService({
     if (!requireAuth) return `${base}/ota/package?id=${encodeURIComponent(entry.id)}`;
     const expires = Math.floor(clockMillis(now) + PACKAGE_URL_TTL_MS);
     const signature = packageSignature(packageSecret, entry.id, expires);
-    return `${base}/ota/package?id=${encodeURIComponent(entry.id)}&expires=${expires}&signature=${signature}`;
+    const trace = robotRef === ROBOT_REF_UNKNOWN ? ''
+      : `&trace=${robotRef}.${packageTraceSignature(packageSecret, signature, robotRef)}`;
+    return `${base}/ota/package?id=${encodeURIComponent(entry.id)}&expires=${expires}&signature=${signature}${trace}`;
   };
 
   const deploymentActivity = createDeploymentActivity('ota');
@@ -375,7 +437,8 @@ export function createOtaService({
   const dispatchOperation = async ({ req, res, body, log }) => {
     const op = parseTarget(req);
     const baseUrl = baseFor(req);
-    const urlForEntry = (entry) => packageUrl(entry, baseUrl);
+    let robotRef = ROBOT_REF_UNKNOWN;
+    const urlForEntry = (entry) => packageUrl(entry, baseUrl, robotRef);
     if (!OPERATIONS.has(op)) {
       log.warn?.('unknown update target', { target: (req.headers && req.headers['x-amz-target']) || '(none)' });
       // The source answered an unmapped method with Boom.notFound (404, no code). Phoenix's
@@ -409,6 +472,7 @@ export function createOtaService({
       return void sendAmzError(res, 503, SIGV4_ERRORS.ACCOUNT_SERVICE_UNAVAILABLE.code, SIGV4_ERRORS.ACCOUNT_SERVICE_UNAVAILABLE.message);
     }
     if (ADMIN_ONLY.has(op) && !creds.isAdmin) return void sendAmzError(res, 401, AUTHORIZED_UNDER_ADMIN.code, AUTHORIZED_UNDER_ADMIN.message);
+    robotRef = robotRefOf(creds);
 
     const query = body && typeof body === 'object' && !Array.isArray(body) ? body : {};
     const invalid = validateMembers(op === 'CreateUpdate' ? req.headers : query, op === 'CreateUpdate' ? CREATE_HEADER_SCHEMA : PAYLOAD_SCHEMAS[op]);
@@ -422,14 +486,14 @@ export function createOtaService({
           const matches = op === 'ListUpdates'
             ? catalog.listUpdates({ subsystem: query.subsystem, filter })
             : catalog.listUpdatesFrom({ fromVersion: query.fromVersion, subsystem: query.subsystem, filter });
-          log.info?.('update query', { op, subsystem: query.subsystem, fromVersion: query.fromVersion, filter, returned: matches.length, available: catalog.entries.length });
+          log.info?.('update query', { op, robotRef, ...queryLogFields(query, filter), returned: matches.length, available: catalog.entries.length });
             return void sendAmz(res, 200, matches.map((e) => catalog.toUpdate(e, { baseUrl, fromVersion: query.fromVersion, packageUrl: urlForEntry })));
         }
 
         case 'GetUpdateFrom': {
           const filter = await catalog.effectiveFilter(query.filter, creds.friendlyId);
           const best = catalog.getUpdateFrom({ fromVersion: query.fromVersion, subsystem: query.subsystem, filter });
-          log.info?.('update query', { op, subsystem: query.subsystem, fromVersion: query.fromVersion, filter, returned: best ? 1 : 0, available: catalog.entries.length });
+          log.info?.('update query', { op, robotRef, ...queryLogFields(query, filter), returned: best ? 1 : 0, available: catalog.entries.length });
           // The robot's system-manager (UpdateManager::checkForUpdates) treats ANY error code
           // other than exactly "UPDATE_NOT_FOUND" as fatal and aborts the whole multi-subsystem
           // check — so a subsystem we don't stock (e.g. @be/be, which sorts first) must return
@@ -534,6 +598,8 @@ export function createOtaService({
       }
       const end = deploymentActivity.begin('ota-download');
       if (!end) return unavailable(res);
+      const robotRef = packageRobotRef(packageSecret, url, bearer);
+      const started = clockMillis(now);
       res.writeHead(200, {
         'content-type': 'application/octet-stream',
         'content-length': entry.length,
@@ -545,9 +611,10 @@ export function createOtaService({
       });
       try {
         await pipeline(createReadStream(entry._file), res);
+        log.info?.('ota package download', { id, robotRef, bytes: entry.length, durationMs: Math.max(0, clockMillis(now) - started) });
       } catch (err) {
         // Client hung up mid-download, or read error after headers were sent — nothing to do but log.
-        log.warn?.('ota package stream interrupted', { id, error: err.message });
+        log.warn?.('ota package stream interrupted', { id, robotRef, error: err.message });
       } finally { end(); }
     },
   };

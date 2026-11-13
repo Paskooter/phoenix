@@ -77,7 +77,7 @@ function accountStoreMtime(file) {
 }
 
 export { Catalog } from './catalog.js';
-export { createOtaService } from './service.js';
+export { createOtaService, robotLogRef } from './service.js';
 export * as errors from './errors.js';
 
 if (import.meta.url === `file://${process.argv[1]}`) {
