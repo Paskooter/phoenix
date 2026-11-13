@@ -1,11 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, cpSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { renderMarkdown, safeDocumentationUrl } from '../src/developerMarkdown.js';
 import { developerRoutes, DEVELOPER_SECTIONS } from '../src/developerPortal.js';
-import { SKILL_KIT_FILES } from '../src/developerStarter.js';
+
 import { staticRoutes, developerPages, copyKit, hasSkillGuide, missingGuideReason } from './fixtures/developer-content.mjs';
 
 function env(values, fn) {
@@ -209,8 +209,8 @@ test('developer routes: search indexes only registered public content and sends 
   assert.ok(!rows.some(r => r.path.startsWith('/developers/skills')));
 }));
 
-// The repository holds the complete skill guide and kit, so these run the real
-// sources with the opt-in set only inside the test process.
+// These run the real guide/kit from this checkout or explicit sibling inputs;
+// the release opt-in is set only inside the test process.
 const GUIDE_PATHS = ['/developers/skills', '/developers/skills/workflow', '/developers/skills/cookbook', '/developers/skills/troubleshooting',
   '/developers/skills/reference', '/developers/skills/context', '/developers/skills/sdk'];
 test('skill guide enabled: all seven pages render, every local link and fragment resolves, and search covers them', { skip: !hasSkillGuide && missingGuideReason }, () => nativeGuideEnabled(() => {

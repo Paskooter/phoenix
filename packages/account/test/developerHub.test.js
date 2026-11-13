@@ -144,7 +144,8 @@ test('sitemap: each developer page carries the last change date of its own sourc
 });
 
 test('sitemap: the shipped portal lists every developer page once with the date git records for its source', { skip: !hasGit && 'git is not available' }, () => enabled(() => {
-  const xml = get(staticRoutes()['GET /sitemap.xml']).body;
+  // Inspect this committed checkout, not the history-free sibling input overlay.
+  const xml = get(staticRoutes({ developerProjectDir: REPO })['GET /sitemap.xml']).body;
   for (const page of developerPages()) assert.equal(xml.split(`<loc>${ORIGIN}${page.path}</loc>`).length - 1, 1, page.path);
   const recorded = git(REPO, ['log', '-1', '--format=%cI', '--', 'docs/developers/support.md']).stdout.trim();
   if (recorded) assert.ok(xml.includes(`<loc>${ORIGIN}/developers/support</loc><lastmod>${new Date(recorded).toISOString()}</lastmod>`));
