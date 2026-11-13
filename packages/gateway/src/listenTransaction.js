@@ -18,6 +18,7 @@ import {
   recordVoiceTurnAsrBreakdown,
   recordVoiceTurnStart,
   readTrace,
+  createParserBoundary,
 } from '@phoenix/common';
 import { SpeechHistoryRecord } from './historyClient.js';
 import { preprocessContext, validateContextMessage } from './preprocessor.js';
@@ -672,6 +673,7 @@ export class ListenTransaction {
     // to go; without it the parser never chooses Home Assistant.
     const home = await this._homeAvailable(context);
     if (!this._isActive()) return;
+    const parserBoundary = createParserBoundary('gateway');
     const parserPr = this.components.parser.handleNLU(
       {
         text: this.asrData.text,
@@ -682,16 +684,19 @@ export class ListenTransaction {
         ...(this.listenMessage.data.hotphrase && context.data?.phoenix_jibotube === 1 ? { media: true } : {}),
       },
       this.trace,
-      { signal: this.abortController.signal },
+      { signal: this.abortController.signal, parserBoundary },
     );
     try {
       const result = await withTimeout(parserPr, Timeouts.parser);
       if (!this._isActive()) return;
-      if (result === TIMEOUT) throw new HubError(HubErrorCode.TIMEOUT_PARSER, `Timeout of ${Timeouts.parser} while waiting for parser`);
+      if (result === TIMEOUT) {
+        parserBoundary.interrupt('wait_timeout');
+        throw new HubError(HubErrorCode.TIMEOUT_PARSER, `Timeout of ${Timeouts.parser} while waiting for parser`);
+      }
       this.nluData = result;
       this.timings.nlu = now() - t0;
     } catch (err) {
-      if (!this._isActive()) { outcome = 'cancelled'; return; }
+      if (!this._isActive()) { parserBoundary.interrupt('cancelled'); outcome = 'cancelled'; return; }
       outcome = metricOutcome(err);
       // The reference wraps the whole parser block in a catch that re-throws
       // HubErrorCode.PARSER — including its own TIMEOUT_PARSER throw, so even a

@@ -14,6 +14,7 @@ export {
   runService,
 } from './cli.js';
 export { readTrace, writeTrace } from './headers.js';
+export { createParserBoundary, PARSER_REQUEST_HEADER } from './parserBoundary.js';
 export { logger, recentLogs } from './log.js';
 export {
   createVoiceTurnId,
