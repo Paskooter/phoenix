@@ -649,7 +649,14 @@ OTA_GATE_DEFINITIONS = r"""// >>> phoenix-ota-signature-gate >>>
 // "Phoenix OTA gate refused update <id>: <reason>".
 const _PHOENIX_OTA_GATE = __PHOENIX_OTA_GATE_CONFIG__;
 let _phoenixOtaStatement = null;
+let _phoenixOtaEnvelope = null;
 let _phoenixOtaSha256 = crypto.createHash("sha256");
+let _phoenixOtaSha1 = crypto.createHash("sha1");
+
+// A new attempt invalidates any receipt from an older download, even on network failure.
+try { fs.unlinkSync(argv.destination + ".phoenix-signature.json"); } catch (e) {
+    if (e.code !== "ENOENT") _phoenixOtaRefuse("cannot clear the previous signature receipt: " + e.message);
+}
 
 function _phoenixOtaRefuse(reason) {
     progress.status = "failed";
@@ -657,6 +664,7 @@ function _phoenixOtaRefuse(reason) {
     writeProgress(true);
     syslog.error("Phoenix OTA gate refused update %s: %s", String(argv.id), reason);
     try { fs.unlinkSync(argv.destination); } catch (e) { /* nothing written yet */ }
+    try { fs.unlinkSync(argv.destination + ".phoenix-signature.json"); } catch (e) { /* no receipt */ }
     process.exit(1);
 }
 
@@ -791,6 +799,7 @@ function _phoenixOtaAdmit(res) {
             + ", but this robot runs " + installed);
     }
     _phoenixOtaStatement = st;
+    _phoenixOtaEnvelope = sig;
     syslog.info("Phoenix OTA gate: update %s is signed by %s (%s %s -> %s); checking the download",
         st.id, sig.keyId, st.subsystem, installed, st.toVersion);
     return true;
@@ -799,6 +808,7 @@ function _phoenixOtaAdmit(res) {
 // Called for every chunk, before it is written: never write more than was signed.
 function _phoenixOtaChunk(chunk) {
     _phoenixOtaSha256.update(chunk);
+    _phoenixOtaSha1.update(chunk);
     if (progress.received + chunk.length > _phoenixOtaStatement.length) {
         _phoenixOtaRefuse("served more bytes than the signed length " + _phoenixOtaStatement.length);
     }
@@ -812,6 +822,20 @@ function _phoenixOtaFinish() {
     }
     if (_phoenixOtaSha256.digest("hex") !== _phoenixOtaStatement.sha256) {
         return _phoenixOtaRefuse("package bytes differ from the signed sha256");
+    }
+    if (_phoenixOtaSha1.digest("hex") !== _phoenixOtaStatement.sha1) {
+        return _phoenixOtaRefuse("package bytes differ from the signed sha1");
+    }
+    // Retain the SIGNED envelope, not an unsigned parsed dependency map. The installer
+    // re-verifies it and the cached bytes before trusting it, including after a reboot.
+    let receipt = argv.destination + ".phoenix-signature.json";
+    let temporary = receipt + "." + process.pid + ".tmp";
+    try {
+        fs.writeFileSync(temporary, JSON.stringify(_phoenixOtaEnvelope), { flag: "wx", mode: 0o600 });
+        fs.renameSync(temporary, receipt);
+    } catch (e) {
+        try { fs.unlinkSync(temporary); } catch (ignored) {}
+        return _phoenixOtaRefuse("cannot retain the signed statement: " + e.message);
     }
     syslog.info("Phoenix OTA gate admitted update %s (%s %s, sha256 %s)", _phoenixOtaStatement.id,
         _phoenixOtaStatement.subsystem, _phoenixOtaStatement.toVersion, _phoenixOtaStatement.sha256);
@@ -967,6 +991,65 @@ def render_ota_downloader(source: str, gate: dict[str, Any] | None) -> str:
         )
         patched = patched.replace(OTA_DOWNLOADER_ANCHOR, definitions + OTA_DOWNLOADER_ANCHOR)
     return patched.replace(OTA_DOWNLOADER_ANCHOR, OTA_DOWNLOADER_PATCH)
+
+
+OTA_APPLIER_PATH = "/usr/lib/node_modules/@jibo/jibo-ota-updater/src/apply-update.js"
+OTA_APPLIER_STOCK_SHA256 = "e348ec59be7bd5352016e073fc632ade0e08065b5d8095107427800fa37dc836"
+OTA_APPLIER_ANCHORS = (
+    ('    // save and reboot to actually start\n',
+     '    _phoenixOtaApplyPlan();  // phoenix-ota-apply-gate\n    // save and reboot to actually start\n'),
+    ('        syslog.info("Continue: source=%s, subsystem=%s, step=%s",\n',
+     '        _phoenixOtaApplyCurrent();  // phoenix-ota-apply-gate\n'
+     '        syslog.info("Continue: source=%s, subsystem=%s, step=%s",\n'),
+)
+
+
+def stock_ota_applier(source: str) -> str:
+    """Only the reviewed 1.4.1 entry point may receive the install-admission patch."""
+    digest = sha256_bytes(source.encode("utf-8"))
+    if digest != OTA_APPLIER_STOCK_SHA256:
+        fail(f"unexpected OTA applier source hash: {digest}")
+    return source
+
+
+def render_ota_applier(source: str, gate: dict[str, Any] | None) -> str:
+    """Pure anchored transform; no vendor installer source is stored in Phoenix."""
+    if gate is None:
+        return source
+    anchor = 'let argv = parseArgs(args, argopts);\n'
+    if "phoenix-ota-apply-gate" in source:
+        fail("OTA applier already carries an install gate; build from stock")
+    if source.count(anchor) != 1:
+        fail("OTA applier argument anchor not found exactly once")
+    definitions = Path(__file__).with_name("ota-apply-gate.js").read_text(encoding="utf-8")
+    # Reuse the downloader's exact comparator and installed-version readers.
+    version_helpers = OTA_GATE_DEFINITIONS.split("function _phoenixOtaCmpVersion(", 1)[1]
+    version_helpers = "function _phoenixOtaCmpVersion(" + version_helpers.split("// Called once the server", 1)[0]
+    definitions = definitions.replace("__PHOENIX_OTA_VERSION_HELPERS__", version_helpers).replace(
+        "__PHOENIX_OTA_GATE_CONFIG__", json.dumps(gate, sort_keys=True, ensure_ascii=True)
+    )
+    patched = source.replace(anchor, anchor + "\n" + definitions + "\n")
+    for old, new in OTA_APPLIER_ANCHORS:
+        if patched.count(old) != 1:
+            fail(f"OTA applier gate anchor not found exactly once: {old.strip()}")
+        patched = patched.replace(old, new)
+    return patched
+
+
+def patch_ota_applier(rootfs: Path, gate_keys: dict[str, str] | None) -> dict[str, Any]:
+    """Pair install-time dependency enforcement with the image's download gate."""
+    if not gate_keys:
+        return {"path": OTA_APPLIER_PATH, "enabled": False}
+    with tempfile.TemporaryDirectory(prefix="jibo-io-ota-apply-") as td:
+        local = Path(td) / "apply-update.js"
+        debugfs_dump(rootfs, OTA_APPLIER_PATH, local)
+        stock = stock_ota_applier(local.read_text(encoding="utf-8"))
+        patched = render_ota_applier(stock, ota_gate_config(gate_keys))
+        local.write_text(patched, encoding="utf-8")
+        replace_preserving_inode(rootfs, OTA_APPLIER_PATH, local, mode=CLIENT_EXECUTABLE)
+        return {"path": OTA_APPLIER_PATH, "enabled": True, "mode": "0755",
+                "stock_sha256": OTA_APPLIER_STOCK_SHA256,
+                "patched_sha256": sha256_bytes(patched.encode("utf-8"))}
 
 
 def stock_ota_downloader(source: str) -> str:
@@ -1436,6 +1519,7 @@ def main() -> int:
     ssl_shim = install_ssl_shim(services, args.ssl_shim)
     trust = add_trust_root(rootfs, args.root_ca)
     ota_downloader = patch_ota_downloader(rootfs, args.ota_release_keys or None)
+    ota_applier = patch_ota_applier(rootfs, args.ota_release_keys or None)
     system_backup_tls = patch_system_backup_tls(services)
     root_release_marker = patch_release_marker(rootfs, "rootfs", args.ota_version)
     services_release_marker = patch_release_marker(services, "services", args.ota_version)
@@ -1469,6 +1553,7 @@ def main() -> int:
         "trust": trust,
         "ssl_shim": ssl_shim,
         "ota_downloader": ota_downloader,
+        "ota_applier": ota_applier,
         "ota_signature_gate": ota_downloader["signature_gate"],
         "system_backup_tls": system_backup_tls,
         "release_markers": [root_release_marker, services_release_marker],

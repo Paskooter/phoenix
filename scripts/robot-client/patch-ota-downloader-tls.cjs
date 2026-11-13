@@ -77,7 +77,10 @@ var GATE_BEGIN = '// >>> phoenix-ota-signature-gate >>>';
 var GATE_END = '// <<< phoenix-ota-signature-gate <<<\n\n';
 var GATE_CONFIG_PREFIX = '\nconst _PHOENIX_OTA_GATE = ';
 var GATE_CONFIG_PLACEHOLDER = '__PHOENIX_OTA_GATE_CONFIG__';
-var GATE_TEMPLATE_SHA256 = '25445fdb460c929aa9600378d81413f3259da175fb87a6c7db97dbf7f68fedab';
+var GATE_TEMPLATE_SHA256 = 'f76796acd44baf399103280a223ff5faebc0cd4ee9830438fe037b7112deed88';
+// Preserve recognition of already-built signature-gated images; never downgrade
+// them to the CA-only downloader merely because newer images retain receipts.
+var GATE_PREVIOUS_TEMPLATE_SHA256 = '25445fdb460c929aa9600378d81413f3259da175fb87a6c7db97dbf7f68fedab';
 var GATE_FORMAT = 'phoenix-ota-release/1';
 var GATE_HEADER = 'x-phoenix-ota-signature';
 var GATE_MAX_KEYS = 2;
@@ -229,7 +232,8 @@ function isSignatureGated(text) {
   var configText = block.slice(configStart, configEnd);
   if (configText.indexOf('\n') >= 0 || !validGateConfig(configText)) refuse();
   var template = block.slice(0, configStart) + GATE_CONFIG_PLACEHOLDER + block.slice(configEnd);
-  if (sha256(utf8Buffer(template)) !== GATE_TEMPLATE_SHA256) refuse();
+  var templateHash = sha256(utf8Buffer(template));
+  if (templateHash !== GATE_TEMPLATE_SHA256 && templateHash !== GATE_PREVIOUS_TEMPLATE_SHA256) refuse();
   var rest = text.slice(0, begin) + text.slice(end);
   GATE_HOOKS.forEach(function(hook) {
     if (countOf(rest, hook[0]) !== 1 || countOf(rest, hook[0] + hook[1]) !== 1) refuse();

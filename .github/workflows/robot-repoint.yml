@@ -7,7 +7,7 @@ on:
       - 'scripts/robot-client-src/**'
       - 'scripts/build-robot-wifi-patcher.mjs'
       - 'scripts/robot-ota-repoint*'
-      - 'deploy/robot-patches/bake_jibo_io_native_image.py'
+      - 'deploy/robot-patches/**'
       - 'packages/account/src/static.js'
       - 'packages/account/test/repointStaticAsset.test.js'
       - 'package*.json'
@@ -18,7 +18,7 @@ on:
       - 'scripts/robot-client-src/**'
       - 'scripts/build-robot-wifi-patcher.mjs'
       - 'scripts/robot-ota-repoint*'
-      - 'deploy/robot-patches/bake_jibo_io_native_image.py'
+      - 'deploy/robot-patches/**'
       - 'packages/account/src/static.js'
       - 'packages/account/test/repointStaticAsset.test.js'
       - 'package*.json'
@@ -52,3 +52,5 @@ jobs:
           echo "PHOENIX_TEST_NODE4=$robot_runtime_dir/node-v4.1.2-linux-x64/bin/node" >> "$GITHUB_ENV"
           echo "PHOENIX_TEST_NODE6=$robot_runtime_dir/node-v6.9.2-linux-x64/bin/node" >> "$GITHUB_ENV"
       - run: npm run test:robot-repoint
+      - name: OTA download and install gates on Node 6.9.2
+        run: node --test deploy/robot-patches/ota-signature-gate.test.mjs deploy/robot-patches/ota-signed-dependencies.test.mjs

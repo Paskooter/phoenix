@@ -190,6 +190,17 @@ test('the CA-only downloader is still upgraded as before (no gate marker)', () =
   });
 });
 
+const PREVIOUS_GATED = process.env.PHOENIX_TEST_PREVIOUS_GATED_OTA_DOWNLOADER || '';
+test('an earlier byte-pinned signature-gated image is still recognised without any rewrite',
+  {skip:PREVIOUS_GATED?false:'set PHOENIX_TEST_PREVIOUS_GATED_OTA_DOWNLOADER'},()=>{
+    const gated=fs.readFileSync(PREVIOUS_GATED,'utf8');
+    fixture(gated,f=>{
+      assert.equal(f.apply({dryRun:true}).state,'signature-gated');
+      assert.equal(f.apply({dryRun:false}).state,'signature-gated');
+      assertUntouched(f,gated);
+    });
+  });
+
 test('real stock downloader: the image builder\'s gated output passes the committed pins untouched',
   { skip: STOCK ? false : 'set PHOENIX_TEST_STOCK_OTA_DOWNLOADER to the pinned stock download-update.js' }, () => {
     const { caOnly, gated } = render(STOCK, { pinned: true, keys: ['current', 'next'] });

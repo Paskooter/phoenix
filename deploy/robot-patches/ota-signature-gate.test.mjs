@@ -232,6 +232,7 @@ function assertRefused(r, id, reason) {
   const escaped = id.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&');
   assert.match(r.log, new RegExp(`^error Phoenix OTA gate refused update ${escaped}: `, 'm'), 'one clear log line names the update');
   assert.equal(r.written, null, 'nothing is left in the OTA cache');
+  assert.equal(fs.existsSync(r.destination + '.phoenix-signature.json'), false, 'no stale signature receipt survives refusal');
 }
 
 const each = (title, fn) => test(title, async (t) => {
@@ -251,6 +252,25 @@ each('a signed, newer os release is accepted', async (v) => {
   const rel = release();
   const r = await download(v, { ...rel.row, shasum: rel.sha1, body: rel.body, headers: { [HEADER]: headerOf(rel.sig) } });
   assertAccepted(r, rel.body);
+});
+
+each('a verified download retains the exact signed envelope for install-time checks', async (v) => {
+  const rel = release();
+  const r = await download(v, { ...rel.row, shasum: rel.sha1, body: rel.body, headers: { [HEADER]: headerOf(rel.sig) } });
+  assertAccepted(r, rel.body);
+  const receipt = r.destination + '.phoenix-signature.json';
+  assert.ok(fs.existsSync(receipt), 'verified signature is retained beside the package');
+  assert.deepEqual(JSON.parse(fs.readFileSync(receipt, 'utf8')), rel.sig);
+  assert.equal(fs.statSync(receipt).mode & 0o777, 0o600);
+});
+
+each('a rejected redownload clears the older signature receipt', async (v) => {
+  const rel=release();
+  const good=await download(v,{...rel.row,shasum:rel.sha1,body:rel.body,headers:{[HEADER]:headerOf(rel.sig)}});
+  assertAccepted(good,rel.body);
+  assert.ok(fs.existsSync(good.destination+'.phoenix-signature.json'));
+  const bad=await download(v,{...rel.row,shasum:rel.sha1,body:rel.body,headers:{}});
+  assertRefused(bad,rel.row.id,/unsigned package/);
 });
 
 each('a signed behaviour engine release newer than the installed dev build is accepted', async (v) => {
