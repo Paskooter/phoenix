@@ -323,10 +323,66 @@ test('outsiders, other members, wrong loop, removed and invited people are refus
   assert.equal(withAccount.json[0].data.calendarTimeZone.value, 'Europe/Paris', 'account identity wins');
 });
 
-test('only Calendar, Commute and News can be changed for someone without an account', async () => {
+test('local Weather: owner saves and reads back units, location and the existing choice rows', async () => {
+  const weather = { active: true, celsius: true, location: { lat: 0, lng: 18.25 } };
+  const linkedBefore = JSON.stringify(store.settings.get(ids.linked));
+  const saved = await putReport({ loopId: loop._id, id: ids.local, settings: { weather } });
+  assert.equal(saved.status, 200, JSON.stringify(saved.body));
+  assert.deepEqual(saved.body.settings.weather, weather);
+  const reopened = await getReport(loop._id, ids.local);
+  assert.deepEqual(reopened.body.settings.weather, weather);
+  const data = store.settings.get(localKey(loop._id, ids.local)).data;
+  assert.deepEqual(data.weather, { value: 1 });
+  assert.deepEqual(data.weatherLocation, weather.location);
+  const disk = new Store(join(dir, 'store.json'));
+  assert.deepEqual(disk.settings.get(localKey(loop._id, ids.local)).data.weatherLocation, weather.location);
+
+  const wire = await internalGetSettings({ loopId: loop._id, loopMemberId: ids.local, getView: true });
+  assert.equal(wire.status, 200, wire.text);
+  const rows = Object.fromEntries(wire.json[0].view.childViews.map((row) => [row.valueDefinition.key, row]));
+  assert.equal(rows.weather.type, 'choice');
+  assert.deepEqual(rows.weather.choices, [{ id: 0, value: 'Fahrenheit' }, { id: 1, value: 'Celsius' }]);
+  assert.equal(rows.commuteType.type, 'choice');
+  assert.deepEqual(rows.commuteType.choices.map((row) => row.value), ['Drive', 'Public transport', 'Bike', 'Walk']);
+  assert.equal(rows.weatherLocation.type, 'location', 'the new coordinate row is never an on/off switch');
+
+  const partial = await putReport({ loopId: loop._id, id: ids.local, settings: { weather: { celsius: false } } });
+  assert.deepEqual(partial.body.settings.weather, { ...weather, celsius: false });
+  const clear = await putReport({ loopId: loop._id, id: ids.local,
+    settings: { weather: { active: false, location: { lat: null, lng: null } } } });
+  assert.equal(clear.status, 200);
+  assert.deepEqual(clear.body.settings.weather, { active: false, celsius: false, location: { lat: null, lng: null } });
+  assert.equal(JSON.stringify(store.settings.get(ids.linked)), linkedBefore);
+});
+
+test('local Weather: unauthorized edits and reads reveal no saved location or account settings', async () => {
+  const edit = { loopId: loop._id, id: ids.local,
+    settings: { weather: { active: true, celsius: true, location: { lat: 11.25, lng: 22.5 } } } };
+  const before = JSON.stringify([...store.settings]);
+  for (const who of ['member', 'linked', 'stranger', 'nobody']) {
+    const write = await putReport(edit, who);
+    assert.equal(write.status, who === 'nobody' ? 401 : 403, who);
+    const read = await getReport(loop._id, ids.local, who);
+    assert.equal(read.status, who === 'nobody' ? 401 : 403, who);
+    assert.doesNotMatch(JSON.stringify(read.body), /weatherLocation|location/);
+  }
+  for (const id of [ids.linkedMember, ids.child, ids.invited]) {
+    assert.equal((await putReport({ ...edit, id })).status, 403);
+  }
+  assert.equal(JSON.stringify([...store.settings]), before, 'all records byte-identical after refusals');
+});
+
+test('only supported local report options can be changed; malformed Weather is refused atomically', async () => {
   const before = JSON.stringify(store.settings.get(localKey(loop._id, ids.local)).data);
   for (const settings of [
-    { weather: { active: false } },
+    { weather: { active: 'yes' } },
+    { weather: { celsius: 1 } },
+    { weather: { units: 'kelvin' } },
+    { weather: { location: { lat: 91, lng: 0 } } },
+    { weather: { location: { lat: 0, lng: -181 } } },
+    { weather: { location: { lat: 0, lng: null } } },
+    { weather: { location: { lat: '0', lng: 0 } } },
+    { weather: { location: { lat: 0, lng: 0, url: 'https://fixture.invalid' } } },
     { offerProactively: false },
     { calendar: { googlePersonal: true } },
     { calendar: { timeZone: 'Not/AZone' } },

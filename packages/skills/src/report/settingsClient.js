@@ -60,7 +60,15 @@ export class SettingsClient {
       throw err;
     }
     try {
-      return SettingsClient.convertSettingsToPrefs(settings);
+      const prefs = SettingsClient.convertSettingsToPrefs(settings);
+      // Local-only extension: account-backed and Classic/default preferences
+      // retain their source shape and continue using the robot's location.
+      const location = !accountId && settings.weatherLocation;
+      if (location && Number.isFinite(location.lat) && Math.abs(location.lat) <= 90
+          && Number.isFinite(location.lng) && Math.abs(location.lng) <= 180) {
+        prefs.weather.location = { lat: location.lat, lng: location.lng };
+      }
+      return prefs;
     } catch (err) {
       err.message = `Error converting settings data into prefs: ${err.message}`;
       throw err;

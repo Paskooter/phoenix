@@ -119,6 +119,7 @@ export function writeLocalReportData(store, subject, data) {
 export function localReportView(data) {
   const friendly = dataToFriendly(data);
   return {
+    weather: { ...friendly.weather, location: data.weatherLocation || { lat: null, lng: null } },
     news: friendly.news,
     commute: friendly.commute,
     calendar: {
@@ -174,14 +175,21 @@ function point(value, field) {
 }
 
 /**
- * Validate the owner's edit and merge it over the stored data. Only Calendar,
+ * Validate the owner's edit and merge it over the stored data. Weather, Calendar,
  * Commute and News (and their own options) are accepted; account-only items —
- * calendar provider links, weather, offering the report — are refused rather
+ * calendar provider links and offering the report — are refused rather
  * than silently stored. Calendar feeds go through the subscription routes.
  */
 export function applyLocalReportEdit(settings, base) {
-  onlyKeys(settings, ['news', 'commute', 'calendar'], 'settings');
+  onlyKeys(settings, ['weather', 'news', 'commute', 'calendar'], 'settings');
   const friendly = {};
+  if (own(settings, 'weather')) {
+    const weather = settings.weather;
+    onlyKeys(weather, ['active', 'celsius', 'location'], 'weather');
+    friendly.weather = {};
+    if (own(weather, 'active')) friendly.weather.active = bool(weather.active, 'weather.active');
+    if (own(weather, 'celsius')) friendly.weather.celsius = bool(weather.celsius, 'weather.celsius');
+  }
   if (own(settings, 'news')) {
     const news = settings.news;
     onlyKeys(news, ['active', 'categories'], 'news');
@@ -227,6 +235,9 @@ export function applyLocalReportEdit(settings, base) {
     }
   }
   const data = friendlyToData(friendly, base);
+  if (settings.weather && own(settings.weather, 'location')) {
+    data.weatherLocation = point(settings.weather.location, 'weather.location');
+  }
   // Nobody without an account has a linked calendar provider.
   for (const key of CREDENTIAL_KEYS) data[key] = { credentialExists: false };
   return data;

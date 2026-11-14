@@ -1102,9 +1102,9 @@ async function renderLoop({ keep = false } = {}) {
   }
 
   // An adult without a login has no Personal report page of their own, so the
-  // owner chooses what Jibo includes in theirs: the same Calendar, Commute and
-  // News switches as Account → Personal report. Linked adults choose on their
-  // own account, and children always get Jibo's standard report, so neither
+  // owner chooses what Jibo includes in theirs: Weather, Calendar, Commute and
+  // News, using the same controls as Account → Personal report. Linked adults
+  // choose on their own account, and children keep the standard report, so neither
   // ever gets this section. It loads only when opened.
   function reportSection(person) {
     const body = h('div', { class: 'person-report-body' });
@@ -1123,6 +1123,30 @@ async function renderLoop({ keep = false } = {}) {
 
     function paint(s) {
       const form = h('form', { class: 'settings-form person-report-form' });
+      let weatherPicker;
+      const weatherLocation = h('div');
+      const locationSource = h('select', { name: 'weatherLocationSource' },
+        h('option', { value: 'robot', selected: s.weather.location.lat == null }, 'Jibo’s location'),
+        h('option', { value: 'custom', selected: s.weather.location.lat != null }, 'Choose a location'));
+      const showWeatherPicker = () => {
+        weatherLocation.hidden = locationSource.value !== 'custom';
+        if (!weatherLocation.hidden && !weatherPicker) {
+          weatherPicker = createLocationPicker({
+            places: [{ key: 'location', label: 'Weather', point: s.weather.location }],
+          });
+          weatherLocation.append(weatherPicker.element);
+        }
+      };
+      locationSource.addEventListener('change', showWeatherPicker);
+      showWeatherPicker();
+      const weather = h('fieldset', { class: 'person-report-weather' },
+        h('legend', {}, 'Weather'),
+        toggle('weather', s.weather.active, 'Include weather', 'Read their forecast in the personal report.'),
+        field('Units', h('select', { name: 'weatherUnits' },
+          h('option', { value: 'f', selected: !s.weather.celsius }, 'Fahrenheit'),
+          h('option', { value: 'c', selected: s.weather.celsius }, 'Celsius'))),
+        field('Forecast location', locationSource, 'Use Jibo’s location, or choose a place just for their weather.'),
+        weatherLocation);
       const news = h('fieldset', {},
         h('legend', {}, 'News'),
         toggle('news', s.news.active, 'Read the news', 'Pick the categories Jibo should cover.'),
@@ -1159,7 +1183,7 @@ async function renderLoop({ keep = false } = {}) {
 
       const save = h('button', { type: 'submit', class: 'btn btn-sm btn-primary' }, 'Save report');
       const close = h('button', { type: 'button', class: 'btn btn-sm btn-quiet', on: { click: () => body.replaceChildren(opener) } }, 'Close');
-      form.append(news, commute, calendar,
+      form.append(weather, news, commute, calendar,
         h('div', { class: 'person-form-actions' }, close, save));
       onSubmit(form, async (event) => {
         event.preventDefault();
@@ -1170,6 +1194,10 @@ async function renderLoop({ keep = false } = {}) {
           ? { time: { hour: Number(fd.departure.split(':')[0]), min: Number(fd.departure.split(':')[1]) } } : {};
         const zone = String(fd.calendarTimeZone || '').trim();
         const settings = {
+          weather: {
+            active: !!fd.weather, celsius: fd.weatherUnits === 'c',
+            location: fd.weatherLocationSource === 'custom' ? weatherPicker.value().location : { lat: null, lng: null },
+          },
           news: { active: !!fd.news, categories },
           commute: { active: !!fd.commute, mode: fd.mode, ...picker.value(), ...departure },
           calendar: { active: !!fd.calendar, ...(zone ? { timeZone: zone } : {}) },
@@ -1233,8 +1261,8 @@ async function renderLoop({ keep = false } = {}) {
       h('h4', { class: 'setting-group-title' }, 'Personal report'),
       h('p', { class: 'person-section-text' },
         `${person.firstName} doesn’t sign in, so you choose what Jibo includes when they ask for their report.`),
-      person.birthday == null ? h('p', { class: 'field-hint' },
-        `Jibo uses these only for people he knows are 13 or older. Add ${person.firstName}’s birthday above first.`) : null,
+      person.m.memberProperties?.birthday == null ? h('p', { class: 'field-hint' },
+        'Jibo uses these only for people he knows are 13 or older.') : null,
       body);
   }
 

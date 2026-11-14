@@ -1073,6 +1073,8 @@ function localView(data) {
         choices: REPORT_CHOICE_ROWS[key].map((choice) => ({ ...choice })),
       };
     }
+    // Phoenix's local-person extension uses the existing coordinate control.
+    if (key === 'weatherLocation') return { type: 'location', index, valueDefinition };
     const row = REPORT_VIEW_ROWS[key] || {};
     const node = { type: 'switch', index };
     if (row.title !== undefined) node.title = row.title;

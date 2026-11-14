@@ -36,13 +36,20 @@ export async function getData(userPrefs, data) {
   const log = data.log;
   const todayUTC = data.skill.session.data.darkSkyPrefetchUTC || Date.now();
   const yestUTC = todayUTC - hoursToMs(24);
+  // Only the recognized local adult's Settings path supplies this override.
+  // Scope it to Weather requests; never change the shared runtime location
+  // used by calendar, commute, or another person's report.
+  const location = userPrefs?.weather?.location;
+  const requestData = location
+    ? { ...data, runtime: { ...data.runtime, location: { ...data.runtime.location, ...location } } }
+    : data;
 
   let weatherData = null;
   try {
     weatherData = await Promise.all([
-      LassoClient.fetchDarkSky(data, yestUTC),
+      LassoClient.fetchDarkSky(requestData, yestUTC),
       // No timestamp for "today" or we lose forecast data; cache expiry keeps nows distinct.
-      LassoClient.fetchDarkSky(data),
+      LassoClient.fetchDarkSky(requestData),
     ]);
   } catch (err) {
     log?.error?.(`Error getting weather data: ${err.message}`);

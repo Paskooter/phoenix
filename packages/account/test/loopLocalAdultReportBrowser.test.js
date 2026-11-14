@@ -127,6 +127,43 @@ async function openReport(page, id) {
   await row(page, id).locator('.person-report-form').waitFor();
   return row(page, id).locator('.person-report-form');
 }
+test('phone Weather controls: owner saves and reopens local units and location with established controls', async (t) => {
+  const opened = await open(t, { viewport: VIEWPORTS.phone, timezoneId: 'America/New_York' });
+  if (!opened) return;
+  const { page, house, load } = opened;
+  let form = await openReport(page, house.ids.local);
+  assert.equal(await form.locator('select[name=weatherUnits]').count(), 1, 'units use a select, not a switch');
+  let weather = form.locator('.person-report-weather');
+  await weather.locator('select[name=weatherUnits]').selectOption('c');
+  await weather.locator('select[name=weatherLocationSource]').selectOption('custom');
+  await weather.locator('.map-manual summary').click();
+  await weather.getByLabel('Weather latitude', { exact: true }).fill('11.25');
+  await weather.getByLabel('Weather longitude', { exact: true }).fill('22.5');
+  await form.getByRole('button', { name: 'Save report' }).click();
+  await page.getByText('Saved Robin’s report').waitFor();
+  assert.deepEqual(house.record().weatherLocation, { lat: 11.25, lng: 22.5 });
+  assert.deepEqual(house.record().weather, { value: 1 });
+  assert.equal(house.store.settings.has(house.linked._id), false, 'linked account untouched');
+
+  await load();
+  form = await openReport(page, house.ids.local);
+  weather = form.locator('.person-report-weather');
+  assert.equal(await weather.locator('input[name=weather]').isChecked(), true);
+  assert.equal(await weather.locator('select[name=weatherUnits]').inputValue(), 'c');
+  assert.equal(await weather.locator('select[name=weatherLocationSource]').inputValue(), 'custom');
+  assert.equal(await weather.getByLabel('Weather latitude', { exact: true }).inputValue(), '11.25');
+  assert.equal(await weather.getByLabel('Weather longitude', { exact: true }).inputValue(), '22.5');
+  if (process.env.LOCAL_REPORT_WEATHER_SHOT) await weather.screenshot({ path: process.env.LOCAL_REPORT_WEATHER_SHOT });
+
+  await weather.locator('select[name=weatherLocationSource]').selectOption('robot');
+  await form.getByRole('button', { name: 'Save report' }).click();
+  await page.getByText('Saved Robin’s report').waitFor();
+  await load();
+  weather = (await openReport(page, house.ids.local)).locator('.person-report-weather');
+  assert.equal(await weather.locator('select[name=weatherLocationSource]').inputValue(), 'robot');
+  assert.deepEqual(house.record().weatherLocation, { lat: null, lng: null });
+});
+
 const switchFor = (form, name) => form.locator(`label.switch:has(input[name="${name}"])`);
 async function shot(page, name, target) {
   if (!SHOTS) return;
