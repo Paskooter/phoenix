@@ -26,9 +26,11 @@ Check your asset rights, text contrast, minimum software version and required th
 
 ## 4. Upload a skill or theme
 
-For a skill, open its card under **Your apps**. Choose a `.phskill`, a legacy declarative `.json`, or a `.zip` of one skill folder with `skill.json`. The browser packs ZIP source locally. Its preview lists the exact name, version, requested permissions and included source files. Choose **Submit skill for review**; nothing is signed or made public yet.
+Skills are not uploaded in the browser. The dashboard has no skill picker: it does not accept `.phskill`, declarative JSON, skill ZIPs or JavaScript app packs. A declarative `.phskill` is submitted only through the authenticated [Skill API](/developers/skill-api) endpoint; each submission is an unsigned, immutable pending review, and nothing is signed or made public yet.
 
 Read status and feedback on that app's card. **Request changes** includes the review reason and test summary. Fix the source, increment the version (for example `1.0.0` → `1.0.1`) and submit again. Even rejected versions remain immutable. Host-only `index.js` and tests are retained as inert inspection material; they are not a JavaScript execution channel.
+
+JavaScript apps made with the skill kit (`.phnative`) cannot be submitted to the Skill Store yet. Try them on your own Jibo as a local test build instead: [Test on your Jibo](/developers/test#skills-local-test-builds).
 
 [Skill SDK](/developers/skill-sdk) · [Complete runnable example](/developers/skill-example) · [Skill API](/developers/skill-api)
 
@@ -40,7 +42,7 @@ The server validates the pack, normalizes the images and keeps an immutable pend
 
 [How review works](/developers/review)
 
-If ZIP support is unavailable in your browser, pack locally and choose the `.phtheme` instead. The skill picker is not the theme picker. Native execution bundles do not use either picker.
+If ZIP support is unavailable in your browser, pack locally and choose the `.phtheme` instead. This picker accepts theme packs only.
 
 ## 5. Choose when to list it
 

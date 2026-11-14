@@ -14,7 +14,7 @@ const SOURCE = 'https://github.com/Paskooter/phoenix';
 export const DEVELOPER_SECTIONS = Object.freeze([
   { id: 'start', title: 'Get started', summary: 'What you can make for Jibo today, and working projects to start from.' },
   { id: 'themes', title: 'Themes', summary: 'Change how Jibo’s menus look: colours, pictures, fonts and layout.' },
-  { id: 'skills', title: 'Skills', summary: 'Build data-only cards, buttons and speech with the Skill SDK and runnable starter.',
+  { id: 'skills', title: 'Skills', summary: 'Make a JavaScript app with the skill kit, check and pack it on your computer, then try it as a local test build on your own Jibo. JavaScript apps can’t be submitted to the Skill Store yet.',
     open: 'Build skills in JavaScript with the skill kit, then try them on your own Jibo.',
     closed: 'Native apps for Jibo. Jibo’s current software supports native local test builds; the native skill guide and starters are not published on this site yet.' },
   { id: 'publish', title: 'Publish to the Skill Store', summary: 'Apply once, submit each version for review, then choose when owners can find it.' },
@@ -108,8 +108,16 @@ function sourceDates(projectDir, sources) {
   return dates;
 }
 
+// Older pages may name the held native guide. Until its release opt-in registers
+// that page, the link points to the published explanation of local test builds.
+const HELD_GUIDE_FALLBACK = '/developers/test#skills-local-test-builds';
+
 function documentLink(href, source, pages) {
   if (href.startsWith('#')) return href;
+  const path = href.split('#')[0];
+  if (SKILL_PAGES.some(p => p.path === path) && !pages.some(p => p.path === path)) {
+    return pages.some(p => p.path === HELD_GUIDE_FALLBACK.split('#')[0]) ? HELD_GUIDE_FALLBACK : null;
+  }
   if (/^(?:\/|https?:)/.test(href)) return href;
   const [file, fragment] = href.split('#');
   const normalized = posix.normalize(posix.join(posix.dirname(source), file));
@@ -183,7 +191,7 @@ function shell(page, pages, article, headings, { origin, brandName, modified, sk
     const start = skillsOpen ? '/developers/skills' : '/developers/skill-sdk';
     const commands = skillsOpen
       ? '<span class="dev-code-comment"># Make a skill from the hello starter</span>\nnode tools/skill-kit/cli.mjs new my-skill\n\n<span class="dev-code-comment"># Check it, then try it on your Jibo</span>\nnode tools/skill-kit/cli.mjs check my-skill\nnode tools/skill-kit/cli.mjs install my-skill --robot my-jibo'
-      : '<span class="dev-code-comment"># Make a runnable starter</span>\nnode tools/skill-kit/cli.mjs new ./hello-jibo\n\n<span class="dev-code-comment"># Check and test on your computer</span>\nnode tools/skill-kit/cli.mjs check ./hello-jibo\nnode tools/skill-kit/cli.mjs test ./hello-jibo';
+      : '<span class="dev-code-comment"># Make a JavaScript app project</span>\nnode tools/skill-kit/cli.mjs new my-skill\n\n<span class="dev-code-comment"># Check it, then pack a local test build</span>\nnode tools/skill-kit/cli.mjs check my-skill\nnode tools/skill-kit/cli.mjs pack my-skill --out out\nnode tools/skill-kit/cli.mjs check out/my-skill-1.0.0.phnative';
     const next = skillsOpen ? `<a href="${SKILL_KIT_DOWNLOAD}">Download the skill kit <span aria-hidden="true">→</span></a>` : '<a href="/developers/skill-example">Open the complete example <span aria-hidden="true">→</span></a>';
     rest = `<section class="dev-hero" aria-labelledby="${esc(heading.id)}"><div class="dev-hero-copy"><p class="dev-label">PHOENIX DEVELOPERS</p><h1 id="${esc(heading.id)}">${esc(heading.text)}</h1><p class="dev-lede">${lede ? lede[1] : ''}</p>${audience ? audience[0] : ''}<div class="dev-actions"><a class="btn btn-primary" href="${start}">Start a skill <span aria-hidden="true">→</span></a><a class="btn btn-ghost" href="/developers/console">Publisher dashboard ${away}</a></div></div><div class="dev-workbench"><div class="dev-workbench-head"><span>Your first skill</span><span>LOCAL AUTHORING</span></div><pre tabindex="0" role="region" aria-label="Skill kit commands"><code>${commands}</code></pre>${next}</div></section>${landingAreas(pages, skillsOpen)}${rest}`;
   }
@@ -271,8 +279,8 @@ function contextualContent(page, source, pages, projectDir) {
     source = source.replace('**Who this is for:** authors who are ready to share a theme or declarative app with other Jibo owners through the Skill Store.',
       '**Who this is for:** authors who are ready to share a theme with other Jibo owners through the Skill Store. Publishing skills to the Skill Store isn\'t available yet; [try your skill on your own Jibo](/developers/skills) instead.');
     source = source.replace(/## 4\. Upload a skill or theme\n\n[\s\S]*?For a theme:\n\n/, '## 4. Upload a theme\n\n');
-    source = source.replace('The skill picker is not the theme picker. Native execution bundles do not use either picker.',
-      'Skills made with the [skill kit](/developers/skills) are not uploaded here; test them on your own Jibo.');
+    source = source.replace('This picker accepts theme packs only.',
+      'This picker accepts theme packs only. Skills made with the [skill kit](/developers/skills) are not uploaded here; test them on your own Jibo.');
     source = source.replace('Run the starter\'s tests and preview before upload. A compatible Jibo can install a reviewed public skill through the Skill Store; robot approval and installed status are separate steps. The local **Allow test builds** switch does not enable this declarative format. Native local tests require a separately advertised device capability and physical approval; this kit does not install them.',
       'Check a theme on your own Jibo before you list it; the [theme testing checklist](/developers/themes/testing) covers what to look at. Skills are tested on your own Jibo with the [skill kit](/developers/skills/workflow).');
   }

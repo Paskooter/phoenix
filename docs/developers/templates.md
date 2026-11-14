@@ -40,11 +40,23 @@ The template's source `README.md`, `AUTHOR.md` and `LICENSE.md` stay on your com
 
 ## Declarative skill starter
 
-[Hello Jibo](/developers/skill-example) includes the full manifest, a computer preview and a runnable test. It needs no dependency install. [Download the starter ZIP](/developers/downloads/hello-jibo.zip), or scaffold it with:
+[Hello Jibo](/developers/skill-example) includes the full manifest, a computer preview and a runnable test. It needs no dependency install. [Download the starter ZIP](/developers/downloads/hello-jibo.zip), unzip it, and in its `hello-jibo` folder run:
 
 ```sh
-node tools/skill-kit/cli.mjs new ./hello-jibo
+node --test test.mjs
+node index.js
 ```
+
+The skill kit does not make this declarative project. It makes one kind of project: a JavaScript app that you check and pack on your computer, then install as a local test build on your own Jibo. JavaScript apps cannot be submitted to the Skill Store yet. From the root of a Phoenix source checkout:
+
+```sh
+node tools/skill-kit/cli.mjs new my-skill
+node tools/skill-kit/cli.mjs check my-skill
+node tools/skill-kit/cli.mjs pack my-skill --out out
+node tools/skill-kit/cli.mjs check out/my-skill-1.0.0.phnative
+```
+
+[How the skill kit works](/developers/skill-sdk#the-skill-kit-builds-javascript-test-builds)
 
 ## Skill templates
 

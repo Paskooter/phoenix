@@ -65,9 +65,9 @@ Native apps have a different trust and execution model. Operator review does not
 {"format":"phoenix-skill-v1","files":[{"path":"skill.json","text":"{...the complete declarative manifest...}"},{"path":"index.js","text":"// Optional computer-only preview source"}]}
 ```
 
-`files` contains 1–5 unique entries with exactly `path` and `text`. Paths are fixed: `skill.json` (required), `index.js`, `test.mjs`, `README.md`, `LICENSE`. No nested paths, symlinks, external references or binary files. The full source container and canonical package each fit in the server's artifact limit (64 KiB by default). Strict JSON rejects duplicate keys and invalid UTF-8. JSON escaping expands source size, so use the kit's actual byte count rather than adding file lengths.
+`files` contains 1–5 unique entries with exactly `path` and `text`. Paths are fixed: `skill.json` (required), `index.js`, `test.mjs`, `README.md`, `LICENSE`. No nested paths, symlinks, external references or binary files. The full source container and canonical package each fit in the server's artifact limit (64 KiB by default). Strict JSON rejects duplicate keys and invalid UTF-8. JSON escaping expands source size; measure the serialized container's byte length rather than adding file lengths.
 
-A ZIP may contain one skill folder with `skill.json`. The browser includes the fixed source paths, skips packaging metadata such as `package.json`, and shows how many files it kept. It refuses ambiguous manifests, unsafe paths, unsupported/encrypted archives, oversized output and bad CRCs. The server validates the resulting container again. ZIP is an authoring convenience, not the installable format.
+Declarative `.phskill` submission is API-only through the authenticated endpoint described below. The browser dashboard has no skill picker or skill ZIP packer; its upload form accepts theme packs only. A starter ZIP is a source download, not an installable skill or a supported browser submission. The skill kit (`tools/skill-kit/cli.mjs`) builds `.phnative` JavaScript apps for local test builds only; see the [native skill workflow](/developers/skills/workflow). JavaScript apps cannot be submitted to the Skill Store yet.
 
 ## Publisher HTTP API
 
