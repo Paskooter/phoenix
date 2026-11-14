@@ -2,7 +2,7 @@
 
 Build a touchscreen skill with cards, buttons and speech. Start with a working example, check it locally, then submit the exact bundle to the Skill Store.
 
-**Who this is for:** independent developers. You need Node.js 20 or later for the authoring tools; you do not need operator access or signing keys.
+**Who this is for:** independent developers. You need Node.js 20 or later for the computer preview and the skill kit; you do not need operator access or signing keys.
 
 ## Choose the right kind
 
@@ -10,7 +10,7 @@ Build a touchscreen skill with cards, buttons and speech. Start with a working e
 | --- | --- | --- |
 | Touchscreen skill | `.phskill` | Validated pages and actions in `phoenix-declarative-v1` |
 | Menu theme | `.phtheme` | Images, colours and bounded layout settings; no code |
-| Native JavaScript app | Separate native format | Not admitted through third-party skill uploads |
+| JavaScript app | `.phnative` from the skill kit | A local test build on your own Jibo, after you approve it on his screen; not accepted by Skill Store uploads |
 
 `phoenix-skill-v1` identifies the **source bundle**, not a new JavaScript runtime. It contains `skill.json` and optional computer-only source files. The server retains them for inspection and signs only the normalized declarative data. It never evaluates submitted code. This guide does not promise a JavaScript sandbox.
 
@@ -27,21 +27,25 @@ node index.js
 
 The first command tests navigation, greeting and close. The second prints screen and speech events on your computer; it does not control a robot. All source is shown on the [example page](/developers/skill-example).
 
-For validation and packing, use a checkout of the Phoenix server source:
+## The skill kit builds JavaScript test builds
+
+The skill kit in a checkout of the Phoenix server source (`tools/skill-kit/cli.mjs`) makes one kind of project: a single JavaScript app that you install as a local test build on your own Jibo. It does not scaffold, test or pack declarative `.phskill` packages. From the root of the checkout:
 
 ```sh
-node tools/skill-kit/cli.mjs new ./my-skill --app-id app-00000000-0000-4000-8000-000000000000
-node tools/skill-kit/cli.mjs check ./my-skill
-node tools/skill-kit/cli.mjs test ./my-skill
-node tools/skill-kit/cli.mjs pack ./my-skill
+node tools/skill-kit/cli.mjs new my-skill
+node tools/skill-kit/cli.mjs check my-skill
+node tools/skill-kit/cli.mjs pack my-skill --out out
+node tools/skill-kit/cli.mjs check out/my-skill-1.0.0.phnative
 ```
 
-Replace that example app ID with the **exact ID** created in your publisher dashboard. The pack command writes `my-skill/my-skill.phskill`. It refuses to overwrite a pack; move or remove your old local output explicitly. You can also upload a ZIP of the starter folder in the browser; the browser builds the same source-container format.
+`new` copies the hello starter into `my-skill` and gives it a fresh local app ID; it takes a plain lowercase name and has no app ID option. `check` reads the project's structure without running its code. `pack` needs `--out` and writes `out/my-skill-1.0.0.phnative`; checking that file confirms the pack. There is no `test` command. Installing a `.phnative` on your Jibo, and what his software must report first, are covered in the [native skill workflow](/developers/skills/workflow).
+
+JavaScript apps cannot be submitted to the Skill Store yet. Declarative `.phskill` submission is API-only through the authenticated [Skill API](/developers/skill-api); the browser uploader accepts theme packs only and has no skill picker. See [Publishing and review](/developers/publishing) for the current browser flow.
 
 ## How the package works
 
 1. The author writes `skill.json`: metadata, permissions and a graph of pages.
-2. The kit or browser makes a `phoenix-skill-v1` container. Optional `index.js`, `test.mjs`, `README.md` and `LICENSE` are inert review attachments.
+2. A `phoenix-skill-v1` container holds declarative `skill.json`. Optional `index.js`, `test.mjs`, `README.md` and `LICENSE` are inert review attachments.
 3. Publisher approval allows uploads, not publication. Each version becomes an unsigned, immutable pending submission.
 4. An administrator inspects the manifest, permissions, source files and differences, then records a review note and test summary.
 5. Only approved exact bytes can become a signed release. Owners find public listings under **From the community**, choose their own Jibo and approve installation.
@@ -71,6 +75,6 @@ There is no filesystem, package installation, storage, HTTP, arbitrary JavaScrip
 
 The starter's computer preview is runnable without a robot. It is **not** a jibo-web-sim integration or proof of physical speech. A generic simulator supporting another SDK is not evidence of support for this package.
 
-On a compatible Jibo, a reviewed published declarative skill installs through the Skill Store with that owner's consent. The current local Test Build protocol admits native tests separately; do not use **Allow test builds** as a declarative upload bypass. Check the device's advertised supported kinds before attempting local installation. No native installer or private runtime is included in this kit.
+On a compatible Jibo, a reviewed published declarative skill installs through the Skill Store with that owner's consent. The current local Test Build protocol admits native tests separately; do not use **Allow test builds** as a declarative upload bypass. Check the device's advertised supported kinds before attempting local installation. There is no local installer or private runtime for this declarative format.
 
 [Publishing and review](/developers/publishing) · [Get help](/developers/support)

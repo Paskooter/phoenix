@@ -108,8 +108,16 @@ function sourceDates(projectDir, sources) {
   return dates;
 }
 
+// Older pages may name the held native guide. Until its release opt-in registers
+// that page, the link points to the published explanation of local test builds.
+const HELD_GUIDE_FALLBACK = '/developers/test#skills-local-test-builds';
+
 function documentLink(href, source, pages) {
   if (href.startsWith('#')) return href;
+  const path = href.split('#')[0];
+  if (SKILL_PAGES.some(p => p.path === path) && !pages.some(p => p.path === path)) {
+    return pages.some(p => p.path === HELD_GUIDE_FALLBACK.split('#')[0]) ? HELD_GUIDE_FALLBACK : null;
+  }
   if (/^(?:\/|https?:)/.test(href)) return href;
   const [file, fragment] = href.split('#');
   const normalized = posix.normalize(posix.join(posix.dirname(source), file));
@@ -271,8 +279,8 @@ function contextualContent(page, source, pages, projectDir) {
     source = source.replace('**Who this is for:** authors who are ready to share a theme or declarative app with other Jibo owners through the Skill Store.',
       '**Who this is for:** authors who are ready to share a theme with other Jibo owners through the Skill Store. Publishing skills to the Skill Store isn\'t available yet; [try your skill on your own Jibo](/developers/skills) instead.');
     source = source.replace(/## 4\. Upload a skill or theme\n\n[\s\S]*?For a theme:\n\n/, '## 4. Upload a theme\n\n');
-    source = source.replace('The skill picker is not the theme picker. Native execution bundles do not use either picker.',
-      'Skills made with the [skill kit](/developers/skills) are not uploaded here; test them on your own Jibo.');
+    source = source.replace('This picker accepts theme packs only.',
+      'This picker accepts theme packs only. Skills made with the [skill kit](/developers/skills) are not uploaded here; test them on your own Jibo.');
     source = source.replace('Run the starter\'s tests and preview before upload. A compatible Jibo can install a reviewed public skill through the Skill Store; robot approval and installed status are separate steps. The local **Allow test builds** switch does not enable this declarative format. Native local tests require a separately advertised device capability and physical approval; this kit does not install them.',
       'Check a theme on your own Jibo before you list it; the [theme testing checklist](/developers/themes/testing) covers what to look at. Skills are tested on your own Jibo with the [skill kit](/developers/skills/workflow).');
   }

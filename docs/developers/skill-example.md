@@ -1,6 +1,6 @@
 # Hello Jibo: complete example
 
-A working two-card touchscreen skill with speech, navigation and close. Download it, run its tests, then change the text and submit your own version.
+A working two-card touchscreen skill with speech, navigation and close. Download it, run its tests, then change the text and make your own version.
 
 [Download starter ZIP](/developers/downloads/hello-jibo.zip) · [Skill SDK walkthrough](/developers/skill-sdk) · [API reference](/developers/skill-api)
 
@@ -17,16 +17,10 @@ node index.js
 
 The test exercises greeting, both cards and close. The preview prints events; it does not speak through a robot. `package.json` in the download only selects JavaScript modules for the computer preview.
 
-## Pack and submit
+## Submit the declarative package
 
-Create your own app identity in [Publish](/apps#publisher), copy its exact app ID into `skill.json`, then use the kit from a Phoenix source checkout:
+This example's `skill.json` describes the declarative runtime. It is not a project for the skill kit (`tools/skill-kit/cli.mjs`), which builds only single JavaScript apps for local test builds; see [the skill kit](/developers/skill-sdk#the-skill-kit-builds-javascript-test-builds) and the [native skill workflow](/developers/skills/workflow). Declarative `.phskill` submission is API-only through the authenticated [Skill API](/developers/skill-api); the browser uploader accepts theme packs only and has no skill picker.
 
-```sh
-node tools/skill-kit/cli.mjs check ./hello-jibo
-node tools/skill-kit/cli.mjs test ./hello-jibo
-node tools/skill-kit/cli.mjs pack ./hello-jibo
-```
+Review attachments are retained as text; only `skill.json` becomes robot data. A successful API submission creates an unsigned pending review, not a signature, publication or public listing.
 
-Choose `hello-jibo.phskill` under your app's **Skill bundle** picker, or ZIP the folder and let the browser pack it. Review attachments are retained as text; only `skill.json` becomes robot data. Submission means pending review, not public installation.
-
-The source below is read from the same files used by the kit and ZIP download. It is copyable text, never evaluated by this page.
+The source below matches the Hello Jibo starter ZIP. It is copyable text, separate from the skill kit's starters, and never evaluated by this page.
