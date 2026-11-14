@@ -14,7 +14,7 @@ const SOURCE = 'https://github.com/Paskooter/phoenix';
 export const DEVELOPER_SECTIONS = Object.freeze([
   { id: 'start', title: 'Get started', summary: 'What you can make for Jibo today, and working projects to start from.' },
   { id: 'themes', title: 'Themes', summary: 'Change how Jibo’s menus look: colours, pictures, fonts and layout.' },
-  { id: 'skills', title: 'Skills', summary: 'Make a JavaScript app with the skill kit, check and pack it on your computer, then try it as a local test build on your own Jibo. JavaScript apps can’t be submitted to the Skill Store yet.',
+  { id: 'skills', title: 'Skills', summary: 'Make a JavaScript app with the skill kit, check and pack it on your computer, then try it as a local test build on your own Jibo. JavaScript apps can’t be published to the Skill Store.',
     open: 'Build skills in JavaScript with the skill kit, then try them on your own Jibo.',
     closed: 'Native apps for Jibo. Jibo’s current software supports native local test builds; the native skill guide and starters are not published on this site yet.' },
   { id: 'publish', title: 'Publish to the Skill Store', summary: 'Apply once, submit each version for review, then choose when owners can find it.' },
@@ -276,11 +276,16 @@ function contextualContent(page, source, pages, projectDir) {
     section('Skill authoring', `Build skills with the [skill guide](/developers/skills) and its [kit](${SKILL_KIT_DOWNLOAD}). The kit runs on Node.js 20 or newer on your computer; your skill runs on Jibo's Node 6.5, so write it for that older runtime. Jibo's current software installs skills as test builds after you confirm them on his screen. Check that your Jibo's \`info\` reports Test Build protocol 1 and \`native\` in \`localKinds\`; a software version number alone is not a capability check.`);
   }
   if (skillsOpen && page.path === '/developers/publishing') {
-    source = source.replace('**Who this is for:** authors who are ready to share a theme or declarative app with other Jibo owners through the Skill Store.',
+    source = source.replace('**Who this is for:** theme authors using Publish, declarative skill authors using the separate API, and JavaScript app authors who want to know where their app fits.',
       '**Who this is for:** authors who are ready to share a theme with other Jibo owners through the Skill Store. Publishing skills to the Skill Store isn\'t available yet; [try your skill on your own Jibo](/developers/skills) instead.');
-    source = source.replace(/## 4\. Upload a skill or theme\n\n[\s\S]*?For a theme:\n\n/, '## 4. Upload a theme\n\n');
-    source = source.replace('This picker accepts theme packs only.',
-      'This picker accepts theme packs only. Skills made with the [skill kit](/developers/skills) are not uploaded here; test them on your own Jibo.');
+    source = source.replace('**What you can publish:** themes, through the theme uploader in the publisher dashboard, and declarative `.phskill` packages, through the API-only [Skill API](/developers/skill-api). There is no declarative `.phskill` browser picker or skill ZIP packer. ',
+      '**What you can publish:** themes, through the theme uploader in the publisher dashboard. ');
+    source = source.replace('## 4. Upload a theme in the browser\n', '## 4. Upload a theme\n');
+    source = source.replace('This browser picker accepts theme packs only; it does not accept `.phskill`, declarative JSON, skill ZIPs or JavaScript app bundles.',
+      'This browser picker accepts theme packs only. Skills made with the [skill kit](/developers/skills) are not uploaded here; test them on your own Jibo.');
+    source = source.replace(/\nThe \[Skill SDK\]\(\/developers\/skill-sdk\) and \[Hello Jibo example\][^\n]*\n/, '');
+    source = source.replace('For supported declarative/theme publication, read', 'For theme publication, read');
+    source = source.replace('For declarative/theme material, choose', 'For themes and other non-JavaScript bundles, choose');
     source = source.replace('Run the starter\'s tests and preview before upload. A compatible Jibo can install a reviewed public skill through the Skill Store; robot approval and installed status are separate steps. The local **Allow test builds** switch does not enable this declarative format. Native local tests require a separately advertised device capability and physical approval; this kit does not install them.',
       'Check a theme on your own Jibo before you list it; the [theme testing checklist](/developers/themes/testing) covers what to look at. Skills are tested on your own Jibo with the [skill kit](/developers/skills/workflow).');
   }

@@ -55,8 +55,17 @@ already has full access to it.
 
 - Node.js **20 or newer** on your computer. No `npm install` is needed.
 - The skill kit: the unzipped `jibo-skill-kit` download.
-- For installation: OpenSSH and an SSH connection you already control to your
-  own robot. Linux, macOS and Windows through WSL are the documented host path.
+- For installation: OpenSSH on your computer, and Jibo in `int-developer`
+  mode so that he accepts SSH. Linux, macOS and Windows through WSL are the
+  documented host path.
+- A Jibo set up the usual way is in normal mode, which refuses SSH. Switching
+  modes takes a DFU/RCM session with the free Jibo DFU Mod Toolkit: you need
+  physical access to Jibo and a USB cable to your computer, and you hold the
+  RCM button under the hatch on the back of his head while you turn him on.
+  In the toolkit, choose **Set mode and configure Wi-Fi**, then select
+  **int-developer**. Follow **Set int-developer mode and Wi-Fi** in the
+  [setup guide](https://jibo.io/guide#mode), which links the toolkit download
+  and its RCM steps.
 - A set-up Jibo with an owner, running Jibo software 13.8.0, which includes the
   local test manager and the Developer testing screens. Local testing is for
   any set-up Jibo on that software; a Jibo with no owner cannot use it.
@@ -241,10 +250,13 @@ is never permission to bypass a robot rejection.
 
 ## Connect over SSH
 
-Use the robot's address or an SSH alias configured on your computer. Phoenix's
-[operations guide](OPERATIONS.md) documents `int-developer` mode: normal and
-oobe modes reject inbound SSH. The [runbook](RUNBOOK.md) documents the `root`
-login and SSH-key setup. The kit uses that login, asks OpenSSH to handle your
+Use the robot's address or an SSH alias configured on your computer. Jibo must
+be in `int-developer` mode: normal and oobe modes reject inbound SSH (see
+Phoenix's [operations guide](OPERATIONS.md)). If yours was set up the usual
+way, switch him first with **Set int-developer mode and Wi-Fi** in the
+[setup guide](https://jibo.io/guide#mode), as described under **Before you
+start**; that guide also shows how to read his IP address from his boot
+screen. The [runbook](RUNBOOK.md) documents the `root` login and SSH-key setup. The kit uses that login, asks OpenSSH to handle your
 normal credentials, and does not store passwords or disable host-key checks.
 Verify a new host key before accepting it. Configure a nonstandard port or key
 in your SSH config; do not pass shell fragments as the robot name.

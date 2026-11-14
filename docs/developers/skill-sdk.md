@@ -4,13 +4,13 @@ Build a touchscreen skill with cards, buttons and speech. Start with a working e
 
 **Who this is for:** independent developers. You need Node.js 20 or later for the computer preview and the skill kit; you do not need operator access or signing keys.
 
-## Choose the right kind
+## Format boundaries
 
 | Build | Package | What runs on Jibo |
 | --- | --- | --- |
 | Touchscreen skill | `.phskill` | Validated pages and actions in `phoenix-declarative-v1` |
 | Menu theme | `.phtheme` | Images, colours and bounded layout settings; no code |
-| JavaScript app | `.phnative` from the skill kit | A local test build on your own Jibo, after you approve it on his screen; not accepted by Skill Store uploads |
+| JavaScript app | `.phnative` from the skill kit | A local test build on your own Jibo, after you approve it on his screen; the Skill Store does not publish, sign or install JavaScript apps |
 
 `phoenix-skill-v1` identifies the **source bundle**, not a new JavaScript runtime. It contains `skill.json` and optional computer-only source files. The server retains them for inspection and signs only the normalized declarative data. It never evaluates submitted code. This guide does not promise a JavaScript sandbox.
 
@@ -40,7 +40,7 @@ node tools/skill-kit/cli.mjs check out/my-skill-1.0.0.phnative
 
 `new` copies the hello starter into `my-skill` and gives it a fresh local app ID; it takes a plain lowercase name and has no app ID option. `check` reads the project's structure without running its code. `pack` needs `--out` and writes `out/my-skill-1.0.0.phnative`; checking that file confirms the pack. There is no `test` command. Installing a `.phnative` on your Jibo, and what his software must report first, are covered in the [native skill workflow](/developers/skills/workflow).
 
-JavaScript apps cannot be submitted to the Skill Store yet. Declarative `.phskill` submission is API-only through the authenticated [Skill API](/developers/skill-api); the browser uploader accepts theme packs only and has no skill picker. See [Publishing and review](/developers/publishing) for the current browser flow.
+JavaScript apps can't be published to the Skill Store. Declarative `.phskill` submission is API-only through the authenticated [Skill API](/developers/skill-api); the browser has no declarative skill picker. See [Publishing and review](/developers/publishing) for what you can publish.
 
 ## How the package works
 

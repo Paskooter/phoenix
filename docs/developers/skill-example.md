@@ -19,8 +19,8 @@ The test exercises greeting, both cards and close. The preview prints events; it
 
 ## Submit the declarative package
 
-This example's `skill.json` describes the declarative runtime. It is not a project for the skill kit (`tools/skill-kit/cli.mjs`), which builds only single JavaScript apps for local test builds; see [the skill kit](/developers/skill-sdk#the-skill-kit-builds-javascript-test-builds) and the [native skill workflow](/developers/skills/workflow). Declarative `.phskill` submission is API-only through the authenticated [Skill API](/developers/skill-api); the browser uploader accepts theme packs only and has no skill picker.
+This example's `skill.json` describes the declarative runtime. It is not a project for the skill kit (`tools/skill-kit/cli.mjs`), which builds only single JavaScript apps for local test builds; see [the skill kit](/developers/skill-sdk#the-skill-kit-builds-javascript-test-builds) and the [native skill workflow](/developers/skills/workflow). Declarative `.phskill` submission is API-only through the authenticated [Skill API](/developers/skill-api); it has no browser picker.
 
-Review attachments are retained as text; only `skill.json` becomes robot data. A successful API submission creates an unsigned pending review, not a signature, publication or public listing.
+Review attachments are retained as text; only `skill.json` becomes robot data. A successful API submission creates an unsigned pending review, not a signature, publication or public listing. See [Publishing and review](/developers/publishing) for the browser theme flow and the separate release boundaries.
 
-The source below matches the Hello Jibo starter ZIP. It is copyable text, separate from the skill kit's starters, and never evaluated by this page.
+The source below matches the Hello Jibo starter ZIP. It is copyable text, separate from the native kit's templates, and never evaluated by this page.

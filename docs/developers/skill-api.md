@@ -65,9 +65,9 @@ Native apps have a different trust and execution model. Operator review does not
 {"format":"phoenix-skill-v1","files":[{"path":"skill.json","text":"{...the complete declarative manifest...}"},{"path":"index.js","text":"// Optional computer-only preview source"}]}
 ```
 
-`files` contains 1–5 unique entries with exactly `path` and `text`. Paths are fixed: `skill.json` (required), `index.js`, `test.mjs`, `README.md`, `LICENSE`. No nested paths, symlinks, external references or binary files. The full source container and canonical package each fit in the server's artifact limit (64 KiB by default). Strict JSON rejects duplicate keys and invalid UTF-8. JSON escaping expands source size; measure the serialized container's byte length rather than adding file lengths.
+`files` contains 1–5 unique entries with exactly `path` and `text`. Paths are fixed: `skill.json` (required), `index.js`, `test.mjs`, `README.md`, `LICENSE`. No nested paths, symlinks, external references or binary files. The full source container and canonical package each fit within the server's artifact limit (64 KiB by default). Strict JSON rejects duplicate keys and invalid UTF-8. JSON escaping expands source size; measure the serialized container's byte length rather than adding file lengths.
 
-Declarative `.phskill` submission is API-only through the authenticated endpoint described below. The browser dashboard has no skill picker or skill ZIP packer; its upload form accepts theme packs only. A starter ZIP is a source download, not an installable skill or a supported browser submission. The skill kit (`tools/skill-kit/cli.mjs`) builds `.phnative` JavaScript apps for local test builds only; see the [native skill workflow](/developers/skills/workflow). JavaScript apps cannot be submitted to the Skill Store yet.
+Declarative `.phskill` submission is API-only through the authenticated endpoint described below. The browser dashboard has no declarative skill picker or skill ZIP packer. A starter ZIP is a source download, not an installable skill or a supported browser submission. Native JavaScript authoring uses the single existing kit; see the [native skill workflow](/developers/skills/workflow). JavaScript apps can't be published to the Skill Store; see [Publishing and review](/developers/publishing) for these boundaries.
 
 ## Publisher HTTP API
 
@@ -83,7 +83,7 @@ All paths below start with `/api/skill-store`. Use your signed-in browser sessio
 | `POST /publisher/theme-releases` | Raw `.phtheme`, `Content-Type: application/vnd.phoenix.menu-theme` | Validated theme submission |
 | `PUT /publisher/listing` | `{appId, visibility: "public"}` after publication | Updated listing |
 
-Check `GET /publisher` after every mutation. Pending bytes are not available in the public catalog or install APIs. Corrections use a higher version, including after rejection. Uploads are bounded and never retried automatically by this kit.
+Check `GET /publisher?publisherId=…` for the selected publisher after every mutation. Pending bytes are not available in the public catalog or install APIs. Uploads are bounded and never retried automatically by this kit.
 
 ## Administrator review HTTP API
 
@@ -94,11 +94,13 @@ These routes require an active administrator account. The browser [Admin Review 
 | `GET /operator` | Publisher applications and limits |
 | `POST /operator/publisher` | `{publisherId, status: "approved" or "rejected", reason}` |
 | `GET /operator/submissions` | All submission summaries |
-| `GET /operator/submissions/:id` | Manifest, permissions, scope, prior approval, changed fields and file hashes |
+| `GET /operator/submissions/:id` | Manifest, permissions, scope, prior approval and file hashes |
 | `GET /operator/submissions/:id/file?path=skill.json` | Inert JSON response with file `text`, byte length and SHA-256; themes may return normalized PNG base64 |
-| `GET /operator/submissions/:id/material?part=source` | Exact retained source download; `part=normalized` returns installable data |
+| `GET /operator/submissions/:id/material?part=source` | Exact retained source download; `part=normalized` returns normalized declarative/theme data |
 | `POST /operator/submissions/:id/decision` | Exact material/state-pinned review decision |
 
-A decision body contains `materialHash`, `expectedState` (`pending` or `approved`), `decision`, `reason` (1–1200 characters), `testSummary` (1–2400), `method` (`human` or `agent`) and a unique `requestId` (8–100 letters/digits/underscore/hyphen). Decisions are `approve`, `approve_publish`, `request_changes`, `reject`, and `publish` for already-approved bytes. Every decision records actor, method, time and hashes. State, roles, scope, version and artifact integrity are rechecked before signing. A stale review cannot publish changed bytes.
+A decision body contains `materialHash`, `expectedState` (`pending` or `approved`), `decision`, `reason` (1–1200 characters), `testSummary` (1–2400), `method` (`human` or `agent`) and a unique `requestId` (8–100 letters/digits/underscore/hyphen). Supported declarative/theme decisions are `approve`, `approve_publish`, `request_changes`, `reject`, and `publish` for already-approved bytes. Every decision records actor, method, time and hashes. State, roles, scope, version and artifact integrity are rechecked before signing. A stale review cannot publish changed bytes.
+
+JavaScript apps cannot be published: the server refuses `publish` and `approve_publish` for them with HTTP 409 `native_publication_disabled`, even for an operator. Publisher identity approval, exact-bundle approval, signing, publication, public listing and owner installation remain separate gates.
 
 [Runnable complete example](/developers/skill-example) · [Publishing guide](/developers/publishing)

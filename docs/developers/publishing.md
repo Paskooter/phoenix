@@ -2,7 +2,9 @@
 
 Publishing a release and listing it publicly are separate choices. You can prepare your project before you apply.
 
-**Who this is for:** authors who are ready to share a theme or declarative app with other Jibo owners through the Skill Store.
+**Who this is for:** theme authors using Publish, declarative skill authors using the separate API, and JavaScript app authors who want to know where their app fits.
+
+**What you can publish:** themes, through the theme uploader in the publisher dashboard, and declarative `.phskill` packages, through the API-only [Skill API](/developers/skill-api). There is no declarative `.phskill` browser picker or skill ZIP packer. JavaScript apps can't be published to the Skill Store. The Store does not sign, list or install them; you try them as local test builds on your own Jibo.
 
 ## 1. Apply once
 
@@ -24,29 +26,25 @@ Check your asset rights, text contrast, minimum software version and required th
 
 [Theme reference](/developers/themes/reference) · [Release checklist](/developers/policies) · [Test on your Jibo](/developers/test)
 
-## 4. Upload a skill or theme
+## 4. Upload a theme in the browser
 
-Skills are not uploaded in the browser. The dashboard has no skill picker: it does not accept `.phskill`, declarative JSON, skill ZIPs or JavaScript app packs. A declarative `.phskill` is submitted only through the authenticated [Skill API](/developers/skill-api) endpoint; each submission is an unsigned, immutable pending review, and nothing is signed or made public yet.
+In **Publish a theme**, choose a `.phtheme` pack made with the theme kit, or a `.zip` containing one theme folder with `theme.json` and its listed images. Check the name, version, preview and **What it changes** before submitting it for review. This browser picker accepts theme packs only; it does not accept `.phskill`, declarative JSON, skill ZIPs or JavaScript app bundles.
 
-Read status and feedback on that app's card. **Request changes** includes the review reason and test summary. Fix the source, increment the version (for example `1.0.0` → `1.0.1`) and submit again. Even rejected versions remain immutable. Host-only `index.js` and tests are retained as inert inspection material; they are not a JavaScript execution channel.
+A successful upload is a private, unsigned pending submission. The operator inspects the exact source and normalized bytes and records approval, rejection or requested changes. Only approved exact bytes can be signed and published; publication and public listing are separate decisions. A rejected upload shows what needs fixing. Do not repeatedly retry the same rejected pack; uploads count toward the account's rate limit.
 
-JavaScript apps made with the skill kit (`.phnative`) cannot be submitted to the Skill Store yet. Try them on your own Jibo as a local test build instead: [Test on your Jibo](/developers/test#skills-local-test-builds).
+### Skills and native JavaScript apps
 
-[Skill SDK](/developers/skill-sdk) · [Complete runnable example](/developers/skill-example) · [Skill API](/developers/skill-api)
+The [Skill SDK](/developers/skill-sdk) and [Hello Jibo example](/developers/skill-example) cover authoring, checking and packing declarative, data-only `.phskill` packages. Optional JavaScript files in those source bundles are computer-only preview or inert review material, not code that runs as a native app. The [Skill API](/developers/skill-api) separately documents an authenticated, API-only `.phskill` submission endpoint; that route is not a browser picker.
 
-For a theme:
+For a native JavaScript app, use the single existing [JavaScript kit workflow](/developers/skills/workflow): check the project and pack it with the kit's explicit `--out` destination. JavaScript apps can't be published to the Skill Store. The Store does not sign, list or install them, and the server refuses to publish them.
 
-In **Publish a theme**, choose a `.phtheme` file, or a `.zip` containing one theme folder with `theme.json` and its listed images. Check the name, version, preview and **What it changes** before publishing.
-
-The server validates the pack, normalizes the images and keeps an immutable pending submission outside public releases. An operator inspects the source and normalized bytes and records approval, rejection or requested changes. Only approved exact bytes can be signed and published. A rejected upload shows what needs fixing. Do not repeatedly retry the same rejected pack; uploads count toward the account's rate limit.
+Try your app as a local test build instead. See [Test on your own Jibo](/developers/test) for **Allow test builds** and the install approval you give on Jibo's screen. A local test build is not Store publication, review or hardware certification.
 
 [How review works](/developers/review)
 
-If ZIP support is unavailable in your browser, pack locally and choose the `.phtheme` instead. This picker accepts theme packs only.
-
 ## 5. Choose when to list it
 
-Read the submission state under **Your apps**. Pending, rejected and changes-requested versions are not public releases. After operator publication, choose **List publicly** when you want owners to find it. A pending update leaves the prior public version available. Publishing alone does not apply a theme to a Jibo.
+For supported declarative/theme publication, read the submission state under **Your apps**. Pending, rejected and changes-requested versions are not public releases. After operator publication, choose **List publicly** when you want owners to find it. A pending update leaves the prior public version available. Publishing alone does not apply a theme to a Jibo. This step is not available for JavaScript apps.
 
 Owners choose their own Jibos. They install a theme, try it, then choose **Keep** or **Undo**. Themes do not require an on-robot approval tap. Native app installation, updates and removal require physical approval on Jibo.
 
@@ -60,7 +58,7 @@ Run the starter's tests and preview before upload. A compatible Jibo can install
 
 Administrators see **Admin Review Queue** from Publish and the Review tab. First approve or reject the publisher application. Then filter submissions by state and kind, choose **Inspect**, and read the manifest, permissions, changed fields and every source file. These are inert inspection views; never execute attachments with administrator credentials.
 
-Choose **Approve & Publish**, **Request Changes** or **Reject**, enter a review reason and test summary, then record the decision. The page rechecks exact state and material before saving, reads the target back and shows the saved outcome. A publication signs the normalized artifact; listing it publicly remains the publisher's separate choice. Review is not hardware certification.
+For declarative/theme material, choose **Approve only**, **Approve & Publish**, **Request Changes** or **Reject**, enter a review reason and test summary, then record the decision. With **Approve only**, publication remains a separate **Publish approved bytes** decision. An explicit **Approve & Publish** decision signs the exact reviewed normalized artifact, but neither action makes the app publicly listed: after publication, the publisher separately chooses **List publicly**. The page rechecks exact state, material and current principal before saving, reads the target back and shows the saved outcome. Review is not hardware certification.
 
 [Open Admin Review Queue](/apps#operator)
 

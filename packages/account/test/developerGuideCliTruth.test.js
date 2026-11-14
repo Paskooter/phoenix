@@ -42,7 +42,7 @@ test('the Skill SDK documents the single JavaScript-app kit and runs offline as 
   assert.ok(argv[2].includes('--out'), 'pack names its output directory');
   assert.match(argv[3][1], /\.phnative$/, 'the packed file is checked');
   assert.match(sdk, /\.phskill[\s\S]{0,180}API-only|API-only[\s\S]{0,180}\.phskill/i);
-  assert.match(sdk, /JavaScript apps cannot be submitted to the Skill Store yet/);
+  assert.match(sdk, /JavaScript apps can't be published to the Skill Store\./);
   const dir = mkdtempSync(join(tmpdir(), 'phx-guide-cli-'));
   try {
     for (const args of argv) {
@@ -102,10 +102,19 @@ test('declarative and JavaScript publishing boundaries stay explicit', () => {
     assert.match(guide, /\]\(\/developers\/skills\/workflow\)/, name + ' links the native workflow (falls back while the guide is held)');
     assert.match(guide, /\.phskill[\s\S]{0,180}API-only|API-only[\s\S]{0,180}\.phskill/i, name + ' keeps the API-only declarative boundary');
   }
+  // Only the Skill SDK teaches the JavaScript-app kit; the declarative example and
+  // API reference must not present kit commands as declarative authoring.
+  for (const name of ['skill-example.md', 'skill-api.md']) {
+    assert.deepEqual(commandsIn(readGuide(name)), [], name + ' must not present kit commands as declarative authoring');
+  }
+  // Theme-only browser picker; JavaScript apps are never signed, listed or installed by the Store.
   const publishing = readGuide('publishing.md');
-  assert.match(publishing, /JavaScript apps made with the skill kit \(`\.phnative`\) cannot be submitted to the Skill Store yet/);
-  assert.match(publishing, /This picker accepts theme packs only\./);
-  assert.match(readGuide('skill-api.md'), /POST \/publisher\/skill-releases/);
+  assert.match(publishing, /This browser picker accepts theme packs only/);
+  assert.match(publishing, /The Store does not sign, list or install them/);
+  const api = readGuide('skill-api.md');
+  assert.match(api, /POST \/publisher\/skill-releases/);
+  assert.match(api, /Declarative `?\.phskill` submission[\s\S]{0,180}API-only/i);
+  assert.match(api, /409 `native_publication_disabled`/);
 });
 
 // Any served developer page, rendered with the guide off or on.
@@ -126,7 +135,7 @@ test('guide off: the templates page shows the declarative starter commands and a
   assert.doesNotMatch(text, /\.\/hello-jibo|cli\.mjs test\b|--app-id\b|--kind\b/);
   // The starter's own commands are shown, not run: they would evaluate its code.
   assert.ok(blocks.some(b => /^node --test test\.mjs\nnode index\.js\n?$/.test(b)), 'the starter is run from its own folder');
-  assert.match(html, /cannot be submitted to the Skill Store yet/);
+  assert.match(html, /can(?:'|&#39;)t be published to the Skill Store\./);
   const argv = commandsIn(text);
   assert.deepEqual(argv.map(a => a[0]), ['new', 'check', 'pack', 'check']);
   for (const args of argv) assert.doesNotThrow(() => argumentsFor(args), 'templates page teaches a rejected command: ' + args.join(' '));
@@ -159,6 +168,6 @@ test('the landing Skills summary describes the one JavaScript-app kit with the g
   assert.doesNotMatch(off, /data-only|Skill SDK|cards, buttons and speech/);
   assert.match(off, /JavaScript app with the skill kit/);
   assert.match(off, /local test build on your own Jibo/);
-  assert.match(off, /JavaScript apps can’t be submitted to the Skill Store yet/);
+  assert.match(off, /JavaScript apps can’t be published to the Skill Store\./);
   assert.equal(summary(true), 'Build skills in JavaScript with the skill kit, then try them on your own Jibo.');
 });

@@ -47,7 +47,7 @@ node --test test.mjs
 node index.js
 ```
 
-The skill kit does not make this declarative project. It makes one kind of project: a JavaScript app that you check and pack on your computer, then install as a local test build on your own Jibo. JavaScript apps cannot be submitted to the Skill Store yet. From the root of a Phoenix source checkout:
+The skill kit does not make this declarative project. It makes one kind of project: a JavaScript app that you check and pack on your computer, then install as a local test build on your own Jibo. JavaScript apps can't be published to the Skill Store. From the root of a Phoenix source checkout:
 
 ```sh
 node tools/skill-kit/cli.mjs new my-skill
