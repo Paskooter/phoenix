@@ -107,3 +107,58 @@ test('declarative and JavaScript publishing boundaries stay explicit', () => {
   assert.match(publishing, /This picker accepts theme packs only\./);
   assert.match(readGuide('skill-api.md'), /POST \/publisher\/skill-releases/);
 });
+
+// Any served developer page, rendered with the guide off or on.
+function served(path, guide) {
+  return env({ ...SITE, PHOENIX_DEVELOPER_SKILLS_ENABLED: guide ? 'true' : undefined }, () => {
+    const res = { writeHead() {}, end(bytes = '') { this.body = Buffer.from(bytes).toString(); } };
+    staticRoutes()['GET ' + path]({ req: { headers: {}, path }, res });
+    return res.body;
+  });
+}
+const codeBlocks = html => [...html.matchAll(/<pre[^>]*><code[^>]*>([\s\S]*?)<\/code><\/pre>/g)]
+  .map(m => m[1].replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&'));
+
+test('guide off: the templates page shows the declarative starter commands and a kit flow that runs offline', () => {
+  const html = served('/developers/templates', false);
+  assert.match(html, /id="declarative-skill-starter"/);
+  const blocks = codeBlocks(html), text = blocks.join('\n');
+  assert.doesNotMatch(text, /\.\/hello-jibo|cli\.mjs test\b|--app-id\b|--kind\b/);
+  // The starter's own commands are shown, not run: they would evaluate its code.
+  assert.ok(blocks.some(b => /^node --test test\.mjs\nnode index\.js\n?$/.test(b)), 'the starter is run from its own folder');
+  assert.match(html, /cannot be submitted to the Skill Store yet/);
+  const argv = commandsIn(text);
+  assert.deepEqual(argv.map(a => a[0]), ['new', 'check', 'pack', 'check']);
+  for (const args of argv) assert.doesNotThrow(() => argumentsFor(args), 'templates page teaches a rejected command: ' + args.join(' '));
+  assert.match(argv[0][1], PROJECT_NAME);
+  assert.deepEqual(argv[2].slice(0, 3), ['pack', argv[0][1], '--out']);
+  assert.match(argv[3][1], /\.phnative$/);
+  const dir = mkdtempSync(join(tmpdir(), 'phx-templates-cli-'));
+  try {
+    for (const args of argv) {
+      const out = JSON.parse(execFileSync(process.execPath, [CLI, ...args], { cwd: dir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 30000 }));
+      assert.equal(out.ok, true, args.join(' '));
+      assert.equal(out.result.kind, 'native', args.join(' '));
+    }
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('guide on: the templates page keeps only the skill kit starters', () => {
+  const html = served('/developers/templates', true);
+  assert.doesNotMatch(html, /id="declarative-skill-starter"|hello-jibo/);
+  for (const args of commandsIn(codeBlocks(html).join('\n'))) assert.doesNotThrow(() => argumentsFor(args), args.join(' '));
+});
+
+test('the landing Skills summary describes the one JavaScript-app kit with the guide off and on', () => {
+  const summary = guide => {
+    const area = /<section class="dev-area" id="area-skills"[\s\S]*?<p>([\s\S]*?)<\/p>/.exec(served('/developers', guide));
+    assert.ok(area, 'the landing page has a Skills area');
+    return area[1].replace(/&#39;/g, "'");
+  };
+  const off = summary(false);
+  assert.doesNotMatch(off, /data-only|Skill SDK|cards, buttons and speech/);
+  assert.match(off, /JavaScript app with the skill kit/);
+  assert.match(off, /local test build on your own Jibo/);
+  assert.match(off, /JavaScript apps can’t be submitted to the Skill Store yet/);
+  assert.equal(summary(true), 'Build skills in JavaScript with the skill kit, then try them on your own Jibo.');
+});

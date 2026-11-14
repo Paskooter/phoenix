@@ -14,7 +14,7 @@ const SOURCE = 'https://github.com/Paskooter/phoenix';
 export const DEVELOPER_SECTIONS = Object.freeze([
   { id: 'start', title: 'Get started', summary: 'What you can make for Jibo today, and working projects to start from.' },
   { id: 'themes', title: 'Themes', summary: 'Change how Jibo’s menus look: colours, pictures, fonts and layout.' },
-  { id: 'skills', title: 'Skills', summary: 'Build data-only cards, buttons and speech with the Skill SDK and runnable starter.',
+  { id: 'skills', title: 'Skills', summary: 'Make a JavaScript app with the skill kit, check and pack it on your computer, then try it as a local test build on your own Jibo. JavaScript apps can’t be submitted to the Skill Store yet.',
     open: 'Build skills in JavaScript with the skill kit, then try them on your own Jibo.',
     closed: 'Native apps for Jibo. Jibo’s current software supports native local test builds; the native skill guide and starters are not published on this site yet.' },
   { id: 'publish', title: 'Publish to the Skill Store', summary: 'Apply once, submit each version for review, then choose when owners can find it.' },
