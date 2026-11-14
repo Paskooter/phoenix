@@ -10,6 +10,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { argumentsFor } from '../../../tools/skill-kit/cli.mjs';
+import { staticRoutes } from './fixtures/developer-content.mjs';
 
 const CLI = fileURLToPath(new URL('../../../tools/skill-kit/cli.mjs', import.meta.url));
 const GUIDES = ['skill-sdk.md', 'skill-example.md', 'skill-api.md', 'publishing.md'];
@@ -50,6 +51,49 @@ test('the Skill SDK documents the single JavaScript-app kit and runs offline as 
       assert.equal(out.result.kind, 'native', args.join(' '));
     }
   } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+function env(values, fn) {
+  const old = Object.fromEntries(Object.keys(values).map(k => [k, process.env[k]]));
+  for (const [k, v] of Object.entries(values)) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
+  try { return fn(); } finally { for (const [k, v] of Object.entries(old)) { if (v === undefined) delete process.env[k]; else process.env[k] = v; } }
+}
+const SITE = { PHOENIX_SKILL_STORE_ENABLED: 'true', PHOENIX_PAGES_DIR: undefined, PHOENIX_BRANDING_FILE: undefined, PHOENIX_SITE_URL: undefined };
+// The command panel in the /developers landing hero, as plain text.
+function landingCommands(guide) {
+  return env({ ...SITE, PHOENIX_DEVELOPER_SKILLS_ENABLED: guide ? 'true' : undefined }, () => {
+    const res = { writeHead() {}, end(bytes = '') { this.body = Buffer.from(bytes).toString(); } };
+    staticRoutes()['GET /developers']({ req: { headers: {}, path: '/developers' }, res });
+    const panel = /<pre[^>]*aria-label="Skill kit commands"[^>]*><code>([\s\S]*?)<\/code><\/pre>/.exec(res.body);
+    assert.ok(panel, 'the landing hero shows its command panel');
+    return panel[1].replace(/<[^>]+>/g, '').replace(/&amp;/g, '&');
+  });
+}
+
+test('guide off: the /developers landing hero shows the working local-test-build flow and it runs offline', () => {
+  const panel = landingCommands(false);
+  const argv = commandsIn(panel);
+  for (const args of argv) assert.doesNotThrow(() => argumentsFor(args), 'landing hero teaches a rejected command: ' + args.join(' '));
+  assert.doesNotMatch(panel, /cli\.mjs test\b|--app-id\b|--kind\b|--template\b|\.\/hello-jibo/);
+  assert.deepEqual(argv.map(a => a[0]), ['new', 'check', 'pack', 'check']);
+  assert.match(argv[0][1], PROJECT_NAME);
+  assert.deepEqual(argv[1], ['check', argv[0][1]]);
+  assert.deepEqual(argv[2].slice(0, 3), ['pack', argv[0][1], '--out']);
+  assert.match(argv[3][1], /\.phnative$/);
+  const dir = mkdtempSync(join(tmpdir(), 'phx-landing-cli-'));
+  try {
+    for (const args of argv) {
+      const out = JSON.parse(execFileSync(process.execPath, [CLI, ...args], { cwd: dir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 30000 }));
+      assert.equal(out.ok, true, args.join(' '));
+      assert.equal(out.result.kind, 'native', args.join(' '));
+    }
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('guide on: every landing hero command is accepted by the kit', () => {
+  const argv = commandsIn(landingCommands(true));
+  assert.ok(argv.length > 0);
+  for (const args of argv) assert.doesNotThrow(() => argumentsFor(args), 'landing hero teaches a rejected command: ' + args.join(' '));
 });
 
 test('declarative and JavaScript publishing boundaries stay explicit', () => {
